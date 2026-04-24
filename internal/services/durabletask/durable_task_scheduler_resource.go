@@ -5,6 +5,7 @@ package durabletask
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/schedulers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/durabletask/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -26,9 +28,7 @@ type SchedulerResourceModel struct {
 	SkuName           string            `tfschema:"sku_name"`
 	Capacity          int64             `tfschema:"capacity"`
 	Tags              map[string]string `tfschema:"tags"`
-
-	Endpoint        string `tfschema:"endpoint"`
-	RedundancyState string `tfschema:"redundancy_state"`
+	Endpoint          string            `tfschema:"endpoint"`
 }
 
 type SchedulerResource struct{}
@@ -57,7 +57,7 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: ValidateSchedulerName,
+			ValidateFunc: validate.SchedulerName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -77,10 +77,7 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(schedulers.SchedulerSkuNameConsumption),
-				string(schedulers.SchedulerSkuNameDedicated),
-			}, false),
+			ValidateFunc: validation.StringInSlice(schedulers.PossibleValuesForSchedulerSkuName(), false),
 		},
 
 		"capacity": {
@@ -96,11 +93,6 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 func (r SchedulerResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"redundancy_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -121,7 +113,7 @@ func (r SchedulerResource) CustomizeDiff() sdk.ResourceFunc {
 			if !rawCapacity.IsNull() {
 				skuName := metadata.ResourceDiff.Get("sku_name").(string)
 				if skuName != string(schedulers.SchedulerSkuNameDedicated) {
-					return fmt.Errorf("`capacity` can only be configured when `sku_name` is set to `Dedicated`")
+					return errors.New("`capacity` can only be configured when `sku_name` is set to `Dedicated`")
 				}
 			}
 
@@ -219,10 +211,6 @@ func (r SchedulerResource) Read() sdk.ResourceFunc {
 				state.Capacity = pointer.From(props.Sku.Capacity)
 				state.IpAllowList = props.IPAllowlist
 				state.Endpoint = pointer.From(props.Endpoint)
-
-				if props.Sku.RedundancyState != nil {
-					state.RedundancyState = string(*props.Sku.RedundancyState)
-				}
 			}
 
 			return metadata.Encode(&state)

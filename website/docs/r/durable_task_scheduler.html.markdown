@@ -41,15 +41,15 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Durable Task Scheduler should exist. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The SKU of the Durable Task Scheduler. Possible values include `Consumption` and `Dedicated`. Changing this forces a new resource to be created.
-
 * `ip_allow_list` - (Required) A list of IP addresses or CIDR ranges that are allowed to access the Durable Task Scheduler.
+
+* `sku_name` - (Required) The SKU of the Durable Task Scheduler. Possible values include `Consumption` and `Dedicated`. Changing this forces a new resource to be created.
 
 ---
 
 * `capacity` - (Optional) The capacity of the Durable Task Scheduler.
 
-~> **Note:** `capacity` is only applicable when `sku_name` is set to `Dedicated`.
+-> **Note:** `capacity` is only applicable when `sku_name` is set to `Dedicated`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Durable Task Scheduler.
 
@@ -60,8 +60,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Durable Task Scheduler.
 
 * `endpoint` - The endpoint URL of the Durable Task Scheduler.
-
-* `redundancy_state` - The redundancy state of the Durable Task Scheduler.
 
 ## Timeouts
 
@@ -74,7 +72,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Durable Task Schedulers can be imported using the `resource id`, e.g.
+A Durable Task Scheduler can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_durable_task_scheduler.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DurableTask/schedulers/scheduler1

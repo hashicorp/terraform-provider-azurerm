@@ -6,6 +6,7 @@ package durabletask_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -104,6 +105,18 @@ func TestAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccDurableTaskScheduler_consumptionWithCapacityFails(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
+	r := SchedulerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.consumptionWithCapacity(data),
+			ExpectError: regexp.MustCompile("`capacity` can only be configured when `sku_name` is set to `Dedicated`"),
+		},
 	})
 }
 
@@ -215,6 +228,22 @@ resource "azurerm_durable_task_scheduler" "test" {
   sku_name            = "Dedicated"
   ip_allow_list       = ["0.0.0.0/0"]
   capacity            = 2
+}
+`, template, data.RandomString)
+}
+
+func (r SchedulerResource) consumptionWithCapacity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_durable_task_scheduler" "test" {
+  name                = "acctestdts%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Consumption"
+  ip_allow_list       = ["0.0.0.0/0"]
+  capacity            = 1
 }
 `, template, data.RandomString)
 }

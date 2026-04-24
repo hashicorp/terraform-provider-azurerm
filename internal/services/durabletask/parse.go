@@ -10,8 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-// RetentionPolicyID is a synthetic Terraform ID since Azure uses the scheduler ID
-// with a fixed "default" retention policy name.
+// RetentionPolicyID is a synthetic Terraform ID used to represent the full singleton child path
+// ending in /retentionPolicies/default. This design choice allows the state/import ID for this
+// resource to include the retention policy endpoint, rather than just the parent scheduler ID.
 type RetentionPolicyID struct {
 	SubscriptionId    string
 	ResourceGroupName string

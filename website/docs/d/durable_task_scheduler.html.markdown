@@ -1,7 +1,7 @@
 ---
 subcategory: "Durable Task"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_durable_task_scheduler"
+page_title: "Azure Resource Manager: Data Source: azurerm_durable_task_scheduler"
 description: |-
   Gets information about an existing Durable Task Scheduler.
 ---
@@ -44,8 +44,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `ip_allow_list` - A list of IP addresses or CIDR ranges that are allowed to access the Durable Task Scheduler.
 
 * `location` - The Azure Region where the Durable Task Scheduler exists.
-
-* `redundancy_state` - The redundancy state of the Durable Task Scheduler.
 
 * `sku_name` - The SKU of the Durable Task Scheduler.
 

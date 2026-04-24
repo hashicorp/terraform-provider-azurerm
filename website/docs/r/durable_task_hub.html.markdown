@@ -58,7 +58,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Durable Task Hubs can be imported using the `resource id`, e.g.
+A Durable Task Hub can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_durable_task_hub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DurableTask/schedulers/scheduler1/taskHubs/taskHub1

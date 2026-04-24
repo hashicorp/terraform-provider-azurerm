@@ -55,7 +55,7 @@ A `retention_policy` block supports the following:
 
 * `retention_period_in_days` - (Required) The number of days to retain orchestration data.
 
-* `orchestration_state` - (Optional) The orchestration state to which this retention policy applies. Possible values include `Canceled`, `Completed`, `Failed`, and `Terminated`.
+* `orchestration_state` - (Optional) The orchestration state to which this retention policy applies. Possible values are `Canceled`, `Completed`, `Failed`, and `Terminated`.
 
 ## Attributes Reference
 
@@ -74,7 +74,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Durable Task Retention Policies can be imported using the `resource id`, e.g.
+A Durable Task Retention Policy can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_durable_task_retention_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DurableTask/schedulers/scheduler1/retentionPolicies/default

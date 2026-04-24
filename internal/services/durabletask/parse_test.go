@@ -87,6 +87,26 @@ func TestRetentionPolicyID_ID(t *testing.T) {
 	}
 }
 
+func TestValidateRetentionPolicyID(t *testing.T) {
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{Input: "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/rg1/providers/Microsoft.DurableTask/schedulers/scheduler1/retentionPolicies/default", Valid: true},
+		{Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DurableTask/schedulers/test-scheduler/retentionPolicies/default", Valid: true},
+		{Input: "", Valid: false},
+		{Input: "not-a-valid-id", Valid: false},
+	}
+
+	for _, tc := range cases {
+		_, errors := durabletask.ValidateRetentionPolicyID(tc.Input, "id")
+		valid := len(errors) == 0
+		if tc.Valid != valid {
+			t.Fatalf("expected valid=%t for %q, got valid=%t", tc.Valid, tc.Input, valid)
+		}
+	}
+}
+
 func TestNewRetentionPolicyID(t *testing.T) {
 	id := durabletask.NewRetentionPolicyID("sub-123", "rg-test", "scheduler-1")
 

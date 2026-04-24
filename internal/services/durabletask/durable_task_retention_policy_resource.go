@@ -62,7 +62,7 @@ func (r RetentionPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 					"retention_period_in_days": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.IntAtLeast(1),
+						ValidateFunc: validation.IntBetween(1, 90),
 					},
 
 					"orchestration_state": {
@@ -97,6 +97,10 @@ func (r RetentionPolicyResource) Create() sdk.ResourceFunc {
 			}
 
 			schedulerId := retentionpolicies.NewSchedulerID(parsedId.SubscriptionId, parsedId.ResourceGroupName, parsedId.SchedulerName)
+			// Custom ID type needed because the retention policy is a singleton child resource with a
+			// fixed path `/retentionPolicies/default` under the parent scheduler. The SDK only provides
+			// scheduler ID helpers, but the Terraform resource's state/import ID must be the full child
+			// resource path (ending in `/retentionPolicies/default`) to uniquely identify this singleton.
 			id := NewRetentionPolicyID(parsedId.SubscriptionId, parsedId.ResourceGroupName, parsedId.SchedulerName)
 
 			metadata.Logger.Infof("Import check for retention policy on %s", schedulerId.ID())
@@ -209,6 +213,11 @@ func (r RetentionPolicyResource) Update() sdk.ResourceFunc {
 			schedulerId := retentionpolicies.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
 
 			metadata.Logger.Infof("Updating retention policy on %s", schedulerId.ID())
+
+			if !metadata.ResourceData.HasChanges("retention_policy") {
+				metadata.Logger.Infof("No changes detected for retention_policy on %s", schedulerId.ID())
+				return nil
+			}
 
 			policies := make([]retentionpolicies.RetentionPolicyDetails, 0)
 			for _, item := range model.RetentionPolicy {

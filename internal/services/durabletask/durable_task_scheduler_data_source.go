@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/schedulers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/durabletask/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,7 +27,6 @@ type SchedulerDataSourceModel struct {
 	Capacity          int64             `tfschema:"capacity"`
 	Tags              map[string]string `tfschema:"tags"`
 	Endpoint          string            `tfschema:"endpoint"`
-	RedundancyState   string            `tfschema:"redundancy_state"`
 }
 
 type SchedulerDataSource struct{}
@@ -46,7 +46,7 @@ func (d SchedulerDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: ValidateSchedulerName,
+			ValidateFunc: validate.SchedulerName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -78,11 +78,6 @@ func (d SchedulerDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"tags": commonschema.TagsDataSource(),
 
 		"endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"redundancy_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -119,10 +114,6 @@ func (d SchedulerDataSource) Read() sdk.ResourceFunc {
 					state.Capacity = pointer.From(props.Sku.Capacity)
 					state.IpAllowList = props.IPAllowlist
 					state.Endpoint = pointer.From(props.Endpoint)
-
-					if props.Sku.RedundancyState != nil {
-						state.RedundancyState = string(*props.Sku.RedundancyState)
-					}
 				}
 			}
 
