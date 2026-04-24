@@ -111,30 +111,26 @@ type FrameworkListWrappedResourceWithConfig interface {
 	ListResourceConfigSchema(ctx context.Context, request list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse)
 }
 
-func EncodeListResult(ctx context.Context, resourceData *terraformschema.ResourceData, result list.ListResult, push func(list.ListResult) bool) {
+func EncodeListResult(ctx context.Context, resourceData *terraformschema.ResourceData, result *list.ListResult) {
 	tfTypeIdentity, err := resourceData.TfTypeIdentityState()
 	if err != nil {
-		SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
+		SetResponseErrorDiagnostic(result, "converting Identity State", err)
 		return
 	}
 
-	if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-		SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
+	if diags := result.Identity.Set(ctx, *tfTypeIdentity); diags.HasError() {
+		AppendResponseErrorDiagnostic(result, diags)
 		return
 	}
 
 	tfTypeResourceState, err := resourceData.TfTypeResourceState()
 	if err != nil {
-		SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
+		SetResponseErrorDiagnostic(result, "converting Resource State", err)
 		return
 	}
 
-	if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-		SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
-		return
-	}
-
-	if !push(result) {
+	if diags := result.Resource.Set(ctx, *tfTypeResourceState); diags.HasError() {
+		AppendResponseErrorDiagnostic(result, diags)
 		return
 	}
 }

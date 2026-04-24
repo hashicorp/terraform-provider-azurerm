@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 )
@@ -57,7 +58,7 @@ func ExpandCdnFrontDoorCustomerCertificateParameters(ctx context.Context, input 
 	item := input[0].(map[string]interface{})
 
 	certificateBaseURL := item["key_vault_certificate_id"].(string)
-	certificateId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(certificateBaseURL)
+	certificateId, err := keyvault.ParseNestedItemID(certificateBaseURL, keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving the Key Vault Certificate Resource ID from the Key Vault Certificate Base URL %q: %s", certificateBaseURL, err)
 	}
@@ -68,13 +69,13 @@ func ExpandCdnFrontDoorCustomerCertificateParameters(ctx context.Context, input 
 	}
 
 	subscriptionId := commonids.NewSubscriptionID(clients.Account.SubscriptionId)
-	keyVaultBaseId, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, subscriptionId, certificateId.KeyVaultBaseUrl)
+	keyVaultBaseId, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, subscriptionId, certificateId.KeyVaultBaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving the Key Vault Resource ID from the Key Vault Base URL %q: %s", certificateId.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("retrieving the Key Vault Resource ID from the Key Vault Base URL %q: %s", certificateId.KeyVaultBaseURL, err)
 	}
 
 	if keyVaultBaseId == nil {
-		return nil, fmt.Errorf("unexpected nil Key Vault Resource ID retrieved from the Key Vault Base URL %q", certificateId.KeyVaultBaseUrl)
+		return nil, fmt.Errorf("unexpected nil Key Vault Resource ID retrieved from the Key Vault Base URL %q", certificateId.KeyVaultBaseURL)
 	}
 
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultBaseId)

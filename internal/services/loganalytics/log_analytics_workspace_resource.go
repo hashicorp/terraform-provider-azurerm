@@ -230,6 +230,17 @@ func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.Res
 		}
 	}
 
+	// if local_authentication_enabled/local_authentication_enabled is not defined in config, check if local_authentication_enabled is set to the default value of true, and if not, set it to retain the default
+	if !features.FivePointOh() && d.GetRawConfig().AsValueMap()["local_authentication_disabled"].IsNull() && d.GetRawConfig().AsValueMap()["local_authentication_enabled"].IsNull() {
+		_, n := d.GetChange("local_authentication_enabled")
+		if !n.(bool) {
+			err := d.SetNew("local_authentication_enabled", true)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 

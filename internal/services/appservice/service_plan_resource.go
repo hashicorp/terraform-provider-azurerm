@@ -249,56 +249,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := ServicePlanModel{
-				Name:          id.ServerFarmName,
-				ResourceGroup: id.ResourceGroupName,
-			}
-
-			if model := servicePlan.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.Kind = pointer.From(model.Kind)
-
-				// sku read
-				if sku := model.Sku; sku != nil {
-					if sku.Name != nil {
-						state.Sku = *sku.Name
-						if sku.Capacity != nil {
-							state.WorkerCount = *sku.Capacity
-						}
-					}
-				}
-
-				// props read
-				if props := model.Properties; props != nil {
-					state.OSType = OSTypeWindows
-					if props.HyperV != nil && *props.HyperV {
-						state.OSType = OSTypeWindowsContainer
-					}
-					if props.Reserved != nil && *props.Reserved {
-						state.OSType = OSTypeLinux
-					}
-
-					if ase := props.HostingEnvironmentProfile; ase != nil && ase.Id != nil {
-						state.AppServiceEnvironmentId = *ase.Id
-					}
-
-					if pointer.From(props.ElasticScaleEnabled) && state.Sku != "" && helpers.PlanIsPremium(state.Sku) {
-						state.PremiumPlanAutoScaleEnabled = pointer.From(props.ElasticScaleEnabled)
-					}
-
-					state.PerSiteScaling = pointer.From(props.PerSiteScaling)
-					state.Reserved = pointer.From(props.Reserved)
-					state.ZoneBalancing = pointer.From(props.ZoneRedundant)
-					state.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
-				}
-				state.Tags = pointer.From(model.Tags)
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, servicePlan.Model)
 		},
 	}
 }
@@ -437,4 +388,53 @@ func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func (ServicePlanResource) flatten(metadata sdk.ResourceMetaData, id *commonids.AppServicePlanId, model *appserviceplans.AppServicePlan) error {
+	state := ServicePlanModel{
+		Name:          id.ServerFarmName,
+		ResourceGroup: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Kind = pointer.From(model.Kind)
+
+		// sku read
+		if sku := model.Sku; sku != nil {
+			state.Sku = pointer.From(sku.Name)
+			state.WorkerCount = pointer.From(sku.Capacity)
+		}
+
+		// props read
+		if props := model.Properties; props != nil {
+			state.OSType = OSTypeWindows
+			if props.HyperV != nil && *props.HyperV {
+				state.OSType = OSTypeWindowsContainer
+			}
+			if props.Reserved != nil && *props.Reserved {
+				state.OSType = OSTypeLinux
+			}
+
+			if ase := props.HostingEnvironmentProfile; ase != nil && ase.Id != nil {
+				state.AppServiceEnvironmentId = *ase.Id
+			}
+
+			if pointer.From(props.ElasticScaleEnabled) && state.Sku != "" && helpers.PlanIsPremium(state.Sku) {
+				state.PremiumPlanAutoScaleEnabled = pointer.From(props.ElasticScaleEnabled)
+			}
+
+			state.PerSiteScaling = pointer.From(props.PerSiteScaling)
+			state.Reserved = pointer.From(props.Reserved)
+			state.ZoneBalancing = pointer.From(props.ZoneRedundant)
+			state.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
+		}
+		state.Tags = pointer.From(model.Tags)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }

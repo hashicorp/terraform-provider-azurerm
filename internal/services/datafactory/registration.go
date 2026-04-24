@@ -47,6 +47,7 @@ func (Registration) Resources() []sdk.Resource {
 		DataFactoryCredentialServicePrincipalResource{},
 		DataFactoryCredentialUserAssignedManagedIdentityResource{},
 		DataFactoryCustomerManagedKeyResource{},
+		LinkedServiceSqlManagedInstanceResource{},
 	}
 }
 

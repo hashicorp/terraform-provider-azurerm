@@ -13,9 +13,9 @@ type ZohoLinkedServiceTypeProperties struct {
 	ConnectionProperties  *interface{} `json:"connectionProperties,omitempty"`
 	EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
 	Endpoint              *interface{} `json:"endpoint,omitempty"`
-	UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
-	UseHostVerification   *bool        `json:"useHostVerification,omitempty"`
-	UsePeerVerification   *bool        `json:"usePeerVerification,omitempty"`
+	UseEncryptedEndpoints *interface{} `json:"useEncryptedEndpoints,omitempty"`
+	UseHostVerification   *interface{} `json:"useHostVerification,omitempty"`
+	UsePeerVerification   *interface{} `json:"usePeerVerification,omitempty"`
 }
 
 var _ json.Unmarshaler = &ZohoLinkedServiceTypeProperties{}
@@ -25,9 +25,9 @@ func (s *ZohoLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 		ConnectionProperties  *interface{} `json:"connectionProperties,omitempty"`
 		EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
 		Endpoint              *interface{} `json:"endpoint,omitempty"`
-		UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
-		UseHostVerification   *bool        `json:"useHostVerification,omitempty"`
-		UsePeerVerification   *bool        `json:"usePeerVerification,omitempty"`
+		UseEncryptedEndpoints *interface{} `json:"useEncryptedEndpoints,omitempty"`
+		UseHostVerification   *interface{} `json:"useHostVerification,omitempty"`
+		UsePeerVerification   *interface{} `json:"usePeerVerification,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

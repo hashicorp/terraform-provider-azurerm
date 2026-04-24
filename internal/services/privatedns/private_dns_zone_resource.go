@@ -4,6 +4,7 @@
 package privatedns
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"strings"
@@ -231,7 +232,6 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 func resourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
-	recordSetsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -249,16 +249,12 @@ func resourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	recordId := privatedns.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.PrivateDnsZoneName, privatedns.RecordTypeSOA, "@")
-	recordSetResp, err := recordSetsClient.RecordSetsGet(ctx, recordId)
-	if err != nil {
-		return fmt.Errorf("reading DNS SOA record @: %v", err)
-	}
-
-	return resourcePrivateDnsZoneFlatten(d, id, resp.Model, recordSetResp.Model)
+	return resourcePrivateDnsZoneFlatten(ctx, d, meta, id, resp.Model, true)
 }
 
-func resourcePrivateDnsZoneFlatten(d *pluginsdk.ResourceData, id *privatezones.PrivateDnsZoneId, privateZone *privatezones.PrivateZone, recordSet *privatedns.RecordSet) error {
+func resourcePrivateDnsZoneFlatten(ctx context.Context, d *pluginsdk.ResourceData, meta any, id *privatezones.PrivateDnsZoneId, privateZone *privatezones.PrivateZone, includeResource bool) error {
+	recordSetsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
+
 	d.Set("name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -274,8 +270,16 @@ func resourcePrivateDnsZoneFlatten(d *pluginsdk.ResourceData, id *privatezones.P
 			return err
 		}
 
-		if err := d.Set("soa_record", flattenPrivateDNSZoneSOARecord(recordSet)); err != nil {
-			return fmt.Errorf("setting `soa_record`: %+v", err)
+		if includeResource {
+			recordSetID := privatedns.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.PrivateDnsZoneName, privatedns.RecordTypeSOA, "@")
+			resp, err := recordSetsClient.RecordSetsGet(ctx, recordSetID)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %v", recordSetID, err)
+			}
+
+			if err := d.Set("soa_record", flattenPrivateDNSZoneSOARecord(resp.Model)); err != nil {
+				return fmt.Errorf("setting `soa_record`: %+v", err)
+			}
 		}
 	}
 

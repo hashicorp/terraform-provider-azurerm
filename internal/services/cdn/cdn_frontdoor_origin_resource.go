@@ -449,8 +449,7 @@ func expandPrivateLinkSettings(input []interface{}, skuName profiles.SkuName, en
 	// Private Link Service ID here...
 	settings := input[0].(map[string]interface{})
 	targetType := settings["target_type"].(string)
-	_, err := privatelinkservices.ParsePrivateLinkServiceID(settings["private_link_target_id"].(string))
-	if err != nil && targetType == "" {
+	if _, err := privatelinkservices.ParsePrivateLinkServiceID(settings["private_link_target_id"].(string)); err != nil && targetType == "" {
 		// It is not a Load Balancer and the Target Type is empty, which is invalid...
 		return nil, fmt.Errorf("either 'private_link' or 'target_type' must be specified")
 	}
