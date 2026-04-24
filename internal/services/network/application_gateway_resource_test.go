@@ -6843,6 +6843,17 @@ resource "azurerm_subnet" "test" {
   virtual_network_name                          = azurerm_virtual_network.test.name
   address_prefixes                              = ["10.0.0.0/24"]
   private_link_service_network_policies_enabled = false
+
+  delegation {
+    name = "application-gateway"
+
+    service_delegation {
+      name = "Microsoft.Network/applicationGateways"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
 }
 
 resource "azurerm_public_ip" "test" {
@@ -6879,6 +6890,7 @@ resource "azurerm_storage_account" "errors" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  allow_nested_items_to_be_public = true
 
   static_website {
     index_document = "index.html"
@@ -6959,84 +6971,84 @@ resource "azurerm_application_gateway" "test" {
 
     custom_error_configuration {
       status_code           = "HttpStatus400"
-      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/400.html"
+      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 400)].url
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus403"
-      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/403.html"
+      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 403)].url
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus404"
-      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/404.html"
+      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 404)].url
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus405"
-      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/405.html"
+      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 405)].url
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus500"
-      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/500.html"
+      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 500)].url
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus502"
-      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/502.html"
+      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 502)].url
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus503"
-      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/503.html"
+      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 503)].url
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus504"
-      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/504.html"
+      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 504)].url
     }
 
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus400"
-    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/400.html"
+    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 400)].url
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus403"
-    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/403.html"
+    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 403)].url
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus404"
-    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/404.html"
+    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 404)].url
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus405"
-    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/405.html"
+    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 405)].url
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus500"
-    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/500.html"
+    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 500)].url
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus502"
-    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/502.html"
+    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 502)].url
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus503"
-    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/503.html"
+    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 503)].url
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus504"
-    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/504.html"
+    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 504)].url
   }
 
   request_routing_rule {
