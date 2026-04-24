@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
-	preflightvalidation "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
@@ -673,26 +672,23 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if metadata.Client.Features.PreflightEnabled {
-				req, err := expandCreate(model)
-				if err != nil {
-					return err
-				}
+				// Only perform preflight validation if there are changes. This avoids validation failures and
+				// additional API calls for resources that are unchanged between plan invocations
+				if len(metadata.ResourceDiff.GetChangedKeysPrefix("")) > 0 || metadata.ResourceDiff.Id() == "" {
+					req, err := expandCreate(model)
+					if err != nil {
+						return err
+					}
 
-				preflightValidate := preflight.ValidationRequest{
-					Location:   pointer.To(model.Location),
-					Provider:   "Microsoft.Cache",
-					ResourceId: pointer.To(redisenterprise.NewRedisEnterpriseID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)),
-					Type:       "redis",
-					Resource: preflightvalidation.ResourceValidationRequestResource{
-						ApiVersion: "2025-07-01",
-						Name:       model.Name,
-						Type:       "Microsoft.Cache/redis",
-						Properties: req,
-					},
-				}
+					resId := redisenterprise.NewRedisEnterpriseID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(resId), "redis", "2025-07-01", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
 
-				if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
-					return err
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
 				}
 			}
 
