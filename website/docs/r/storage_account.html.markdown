@@ -180,7 +180,7 @@ The following arguments are supported:
 
 * `sas_policy` - (Optional) A `sas_policy` block as defined below.
 
-* `allowed_copy_scope` - (Optional) Restrict copy to and from Storage Accounts within an AAD tenant or with Private Links to the same VNet. Possible values are `AAD`, `PrivateLink` and `All`.
+* `allowed_copy_scope` - (Optional) The permitted scope for copy operations between storage accounts. Possible values are `AAD`, `PrivateLink` and `All`.
 
 * `sftp_enabled` - (Optional) Boolean, enable SFTP for the storage account
 
