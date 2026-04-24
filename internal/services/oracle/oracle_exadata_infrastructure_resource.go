@@ -350,13 +350,7 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 				if props := model.Properties; props != nil {
 					state.CustomerContacts = FlattenCustomerContacts(result.Model.Properties.CustomerContacts)
-<<<<<<< HEAD
 					state.Name = pointer.From(result.Model.Name)
-					state.Location = result.Model.Location
-					state.Zones = result.Model.Zones
-=======
-					state.Name = pointer.ToString(result.Model.Name)
->>>>>>> bb18a65b9f (Add 19c support for Oracle ExaDB)
 					state.ResourceGroupName = id.ResourceGroupName
 					state.ComputeCount = pointer.From(props.ComputeCount)
 					state.DisplayName = props.DisplayName
