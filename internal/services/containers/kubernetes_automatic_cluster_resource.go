@@ -447,9 +447,9 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"location": commonschema.Location(),
-
 		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
 
 		"default_node_pool": SchemaDefaultAutomaticClusterNodePoolTyped(),
 
@@ -469,8 +469,9 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"kubernetes_version": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C - Azure may update the version automatically based on upgrade policies
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -512,6 +513,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		"custom_ca_trust_certificates_base64": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MinItems: 1,
 			MaxItems: 10,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -667,14 +669,22 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					"authorized_ip_ranges": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						AtLeastOneOf: []string{
+							"api_server_access_profile.0.authorized_ip_ranges",
+							"api_server_access_profile.0.subnet_id",
+						},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.CIDR,
 						},
 					},
 					"subnet_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						AtLeastOneOf: []string{
+							"api_server_access_profile.0.authorized_ip_ranges",
+							"api_server_access_profile.0.subnet_id",
+						},
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 				},
@@ -688,12 +698,14 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"http_proxy": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
 					"https_proxy": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
 					"no_proxy": {
 						Type:     pluginsdk.TypeSet,
@@ -1179,7 +1191,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		"key_management_service": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: false,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -1749,7 +1760,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 
 			var model KubernetesAutomaticClusterModel
 			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %w", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := commonids.NewKubernetesClusterID(subscriptionId, model.ResourceGroupName, model.Name)
@@ -1757,7 +1768,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -1765,7 +1776,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if err := validateKubernetesAutomaticClusterTyped(&model, nil); err != nil {
-				return fmt.Errorf("validating configuration: %w", err)
+				return fmt.Errorf("validating configuration: %+v", err)
 			}
 
 			location := location.Normalize(model.Location)
@@ -1781,10 +1792,8 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 
 			networkProfile, err := expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile)
 			if err != nil {
-				return fmt.Errorf("expanding network profile: %w", err)
+				return fmt.Errorf("expanding network profile: %+v", err)
 			}
-
-			// nodeProvisioningProfile := expandKubernetesAutomaticClusterNodeProvisioningProfile(model.NodeProvisioningProfile)
 
 			azureMonitorProfile := expandKubernetesAutomaticClusterAzureMonitorProfile(model.MonitorMetrics)
 
@@ -1822,19 +1831,13 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 
 			metricsProfile := expandKubernetesAutomaticClusterMetricsProfile(model.CostAnalysisEnabled)
 
-			// var ingressProfile *managedclusters.ManagedClusterIngressProfile
-			// if len(model.WebAppRouting) > 0 {
 			ingressProfile := expandKubernetesAutomaticClusterWebAppRouting(model.WebAppRouting, false)
-			//}
 
-			// var serviceMeshProfile *managedclusters.ServiceMeshProfile
-			// if len(model.ServiceMeshProfile) > 0 {
 			serviceMeshProfile := expandKubernetesAutomaticClusterServiceMeshProfile(model.ServiceMeshProfile, nil)
-			//}
 
 			agentProfiles, err := ExpandDefaultNodePoolTyped(model.DefaultNodePool)
 			if err != nil {
-				return fmt.Errorf("expanding `default_node_pool`: %w", err)
+				return fmt.Errorf("expanding `default_node_pool`: %+v", err)
 			}
 
 			agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
@@ -1848,7 +1851,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 
 			addonProfiles, err := expandKubernetesAutomaticClusterAddOns(&model, metadata.Client.Containers.Environment)
 			if err != nil {
-				return fmt.Errorf("expanding addons: %w", err)
+				return fmt.Errorf("expanding addons: %+v", err)
 			}
 
 			(*addonProfiles)["azurepolicy"] = managedclusters.ManagedClusterAddonProfile{
@@ -1934,7 +1937,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 
 			err = client.CreateOrUpdateThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions())
 			if err != nil {
-				return fmt.Errorf("creating %s: %w", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			if len(model.MaintenanceWindow) > 0 {
@@ -1944,7 +1947,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				}
 				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 				if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, maintenanceParams); err != nil {
-					return fmt.Errorf("creating/updating default maintenance config for %s: %w", id, err)
+					return fmt.Errorf("creating/updating default maintenance config for %s: %+v", id, err)
 				}
 			}
 
@@ -1955,7 +1958,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				}
 				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
 				if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, maintenanceParams); err != nil {
-					return fmt.Errorf("creating/updating auto upgrade schedule maintenance config for %s: %w", id, err)
+					return fmt.Errorf("creating/updating auto upgrade schedule maintenance config for %s: %+v", id, err)
 				}
 			}
 
@@ -1966,7 +1969,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				}
 				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
 				if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, maintenanceParams); err != nil {
-					return fmt.Errorf("creating/updating node os upgrade schedule maintenance config for %s: %w", id, err)
+					return fmt.Errorf("creating/updating node os upgrade schedule maintenance config for %s: %+v", id, err)
 				}
 			}
 
@@ -1996,7 +1999,11 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %w", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			return r.flatten(ctx, metadata, id, resp.Model)
@@ -2009,7 +2016,7 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 	credentials, err := client.ListClusterUserCredentials(ctx, *id, managedclusters.ListClusterUserCredentialsOperationOptions{})
 	if err != nil {
-		return fmt.Errorf("retrieving User Credentials for %s: %w", id, err)
+		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
 	}
 	if credentials.Model == nil {
 		return fmt.Errorf("retrieving User Credentials for %s: payload is empty", id)
@@ -2017,7 +2024,7 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 	var config KubernetesAutomaticClusterModel
 	if err := metadata.Decode(&config); err != nil {
-		return fmt.Errorf("decoding: %w", err)
+		return fmt.Errorf("decoding: %+v", err)
 	}
 
 	state := KubernetesAutomaticClusterModel{
@@ -2095,7 +2102,7 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 			state.AutoScalerProfile, err = flattenKubernetesAutomaticClusterAutoScalerProfile(props.AutoScalerProfile)
 			if err != nil {
-				return fmt.Errorf("flattening `auto_scaler_profile`: %w", err)
+				return fmt.Errorf("flattening `auto_scaler_profile`: %+v", err)
 			}
 
 			state.MonitorMetrics = flattenKubernetesAutomaticClusterAzureMonitorProfile(props.AzureMonitorProfile)
@@ -2105,13 +2112,13 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			if props.AgentPoolProfiles != nil {
 				state.DefaultNodePool, err = FlattenDefaultNodePoolTyped(props.AgentPoolProfiles, &metadata)
 				if err != nil {
-					return fmt.Errorf("flattening `default_node_pool`: %w", err)
+					return fmt.Errorf("flattening `default_node_pool`: %+v", err)
 				}
 			}
 
 			kubeletIdentity, err := flattenKubernetesAutomaticClusterIdentityProfile(pointer.From(props.IdentityProfile))
 			if err != nil {
-				return fmt.Errorf("flattening `kubelet_identity`: %w", err)
+				return fmt.Errorf("flattening `kubelet_identity`: %+v", err)
 			}
 			state.KubeletIdentity = kubeletIdentity
 
@@ -2227,12 +2234,12 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 
 			var model KubernetesAutomaticClusterModel
 			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %w", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := clusterClient.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving existing %s: %w", *id, err)
+				return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 			}
 
 			if existing.Model == nil || existing.Model.Properties == nil {
@@ -2693,7 +2700,10 @@ func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.
 	}
 
 	// API access profile can be managed by other properties, only return it if one of the properties has been set
-	if profile.AuthorizedIPRanges == nil && profile.EnableVnetIntegration == nil && profile.SubnetId == nil {
+	hasAuthorizedIPRanges := profile.AuthorizedIPRanges != nil && len(*profile.AuthorizedIPRanges) > 0
+	hasSubnetId := profile.SubnetId != nil && *profile.SubnetId != ""
+
+	if !hasAuthorizedIPRanges && !hasSubnetId {
 		return apiServerAccessProfile
 	}
 
