@@ -1697,8 +1697,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    outbound_type       = "loadBalancer"
-    network_plugin_mode = "overlay"
+    outbound_type = "loadBalancer"
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
@@ -1783,9 +1782,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
 
   network_profile {
-    outbound_type       = "loadBalancer"
-    network_policy      = "cilium"
-    network_plugin_mode = "overlay"
+    outbound_type = "loadBalancer"
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
@@ -1993,12 +1990,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin_mode = "overlay"
-    load_balancer_sku   = "standard"
-    pod_cidr            = "10.244.0.0/16"
-    service_cidr        = "10.0.0.0/16"
-    dns_service_ip      = "10.0.0.10"
-    outbound_type       = "managedNATGateway"
+    load_balancer_sku = "standard"
+    pod_cidr          = "10.244.0.0/16"
+    service_cidr      = "10.0.0.0/16"
+    dns_service_ip    = "10.0.0.10"
+    outbound_type     = "managedNATGateway"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -2035,12 +2031,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin_mode = "overlay"
-    load_balancer_sku   = "standard"
-    pod_cidr            = "10.244.0.0/16"
-    service_cidr        = "10.0.0.0/16"
-    dns_service_ip      = "10.0.0.10"
-    outbound_type       = "managedNATGateway"
+    load_balancer_sku = "standard"
+    pod_cidr          = "10.244.0.0/16"
+    service_cidr      = "10.0.0.0/16"
+    dns_service_ip    = "10.0.0.10"
+    outbound_type     = "managedNATGateway"
     nat_gateway_profile {
       managed_outbound_ip_count = %d
       idle_timeout_in_minutes   = %d
@@ -2155,12 +2150,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin_mode = "overlay"
-    load_balancer_sku   = "standard"
-    pod_cidr            = "10.244.0.0/16"
-    service_cidr        = "10.0.0.0/16"
-    dns_service_ip      = "10.0.0.10"
-    outbound_type       = "userAssignedNATGateway"
+    load_balancer_sku = "standard"
+    pod_cidr          = "10.244.0.0/16"
+    service_cidr      = "10.0.0.0/16"
+    dns_service_ip    = "10.0.0.10"
+    outbound_type     = "userAssignedNATGateway"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -2515,8 +2509,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin_mode = "overlay"
-    pod_cidrs           = ["10.1.1.0/24"]
+    pod_cidrs = ["10.1.1.0/24"]
   }
 
   identity {
@@ -2552,9 +2545,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin_mode = "overlay"
-    dns_service_ip      = "10.1.1.10"
-    service_cidrs       = ["10.1.1.0/24"]
+    dns_service_ip = "10.1.1.10"
+    service_cidrs  = ["10.1.1.0/24"]
   }
 
   identity {
@@ -4552,9 +4544,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    pod_cidr            = "192.168.0.0/16"
-    network_plugin_mode = "overlay"
-    outbound_type       = "loadBalancer"
+    pod_cidr      = "192.168.0.0/16"
+    outbound_type = "loadBalancer"
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
@@ -4636,9 +4627,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     subnet_id = azurerm_subnet.test1.id
   }
   network_profile {
-    pod_cidr            = "192.168.0.0/16"
-    outbound_type       = "loadBalancer"
-    network_plugin_mode = "overlay"
+    pod_cidr      = "192.168.0.0/16"
+    outbound_type = "loadBalancer"
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
@@ -4853,8 +4843,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     outbound_type     = "managedNATGateway"
   }
 
-  api_server_access_profile {
-  }
 }
 `, data.Locations.Primary, data.RandomInteger)
 }

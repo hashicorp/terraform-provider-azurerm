@@ -830,7 +830,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_mode  = "transparent"
     outbound_type = "loadBalancer"
   }
 
@@ -1033,7 +1032,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_mode  = "transparent"
     outbound_type = "loadBalancer"
   }
 
