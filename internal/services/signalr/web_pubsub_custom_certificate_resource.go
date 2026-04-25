@@ -180,16 +180,7 @@ func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			state, err := flattenCustomCertWebPubsubModel(*id, resp.Model)
-			if err != nil {
-				return err
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
@@ -254,24 +245,29 @@ func webPubsubCustomCertificateDeleteRefreshFunc(ctx context.Context, client *we
 	}
 }
 
-func flattenCustomCertWebPubsubModel(id webpubsub.CustomCertificateId, model *webpubsub.CustomCertificate) (CustomCertWebPubsubModel, error) {
+func (r CustomCertWebPubsubResource) flatten(metadata sdk.ResourceMetaData, id *webpubsub.CustomCertificateId, model *webpubsub.CustomCertificate) error {
 	if model == nil {
-		return CustomCertWebPubsubModel{}, fmt.Errorf("retrieving %s: got nil model", id)
+		return fmt.Errorf("retrieving %s: got nil model", *id)
 	}
 
 	vaultBasedUri := model.Properties.KeyVaultBaseUri
 	certName := model.Properties.KeyVaultSecretName
-
 	certVersion := pointer.From(model.Properties.KeyVaultSecretVersion)
 	nestedItem, err := keyvault.NewNestedItemID(vaultBasedUri, keyvault.NestedItemTypeCertificate, certName, certVersion)
 	if err != nil {
-		return CustomCertWebPubsubModel{}, err
+		return err
 	}
 
-	return CustomCertWebPubsubModel{
+	state := CustomCertWebPubsubModel{
 		Name:               id.CustomCertificateName,
 		CustomCertId:       nestedItem.ID(),
 		WebPubsubId:        webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID(),
 		CertificateVersion: certVersion,
-	}, nil
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
