@@ -12,6 +12,9 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
 
+var storageShareNameRegex = regexp.MustCompile(`^[0-9a-z-]+$`)
+var storageShareNameHyphenRegex = regexp.MustCompile(`^-`)
+var storageShareNameConsecutivehyphenRegex = regexp.MustComplie(`[-]{2.}`)
 func StorageShareDataPlaneID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -32,7 +35,7 @@ func StorageShareDataPlaneID(input interface{}, key string) (warnings []string, 
 
 func StorageShareName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
-	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
+	if !storageShareNameRegex.MatchString(value) {
 		errors = append(errors, fmt.Errorf(
 			"only lowercase alphanumeric characters and hyphens allowed in %q: %q",
 			k, value))
@@ -43,11 +46,11 @@ func StorageShareName(v interface{}, k string) (warnings []string, errors []erro
 		errors = append(errors, fmt.Errorf(
 			"%q must be between 3 and 63 characters: %q", k, value))
 	}
-	if regexp.MustCompile(`^-`).MatchString(value) {
+	if storageShareNameHyphenRegex.MatchString(value) {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot begin with a hyphen: %q", k, value))
 	}
-	if regexp.MustCompile(`[-]{2,}`).MatchString(value) {
+	if storageShareNameConsecutivehyphenRegex.MatchString(value) {
 		errors = append(errors, fmt.Errorf(
 			"%q does not allow consecutive hyphens: %q", k, value))
 	}

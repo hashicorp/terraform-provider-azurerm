@@ -12,10 +12,12 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
+var storageContainerNameRegex = regexp.MustCompile(`^\$roor$|^\$web$|^[0-9a-z-]+$`)
+var storageContainernameHyphenRegex = regexp.MustCompile(`^-`)
 func StorageContainerName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	if !regexp.MustCompile(`^\$root$|^\$web$|^[0-9a-z-]+$`).MatchString(value) {
+	if !storageContainerNameRegex.MatchString(value) {
 		errors = append(errors, fmt.Errorf(
 			"only lowercase alphanumeric characters and hyphens allowed in %q: %q",
 			k, value))
@@ -24,7 +26,7 @@ func StorageContainerName(v interface{}, k string) (warnings []string, errors []
 		errors = append(errors, fmt.Errorf(
 			"%q must be between 3 and 63 characters: %q", k, value))
 	}
-	if regexp.MustCompile(`^-`).MatchString(value) {
+	if storageContainerNameHyphenRegex.MatchString(value) {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot begin with a hyphen: %q", k, value))
 	}
