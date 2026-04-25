@@ -127,13 +127,9 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			RequiredWith:          []string{"workload_profile"},
 			ValidateFunc:          resourcegroups.ValidateName,
 			DiffSuppressOnRefresh: true,
-			DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool { // If this is omitted, and there is a non-consumption profile, then the service generates a value for the required manage resource group.
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool { // If this is omitted and workload_profile is set, then the service generates a value for the required manage resource group.
 				if profiles := d.Get("workload_profile").(*pluginsdk.Set).List(); len(profiles) > 0 && newValue == "" {
-					for _, profile := range profiles {
-						if profile.(map[string]interface{})["workload_profile_type"].(string) != string(helpers.WorkloadProfileSkuConsumption) {
-							return true
-						}
-					}
+					return true
 				}
 				return false
 			},
@@ -409,14 +405,20 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 						}
 					}
 
-					state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
 					state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
-					state.Mtls = pointer.From(props.PeerAuthentication.Mtls.Enabled)
+
+					if props.CustomDomainConfiguration != nil {
+						state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
+					}
+
+					if props.PeerAuthentication != nil && props.PeerAuthentication.Mtls != nil {
+						state.Mtls = pointer.From(props.PeerAuthentication.Mtls.Enabled)
+					}
 				}
 			}
 
