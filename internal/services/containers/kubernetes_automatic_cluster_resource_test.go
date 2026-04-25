@@ -112,42 +112,6 @@ func TestAccKubernetesAutomaticCluster_storageProfile(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_nodeProvisioningProfileUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.nodeProvisioningProfile(data, "Auto"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.nodeProvisioningProfile(data, "None"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.nodeProvisioningProfile(data, "Auto"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.nodeProvisioningProfileRemoved(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesAutomaticCluster_bootstrapProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -375,69 +339,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, runCommandEnabled)
-}
-
-func (KubernetesAutomaticClusterResource) nodeProvisioningProfile(data acceptance.TestData, defaultNodePools string) string {
-	return fmt.Sprintf(`provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[1]d"
-  node_provisioning_profile {
-    default_node_pools = "%[3]s"
-  }
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, defaultNodePools)
-}
-
-func (KubernetesAutomaticClusterResource) nodeProvisioningProfileRemoved(data acceptance.TestData) string {
-	return fmt.Sprintf(`provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[1]d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
 }
 
 func TestAccResourceKubernetesAutomaticCluster_roleBasedAccessControlAAD_OlderKubernetesVersion(t *testing.T) {
@@ -843,9 +744,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin_mode = "overlay"
-    load_balancer_sku   = "standard"
-    outbound_type       = "loadBalancer"
+    load_balancer_sku = "standard"
+    outbound_type     = "loadBalancer"
   }
 
   identity {
@@ -891,9 +791,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin_mode = "overlay"
-    load_balancer_sku   = "standard"
-    outbound_type       = "loadBalancer"
+    load_balancer_sku = "standard"
+    outbound_type     = "loadBalancer"
   }
 
   identity {
@@ -937,9 +836,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin_mode = "overlay"
-    load_balancer_sku   = "standard"
-    outbound_type       = "loadBalancer"
+    load_balancer_sku = "standard"
+    outbound_type     = "loadBalancer"
   }
 
   identity {

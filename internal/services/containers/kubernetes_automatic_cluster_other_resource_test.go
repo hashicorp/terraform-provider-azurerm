@@ -1650,10 +1650,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin_mode = "overlay"
-    network_policy      = "cilium"
-    dns_service_ip      = "10.10.0.10"
-    service_cidr        = "10.10.0.0/16"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1708,10 +1706,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin_mode = "overlay"
-    network_policy      = "cilium"
-    dns_service_ip      = "10.10.0.10"
-    service_cidr        = "10.10.0.0/16"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1763,10 +1759,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin_mode = "overlay"
-    network_policy      = "cilium"
-    dns_service_ip      = "10.10.0.10"
-    service_cidr        = "10.10.0.0/16"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1892,10 +1886,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin_mode = "overlay"
-    network_policy      = "cilium"
-    dns_service_ip      = "10.10.0.10"
-    service_cidr        = "10.10.0.0/16"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
   }
 
   depends_on = [
