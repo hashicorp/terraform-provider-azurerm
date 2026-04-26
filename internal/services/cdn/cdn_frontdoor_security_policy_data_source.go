@@ -197,7 +197,7 @@ func flattenCdnFrontDoorSecurityPolicyDataSource(input securitypolicies.Security
 	if wafParams.WafPolicy != nil {
 		parsedId, err := waf.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(pointer.From(wafParams.WafPolicy.Id))
 		if err != nil {
-			return results, fmt.Errorf("flattening `cdn_frontdoor_firewall_policy_id`: %+v", err)
+			return results, err
 		}
 
 		wafPolicyId = parsedId.ID()
