@@ -326,8 +326,9 @@ type KubeConfigModel struct {
 type KubernetesAutomaticClusterResource struct{}
 
 var (
-	_ sdk.ResourceWithUpdate   = KubernetesAutomaticClusterResource{}
-	_ sdk.ResourceWithIdentity = KubernetesAutomaticClusterResource{}
+	_ sdk.ResourceWithUpdate         = KubernetesAutomaticClusterResource{}
+	_ sdk.ResourceWithIdentity       = KubernetesAutomaticClusterResource{}
+	_ sdk.ResourceWithCustomImporter = KubernetesAutomaticClusterResource{}
 )
 
 func (r KubernetesAutomaticClusterResource) ResourceType() string {
@@ -340,6 +341,27 @@ func (r KubernetesAutomaticClusterResource) ModelObject() interface{} {
 
 func (r KubernetesAutomaticClusterResource) Identity() resourceids.ResourceId {
 	return &commonids.KubernetesClusterId{}
+}
+
+func (r KubernetesAutomaticClusterResource) CustomImporter() sdk.ResourceRunFunc {
+	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+		id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+
+		client := metadata.Client.Containers.KubernetesClustersClient
+		resp, err := client.Get(ctx, *id)
+		if err != nil || resp.Model == nil || resp.Model.Kind == nil {
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
+		}
+
+		if !strings.EqualFold(string(*resp.Model.Sku.Name), "Automatic") {
+			return fmt.Errorf("importing %s: specified Kubernetes Cluster is not using the SKU `Automatic`, got `%s`", id, *resp.Model.Sku.Name)
+		}
+
+		return nil
+	}
 }
 
 func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
