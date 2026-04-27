@@ -6854,6 +6854,10 @@ resource "azurerm_subnet" "test" {
       ]
     }
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_public_ip" "test" {
@@ -6885,12 +6889,11 @@ locals {
 }
 
 resource "azurerm_storage_account" "errors" {
-  name                            = "acctestsa%s"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
   static_website {
     index_document = "index.html"
