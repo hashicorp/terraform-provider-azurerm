@@ -872,14 +872,15 @@ func (r MssqlServerResource) azureadAuthenticationOnlyWithPolicy(data acceptance
 	policyAssignment := ""
 	if enablePolicy {
 		policyAssignment = `
-data "azurerm_policy_definition" "test" {
-  display_name = "Azure SQL Database should have Microsoft Entra-only authentication enabled during creation"
+data "azurerm_policy_definition_built_in" "test" {
+  # Azure SQL built-in policy definition: https://learn.microsoft.com/azure/azure-sql/database/policy-reference
+  name = "abda6d70-9778-44e7-84a8-06713e6db027"
 }
 
 resource "azurerm_resource_group_policy_assignment" "test" {
   name                 = "acctestpa-mssql"
   resource_group_id    = azurerm_resource_group.test.id
-  policy_definition_id = data.azurerm_policy_definition.test.id
+  policy_definition_id = data.azurerm_policy_definition_built_in.test.id
 }
 `
 	}
