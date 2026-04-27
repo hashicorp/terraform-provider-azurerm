@@ -233,3 +233,35 @@ To view the latest specific Azure Resource Providers included in each set, pleas
 In addition to, or in place of, the sets described above, you can also configure the AzureRM Provider to register specific Azure Resource Providers, by setting the `resource_providers_to_register` provider property. This should be a list of strings, containing the exact names of Azure Resource Providers to register. For a list of all resource providers, please refer to [official Azure documentation](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types).
 
 -> **Note:** The User, Service Principal or Managed Identity running Terraform should have permissions to register [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types). If the principal running Terraform has insufficient permissions to register Resource Providers then we recommend setting the property [`resource_provider_registrations`](#resource_provider_registrations) to `none` in the provider block to prevent auto-registration.
+
+
+### Preflight Validation
+
+When `preflight_enabled` is set within the `enhanced_validation` block in the `features`
+configuration, the AzureRM Provider will call the Azure Preflight Validation API at
+`terraform plan` time for supported resources. This allows certain classes of configuration
+errors — such as policy violations, quota breaches, and invalid property values — to be
+surfaced before `terraform apply` is run.
+
+```hcl
+provider "azurerm" {
+  features {
+    enhanced_validation {
+      preflight_enabled = true
+    }
+  }
+}
+```
+
+This can also be enabled via the `ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED`
+environment variable.
+
+~> **Note:** Preflight validation requires valid Azure credentials to be available at
+`terraform plan` time, as it makes live API calls to Azure. Preflight is only supported for
+a subset of resource types; unsupported resources are silently skipped.
+
+~> **Note:** When resource arguments reference values that are `(known after apply)` — such
+as the output of another resource being created in the same plan — those values will be absent
+from the preflight validation request. Validation for those fields is deferred to
+`terraform apply` time. This means preflight may not catch all errors in configurations that
+use computed cross-resource references for key arguments.
