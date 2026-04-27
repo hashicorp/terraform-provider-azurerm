@@ -346,28 +346,33 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 				expect: features.EnhancedValidationFeatures{
 					Locations:         false,
 					ResourceProviders: false,
+					PreflightEnabled:  false,
 				},
 			},
 			{
-				name: "New env vars enabled",
+				name: "Env vars enabled",
 				setupEnv: func(t *testing.T) {
 					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
 					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", "true")
 				},
 				expect: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
+					PreflightEnabled:  true,
 				},
 			},
 			{
-				name: "New env vars disabled",
+				name: "Env vars disabled",
 				setupEnv: func(t *testing.T) {
 					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
 					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", "false")
 				},
 				expect: features.EnhancedValidationFeatures{
 					Locations:         false,
 					ResourceProviders: false,
+					PreflightEnabled:  false,
 				},
 			},
 			{
@@ -377,12 +382,14 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 						map[string]any{
 							"locations":          false,
 							"resource_providers": false,
+							"preflight_enabled":  false,
 						},
 					},
 				},
 				expect: features.EnhancedValidationFeatures{
 					Locations:         false,
 					ResourceProviders: false,
+					PreflightEnabled:  false,
 				},
 			},
 			{
@@ -392,12 +399,14 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 						map[string]any{
 							"locations":          true,
 							"resource_providers": true,
+							"preflight_enabled":  true,
 						},
 					},
 				},
 				expect: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
+					PreflightEnabled:  true,
 				},
 			},
 		}
@@ -413,6 +422,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 				expect: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
+					PreflightEnabled:  true,
 				},
 			},
 			{
@@ -421,6 +431,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 				expect: features.EnhancedValidationFeatures{
 					Locations:         false,
 					ResourceProviders: false,
+					PreflightEnabled:  false,
 				},
 			},
 			{
@@ -429,6 +440,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 				expect: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
+					PreflightEnabled:  false,
 				},
 			},
 			{
@@ -437,52 +449,61 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 				expect: features.EnhancedValidationFeatures{
 					Locations:         false,
 					ResourceProviders: false,
+					PreflightEnabled:  false,
 				},
 			},
 			{
-				name: "New env vars enabled v4",
+				name: "Env vars enabled v4",
 				setupEnv: func(t *testing.T) {
 					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
 					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", "true")
 				},
 				expect: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
+					PreflightEnabled:  true,
 				},
 			},
 			{
-				name: "New env vars enabled v5",
+				name: "Env vars enabled v5",
 				setupEnv: func(t *testing.T) {
 					t.Setenv("ARM_FIVEPOINTZERO_BETA", "true")
 					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
 					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", "true")
 				},
 				expect: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
+					PreflightEnabled:  true,
 				},
 			},
 			{
-				name: "New env vars disabled v4",
+				name: "Env vars disabled v4",
 				setupEnv: func(t *testing.T) {
 					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
 					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", "false")
 				},
 				expect: features.EnhancedValidationFeatures{
 					Locations:         false,
 					ResourceProviders: false,
+					PreflightEnabled:  false,
 				},
 			},
 			{
-				name: "New env vars disabled v5",
+				name: "Env vars disabled v5",
 				setupEnv: func(t *testing.T) {
 					t.Setenv("ARM_FIVEPOINTZERO_BETA", "true")
 					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
 					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", "false")
 				},
 				expect: features.EnhancedValidationFeatures{
 					Locations:         false,
 					ResourceProviders: false,
+					PreflightEnabled:  false,
 				},
 			},
 			{
@@ -492,12 +513,14 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 						map[string]any{
 							"locations":          false,
 							"resource_providers": false,
+							"preflight_enabled":  false,
 						},
 					},
 				},
 				expect: features.EnhancedValidationFeatures{
 					Locations:         false,
 					ResourceProviders: false,
+					PreflightEnabled:  false,
 				},
 			},
 			{
@@ -507,12 +530,14 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 						map[string]any{
 							"locations":          true,
 							"resource_providers": true,
+							"preflight_enabled":  true,
 						},
 					},
 				},
 				expect: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
+					PreflightEnabled:  true,
 				},
 			},
 			{
@@ -523,12 +548,14 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 						map[string]any{
 							"locations":          false,
 							"resource_providers": false,
+							"preflight_enabled":  false,
 						},
 					},
 				},
 				expect: features.EnhancedValidationFeatures{
 					Locations:         false,
 					ResourceProviders: false,
+					PreflightEnabled:  false,
 				},
 			},
 			{
@@ -539,12 +566,14 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 						map[string]any{
 							"locations":          true,
 							"resource_providers": true,
+							"preflight_enabled":  true,
 						},
 					},
 				},
 				expect: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
+					PreflightEnabled:  true,
 				},
 			},
 		}

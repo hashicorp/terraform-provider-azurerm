@@ -95,13 +95,16 @@ For more information, see the [Resource Provider Registrations](index.html#resou
 
 The enhanced validation feature, which caches supported Azure regions and Resource Providers from the Azure MetaData Service to validate `location` and Resource Provider arguments, now defaults to disabled in version 5.0.
 
-This is now controlled through the new `enhanced_validation` provider block:
+This is now controlled through the `enhanced_validation` block **inside** the `features` block:
 
 ```hcl
 provider "azurerm" {
-  enhanced_validation {
-    locations          = true # Re-enable location validation at plan time
-    resource_providers = true # Re-enable resource provider validation at plan time
+  features {
+    enhanced_validation {
+      locations          = true  # Re-enable location validation at plan time
+      resource_providers = true  # Re-enable resource provider validation at plan time
+      preflight_enabled  = false # Opt-in: validate resource payloads via Azure Preflight API
+    }
   }
 }
 ```
@@ -112,7 +115,10 @@ This change was made because:
 * A region may be functional even if not present in the ARM region list
 * The MetaData Service call adds latency to provider initialization
 
-The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, has been removed in version 5.0. Please migrate to either the `enhanced_validation` provider block or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
+A new `preflight_enabled` property is also available within the `enhanced_validation` block. When set to `true`, the provider will call the Azure Preflight Validation API at plan time to detect invalid resource configurations before apply. This requires valid Azure credentials to be available at plan time and defaults to `false`. It can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED` environment variable.
+
+The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, has been removed in version 5.0. Please migrate to either the `enhanced_validation` block inside the `features` block, or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
+
 
 ## Removed Resources
 

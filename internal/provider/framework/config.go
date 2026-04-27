@@ -133,28 +133,8 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			return
 		}
 	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
-		diags.Append(diag.NewErrorDiagnostic("unsupported environment variable", "the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` provider block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead"))
+		diags.Append(diag.NewErrorDiagnostic("unsupported environment variable", "the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead"))
 		return
-	}
-
-	// Read enhanced_validation block
-	enhancedValidationLocations := providerfeatures.EnhancedValidationLocationsEnabled()
-	enhancedValidationResourceProviders := providerfeatures.EnhancedValidationResourceProvidersEnabled()
-	if !data.EnhancedValidation.IsNull() && !data.EnhancedValidation.IsUnknown() {
-		var evList []EnhancedValidationModel
-		d := data.EnhancedValidation.ElementsAs(ctx, &evList, true)
-		diags.Append(d...)
-		if diags.HasError() {
-			return
-		}
-		if len(evList) > 0 {
-			if !evList[0].Locations.IsNull() && !evList[0].Locations.IsUnknown() {
-				enhancedValidationLocations = evList[0].Locations.ValueBool()
-			}
-			if !evList[0].ResourceProviders.IsNull() && !evList[0].ResourceProviders.IsUnknown() {
-				enhancedValidationResourceProviders = evList[0].ResourceProviders.ValueBool()
-			}
-		}
 	}
 
 	f := providerfeatures.UserFeatures{}
@@ -169,10 +149,6 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		}
 
 		features := featuresList[0]
-
-		if !features.PreflightEnabled.IsNull() && !features.PreflightEnabled.IsUnknown() {
-			f.PreflightEnabled = features.PreflightEnabled.ValueBool()
-		}
 
 		if !features.APIManagement.IsNull() && !features.APIManagement.IsUnknown() {
 			var feature []APIManagement
@@ -553,10 +529,33 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		} else {
 			f.DatabricksWorkspace.ForceDelete = false
 		}
-	}
 
-	f.EnhancedValidation.Locations = enhancedValidationLocations
-	f.EnhancedValidation.ResourceProviders = enhancedValidationResourceProviders
+		// Seed env-var-aware defaults for enhanced_validation, ensuring env vars are respected
+		// even if the enhanced_validation block is absent from the features config.
+		f.EnhancedValidation.Locations = providerfeatures.EnhancedValidationLocationsEnabled()
+		f.EnhancedValidation.ResourceProviders = providerfeatures.EnhancedValidationResourceProvidersEnabled()
+		f.EnhancedValidation.PreflightEnabled = false
+
+		if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
+			var evList []EnhancedValidationModel
+			d := features.EnhancedValidation.ElementsAs(ctx, &evList, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+			if len(evList) > 0 {
+				if !evList[0].Locations.IsNull() && !evList[0].Locations.IsUnknown() {
+					f.EnhancedValidation.Locations = evList[0].Locations.ValueBool()
+				}
+				if !evList[0].ResourceProviders.IsNull() && !evList[0].ResourceProviders.IsUnknown() {
+					f.EnhancedValidation.ResourceProviders = evList[0].ResourceProviders.ValueBool()
+				}
+				if !evList[0].PreflightEnabled.IsNull() && !evList[0].PreflightEnabled.IsUnknown() {
+					f.EnhancedValidation.PreflightEnabled = evList[0].PreflightEnabled.ValueBool()
+				}
+			}
+		}
+	}
 
 	p.clientBuilder.Features = f
 	p.clientBuilder.AuthConfig = authConfig

@@ -671,7 +671,7 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 				return err
 			}
 
-			if metadata.Client.Features.PreflightEnabled {
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
 				// Only perform preflight validation if there are changes. This avoids validation failures and
 				// additional API calls for resources that are unchanged between plan invocations
 				if len(metadata.ResourceDiff.GetChangedKeysPrefix("")) > 0 || metadata.ResourceDiff.Id() == "" {
