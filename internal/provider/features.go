@@ -29,10 +29,33 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
 		},
 
-		"preflight_enabled": {
-			Type:     pluginsdk.TypeBool,
+		// lintignore:XS003
+		"enhanced_validation": {
+			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Default:  false,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"locations": {
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", features.EnhancedValidationLocationsEnabled()),
+						Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
+					},
+					"resource_providers": {
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", features.EnhancedValidationResourceProvidersEnabled()),
+						Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
+					},
+					"preflight_enabled": {
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", false),
+						Description: "Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
+					},
+				},
+			},
 		},
 
 		// lintignore:XS003
@@ -368,6 +391,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
 		"machine_learning": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -499,11 +523,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 
 	if v, ok := val["skip_import_check_on_create_and_allow_overwriting_existing_resources"]; ok {
 		featuresMap.SkipImportCheckOnCreateAndAllowOverwritingExistingResources = v.(bool)
-	}
-
-	if v, ok := val["preflight_enabled"]; ok {
-		preflightEnabled := v.(bool)
-		featuresMap.PreflightEnabled = preflightEnabled
 	}
 
 	if raw, ok := val["api_management"]; ok {
@@ -751,6 +770,28 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			databricksRaw := items[0].(map[string]interface{})
 			if v, ok := databricksRaw["force_delete"]; ok {
 				featuresMap.DatabricksWorkspace.ForceDelete = v.(bool)
+			}
+		}
+	}
+
+	// Seed env-var-aware defaults for enhanced_validation, ensuring env vars are respected
+	// even if the enhanced_validation block is absent from the features config.
+	featuresMap.EnhancedValidation.Locations = features.EnhancedValidationLocationsEnabled()
+	featuresMap.EnhancedValidation.ResourceProviders = features.EnhancedValidationResourceProvidersEnabled()
+	featuresMap.EnhancedValidation.PreflightEnabled = false
+
+	if raw, ok := val["enhanced_validation"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			evRaw := items[0].(map[string]interface{})
+			if v, ok := evRaw["locations"]; ok {
+				featuresMap.EnhancedValidation.Locations = v.(bool)
+			}
+			if v, ok := evRaw["resource_providers"]; ok {
+				featuresMap.EnhancedValidation.ResourceProviders = v.(bool)
+			}
+			if v, ok := evRaw["preflight_enabled"]; ok {
+				featuresMap.EnhancedValidation.PreflightEnabled = v.(bool)
 			}
 		}
 	}

@@ -373,28 +373,6 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
 				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
 			},
-
-			"enhanced_validation": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"locations": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", providerfeatures.EnhancedValidationLocationsEnabled()),
-							Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
-						},
-						"resource_providers": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", providerfeatures.EnhancedValidationResourceProvidersEnabled()),
-							Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
-						},
-					},
-				},
-			},
 		},
 
 		DataSourcesMap: dataSources,
@@ -561,26 +539,8 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 			return nil, diag.FromErr(err)
 		}
 	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
-		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` provider block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
+		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
 	}
-
-	// Read enhanced_validation block
-	enhancedValidationLocations := providerfeatures.EnhancedValidationLocationsEnabled()
-	enhancedValidationResourceProviders := providerfeatures.EnhancedValidationResourceProvidersEnabled()
-	if raw, ok := d.GetOk("enhanced_validation"); ok {
-		items := raw.([]interface{})
-		if len(items) > 0 && items[0] != nil {
-			evRaw := items[0].(map[string]interface{})
-			if v, ok := evRaw["locations"]; ok {
-				enhancedValidationLocations = v.(bool)
-			}
-			if v, ok := evRaw["resource_providers"]; ok {
-				enhancedValidationResourceProviders = v.(bool)
-			}
-		}
-	}
-	features.EnhancedValidation.Locations = enhancedValidationLocations
-	features.EnhancedValidation.ResourceProviders = enhancedValidationResourceProviders
 
 	clientBuilder := clients.ClientBuilder{
 		AuthConfig:                  authConfig,

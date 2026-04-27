@@ -40,6 +40,7 @@ func TestExpandFeatures(t *testing.T) {
 				EnhancedValidation: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
+					PreflightEnabled:  false,
 				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   true,
@@ -227,6 +228,13 @@ func TestExpandFeatures(t *testing.T) {
 							"force_delete": true,
 						},
 					},
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          true,
+							"resource_providers": true,
+							"preflight_enabled":  true,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -249,6 +257,7 @@ func TestExpandFeatures(t *testing.T) {
 				EnhancedValidation: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
+					PreflightEnabled:  true,
 				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   true,
@@ -436,6 +445,13 @@ func TestExpandFeatures(t *testing.T) {
 							"force_delete": false,
 						},
 					},
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          false,
+							"resource_providers": false,
+							"preflight_enabled":  false,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -456,8 +472,9 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeleteOnDestroy: false,
 				},
 				EnhancedValidation: features.EnhancedValidationFeatures{
-					Locations:         true,
-					ResourceProviders: true,
+					Locations:         false,
+					ResourceProviders: false,
+					PreflightEnabled:  false,
 				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   false,
@@ -1955,6 +1972,81 @@ func TestExpandFeaturesDatabricksWorkspace(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.DatabricksWorkspace, testCase.Expected.DatabricksWorkspace) {
 			t.Fatalf("Expected %+v but got %+v", result.DatabricksWorkspace, testCase.Expected.DatabricksWorkspace)
+		}
+	}
+}
+
+func TestExpandFeaturesEnhancedValidation(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"enhanced_validation": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         !features.FivePointOh(),
+					ResourceProviders: !features.FivePointOh(),
+					PreflightEnabled:  false,
+				},
+			},
+		},
+		{
+			Name: "Enhanced Validation Features Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"enhanced_validation": []interface{}{
+						map[string]interface{}{
+							"locations":          true,
+							"resource_providers": true,
+							"preflight_enabled":  true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+					PreflightEnabled:  true,
+				},
+			},
+		},
+		{
+			Name: "Enhanced Validation Features Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"enhanced_validation": []interface{}{
+						map[string]interface{}{
+							"locations":          false,
+							"resource_providers": false,
+							"preflight_enabled":  false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+					PreflightEnabled:  false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.EnhancedValidation, testCase.Expected.EnhancedValidation) {
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.EnhancedValidation, result.EnhancedValidation)
 		}
 	}
 }

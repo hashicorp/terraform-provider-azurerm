@@ -26,16 +26,9 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Skip("ARM_CLIENT_SECRET env var not set")
 	}
 
-	enhancedValidation, _ := basetypes.NewObjectValueFrom(context.Background(), EnhancedValidationModelAttributes, map[string]attr.Value{
-		"locations":          basetypes.NewBoolValue(false),
-		"resource_providers": basetypes.NewBoolValue(false),
-	})
-	enhancedValidationList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(EnhancedValidationModelAttributes), []attr.Value{enhancedValidation})
-
 	testData := &ProviderModel{
 		ResourceProviderRegistrations: types.StringValue("none"),
 		Features:                      defaultFeaturesList(),
-		EnhancedValidation:            enhancedValidationList,
 	}
 
 	diags := new(diag.Diagnostics)
@@ -230,6 +223,10 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	if features.DatabricksWorkspace.ForceDelete {
 		t.Errorf("expected databricks_workspace.ForceDelete to be false")
 	}
+
+	if features.EnhancedValidation.PreflightEnabled {
+		t.Errorf("expected enhanced_validation.preflight_enabled to be false")
+	}
 }
 
 // TODO - helper functions to make setting up test date more easily so we can add more configuration coverage
@@ -349,14 +346,18 @@ func defaultFeaturesList() types.List {
 	})
 	databricksWorkspaceList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes), []attr.Value{databricksWorkspace})
 
+	enhancedValidation, _ := basetypes.NewObjectValueFrom(context.Background(), EnhancedValidationModelAttributes, map[string]attr.Value{
+		"locations":          basetypes.NewBoolNull(),
+		"resource_providers": basetypes.NewBoolNull(),
+		"preflight_enabled":  basetypes.NewBoolNull(),
+	})
+	enhancedValidationList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(EnhancedValidationModelAttributes), []attr.Value{enhancedValidation})
+
 	fData, d := basetypes.NewObjectValue(FeaturesAttributes, map[string]attr.Value{
-<<<<<<< HEAD
 		"persist_id_on_create_before_polling_for_completion":                   basetypes.NewBoolNull(),
 		"skip_import_check_on_create_and_allow_overwriting_existing_resources": basetypes.NewBoolNull(),
 
-=======
-		"preflight_enabled":          basetypes.NewBoolValue(false),
->>>>>>> b9eb7ed85d (add in provider configuration feature option. Should this be in enhanced_validation?)
+		"enhanced_validation":        enhancedValidationList,
 		"api_management":             apiManagementList,
 		"app_configuration":          appConfigurationList,
 		"application_insights":       applicationInsightsList,

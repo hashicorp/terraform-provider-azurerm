@@ -5,7 +5,6 @@ package features
 
 func Default() UserFeatures {
 	return UserFeatures{
-		PreflightEnabled: false,
 		// NOTE: ensure all nested objects are fully populated
 		ApiManagement: ApiManagementFeatures{
 			PurgeSoftDeleteOnDestroy: true,
@@ -14,6 +13,7 @@ func Default() UserFeatures {
 		EnhancedValidation: EnhancedValidationFeatures{
 			Locations:         !FivePointOh(),
 			ResourceProviders: !FivePointOh(),
+			PreflightEnabled:  false,
 		},
 		AppConfiguration: AppConfigurationFeatures{
 			PurgeSoftDeleteOnDestroy: true,
