@@ -384,83 +384,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	payload := &servers.ServerUpdate{}
-	requireUpdate := false
-
-	if d.HasChanges("tags", "identity") {
-		requireUpdate = true
-		if d.HasChange("tags") {
-			payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-		}
-
-		if d.HasChange("identity") {
-			expanded, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
-			payload.Identity = expanded
-		}
-	}
-
-	if d.HasChanges("transparent_data_encryption_key_vault_key_id", "primary_user_assigned_identity_id",
-		"public_network_access_enabled", "outbound_network_restriction_enabled",
-		"administrator_login_password", "administrator_login_password_wo_version", "minimum_tls_version") {
-		requireUpdate = true
-		payload.Properties = &servers.ServerProperties{}
-
-		if d.HasChange("transparent_data_encryption_key_vault_key_id") {
-			keyId, err := keyvault.ParseNestedItemID(d.Get("transparent_data_encryption_key_vault_key_id").(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
-			if err != nil {
-				return err
-			}
-			payload.Properties.KeyId = pointer.To(keyId.ID())
-		}
-
-		// The `primary_user_assigned_identity_id` is an `O+C` property, when it's being removed from configuration.
-		// `HasChange()` will be `true`, but `GetOk()` will be `false`. So use `d.Get()` to read the value.
-		if d.HasChange("primary_user_assigned_identity_id") {
-			payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(d.Get("primary_user_assigned_identity_id").(string))
-		}
-
-		if d.HasChange("public_network_access_enabled") {
-			payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagDisabled)
-			if d.Get("public_network_access_enabled").(bool) {
-				payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagEnabled)
-			}
-		}
-
-		if d.HasChange("outbound_network_restriction_enabled") {
-			payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagDisabled)
-			if d.Get("outbound_network_restriction_enabled").(bool) {
-				payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagEnabled)
-			}
-		}
-
-		if d.HasChange("administrator_login_password") {
-			payload.Properties.AdministratorLoginPassword = pointer.To(d.Get("administrator_login_password").(string))
-		}
-
-		if d.HasChange("administrator_login_password_wo_version") {
-			woAdminLoginPassword, err := pluginsdk.GetWriteOnly(d, "administrator_login_password_wo", cty.String)
-			if err != nil {
-				return err
-			}
-			if !woAdminLoginPassword.IsNull() {
-				payload.Properties.AdministratorLoginPassword = pointer.To(woAdminLoginPassword.AsString())
-			}
-		}
-
-		if d.HasChange("minimum_tls_version") {
-			payload.Properties.MinimalTlsVersion = pointer.To(servers.MinimalTlsVersion(d.Get("minimum_tls_version").(string)))
-		}
-	}
-
-	if requireUpdate {
-		if err := client.UpdateThenPoll(ctx, *id, *payload); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
-	}
-
 	if d.HasChange("azuread_administrator") {
 		log.Printf("[INFO] Expanding 'azuread_administrator' to see if we need Create or Delete")
 		if adminProps := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminProps != nil {
@@ -515,6 +438,73 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 					return fmt.Errorf("waiting for the deletion of the Azure Active Directory Only Administrator: %+v", err)
 				}
 			}
+		}
+	}
+
+	existing, err := client.Get(ctx, *id, servers.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if payload := existing.Model; payload != nil {
+		if d.HasChange("tags") {
+			payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		}
+
+		if d.HasChange("identity") {
+			expanded, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			payload.Identity = expanded
+		}
+
+		if d.HasChange("transparent_data_encryption_key_vault_key_id") {
+			keyId, err := keyvault.ParseNestedItemID(d.Get("transparent_data_encryption_key_vault_key_id").(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+			if err != nil {
+				return err
+			}
+			payload.Properties.KeyId = pointer.To(keyId.ID())
+		}
+
+		// The `primary_user_assigned_identity_id` is an `O+C` property, when it's being removed from configuration.
+		// `HasChange()` will be `true`, but `GetOk()` will be `false`. So use `d.Get()` to read the value.
+		if d.HasChange("primary_user_assigned_identity_id") {
+			payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(d.Get("primary_user_assigned_identity_id").(string))
+		}
+
+		payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagDisabled)
+		payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagDisabled)
+
+		if v := d.Get("public_network_access_enabled"); v.(bool) {
+			payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagEnabled)
+		}
+
+		if v := d.Get("outbound_network_restriction_enabled"); v.(bool) {
+			payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagEnabled)
+		}
+
+		if d.HasChange("administrator_login_password") {
+			payload.Properties.AdministratorLoginPassword = pointer.To(d.Get("administrator_login_password").(string))
+		}
+
+		if d.HasChange("administrator_login_password_wo_version") {
+			woAdminLoginPassword, err := pluginsdk.GetWriteOnly(d, "administrator_login_password_wo", cty.String)
+			if err != nil {
+				return err
+			}
+			if !woAdminLoginPassword.IsNull() {
+				payload.Properties.AdministratorLoginPassword = pointer.To(woAdminLoginPassword.AsString())
+			}
+		}
+
+		if d.HasChange("minimum_tls_version") {
+			payload.Properties.MinimalTlsVersion = pointer.To(servers.MinimalTlsVersion(d.Get("minimum_tls_version").(string)))
+		}
+
+		err := client.CreateOrUpdateThenPoll(ctx, *id, *payload)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
 
