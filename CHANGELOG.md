@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * List Resource: `azurerm_storage_account` - skip resource data retrieval when `include_resource` is `false` [GH-31898]
 
 FEATURES:
+* **New Data Source** `azurerm_cdn_frontdoor_security_policy` [GH-31957]
 
 BUG FIXES:
 
