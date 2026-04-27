@@ -436,6 +436,12 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("`general_purpose_v2_enabled` cannot be set to `true` on Business Critical SKUs, got SKU `%s`", sku)
 			}
 
+			// Zone redundancy is not available for Next-gen General Purpose instances.
+			// https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redundancy#next-gen-general-purpose-service-tier
+			if rd.Get("zone_redundant_enabled").(bool) && rd.Get("general_purpose_v2_enabled").(bool) {
+				return fmt.Errorf("`zone_redundant_enabled` cannot be set to `true` when `general_purpose_v2_enabled` is `true`")
+			}
+
 			return nil
 		},
 	}
@@ -824,7 +830,12 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 
 					model.MinimumTlsVersion = pointer.From(props.MinimalTlsVersion)
 					model.PublicDataEndpointEnabled = pointer.From(props.PublicDataEndpointEnabled)
-					model.StorageIOps = props.StorageIOps
+					model.GeneralPurposeV2Enabled = pointer.From(props.IsGeneralPurposeV2)
+					// Azure can continue returning storageIOps after GPv2 is disabled, but
+					// storage_iops is only configurable for GPv2 instances.
+					if model.GeneralPurposeV2Enabled {
+						model.StorageIOps = props.StorageIOps
+					}
 					model.StorageSizeInGb = pointer.From(props.StorageSizeInGB)
 					model.SubnetId = pointer.From(props.SubnetId)
 					model.TimezoneId = pointer.From(props.TimezoneId)
@@ -837,7 +848,6 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					}
 					model.DatabaseFormat = string(pointer.From(props.DatabaseFormat))
 					model.HybridSecondaryUsage = string(pointer.From(props.HybridSecondaryUsage))
-					model.GeneralPurposeV2Enabled = pointer.From(props.IsGeneralPurposeV2)
 				}
 			}
 			return metadata.Encode(&model)
