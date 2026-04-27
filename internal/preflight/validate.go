@@ -24,12 +24,16 @@ type ValidationRequest struct {
 	Scope      string                                                `json:"scope"`
 }
 
-// NewValidationRequest constructs a new ValidationRequest. It dynamically extracts
-// Resource.Name, Provider, and Scope from the provided resourceId. We require the
-// resourceType (e.g. "redis") explicitly since the validation type may differ from
-// the ARM ID type (e.g., redisEnterprise) due to differing resource types being
-// offered by many namespaces and an incorrect "type" causes the incorrect validation
-// to occur.
+// NewValidationRequest constructs a new ValidationRequest for use with the Azure Preflight
+// Validation API. It dynamically extracts Resource.Name, Provider, and Scope from the
+// provided resourceId. The resourceType (e.g. "redis") must be supplied explicitly since
+// the validation type may differ from the ARM ID type.
+//
+// NOTE: The Azure Preflight Validation API validates full ARM PUT payloads only; PATCH
+// operations are not supported. The `properties` argument must represent the complete
+// resource body exactly as it will be sent to the ARM API. A partial or PATCH-style
+// payload will produce unreliable validation results. See internal/preflight/README.md
+// for implementation patterns and guidance.
 func NewValidationRequest(location *string, id resourceids.ResourceId, resourceType, apiVersion string, properties any) (ValidationRequest, error) {
 	scope, provider, _, resourceName, err := parseResourceId(id)
 	if err != nil {

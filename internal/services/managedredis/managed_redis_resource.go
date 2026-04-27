@@ -323,7 +323,7 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 
 			dbId := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
-			clusterParams, err := expandCreate(model)
+			clusterParams, err := expandCreateForManagedRedis(model)
 			if err != nil {
 				return err
 			}
@@ -354,7 +354,7 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func expandCreate(model ManagedRedisResourceModel) (redisenterprise.Cluster, error) {
+func expandCreateForManagedRedis(model ManagedRedisResourceModel) (redisenterprise.Cluster, error) {
 	clusterParams := redisenterprise.Cluster{
 		Location: location.Normalize(model.Location),
 		Sku: redisenterprise.Sku{
@@ -675,7 +675,7 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 				// Only perform preflight validation if there are changes. This avoids validation failures and
 				// additional API calls for resources that are unchanged between plan invocations
 				if len(metadata.ResourceDiff.GetChangedKeysPrefix("")) > 0 || metadata.ResourceDiff.Id() == "" {
-					req, err := expandCreate(model)
+					req, err := expandCreateForManagedRedis(model)
 					if err != nil {
 						return err
 					}
