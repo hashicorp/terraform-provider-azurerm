@@ -224,3 +224,56 @@ if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
   expand function returns every field that will be in the actual ARM PUT call.
 - **Missing the change guard:** Without `len(GetChangedKeysPrefix("")) > 0 || Id() == ""`,
   preflight will make an API call on every plan even when nothing has changed.
+
+---
+
+## Known limitations: cross-resource computed references
+
+`ResourceDiff` contains the complete planned state for all **known** values. When a config
+attribute references a computed output of another resource that does not yet exist, Terraform
+marks that value as `(known after apply)`. At the `ResourceDiff` level this surfaces as
+`r.Computed = true` in `GetOk()`, and `DecodeDiff` populates the field with its zero value
+(`""`, `0`, `[]`, etc.).
+
+This means the preflight payload will contain an empty value for that field, while the actual
+`Create` payload (called after the dependency has been applied) will contain the real value.
+
+**Example:**
+
+```hcl
+resource "azurerm_user_assigned_identity" "identity" { ... }
+
+resource "azurerm_managed_redis" "redis" {
+  identity {
+    identity_ids = [azurerm_user_assigned_identity.identity.id]  # (known after apply) at plan time
+  }
+}
+```
+
+During `CustomizeDiff`, `identity.identity_ids` is `[]` in the preflight payload. During
+`Create` (after Apply has resolved the dependency), it will be the real UAI resource ID.
+
+### Impact assessment
+
+| Scenario | Preflight effect | Risk |
+|---|---|---|
+| `Optional` field with cross-resource ref | Field absent from payload | **False negative** — validation gap, not an error |
+| `Optional+Computed` field with cross-resource ref | Zero value sent | **False negative** — ARM API typically accepts or ignores |
+| `Required` field with cross-resource ref (e.g. `location = rg.location`) | Zero/empty value sent | **False positive** — ARM may reject the empty Required field |
+
+### Practical guidance
+
+For most resources the risk is limited to **false negatives** (reduced coverage), not
+**false positives** (spurious plan failures). The `Required` ARM fields in most AzureRM
+resources (`name`, `location`, `resource_group_name`) are almost always literal values in
+user config, not computed cross-resource references.
+
+If a resource commonly has a `Required` field populated via cross-resource computed reference,
+consider guarding the preflight call:
+
+```go
+// Skip preflight if any Required field is unknown at plan time.
+if model.Location == "" {
+    return nil
+}
+```
