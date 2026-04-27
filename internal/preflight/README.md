@@ -27,7 +27,7 @@ Add preflight to a resource when:
 2. The resource uses `CustomizeDiff` (implemented via `sdk.ResourceWithCustomizeDiff`).
 3. The resource type is supported by the Azure Preflight Validation API.
 
-Preflight is always wrapped in:
+Preflight must always wrapped in a feature check in the `CustomizeDiff`:
 
 ```go
 if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
@@ -107,9 +107,9 @@ func (r MyResource) CustomizeDiff() sdk.ResourceFunc {
 ### Pattern 2 — Validate on create and ForceNew replacement only
 
 **Use when:** You want to skip preflight for in-place updates, e.g. to avoid false positives
-from a resource with immutable fields that are present in the full PUT body.
+from a resource with immutable fields that are present in the full PUT body or the Update uses a PATCH to skip over the update preflight.
 
-`ResourceDiff` does not expose a `RequiresNew()` method — ForceNew replacement is detected
+~> **NOTE**: `ResourceDiff` does not expose a `RequiresNew()` method — ForceNew replacement is detected
 by checking whether any changed key has `ForceNew: true` in the resource schema:
 
 ```go
@@ -277,3 +277,7 @@ if model.Location == "" {
     return nil
 }
 ```
+
+### It'll be better with Framework?
+`terraform-plugin-framework` allows access to the entire plan. When the implementation for Framework is added, we'll gain the ability to access the whole
+plan which may allow us to implement a more robust check for interpolated values.
