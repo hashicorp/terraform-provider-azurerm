@@ -253,6 +253,10 @@ The following arguments are supported:
 
 ~> **Note:** The `general_purpose_v2_enabled` property can only be set to `true` when using a General Purpose (`GP_*`) SKU.
 
+* `storage_iops` - (Optional) The storage IOPS for the SQL Managed Instance. Possible values are between `300` and `80000`. This can only be specified when `general_purpose_v2_enabled` is `true`.
+
+-> **Note:** The effective maximum value for `storage_iops` depends on the selected hardware family and `vcores`. Refer to [Azure SQL Managed Instance resource limits](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/resource-limits) for detailed information.
+
 * `maintenance_configuration_name` - (Optional) The name of the Public Maintenance Configuration window to apply to the SQL Managed Instance. Valid values include `SQL_Default` or an Azure Location in the format `SQL_{Location}_MI_{Size}`(for example `SQL_EastUS_MI_1`). Defaults to `SQL_Default`.
 
 * `minimum_tls_version` - (Optional) The Minimum TLS Version. Default value is `1.2` Valid values include `1.0`, `1.1`, `1.2`.

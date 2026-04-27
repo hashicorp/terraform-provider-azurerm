@@ -36,6 +36,40 @@ func TestAccMsSqlManagedInstance_basic(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedInstance_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("general_purpose_v2_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("storage_iops").HasValue("400"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("ZRS"),
+				check.That(data.ResourceName).Key("zone_redundant_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccMsSqlManagedInstance_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccMsSqlManagedInstance_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
@@ -132,6 +166,65 @@ func TestAccMsSqlManagedInstance_GeneralPurposeV2EnabledOnBCSKU(t *testing.T) {
 			Config:      r.generalPurposeV2Enabled(data, "BC_Gen5", true),
 			PlanOnly:    true,
 			ExpectError: regexp.MustCompile("`general_purpose_v2_enabled` cannot be set to `true` on Business Critical SKUs"),
+		},
+	})
+}
+
+func TestAccMsSqlManagedInstance_storageIOps(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageIOps(data, "GP_Gen5", true, 300),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_iops").HasValue("300"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.storageIOps(data, "GP_Gen5", true, 400),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_iops").HasValue("400"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("general_purpose_v2_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("storage_iops").DoesNotExist(),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccMsSqlManagedInstance_storageIOpsRequiresGPv2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.storageIOps(data, "GP_Gen5", false, 300),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`storage_iops` can only be set when `general_purpose_v2_enabled` is `true`")),
+		},
+	})
+}
+
+func TestAccMsSqlManagedInstance_storageIOpsNotAllowedOnBC(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.storageIOps(data, "BC_Gen5", true, 300),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`storage_iops` is not supported on Business Critical SKUs, got SKU `BC_Gen5`")),
 		},
 	})
 }
@@ -495,6 +588,90 @@ resource "azurerm_mssql_managed_instance" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
+func (r MsSqlManagedInstanceResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  database_format                = "AlwaysUpToDate"
+  general_purpose_v2_enabled     = true
+  hybrid_secondary_usage         = "Passive"
+  license_type                   = "BasePrice"
+  maintenance_configuration_name = "SQL_Default"
+  minimum_tls_version            = "1.2"
+  proxy_override                 = "Proxy"
+  public_data_endpoint_enabled   = true
+  service_principal_type         = "SystemAssigned"
+  sku_name                       = "GP_Gen5"
+  storage_account_type           = "ZRS"
+  storage_iops                   = 400
+  storage_size_in_gb             = 64
+  subnet_id                      = azurerm_subnet.test.id
+  timezone_id                    = "UTC"
+  vcores                         = 8
+  zone_redundant_enabled         = true
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+    environment = "production"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_managed_instance" "import" {
+  name                = azurerm_mssql_managed_instance.test.name
+  resource_group_name = azurerm_mssql_managed_instance.test.resource_group_name
+  location            = azurerm_mssql_managed_instance.test.location
+
+  general_purpose_v2_enabled = azurerm_mssql_managed_instance.test.general_purpose_v2_enabled
+  license_type               = azurerm_mssql_managed_instance.test.license_type
+  sku_name                   = azurerm_mssql_managed_instance.test.sku_name
+  storage_iops               = azurerm_mssql_managed_instance.test.storage_iops
+  storage_size_in_gb         = azurerm_mssql_managed_instance.test.storage_size_in_gb
+  subnet_id                  = azurerm_mssql_managed_instance.test.subnet_id
+  vcores                     = azurerm_mssql_managed_instance.test.vcores
+
+  administrator_login          = azurerm_mssql_managed_instance.test.administrator_login
+  administrator_login_password = azurerm_mssql_managed_instance.test.administrator_login_password
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+}
+`, r.complete(data))
+}
+
 func (r MsSqlManagedInstanceResource) databaseFormat(data acceptance.TestData, databaseFormat string) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -583,6 +760,52 @@ resource "azurerm_mssql_managed_instance" "test" {
   }
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger, sku, generalPurposeV2Enabled)
+}
+
+func (r MsSqlManagedInstanceResource) storageIOps(data acceptance.TestData, sku string, generalPurposeV2Enabled bool, storageIOps int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "%[3]s"
+  storage_size_in_gb = 32
+  storage_iops       = %[5]d
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  general_purpose_v2_enabled = %[4]t
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger, sku, generalPurposeV2Enabled, storageIOps)
 }
 
 func (r MsSqlManagedInstanceResource) hybridSecondaryUsage(data acceptance.TestData, hybridSecondaryUsage string) string {
