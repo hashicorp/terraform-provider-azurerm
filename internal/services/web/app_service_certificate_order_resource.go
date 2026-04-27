@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
@@ -185,10 +185,13 @@ func resourceAppServiceCertificateOrderCreate(d *pluginsdk.ResourceData, meta in
 	id := appservicecertificateorders.NewCertificateOrderID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_app_service_certificate_order", id.ID())
 	}
 
@@ -202,7 +205,7 @@ func resourceAppServiceCertificateOrderCreate(d *pluginsdk.ResourceData, meta in
 			ValidityInYears:   pointer.To(int64(d.Get("validity_in_years").(int))),
 		},
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, certificateOrder); err != nil {
@@ -240,7 +243,7 @@ func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta inte
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("tags", model.Tags)
+		d.Set("tags", tags.Flatten(model.Tags))
 
 		if props := model.Properties; props != nil {
 			d.Set("auto_renew", props.AutoRenew)
@@ -323,7 +326,7 @@ func resourceAppServiceCertificateOrderUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("tags") {
-		existing.Model.Tags = utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{}))
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {

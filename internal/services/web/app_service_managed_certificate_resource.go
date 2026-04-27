@@ -8,6 +8,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -16,13 +19,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAppServiceManagedCertificate() *pluginsdk.Resource {
@@ -149,10 +150,13 @@ func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta 
 	id := certificates.NewCertificateID(subscriptionID, appServicePlanID.ResourceGroupName, chbID.HostNameBindingName)
 
 	existing, err := client.Get(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %w", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_app_service_managed_certificate", id.ID())
 	}
 
@@ -183,11 +187,11 @@ func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta 
 
 	// An API issue prevents setting tags using the PUT operation, so we'll patch them in after
 	// https://github.com/Azure/azure-rest-api-specs/issues/14529
-	tags := certificates.CertificatePatchResource{
-		Tags: utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
+	t := certificates.CertificatePatchResource{
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Update(ctx, id, tags); err != nil {
+	if _, err := client.Update(ctx, id, t); err != nil {
 		return fmt.Errorf("creating `tags` for %s: %w", id, err)
 	}
 
@@ -215,7 +219,7 @@ func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	if model := resp.Model; model != nil {
-		d.Set("tags", model.Tags)
+		d.Set("tags", tags.Flatten(model.Tags))
 		if props := model.Properties; props != nil {
 			d.Set("canonical_name", props.CanonicalName)
 			d.Set("friendly_name", props.FriendlyName)
@@ -247,7 +251,7 @@ func resourceAppServiceManagedCertificateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	payload := certificates.CertificatePatchResource{
-		Tags: utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.Update(ctx, *id, payload); err != nil {

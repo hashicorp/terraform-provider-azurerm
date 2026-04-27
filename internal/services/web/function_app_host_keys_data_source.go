@@ -100,6 +100,7 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 
 	d.SetId(id.ID())
 
+	// TODO: Remove this retry
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		resp, err := client.ListHostKeys(ctx, id)
 		if err != nil {

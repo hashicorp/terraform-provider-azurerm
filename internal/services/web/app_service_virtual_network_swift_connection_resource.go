@@ -5,6 +5,7 @@ package web
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -139,6 +140,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceDa
 	existing, err := client.GetSwiftVirtualNetworkConnection(ctx, appID)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
+			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}

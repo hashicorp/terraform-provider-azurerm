@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -20,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAppServiceCertificate() *pluginsdk.Resource {
@@ -163,7 +164,7 @@ func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta interfa
 			Password: pointer.To(d.Get("password").(string)),
 		},
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v := d.Get("app_service_plan_id").(string); v != "" {
@@ -226,7 +227,7 @@ func resourceAppServiceCertificateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
-	existing.Model.Tags = utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{}))
+	existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 
 	if _, err := client.CreateOrUpdate(ctx, id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %s", id, err)
@@ -265,7 +266,7 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("subject_name", props.SubjectName)
 			d.Set("host_names", props.HostNames)
 			d.Set("issuer", props.Issuer)
-			d.Set("tags", model.Tags)
+			d.Set("tags", tags.Flatten(model.Tags))
 			d.Set("issue_date", props.IssueDate)
 			d.Set("expiration_date", props.ExpirationDate)
 			d.Set("thumbprint", props.Thumbprint)
