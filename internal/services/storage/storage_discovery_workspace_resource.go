@@ -21,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_discovery_workspace -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 var (
 	_ sdk.ResourceWithUpdate        = StorageDiscoveryWorkspaceResource{}
 	_ sdk.ResourceWithIdentity      = StorageDiscoveryWorkspaceResource{}
@@ -28,6 +30,8 @@ var (
 )
 
 type StorageDiscoveryWorkspaceResource struct{}
+
+const storageDiscoveryWorkspaceMaxScopes = 10
 
 type StorageDiscoveryWorkspaceModel struct {
 	Name              string                       `tfschema:"name"`
@@ -81,20 +85,18 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 			Required: true,
 			ForceNew: true,
 			MinItems: 1,
-			MaxItems: 10,
+			MaxItems: storageDiscoveryWorkspaceMaxScopes,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"display_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ForceNew:     true,
 						ValidateFunc: validate.StorageDiscoveryScopeDisplayName,
 					},
 
 					"resource_types": {
 						Type:     pluginsdk.TypeSet,
 						Required: true,
-						ForceNew: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
@@ -108,7 +110,6 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 					"tag_keys_only": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -118,7 +119,6 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 					"tags": {
 						Type:     pluginsdk.TypeMap,
 						Optional: true,
-						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -130,6 +130,7 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 		"workspace_root": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			ForceNew: true,
 			MinItems: 1,
 			MaxItems: 100,
 			Elem: &pluginsdk.Schema{
@@ -167,6 +168,16 @@ func (r StorageDiscoveryWorkspaceResource) CustomizeDiff() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			diff := metadata.ResourceDiff
+			for i := 0; i < storageDiscoveryWorkspaceMaxScopes; i++ {
+				for _, field := range []string{"display_name", "resource_types", "tag_keys_only", "tags"} {
+					path := fmt.Sprintf("scope.%d.%s", i, field)
+					if diff.HasChange(path) {
+						if err := diff.ForceNew(path); err != nil {
+							return err
+						}
+					}
+				}
+			}
 
 			workspaceRootsRaw := diff.Get("workspace_root")
 			if workspaceRootsRaw == nil {
@@ -337,10 +348,6 @@ func (r StorageDiscoveryWorkspaceResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("sku") {
 				sku := storagediscoveryworkspaces.StorageDiscoverySku(model.Sku)
 				payload.Properties.Sku = &sku
-			}
-
-			if metadata.ResourceData.HasChange("workspace_root") {
-				payload.Properties.WorkspaceRoots = &model.WorkspaceRoot
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

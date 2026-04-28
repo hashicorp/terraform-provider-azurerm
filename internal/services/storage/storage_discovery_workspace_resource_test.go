@@ -63,6 +63,21 @@ func TestAccStorageDiscoveryWorkspace_complete(t *testing.T) {
 	})
 }
 
+func TestAccStorageDiscoveryWorkspace_resourceGroupRoots(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
+	r := StorageDiscoveryWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.resourceGroupRoots(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageDiscoveryWorkspace_scopeChangeRequiresReplacement(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
 	r := StorageDiscoveryWorkspaceResource{}
@@ -238,6 +253,40 @@ resource "azurerm_storage_discovery_workspace" "test" {
   location            = azurerm_resource_group.test.location
 
   workspace_root = [data.azurerm_subscription.current.id]
+
+  scope {
+    display_name   = "TestScope"
+    resource_types = ["Microsoft.Storage/storageAccounts"]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r StorageDiscoveryWorkspaceResource) resourceGroupRoots(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_resource_group" "alt" {
+  name     = "acctestRG-storage-alt-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_discovery_workspace" "test" {
+  name                = "acctestsdw-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  workspace_root = [
+    azurerm_resource_group.test.id,
+    azurerm_resource_group.alt.id,
+  ]
 
   scope {
     display_name   = "TestScope"
