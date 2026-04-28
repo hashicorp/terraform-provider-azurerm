@@ -76,7 +76,6 @@ func buildValidationRequest(location *string, id resourceids.ResourceId, provide
 	}
 }
 
-
 func (v ValidationRequest) ValidateResource(ctx context.Context, metadata sdk.ResourceMetaData) error {
 	client := metadata.Client.Preflight.PreflightClient
 
