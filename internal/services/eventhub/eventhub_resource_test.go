@@ -821,7 +821,7 @@ resource "azurerm_eventhub" "test" {
       storage_authentication_type = "SystemAssigned"
     }
   }
-  depends_on = [azurerm_role_assignment.ssaContributorRoleAssignment, azurerm_role_assignment.saOwnerRoleAssignment]
+  depends_on = [azurerm_role_assignment.saContributorRoleAssignment, azurerm_role_assignment.saOwnerRoleAssignment]
 }
 `, r.template(data), data.RandomString, data.RandomString, enabledString)
 }
