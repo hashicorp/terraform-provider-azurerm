@@ -584,10 +584,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			backendSaConStr, backendStorageUseMsi := expandBackendStorage(backendStorage, storageDomainSuffix)
 
 			deploymentSaConStrName := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
-			deploymentStorage, deploymentSaConStr, err := expandDeploymentStorage(functionAppFlexConsumption.DeploymentStorage, deploymentSaConStrName, storageDomainSuffix)
-			if err != nil {
-				return fmt.Errorf("expanding `deployment_storage` for %s: %+v", id, err)
-			}
+			deploymentStorage, deploymentSaConStr := expandDeploymentStorage(functionAppFlexConsumption.DeploymentStorage, deploymentSaConStrName, storageDomainSuffix)
 
 			if !features.FivePointOh() && deploymentStorage == nil {
 				deploymentStorage = &webapps.FunctionsDeploymentStorage{
@@ -1053,10 +1050,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			deploymentStorage := model.Properties.FunctionAppConfig.Deployment.Storage
 			if metadata.ResourceData.HasChange("deployment_storage") {
-				deploymentStorage, deploymentSaConStrVal, err = expandDeploymentStorage(state.DeploymentStorage, deploymentSaConStrName, storageDomainSuffix)
-				if err != nil {
-					return fmt.Errorf("expanding `deployment_storage` for %s: %+v", id, err)
-				}
+				deploymentStorage, deploymentSaConStrVal = expandDeploymentStorage(state.DeploymentStorage, deploymentSaConStrName, storageDomainSuffix)
 				model.Properties.FunctionAppConfig.Deployment.Storage = deploymentStorage
 				if deploymentSaConStrVal != "" {
 					state.AppSettings[deploymentSaConStrName] = deploymentSaConStrVal
@@ -1348,9 +1342,9 @@ func flattenAlwaysReadyConfiguration(alwaysReady *[]webapps.FunctionsAlwaysReady
 	return alwaysReadyList
 }
 
-func expandDeploymentStorage(input []DeploymentStorage, connectionStrName string, storageDomainSuffix *string) (*webapps.FunctionsDeploymentStorage, string, error) {
+func expandDeploymentStorage(input []DeploymentStorage, connectionStrName string, storageDomainSuffix *string) (*webapps.FunctionsDeploymentStorage, string) {
 	if len(input) == 0 {
-		return nil, "", nil
+		return nil, ""
 	}
 	result := webapps.FunctionsDeploymentStorage{
 		Type:  pointer.To(webapps.FunctionsDeploymentStorageType(input[0].ContainerType)),
@@ -1374,7 +1368,7 @@ func expandDeploymentStorage(input []DeploymentStorage, connectionStrName string
 		result.Authentication.UserAssignedIdentityResourceId = pointer.To(input[0].UserAssignedIdentityId)
 	}
 
-	return &result, saStr, nil
+	return &result, saStr
 }
 
 func flattenDeploymentStorage(input *webapps.FunctionsDeploymentStorage, deploymentSaString string) DeploymentStorage {
