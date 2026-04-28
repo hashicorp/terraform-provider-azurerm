@@ -7,16 +7,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
-	preflightvalidation "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight/testdata"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
-
-var testLocation = "westeurope"
 
 func TestValidateResource(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
@@ -27,57 +25,26 @@ func TestValidateResource(t *testing.T) {
 
 	cases := []struct {
 		Name        string
-		Request     preflight.ValidationRequest
+		Location    string
+		ID          resourceids.ResourceId
+		APIVersion  string
+		Properties  any
 		ExpectError bool
 	}{
 		{
-			Name: "valid_example",
-			Request: preflight.ValidationRequest{
-				Location:   &testLocation,
-				Provider:   "Microsoft.Example",
-				ResourceId: pointer.To(commonids.NewResourceGroupID(client.Account.SubscriptionId, "sampleResourceGroup")),
-				Type:       "examples",
-				Resource: preflightvalidation.ResourceValidationRequestResource{
-					ApiVersion: "2026-01-14",
-					Name:       "exampleResource1",
-					Type:       "Microsoft.Example/examples",
-					Properties: map[string]interface{}{
-						"exampleProperty": "exampleValue1",
-					},
-				},
-			},
+			Name:        "valid_webapp",
+			Location:    "westeurope",
+			ID:          pointer.To(commonids.NewAppServiceID(client.Account.SubscriptionId, "testResourceGroup", "testSiteName")),
+			APIVersion:  "2024-11-01",
+			Properties:  testdata.WebAppExample(client.Account.SubscriptionId),
 			ExpectError: false,
 		},
 		{
-			Name: "valid_webapp",
-			Request: preflight.ValidationRequest{
-				Location:   pointer.To("westeurope"),
-				Provider:   "Microsoft.Web",
-				ResourceId: pointer.To(commonids.NewAppServiceID(client.Account.SubscriptionId, "testResourceGroup", "testSiteName")),
-				Type:       "sites",
-				Resource: preflightvalidation.ResourceValidationRequestResource{
-					ApiVersion: "2024-11-01",
-					Name:       "testWebAppValid",
-					Type:       "Microsoft.Web/sites",
-					Properties: testdata.WebAppExample(client.Account.SubscriptionId),
-				},
-			},
-			ExpectError: false,
-		},
-		{
-			Name: "valid_vnet",
-			Request: preflight.ValidationRequest{
-				Location:   pointer.To("westeurope"),
-				Provider:   "Microsoft.Network",
-				ResourceId: pointer.To(commonids.NewVirtualNetworkID(client.Account.SubscriptionId, "testResourceGroup", "testSiteName")),
-				Type:       "virtualNetworks",
-				Resource: preflightvalidation.ResourceValidationRequestResource{
-					ApiVersion: "2024-01-01",
-					Name:       "testVirtualValid",
-					Type:       "Microsoft.Network/virtualNetworks",
-					Properties: testdata.VirtualNetworkExampleMissingRequiredProperty(client.Account.SubscriptionId),
-				},
-			},
+			Name:        "invalid_vnet_missing_required_property",
+			Location:    "westeurope",
+			ID:          pointer.To(commonids.NewVirtualNetworkID(client.Account.SubscriptionId, "testResourceGroup", "testVirtualValid")),
+			APIVersion:  "2024-01-01",
+			Properties:  testdata.VirtualNetworkExampleMissingRequiredProperty(client.Account.SubscriptionId),
 			ExpectError: true,
 		},
 	}
@@ -87,13 +54,19 @@ func TestValidateResource(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		err := tc.Request.ValidateResource(ctx, metadata)
-		if err != nil && !tc.ExpectError {
-			t.Fatalf("expected no error, got %s", err)
-		}
+		t.Run(tc.Name, func(t *testing.T) {
+			request, err := preflight.NewValidationRequest(pointer.To(tc.Location), tc.ID, tc.APIVersion, tc.Properties)
+			if err != nil {
+				t.Fatalf("building validation request: %s", err)
+			}
 
-		if err == nil && tc.ExpectError {
-			t.Fatalf("expected error, but didn't get one: %s", tc.Name)
-		}
+			err = request.ValidateResource(ctx, metadata)
+			if err != nil && !tc.ExpectError {
+				t.Fatalf("expected no error, got: %s", err)
+			}
+			if err == nil && tc.ExpectError {
+				t.Fatalf("expected an error but got none")
+			}
+		})
 	}
 }

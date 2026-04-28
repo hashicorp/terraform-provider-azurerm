@@ -25,21 +25,42 @@ type ValidationRequest struct {
 }
 
 // NewValidationRequest constructs a new ValidationRequest for use with the Azure Preflight
-// Validation API. It dynamically extracts Resource.Name, Provider, and Scope from the
-// provided resourceId. The resourceType (e.g. "redis") must be supplied explicitly since
-// the validation type may differ from the ARM ID type.
+// Validation API. The resource type is derived automatically from the ARM ID's path segments
+// (e.g. "virtualNetworks" from a VirtualNetworkId, "sites" from an AppServiceId).
+//
+// Use NewValidationRequestWithTypeOverride when the resource provider bundles multiple product
+// offerings under the same namespace and the preflight API requires a specific type discriminator
+// that differs from the ARM path segment (e.g. Microsoft.Cache, where "redis" and
+// "redisEnterprise" are distinct validation types that do not always match the ID segment).
 //
 // NOTE: The Azure Preflight Validation API validates full ARM PUT payloads only; PATCH
 // operations are not supported. The `properties` argument must represent the complete
 // resource body exactly as it will be sent to the ARM API. A partial or PATCH-style
 // payload will produce unreliable validation results. See internal/preflight/README.md
 // for implementation patterns and guidance.
-func NewValidationRequest(location *string, id resourceids.ResourceId, resourceType, apiVersion string, properties any) (ValidationRequest, error) {
-	scope, provider, resourceName, err := parseResourceId(id)
+func NewValidationRequest(location *string, id resourceids.ResourceId, apiVersion string, properties any) (ValidationRequest, error) {
+	scope, provider, resourceType, resourceName, err := parseResourceId(id)
 	if err != nil {
 		return ValidationRequest{}, fmt.Errorf("parsing resource ID for preflight validation: %w", err)
 	}
 
+	return buildValidationRequest(location, id, provider, resourceType, resourceName, scope, apiVersion, properties), nil
+}
+
+// NewValidationRequestWithTypeOverride is like NewValidationRequest but accepts an explicit
+// resourceType, overriding the value that would otherwise be derived from the ARM ID's path
+// segments. Use this when the preflight API requires a type discriminator that differs from
+// the ARM resource type path segment. Example: Microsoft.Cache/redis vs Microsoft.Cache/redisEnterprise.
+func NewValidationRequestWithTypeOverride(location *string, id resourceids.ResourceId, resourceType, apiVersion string, properties any) (ValidationRequest, error) {
+	scope, provider, _, resourceName, err := parseResourceId(id)
+	if err != nil {
+		return ValidationRequest{}, fmt.Errorf("parsing resource ID for preflight validation: %w", err)
+	}
+
+	return buildValidationRequest(location, id, provider, resourceType, resourceName, scope, apiVersion, properties), nil
+}
+
+func buildValidationRequest(location *string, id resourceids.ResourceId, provider, resourceType, resourceName, scope, apiVersion string, properties any) ValidationRequest {
 	return ValidationRequest{
 		Location:   location,
 		Provider:   provider,
@@ -52,8 +73,9 @@ func NewValidationRequest(location *string, id resourceids.ResourceId, resourceT
 			Type:       fmt.Sprintf("%s/%s", provider, resourceType),
 			Properties: properties,
 		},
-	}, nil
+	}
 }
+
 
 func (v ValidationRequest) ValidateResource(ctx context.Context, metadata sdk.ResourceMetaData) error {
 	client := metadata.Client.Preflight.PreflightClient
@@ -90,11 +112,13 @@ func (v ValidationRequest) ValidateResource(ctx context.Context, metadata sdk.Re
 }
 
 // parseResourceId breaks down an ARM resource ID into components needed for validation using the resourceids package.
-func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceName string, err error) {
+// resourceType is returned as the slash-joined ARM path segments (without provider prefix), e.g. "redisEnterprise"
+// or "redisEnterprise/databases" for a child resource.
+func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, resourceName string, err error) {
 	parser := resourceids.NewParserFromResourceIdType(id)
 	parsed, err := parser.Parse(id.ID(), true)
 	if err != nil {
-		return "", "", "", fmt.Errorf("parsing resource ID: %w", err)
+		return "", "", "", "", fmt.Errorf("parsing resource ID: %w", err)
 	}
 
 	segments := id.Segments()
@@ -108,7 +132,7 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceName s
 	}
 
 	if providerIdx == -1 {
-		return "", "", "", fmt.Errorf("resource ID is missing a resource provider segment")
+		return "", "", "", "", fmt.Errorf("resource ID is missing a resource provider segment")
 	}
 
 	var typeSegs []string
@@ -134,6 +158,11 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceName s
 		}
 	}
 
+	if len(typeSegs) == 0 {
+		return "", "", "", "", fmt.Errorf("resource ID contains no resource type segments after the provider")
+	}
+
+	resourceType = strings.Join(typeSegs, "/")
 	resourceName = strings.Join(nameSegs, "/")
 
 	var scopeSegments []string
@@ -164,7 +193,7 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceName s
 		scope = "/" + strings.Join(scopeSegments, "/")
 	}
 
-	return scope, provider, resourceName, nil
+	return scope, provider, resourceType, resourceName, nil
 }
 
 func extractErrorDetail(resp *http.Response) *string {
