@@ -10,7 +10,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -18,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var _ sdk.EphemeralResource = &KeyVaultSecretEphemeralResource{}
@@ -96,7 +97,6 @@ func (e *KeyVaultSecretEphemeralResource) Schema(_ context.Context, _ ephemeral.
 
 func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
 	keyVaultsClient := e.Client.KeyVault
-	client := e.Client.KeyVault.ManagementClient
 	ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
 	defer cancel()
 
@@ -118,9 +118,12 @@ func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemera
 		return
 	}
 
-	response, err := client.GetSecret(ctx, *keyVaultBaseUri, data.Name.ValueString(), data.Version.ValueString())
+	client := e.Client.KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(*keyVaultBaseUri)
+	secretVersionId := secrets.NewSecretversionID(*keyVaultBaseUri, data.Name.ValueString(), data.Version.ValueString())
+
+	getResp, err := client.GetSecret(ctx, secretVersionId)
 	if err != nil {
-		if utils.ResponseWasNotFound(response.Response) {
+		if response.WasNotFound(getResp.HttpResponse) {
 			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("secret %s does not exist in %s", data.Name.ValueString(), keyVaultID), err)
 			return
 		}
@@ -128,9 +131,14 @@ func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemera
 		return
 	}
 
-	data.Value = types.StringValue(pointer.From(response.Value))
+	if getResp.Model == nil || getResp.Model.Id == nil {
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("reading secret %q: response model was nil", data.Name.ValueString()), fmt.Errorf("model was nil"))
+		return
+	}
 
-	id, err := parse.ParseNestedItemID(*response.ID)
+	data.Value = types.StringValue(pointer.From(getResp.Model.Value))
+
+	id, err := parse.ParseNestedItemID(*getResp.Model.Id)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, "", err)
 		return
@@ -138,13 +146,13 @@ func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemera
 
 	data.Version = types.StringValue(id.Version)
 
-	if attributes := response.Attributes; attributes != nil {
-		if expirationDate := attributes.Expires; expirationDate != nil {
-			data.ExpirationDate = types.StringValue(time.Time(*expirationDate).Format(time.RFC3339))
+	if attributes := getResp.Model.Attributes; attributes != nil {
+		if expirationDate := attributes.Exp; expirationDate != nil {
+			data.ExpirationDate = types.StringValue(time.Unix(*expirationDate, 0).UTC().Format(time.RFC3339))
 		}
 
-		if notBeforeDate := attributes.NotBefore; notBeforeDate != nil {
-			data.NotBeforeDate = types.StringValue(time.Time(*notBeforeDate).Format(time.RFC3339))
+		if notBeforeDate := attributes.Nbf; notBeforeDate != nil {
+			data.NotBeforeDate = types.StringValue(time.Unix(*notBeforeDate, 0).UTC().Format(time.RFC3339))
 		}
 	}
 

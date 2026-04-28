@@ -7,15 +7,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceKeyVaultSecret() *pluginsdk.Resource {
@@ -84,7 +86,6 @@ func dataSourceKeyVaultSecret() *pluginsdk.Resource {
 
 func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -100,16 +101,23 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, *keyVaultId, err)
 	}
 
-	resp, err := client.GetSecret(ctx, *keyVaultBaseUri, name, version)
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(*keyVaultBaseUri)
+	secretVersionId := secrets.NewSecretversionID(*keyVaultBaseUri, name, version)
+
+	resp, err := client.GetSecret(ctx, secretVersionId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("KeyVault Secret %q (KeyVault URI %q) does not exist", name, *keyVaultBaseUri)
 		}
 		return fmt.Errorf("making Read request on Azure KeyVault Secret %s: %+v", name, err)
 	}
 
+	if resp.Model == nil || resp.Model.Id == nil {
+		return fmt.Errorf("reading KeyVault Secret %q: response model was nil", name)
+	}
+
 	// the version may have changed, so parse the updated id
-	secretId, err := parse.ParseNestedItemID(*resp.ID)
+	secretId, err := parse.ParseNestedItemID(*resp.Model.Id)
 	if err != nil {
 		return err
 	}
@@ -118,19 +126,19 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.Set("name", secretId.Name)
 	d.Set("key_vault_id", keyVaultId.ID())
-	d.Set("value", resp.Value)
+	d.Set("value", resp.Model.Value)
 	d.Set("version", secretId.Version)
-	d.Set("content_type", resp.ContentType)
-	if attributes := resp.Attributes; attributes != nil {
+	d.Set("content_type", resp.Model.ContentType)
+	if attributes := resp.Model.Attributes; attributes != nil {
 		notBeforeDate := ""
-		if v := attributes.NotBefore; v != nil {
-			notBeforeDate = time.Time(*v).Format(time.RFC3339)
+		if v := attributes.Nbf; v != nil {
+			notBeforeDate = time.Unix(*v, 0).UTC().Format(time.RFC3339)
 		}
 		d.Set("not_before_date", notBeforeDate)
 
 		expirationDate := ""
-		if v := attributes.Expires; v != nil {
-			expirationDate = time.Time(*v).Format(time.RFC3339)
+		if v := attributes.Exp; v != nil {
+			expirationDate = time.Unix(*v, 0).UTC().Format(time.RFC3339)
 		}
 		d.Set("expiration_date", expirationDate)
 	}
@@ -139,5 +147,5 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, secretId.Name, secretId.Version).ID())
 	d.Set("resource_versionless_id", parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, secretId.Name).ID())
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return tags.FlattenAndSet(d, tags.FromTypedObject(pointer.From(resp.Model.Tags)))
 }
