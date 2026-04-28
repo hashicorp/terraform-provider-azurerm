@@ -5,6 +5,7 @@ package keyvault
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -132,7 +133,7 @@ func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemera
 	}
 
 	if getResp.Model == nil || getResp.Model.Id == nil {
-		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("reading secret %q: response model was nil", data.Name.ValueString()), fmt.Errorf("model was nil"))
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("reading secret %q: response model was nil", data.Name.ValueString()), errors.New("model was nil"))
 		return
 	}
 
