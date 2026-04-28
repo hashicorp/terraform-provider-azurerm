@@ -35,7 +35,7 @@ type ValidationRequest struct {
 // payload will produce unreliable validation results. See internal/preflight/README.md
 // for implementation patterns and guidance.
 func NewValidationRequest(location *string, id resourceids.ResourceId, resourceType, apiVersion string, properties any) (ValidationRequest, error) {
-	scope, provider, _, resourceName, err := parseResourceId(id)
+	scope, provider, resourceName, err := parseResourceId(id)
 	if err != nil {
 		return ValidationRequest{}, fmt.Errorf("parsing resource ID for preflight validation: %w", err)
 	}
@@ -90,11 +90,11 @@ func (v ValidationRequest) ValidateResource(ctx context.Context, metadata sdk.Re
 }
 
 // parseResourceId breaks down an ARM resource ID into components needed for validation using the resourceids package.
-func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, resourceName string, err error) {
+func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceName string, err error) {
 	parser := resourceids.NewParserFromResourceIdType(id)
 	parsed, err := parser.Parse(id.ID(), true)
 	if err != nil {
-		return "", "", "", "", fmt.Errorf("parsing resource ID: %w", err)
+		return "", "", "", fmt.Errorf("parsing resource ID: %w", err)
 	}
 
 	segments := id.Segments()
@@ -108,7 +108,7 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, 
 	}
 
 	if providerIdx == -1 {
-		return "", "", "", "", fmt.Errorf("resource ID is missing a resource provider segment")
+		return "", "", "", fmt.Errorf("resource ID is missing a resource provider segment")
 	}
 
 	var typeSegs []string
@@ -134,7 +134,6 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, 
 		}
 	}
 
-	resourceType = fmt.Sprintf("%s/%s", provider, strings.Join(typeSegs, "/"))
 	resourceName = strings.Join(nameSegs, "/")
 
 	var scopeSegments []string
@@ -165,7 +164,7 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, 
 		scope = "/" + strings.Join(scopeSegments, "/")
 	}
 
-	return scope, provider, resourceType, resourceName, nil
+	return scope, provider, resourceName, nil
 }
 
 func extractErrorDetail(resp *http.Response) *string {
