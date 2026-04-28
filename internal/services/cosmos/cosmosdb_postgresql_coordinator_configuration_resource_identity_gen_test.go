@@ -25,7 +25,7 @@ func TestAccCosmosdbPostgresqlCoordinatorConfiguration_resourceIdentity(t *testi
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "array_nulls", "on"),
+			Config: r.basic(data, "on"),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_cosmosdb_postgresql_coordinator_configuration.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cosmosdb_postgresql_coordinator_configuration.test", tfjsonpath.New("name"), tfjsonpath.New("name")),

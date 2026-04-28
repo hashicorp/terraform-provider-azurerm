@@ -25,7 +25,7 @@ func TestCosmosDbPostgreSQLCoordinatorConfiguration_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "array_nulls", "on"),
+			Config: r.basic(data, "on"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -40,14 +40,14 @@ func TestCosmosDbPostgreSQLCoordinatorConfiguration_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "array_nulls", "on"),
+			Config: r.basic(data, "on"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "array_nulls", "off"),
+			Config: r.basic(data, "off"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -98,14 +98,14 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r CosmosdbPostgresqlCoordinatorConfigurationResource) basic(data acceptance.TestData, name, value string) string {
+func (r CosmosdbPostgresqlCoordinatorConfigurationResource) basic(data acceptance.TestData, value string) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_cosmosdb_postgresql_coordinator_configuration" "test" {
-  name       = "%s"
+  name       = "array_nulls"
   cluster_id = azurerm_cosmosdb_postgresql_cluster.test.id
   value      = "%s"
 }
-`, r.template(data), name, value)
+`, r.template(data), value)
 }

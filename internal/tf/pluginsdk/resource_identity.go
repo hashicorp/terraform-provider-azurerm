@@ -229,12 +229,13 @@ func toSnakeCase(input string) string {
 			nextIsNum := next >= '0' && next <= '9'
 
 			// if it looks like a version (e.g. `ServerGroupsv2Name`), group `v2`/`V2` together -> `_v2_`
-			if (vIsLow || vIsCap) && nextIsNum {
-				if v == 'v' || v == 'V' {
+			if (vIsLow || vIsCap) && nextIsNum && (v == 'v' || v == 'V') {
+				// avoid duplicate delimiter
+				if b := []byte(n.String()); len(b)-1 >= 0 && b[len(b)-1] != delimiter {
 					n.WriteByte(delimiter)
-					n.WriteByte(v)
-					continue
 				}
+				n.WriteByte(v)
+				continue
 			}
 
 			// add underscore if next letter case type is changed

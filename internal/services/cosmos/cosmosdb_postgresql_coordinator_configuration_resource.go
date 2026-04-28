@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_coordinator_configuration -properties "name" -compare-values "subscription_id:cluster_id,resource_group_name:cluster_id,server_groups_v2_name:cluster_id" -test-params "array_nulls,on"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_coordinator_configuration -properties "name" -compare-values "subscription_id:cluster_id,resource_group_name:cluster_id,server_groups_v2_name:cluster_id" -test-params "on"
 
 type CosmosDbPostgreSQLCoordinatorConfigurationModel struct {
 	Name      string `tfschema:"name"`
