@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
@@ -86,7 +86,19 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 			}
 
 		default:
-			return fmt.Errorf("unknown type %q", name)
+			{
+				var out CustomFilter
+				mpc := mapstructure.DecoderConfig{TagName: "json", Result: &out}
+				mpd, err := mapstructure.NewDecoder(&mpc)
+				if err != nil {
+					return err
+				}
+				err = mpd.Decode(filterRaw)
+				if err != nil {
+					return err
+				}
+				filtersOut = append(filtersOut, out)
+			}
 		}
 	}
 
@@ -120,6 +132,11 @@ type TargetingFilterAudience struct {
 	DefaultRolloutPercentage int64                     `json:"DefaultRolloutPercentage" tfschema:"default_rollout_percentage"`
 	Users                    []string                  `json:"Users"                    tfschema:"users"`
 	Groups                   []TargetingGroupParameter `json:"Groups"                   tfschema:"groups"`
+}
+
+type CustomFilter struct {
+	Name       string            `json:"name"       tfschema:"name"`
+	Parameters map[string]string `json:"parameters" tfschema:"parameters"`
 }
 
 type TargetingFeatureFilter struct {

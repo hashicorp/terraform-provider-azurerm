@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package search_test
@@ -28,6 +28,7 @@ func TestAccSearchService_basicSku(t *testing.T) {
 			Config: r.basic(data, "basic"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
 				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
 			),
 		},

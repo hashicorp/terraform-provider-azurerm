@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/credential"
@@ -20,9 +21,9 @@ import (
 
 func resourceAutomationCredential() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationCredentialCreateUpdate,
+		Create: resourceAutomationCredentialCreate,
 		Read:   resourceAutomationCredentialRead,
-		Update: resourceAutomationCredentialCreateUpdate,
+		Update: resourceAutomationCredentialUpdate,
 		Delete: resourceAutomationCredentialDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -72,47 +73,89 @@ func resourceAutomationCredential() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationCredentialCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationCredentialCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.Credential
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Credential creation.")
 
 	id := credential.NewCredentialID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_credential", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	user := d.Get("username").(string)
-	password := d.Get("password").(string)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_automation_credential", id.ID())
+	}
+
 	description := d.Get("description").(string)
 
 	parameters := credential.CredentialCreateOrUpdateParameters{
+		Name: id.CredentialName,
 		Properties: credential.CredentialCreateOrUpdateProperties{
-			UserName:    user,
-			Password:    password,
+			UserName:    d.Get("username").(string),
+			Password:    d.Get("password").(string),
 			Description: &description,
 		},
-		Name: id.CredentialName,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return err
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAutomationCredentialRead(d, meta)
+}
+
+func resourceAutomationCredentialUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.Credential
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Automation Credential update.")
+
+	id, err := credential.ParseCredentialID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+	}
+
+	parameters := credential.CredentialCreateOrUpdateParameters{
+		Name: id.CredentialName,
+		Properties: credential.CredentialCreateOrUpdateProperties{
+			// password is sensitive and not returned by the API, so it must always
+			// be read from state to ensure the value is preserved on update
+			Password: d.Get("password").(string),
+		},
+	}
+
+	if existing.Model != nil && existing.Model.Properties != nil {
+		parameters.Properties.UserName = pointer.From(existing.Model.Properties.UserName)
+		parameters.Properties.Description = existing.Model.Properties.Description
+	}
+
+	if d.HasChange("username") {
+		parameters.Properties.UserName = d.Get("username").(string)
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceAutomationCredentialRead(d, meta)
 }

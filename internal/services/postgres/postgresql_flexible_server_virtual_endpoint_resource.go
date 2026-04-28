@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -180,7 +180,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 					// if the endpoint doesn't exist under the source server, look for it under the replica server
 					resp, err = client.Get(ctx, virtualEndpointId)
 					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
+						if response.WasNotFound(resp.HttpResponse) || response.WasBadRequest(resp.HttpResponse) { // Can return a 400 if attempting to query the replica for the virtual endpoint resource
 							// the endpoint was not found under the source or the replica server so it can safely be removed from state
 							log.Printf("[INFO] %s does not exist - removing from state", metadata.ResourceData.Id())
 							return metadata.MarkAsGone(id)
@@ -267,7 +267,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Delete() sdk.ResourceFu
 					// if the endpoint doesn't exist under the source server, look for it under the replica server
 					resp, err = client.Get(ctx, virtualEndpointId)
 					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
+						if response.WasNotFound(resp.HttpResponse) || response.WasBadRequest(resp.HttpResponse) { // Can return a 400 if attempting to query the replica for the virtual endpoint resource
 							// the endpoint was not found under the source or the replica server so we can exit here
 							return nil
 						}
@@ -316,8 +316,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 				if response.WasNotFound(resp.HttpResponse) {
 					virtualEndpointId = virtualendpoints.NewVirtualEndpointID(id.Second.SubscriptionId, id.Second.ResourceGroupName, id.Second.FlexibleServerName, id.Second.VirtualEndpointName)
 					// if the endpoint doesn't exist under the source server, look for it under the replica server
-					_, err = client.Get(ctx, virtualEndpointId)
-					if err != nil {
+					if _, err = client.Get(ctx, virtualEndpointId); err != nil {
 						return fmt.Errorf("retrieving %s: %+v", virtualEndpointId, err)
 					}
 					return fmt.Errorf("a fail-over has occurred and the `source_server_id` in the config is no longer the SourceServerId for the virtual endpoint. If you wish to change the `replica_server_id`, remove this resource from state and reimport it back in with the `replica_server_id` and `source_server_id` swapped")

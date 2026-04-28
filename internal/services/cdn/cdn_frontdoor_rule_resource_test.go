@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_test
@@ -471,8 +471,7 @@ func (r CdnFrontDoorRuleResource) Exists(ctx context.Context, clients *clients.C
 	}
 
 	client := clients.Cdn.FrontDoorRulesClient
-	_, err = client.Get(ctx, *id)
-	if err != nil {
+	if _, err = client.Get(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 

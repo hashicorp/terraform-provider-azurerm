@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -40,6 +40,10 @@ func TestNestedItemName(t *testing.T) {
 		},
 		{
 			Input:       "ABC123!@£",
+			ExpectError: true,
+		},
+		{
+			Input:       "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
 			ExpectError: true,
 		},
 	}

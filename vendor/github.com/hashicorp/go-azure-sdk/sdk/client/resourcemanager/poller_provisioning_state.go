@@ -159,6 +159,13 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 	}, nil
 }
 
+func (p *provisioningStatePoller) SkipDelay() bool {
+	if p.client != nil {
+		return client.IsVcrReplaying(p.client.Transport)
+	}
+	return false
+}
+
 type provisioningStateResult struct {
 	Properties provisioningStateResultProperties `json:"properties"`
 
@@ -177,7 +184,7 @@ func resourceManagerResourcePathFromUri(input string) (*string, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	segments := strings.Split(strings.TrimPrefix(parsed.Path, "/"), "/")
+	segments := strings.Split(strings.TrimLeft(parsed.Path, "/"), "/")
 	if len(segments) == 0 {
 		return nil, fmt.Errorf("polling uri was empty")
 	}

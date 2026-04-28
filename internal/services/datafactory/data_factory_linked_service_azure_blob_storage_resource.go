@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,7 +23,7 @@ import (
 )
 
 func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
 		Read:   resourceDataFactoryLinkedServiceBlobStorageRead,
 		Update: resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
@@ -95,8 +96,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
 			},
 
-			// TODO for @favoretti: rename this to 'sas_token_linked_key_vault_key' for 3.4.0
-			"key_vault_sas_token": {
+			"sas_token_linked_key_vault_key": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -213,6 +213,54 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["sas_token_linked_key_vault_key"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"key_vault_sas_token"},
+			MaxItems:      1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"linked_service_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"secret_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+		resource.Schema["key_vault_sas_token"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"sas_token_linked_key_vault_key"},
+			Deprecated:    "the `key_vault_sas_token` property has been deprecated in favour of the `sas_token_linked_key_vault_key` property and will be removed in v5.0 of the AzureRM Provider",
+			MaxItems:      1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"linked_service_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"secret_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -255,14 +303,21 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if v, ok := d.GetOk("sas_uri"); ok {
-		if sasToken, ok := d.GetOk("key_vault_sas_token"); ok {
-			blobStorageProperties.SasURI = pointer.To(v.(string))
-			blobStorageProperties.SasToken = expandAzureKeyVaultSecretReference(sasToken.([]interface{}))
-		} else {
-			blobStorageProperties.SasURI = &datafactory.SecureString{
-				Value: pointer.To(v.(string)),
-				Type:  datafactory.TypeSecureString,
+		blobStorageProperties.SasURI = &datafactory.SecureString{
+			Value: pointer.To(v.(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+
+		if !features.FivePointOh() {
+			if sasToken, ok := d.GetOk("key_vault_sas_token"); ok {
+				blobStorageProperties.SasToken = expandAzureKeyVaultSecretReference(sasToken.([]interface{}))
+				blobStorageProperties.SasURI = pointer.To(v.(string))
 			}
+		}
+
+		if sasToken, ok := d.GetOk("sas_token_linked_key_vault_key"); ok {
+			blobStorageProperties.SasToken = expandAzureKeyVaultSecretReference(sasToken.([]interface{}))
+			blobStorageProperties.SasURI = pointer.To(v.(string))
 		}
 	}
 
@@ -381,8 +436,13 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 		d.Set("storage_kind", properties.AccountKind)
 		if sasToken := properties.SasToken; sasToken != nil {
 			if keyVaultPassword, ok := sasToken.AsAzureKeyVaultSecretReference(); ok {
-				if err := d.Set("key_vault_sas_token", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
-					return fmt.Errorf("setting `key_vault_sas_token`: %+v", err)
+				if err := d.Set("sas_token_linked_key_vault_key", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
+					return fmt.Errorf("setting `sas_token_linked_key_vault_key`: %+v", err)
+				}
+				if !features.FivePointOh() {
+					if err := d.Set("key_vault_sas_token", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
+						return fmt.Errorf("setting `key_vault_sas_token`: %+v", err)
+					}
 				}
 			}
 		}

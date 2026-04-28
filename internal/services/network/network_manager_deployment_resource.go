@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -344,8 +344,7 @@ func resourceManagerDeploymentWaitForDeleted(ctx context.Context, client *networ
 		Timeout:    d,
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for the %s: %+v", *managerDeploymentId, err)
 	}
 
@@ -371,8 +370,7 @@ func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *netwo
 		},
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for the %s: %+v", *managerDeploymentId, err)
 	}
 

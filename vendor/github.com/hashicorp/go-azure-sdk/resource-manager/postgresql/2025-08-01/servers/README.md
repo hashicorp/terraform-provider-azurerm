@@ -21,6 +21,78 @@ client.Client.Authorizer = authorizer
 ```
 
 
+### Example Usage: `ServersClient.BackupsLongTermRetentionCheckPrerequisites`
+
+```go
+ctx := context.TODO()
+id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName")
+
+payload := servers.BackupRequestBase{
+	// ...
+}
+
+
+read, err := client.BackupsLongTermRetentionCheckPrerequisites(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ServersClient.BackupsLongTermRetentionStart`
+
+```go
+ctx := context.TODO()
+id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName")
+
+payload := servers.BackupsLongTermRetentionRequest{
+	// ...
+}
+
+
+if err := client.BackupsLongTermRetentionStartThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `ServersClient.CapabilitiesByServerList`
+
+```go
+ctx := context.TODO()
+id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName")
+
+// alternatively `client.CapabilitiesByServerList(ctx, id)` can be used to do batched pagination
+items, err := client.CapabilitiesByServerListComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `ServersClient.CapturedLogsListByServer`
+
+```go
+ctx := context.TODO()
+id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName")
+
+// alternatively `client.CapturedLogsListByServer(ctx, id)` can be used to do batched pagination
+items, err := client.CapturedLogsListByServerComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
 ### Example Usage: `ServersClient.CreateOrUpdate`
 
 ```go
@@ -91,6 +163,44 @@ id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `ServersClient.MigrationsCheckNameAvailability`
+
+```go
+ctx := context.TODO()
+id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName")
+
+payload := servers.MigrationNameAvailability{
+	// ...
+}
+
+
+read, err := client.MigrationsCheckNameAvailability(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ServersClient.ReplicasListByServer`
+
+```go
+ctx := context.TODO()
+id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName")
+
+// alternatively `client.ReplicasListByServer(ctx, id)` can be used to do batched pagination
+items, err := client.ReplicasListByServerComplete(ctx, id)
 if err != nil {
 	// handle the error
 }

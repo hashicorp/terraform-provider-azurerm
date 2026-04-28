@@ -37,11 +37,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Application Gateway.
 
-* `location` - The Azure region where the Application Gateway exists.
+* `authentication_certificate` - One or more `authentication_certificate` blocks as defined below.
+
+* `autoscale_configuration` - An `autoscale_configuration` block as defined below.
+
+* `backend` - One or more `backend` blocks as defined below.
 
 * `backend_address_pool` - One or more `backend_address_pool` blocks as defined below.
 
 * `backend_http_settings` - One or more `backend_http_settings` blocks as defined below.
+
+* `custom_error_configuration` - One or more `custom_error_configuration` blocks as defined below.
+
+* `fips_enabled` - Is FIPS enabled on the Application Gateway?
+
+* `firewall_policy_id` - The ID of the Web Application Firewall Policy.
+
+* `force_firewall_policy_association` - Is the Firewall Policy associated with the Application Gateway?
 
 * `frontend_ip_configuration` - One or more `frontend_ip_configuration` blocks as defined below.
 
@@ -49,55 +61,49 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `gateway_ip_configuration` - One or more `gateway_ip_configuration` blocks as defined below.
 
-* `http_listener` - One or more `http_listener` blocks as defined below.
-
-* `request_routing_rule` - One or more `request_routing_rule` blocks as defined below.
-
-* `sku` - A `sku` block as defined below.
-
-* `fips_enabled` - Is FIPS enabled on the Application Gateway?
-
 * `global` - A `global` block as defined below.
-
-* `identity` - An `identity` block as defined below.
-
-* `private_link_configuration` - One or more `private_link_configuration` blocks as defined below.
-
-* `zones` - The list of Availability Zones in which this Application Gateway can use.
-
-* `trusted_client_certificate` - One or more `trusted_client_certificate` blocks as defined below.
-
-* `ssl_profile` - One or more `ssl_profile` blocks as defined below.
-
-* `authentication_certificate` - One or more `authentication_certificate` blocks as defined below.
-
-* `trusted_root_certificate` - One or more `trusted_root_certificate` blocks as defined below.
-
-* `ssl_policy` - An `ssl_policy` block as defined below.
 
 * `http2_enabled` - Is HTTP2 enabled on the application gateway resource?
 
-* `force_firewall_policy_association` - Is the Firewall Policy associated with the Application Gateway?
+* `http_listener` - One or more `http_listener` blocks as defined below.
+
+* `identity` - An `identity` block as defined below.
+
+* `listener` - One or more `listener` blocks as defined below.
+
+* `location` - The Azure region where the Application Gateway exists.
+
+* `private_link_configuration` - One or more `private_link_configuration` blocks as defined below.
 
 * `probe` - One or more `probe` blocks as defined below.
 
+* `redirect_configuration` - One or more `redirect_configuration` blocks as defined below.
+
+* `request_routing_rule` - One or more `request_routing_rule` blocks as defined below.
+
+* `rewrite_rule_set` - One or more `rewrite_rule_set` blocks as defined below.
+
+* `routing_rule` - One or more `routing_rule` blocks as defined below.
+
+* `sku` - A `sku` block as defined below.
+
 * `ssl_certificate` - One or more `ssl_certificate` blocks as defined below.
 
-* `tags` - A mapping of tags to assign to the resource.
+* `ssl_policy` - An `ssl_policy` block as defined below.
+
+* `ssl_profile` - One or more `ssl_profile` blocks as defined below.
+
+* `trusted_client_certificate` - One or more `trusted_client_certificate` blocks as defined below.
+
+* `trusted_root_certificate` - One or more `trusted_root_certificate` blocks as defined below.
 
 * `url_path_map` - One or more `url_path_map` blocks as defined below.
 
 * `waf_configuration` - A `waf_configuration` block as defined below.
 
-* `custom_error_configuration` - One or more `custom_error_configuration` blocks as defined below.
+* `zones` - The list of Availability Zones in which this Application Gateway can use.
 
-* `firewall_policy_id` - The ID of the Web Application Firewall Policy.
-
-* `redirect_configuration` - One or more `redirect_configuration` blocks as defined below.
-
-* `autoscale_configuration` - An `autoscale_configuration` block as defined below.
-
-* `rewrite_rule_set` - One or more `rewrite_rule_set` blocks as defined below.
+* `tags` - A mapping of tags to assign to the resource.
 
 ---
 
@@ -136,6 +142,30 @@ A `backend_address_pool` block exports the following:
 * `fqdns` - A list of FQDNs which are part of the Backend Address Pool.
 
 * `ip_addresses` - A list of IP Addresses which are part of the Backend Address Pool.
+
+---
+
+A `backend` block exports the following:
+
+* `id` - The ID of the Backend Settings.
+
+* `client_ip_preservation_enabled` - Whether client IP preservation is enabled for the Backend Settings.
+
+* `host_name` - The Host Header to use for the Backend Settings.
+
+* `name` - The Name of the Backend Settings.
+
+* `port` - The port which is used for the Backend Settings.
+
+* `probe_id` - The ID of the associated Probe.
+
+* `probe_name` - The Name of the Probe which is used for the Backend Settings.
+
+* `protocol` - The Protocol which is used for the Backend Settings.
+
+* `timeout_in_seconds` - The request timeout in seconds for the Backend Settings.
+
+* `trusted_root_certificate_names` - A list of `trusted_root_certificate` names.
 
 ---
 
@@ -259,6 +289,34 @@ A `http_listener` block exports the following:
 
 ---
 
+A `listener` block exports the following:
+
+* `id` - The ID of the Listener.
+
+* `frontend_ip_configuration_id` - The ID of the associated Frontend Configuration.
+
+* `frontend_ip_configuration_name` - The Name of the Frontend IP Configuration used for this Listener.
+
+* `frontend_port_id` - The ID of the associated Frontend Port.
+
+* `frontend_port_name` - The Name of the Frontend Port used for this Listener.
+
+* `host_names` - A list of Hostname(s) used for this Listener.
+
+* `name` - The Name of the Listener.
+
+* `protocol` - The Protocol to use for this Listener.
+
+* `ssl_certificate_id` - The ID of the associated SSL Certificate.
+
+* `ssl_certificate_name` - The name of the associated SSL Certificate which is used for this Listener.
+
+* `ssl_profile_id` - The ID of the associated SSL Profile.
+
+* `ssl_profile_name` - The name of the associated SSL Profile which is used for this Listener.
+
+---
+
 An `identity` block exports the following:
 
 * `type` - The type of Managed Service Identity that is configured on this Application Gateway.
@@ -343,23 +401,25 @@ A `probe` block exports the following:
 
 * `interval` - The Interval between two consecutive probes in seconds.
 
+* `match` - A `match` block as defined above.
+
+* `minimum_servers` - The minimum number of servers that are always marked as healthy.
+
 * `name` - The Name of the Probe.
+
+* `path` - The Path used for this Probe.
+
+* `pick_host_name_from_backend_http_settings` - Whether the host header is picked from the backend HTTP settings.
+
+* `port` - Custom port which is used for probing the backend servers.
 
 * `protocol` - The Protocol used for this Probe.
 
-* `path` - The Path used for this Probe.
+* `proxy_protocol_header_enabled` - Whether the proxy protocol header is enabled for this Probe.
 
 * `timeout` - The Timeout used for this Probe, indicating when a probe becomes unhealthy.
 
 * `unhealthy_threshold` - The Unhealthy Threshold for this Probe, which indicates the amount of retries which will be attempted before a node is deemed unhealthy.
-
-* `port` - Custom port which is used for probing the backend servers.
-
-* `pick_host_name_from_backend_http_settings` - Whether the host header is picked from the backend HTTP settings.
-
-* `match` - A `match` block as defined above.
-
-* `minimum_servers` - The minimum number of servers that are always marked as healthy.
 
 ---
 
@@ -394,6 +454,28 @@ A `request_routing_rule` block exports the following:
 * `rewrite_rule_set_name` - The Name of the Rewrite Rule Set which is used for this Routing Rule.
 
 * `url_path_map_name` - The Name of the URL Path Map which is associated with this Routing Rule.
+
+* `priority` - The Priority of this Routing Rule.
+
+---
+
+A `routing_rule` block exports the following:
+
+* `id` - The ID of the Routing Rule.
+
+* `backend_address_pool_id` - The ID of the associated Backend Address Pool.
+
+* `backend_address_pool_name` - The Name of the Backend Address Pool which is used for this Routing Rule.
+
+* `backend_id` - The ID of the associated Backend Settings.
+
+* `backend_name` - The Name of the Backend Settings which is used for this Routing Rule.
+
+* `listener_id` - The ID of the associated Listener.
+
+* `listener_name` - The Name of the Listener which is used for this Routing Rule.
+
+* `name` - The Name of this Routing Rule.
 
 * `priority` - The Priority of this Routing Rule.
 

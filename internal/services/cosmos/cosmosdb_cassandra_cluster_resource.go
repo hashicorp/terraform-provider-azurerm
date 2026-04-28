@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -34,7 +33,7 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 		Delete: resourceCassandraClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CassandraClusterID(id)
+			_, err := managedcassandras.ParseCassandraClusterID(id)
 			return err
 		}),
 
@@ -131,6 +130,8 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"3.11",
 					"4.0",
+					"4.1",
+					"5.0",
 				}, false),
 			},
 

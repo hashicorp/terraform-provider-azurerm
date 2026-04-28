@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package voiceservices
@@ -9,15 +9,19 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/communicationsgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/testlines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name voice_services_communications_gateway_test_line -service-package-name voiceservices -properties "name" -compare-values "subscription_id:voice_services_communications_gateway_id,resource_group_name:voice_services_communications_gateway_id,communications_gateway_name:voice_services_communications_gateway_id"
 
 type CommunicationsGatewayTestLineResourceModel struct {
 	Name                                 string                    `tfschema:"name"`
@@ -30,7 +34,14 @@ type CommunicationsGatewayTestLineResourceModel struct {
 
 type CommunicationsGatewayTestLineResource struct{}
 
-var _ sdk.ResourceWithUpdate = CommunicationsGatewayTestLineResource{}
+var (
+	_ sdk.ResourceWithUpdate   = CommunicationsGatewayTestLineResource{}
+	_ sdk.ResourceWithIdentity = CommunicationsGatewayTestLineResource{}
+)
+
+func (r CommunicationsGatewayTestLineResource) Identity() resourceids.ResourceId {
+	return &testlines.TestLineId{}
+}
 
 func (r CommunicationsGatewayTestLineResource) ResourceType() string {
 	return "azurerm_voice_services_communications_gateway_test_line"
@@ -127,6 +138,9 @@ func (r CommunicationsGatewayTestLineResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -204,23 +218,29 @@ func (r CommunicationsGatewayTestLineResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			state := CommunicationsGatewayTestLineResourceModel{
-				Name:                                 id.TestLineName,
-				VoiceServicesCommunicationsGatewayId: communicationsgateways.NewCommunicationsGatewayID(id.SubscriptionId, id.ResourceGroupName, id.CommunicationsGatewayName).ID(),
-				Location:                             location.Normalize(model.Location),
-			}
-
-			if properties := model.Properties; properties != nil {
-				state.PhoneNumber = properties.PhoneNumber
-				state.Purpose = properties.Purpose
-			}
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, model)
 		},
 	}
+}
+
+func (r CommunicationsGatewayTestLineResource) flatten(metadata sdk.ResourceMetaData, id *testlines.TestLineId, model *testlines.TestLine) error {
+	state := CommunicationsGatewayTestLineResourceModel{
+		Name:                                 id.TestLineName,
+		VoiceServicesCommunicationsGatewayId: communicationsgateways.NewCommunicationsGatewayID(id.SubscriptionId, id.ResourceGroupName, id.CommunicationsGatewayName).ID(),
+		Location:                             location.Normalize(model.Location),
+	}
+
+	if properties := model.Properties; properties != nil {
+		state.PhoneNumber = properties.PhoneNumber
+		state.Purpose = properties.Purpose
+	}
+	state.Tags = pointer.From(model.Tags)
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r CommunicationsGatewayTestLineResource) Delete() sdk.ResourceFunc {

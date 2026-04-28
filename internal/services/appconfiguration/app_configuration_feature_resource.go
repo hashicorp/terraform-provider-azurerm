@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
@@ -55,6 +55,7 @@ type FeatureResourceModel struct {
 	PercentageFilter     float64                      `tfschema:"percentage_filter_value"`
 	TimewindowFilters    []TimewindowFilterParameters `tfschema:"timewindow_filter"`
 	TargetingFilters     []TargetingFilterAudience    `tfschema:"targeting_filter"`
+	CustomFilters        []CustomFilter               `tfschema:"custom_filter"`
 }
 
 func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
@@ -164,6 +165,26 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsRFC3339Time,
+					},
+				},
+			},
+		},
+		"custom_filter": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"parameters": {
+						Type:     pluginsdk.TypeMap,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
 					},
 				},
 			},
@@ -294,6 +315,15 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if len(model.CustomFilters) > 0 {
+				for _, cf := range model.CustomFilters {
+					value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, CustomFilter{
+						Name:       cf.Name,
+						Parameters: cf.Parameters,
+					})
+				}
+			}
+
 			valueBytes, err := json.Marshal(value)
 			if err != nil {
 				return fmt.Errorf("while marshalling FeatureValue struct: %+v", err)
@@ -420,6 +450,9 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 					case PercentageFeatureFilter:
 						pfp := f
 						model.PercentageFilter = pfp.Parameters.Value
+					case CustomFilter:
+						cf := f
+						model.CustomFilters = append(model.CustomFilters, cf)
 					default:
 						return fmt.Errorf("while unmarshaling feature payload: unknown filter type %+v", f)
 					}
@@ -493,6 +526,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			timewindowFilters := make([]interface{}, 0)
 			targetingFilters := make([]interface{}, 0)
 			percentageFilter := PercentageFeatureFilter{}
+			customFilters := make([]interface{}, 0)
 			if len(fv.Conditions.ClientFilters.Filters) > 0 {
 				for _, f := range fv.Conditions.ClientFilters.Filters {
 					switch f := f.(type) {
@@ -505,6 +539,9 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 					case PercentageFeatureFilter:
 						pfp := f
 						percentageFilter = pfp
+					case CustomFilter:
+						cf := f
+						customFilters = append(customFilters, cf)
 					default:
 						return fmt.Errorf("while unmarshaling feature payload: unknown filter type %+v", f)
 					}
@@ -543,6 +580,18 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 				filterChanged = true
 			} else {
 				filters = append(filters, timewindowFilters...)
+			}
+
+			if metadata.ResourceData.HasChange("custom_filter") {
+				for _, cf := range model.CustomFilters {
+					filters = append(filters, CustomFilter{
+						Name:       cf.Name,
+						Parameters: cf.Parameters,
+					})
+				}
+				filterChanged = true
+			} else {
+				filters = append(filters, customFilters...)
 			}
 
 			if filterChanged {

@@ -354,6 +354,11 @@ service/managed-apps:
   - any-glob-to-any-file:
     - internal/services/managedapplications/**/*
 
+service/managed-devops-pools:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/manageddevopspools/**/*
+
 service/managed-hsm:
 - changed-files:
   - any-glob-to-any-file:
@@ -368,11 +373,6 @@ service/maps:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/maps/**/*
-
-service/mobile-network:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/mobilenetwork/**/*
 
 service/mongo-cluster:
 - changed-files:

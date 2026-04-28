@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -22,9 +23,9 @@ import (
 
 func resourceAutomationModule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationModuleCreateUpdate,
+		Create: resourceAutomationModuleCreate,
 		Read:   resourceAutomationModuleRead,
-		Update: resourceAutomationModuleCreateUpdate,
+		Update: resourceAutomationModuleUpdate,
 		Delete: resourceAutomationModuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -91,29 +92,27 @@ func resourceAutomationModule() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.Module
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Module creation.")
 
 	id := module.NewModuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
 
-		// for existing global module do update instead of raising ImportAsExistsError
-		isGlobal := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.IsGlobal != nil && *existing.Model.Properties.IsGlobal
-		if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
-			return tf.ImportAsExistsError("azurerm_automation_module", id.ID())
-		}
+	// for existing global module do update instead of raising ImportAsExistsError
+	isGlobal := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.IsGlobal != nil && *existing.Model.Properties.IsGlobal
+	if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
+		return tf.ImportAsExistsError("azurerm_automation_module", id.ID())
 	}
 
 	parameters := module.ModuleCreateOrUpdateParameters{
@@ -123,63 +122,59 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if err := waitForModuleProvisioningCompletion(ctx, client, id, d.Timeout(pluginsdk.TimeoutCreate)); err != nil {
 		return err
 	}
 
-	// the API returns 'done' but it's not actually finished provisioning yet
-	// tracking issue: https://github.com/Azure/azure-rest-api-specs/pull/25435
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			string(module.ModuleProvisioningStateActivitiesStored),
-			string(module.ModuleProvisioningStateConnectionTypeImported),
-			string(module.ModuleProvisioningStateContentDownloaded),
-			string(module.ModuleProvisioningStateContentRetrieved),
-			string(module.ModuleProvisioningStateContentStored),
-			string(module.ModuleProvisioningStateContentValidated),
-			string(module.ModuleProvisioningStateCreated),
-			string(module.ModuleProvisioningStateCreating),
-			string(module.ModuleProvisioningStateModuleDataStored),
-			string(module.ModuleProvisioningStateModuleImportRunbookComplete),
-			string(module.ModuleProvisioningStateRunningImportModuleRunbook),
-			string(module.ModuleProvisioningStateStartingImportModuleRunbook),
-			string(module.ModuleProvisioningStateUpdating),
-		},
-		Target: []string{
-			string(module.ModuleProvisioningStateSucceeded),
-		},
-		MinTimeout: 30 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			resp, err2 := client.Get(ctx, id)
-			if err2 != nil {
-				return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err2)
-			}
-
-			provisioningState := "Unknown"
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					if props.ProvisioningState != nil {
-						provisioningState = string(*props.ProvisioningState)
-					}
-					if props.Error != nil && props.Error.Message != nil && *props.Error.Message != "" {
-						return resp, provisioningState, errors.New(*props.Error.Message)
-					}
-					return resp, provisioningState, nil
-				}
-			}
-			return resp, provisioningState, nil
-		},
-	}
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to finish provisioning: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
+
+	return resourceAutomationModuleRead(d, meta)
+}
+
+func resourceAutomationModuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.Module
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := module.ParseModuleID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+	}
+
+	// Start from the existing content link so that fields managed via
+	// ignore_changes retain their server-side value.
+	var contentLink *module.ContentLink
+	if existing.Model != nil && existing.Model.Properties != nil {
+		contentLink = existing.Model.Properties.ContentLink
+	}
+
+	if d.HasChange("module_link") {
+		expanded := expandModuleLink(d)
+		contentLink = &expanded
+	}
+
+	parameters := module.ModuleUpdateParameters{
+		Name: &id.ModuleName,
+		Properties: &module.ModuleUpdateProperties{
+			ContentLink: contentLink,
+		},
+	}
+
+	if _, err := client.Update(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	if err := waitForModuleProvisioningCompletion(ctx, client, *id, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+		return err
+	}
 
 	return resourceAutomationModuleRead(d, meta)
 }
@@ -254,4 +249,58 @@ func expandModuleLink(d *pluginsdk.ResourceData) module.ContentLink {
 	return module.ContentLink{
 		Uri: &uri,
 	}
+}
+
+// waitForModuleProvisioningCompletion polls the module until it reaches the Succeeded
+// provisioning state. The API returns 'done' before provisioning is actually complete.
+// Tracking issue: https://github.com/Azure/azure-rest-api-specs/pull/25435
+func waitForModuleProvisioningCompletion(ctx context.Context, client *module.ModuleClient, id module.ModuleId, timeout time.Duration) error {
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(module.ModuleProvisioningStateActivitiesStored),
+			string(module.ModuleProvisioningStateConnectionTypeImported),
+			string(module.ModuleProvisioningStateContentDownloaded),
+			string(module.ModuleProvisioningStateContentRetrieved),
+			string(module.ModuleProvisioningStateContentStored),
+			string(module.ModuleProvisioningStateContentValidated),
+			string(module.ModuleProvisioningStateCreated),
+			string(module.ModuleProvisioningStateCreating),
+			string(module.ModuleProvisioningStateModuleDataStored),
+			string(module.ModuleProvisioningStateModuleImportRunbookComplete),
+			string(module.ModuleProvisioningStateRunningImportModuleRunbook),
+			string(module.ModuleProvisioningStateStartingImportModuleRunbook),
+			string(module.ModuleProvisioningStateUpdating),
+		},
+		Target: []string{
+			string(module.ModuleProvisioningStateSucceeded),
+		},
+		MinTimeout: 30 * time.Second,
+		Timeout:    timeout,
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			provisioningState := "Unknown"
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if props.ProvisioningState != nil {
+						provisioningState = string(*props.ProvisioningState)
+					}
+					if props.Error != nil && props.Error.Message != nil && *props.Error.Message != "" {
+						return resp, provisioningState, errors.New(*props.Error.Message)
+					}
+					return resp, provisioningState, nil
+				}
+			}
+			return resp, provisioningState, nil
+		},
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish provisioning: %+v", id, err)
+	}
+
+	return nil
 }

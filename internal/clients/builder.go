@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package clients
@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -18,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/vcr"
 )
 
 type ClientBuilder struct {
@@ -33,6 +35,7 @@ type ClientBuilder struct {
 	StorageUseAzureAD           bool
 	SubscriptionID              string
 	TerraformVersion            string
+	TestName                    string
 }
 
 const azureStackEnvironmentError = `
@@ -152,17 +155,35 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		ResourceManagerEndpoint: *resourceManagerEndpoint,
 	}
 
+	// go-vcr integration
+	// TC_TEST_VIA_VCR can be set to `true` or `record` see the testing guides for more information
+	if os.Getenv("TC_TEST_VIA_VCR") != "" && builder.TestName != "" {
+		builder.Features.EnhancedValidation.ResourceProviders = false
+		builder.Features.EnhancedValidation.Locations = false
+		if r, err := vcr.GetRecorder(builder.TestName, account.SubscriptionId); err == nil {
+			o.Transport = r
+		} else {
+			return nil, fmt.Errorf("getting vcr recorder: %w", err)
+		}
+	}
+
 	if err := client.Build(ctx, o); err != nil {
 		return nil, fmt.Errorf("building Client: %+v", err)
 	}
 
-	if features.EnhancedValidationEnabled() {
+	if builder.Features.EnhancedValidation.Locations {
+		ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
+		defer cancel()
+
+		location.CacheSupportedLocations(ctx2, *resourceManagerEndpoint)
+	}
+
+	if builder.Features.EnhancedValidation.ResourceProviders {
 		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 
 		ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
 		defer cancel()
 
-		location.CacheSupportedLocations(ctx2, *resourceManagerEndpoint)
 		if err := resourceproviders.CacheSupportedProviders(ctx2, client.Resource.ResourceProvidersClient, subscriptionId); err != nil {
 			log.Printf("[DEBUG] error retrieving providers: %s. Enhanced validation will be unavailable", err)
 		}

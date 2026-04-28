@@ -13,7 +13,7 @@ var defaultParallelism = 20
 var defaultTimeout = 12
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.12.2"
+var defaultTerraformCoreVersion = "1.14.3"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -122,14 +122,14 @@ var serviceTestConfigurationOverrides = mapOf(
         // Logic uses app service which is only available in certain locations
         "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
+        // Rotate machinelearning acctest across supported-but-less-frequently-used locations to prevent quota and rate limiting
+        "machinelearning" to testConfiguration(locationOverride = LocationConfiguration("westus3", "northeurope", "uksouth", true)),
+
         // Managed Redis is only available in certain locations, and has limited quota
         "managedredis" to testConfiguration(locationOverride = LocationConfiguration("uksouth", "westus3", "southcentralus", true)),
 
         // Maps is only available in certain locations
         "maps" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus", false)),
-
-        // MobileNetwork is only available in certain locations
-        "mobilenetwork" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westeurope", "centraluseuap", false)),
 
         // Mongocluster free tier is currently only available in southindia
         "mongocluster" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "southindia", false)),
@@ -165,7 +165,7 @@ var serviceTestConfigurationOverrides = mapOf(
 
         "policy" to testConfiguration(useAltSubscription = true),
 
-        "postgres" to testConfiguration(locationOverride = LocationConfiguration("northeurope", "centralus", "westeurope", false)),
+        "postgres" to testConfiguration(locationOverride = LocationConfiguration("westus3", "northeurope", "westeurope", false)),
 
         // Private DNS Resolver is only available in certain locations
         "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),

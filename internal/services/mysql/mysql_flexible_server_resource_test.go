@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mysql_test
@@ -23,11 +23,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MySqlFlexibleServerResource struct{}
+type MysqlFlexibleServerResource struct{}
 
 func TestAccMySqlFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccMySqlFlexibleServer_basic(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +62,7 @@ func TestAccMySqlFlexibleServer_requiresImport(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestAccMySqlFlexibleServer_complete(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -104,7 +104,7 @@ func TestAccMySqlFlexibleServer_completeUpdate(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -151,7 +151,7 @@ func TestAccMySqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -188,7 +188,7 @@ func TestAccMySqlFlexibleServer_updateSku(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.updateHAZoneRedundant(data),
@@ -236,7 +236,7 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_pitr(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -269,7 +269,7 @@ func TestAccMySqlFlexibleServer_pitr(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_replica(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -308,7 +308,7 @@ func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -341,7 +341,7 @@ func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -370,7 +370,7 @@ func TestAccMySqlFlexibleServer_updateStorage(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateReplicationRole(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -400,7 +400,7 @@ func TestAccMySqlFlexibleServer_updateReplicationRole(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_failover(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -421,8 +421,12 @@ func TestAccMySqlFlexibleServer_failover(t *testing.T) {
 }
 
 func TestAccMySqlFlexibleServer_createWithCustomerManagedKey(t *testing.T) {
+	if os.Getenv("ARM_TEST_RECOVERABLE_CMK") == "" {
+		t.Skip("Skipping as ARM_TEST_RECOVERABLE_CMK is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -436,8 +440,12 @@ func TestAccMySqlFlexibleServer_createWithCustomerManagedKey(t *testing.T) {
 }
 
 func TestAccMySqlFlexibleServer_updateToCustomerManagedKey(t *testing.T) {
+	if os.Getenv("ARM_TEST_RECOVERABLE_CMK") == "" {
+		t.Skip("Skipping as ARM_TEST_RECOVERABLE_CMK is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -463,7 +471,7 @@ func TestAccMySqlFlexibleServer_createWithHsmCustomerManagedKey(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -478,8 +486,12 @@ func TestAccMySqlFlexibleServer_createWithHsmCustomerManagedKey(t *testing.T) {
 
 // this test can fail with an uninformative error, tracked here https://github.com/Azure/azure-rest-api-specs/issues/22980
 func TestAccMySqlFlexibleServer_enableGeoRedundantBackup(t *testing.T) {
+	if os.Getenv("ARM_TEST_RECOVERABLE_CMK") == "" {
+		t.Skip("Skipping as ARM_TEST_RECOVERABLE_CMK is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -494,7 +506,7 @@ func TestAccMySqlFlexibleServer_enableGeoRedundantBackup(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -516,7 +528,7 @@ func TestAccMySqlFlexibleServer_identity(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_writeOnlyPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -540,7 +552,7 @@ func TestAccMySqlFlexibleServer_writeOnlyPassword(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -569,7 +581,7 @@ func TestAccMySqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_upgradeVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -591,7 +603,7 @@ func TestAccMySqlFlexibleServer_upgradeVersion(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_publicNetworkAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -612,7 +624,7 @@ func TestAccMySqlFlexibleServer_publicNetworkAccess(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_eightPointFour(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -625,7 +637,7 @@ func TestAccMySqlFlexibleServer_eightPointFour(t *testing.T) {
 	})
 }
 
-func (MySqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (MysqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := servers.ParseFlexibleServerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -639,7 +651,7 @@ func (MySqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.
 	return pointer.To(resp.Model != nil && resp.Model.Properties != nil), nil
 }
 
-func (MySqlFlexibleServerResource) template(data acceptance.TestData) string {
+func (MysqlFlexibleServerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -652,7 +664,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Ternary)
 }
 
-func (r MySqlFlexibleServerResource) basic(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -667,7 +679,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) requiresImport(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -683,7 +695,7 @@ resource "azurerm_mysql_flexible_server" "import" {
 `, r.basic(data))
 }
 
-func (r MySqlFlexibleServerResource) complete(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -769,7 +781,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) completeUpdate(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -852,7 +864,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) updateMaintenanceWindow(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) updateMaintenanceWindow(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -873,7 +885,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) updateMaintenanceWindowUpdated(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) updateMaintenanceWindowUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -894,7 +906,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) updateSku(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) updateSku(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -909,7 +921,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) updateHADisabled(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) updateHADisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -925,7 +937,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) updateHASameZone(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) updateHASameZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -952,7 +964,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) updateHAZoneRedundant(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) updateHAZoneRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -975,7 +987,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) updateHAZoneRedundantUpdate(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) updateHAZoneRedundantUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -998,7 +1010,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) pitr(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) pitr(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1018,7 +1030,7 @@ resource "azurerm_mysql_flexible_server" "pitr" {
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
 
-func (r MySqlFlexibleServerResource) source(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) source(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1035,7 +1047,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) replica(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) replica(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1051,7 +1063,7 @@ resource "azurerm_mysql_flexible_server" "replica" {
 `, r.source(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) updateReplicationRole(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) updateReplicationRole(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1072,7 +1084,7 @@ resource "azurerm_mysql_flexible_server" "replica" {
 `, r.source(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) geoRestoreSource(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) geoRestoreSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1088,7 +1100,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) geoRestore(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) geoRestore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1102,7 +1114,7 @@ resource "azurerm_mysql_flexible_server" "geo_restore" {
 `, r.geoRestoreSource(data), data.RandomInteger, os.Getenv("ARM_GEO_RESTORE_LOCATION"))
 }
 
-func (r MySqlFlexibleServerResource) updateStorage(data acceptance.TestData, sizeGB int, iops int, autoGrowEnabled bool, ioScalingEnabled bool) string {
+func (r MysqlFlexibleServerResource) updateStorage(data acceptance.TestData, sizeGB int, iops int, autoGrowEnabled bool, ioScalingEnabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1127,7 +1139,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger, sizeGB, iops, autoGrowEnabled, ioScalingEnabled)
 }
 
-func (r MySqlFlexibleServerResource) updateStorageNoIOPS(data acceptance.TestData, sizeGB int, autoGrowEnabled bool, ioScalingEnabled bool) string {
+func (r MysqlFlexibleServerResource) updateStorageNoIOPS(data acceptance.TestData, sizeGB int, autoGrowEnabled bool, ioScalingEnabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1151,7 +1163,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger, sizeGB, autoGrowEnabled, ioScalingEnabled)
 }
 
-func (r MySqlFlexibleServerResource) failover(data acceptance.TestData, primaryZone string, standbyZone string) string {
+func (r MysqlFlexibleServerResource) failover(data acceptance.TestData, primaryZone string, standbyZone string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1173,7 +1185,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger, primaryZone, standbyZone)
 }
 
-func (r MySqlFlexibleServerResource) cmkTemplate(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) cmkTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1203,7 +1215,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_retention_days = 7
+  soft_delete_retention_days = 90
   purge_protection_enabled   = true
 }
 
@@ -1238,7 +1250,7 @@ resource "azurerm_key_vault_key" "test" {
 `, data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString)
 }
 
-func (r MySqlFlexibleServerResource) cmkWithManagedHsmTemplate(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) cmkWithManagedHsmTemplate(data acceptance.TestData) string {
 	roleAssignmentName1, _ := uuid.GenerateUUID()
 	roleAssignmentName2, _ := uuid.GenerateUUID()
 	roleAssignmentName3, _ := uuid.GenerateUUID()
@@ -1260,7 +1272,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_retention_days = 7
+  soft_delete_retention_days = 90
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
@@ -1411,7 +1423,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
 `, data.Locations.Primary, data.RandomStringOfLength(7), roleAssignmentName1, roleAssignmentName2, roleAssignmentName3)
 }
 
-func (r MySqlFlexibleServerResource) withoutCustomerManagedKey(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) withoutCustomerManagedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1427,7 +1439,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.cmkTemplate(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) withCustomerManagedKey(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) withCustomerManagedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1453,7 +1465,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.cmkTemplate(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) withHsmCustomerManagedKey(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) withHsmCustomerManagedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1478,7 +1490,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.cmkWithManagedHsmTemplate(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) enableGeoRedundantBackup(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) enableGeoRedundantBackup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1500,7 +1512,7 @@ resource "azurerm_key_vault" "test2" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
-  soft_delete_retention_days = 7
+  soft_delete_retention_days = 90
 }
 
 resource "azurerm_key_vault_access_policy" "server2" {
@@ -1557,7 +1569,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.cmkTemplate(data), data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) identity(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1584,7 +1596,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomString, data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) identityNone(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) identityNone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1606,7 +1618,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomString, data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) writeOnlyPassword(data acceptance.TestData, secret string, version int) string {
+func (r MysqlFlexibleServerResource) writeOnlyPassword(data acceptance.TestData, secret string, version int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1624,7 +1636,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
 }
 
-func (r MySqlFlexibleServerResource) publicNetworkAccess(data acceptance.TestData, pna servers.EnableStatusEnum) string {
+func (r MysqlFlexibleServerResource) publicNetworkAccess(data acceptance.TestData, pna servers.EnableStatusEnum) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1640,7 +1652,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger, pna)
 }
 
-func (r MySqlFlexibleServerResource) upgradeVersion(data acceptance.TestData, version string) string {
+func (r MysqlFlexibleServerResource) upgradeVersion(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1664,7 +1676,7 @@ resource "azurerm_mysql_flexible_server_configuration" "test" {
 `, r.template(data), data.RandomInteger, version)
 }
 
-func (r MySqlFlexibleServerResource) eightPointFour(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) eightPointFour(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
