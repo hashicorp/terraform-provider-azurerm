@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -374,6 +375,12 @@ func (r KeyVaultSecretResource) updateSecretValue(value string) acceptance.Clien
 		keyVaultId, err := commonids.ParseKeyVaultID(state.Attributes["key_vault_id"])
 		if err != nil {
 			return err
+		}
+
+		if _, ok := ctx.Deadline(); !ok {
+			ctx2, cancel := context.WithTimeout(ctx, time.Minute*5)
+			defer cancel()
+			ctx = ctx2
 		}
 
 		vaultBaseUrl, err := clients.KeyVault.BaseUriForKeyVault(ctx, *keyVaultId)
