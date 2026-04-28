@@ -81,6 +81,8 @@ func (r S001) Run(d *data.TerraformNodeData, fix bool) []error {
 
 		if currentStr != expectedStr {
 			errs = append(errs, fmt.Errorf("%s: current section content did not match expected content", IdAndName(r)))
+			fmt.Printf("expected:%+v\n", expectedStr)
+			fmt.Printf("current:%+v\n", currentStr)
 
 			if fix {
 				section.SetContent(expected)
