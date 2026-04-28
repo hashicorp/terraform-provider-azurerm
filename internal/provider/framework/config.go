@@ -530,11 +530,9 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.DatabricksWorkspace.ForceDelete = false
 		}
 
-		// Seed env-var-aware defaults for enhanced_validation, ensuring env vars are respected
-		// even if the enhanced_validation block is absent from the features config.
 		f.EnhancedValidation.Locations = providerfeatures.EnhancedValidationLocationsEnabled()
 		f.EnhancedValidation.ResourceProviders = providerfeatures.EnhancedValidationResourceProvidersEnabled()
-		f.EnhancedValidation.PreflightEnabled = false
+		f.EnhancedValidation.PreflightEnabled = providerfeatures.EnhancedValidationPreflightEnabled()
 
 		if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
 			var evList []EnhancedValidationModel

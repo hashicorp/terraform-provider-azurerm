@@ -511,6 +511,11 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	// these are the defaults if omitted from the config
 	featuresMap := features.Default()
 
+	// populate settings that can be set by env vars _before_ we take the escape hatch for an empty `features` block
+	featuresMap.EnhancedValidation.Locations = features.EnhancedValidationLocationsEnabled()
+	featuresMap.EnhancedValidation.ResourceProviders = features.EnhancedValidationResourceProvidersEnabled()
+	featuresMap.EnhancedValidation.PreflightEnabled = features.EnhancedValidationPreflightEnabled()
+
 	if len(input) == 0 || input[0] == nil {
 		return featuresMap
 	}
@@ -773,12 +778,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 		}
 	}
-
-	// Seed env-var-aware defaults for enhanced_validation, ensuring env vars are respected
-	// even if the enhanced_validation block is absent from the features config.
-	featuresMap.EnhancedValidation.Locations = features.EnhancedValidationLocationsEnabled()
-	featuresMap.EnhancedValidation.ResourceProviders = features.EnhancedValidationResourceProvidersEnabled()
-	featuresMap.EnhancedValidation.PreflightEnabled = false
 
 	if raw, ok := val["enhanced_validation"]; ok {
 		items := raw.([]interface{})
