@@ -420,13 +420,16 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 				ManagedInstanceId: managedInstanceId.ID(),
 			}
 
-			ltrResp, err := longTermRetentionClient.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving Long Term Retention Policy for  %s: %v", *id, err)
-			}
+			// If the database is in a `Stopped` state, attempting to retrieve the long term retention policy results in a 400.
+			if result.Model != nil && result.Model.Properties != nil && pointer.From(result.Model.Properties.Status) != manageddatabases.ManagedDatabaseStatusStopped {
+				ltrResp, err := longTermRetentionClient.Get(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("retrieving Long Term Retention Policy for %s: %v", *id, err)
+				}
 
-			if ltrResp.Model != nil && ltrResp.Model.Properties != nil {
-				model.LongTermRetentionPolicy = flattenLongTermRetentionPolicy(*ltrResp.Model.Properties)
+				if ltrResp.Model != nil && ltrResp.Model.Properties != nil {
+					model.LongTermRetentionPolicy = flattenLongTermRetentionPolicy(*ltrResp.Model.Properties)
+				}
 			}
 
 			shortTermRetentionResp, err := shortTermRetentionClient.Get(ctx, *id)
