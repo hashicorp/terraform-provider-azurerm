@@ -35,6 +35,7 @@ jobs:
                       }
                       nodes {
                         id
+                        databaseId
                         body
                         isMinimized
                         author { login }
@@ -79,7 +80,8 @@ jobs:
                 // Skip comments that are already minimized
                 if (comment.isMinimized) {
                   alreadyHiddenCount++;
-                  console.log(`    Already hidden: "${comment.body.substring(0, 60)}..."`);
+                  const url = `https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber}#issuecomment-${comment.databaseId}`;
+                  console.log(`    Already hidden: ${url}`);
                   continue;
                 }
 
@@ -97,7 +99,8 @@ jobs:
                 `, { id: comment.id });
 
                 minimizedCount++;
-                console.log(`    Minimized: "${comment.body.substring(0, 60)}..."`);
+                const url = `https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber}#issuecomment-${comment.databaseId}`;
+                console.log(`    Minimized: ${url}`);
               }
             }
 
