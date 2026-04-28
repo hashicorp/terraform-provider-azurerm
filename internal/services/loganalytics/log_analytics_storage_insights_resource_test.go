@@ -100,7 +100,7 @@ func TestAccLogAnalyticsStorageInsights_updateStorageAccount(t *testing.T) {
 		},
 		data.ImportStep("storage_account_key"),
 		{
-			Config: r.updateStorageAccount(data),
+			Config: r.updateStorageAccountKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -201,18 +201,9 @@ resource "azurerm_log_analytics_storage_insights" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LogAnalyticsStorageInsightsResource) updateStorageAccount(data acceptance.TestData) string {
+func (r LogAnalyticsStorageInsightsResource) updateStorageAccountKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-resource "azurerm_storage_account" "test2" {
-  name                = "acctestsads%s"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
 
 resource "azurerm_log_analytics_storage_insights" "test" {
   name                = "acctest-la-%d"
@@ -222,8 +213,8 @@ resource "azurerm_log_analytics_storage_insights" "test" {
   blob_container_names = ["wad-iis-logfiles"]
   table_names          = ["WADWindowsEventLogsTable", "LinuxSyslogVer2v0"]
 
-  storage_account_id  = azurerm_storage_account.test2.id
-  storage_account_key = azurerm_storage_account.test2.primary_access_key
+  storage_account_id  = azurerm_storage_account.test.id
+  storage_account_key = azurerm_storage_account.test.secondary_access_key
 }
-`, r.template(data), data.RandomStringOfLength(6), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

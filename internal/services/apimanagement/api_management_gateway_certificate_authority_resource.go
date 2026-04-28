@@ -90,8 +90,7 @@ func resourceApiManagementGatewayCertificateAuthorityCreateUpdate(d *pluginsdk.R
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id, parameters, gatewaycertificateauthority.CreateOrUpdateOperationOptions{})
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, parameters, gatewaycertificateauthority.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 

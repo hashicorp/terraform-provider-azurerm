@@ -12,27 +12,25 @@ fi
 
 # remove empty lines inside import block via sed
 sed_expression='
-  /^import/,/)/ {
+  /^import (/,/)/ {
     /^$/d
   }
 '
 
 case "$OSTYPE" in
     "linux-gnu"*)
-        sed -i -e "$sed_expression" $1
+        sed -i -e "$sed_expression" "$1"
         ;;
     "darwin"*)
-        sed_version="$(sed --version 2>&1 > /dev/null)"
-
-        if [[ $? -eq 0 ]]; then
-            # For MacOS users who aliases the `sed` from `gsed`
-            sed -i -e "$sed_expression" $1
+        # Check if we have GNU sed (e.g. MacOS users who alias sed to gsed)
+        if sed --version >/dev/null 2>&1; then
+            sed -i -e "$sed_expression" "$1"
         else
-            # The Posix sed
-            sed -i '' -e "$sed_expression" $1
+            # The Posix sed (default on MacOS)
+            sed -i '' -e "$sed_expression" "$1"
         fi
 
         ;;
 esac 
 
-goimports -w $1
+goimports -w "$1"

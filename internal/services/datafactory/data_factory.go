@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
@@ -37,8 +38,8 @@ func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName str
 // Because the password isn't returned from the api in the connection string, we'll check all
 // but the password string and return true if they match.
 func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new string, _ *pluginsdk.ResourceData) bool {
-	oldSplit := strings.Split(strings.ToLower(old), ";")
-	newSplit := strings.Split(strings.ToLower(new), ";")
+	oldSplit := strings.Split(strings.TrimSuffix(strings.ToLower(old), ";"), ";")
+	newSplit := strings.Split(strings.TrimSuffix(strings.ToLower(new), ";"), ";")
 
 	sort.Strings(oldSplit)
 	sort.Strings(newSplit)
@@ -527,4 +528,14 @@ func expandCompressionType(inputType string) string {
 	}
 
 	return inputType
+}
+
+func expandDataFactoryEncryptionIdentity(input string) *factories.CMKIdentityDefinition {
+	if input == "" {
+		return nil
+	}
+
+	return &factories.CMKIdentityDefinition{
+		UserAssignedIdentity: &input,
+	}
 }

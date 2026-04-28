@@ -208,7 +208,7 @@ A `liveness_probe` block supports the following:
 
 * `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -238,7 +238,7 @@ A `readiness_probe` block supports the following:
 
 * `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `48`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -270,7 +270,7 @@ A `startup_probe` block supports the following:
 
 * `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `240`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 

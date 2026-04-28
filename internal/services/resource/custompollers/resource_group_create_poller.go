@@ -12,14 +12,18 @@ import (
 )
 
 type resourceGroupCreatePoller struct {
-	client *resourcegroups.ResourceGroupsClient
-	id     commonids.ResourceGroupId
+	client       *resourcegroups.ResourceGroupsClient
+	id           commonids.ResourceGroupId
+	successCount int
 }
 
 var _ pollers.PollerType = &resourceGroupCreatePoller{}
 
+const (
+	defaultSuccessCount = 3
+)
+
 var (
-	successCount   = 3 // emulates ContinuousTargetOccurrence
 	pollingSuccess = &pollers.PollResult{
 		PollInterval: 5 * time.Second,
 		Status:       pollers.PollingStatusSucceeded,
@@ -38,23 +42,24 @@ var (
 
 func NewResourceGroupCreatePoller(client *resourcegroups.ResourceGroupsClient, id commonids.ResourceGroupId) *resourceGroupCreatePoller {
 	return &resourceGroupCreatePoller{
-		client: client,
-		id:     id,
+		client:       client,
+		id:           id,
+		successCount: defaultSuccessCount,
 	}
 }
 
-func (p resourceGroupCreatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+func (p *resourceGroupCreatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	rg, err := p.client.Get(ctx, p.id)
 	if err != nil {
 		if response.WasNotFound(rg.HttpResponse) {
-			successCount = 3
+			p.successCount = defaultSuccessCount
 			return pollingInProgress, nil
 		}
 		return pollingFailed, fmt.Errorf("retrieving %s: %+v", p.id, err)
 	}
 
-	if successCount > 1 {
-		successCount--
+	if p.successCount > 1 {
+		p.successCount--
 		return pollingInProgress, nil
 	}
 

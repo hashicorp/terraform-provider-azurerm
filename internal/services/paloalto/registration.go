@@ -4,18 +4,22 @@
 package paloalto
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-var _ sdk.TypedServiceRegistration = Registration{}
+var (
+	_ sdk.FrameworkServiceRegistration             = Registration{}
+	_ sdk.TypedServiceRegistration                 = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 type Registration struct{}
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/paloalto"
 }
-
-var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 func (r Registration) Name() string {
 	return "Palo Alto"
@@ -50,4 +54,24 @@ func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"Palo Alto",
 	}
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{}
 }

@@ -89,8 +89,7 @@ func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	id := parse.NewStaticSiteCustomDomainID(staticSiteId.SubscriptionId, staticSiteId.ResourceGroup, staticSiteId.Name, d.Get("domain_name").(string))
-	_, err = client.GetStaticSite(ctx, id.ResourceGroup, id.StaticSiteName)
-	if err != nil {
+	if _, err = client.GetStaticSite(ctx, id.ResourceGroup, id.StaticSiteName); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *staticSiteId, err)
 	}
 
