@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
 	"regexp"
 	"strings"
 	"time"
@@ -463,8 +464,12 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 				for _, existingAllocation := range *props.IPamPoolPrefixAllocations {
 					for _, expandedAllocation := range *expandedIPAddressPool {
 						if existingAllocation.Pool != nil && expandedAllocation.Pool != nil && strings.EqualFold(pointer.From(existingAllocation.Pool.Id), pointer.From(expandedAllocation.Pool.Id)) &&
-							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil && *existingAllocation.NumberOfIPAddresses > *expandedAllocation.NumberOfIPAddresses {
-							return fmt.Errorf("`number_of_ip_addresses` cannot be decreased from %v to %v on pool: %v", *existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses, *expandedAllocation.Pool.Id)
+							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil {
+							existingNum, _ := new(big.Int).SetString(*existingAllocation.NumberOfIPAddresses, 10)
+							expandedNum, _ := new(big.Int).SetString(*expandedAllocation.NumberOfIPAddresses, 10)
+							if existingNum != nil && expandedNum != nil && existingNum.Cmp(expandedNum) > 0 {
+								return fmt.Errorf("`number_of_ip_addresses` cannot be decreased from %v to %v on pool: %v", *existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses, *expandedAllocation.Pool.Id)
+							}
 						}
 					}
 				}

@@ -125,11 +125,12 @@ func TestAccNetworkManager(t *testing.T) {
 			"requiresImport": testAccNetworkManagerRoutingRuleCollection_requiresImport,
 		},
 		"SubnetIPAMPool": {
-			"ipAddressPool":              testAccSubnet_ipAddressPool,
-			"ipAddressPoolVNet":          testAccSubnet_ipAddressPoolVNet,
-			"ipAddressPoolIPv6":          testAccSubnet_ipAddressPoolIPv6,
-			"ipAddressPoolBlockUpdated":  testAccSubnet_ipAddressPoolBlockUpdated,
-			"ipAddressPoolNumberUpdated": testAccSubnet_ipAddressPoolNumberUpdated,
+			"ipAddressPool":                          testAccSubnet_ipAddressPool,
+			"ipAddressPoolVNet":                      testAccSubnet_ipAddressPoolVNet,
+			"ipAddressPoolIPv6":                      testAccSubnet_ipAddressPoolIPv6,
+			"ipAddressPoolBlockUpdated":              testAccSubnet_ipAddressPoolBlockUpdated,
+			"ipAddressPoolNumberUpdated":             testAccSubnet_ipAddressPoolNumberUpdated,
+			"ipAddressPoolNumberLexicographicUpdate": testAccSubnet_ipAddressPoolNumberLexicographicUpdate,
 		},
 		"VNETIPANPool": {
 			"ipAddressPool":             testAccVirtualNetwork_ipAddressPool,
