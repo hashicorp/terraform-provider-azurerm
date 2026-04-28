@@ -34,3 +34,7 @@ jobs:
     needs: preview-api-version-linter
     if: ${{ failure() }}
     uses: ./.github/workflows/comment-failure.yaml
+  comment-outdated-on-pass:
+    needs: preview-api-version-linter
+    if: ${{ success() }}
+    uses: ./.github/workflows/comment-cleanup.yaml

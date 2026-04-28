@@ -14,6 +14,8 @@ type Registration struct{}
 
 var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+
 var _ sdk.FrameworkServiceRegistration = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -33,6 +35,7 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
+// lintignore:AZNR005
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		// CDN
@@ -49,9 +52,20 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	}
 }
 
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		CdnFrontDoorSecurityPolicyDataSource{},
+	}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{}
+}
+
 // SupportedResources returns the supported Resources supported by this Service
+// lintignore:AZNR005
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		// CDN
 		"azurerm_cdn_endpoint":               resourceCdnEndpoint(),
 		"azurerm_cdn_endpoint_custom_domain": resourceArmCdnEndpointCustomDomain(),
@@ -71,8 +85,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_cdn_frontdoor_secret":                    resourceCdnFrontDoorSecret(),
 		"azurerm_cdn_frontdoor_security_policy":           resourceCdnFrontDoorSecurityPolicy(),
 	}
-
-	return resources
 }
 
 func (r Registration) Actions() []func() action.Action {

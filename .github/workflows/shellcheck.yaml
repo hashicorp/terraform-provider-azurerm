@@ -39,3 +39,7 @@ jobs:
     needs: shellcheck
     if: ${{ failure() }}
     uses: ./.github/workflows/comment-failure.yaml
+  comment-outdated-on-pass:
+    needs: shellcheck
+    if: ${{ success() }}
+    uses: ./.github/workflows/comment-cleanup.yaml

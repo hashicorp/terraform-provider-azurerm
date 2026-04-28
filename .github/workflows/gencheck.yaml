@@ -41,3 +41,7 @@ jobs:
     needs: gencheck
     if: ${{ failure() }}
     uses: ./.github/workflows/comment-failure.yaml
+  comment-outdated-on-pass:
+    needs: gencheck
+    if: ${{ success() }}
+    uses: ./.github/workflows/comment-cleanup.yaml

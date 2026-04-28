@@ -133,6 +133,18 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"extension_key_1": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"extension_key_2": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -221,6 +233,14 @@ func resourceBotChannelDirectlineRead(d *pluginsdk.ResourceData, meta interface{
 		if channel, ok := props.AsDirectLineChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
 				d.Set("site", flattenDirectlineSites(filterSites(channelProps.Sites)))
+
+				if channelProps.ExtensionKey1 != nil {
+					d.Set("extension_key_1", channelProps.ExtensionKey1)
+				}
+
+				if channelProps.ExtensionKey2 != nil {
+					d.Set("extension_key_2", channelProps.ExtensionKey2)
+				}
 			}
 		}
 	}
