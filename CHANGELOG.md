@@ -1,3 +1,34 @@
+## 4.70.0 (April 23, 2026)
+
+FEATURES:
+
+* **New List Resource**: `azurerm_storage_mover` ([#32165](https://github.com/hashicorp/terraform-provider-azurerm/issues/32165))
+* **New List Resource**: `azurerm_storage_mover_agent` ([#32166](https://github.com/hashicorp/terraform-provider-azurerm/issues/32166))
+* **New List Resource**: `azurerm_storage_mover_source_endpoint` ([#32167](https://github.com/hashicorp/terraform-provider-azurerm/issues/32167))
+
+ENHANCEMENTS:
+
+* dependencies: `azurerm_synapse_managed_private_endpoint` - update to API version `2021-06-01-preview` ([#32153](https://github.com/hashicorp/terraform-provider-azurerm/issues/32153))
+* dependencies: `cosmosdb/mongorbacs` - update to API version `2025-10-15` ([#32164](https://github.com/hashicorp/terraform-provider-azurerm/issues/32164))
+* dependencies: `giovanni` update to `v0.29.0` ([#32188](https://github.com/hashicorp/terraform-provider-azurerm/issues/32188))
+* dependencies: `go-azure-sdk` - update to `v0.20260417.1195006` ([#31974](https://github.com/hashicorp/terraform-provider-azurerm/issues/31974))
+* `azurerm_backup_policy_vm` - add support for the `consistency_type` property ([#32203](https://github.com/hashicorp/terraform-provider-azurerm/issues/32203))
+* `azurerm_bot_channel_directline` - export the `extension_key_1` and `extension_key_2` properties ([#30242](https://github.com/hashicorp/terraform-provider-azurerm/issues/30242))
+* `azurerm_bot_web_app` - add support for the `microsoft_app_type`, `microsoft_app_tenant_id`, and `microsoft_app_user_assigned_identity_id` properties ([#30459](https://github.com/hashicorp/terraform-provider-azurerm/issues/30459))
+* `azurerm_dashboard_grafana`- add support for the `sku_size` property ([#31047](https://github.com/hashicorp/terraform-provider-azurerm/issues/31047))
+* `azurerm_key_vault_key` - migrate to `go-azure-sdk` ([#31806](https://github.com/hashicorp/terraform-provider-azurerm/issues/31806))
+* `azurerm_machine_learning_datastore_blobstorage` - improved storage account retrieval ([#32222](https://github.com/hashicorp/terraform-provider-azurerm/issues/32222))
+* `azurerm_nat_gateway_public_ip_association` - add support for IPv6 public IP addresses ([#32176](https://github.com/hashicorp/terraform-provider-azurerm/issues/32176))
+* `azurerm_nat_gateway_public_ip_prefix_association` - add support for IPv6 public IP prefixes ([#32195](https://github.com/hashicorp/terraform-provider-azurerm/issues/32195))
+* `azurerm_postgresql_flexible_server` - add support for confidential compute server type SKU ([#32209](https://github.com/hashicorp/terraform-provider-azurerm/issues/32209))
+* `azurerm_synapse_managed_private_endpoint` - migrate to `go-azure-sdk` ([#32153](https://github.com/hashicorp/terraform-provider-azurerm/issues/32153))
+* `azurerm_synapse_managed_private_endpoint` - add support for the `fully_qualified_domain_names` property ([#32153](https://github.com/hashicorp/terraform-provider-azurerm/issues/32153))
+
+BUG FIXES:
+
+* Data Source: `azurerm_storage_account_sas` - fix a regression that caused missing permissions in the `sas` property ([#32234](https://github.com/hashicorp/terraform-provider-azurerm/issues/32234))
+* `azurerm_container_app_environment` - fix potential nil pointer dereferences to prevent panics ([#32198](https://github.com/hashicorp/terraform-provider-azurerm/issues/32198))
+
 ## 4.69.0 (April 16, 2026)
 
 FEATURES:

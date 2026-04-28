@@ -39,3 +39,7 @@ jobs:
     needs: depscheck
     if: ${{ failure() }}
     uses: ./.github/workflows/comment-failure.yaml
+  comment-outdated-on-pass:
+    needs: depscheck
+    if: ${{ success() }}
+    uses: ./.github/workflows/comment-cleanup.yaml

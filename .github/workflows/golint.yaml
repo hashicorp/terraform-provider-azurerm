@@ -47,3 +47,7 @@ jobs:
     needs: golint
     if: ${{ failure() }}
     uses: ./.github/workflows/comment-failure.yaml
+  comment-outdated-on-pass:
+    needs: golint
+    if: ${{ success() }}
+    uses: ./.github/workflows/comment-cleanup.yaml
