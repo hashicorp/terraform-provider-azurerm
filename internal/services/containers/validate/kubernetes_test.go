@@ -165,6 +165,66 @@ func TestKubernetesDNSPrefix(t *testing.T) {
 	}
 }
 
+func TestKubernetesNodeTaint(t *testing.T) {
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{
+			Input: "",
+			Valid: false,
+		},
+		{
+			Input: "key=value:NoSchedule",
+			Valid: true,
+		},
+		{
+			Input: "key:NoSchedule",
+			Valid: true,
+		},
+		{
+			Input: "example.com/key=value:PreferNoSchedule",
+			Valid: true,
+		},
+		{
+			Input: "key=value:NoExecute",
+			Valid: true,
+		},
+		{
+			// missing `=` between key and value, taken from #31386
+			Input: "project:dcp-prd:NoSchedule",
+			Valid: false,
+		},
+		{
+			Input: "key=value",
+			Valid: false,
+		},
+		{
+			Input: ":NoSchedule",
+			Valid: false,
+		},
+		{
+			Input: "key=value:Bogus",
+			Valid: false,
+		},
+		{
+			Input: "key=value:noSchedule",
+			Valid: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Input, func(t *testing.T) {
+			_, errors := KubernetesNodeTaint(tc.Input, "test")
+			valid := len(errors) == 0
+
+			if tc.Valid != valid {
+				t.Fatalf("Expected %t but got %t for %q: %+v", tc.Valid, valid, tc.Input, errors)
+			}
+		})
+	}
+}
+
 func TestKubernetesGitRepositoryUrl(t *testing.T) {
 	cases := []struct {
 		Input string
