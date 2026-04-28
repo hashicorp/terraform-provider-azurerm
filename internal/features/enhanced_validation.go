@@ -106,3 +106,17 @@ func ValidateEnhancedValidationEnvVars() error {
 
 	return nil
 }
+
+// EnhancedValidationPreflightEnabled returns whether Azure Preflight Validation is enabled.
+//
+// Preflight validation is always opt-in and defaults to false in all provider versions.
+// Set ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED=true to enable it without
+// requiring an explicit config block.
+func EnhancedValidationPreflightEnabled() bool {
+	value := os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED")
+	if value == "" {
+		return false
+	}
+
+	return strings.EqualFold(value, "true")
+}
