@@ -6,6 +6,7 @@ package eventhub_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"testing"
 
@@ -383,6 +384,18 @@ func TestAccEventHub_captureDescriptionUserAssignIdentity(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccEventHub_captureDescriptionUserAssignIdentityError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.captureDescriptionUsingUserAssignedIdentityError(data, true),
+			ExpectError: regexp.MustCompile("`storage_authentication_id` must be specified when `storage_authentication_type` is set to `UserAssigned`"),
+		},
 	})
 }
 
@@ -808,7 +821,7 @@ resource "azurerm_eventhub" "test" {
       storage_authentication_type = "SystemAssigned"
     }
   }
-  depends_on = [azurerm_role_assignment.saContributorRoleAssignment, azurerm_role_assignment.saOwnerRoleAssignment]
+  depends_on = [azurerm_role_assignment.ssaContributorRoleAssignment, azurerm_role_assignment.saOwnerRoleAssignment]
 }
 `, r.template(data), data.RandomString, data.RandomString, enabledString)
 }
@@ -861,6 +874,60 @@ resource "azurerm_eventhub" "test" {
       storage_account_id          = azurerm_storage_account.test.id
       storage_authentication_type = "UserAssigned"
       storage_authentication_id   = azurerm_user_assigned_identity.test.id
+    }
+  }
+  depends_on = [azurerm_eventhub_namespace.test, azurerm_role_assignment.saContributorRoleAssignment, azurerm_role_assignment.saOwnerRoleAssignment]
+}
+`, r.template(data), data.RandomString, data.RandomString, enabledString)
+}
+
+func (r EventHubResource) captureDescriptionUsingUserAssignedIdentityError(data acceptance.TestData, enabled bool) string {
+	enabledString := strconv.FormatBool(enabled)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctestehn%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+
+resource "azurerm_role_assignment" "saContributorRoleAssignment" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "saOwnerRoleAssignment" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_eventhub" "test" {
+  name              = "acctesteh%s"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 7
+
+  capture_description {
+    enabled             = %s
+    encoding            = "Avro"
+    interval_in_seconds = 60
+    size_limit_in_bytes = 10485760
+    skip_empty_archives = true
+
+    destination {
+      name                        = "EventHubArchive.AzureBlockBlob"
+      archive_name_format         = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
+      blob_container_name         = azurerm_storage_container.test.name
+      storage_account_id          = azurerm_storage_account.test.id
+      storage_authentication_type = "UserAssigned"
     }
   }
   depends_on = [azurerm_eventhub_namespace.test, azurerm_role_assignment.saContributorRoleAssignment, azurerm_role_assignment.saOwnerRoleAssignment]

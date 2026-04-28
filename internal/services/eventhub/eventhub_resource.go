@@ -619,17 +619,12 @@ func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription
 				}
 			}
 
-			authType := "StorageSAS"
+			destinationOutput["storage_authentication_type"] = "StorageSAS"
 			if storageIdentity := destination.Identity; storageIdentity != nil {
 				if storageAuthType := storageIdentity.Type; storageAuthType != nil {
-					authType = string(pointer.From(storageAuthType))
-					destinationOutput["storage_authentication_type"] = authType
+					destinationOutput["storage_authentication_type"] = pointer.From(storageIdentity.Type)
 				}
-				if storageAuthId := storageIdentity.UserAssignedIdentity; storageAuthId != nil {
-					destinationOutput["storage_authentication_id"] = *storageAuthId
-				}
-			} else {
-				destinationOutput["storage_authentication_type"] = authType
+				destinationOutput["storage_authentication_id"] = pointer.From(storageIdentity.UserAssignedIdentity)
 			}
 
 			output["destination"] = []interface{}{destinationOutput}
