@@ -442,7 +442,7 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 	client := clients.KeyVault
 	subscriptionId := clients.Account.SubscriptionId
 
-	id, err := keyvault.ParseNestedItemID(state.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
+	id, err := keyvault.ParseNestedItemID(state.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return nil, err
 	}
