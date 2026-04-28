@@ -33,7 +33,10 @@ import (
 )
 
 const (
-	StorageStringFmt = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	StorageStringFmt         = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	BackendStorageConnStr    = "AzureWebJobsStorage"
+	BackendStorageName       = "AzureWebJobsStorage__accountName"
+	DeploymentStorageConnStr = "DEPLOYMENT_STORAGE_CONNECTION_STRING"
 )
 
 type FunctionAppFlexConsumptionResource struct{}
@@ -1288,16 +1291,16 @@ func (m *FunctionAppFlexConsumptionModel) unpackFunctionAppFlexConsumptionSettin
 		case "APPLICATIONINSIGHTS_CONNECTION_STRING":
 			m.SiteConfig[0].AppInsightsConnectionString = v
 
-		case "AzureWebJobsStorage":
+		case BackendStorageConnStr:
 			continue
-		case "AzureWebJobsStorage__accountName":
+		case BackendStorageName:
 			continue
 
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
 			i, _ := strconv.Atoi(v)
 			m.SiteConfig[0].HealthCheckEvictionTime = int64(i)
 
-		case "DEPLOYMENT_STORAGE_CONNECTION_STRING":
+		case DeploymentStorageConnStr:
 			continue
 
 		default:
@@ -1346,38 +1349,32 @@ func flattenAlwaysReadyConfiguration(alwaysReady *[]webapps.FunctionsAlwaysReady
 }
 
 func expandDeploymentStorage(input []DeploymentStorage, connectionStrName string, storageDomainSuffix *string) (*webapps.FunctionsDeploymentStorage, string, error) {
-	var deploymentSaName, deploymentSaConnectionStr string
-
 	if len(input) == 0 {
-		return nil, deploymentSaConnectionStr, nil
+		return nil, "", nil
 	}
-	deploymentStorage := webapps.FunctionsDeploymentStorage{}
-	deploymentStorage.Type = pointer.To(webapps.FunctionsDeploymentStorageType(input[0].ContainerType))
-	deploymentStorage.Value = pointer.To(input[0].ContainerEndPoint)
-	endpoint, err := url.Parse(input[0].ContainerEndPoint)
-	if err != nil {
-		return nil, deploymentSaConnectionStr, fmt.Errorf("parsing storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", input[0].ContainerEndPoint)
+	result := webapps.FunctionsDeploymentStorage{
+		Type:  pointer.To(webapps.FunctionsDeploymentStorageType(input[0].ContainerType)),
+		Value: pointer.To(input[0].ContainerEndPoint),
+		Authentication: &webapps.FunctionsDeploymentStorageAuthentication{
+			Type: pointer.To(webapps.AuthenticationTypeSystemAssignedIdentity),
+		},
 	}
-	deploymentSaName = strings.Split(endpoint.Host, ".")[0]
-	authType := webapps.AuthenticationTypeStorageAccountConnectionString
-	deploymentStorage.Authentication = &webapps.FunctionsDeploymentStorageAuthentication{}
 
+	var saStr string
 	switch {
 	case input[0].AccessKey != "":
-		deploymentStorage.Authentication.StorageAccountConnectionStringName = pointer.To(connectionStrName)
-		deploymentSaConnectionStr = fmt.Sprintf(StorageStringFmt, deploymentSaName, input[0].AccessKey, *storageDomainSuffix)
+		result.Authentication.Type = pointer.To(webapps.AuthenticationTypeStorageAccountConnectionString)
+		result.Authentication.StorageAccountConnectionStringName = pointer.To(connectionStrName)
+		endpoint, _ := url.Parse(input[0].ContainerEndPoint)
+		deploymentSaName := strings.Split(endpoint.Host, ".")[0]
+		saStr = fmt.Sprintf(StorageStringFmt, deploymentSaName, input[0].AccessKey, *storageDomainSuffix)
 
 	case input[0].UserAssignedIdentityId != "":
-		deploymentStorage.Authentication.UserAssignedIdentityResourceId = pointer.To(input[0].UserAssignedIdentityId)
-		authType = webapps.AuthenticationTypeUserAssignedIdentity
-
-	default:
-		authType = webapps.AuthenticationTypeSystemAssignedIdentity
+		result.Authentication.Type = pointer.To(webapps.AuthenticationTypeUserAssignedIdentity)
+		result.Authentication.UserAssignedIdentityResourceId = pointer.To(input[0].UserAssignedIdentityId)
 	}
 
-	deploymentStorage.Authentication.Type = &authType
-
-	return &deploymentStorage, deploymentSaConnectionStr, nil
+	return &result, saStr, nil
 }
 
 func flattenDeploymentStorage(input *webapps.FunctionsDeploymentStorage, deploymentSaString string) DeploymentStorage {
@@ -1404,44 +1401,34 @@ func expandBackendStorage(input []BackendStorage, storageDomainSuffix *string) (
 		return "", false
 	}
 
-	var backendSaConStr string
-
-	backendStorageName := input[0].Name
-	backendSaUseMsi := true
-
 	if input[0].KeyVaultSecretID != "" {
-		backendSaConStr = fmt.Sprintf(helpers.StorageStringFmtKV, input[0].KeyVaultSecretID)
-		backendSaUseMsi = false
+		saConnStr := fmt.Sprintf(helpers.StorageStringFmtKV, input[0].KeyVaultSecretID)
+		return saConnStr, false
 	} else if input[0].AccessKey != "" {
-		backendSaConStr = fmt.Sprintf(helpers.StorageStringFmt, backendStorageName, input[0].AccessKey, *storageDomainSuffix)
-		backendSaUseMsi = false
+		saConnStr := fmt.Sprintf(helpers.StorageStringFmt, input[0].Name, input[0].AccessKey, *storageDomainSuffix)
+		return saConnStr, false
 	}
 
-	if backendSaConStr == "" {
-		backendSaConStr = backendStorageName
-	}
-
-	return backendSaConStr, backendSaUseMsi
+	return input[0].Name, true
 }
 
-func flattenBackendStorage(input string, backendSaUseMsi bool) []BackendStorage {
-	backendStorageList := make([]BackendStorage, 0)
-
-	bs := BackendStorage{}
-
-	if backendSaUseMsi {
-		bs.Name = input
-	} else {
-		if strings.HasPrefix(input, "@Microsoft.KeyVault") {
-			trimmed := strings.TrimPrefix(strings.TrimSuffix(input, ")"), "@Microsoft.KeyVault(SecretUri=")
-			bs.KeyVaultSecretID = trimmed
-		} else {
-			bs.Name, bs.AccessKey = helpers.ParseWebJobsStorageString(input)
-		}
+func flattenBackendStorage(input string, useMsi bool) []BackendStorage {
+	bs := BackendStorage{
+		Name: input,
 	}
 
-	backendStorageList = append(backendStorageList, bs)
-	return backendStorageList
+	if useMsi {
+		return []BackendStorage{bs}
+	}
+
+	if strings.HasPrefix(input, "@Microsoft.KeyVault") {
+		bs.Name = ""
+		bs.KeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(input, ")"), "@Microsoft.KeyVault(SecretUri=")
+	} else {
+		bs.Name, bs.AccessKey = helpers.ParseWebJobsStorageString(input)
+	}
+
+	return []BackendStorage{bs}
 }
 
 func flattenStorageConnectionStrings(input webapps.StringDictionary) (backendSaConStr string, backendSaUseMsi bool, deploymentSaConStr string) {
@@ -1451,14 +1438,14 @@ func flattenStorageConnectionStrings(input webapps.StringDictionary) (backendSaC
 
 	for k, v := range *input.Properties {
 		switch k {
-		case "AzureWebJobsStorage":
+		case BackendStorageConnStr:
 			backendSaConStr = v
 
-		case "AzureWebJobsStorage__accountName":
+		case BackendStorageName:
 			backendSaConStr = v
 			backendSaUseMsi = true
 
-		case "DEPLOYMENT_STORAGE_CONNECTION_STRING":
+		case DeploymentStorageConnStr:
 			deploymentSaConStr = v
 		}
 	}
