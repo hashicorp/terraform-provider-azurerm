@@ -54,13 +54,17 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Discovery resource is created. Changing this forces a new resource to be created.
 
-* `scope` - (Required) One or more `scope` blocks as defined below. Maximum of 10 scopes. Changing this forces a new resource to be created (the Azure API does not allow editing scopes after the workspace exists).
+* `scope` - (Required) One or more `scope` blocks as defined below. Changing this forces a new resource to be created.
 
-* `workspace_root` - (Required) A set of top-level Azure resource identifiers (Subscription IDs or Resource Group IDs) where Storage Discovery initiates its scan for storage accounts. You cannot specify both a subscription and its child resource group. Maximum of 100 items.
+-> **Note:** A maximum of 10 scopes are supported.
 
--> **Note:** The user or service principal must have at least Reader access (`Microsoft.Storage/storageAccounts/read`) on each specified root. The default limit of 100 can be increased by contacting Azure Support.
+* `workspace_root` - (Required) A set of top-level Azure resource identifiers (Subscription IDs or Resource Group IDs) where Storage Discovery initiates its scan for storage accounts. You cannot specify both a subscription and its child resource group. Changing this forces a new resource to be created.
 
-* `description` - (Optional) A description for the Discovery workspace resource.
+-> **Note:** A maximum of 100 workspace roots are supported.
+
+-> **Note:** The user or service principal must have at least Reader access (`Microsoft.Storage/storageAccounts/read`) on each specified root.
+
+* `description` - (Optional) A description for the Discovery workspace resource. This must be between 0 and 1024 characters long.
 
 * `sku` - (Optional) Specifies the Storage Discovery pricing plan. Possible values are `Free` and `Standard`. Defaults to `Standard`. See [Understand Storage Discovery Pricing](https://learn.microsoft.com/azure/storage-discovery/understand-pricing) for details.
 
@@ -74,7 +78,7 @@ A `scope` block supports the following:
 
 * `resource_types` - (Required) A set of Azure resource type strings to include in this scope. Possible values are `Microsoft.Storage/storageAccounts`.
 
-* `tag_keys_only` - (Optional) A set of distinct tag keys used to filter resources. Resources with any of these tag keys will be included. Order is not significant and duplicate keys cannot be specified.
+* `tag_keys_only` - (Optional) A set of tag keys used to filter resources. Resources with any of these tag keys will be included.
 
 * `tags` - (Optional) A map of tag key-value pairs that resources must have to be included in this scope.
 
