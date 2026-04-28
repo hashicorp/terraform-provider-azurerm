@@ -14,8 +14,8 @@ Use this data source to access information about an existing Storage Blob.
 
 ```hcl
 data "azurerm_storage_blob" "example" {
-  name                   = "example-blob-name"
-  storage_container_id   = "example-storage-container-id"
+  name                 = "example-blob-name"
+  storage_container_id = "example-storage-container-id"
 }
 ```
 
@@ -27,11 +27,11 @@ The following arguments are supported:
 
 * `storage_account_name` - (Optional) The name of the Storage Account where the Container exists.
 
-~> **NOTE:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
+~> **Note:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
 
 * `storage_container_name` - (Optional) The name of the Storage Container where the Blob exists.
 
-~> **NOTE:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
+~> **Note:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
 
 * `storage_container_id` - (Optional) The ID of the Storage Container where the Blob exists.
 

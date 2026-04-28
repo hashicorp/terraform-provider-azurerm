@@ -6,13 +6,13 @@ package storage_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
@@ -69,7 +69,7 @@ func TestAccStorageTable_requiresImportDeprecated(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		data.RequiresImportErrorStep(r.requiresImportDeprecated),
 	})
 }
 
@@ -275,7 +275,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%d"
+  name               = "acctestst%d"
   storage_account_id = azurerm_storage_account.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
@@ -299,7 +299,7 @@ func (r StorageTableResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_table" "import" {
-  name                 = azurerm_storage_table.test.name
+  name               = azurerm_storage_table.test.name
   storage_account_id = azurerm_storage_account.test.id
 }
 `, template)
@@ -368,7 +368,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%d"
+  name               = "acctestst%d"
   storage_account_id = azurerm_storage_account.test.id
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
@@ -456,7 +456,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%d"
+  name               = "acctestst%d"
   storage_account_id = azurerm_storage_account.test.id
 
   acl {

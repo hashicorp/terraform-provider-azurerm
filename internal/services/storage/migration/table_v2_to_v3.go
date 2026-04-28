@@ -82,13 +82,13 @@ func (TableV2ToV3) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		if rmIdRaw, ok := rawState["resource_manager_id"].(string); ok && rmIdRaw != "" {
 			log.Printf("[DEBUG] Updating ID from %q to Management Plane ID %q", rawState["id"], rmIdRaw)
 			rawState["id"] = rmIdRaw
-			
+
 			// Extract subscription and resource group from rmId
 			rmId, err := parse.StorageTableResourceManagerID(rmIdRaw)
 			if err == nil {
 				rawState["storage_account_id"] = commonids.NewStorageAccountID(rmId.SubscriptionId, rmId.ResourceGroup, rmId.StorageAccountName).ID()
 			}
-			
+
 			delete(rawState, "storage_account_name")
 			return rawState, nil
 		}
@@ -108,7 +108,7 @@ func (TableV2ToV3) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		newID := parse.NewStorageTableResourceManagerID(subscriptionId, account.StorageAccountId.ResourceGroupName, accountName, "default", tableName).ID()
 		log.Printf("[DEBUG] Updating ID from %q to Management Plane ID %q", rawState["id"], newID)
-		
+
 		rawState["id"] = newID
 		rawState["storage_account_id"] = commonids.NewStorageAccountID(subscriptionId, account.StorageAccountId.ResourceGroupName, accountName).ID()
 		delete(rawState, "storage_account_name")

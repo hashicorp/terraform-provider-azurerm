@@ -33,10 +33,10 @@ resource "azurerm_storage_container" "example" {
 }
 
 resource "azurerm_storage_blob" "example" {
-  name                   = "my-awesome-content.zip"
-  storage_container_id   = azurerm_storage_container.example.id
-  type                   = "Block"
-  source                 = "some-local-file.zip"
+  name                 = "my-awesome-content.zip"
+  storage_container_id = azurerm_storage_container.example.id
+  type                 = "Block"
+  source               = "some-local-file.zip"
 }
 ```
 
@@ -48,11 +48,11 @@ The following arguments are supported:
 
 * `storage_account_name` - (Optional) Specifies the storage account in which to create the storage container. Changing this forces a new resource to be created.
 
-~> **NOTE:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
+~> **Note:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
 
 * `storage_container_name` - (Optional) The name of the storage container in which this blob should be created. Changing this forces a new resource to be created.
 
-~> **NOTE:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
+~> **Note:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
 
 * `storage_container_id` - (Optional) The ID of the storage container in which this blob should be created. Changing this forces a new resource to be created.
 

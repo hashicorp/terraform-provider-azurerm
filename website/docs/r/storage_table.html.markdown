@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `storage_account_name` - (Optional) Specifies the storage account in which to create the storage table. Changing this forces a new resource to be created.
 
-~> **NOTE:** This property is deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the AzureRM Provider.
+~> **Note:** This property is deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the AzureRM Provider.
 
 * `storage_account_id` - (Optional) Specifies the ID of the storage account in which to create the storage table. Changing this forces a new resource to be created.
 

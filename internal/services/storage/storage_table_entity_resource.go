@@ -94,6 +94,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 
 	var tableName string
 	var accountName string
+	var storageTableIdFmt string
 	var account *client.AccountDetails
 	var err error
 
@@ -102,7 +103,6 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("`storage_table_id` is required")
 	}
 	storageTableIdRaw := tableIdRaw.(string)
-	storageTableIdFmtd := ""
 
 	if !features.FivePointOh() {
 		if strings.HasPrefix(strings.ToLower(storageTableIdRaw), "/subscriptions/") {
@@ -110,7 +110,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 			if err != nil {
 				return err
 			}
-			storageTableIdFmtd = storageTableId.ID()
+			storageTableIdFmt = storageTableId.ID()
 			tableName = storageTableId.TableName
 			accountName = storageTableId.StorageAccountName
 			storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
@@ -124,7 +124,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 			if err != nil {
 				return err
 			}
-			storageTableIdFmtd = storageTableId.ID()
+			storageTableIdFmt = storageTableId.ID()
 			tableName = storageTableId.TableName
 			accountName = storageTableId.AccountId.AccountName
 			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
@@ -137,7 +137,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 		if err != nil {
 			return err
 		}
-		storageTableIdFmtd = storageTableId.ID()
+		storageTableIdFmt = storageTableId.ID()
 		tableName = storageTableId.TableName
 		accountName = storageTableId.StorageAccountName
 		storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
@@ -151,7 +151,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("the parent Storage Account %s was not found", accountName)
 	}
 
-	accountId, err := accounts.ParseAccountID(storageTableIdFmtd, storageClient.StorageDomainSuffix)
+	accountId, err := accounts.ParseAccountID(storageTableIdFmt, storageClient.StorageDomainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing Account ID: %s", err)
 	}
@@ -303,6 +303,7 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 
 	var tableName string
 	var accountName string
+	var storageTableIdFmtd string
 	var account *client.AccountDetails
 
 	tableIdRaw, ok := d.GetOk("storage_table_id")
@@ -310,7 +311,6 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("`storage_table_id` is required")
 	}
 	storageTableIdRaw := tableIdRaw.(string)
-	storageTableIdFmtd := ""
 
 	if !features.FivePointOh() {
 		if strings.HasPrefix(strings.ToLower(storageTableIdRaw), "/subscriptions/") {

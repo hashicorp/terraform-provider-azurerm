@@ -78,6 +78,7 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 
 	var tableName string
 	var accountName string
+	var storageTableIdFmtd string
 	var account *client.AccountDetails
 	var err error
 
@@ -86,7 +87,6 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("`storage_table_id` is required")
 	}
 	storageTableIdRaw := tableIdRaw.(string)
-	storageTableIdFmtd := ""
 
 	if !features.FivePointOh() {
 		if strings.HasPrefix(strings.ToLower(storageTableIdRaw), "/subscriptions/") {
