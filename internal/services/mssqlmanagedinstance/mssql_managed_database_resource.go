@@ -430,6 +430,9 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 				if ltrResp.Model != nil && ltrResp.Model.Properties != nil {
 					model.LongTermRetentionPolicy = flattenLongTermRetentionPolicy(*ltrResp.Model.Properties)
 				}
+			} else {
+				// Preserve state while database is `Stopped`
+				model.LongTermRetentionPolicy = state.LongTermRetentionPolicy
 			}
 
 			shortTermRetentionResp, err := shortTermRetentionClient.Get(ctx, *id)
