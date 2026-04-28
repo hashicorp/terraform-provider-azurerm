@@ -17,8 +17,9 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.76.2
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260407.1111603
-	github.com/hashicorp/go-azure-sdk/sdk v0.20260407.1111603
+	github.com/hashicorp/go-azure-sdk/data-plane v0.20260417.1195006
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260417.1195006
+	github.com/hashicorp/go-azure-sdk/sdk v0.20260417.1195006
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
@@ -34,7 +35,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.1
 	github.com/hashicorp/terraform-plugin-testing v1.14.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/jackofallops/giovanni v0.28.0
+	github.com/jackofallops/giovanni v0.29.0
 	github.com/jackofallops/kermit v0.20241010.1180132
 	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20250424222324-b015d063c1fc
 	github.com/mitchellh/cli v1.1.5
