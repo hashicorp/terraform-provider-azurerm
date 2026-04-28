@@ -2,6 +2,7 @@ package preflight_test
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -17,10 +18,16 @@ import (
 )
 
 func TestValidateResource(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skipf("Acceptance tests skipped unless env 'TF_ACC' set")
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 	p := provider.AzureProvider()
-	_ = p.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+	d := p.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+	if d.HasError() {
+		t.Fatalf("diags had error!")
+	}
 	client := p.Meta().(*clients.Client)
 
 	cases := []struct {
