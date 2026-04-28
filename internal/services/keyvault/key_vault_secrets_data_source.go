@@ -93,8 +93,8 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.SetId(keyVaultId.ID())
 
-	var names []string
-	var secretResults []map[string]interface{}
+	names := make([]string, 0)
+	secretResults := make([]map[string]interface{}, 0)
 
 	for _, v := range secretList.Items {
 		name, err := parseNameFromSecretUrl(pointer.From(v.Id))
