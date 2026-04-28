@@ -21,10 +21,10 @@ import (
 )
 
 type ApiManagementGatewayConfigConnectionModel struct {
-	Name                   string   `tfschema:"name"`
-	ApiManagementGatewayId string   `tfschema:"api_management_gateway_id"`
-	SourceId               string   `tfschema:"source_id"`
-	Hostnames              []string `tfschema:"hostnames"`
+	Name                     string   `tfschema:"name"`
+	ApiManagementGatewayId   string   `tfschema:"api_management_gateway_id"`
+	ApiManagementWorkspaceId string   `tfschema:"api_management_workspace_id"`
+	Hostnames                []string `tfschema:"hostnames"`
 }
 
 type ApiManagementGatewayConfigConnectionResource struct{}
@@ -57,7 +57,7 @@ func (r ApiManagementGatewayConfigConnectionResource) Arguments() map[string]*pl
 
 		"api_management_gateway_id": commonschema.ResourceIDReferenceRequiredForceNew(&apigateway.GatewayId{}),
 
-		"source_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
+		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
 
 		"hostnames": {
 			Type:     pluginsdk.TypeSet,
@@ -106,7 +106,7 @@ func (r ApiManagementGatewayConfigConnectionResource) Create() sdk.ResourceFunc 
 			metadata.Logger.Infof("Creating %s", id)
 			payload := apigatewayconfigconnection.ApiManagementGatewayConfigConnectionResource{
 				Properties: apigatewayconfigconnection.GatewayConfigConnectionBaseProperties{
-					SourceId: pointer.To(model.SourceId),
+					SourceId: pointer.To(model.ApiManagementWorkspaceId),
 				},
 			}
 
@@ -150,7 +150,7 @@ func (r ApiManagementGatewayConfigConnectionResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.SourceId = pointer.From(model.Properties.SourceId)
+				state.ApiManagementWorkspaceId = pointer.From(model.Properties.SourceId)
 				state.Hostnames = pointer.From(model.Properties.Hostnames)
 			}
 

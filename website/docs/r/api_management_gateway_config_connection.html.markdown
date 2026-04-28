@@ -46,9 +46,9 @@ resource "azurerm_api_management_workspace" "example" {
 }
 
 resource "azurerm_api_management_gateway_config_connection" "example" {
-  name                      = "example-connection"
-  api_management_gateway_id = azurerm_api_management_standalone_gateway.example.id
-  source_id                 = azurerm_api_management_workspace.example.id
+  name                        = "example-connection"
+  api_management_gateway_id   = azurerm_api_management_standalone_gateway.example.id
+  api_management_workspace_id = azurerm_api_management_workspace.example.id
 }
 ```
 
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `api_management_gateway_id` - (Required) The ID of the API Management gateway that this connection belongs to. Changing this forces a new resource to be created.
 
-* `source_id` - (Required) The ID of the workspace that the API Management Gateway Config Connection will connect to. Changing this forces a new resource to be created.
+* `api_management_workspace_id` - (Required) The ID of the workspace that the API Management Gateway Config Connection will connect to. Changing this forces a new resource to be created.
 
 * `hostnames` - (Optional) A list of hostnames for the API Management Gateway Config Connection. Changing this forces a new resource to be created.
 
