@@ -6,16 +6,6 @@ import (
 	"testing"
 )
 
-// TODO:
-//func TestSegmentName(t *testing.T) {
-//	data := []struct {
-//		Input string
-//		Output string
-//	}{
-//		{Input: , Output: },
-//	}
-//}
-
 func TestSnakeCase(t *testing.T) {
 	cases := []struct {
 		Input  string
