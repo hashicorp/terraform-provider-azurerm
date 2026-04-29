@@ -105,6 +105,116 @@ func ContainerAppsJobsScaleSchema() *pluginsdk.Schema {
 	}
 }
 
+func JobTemplateSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"container": ContainerAppContainerSchemaComputed(),
+
+				"init_container": InitContainerAppContainerSchemaComputed(),
+
+				"volume": ContainerVolumeSchemaComputed(),
+			},
+		},
+	}
+}
+
+func ContainerAppsJobsScaleSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"max_executions": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"min_executions": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"polling_interval_in_seconds": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"rules": CustomScaleRuleSchemaComputed(),
+			},
+		},
+	}
+}
+
+func EventTriggerConfigurationSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"parallelism": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"replica_completion_count": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"scale": ContainerAppsJobsScaleSchemaComputed(),
+			},
+		},
+	}
+}
+
+func ScheduleTriggerConfigurationSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"cron_expression": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"parallelism": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"replica_completion_count": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func ManualTriggerConfigurationSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"parallelism": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"replica_completion_count": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 func ExpandContainerAppJobSecrets(input []Secret) *[]jobs.Secret {
 	if len(input) == 0 {
 		return nil
