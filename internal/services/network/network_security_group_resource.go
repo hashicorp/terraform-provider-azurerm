@@ -150,7 +150,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 								Type:             pluginsdk.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
 							},
-							Set: pluginsdk.HashCaseInsensitiveString,
+							Set: pluginsdk.HashStringInsensitively,
 						},
 
 						"source_application_security_group_ids": {
@@ -160,7 +160,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 								Type:             pluginsdk.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
 							},
-							Set: pluginsdk.HashCaseInsensitiveString,
+							Set: pluginsdk.HashStringInsensitively,
 						},
 
 						"access": {

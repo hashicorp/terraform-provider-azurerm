@@ -144,7 +144,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 					Type:             pluginsdk.TypeString,
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
-				Set: pluginsdk.HashCaseInsensitiveString,
+				Set: pluginsdk.HashStringInsensitively,
 			},
 
 			// lintignore:S018
@@ -157,7 +157,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 					Type:             pluginsdk.TypeString,
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
-				Set: pluginsdk.HashCaseInsensitiveString,
+				Set: pluginsdk.HashStringInsensitively,
 			},
 
 			"access": {

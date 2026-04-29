@@ -22,7 +22,7 @@ func HashString(input interface{}) int {
 	return 0
 }
 
-// HashCaseInsensitiveString provides case-insensitive hashing for TypeSet elements
-func HashCaseInsensitiveString(v interface{}) int {
+// HashStringInsensitively provides case-insensitive hashing for TypeSet elements
+func HashStringInsensitively(v interface{}) int {
 	return HashString(strings.ToLower(v.(string)))
 }
