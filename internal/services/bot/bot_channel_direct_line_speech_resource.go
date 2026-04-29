@@ -4,6 +4,7 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -90,6 +91,20 @@ func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.ForceNewIf("cognitive_account_id", func(ctx context.Context, d *schema.ResourceDiff, _ interface{}) bool {
+			if d == nil {
+				return false
+			}
+
+			o, n := d.GetChange("cognitive_account_id")
+			if o.(string) != "" && n.(string) == "" {
+				// return `IsKnown` in case of unknown values to prevent replacements on valid but unknown at plan time values
+				return d.GetRawConfig().AsValueMap()["cognitive_account_id"].IsKnown()
+			}
+
+			return false
+		}),
 	}
 }
 
@@ -187,11 +202,19 @@ func resourceBotChannelDirectLineSpeechRead(d *pluginsdk.ResourceData, meta inte
 		if channel, ok := props.AsDirectLineSpeechChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
 				d.Set("cognitive_account_id", channelProps.CognitiveServiceResourceID)
-				// cognitive_service_location is not returned by the API.
-				// Only set if a value is actually returned to avoid overwriting configuration
+
+				// cognitive_service_access_key is currently not returned by the API.
+				d.Set("cognitive_service_access_key", d.Get("cognitive_service_access_key").(string))
+				if channelProps.CognitiveServiceSubscriptionKey != nil {
+					d.Set("cognitive_service_access_key", channelProps.CognitiveServiceSubscriptionKey)
+				}
+
+				// cognitive_service_location is currently not returned by the API.
+				d.Set("cognitive_service_location", d.Get("cognitive_service_location").(string))
 				if channelProps.CognitiveServiceRegion != nil {
 					d.Set("cognitive_service_location", channelProps.CognitiveServiceRegion)
 				}
+
 				d.Set("custom_speech_model_id", channelProps.CustomSpeechModelID)
 				d.Set("custom_voice_deployment_id", channelProps.CustomVoiceDeploymentID)
 			}
@@ -226,7 +249,10 @@ func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta in
 	directLineSpeechChannel, _ := channel.Properties.AsDirectLineSpeechChannel()
 	directLineSpeechChannel.Properties.CognitiveServiceRegion = pointer.To(d.Get("cognitive_service_location").(string))
 	directLineSpeechChannel.Properties.CognitiveServiceSubscriptionKey = pointer.To(d.Get("cognitive_service_access_key").(string))
-	directLineSpeechChannel.Properties.CognitiveServiceResourceID = pointer.To(d.Get("cognitive_account_id").(string))
+
+	if v, ok := d.GetOk("cognitive_account_id"); ok {
+		directLineSpeechChannel.Properties.CognitiveServiceResourceID = pointer.To(v.(string))
+	}
 
 	if v, ok := d.GetOk("custom_speech_model_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()

@@ -55,7 +55,11 @@ The following arguments are supported:
 
 * `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
+---
+
 * `cognitive_account_id` - (Optional) The ID of the Cognitive Account this Bot Channel should be associated with. Either `cognitive_account_id` or both `cognitive_service_access_key` and `cognitive_service_location` must be specified.
+
+!> **Note:** Once added, `cognitive_account_id` cannot be removed, doing so forces a new resource to be created.
 
 * `cognitive_service_access_key` - (Optional) The access key to access the Cognitive Service. Either `cognitive_account_id` or both `cognitive_service_access_key` and `cognitive_service_location` must be specified.
 
