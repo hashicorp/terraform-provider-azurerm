@@ -14,6 +14,7 @@ FEATURES:
 * **New Data Source** `azurerm_cdn_frontdoor_security_policy` [GH-31957]
 
 BUG FIXES:
+* `azurerm_mssql_server` - fix resource update to conform with enforcement of "AD Auth Only" policy [GH-31901]
 * `azurerm_mssql_managed_database` - skip retrieval of `long_term_retention_policy` when the database is in a stopped state [GH-32246]
 * `azurerm_mssql_managed_database` - fix an issue that caused 400 errors when users did not specify `long_term_retention_policy.yearly_retention` [GH-32246]
 
