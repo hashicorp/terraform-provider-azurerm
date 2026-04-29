@@ -408,12 +408,14 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_kubernetes_cluster`
 
 * The deprecated `default_node_pool.linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `default_node_pool.linux_os_config.transparent_huge_page` property.
+* The deprecated `default_node_pool.kubelet_config.container_log_max_line` property has been renamed to `default_node_pool.kubelet_config.container_log_max_files` to align with the API property name.
 * The `node_provisioning_profile` block is now required.
 * The `oidc_issuer_enabled` property now defaults to `true`.
 
 ### `azurerm_kubernetes_cluster_node_pool`
 
 * The deprecated `linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `linux_os_config.transparent_huge_page` property.
+* The deprecated `kubelet_config.container_log_max_line` property has been renamed to `kubelet_config.container_log_max_files` to align with the API property name.
 
 ### `azurerm_kusto_attached_database_configuration`
 
