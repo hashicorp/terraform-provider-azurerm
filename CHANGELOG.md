@@ -3,6 +3,8 @@
 ENHANCEMENTS:
 * `azurerm_eventhub` - add support for `storage_authentication_type` and  `storage_authentication_id` properties in the `capture_description.destination` block [GH-31265]
 * dependencies: `storage` - update API version to `2025-08-01` [GH-32218]
+* `azurerm_kubernetes_cluster_node_pool` - the `container_log_max_lines` property has been renamed to `container_log_max_files` [GH-31721]
+* `azurerm_kubernetes_cluster` - the `container_log_max_lines` property has been renamed to `container_log_max_files` [GH-31721]
 * `azurerm_storage_account` - add support for the `Smart` value to `access_tier` [GH-32218]
 * `azurerm_storage_account` - add support for the `All` value to `allowed_copy_scope` [GH-32218]
 * List Resource: `azurerm_storage_account` - skip resource data retrieval when `include_resource` is `false` [GH-31898]
