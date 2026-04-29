@@ -19,7 +19,7 @@ import (
 
 type CosmosdbPostgresqlCoordinatorConfigurationResource struct{}
 
-func TestCosmosDbPostgreSQLCoordinatorConfiguration_basic(t *testing.T) {
+func TestAccCosmosDbPostgreSQLCoordinatorConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_coordinator_configuration", "test")
 	r := CosmosdbPostgresqlCoordinatorConfigurationResource{}
 
@@ -34,7 +34,7 @@ func TestCosmosDbPostgreSQLCoordinatorConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestCosmosDbPostgreSQLCoordinatorConfiguration_update(t *testing.T) {
+func TestAccCosmosDbPostgreSQLCoordinatorConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_coordinator_configuration", "test")
 	r := CosmosdbPostgresqlCoordinatorConfigurationResource{}
 
@@ -91,9 +91,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   administrator_login_password    = "H@Sh1CoR3!"
   coordinator_storage_quota_in_mb = 131072
   coordinator_vcore_count         = 2
-  node_count                      = 2
-  node_storage_quota_in_mb        = 131072
-  node_vcores                     = 2
+  node_count                      = 0
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
