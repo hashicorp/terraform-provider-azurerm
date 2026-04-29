@@ -76,12 +76,26 @@ func (r ContainerAppJobDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"workload_profile_name": {
+		"event_stream_endpoint": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"template": helpers.JobTemplateSchemaComputed(),
+		"event_trigger_config": helpers.EventTriggerConfigurationSchemaComputed(),
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
+		"manual_trigger_config": helpers.ManualTriggerConfigurationSchemaComputed(),
+
+		"outbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"registry": helpers.ContainerAppRegistrySchemaComputed(),
 
 		"replica_retry_limit": {
 			Type:     pluginsdk.TypeInt,
@@ -93,27 +107,13 @@ func (r ContainerAppJobDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"secret": helpers.SecretsDataSourceSchema(),
-
-		"registry": helpers.ContainerAppRegistrySchemaComputed(),
-
-		"event_trigger_config": helpers.EventTriggerConfigurationSchemaComputed(),
-
-		"manual_trigger_config": helpers.ManualTriggerConfigurationSchemaComputed(),
-
 		"schedule_trigger_config": helpers.ScheduleTriggerConfigurationSchemaComputed(),
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+		"secret": helpers.SecretsDataSourceSchema(),
 
-		"outbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
+		"template": helpers.JobTemplateSchemaComputed(),
 
-		"event_stream_endpoint": {
+		"workload_profile_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

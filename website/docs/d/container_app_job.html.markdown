@@ -37,29 +37,29 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `container_app_environment_id` - The ID of the Container App Environment this Container App Job is linked to.
 
-* `workload_profile_name` - The name of the Workload Profile in the Container App Environment in which this Container App Job is running.
-
-* `replica_timeout_in_seconds` - The maximum time in seconds that a replica is allowed to run.
-
-* `replica_retry_limit` - The maximum number of times a replica is allowed to retry.
-
-* `template` - A `template` block as detailed below.
+* `event_stream_endpoint` - The endpoint used to stream events from the Container App Job.
 
 * `event_trigger_config` - An `event_trigger_config` block as detailed below.
 
-* `manual_trigger_config` - A `manual_trigger_config` block as detailed below.
-
-* `schedule_trigger_config` - A `schedule_trigger_config` block as detailed below.
-
-* `registry` - One or more `registry` blocks as detailed below.
-
-* `secret` - One or more `secret` blocks as detailed below.
-
 * `identity` - An `identity` block as detailed below.
+
+* `manual_trigger_config` - A `manual_trigger_config` block as detailed below.
 
 * `outbound_ip_addresses` - A list of the Public IP Addresses which the Container App Job uses for outbound network access.
 
-* `event_stream_endpoint` - The endpoint used to stream events from the Container App Job.
+* `registry` - One or more `registry` blocks as detailed below.
+
+* `replica_retry_limit` - The maximum number of times a replica is allowed to retry.
+
+* `replica_timeout_in_seconds` - The maximum time in seconds that a replica is allowed to run.
+
+* `schedule_trigger_config` - A `schedule_trigger_config` block as detailed below.
+
+* `secret` - One or more `secret` blocks as detailed below.
+
+* `template` - A `template` block as detailed below.
+
+* `workload_profile_name` - The name of the Workload Profile in the Container App Environment in which this Container App Job is running.
 
 * `tags` - A mapping of tags assigned to the Container App Job.
 
