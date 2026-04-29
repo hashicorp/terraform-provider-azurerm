@@ -1,6 +1,7 @@
 ## 4.71.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_eventhub` - add support for `storage_authentication_type` and  `storage_authentication_id` properties in the `capture_description.destination` block [GH-31265]
 * dependencies: `storage` - update API version to `2025-08-01` [GH-32218]
 * `azurerm_storage_account` - add support for the `Smart` value to `access_tier` [GH-32218]
 * `azurerm_storage_account` - add support for the `All` value to `allowed_copy_scope` [GH-32218]
