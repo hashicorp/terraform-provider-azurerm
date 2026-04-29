@@ -489,11 +489,12 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_mssql_database`
 
-* The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
+* The `long_term_retention_policy.weekly_retention`, `long_term_retention_policy.monthly_retention` and `long_term_retention_policy.yearly_retention` properties now default to `PT0S`.
 
 ### `azurerm_mssql_managed_database`
 
-* The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
+* The deprecated `long_term_retention_policy.immutable_backups_enabled` property has been removed.
+* The `long_term_retention_policy.weekly_retention`, `long_term_retention_policy.monthly_retention` and `long_term_retention_policy.yearly_retention` properties now default to `PT0S`.
 
 ### `azurerm_mssql_managed_instance`
 
@@ -701,6 +702,10 @@ Please follow the format in the example below for listing breaking changes in da
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+
+### `azurerm_mssql_managed_database`
+
+* The deprecated `long_term_retention_policy.immutable_backups_enabled` property has been removed.
 
 ### `azurerm_nginx_configuration`
 
