@@ -149,7 +149,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 								Type:             pluginsdk.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
 							},
-							Set: HashCaseInsensitiveStringNSG,
+							Set: pluginsdk.HashCaseInsensitiveString,
 						},
 
 						"source_application_security_group_ids": {
@@ -159,7 +159,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 								Type:             pluginsdk.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
 							},
-							Set: HashCaseInsensitiveStringNSG,
+							Set: pluginsdk.HashCaseInsensitiveString,
 						},
 
 						"access": {
@@ -187,7 +187,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: hashNSR,
+				Set: hashNetworkSecurityRule,
 			},
 
 			"tags": commonschema.Tags(),
@@ -558,14 +558,9 @@ func validateSecurityRule(sgRule map[string]interface{}) error {
 	return err.ErrorOrNil()
 }
 
-// HashCaseInsensitiveStringNSG provides case-insensitive hashing for TypeSet elements in NSG
-func HashCaseInsensitiveStringNSG(v interface{}) int {
-	return pluginsdk.HashString(strings.ToLower(v.(string)))
-}
-
-// hashNSR implements a hash function for the `security_rule` property,
+// hashNetworkSecurityRule implements a hash function for the `security_rule` property,
 // mainly to normalize the casing for `source_application_security_group_ids` and `destination_application_security_group_ids`.
-func hashNSR(input any) int {
+func hashNetworkSecurityRule(input any) int {
 	var buf bytes.Buffer
 	if m, ok := input.(map[string]any); ok {
 		buf.WriteString(m["name"].(string))

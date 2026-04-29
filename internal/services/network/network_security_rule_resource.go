@@ -144,7 +144,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 					Type:             pluginsdk.TypeString,
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
-				Set: HashCaseInsensitiveString,
+				Set: pluginsdk.HashCaseInsensitiveString,
 			},
 
 			// lintignore:S018
@@ -157,7 +157,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 					Type:             pluginsdk.TypeString,
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
-				Set: HashCaseInsensitiveString,
+				Set: pluginsdk.HashCaseInsensitiveString,
 			},
 
 			"access": {
@@ -516,9 +516,4 @@ func flattenApplicationSecurityGroupIds(groups *[]securityrules.ApplicationSecur
 	}
 
 	return ids
-}
-
-// HashCaseInsensitiveString provides case-insensitive hashing for TypeSet elements
-func HashCaseInsensitiveString(v interface{}) int {
-	return pluginsdk.HashString(strings.ToLower(v.(string)))
 }
