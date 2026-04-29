@@ -361,7 +361,6 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
   ip_version          = "IPv6"
-  sku                 = "Basic"
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
@@ -396,7 +395,6 @@ resource "azurerm_public_ip" "test2" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
   ip_version          = "IPv6"
-  sku                 = "Basic"
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
@@ -431,7 +429,6 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
   ip_version          = "IPv6"
-  sku                 = "Basic"
 }
 
 resource "azurerm_dns_aaaa_record" "test" {

@@ -13,9 +13,9 @@ import (
 
 func resourceAutomationVariableDateTime() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationVariableDateTimeCreateUpdate,
+		Create: resourceAutomationVariableDateTimeCreate,
 		Read:   resourceAutomationVariableDateTimeRead,
-		Update: resourceAutomationVariableDateTimeCreateUpdate,
+		Update: resourceAutomationVariableDateTimeUpdate,
 		Delete: resourceAutomationVariableDateTimeDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -34,8 +34,12 @@ func resourceAutomationVariableDateTime() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationVariableDateTimeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceAutomationVariableCreateUpdate(d, meta, "Datetime")
+func resourceAutomationVariableDateTimeCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	return resourceAutomationVariableCreate(d, meta, "Datetime")
+}
+
+func resourceAutomationVariableDateTimeUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	return resourceAutomationVariableUpdate(d, meta, "Datetime")
 }
 
 func resourceAutomationVariableDateTimeRead(d *pluginsdk.ResourceData, meta interface{}) error {
