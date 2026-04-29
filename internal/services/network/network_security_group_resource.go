@@ -68,6 +68,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
+				Set:        hashNetworkSecurityRule,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -187,7 +188,6 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: hashNetworkSecurityRule,
 			},
 
 			"tags": commonschema.Tags(),
