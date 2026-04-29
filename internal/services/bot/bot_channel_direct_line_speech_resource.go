@@ -67,9 +67,12 @@ func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
 			},
 
 			"cognitive_service_location": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				RequiredWith: []string{"cognitive_service_access_key"},
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateFunc:     location.EnhancedValidate,
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
+				RequiredWith:     []string{"cognitive_service_access_key"},
 			},
 
 			"cognitive_account_id": {
