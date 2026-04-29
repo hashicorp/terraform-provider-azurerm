@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -138,7 +137,7 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 					"email": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.EmailAddress,
+						ValidateFunc: validation.IsEmailAddress,
 					},
 
 					"first_name": {
