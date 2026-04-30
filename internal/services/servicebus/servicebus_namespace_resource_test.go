@@ -20,6 +20,9 @@ import (
 
 type ServiceBusNamespaceResource struct{}
 
+// ServicebusNamespaceResource is an alias used by the generated identity test file.
+type ServicebusNamespaceResource = ServiceBusNamespaceResource
+
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
