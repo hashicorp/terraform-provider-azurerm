@@ -322,8 +322,11 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_iops": {
-			Type:         schema.TypeInt,
-			Optional:     true,
+			Type:     schema.TypeInt,
+			Optional: true,
+			// O+C - Azure returns a calculated IOPS value for GPv2 instances when `storage_iops`
+			// is omitted, and keeping it in state avoids a follow-up plan to remove the API value.
+			Computed:     true,
 			ValidateFunc: validation.IntBetween(300, 80000),
 		},
 
@@ -422,7 +425,9 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("`administrator_login` and `administrator_login_password` are required when `azuread_authentication_only_enabled` is false")
 			}
 
-			if _, storageIOpsSet := rd.GetOk("storage_iops"); storageIOpsSet {
+			// Unknown values can come from expressions and may later resolve to null, so only
+			// validate `storage_iops` rules when the argument is known to be explicitly configured.
+			if storageIOps, ok := rawConfig["storage_iops"]; ok && storageIOps.IsKnown() && !storageIOps.IsNull() {
 				if !rd.Get("general_purpose_v2_enabled").(bool) {
 					return fmt.Errorf("`storage_iops` can only be set when `general_purpose_v2_enabled` is `true`")
 				}
@@ -831,10 +836,12 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					model.MinimumTlsVersion = pointer.From(props.MinimalTlsVersion)
 					model.PublicDataEndpointEnabled = pointer.From(props.PublicDataEndpointEnabled)
 					model.GeneralPurposeV2Enabled = pointer.From(props.IsGeneralPurposeV2)
+					model.StorageIOps = props.StorageIOps
 					// Azure can continue returning storageIOps after GPv2 is disabled, but
 					// storage_iops is only configurable for GPv2 instances.
-					if model.GeneralPurposeV2Enabled {
-						model.StorageIOps = props.StorageIOps
+					// tracked on https://github.com/Azure/azure-rest-api-specs/issues/42781
+					if !model.GeneralPurposeV2Enabled {
+						model.StorageIOps = nil
 					}
 					model.StorageSizeInGb = pointer.From(props.StorageSizeInGB)
 					model.SubnetId = pointer.From(props.SubnetId)
@@ -850,6 +857,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					model.HybridSecondaryUsage = string(pointer.From(props.HybridSecondaryUsage))
 				}
 			}
+
 			return metadata.Encode(&model)
 		},
 	}
