@@ -1,4 +1,4 @@
-name: Comment Failure
+name: Comment CI Failure
 
 on:
   # This file is reused, and called from other workflows

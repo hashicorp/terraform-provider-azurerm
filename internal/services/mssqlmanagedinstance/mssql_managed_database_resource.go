@@ -20,7 +20,6 @@ import (
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -69,6 +68,11 @@ func (r MsSqlManagedDatabaseResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
+	atLeastOneOf := []string{
+		"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
+		"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
+	}
+
 	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -84,7 +88,51 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ManagedInstanceID,
 		},
 
-		"long_term_retention_policy": helper.LongTermRetentionPolicySchema(),
+		"long_term_retention_policy": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
+					"weekly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      "PT0S",
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
+					"monthly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      "PT0S",
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
+					"yearly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      "PT0S",
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// WeekOfYear - The week of year to take the yearly backup.
+					"week_of_year": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IntBetween(0, 52),
+						AtLeastOneOf: atLeastOneOf,
+					},
+				},
+			},
+		},
 
 		"short_term_retention_days": {
 			Type:         pluginsdk.TypeInt,
@@ -121,10 +169,6 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FivePointOh() {
-		atLeastOneOf := []string{
-			"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
-			"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
-		}
 		resource["long_term_retention_policy"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -169,9 +213,10 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"immutable_backups_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Type:       pluginsdk.TypeBool,
+						Optional:   true,
+						Default:    false,
+						Deprecated: "The `long_term_retention_policy.immutable_backups_enabled` property has been deprecated and will be removed in v5.0 of the AzureRM provider. This property is non-functional and was mistakenly exposed in the resource.",
 					},
 				},
 			},
@@ -249,11 +294,10 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 
 			if len(model.LongTermRetentionPolicy) > 0 {
 				longTermRetentionPolicy := managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicy{
-					Properties: pointer.To(expandLongTermRetentionPolicy(model.LongTermRetentionPolicy)),
+					Properties: expandLongTermRetentionPolicy(model.LongTermRetentionPolicy),
 				}
 
-				err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicy)
-				if err != nil {
+				if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicy); err != nil {
 					return fmt.Errorf("setting Long Term Retention Policies for %s: %+v", id, err)
 				}
 			}
@@ -319,11 +363,10 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 
 			if d.HasChange("long_term_retention_policy") {
 				longTermRetentionPolicy := managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicy{
-					Properties: pointer.To(expandLongTermRetentionPolicy(model.LongTermRetentionPolicy)),
+					Properties: expandLongTermRetentionPolicy(model.LongTermRetentionPolicy),
 				}
 
-				err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicy)
-				if err != nil {
+				if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicy); err != nil {
 					return fmt.Errorf("updating Long Term Retention Policies for %s: %+v", id, err)
 				}
 			}
@@ -377,13 +420,19 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 				ManagedInstanceId: managedInstanceId.ID(),
 			}
 
-			ltrResp, err := longTermRetentionClient.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving Long Term Retention Policy for  %s: %v", *id, err)
-			}
+			// If the database is in a `Stopped` state, attempting to retrieve the long term retention policy results in a 400.
+			if result.Model != nil && result.Model.Properties != nil && pointer.From(result.Model.Properties.Status) != manageddatabases.ManagedDatabaseStatusStopped {
+				ltrResp, err := longTermRetentionClient.Get(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("retrieving Long Term Retention Policy for %s: %v", *id, err)
+				}
 
-			if ltrResp.Model != nil && ltrResp.Model.Properties != nil {
-				model.LongTermRetentionPolicy = flattenLongTermRetentionPolicy(*ltrResp.Model.Properties)
+				if ltrResp.Model != nil && ltrResp.Model.Properties != nil {
+					model.LongTermRetentionPolicy = flattenLongTermRetentionPolicy(*ltrResp.Model.Properties)
+				}
+			} else {
+				// Preserve state while database is `Stopped`
+				model.LongTermRetentionPolicy = state.LongTermRetentionPolicy
 			}
 
 			shortTermRetentionResp, err := shortTermRetentionClient.Get(ctx, *id)
@@ -428,17 +477,25 @@ func (r MsSqlManagedDatabaseResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties {
+func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) *managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties {
 	if len(ltrPolicy) == 0 {
-		return managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{}
+		return &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{}
 	}
 
-	return managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
+	// The API errors if `weekOfYear` is not at least 1 when `yearlyRetention` is provided.
+	weekOfYear := int64(1)
+	if ltrPolicy[0].WeekOfYear != 0 {
+		weekOfYear = ltrPolicy[0].WeekOfYear
+	}
+
+	result := &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
 		WeeklyRetention:  &ltrPolicy[0].WeeklyRetention,
 		MonthlyRetention: &ltrPolicy[0].MonthlyRetention,
 		YearlyRetention:  &ltrPolicy[0].YearlyRetention,
-		WeekOfYear:       pointer.To(ltrPolicy[0].WeekOfYear),
+		WeekOfYear:       &weekOfYear,
 	}
+
+	return result
 }
 
 func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties) []LongTermRetentionPolicy {
