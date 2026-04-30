@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `vault_critical_operation_exclusion_list` - (Optional) A list of the critical operations which are not protected by this Resource Guard.
 
--> **Note:** Azure Backup documentation describes these operations by friendly names, but the API expects the following literal values for `vault_critical_operation_exclusion_list`:
+-> **Note:** Azure Backup documentation describes these operations by friendly names. See [Recovery Services vault critical operations](https://learn.microsoft.com/azure/backup/multi-user-authorization-concept?tabs=recovery-services-vault#critical-operations) and [Backup vault critical operations](https://learn.microsoft.com/azure/backup/multi-user-authorization-concept?tabs=backup-vault#critical-operations). The API expects the following literal values for `vault_critical_operation_exclusion_list`:
 
   | Vault type | Azure documentation operation | Valid API value |
   |---|---|---|
