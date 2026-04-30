@@ -53,8 +53,15 @@ func responseLoggerMiddleware(providerName string) client.ResponseMiddleware {
 		if dump, err2 := httputil.DumpResponse(response, true); err2 == nil {
 			log.Printf("[DEBUG] %s Response for %s: \n%s\n", providerName, request.URL, dump)
 		} else {
-			// fallback to basic message
-			log.Printf("[DEBUG] %s Response: %s for %s\n", providerName, response.Status, request.URL)
+			log.Printf("[DEBUG] %s Response dump failed for %s: %s", providerName, request.URL, err2)
+
+			// fallback to basic message with headers
+			log.Printf("[DEBUG] %s Response: %s for %s", providerName, response.Status, request.URL)
+			for name, values := range response.Header {
+				for _, value := range values {
+					log.Printf("[DEBUG] %s Response Header: %s: %s", providerName, name, value)
+				}
+			}
 		}
 		return response, nil
 	}
