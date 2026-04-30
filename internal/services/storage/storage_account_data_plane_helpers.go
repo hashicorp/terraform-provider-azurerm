@@ -23,6 +23,7 @@ type storageAccountServiceSupportLevel struct {
 	supportQueue         bool
 	supportShare         bool
 	supportStaticWebsite bool
+	supportTable         bool
 }
 
 func availableFunctionalityForAccount(kind storageaccounts.Kind, tier storageaccounts.SkuTier, replicationType string) storageAccountServiceSupportLevel {
@@ -48,11 +49,18 @@ func availableFunctionalityForAccount(kind storageaccounts.Kind, tier storageacc
 	// Static Website is only supported for StorageV2 (not for Storage(v1)) and BlockBlobStorage
 	supportStaticWebSite := kind == storageaccounts.KindStorageVTwo || kind == storageaccounts.KindBlockBlobStorage
 
+	// Table is only supported for Storage and StorageV2, in Standard sku tier.
+	// This matches the same conditions as Queue Storage.
+	supportTable := tier == storageaccounts.SkuTierStandard && (kind == storageaccounts.KindStorageVTwo ||
+		(kind == storageaccounts.KindStorage &&
+			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType)))
+
 	return storageAccountServiceSupportLevel{
 		supportBlob:          supportBlob,
 		supportQueue:         supportQueue,
 		supportShare:         supportShare,
 		supportStaticWebsite: supportStaticWebSite,
+		supportTable:         supportTable,
 	}
 }
 
@@ -111,6 +119,20 @@ func waitForDataPlaneToBecomeAvailableForAccount(ctx context.Context, client *cl
 		if err = poller.PollUntilDone(ctx); err != nil {
 			if !connectionError(err) {
 				return fmt.Errorf("waiting for the Static Website to become available: %+v", err)
+			}
+		}
+	}
+
+	if supportLevel.supportTable {
+		log.Printf("[DEBUG] waiting for the Table Service to become available")
+		pollerType, err := custompollers.NewDataPlaneTablesAvailabilityPoller(ctx, client, account)
+		if err != nil {
+			return fmt.Errorf("building Tables Poller: %+v", err)
+		}
+		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err = poller.PollUntilDone(ctx); err != nil {
+			if !connectionError(err) {
+				return fmt.Errorf("waiting for the Table Service to become available: %+v", err)
 			}
 		}
 	}
