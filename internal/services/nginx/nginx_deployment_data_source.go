@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxdeployments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -66,7 +67,7 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"sku": {
 			Type:     pluginsdk.TypeString,
@@ -249,13 +250,13 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Nginx.NginxDeployment
+			client := metadata.Client.Nginx.NginxDeployments
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			var model DeploymentDataSourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
-			id := nginxdeployment.NewNginxDeploymentID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := nginxdeployments.NewNginxDeploymentID(subscriptionId, model.ResourceGroupName, model.Name)
 			result, err := client.DeploymentsGet(ctx, id)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {
@@ -270,7 +271,7 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := result.Model; model != nil {
-				output.Location = pointer.From(model.Location)
+				output.Location = model.Location
 				if tags := model.Tags; tags != nil {
 					output.Tags = pointer.From(model.Tags)
 				}
@@ -347,7 +348,7 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 						waf := WebApplicationFirewall{}
 						if state := nap.WebApplicationFirewallSettings.ActivationState; state != nil {
 							switch *state {
-							case nginxdeployment.ActivationStateEnabled:
+							case nginxdeployments.ActivationStateEnabled:
 								waf.ActivationStateEnabled = true
 							default:
 								waf.ActivationStateEnabled = false
