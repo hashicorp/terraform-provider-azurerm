@@ -12,24 +12,30 @@ import (
 type CapacityReservationLevel int64
 
 const (
-	CapacityReservationLevelFiveHundred  CapacityReservationLevel = 500
-	CapacityReservationLevelFiveThousand CapacityReservationLevel = 5000
-	CapacityReservationLevelFourHundred  CapacityReservationLevel = 400
-	CapacityReservationLevelOneHundred   CapacityReservationLevel = 100
-	CapacityReservationLevelOneThousand  CapacityReservationLevel = 1000
-	CapacityReservationLevelThreeHundred CapacityReservationLevel = 300
-	CapacityReservationLevelTwoHundred   CapacityReservationLevel = 200
-	CapacityReservationLevelTwoThousand  CapacityReservationLevel = 2000
+	CapacityReservationLevelFiveHundred      CapacityReservationLevel = 500
+	CapacityReservationLevelFiveThousand     CapacityReservationLevel = 5000
+	CapacityReservationLevelFiveZeroThousand CapacityReservationLevel = 50000
+	CapacityReservationLevelFourHundred      CapacityReservationLevel = 400
+	CapacityReservationLevelOneHundred       CapacityReservationLevel = 100
+	CapacityReservationLevelOneThousand      CapacityReservationLevel = 1000
+	CapacityReservationLevelOneZeroThousand  CapacityReservationLevel = 10000
+	CapacityReservationLevelThreeHundred     CapacityReservationLevel = 300
+	CapacityReservationLevelTwoFiveThousand  CapacityReservationLevel = 25000
+	CapacityReservationLevelTwoHundred       CapacityReservationLevel = 200
+	CapacityReservationLevelTwoThousand      CapacityReservationLevel = 2000
 )
 
 func PossibleValuesForCapacityReservationLevel() []int64 {
 	return []int64{
 		int64(CapacityReservationLevelFiveHundred),
 		int64(CapacityReservationLevelFiveThousand),
+		int64(CapacityReservationLevelFiveZeroThousand),
 		int64(CapacityReservationLevelFourHundred),
 		int64(CapacityReservationLevelOneHundred),
 		int64(CapacityReservationLevelOneThousand),
+		int64(CapacityReservationLevelOneZeroThousand),
 		int64(CapacityReservationLevelThreeHundred),
+		int64(CapacityReservationLevelTwoFiveThousand),
 		int64(CapacityReservationLevelTwoHundred),
 		int64(CapacityReservationLevelTwoThousand),
 	}
@@ -126,6 +132,88 @@ func parsePublicNetworkAccessType(input string) (*PublicNetworkAccessType, error
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := PublicNetworkAccessType(input)
+	return &out, nil
+}
+
+type PurgeState string
+
+const (
+	PurgeStateCompleted PurgeState = "completed"
+	PurgeStatePending   PurgeState = "pending"
+)
+
+func PossibleValuesForPurgeState() []string {
+	return []string{
+		string(PurgeStateCompleted),
+		string(PurgeStatePending),
+	}
+}
+
+func (s *PurgeState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePurgeState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePurgeState(input string) (*PurgeState, error) {
+	vals := map[string]PurgeState{
+		"completed": PurgeStateCompleted,
+		"pending":   PurgeStatePending,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PurgeState(input)
+	return &out, nil
+}
+
+type SearchSortEnum string
+
+const (
+	SearchSortEnumAsc  SearchSortEnum = "asc"
+	SearchSortEnumDesc SearchSortEnum = "desc"
+)
+
+func PossibleValuesForSearchSortEnum() []string {
+	return []string{
+		string(SearchSortEnumAsc),
+		string(SearchSortEnumDesc),
+	}
+}
+
+func (s *SearchSortEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSearchSortEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseSearchSortEnum(input string) (*SearchSortEnum, error) {
+	vals := map[string]SearchSortEnum{
+		"asc":  SearchSortEnumAsc,
+		"desc": SearchSortEnumDesc,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SearchSortEnum(input)
 	return &out, nil
 }
 
