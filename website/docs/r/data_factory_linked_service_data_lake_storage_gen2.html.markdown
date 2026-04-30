@@ -10,8 +10,6 @@ description: |-
 
 Manages a Linked Service (connection) between Data Lake Storage Gen2 and Azure Data Factory.
 
-~> **Note:** All arguments including the `service_principal_key` will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
-
 ## Example Usage
 
 ```hcl
