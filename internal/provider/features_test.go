@@ -21,7 +21,8 @@ func TestExpandFeatures(t *testing.T) {
 			Name:  "Empty Block",
 			Input: []interface{}{},
 			Expected: features.UserFeatures{
-				TrackPollingFailuresInState: false,
+				SaveStateBeforePolling: false,
+				SkipImportCheck:        false,
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 					RecoverSoftDeleted:       true,
@@ -109,7 +110,8 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
-					"track_polling_failures_in_state": true,
+					"save_state_before_polling": true,
+					"skip_import_check":         true,
 					"api_management": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": true,
@@ -228,7 +230,8 @@ func TestExpandFeatures(t *testing.T) {
 				},
 			},
 			Expected: features.UserFeatures{
-				TrackPollingFailuresInState: true,
+				SaveStateBeforePolling: true,
+				SkipImportCheck:        true,
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 					RecoverSoftDeleted:       true,
@@ -316,7 +319,8 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
-					"track_polling_failures_in_state": false,
+					"save_state_before_polling": false,
+					"skip_import_check":         false,
 					"api_management": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": false,
@@ -435,7 +439,8 @@ func TestExpandFeatures(t *testing.T) {
 				},
 			},
 			Expected: features.UserFeatures{
-				TrackPollingFailuresInState: false,
+				SaveStateBeforePolling: false,
+				SkipImportCheck:        false,
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: false,
 					RecoverSoftDeleted:       false,

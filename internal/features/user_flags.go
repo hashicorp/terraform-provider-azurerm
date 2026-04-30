@@ -4,27 +4,30 @@
 package features
 
 type UserFeatures struct {
-	TrackPollingFailuresInState bool // TODO: should this live elsewhere?
-	ApiManagement               ApiManagementFeatures
-	AppConfiguration            AppConfigurationFeatures
-	ApplicationInsights         ApplicationInsightFeatures
-	CognitiveAccount            CognitiveAccountFeatures
-	EnhancedValidation          EnhancedValidationFeatures
-	VirtualMachine              VirtualMachineFeatures
-	VirtualMachineScaleSet      VirtualMachineScaleSetFeatures
-	KeyVault                    KeyVaultFeatures
-	TemplateDeployment          TemplateDeploymentFeatures
-	LogAnalyticsWorkspace       LogAnalyticsWorkspaceFeatures
-	ResourceGroup               ResourceGroupFeatures
-	RecoveryServicesVault       RecoveryServicesVault
-	ManagedDisk                 ManagedDiskFeatures
-	Storage                     StorageFeatures
-	Subscription                SubscriptionFeatures
-	PostgresqlFlexibleServer    PostgresqlFlexibleServerFeatures
-	MachineLearning             MachineLearningFeatures
-	RecoveryService             RecoveryServiceFeatures
-	NetApp                      NetAppFeatures
-	DatabricksWorkspace         DatabricksWorkspaceFeatures
+	// TODO: move these to top-level?
+	SaveStateBeforePolling bool
+	SkipImportCheck        bool
+
+	ApiManagement            ApiManagementFeatures
+	AppConfiguration         AppConfigurationFeatures
+	ApplicationInsights      ApplicationInsightFeatures
+	CognitiveAccount         CognitiveAccountFeatures
+	EnhancedValidation       EnhancedValidationFeatures
+	VirtualMachine           VirtualMachineFeatures
+	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
+	KeyVault                 KeyVaultFeatures
+	TemplateDeployment       TemplateDeploymentFeatures
+	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
+	ResourceGroup            ResourceGroupFeatures
+	RecoveryServicesVault    RecoveryServicesVault
+	ManagedDisk              ManagedDiskFeatures
+	Storage                  StorageFeatures
+	Subscription             SubscriptionFeatures
+	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
+	MachineLearning          MachineLearningFeatures
+	RecoveryService          RecoveryServiceFeatures
+	NetApp                   NetAppFeatures
+	DatabricksWorkspace      DatabricksWorkspaceFeatures
 }
 
 type CognitiveAccountFeatures struct {

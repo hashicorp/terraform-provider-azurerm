@@ -80,7 +80,7 @@ func (c AppServicePlansClient) CreateOrUpdateCallbackThenPoll(ctx context.Contex
 		}
 	}
 
-	return fmt.Errorf("force early exit")
+	//return fmt.Errorf("force early exit")
 	
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("polling after CreateOrUpdate: %+v", err)

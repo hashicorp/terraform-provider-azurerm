@@ -14,7 +14,7 @@ func setIDCallback(client any, id resourceids.ResourceId, d *pluginsdk.ResourceD
 		panic(fmt.Sprintf("internal-error: expected `*clients.Client` but got %T", client))
 	}
 
-	if c.Features.TrackPollingFailuresInState {
+	if c.Features.SaveStateBeforePolling {
 		return func() error {
 			d.SetId(id.ID())
 			if supportsIdentity {

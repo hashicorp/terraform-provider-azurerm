@@ -262,9 +262,13 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				},
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
-						"track_polling_failures_in_state": schema.BoolAttribute{
+						"save_state_before_polling": schema.BoolAttribute{
 							Optional:    true,
 							Description: "Whether to store failed resources in Terraform state",
+						},
+						"skip_import_check": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Whether to check for existing resources matching the new resource. If skipped, this could overwrite existing resources, use with caution.",
 						},
 					},
 					Blocks: map[string]schema.Block{
