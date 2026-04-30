@@ -37,7 +37,7 @@ list "azurerm_virtual_network" "example" {
 }
 
 list "azurerm_subnet" "example" {
-  for_each = toset([for vnet in list.azurerm_virtual_network.list.data : vnet.state.id])
+  for_each = toset([for vnet in list.azurerm_virtual_network.example.data : vnet.state.id])
 
   provider = azurerm
   config {

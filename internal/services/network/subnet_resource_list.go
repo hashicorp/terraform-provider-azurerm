@@ -86,9 +86,7 @@ func (r SubnetListResource) List(ctx context.Context, request list.ListRequest, 
 				return
 			}
 
-			vNetResource := resourceSubnet()
-
-			rd := vNetResource.Data(&terraform.InstanceState{})
+			rd := resourceSubnet().Data(&terraform.InstanceState{})
 
 			rd.SetId(id.ID())
 
