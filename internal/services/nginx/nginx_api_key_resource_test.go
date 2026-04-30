@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxapikey"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxdeploymentapikeyresponses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,11 +22,11 @@ import (
 type APIKeyResource struct{}
 
 func (a APIKeyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := nginxapikey.ParseApiKeyID(state.ID)
+	id, err := nginxdeploymentapikeyresponses.ParseApiKeyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Nginx.NginxApiKey.ApiKeysGet(ctx, *id)
+	resp, err := client.Nginx.NginxDeploymentApiKeyResponses.ApiKeysGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
