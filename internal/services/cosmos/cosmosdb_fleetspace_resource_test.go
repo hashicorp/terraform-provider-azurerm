@@ -104,6 +104,7 @@ func (r CosmosDbFleetspaceResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-cosmos-%d"
   location = "%s"
@@ -114,11 +115,13 @@ resource "azurerm_resource_group" "test" {
 func (r CosmosDbFleetspaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
 resource "azurerm_cosmosdb_fleet" "test" {
   name                = "acctest-cosfleet-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
+
 resource "azurerm_cosmosdb_fleetspace" "test" {
   name                = "acctest-cosfleetspace-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -134,6 +137,7 @@ resource "azurerm_cosmosdb_fleetspace" "test" {
 func (r CosmosDbFleetspaceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_cosmosdb_fleetspace" "import" {
   name                = azurerm_cosmosdb_fleetspace.test.name
   resource_group_name = azurerm_cosmosdb_fleetspace.test.resource_group_name
@@ -147,11 +151,13 @@ resource "azurerm_cosmosdb_fleetspace" "import" {
 func (r CosmosDbFleetspaceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
 resource "azurerm_cosmosdb_fleet" "test" {
   name                = "acctest-cosfleet-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
+
 resource "azurerm_cosmosdb_fleetspace" "test" {
   name                = "acctest-cosfleetspace-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -171,11 +177,13 @@ resource "azurerm_cosmosdb_fleetspace" "test" {
 func (r CosmosDbFleetspaceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
 resource "azurerm_cosmosdb_fleet" "test" {
   name                = "acctest-cosfleet-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
+
 resource "azurerm_cosmosdb_fleetspace" "test" {
   name                = "acctest-cosfleetspace-%[2]d"
   resource_group_name = azurerm_resource_group.test.name

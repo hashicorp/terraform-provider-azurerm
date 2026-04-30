@@ -55,6 +55,8 @@ The following arguments are supported:
 
 * `minimum_throughput` - (Optional) The minimum throughput for the throughput pool of the Cosmos DB Fleetspace. Must be divisible by 1000, more than or equal to 100000, and less than or equal to 10000000.
 
+~> **Note:** `minimum_throughput` and `maximum_throughput` must be specified together.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -72,10 +74,10 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Cosmos DB Fleetspaces can be imported using the `resource id`, e.g.
+A Cosmos DB Fleetspaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cosmosdb_fleetspace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DocumentDB/fleets/fleet1/fleetspaces/fleetspace1
+terraform import azurerm_cosmosdb_fleetspace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DocumentDB/fleets/fleet1/fleetspaces/fleetspace1
 ```
 
 ## API Providers

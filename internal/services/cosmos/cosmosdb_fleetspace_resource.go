@@ -141,8 +141,8 @@ func (r CosmosDbFleetspaceResource) Create() sdk.ResourceFunc {
 			param := fleets.FleetspaceResource{
 				Properties: &fleets.FleetspaceProperties{
 					DataRegions:                 pointer.To(config.DataRegions),
-					ServiceTier:                 pointer.To(fleets.ServiceTier(config.ServiceTier)),
-					ThroughputPoolConfiguration: expandFleetspaceThroughputPoolConfiguration(config),
+					ServiceTier:                 pointer.ToEnum[fleets.ServiceTier](config.ServiceTier),
+					ThroughputPoolConfiguration: r.expandFleetspaceThroughputPoolConfiguration(config),
 				},
 			}
 
@@ -181,7 +181,7 @@ func (r CosmosDbFleetspaceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("minimum_throughput") || metadata.ResourceData.HasChange("maximum_throughput") {
-				param.Properties.ThroughputPoolConfiguration = expandFleetspaceThroughputPoolConfiguration(config)
+				param.Properties.ThroughputPoolConfiguration = r.expandFleetspaceThroughputPoolConfiguration(config)
 			}
 
 			if err := client.FleetspaceUpdateThenPoll(ctx, *id, param); err != nil {
@@ -284,7 +284,7 @@ func (r CosmosDbFleetspaceResource) Identity() resourceids.ResourceId {
 	return &fleets.FleetspaceId{}
 }
 
-func expandFleetspaceThroughputPoolConfiguration(config CosmosDbFleetspaceModel) *fleets.FleetspacePropertiesThroughputPoolConfiguration {
+func (r CosmosDbFleetspaceResource) expandFleetspaceThroughputPoolConfiguration(config CosmosDbFleetspaceModel) *fleets.FleetspacePropertiesThroughputPoolConfiguration {
 	if config.MaximumThroughput == 0 && config.MinimumThroughput == 0 {
 		return nil
 	}
