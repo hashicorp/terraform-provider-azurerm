@@ -673,6 +673,7 @@ func TestAccFunctionAppFlexConsumption_vNetRoutingUpdate(t *testing.T) {
 		data.ImportStep("site_credential.0.password"),
 	})
 }
+
 func TestAccFunctionAppFlexConsumption_siteStrategyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
