@@ -72,50 +72,20 @@ func propertiesMatch(actual, expected tables.StorageServiceProperties) bool {
 	}
 
 	if expected.Logging != nil {
-		if actual.Logging == nil {
-			return false
-		}
-		if actual.Logging.Version != expected.Logging.Version ||
-			actual.Logging.Delete != expected.Logging.Delete ||
-			actual.Logging.Read != expected.Logging.Read ||
-			actual.Logging.Write != expected.Logging.Write ||
-			actual.Logging.RetentionPolicy.Enabled != expected.Logging.RetentionPolicy.Enabled ||
-			actual.Logging.RetentionPolicy.Days != expected.Logging.RetentionPolicy.Days {
+		if actual.Logging == nil || !reflect.DeepEqual(*actual.Logging, *expected.Logging) {
 			return false
 		}
 	}
 
 	if expected.HourMetrics != nil {
-		if actual.HourMetrics == nil {
+		if actual.HourMetrics == nil || !reflect.DeepEqual(*actual.HourMetrics, *expected.HourMetrics) {
 			return false
-		}
-		if actual.HourMetrics.Enabled != expected.HourMetrics.Enabled ||
-			actual.HourMetrics.Version != expected.HourMetrics.Version ||
-			actual.HourMetrics.RetentionPolicy.Enabled != expected.HourMetrics.RetentionPolicy.Enabled ||
-			actual.HourMetrics.RetentionPolicy.Days != expected.HourMetrics.RetentionPolicy.Days {
-			return false
-		}
-		if expected.HourMetrics.IncludeAPIs != nil {
-			if actual.HourMetrics.IncludeAPIs == nil || *actual.HourMetrics.IncludeAPIs != *expected.HourMetrics.IncludeAPIs {
-				return false
-			}
 		}
 	}
 
 	if expected.MinuteMetrics != nil {
-		if actual.MinuteMetrics == nil {
+		if actual.MinuteMetrics == nil || !reflect.DeepEqual(*actual.MinuteMetrics, *expected.MinuteMetrics) {
 			return false
-		}
-		if actual.MinuteMetrics.Enabled != expected.MinuteMetrics.Enabled ||
-			actual.MinuteMetrics.Version != expected.MinuteMetrics.Version ||
-			actual.MinuteMetrics.RetentionPolicy.Enabled != expected.MinuteMetrics.RetentionPolicy.Enabled ||
-			actual.MinuteMetrics.RetentionPolicy.Days != expected.MinuteMetrics.RetentionPolicy.Days {
-			return false
-		}
-		if expected.MinuteMetrics.IncludeAPIs != nil {
-			if actual.MinuteMetrics.IncludeAPIs == nil || *actual.MinuteMetrics.IncludeAPIs != *expected.MinuteMetrics.IncludeAPIs {
-				return false
-			}
 		}
 	}
 
