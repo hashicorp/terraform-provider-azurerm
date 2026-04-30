@@ -37,6 +37,29 @@ The following arguments are supported:
 
 * `vault_critical_operation_exclusion_list` - (Optional) A list of the critical operations which are not protected by this Resource Guard.
 
+-> **Note:** Azure Backup documentation describes these operations by friendly names, but the API expects the following literal values for `vault_critical_operation_exclusion_list`:
+
+  | Vault type | Azure documentation operation | Valid API value |
+  |---|---|---|
+  | Recovery Services vault | `Delete protection` | `Microsoft.RecoveryServices/vaults/backupconfig/delete` |
+  | Recovery Services vault | `Delete protection` | `Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems/delete` |
+  | Recovery Services vault | `Modify protection` | `Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems/write` |
+  | Recovery Services vault | `Modify protection` | `Microsoft.RecoveryServices/vaults/backupResourceGuardProxies/write` |
+  | Recovery Services vault | `Modify policy` | `Microsoft.RecoveryServices/vaults/backupPolicies/write` |
+  | Recovery Services vault | `Get backup security PIN` | `Microsoft.RecoveryServices/vaults/backupSecurityPIN/action` |
+  | Recovery Services vault | `Modify encryption settings` | `Microsoft.RecoveryServices/vaults/backupEncryptionConfigs/backupResourceEncryptionConfig/write` |
+  | Recovery Services vault | `Modify encryption settings` | `Microsoft.RecoveryServices/vaults/write#modifyEncryptionSettings` |
+  | Recovery Services vault | `Disable immutability` | `Microsoft.RecoveryServices/vaults/write#reduceImmutabilityState` |
+  | Recovery Services vault | `Restore` | `Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems/recoveryPoints/restore/action` |
+  | Recovery Services vault | `Delete hybrid container` | `Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/delete` |
+  | Backup vault | `Delete Backup Instance` | `Microsoft.DataProtection/backupVaults/backupInstances/delete` |
+  | Backup vault | `Disable immutability` | `Microsoft.DataProtection/backupVaults/write#reduceImmutabilityState` |
+  | Backup vault | `Modify encryption settings` | `Microsoft.DataProtection/backupVaults/write#modifyEncryptionSettings` |
+  | Backup vault | `Stop backup and retain forever` | `Microsoft.DataProtection/backupVaults/backupInstances/stopProtection/action` |
+  | Backup vault | `Stop backup and retain as per policy` | `Microsoft.DataProtection/backupVaults/backupInstances/suspendBackups/action` |
+  | Backup vault | `Change policy` | `Microsoft.DataProtection/backupVaults/backupInstances/write` |
+  | Backup vault | `Restore` | `Microsoft.DataProtection/backupVaults/backupInstances/restore/action` |
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Guard.
 
 ## Attributes Reference

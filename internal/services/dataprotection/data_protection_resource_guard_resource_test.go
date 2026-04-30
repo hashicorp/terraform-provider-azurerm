@@ -159,7 +159,26 @@ resource "azurerm_data_protection_resource_guard" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  vault_critical_operation_exclusion_list = ["Microsoft.RecoveryServices/vaults/backupconfig/delete", "Microsoft.RecoveryServices/vaults/backupResourceGuardProxies/write"]
+  vault_critical_operation_exclusion_list = [
+    "Microsoft.DataProtection/backupVaults/backupInstances/delete",
+    "Microsoft.DataProtection/backupVaults/backupInstances/restore/action",
+    "Microsoft.DataProtection/backupVaults/backupInstances/stopProtection/action",
+    "Microsoft.DataProtection/backupVaults/backupInstances/suspendBackups/action",
+    "Microsoft.DataProtection/backupVaults/backupInstances/write",
+    "Microsoft.DataProtection/backupVaults/write#modifyEncryptionSettings",
+    "Microsoft.DataProtection/backupVaults/write#reduceImmutabilityState",
+    "Microsoft.RecoveryServices/vaults/backupconfig/delete",
+    "Microsoft.RecoveryServices/vaults/backupEncryptionConfigs/backupResourceEncryptionConfig/write",
+    "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/delete",
+    "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems/delete",
+    "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems/recoveryPoints/restore/action",
+    "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems/write",
+    "Microsoft.RecoveryServices/vaults/backupPolicies/write",
+    "Microsoft.RecoveryServices/vaults/backupResourceGuardProxies/write",
+    "Microsoft.RecoveryServices/vaults/backupSecurityPIN/action",
+    "Microsoft.RecoveryServices/vaults/write#modifyEncryptionSettings",
+    "Microsoft.RecoveryServices/vaults/write#reduceImmutabilityState",
+  ]
 
   tags = {
     ENV = "Test1"
