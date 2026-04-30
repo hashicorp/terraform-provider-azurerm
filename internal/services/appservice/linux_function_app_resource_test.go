@@ -1855,6 +1855,7 @@ func TestAccLinuxFunctionApp_publicNetworkAccessUpdate(t *testing.T) {
 		data.ImportStep("site_credential.0.password"),
 	})
 }
+
 func TestAccLinuxFunctionApp_vnetRoutingUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}

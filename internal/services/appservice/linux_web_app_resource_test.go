@@ -1854,6 +1854,7 @@ func TestAccLinuxWebApp_publicNetworkAccessUpdate(t *testing.T) {
 		data.ImportStep("site_credential.0.password"),
 	})
 }
+
 func TestAccLinuxWebApp_virtualNetworkRoutingUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}

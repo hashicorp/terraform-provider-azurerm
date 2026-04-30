@@ -331,7 +331,6 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 		args["vnet_application_traffic_enabled"].Computed = true
 		args["vnet_application_traffic_enabled"].Default = nil
-
 	}
 
 	return args
