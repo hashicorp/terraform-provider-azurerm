@@ -144,9 +144,6 @@ func (d MsSqlFailoverGroupDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := failovergroups.NewFailoverGroupID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, state.Name)
-			if err != nil {
-				return err
-			}
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -171,11 +168,11 @@ func (d MsSqlFailoverGroupDataSource) Read() sdk.ResourceFunc {
 						state.ReadonlyEndpointFailurePolicyEnabled = true
 					}
 
+					readWriteEndpoint := props.ReadWriteEndpoint
 					state.ReadWriteEndpointFailurePolicy = []ReadWriteEndpointFailurePolicyDataSourceModel{{
-						Mode: string(props.ReadWriteEndpoint.FailoverPolicy),
+						Mode:         string(readWriteEndpoint.FailoverPolicy),
+						GraceMinutes: pointer.From(readWriteEndpoint.FailoverWithDataLossGracePeriodMinutes),
 					}}
-
-					state.ReadWriteEndpointFailurePolicy[0].GraceMinutes = pointer.From(props.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes)
 				}
 			}
 

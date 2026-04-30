@@ -121,7 +121,20 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	params.Identity = expandedIdentity
+	params.Identity = &jobagents.JobAgentIdentity{
+		Type: jobagents.JobAgentIdentityTypeNone,
+	}
+	if expandedIdentity.Type == identity.TypeUserAssigned {
+		params.Identity.Type = jobagents.JobAgentIdentityTypeUserAssigned
+		userAssignedIdentities := make(map[string]jobagents.JobAgentUserAssignedIdentity, len(expandedIdentity.IdentityIds))
+		for id, details := range expandedIdentity.IdentityIds {
+			userAssignedIdentities[id] = jobagents.JobAgentUserAssignedIdentity{
+				ClientId:    details.ClientId,
+				PrincipalId: details.PrincipalId,
+			}
+		}
+		params.Identity.UserAssignedIdentities = &userAssignedIdentities
+	}
 
 	err = client.CreateOrUpdateThenPoll(ctx, id, params)
 	if err != nil {
@@ -165,7 +178,20 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		params.Identity = expandedIdentity
+		params.Identity = &jobagents.JobAgentIdentity{
+			Type: jobagents.JobAgentIdentityTypeNone,
+		}
+		if expandedIdentity.Type == identity.TypeUserAssigned {
+			params.Identity.Type = jobagents.JobAgentIdentityTypeUserAssigned
+			userAssignedIdentities := make(map[string]jobagents.JobAgentUserAssignedIdentity, len(expandedIdentity.IdentityIds))
+			for id, details := range expandedIdentity.IdentityIds {
+				userAssignedIdentities[id] = jobagents.JobAgentUserAssignedIdentity{
+					ClientId:    details.ClientId,
+					PrincipalId: details.PrincipalId,
+				}
+			}
+			params.Identity.UserAssignedIdentities = &userAssignedIdentities
+		}
 	}
 
 	if d.HasChanges("sku") {
@@ -217,7 +243,26 @@ func resourceMssqlJobAgentSetFlatten(d *pluginsdk.ResourceData, id *jobagents.Jo
 			d.Set("database_id", props.DatabaseId)
 		}
 
-		flattenedIdentity, err := identity.FlattenUserAssignedMap(model.Identity)
+		var identityValue *identity.UserAssignedMap
+		if model.Identity != nil {
+			identityValue = &identity.UserAssignedMap{
+				Type:        identity.TypeNone,
+				IdentityIds: map[string]identity.UserAssignedIdentityDetails{},
+			}
+			if model.Identity.Type == jobagents.JobAgentIdentityTypeUserAssigned {
+				identityValue.Type = identity.TypeUserAssigned
+				if userAssignedIdentities := model.Identity.UserAssignedIdentities; userAssignedIdentities != nil {
+					for id, details := range *userAssignedIdentities {
+						identityValue.IdentityIds[id] = identity.UserAssignedIdentityDetails{
+							ClientId:    details.ClientId,
+							PrincipalId: details.PrincipalId,
+						}
+					}
+				}
+			}
+		}
+
+		flattenedIdentity, err := identity.FlattenUserAssignedMap(identityValue)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}

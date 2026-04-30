@@ -1495,7 +1495,7 @@ func expandMsSqlServerImport(d *pluginsdk.ResourceData) (out databases.ImportExi
 		StorageKey:                 dbImportRef["storage_key"].(string),
 		StorageUri:                 dbImportRef["storage_uri"].(string),
 		AdministratorLogin:         dbImportRef["administrator_login"].(string),
-		AdministratorLoginPassword: dbImportRef["administrator_login_password"].(string),
+		AdministratorLoginPassword: pointer.To(dbImportRef["administrator_login_password"].(string)),
 		AuthenticationType:         pointer.To(dbImportRef["authentication_type"].(string)),
 	}
 

@@ -59,7 +59,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 		linkProps := item.Properties
 
-		if linkProps.PartnerLocation == nil || linkProps.PartnerServer == nil || linkProps.PartnerDatabase == nil {
+		if linkProps.PartnerLocation == nil || linkProps.PartnerServer == nil || linkProps.PartnerDatabase == nil || linkProps.PartnerDatabaseId == nil {
 			log.Printf("[INFO] Replication Link Properties were invalid for %q", id)
 			continue
 		}
@@ -128,11 +128,6 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 					continue
 				}
 
-				if linkPossiblePartnerItem.Properties == nil {
-					log.Printf("[INFO] Replication Link Properties was nil for SQL Database %q (%q)", partnerDatabase, partnerServerId)
-					continue
-				}
-
 				linkPropsPossiblePartner := *linkPossiblePartnerItem.Properties
 
 				// If the database has a replication link for the specified role, we'll consider it a partner of this database if the location is the same as expected partner
@@ -168,7 +163,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 						log.Printf("[INFO] SQL Database Preferred Enclave Type: %q :: Partner SQL Database Preferred Enclave Type: %q", primaryEnclaveType, partnerDatabasePropsPreferredEnclaveType)
 
-						if partnerDatabase.Id != nil && partnerDatabaseProps != nil && partnerDatabasePropsPreferredEnclaveType == string(primaryEnclaveType) {
+						if partnerDatabase.Id != nil && partnerDatabasePropsPreferredEnclaveType == string(primaryEnclaveType) {
 							log.Printf("[INFO] Found Partner SQL Database ID: %s", partnerDatabaseId)
 							partnerDatabases = append(partnerDatabases, *partnerDatabase)
 						} else {

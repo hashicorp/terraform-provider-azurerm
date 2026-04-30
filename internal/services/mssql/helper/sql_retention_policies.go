@@ -88,14 +88,14 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolicies.BaseLongTermRetentionPolicyProperties {
+func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolicies.LongTermRetentionPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	policy := input[0].(map[string]interface{})
 
-	output := longtermretentionpolicies.BaseLongTermRetentionPolicyProperties{
+	output := longtermretentionpolicies.LongTermRetentionPolicyProperties{
 		WeeklyRetention:  pointer.To("PT0S"),
 		MonthlyRetention: pointer.To("PT0S"),
 		YearlyRetention:  pointer.To("PT0S"),
