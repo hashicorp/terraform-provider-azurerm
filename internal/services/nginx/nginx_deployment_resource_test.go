@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxdeployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,11 +21,11 @@ import (
 type DeploymentResource struct{}
 
 func (a DeploymentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := nginxdeployment.ParseNginxDeploymentID(state.ID)
+	id, err := nginxdeployments.ParseNginxDeploymentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Nginx.NginxDeployment.DeploymentsGet(ctx, *id)
+	resp, err := client.Nginx.NginxDeployments.DeploymentsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Deployment %s: %+v", id, err)
 	}

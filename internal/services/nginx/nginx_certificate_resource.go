@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxcertificate"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxcertificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxdeployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -44,7 +44,7 @@ func (m CertificateResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: nginxdeployment.ValidateNginxDeploymentID,
+			ValidateFunc: nginxdeployments.ValidateNginxDeploymentID,
 		},
 
 		"key_virtual_path": {
@@ -89,17 +89,17 @@ func (m CertificateResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Nginx.NginxCertificate
+			client := metadata.Client.Nginx.NginxCertificates
 
 			var model CertificateModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			deployID, _ := nginxdeployment.ParseNginxDeploymentID(model.NginxDeploymentId)
+			deployID, _ := nginxdeployments.ParseNginxDeploymentID(model.NginxDeploymentId)
 
 			subscriptionID := metadata.Client.Account.SubscriptionId
-			id := nginxcertificate.NewCertificateID(subscriptionID, deployID.ResourceGroupName, deployID.NginxDeploymentName, model.Name)
+			id := nginxcertificates.NewCertificateID(subscriptionID, deployID.ResourceGroupName, deployID.NginxDeploymentName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.CertificatesGet(ctx, id)
@@ -111,8 +111,8 @@ func (m CertificateResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			req := nginxcertificate.NginxCertificate{
-				Properties: &nginxcertificate.NginxCertificateProperties{
+			req := nginxcertificates.NginxCertificate{
+				Properties: &nginxcertificates.NginxCertificateProperties{
 					CertificateVirtualPath: pointer.To(model.CertificateVirtualPath),
 					KeyVaultSecretId:       pointer.To(model.KeyVaultSecretId),
 					KeyVirtualPath:         pointer.To(model.KeyVirtualPath),
@@ -133,8 +133,8 @@ func (m CertificateResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxCertificate
-			id, err := nginxcertificate.ParseCertificateID(meta.ResourceData.Id())
+			client := meta.Client.Nginx.NginxCertificates
+			id, err := nginxcertificates.ParseCertificateID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -180,12 +180,12 @@ func (m CertificateResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			id, err := nginxcertificate.ParseCertificateID(meta.ResourceData.Id())
+			id, err := nginxcertificates.ParseCertificateID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			client := meta.Client.Nginx.NginxCertificate
+			client := meta.Client.Nginx.NginxCertificates
 			result, err := client.CertificatesGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {
@@ -200,7 +200,7 @@ func (m CertificateResource) Read() sdk.ResourceFunc {
 			var output CertificateModel
 
 			output.Name = pointer.From(result.Model.Name)
-			output.NginxDeploymentId = nginxdeployment.NewNginxDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName).ID()
+			output.NginxDeploymentId = nginxdeployments.NewNginxDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName).ID()
 			prop := result.Model.Properties
 			output.KeyVirtualPath = pointer.From(prop.KeyVirtualPath)
 			output.KeyVaultSecretId = pointer.From(prop.KeyVaultSecretId)
@@ -214,13 +214,13 @@ func (m CertificateResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			id, err := nginxcertificate.ParseCertificateID(meta.ResourceData.Id())
+			id, err := nginxcertificates.ParseCertificateID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			meta.Logger.Infof("deleting %s", id)
-			client := meta.Client.Nginx.NginxCertificate
+			client := meta.Client.Nginx.NginxCertificates
 
 			if err := client.CertificatesDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
@@ -232,5 +232,5 @@ func (m CertificateResource) Delete() sdk.ResourceFunc {
 }
 
 func (m CertificateResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return nginxcertificate.ValidateCertificateID
+	return nginxcertificates.ValidateCertificateID
 }

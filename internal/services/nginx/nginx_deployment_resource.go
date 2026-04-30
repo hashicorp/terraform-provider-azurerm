@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxdeployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -90,16 +90,16 @@ type DeploymentModel struct {
 	Tags                   map[string]string                          `tfschema:"tags"`
 }
 
-func expandNetworkProfile(public []FrontendPublic, private []FrontendPrivate, networkInterface []NetworkInterface) *nginxdeployment.NginxNetworkProfile {
-	out := nginxdeployment.NginxNetworkProfile{
-		FrontEndIPConfiguration:       &nginxdeployment.NginxFrontendIPConfiguration{},
-		NetworkInterfaceConfiguration: &nginxdeployment.NginxNetworkInterfaceConfiguration{},
+func expandNetworkProfile(public []FrontendPublic, private []FrontendPrivate, networkInterface []NetworkInterface) *nginxdeployments.NginxNetworkProfile {
+	out := nginxdeployments.NginxNetworkProfile{
+		FrontEndIPConfiguration:       &nginxdeployments.NginxFrontendIPConfiguration{},
+		NetworkInterfaceConfiguration: &nginxdeployments.NginxNetworkInterfaceConfiguration{},
 	}
 
 	if len(public) > 0 && len(public[0].IpAddress) > 0 {
-		var publicIPs []nginxdeployment.NginxPublicIPAddress
+		var publicIPs []nginxdeployments.NginxPublicIPAddress
 		for _, ip := range public[0].IpAddress {
-			publicIPs = append(publicIPs, nginxdeployment.NginxPublicIPAddress{
+			publicIPs = append(publicIPs, nginxdeployments.NginxPublicIPAddress{
 				Id: pointer.To(ip),
 			})
 		}
@@ -107,10 +107,10 @@ func expandNetworkProfile(public []FrontendPublic, private []FrontendPrivate, ne
 	}
 
 	if len(private) > 0 {
-		var privateIPs []nginxdeployment.NginxPrivateIPAddress
+		var privateIPs []nginxdeployments.NginxPrivateIPAddress
 		for _, ip := range private {
-			alloc := nginxdeployment.NginxPrivateIPAllocationMethod(ip.AllocationMethod)
-			privateIPs = append(privateIPs, nginxdeployment.NginxPrivateIPAddress{
+			alloc := nginxdeployments.NginxPrivateIPAllocationMethod(ip.AllocationMethod)
+			privateIPs = append(privateIPs, nginxdeployments.NginxPrivateIPAddress{
 				PrivateIPAddress:          pointer.To(ip.IpAddress),
 				PrivateIPAllocationMethod: &alloc,
 				SubnetId:                  pointer.To(ip.SubnetId),
@@ -227,7 +227,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"allocation_method": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice(nginxdeployment.PossibleValuesForNginxPrivateIPAllocationMethod(), false),
+						ValidateFunc: validation.StringInSlice(nginxdeployments.PossibleValuesForNginxPrivateIPAllocationMethod(), false),
 					},
 
 					"subnet_id": {
@@ -359,7 +359,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Nginx.NginxDeployment
+			client := metadata.Client.Nginx.NginxDeployments
 
 			var model DeploymentModel
 			if err := metadata.Decode(&model); err != nil {
@@ -367,7 +367,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionID := metadata.Client.Account.SubscriptionId
-			id := nginxdeployment.NewNginxDeploymentID(subscriptionID, model.ResourceGroupName, model.Name)
+			id := nginxdeployments.NewNginxDeploymentID(subscriptionID, model.ResourceGroupName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.DeploymentsGet(ctx, id)
@@ -379,22 +379,22 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			req := nginxdeployment.NginxDeployment{}
+			req := nginxdeployments.NginxDeployment{}
 			req.Name = pointer.To(model.Name)
-			req.Location = pointer.To(model.Location)
+			req.Location = model.Location
 			req.Tags = pointer.To(model.Tags)
 
 			if model.Sku != "" {
-				sku := nginxdeployment.ResourceSku{Name: model.Sku}
+				sku := nginxdeployments.ResourceSku{Name: model.Sku}
 				req.Sku = &sku
 			}
 
-			prop := &nginxdeployment.NginxDeploymentProperties{}
+			prop := &nginxdeployments.NginxDeploymentProperties{}
 
 			if !features.FivePointOh() {
 				if len(model.LoggingStorageAccount) > 0 {
-					prop.Logging = &nginxdeployment.NginxLogging{
-						StorageAccount: &nginxdeployment.NginxStorageAccount{
+					prop.Logging = &nginxdeployments.NginxLogging{
+						StorageAccount: &nginxdeployments.NginxStorageAccount{
 							AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
 							ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
 						},
@@ -415,49 +415,49 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Capacity > 0 {
-				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+				prop.ScalingProperties = &nginxdeployments.NginxDeploymentScalingProperties{
 					Capacity: pointer.To(model.Capacity),
 				}
 			}
 
 			if autoScaleProfile := model.AutoScaleProfile; len(autoScaleProfile) > 0 {
-				var autoScaleProfiles []nginxdeployment.ScaleProfile
+				var autoScaleProfiles []nginxdeployments.ScaleProfile
 				for _, profile := range autoScaleProfile {
-					autoScaleProfiles = append(autoScaleProfiles, nginxdeployment.ScaleProfile{
+					autoScaleProfiles = append(autoScaleProfiles, nginxdeployments.ScaleProfile{
 						Name: profile.Name,
-						Capacity: nginxdeployment.ScaleProfileCapacity{
+						Capacity: nginxdeployments.ScaleProfileCapacity{
 							Min: profile.Min,
 							Max: profile.Max,
 						},
 					})
 				}
-				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					AutoScaleSettings: &nginxdeployment.NginxDeploymentScalingPropertiesAutoScaleSettings{
+				prop.ScalingProperties = &nginxdeployments.NginxDeploymentScalingProperties{
+					AutoScaleSettings: &nginxdeployments.NginxDeploymentScalingPropertiesAutoScaleSettings{
 						Profiles: autoScaleProfiles,
 					},
 				}
 			}
 
 			if model.Email != "" {
-				prop.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
+				prop.UserProfile = &nginxdeployments.NginxDeploymentUserProfile{
 					PreferredEmail: pointer.To(model.Email),
 				}
 			}
 
 			if model.UpgradeChannel != "" {
-				prop.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
+				prop.AutoUpgradeProfile = &nginxdeployments.AutoUpgradeProfile{
 					UpgradeChannel: model.UpgradeChannel,
 				}
 			}
 
 			if len(model.WebApplicationFirewall) > 0 {
-				activationState := nginxdeployment.ActivationStateDisabled
+				activationState := nginxdeployments.ActivationStateDisabled
 				if model.WebApplicationFirewall[0].ActivationStateEnabled {
-					activationState = nginxdeployment.ActivationStateEnabled
+					activationState = nginxdeployments.ActivationStateEnabled
 				}
 
-				prop.NginxAppProtect = &nginxdeployment.NginxDeploymentPropertiesNginxAppProtect{
-					WebApplicationFirewallSettings: nginxdeployment.WebApplicationFirewallSettings{
+				prop.NginxAppProtect = &nginxdeployments.NginxDeploymentPropertiesNginxAppProtect{
+					WebApplicationFirewallSettings: nginxdeployments.WebApplicationFirewallSettings{
 						ActivationState: &activationState,
 					},
 				}
@@ -485,12 +485,12 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			id, err := nginxdeployment.ParseNginxDeploymentID(meta.ResourceData.Id())
+			id, err := nginxdeployments.ParseNginxDeploymentID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			client := meta.Client.Nginx.NginxDeployment
+			client := meta.Client.Nginx.NginxDeployments
 			result, err := client.DeploymentsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {
@@ -505,7 +505,7 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := result.Model; model != nil {
-				output.Location = pointer.From(model.Location)
+				output.Location = model.Location
 				output.Tags = pointer.From(model.Tags)
 				if model.Sku != nil {
 					output.Sku = model.Sku.Name
@@ -588,7 +588,7 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 						waf := WebApplicationFirewall{}
 						if state := nap.WebApplicationFirewallSettings.ActivationState; state != nil {
 							switch *state {
-							case nginxdeployment.ActivationStateEnabled:
+							case nginxdeployments.ActivationStateEnabled:
 								waf.ActivationStateEnabled = true
 							default:
 								waf.ActivationStateEnabled = false
@@ -650,9 +650,9 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: time.Minute * 30,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxDeployment
+			client := meta.Client.Nginx.NginxDeployments
 
-			id, err := nginxdeployment.ParseNginxDeploymentID(meta.ResourceData.Id())
+			id, err := nginxdeployments.ParseNginxDeploymentID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -661,9 +661,9 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding NginxDeploymentModel %s: %v", id, err)
 			}
 
-			var req nginxdeployment.NginxDeploymentUpdateParameters
+			var req nginxdeployments.NginxDeploymentUpdateParameters
 			if meta.ResourceData.HasChange("sku") {
-				req.Sku = &nginxdeployment.ResourceSku{Name: model.Sku}
+				req.Sku = &nginxdeployments.ResourceSku{Name: model.Sku}
 			}
 
 			if meta.ResourceData.HasChange("tags") {
@@ -676,11 +676,11 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			req.Properties = &nginxdeployment.NginxDeploymentUpdateProperties{}
+			req.Properties = &nginxdeployments.NginxDeploymentUpdateProperties{}
 			if !features.FivePointOh() {
 				if meta.ResourceData.HasChange("logging_storage_account") && len(model.LoggingStorageAccount) > 0 {
-					req.Properties.Logging = &nginxdeployment.NginxLogging{
-						StorageAccount: &nginxdeployment.NginxStorageAccount{
+					req.Properties.Logging = &nginxdeployments.NginxLogging{
+						StorageAccount: &nginxdeployments.NginxStorageAccount{
 							AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
 							ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
 						},
@@ -693,37 +693,37 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			if meta.ResourceData.HasChange("capacity") && model.Capacity > 0 {
-				req.Properties.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+				req.Properties.ScalingProperties = &nginxdeployments.NginxDeploymentScalingProperties{
 					Capacity: pointer.To(model.Capacity),
 				}
 			}
 
 			if meta.ResourceData.HasChange("auto_scale_profile") && len(model.AutoScaleProfile) > 0 {
-				var autoScaleProfiles []nginxdeployment.ScaleProfile
+				var autoScaleProfiles []nginxdeployments.ScaleProfile
 				for _, profile := range model.AutoScaleProfile {
-					autoScaleProfiles = append(autoScaleProfiles, nginxdeployment.ScaleProfile{
+					autoScaleProfiles = append(autoScaleProfiles, nginxdeployments.ScaleProfile{
 						Name: profile.Name,
-						Capacity: nginxdeployment.ScaleProfileCapacity{
+						Capacity: nginxdeployments.ScaleProfileCapacity{
 							Min: profile.Min,
 							Max: profile.Max,
 						},
 					})
 				}
-				req.Properties.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					AutoScaleSettings: &nginxdeployment.NginxDeploymentScalingPropertiesAutoScaleSettings{
+				req.Properties.ScalingProperties = &nginxdeployments.NginxDeploymentScalingProperties{
+					AutoScaleSettings: &nginxdeployments.NginxDeploymentScalingPropertiesAutoScaleSettings{
 						Profiles: autoScaleProfiles,
 					},
 				}
 			}
 
 			if meta.ResourceData.HasChange("email") {
-				req.Properties.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
+				req.Properties.UserProfile = &nginxdeployments.NginxDeploymentUserProfile{
 					PreferredEmail: pointer.To(model.Email),
 				}
 			}
 
 			if meta.ResourceData.HasChange("automatic_upgrade_channel") {
-				req.Properties.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
+				req.Properties.AutoUpgradeProfile = &nginxdeployments.AutoUpgradeProfile{
 					UpgradeChannel: model.UpgradeChannel,
 				}
 			}
@@ -737,12 +737,12 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			if meta.ResourceData.HasChange("web_application_firewall") {
-				activationState := nginxdeployment.ActivationStateDisabled
+				activationState := nginxdeployments.ActivationStateDisabled
 				if model.WebApplicationFirewall[0].ActivationStateEnabled {
-					activationState = nginxdeployment.ActivationStateEnabled
+					activationState = nginxdeployments.ActivationStateEnabled
 				}
-				req.Properties.NginxAppProtect = &nginxdeployment.NginxDeploymentUpdatePropertiesNginxAppProtect{
-					WebApplicationFirewallSettings: &nginxdeployment.WebApplicationFirewallSettings{
+				req.Properties.NginxAppProtect = &nginxdeployments.NginxDeploymentUpdatePropertiesNginxAppProtect{
+					WebApplicationFirewallSettings: &nginxdeployments.WebApplicationFirewallSettings{
 						ActivationState: &activationState,
 					},
 				}
@@ -761,8 +761,8 @@ func (m DeploymentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxDeployment
-			id, err := nginxdeployment.ParseNginxDeploymentID(meta.ResourceData.Id())
+			client := meta.Client.Nginx.NginxDeployments
+			id, err := nginxdeployments.ParseNginxDeploymentID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -778,5 +778,5 @@ func (m DeploymentResource) Delete() sdk.ResourceFunc {
 }
 
 func (m DeploymentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return nginxdeployment.ValidateNginxDeploymentID
+	return nginxdeployments.ValidateNginxDeploymentID
 }

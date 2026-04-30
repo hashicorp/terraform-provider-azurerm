@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxconfiguration"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxconfigurationresponses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxdeployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,7 +40,7 @@ func (m ConfigurationDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"nginx_deployment_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: nginxdeployment.ValidateNginxDeploymentID,
+			ValidateFunc: nginxdeployments.ValidateNginxDeploymentID,
 		},
 	}
 }
@@ -117,16 +117,16 @@ func (m ConfigurationDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Nginx.NginxConfiguration
+			client := metadata.Client.Nginx.NginxConfigurationResponses
 			var model ConfigurationDataSourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
-			deploymentId, err := nginxdeployment.ParseNginxDeploymentID(model.NginxDeploymentId)
+			deploymentId, err := nginxdeployments.ParseNginxDeploymentID(model.NginxDeploymentId)
 			if err != nil {
 				return err
 			}
-			id := nginxconfiguration.NewConfigurationID(
+			id := nginxconfigurationresponses.NewConfigurationID(
 				deploymentId.SubscriptionId,
 				deploymentId.ResourceGroupName,
 				deploymentId.NginxDeploymentName,
