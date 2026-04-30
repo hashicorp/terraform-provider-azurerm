@@ -19,6 +19,7 @@ func (r Registration) Actions() []func() action.Action {
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		PrivateDnsARecordListResource{},
+		PrivateDnsCNameRecordListResource{},
 		PrivateDnsZoneListResource{},
 		PrivateDnsZoneVirtualNetworkLinkListResource{},
 	}

@@ -2,6 +2,7 @@ package factories
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,6 +15,7 @@ type Factory struct {
 	Location   *string                                  `json:"location,omitempty"`
 	Name       *string                                  `json:"name,omitempty"`
 	Properties *FactoryProperties                       `json:"properties,omitempty"`
+	SystemData *systemdata.SystemData                   `json:"systemData,omitempty"`
 	Tags       *map[string]string                       `json:"tags,omitempty"`
 	Type       *string                                  `json:"type,omitempty"`
 }
