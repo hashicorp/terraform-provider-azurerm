@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `dns_listening_endpoint_allowed_cidrs` - (Optional) A list of CIDRs that are allowed to send requests to the DNS listening endpoint. Changing this forces a new Oracle Network Anchor to be created.
 
-* `oci_backup_cidr_block` - (Optional) Oracle Cloud Infrastructure backup subnet cidr block.
+* `oci_backup_cidr_block` - (Optional) Oracle Cloud Infrastructure backup subnet CIDR block.
 
 * `oci_vcn_dns_label` - (Optional) The DNS label for the Oracle Cloud Infrastructure VCN. If not specified, defaults to the Network Anchor name. Changing this forces a new Oracle Network Anchor to be created.
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = NetworkAnchorResource{}
+var _ sdk.ResourceWithUpdate = NetworkAnchorResource{}
 
 type NetworkAnchorResource struct{}
 
@@ -73,12 +73,7 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"resource_anchor_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: resourceanchors.ValidateResourceAnchorID,
-		},
+		"resource_anchor_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceanchors.ResourceAnchorId{}),
 
 		"subnet_id": {
 			Type:         pluginsdk.TypeString,
@@ -87,37 +82,7 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
-		"oci_vcn_dns_label": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// NOTE: O+C if the value not specified, this gets set to the name of the Network Anchor
-			Computed: true,
-			ForceNew: true,
-		},
-
-		"oci_backup_cidr_block": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.IsCIDR,
-		},
-
-		"oracle_dns_forwarding_endpoint_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"oracle_dns_listening_endpoint_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"oracle_to_azure_dns_zone_sync_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
+		"zones": commonschema.ZonesMultipleRequiredForceNew(),
 
 		"dns_forwarding_rule": {
 			Type:     pluginsdk.TypeList,
@@ -160,22 +125,53 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"zones": commonschema.ZonesMultipleRequiredForceNew(),
-		"tags":  commonschema.Tags(),
+		"oci_backup_cidr_block": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsCIDR,
+		},
+
+		"oci_vcn_dns_label": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C if the value is not specified, this gets set to the name of the Network Anchor
+			Computed: true,
+			ForceNew: true,
+		},
+
+		"oracle_dns_forwarding_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"oracle_dns_listening_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"oracle_to_azure_dns_zone_sync_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
 func (NetworkAnchorResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"dns_forwarding_rule_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 		"dns_forwarding_endpoint_ip_address": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"dns_forwarding_endpoint_nsg_rule_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"dns_forwarding_rule_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -300,7 +296,7 @@ func (r NetworkAnchorResource) Update() sdk.ResourceFunc {
 				update.Properties.IsOracleToAzureDnsZoneSyncEnabled = pointer.To(model.OracleToAzureDnsZoneSyncEnabled)
 			}
 			if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
-				return fmt.Errorf("updating %s: %v", id, err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
 		},

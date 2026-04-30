@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Oracle Network Anchor.
 
-* `cidr_block` - Delegated Azure subnet cidr block.
+* `cidr_block` - Delegated Azure subnet CIDR block.
 
 * `dns_forwarding_endpoint_ip_address` - A DNS forwarding endpoint IP address.
 
@@ -53,7 +53,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Oracle Network Anchor exists.
 
-* `oci_backup_cidr_block` - Oracle Cloud Infrastructure backup subnet cidr block.
+* `oci_backup_cidr_block` - Oracle Cloud Infrastructure backup subnet CIDR block.
 
 * `oci_subnet_id` - Oracle Cloud Infrastructure subnet OCID.
 

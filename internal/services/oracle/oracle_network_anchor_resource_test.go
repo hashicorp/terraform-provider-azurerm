@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
@@ -26,7 +26,7 @@ func (a NetworkAnchorResource) Exists(ctx context.Context, client *clients.Clien
 	}
 	resp, err := client.Oracle.OracleClient.NetworkAnchors.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
 }
@@ -98,7 +98,16 @@ func TestAccNetworkAnchorResource_update(t *testing.T) {
 
 func (a NetworkAnchorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-  %s
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%s
+
 resource "azurerm_oracle_network_anchor" "test" {
   location            = "%[3]s"
   name                = "acctestNA%[2]s"
@@ -112,7 +121,16 @@ resource "azurerm_oracle_network_anchor" "test" {
 
 func (a NetworkAnchorResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-  %s
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%s
+
 resource "azurerm_oracle_network_anchor" "test" {
   location            = "%[3]s"
   name                = "acctestNA%[2]s"
@@ -142,7 +160,16 @@ resource "azurerm_oracle_network_anchor" "test" {
 
 func (a NetworkAnchorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-  %s
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%s
+
 resource "azurerm_oracle_network_anchor" "test" {
   location            = "%[3]s"
   name                = "acctestNA%[2]s"
@@ -179,12 +206,8 @@ resource "azurerm_oracle_network_anchor" "import" {
 
 func (a NetworkAnchorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 locals {
-  zones = ["1"]
+  zones = ["3"]
 }
 
 data "azurerm_client_config" "current" {}
@@ -224,7 +247,5 @@ resource "azurerm_oracle_resource_anchor" "test" {
   name                = "tfRA%[1]d"
   resource_group_name = azurerm_resource_group.test.name
 }
-
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
