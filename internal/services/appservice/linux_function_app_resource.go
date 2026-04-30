@@ -75,6 +75,7 @@ type LinuxFunctionAppModel struct {
 	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	VnetApplicationTrafficEnabled      bool                                       `tfschema:"vnet_application_traffic_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -319,6 +320,13 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
 		},
 
+		"vnet_application_traffic_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the application traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+		},
+
 		"zip_deploy_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -330,6 +338,9 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 	if !features.FivePointOh() {
 		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+
+		args["vnet_application_traffic_enabled"].Computed = true
+		args["vnet_application_traffic_enabled"].Default = nil
 	}
 
 	return args
@@ -555,11 +566,22 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
 					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
-						AllTraffic:           siteConfig.VnetRouteAllEnabled,
 						BackupRestoreTraffic: pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
 						ImagePullTraffic:     pointer.To(functionApp.VnetImagePullEnabled),
+						ApplicationTraffic:   pointer.To(functionApp.VnetApplicationTrafficEnabled),
 					},
 				},
+			}
+
+			if !features.FivePointOh() {
+				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
+				if err != nil {
+					return err
+				}
+
+				if !rawSiteVnetRouting.IsNull() {
+					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
+				}
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -838,8 +860,13 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					if props.OutboundVnetRouting != nil {
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
-						siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.AllTraffic)
+						state.VnetApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 					}
+
+					if !features.FivePointOh() {
+						siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+					}
+
 					state.SiteConfig = []helpers.SiteConfigLinuxFunctionApp{*siteConfig}
 
 					state.unpackLinuxFunctionAppSettings(*appSettingsResp.Model, metadata)
@@ -980,6 +1007,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				model.Properties.OutboundVnetRouting.ImagePullTraffic = pointer.To(state.VnetImagePullEnabled)
 			}
 
+			if metadata.ResourceData.HasChange("vnet_application_traffic_enabled") {
+				model.Properties.OutboundVnetRouting.ApplicationTraffic = pointer.To(state.VnetApplicationTrafficEnabled)
+			}
+
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
@@ -1074,11 +1105,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config") {
 				model.Properties.SiteConfig = siteConfig
-				model.Properties.OutboundVnetRouting.AllTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
-			if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-				model.Properties.OutboundVnetRouting.AllTraffic = siteConfig.VnetRouteAllEnabled
+			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+				model.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {

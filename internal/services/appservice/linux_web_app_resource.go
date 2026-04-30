@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -68,6 +69,7 @@ type LinuxWebAppModel struct {
 	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	VnetApplicationTrafficEnabled      bool                                       `tfschema:"vnet_application_traffic_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppResource{}
@@ -79,7 +81,7 @@ var _ sdk.ResourceWithCustomizeDiff = LinuxWebAppResource{}
 var _ sdk.ResourceWithStateMigration = LinuxWebAppResource{}
 
 func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -171,6 +173,13 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"vnet_application_traffic_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the application traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+		},
+
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
@@ -216,6 +225,13 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		args["vnet_application_traffic_enabled"].Computed = true
+		args["vnet_application_traffic_enabled"].Default = nil
+	}
+
+	return args
 }
 
 func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -388,10 +404,22 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						ImagePullTraffic:     pointer.To(webApp.VnetImagePullEnabled),
 						BackupRestoreTraffic: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
-						AllTraffic:           siteConfig.VnetRouteAllEnabled,
+						ApplicationTraffic:   pointer.To(webApp.VnetApplicationTrafficEnabled),
 					},
 				},
 			}
+
+			if !features.FivePointOh() {
+				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
+				if err != nil {
+					return err
+				}
+
+				if !rawSiteVnetRouting.IsNull() {
+					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
+				}
+			}
+
 			pna := helpers.PublicNetworkAccessEnabled
 			if !webApp.PublicNetworkAccess {
 				pna = helpers.PublicNetworkAccessDisabled
@@ -652,9 +680,12 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					siteConfig.Flatten(webAppSiteConfig.Model.Properties)
 					siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 					if props.OutboundVnetRouting != nil {
-						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
+						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
-						siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.AllTraffic)
+						state.VnetApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+					}
+					if !features.FivePointOh() {
+						siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 					}
 					state.ServicePlanId = servicePlanId.ID()
 
@@ -836,10 +867,6 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-				model.Properties.OutboundVnetRouting.AllTraffic = &sc.VnetRouteAllEnabled
-			}
-
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				pna := helpers.PublicNetworkAccessEnabled
 				if !state.PublicNetworkAccess {
@@ -857,6 +884,14 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
 				model.Properties.OutboundVnetRouting.ImagePullTraffic = pointer.To(state.VnetImagePullEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("vnet_application_traffic_enabled") {
+				model.Properties.OutboundVnetRouting.ApplicationTraffic = pointer.To(state.VnetApplicationTrafficEnabled)
+			}
+
+			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+				model.Properties.OutboundVnetRouting.ApplicationTraffic = &sc.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {

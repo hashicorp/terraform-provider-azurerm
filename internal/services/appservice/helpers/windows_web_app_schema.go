@@ -53,7 +53,7 @@ type SiteConfigWindows struct {
 	Cors                          []CorsSetting             `tfschema:"cors"`
 	DetailedErrorLogging          bool                      `tfschema:"detailed_error_logging_enabled"`
 	WindowsFxVersion              string                    `tfschema:"windows_fx_version"`
-	VnetRouteAllEnabled           bool                      `tfschema:"vnet_route_all_enabled"`
+	VnetRouteAllEnabled           bool                      `tfschema:"vnet_route_all_enabled,removedInNextMajorVersion"`
 	// TODO new properties / blocks
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - ASE related for limiting App resource consumption
 	// PushSettings - Supported in SDK, but blocked by manual step needed for connecting app to notification hub.

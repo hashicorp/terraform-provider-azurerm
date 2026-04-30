@@ -75,6 +75,7 @@ type LinuxFunctionAppSlotModel struct {
 	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	VnetApplicationTrafficEnabled      bool                                       `tfschema:"vnet_application_traffic_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppSlotResource{}
@@ -288,16 +289,27 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
+
 		"vnet_image_pull_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
 		},
+
+		"vnet_application_traffic_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the application traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+		},
 	}
 
 	if !features.FivePointOh() {
 		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+
+		args["vnet_application_traffic_enabled"].Computed = true
+		args["vnet_application_traffic_enabled"].Default = nil
 	}
 
 	return args
@@ -543,9 +555,20 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						BackupRestoreTraffic: pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
 						ImagePullTraffic:     pointer.To(functionAppSlot.VnetImagePullEnabled),
-						AllTraffic:           siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+						ApplicationTraffic:   pointer.To(functionAppSlot.VnetApplicationTrafficEnabled),
 					},
 				},
+			}
+
+			if !features.FivePointOh() {
+				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
+				if err != nil {
+					return err
+				}
+
+				if !rawSiteVnetRouting.IsNull() {
+					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
+				}
 			}
 
 			pan := helpers.PublicNetworkAccessEnabled
@@ -800,7 +823,10 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					if props.OutboundVnetRouting != nil {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
-						siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.AllTraffic)
+						state.VnetApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+					}
+					if !features.FivePointOh() {
+						siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 					}
 					state.SiteConfig = []helpers.SiteConfigLinuxFunctionAppSlot{*siteConfig}
 
@@ -964,6 +990,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				model.Properties.OutboundVnetRouting.ImagePullTraffic = pointer.To(state.VnetImagePullEnabled)
 			}
 
+			if metadata.ResourceData.HasChange("vnet_application_traffic_enabled") {
+				model.Properties.OutboundVnetRouting.ApplicationTraffic = pointer.To(state.VnetApplicationTrafficEnabled)
+			}
+
 			storageString := state.StorageAccountName
 			if !state.StorageUsesMSI {
 				if state.StorageKeyVaultSecretID != "" {
@@ -1011,8 +1041,8 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
-			if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-				model.Properties.OutboundVnetRouting.AllTraffic = siteConfig.VnetRouteAllEnabled
+			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+				model.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {

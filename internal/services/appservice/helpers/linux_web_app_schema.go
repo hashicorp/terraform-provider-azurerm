@@ -51,7 +51,7 @@ type SiteConfigLinux struct {
 	Cors                          []CorsSetting           `tfschema:"cors"`
 	DetailedErrorLogging          bool                    `tfschema:"detailed_error_logging_enabled"`
 	LinuxFxVersion                string                  `tfschema:"linux_fx_version"`
-	VnetRouteAllEnabled           bool                    `tfschema:"vnet_route_all_enabled"`
+	VnetRouteAllEnabled           bool                    `tfschema:"vnet_route_all_enabled,removedInNextMajorVersion"` // Not supported in Dynamic plans
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
 }
 
@@ -250,13 +250,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 
 				"cors": CorsSettingsSchema(),
 
-				"vnet_route_all_enabled": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
-				},
-
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -276,13 +269,21 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 			"VS2019",
 			"VS2022",
 		}, false)
+
+		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+			Deprecated:  "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
 	}
 
 	return s
 }
 
 func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -442,6 +443,15 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+	}
+
+	return s
 }
 
 type AutoHealSettingLinux struct {
@@ -806,9 +816,12 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
 	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
 	expanded.AutoHealEnabled = pointer.To(false)
-	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
+
+	if !features.FivePointOh() {
+		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
+	}
 
 	if s.ApiManagementConfigId != "" {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -934,7 +947,10 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
-	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
+
+	if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -1112,7 +1128,6 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 		s.Use32BitWorker = pointer.From(appSiteConfig.Use32BitWorkerProcess)
 		s.UseManagedIdentityACR = pointer.From(appSiteConfig.AcrUseManagedIdentityCreds)
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
-		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
 		s.Cors = FlattenCorsSettings(appSiteConfig.Cors)
 		s.IpRestrictionDefaultAction = string(pointer.From(appSiteConfig.IPSecurityRestrictionsDefaultAction))
 		s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteConfig.ScmIPSecurityRestrictionsDefaultAction))

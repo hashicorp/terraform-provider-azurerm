@@ -110,6 +110,8 @@ The following arguments are supported:
 
 ~> **Note:** `virtual_network_image_pull_enabled` must be set to `true` when running in an App Service Environment.
 
+* `virtual_network_application_traffic_enabled` - (Optional) Should the traffic for the application be routed over virtual network enabled. Defaults to `false`.
+
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
 ~> **Note:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the web app slot configuration.
@@ -769,6 +771,8 @@ A `site_config` block supports the following:
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
 
 * `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
+
+~> **Note:** In the `2023-12-01` API, `vnet_route_all_enabled` only controls application traffic. It is deprecated in favour of the `vnet_application_traffic_enabled` field in v5.0 provider.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 

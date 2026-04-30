@@ -70,6 +70,7 @@ type WindowsFunctionAppModel struct {
 	PublishingDeployBasicAuthEnabled   bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled      bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
 	VnetImagePullEnabled               bool                                   `tfschema:"vnet_image_pull_enabled"`
+	VnetApplicationTrafficEnabled      bool                                   `tfschema:"vnet_application_traffic_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -310,6 +311,13 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
 		},
 
+		"vnet_application_traffic_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the application traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+		},
+
 		"zip_deploy_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -321,6 +329,9 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 	if !features.FivePointOh() {
 		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+		args["vnet_application_traffic_enabled"].Computed = true
+		args["vnet_application_traffic_enabled"].Default = nil
+
 	}
 
 	return args
@@ -550,9 +561,20 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						BackupRestoreTraffic: pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
 						ImagePullTraffic:     pointer.To(functionApp.VnetImagePullEnabled),
-						AllTraffic:           siteConfig.VnetRouteAllEnabled,
+						ApplicationTraffic:   pointer.To(functionApp.VnetApplicationTrafficEnabled),
 					},
 				},
+			}
+
+			if !features.FivePointOh() {
+				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
+				if err != nil {
+					return err
+				}
+
+				if !rawSiteVnetRouting.IsNull() {
+					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
+				}
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -790,7 +812,11 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					if props.OutboundVnetRouting != nil {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
-						siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.AllTraffic)
+						state.VnetApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+					}
+
+					if !features.FivePointOh() {
+						siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 					}
 
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
@@ -972,6 +998,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				model.Properties.OutboundVnetRouting.ImagePullTraffic = pointer.To(state.VnetImagePullEnabled)
 			}
 
+			if metadata.ResourceData.HasChange("vnet_application_traffic_enabled") {
+				model.Properties.OutboundVnetRouting.ApplicationTraffic = pointer.To(state.VnetApplicationTrafficEnabled)
+			}
+
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
@@ -1085,8 +1115,8 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
-			if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-				model.Properties.OutboundVnetRouting.AllTraffic = siteConfig.VnetRouteAllEnabled
+			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+				model.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
 			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)

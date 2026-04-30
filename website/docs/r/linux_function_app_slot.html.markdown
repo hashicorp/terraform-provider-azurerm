@@ -138,6 +138,8 @@ The following arguments are supported:
 
 ~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. The Setting is enabled by default for an app running in the App Service Environment.
 
+* `vnet_application_traffic_enabled` - (Optional) Should the traffic for the application be routed over virtual network enabled. Defaults to `false`.
+
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 ---
@@ -519,6 +521,8 @@ A `site_config` block supports the following:
 * `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker.
 
 * `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
+
+~> **Note:** In the `2023-12-01` API, `vnet_route_all_enabled` only controls application traffic. It is deprecated in favour of the `vnet_application_traffic_enabled` field in v5.0 provider.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 

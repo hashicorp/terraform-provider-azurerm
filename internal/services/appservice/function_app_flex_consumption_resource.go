@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -79,6 +80,7 @@ type FunctionAppFlexConsumptionModel struct {
 	OutboundIPAddressList         []string `tfschema:"outbound_ip_address_list"`
 	PossibleOutboundIPAddresses   string   `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
+	VnetApplicationTrafficEnabled bool     `tfschema:"vnet_application_traffic_enabled"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
@@ -103,7 +105,7 @@ func (r FunctionAppFlexConsumptionResource) IDValidationFunc() pluginsdk.SchemaV
 }
 
 func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -318,8 +320,22 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
+		"vnet_application_traffic_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the application traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+		},
+
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		s["vnet_application_traffic_enabled"].Computed = true
+		s["vnet_application_traffic_enabled"].Default = nil
+	}
+
+	return s
 }
 
 func (r FunctionAppFlexConsumptionResource) Attributes() map[string]*pluginsdk.Schema {
@@ -538,9 +554,20 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled: pointer.To(functionAppFlexConsumption.ClientCertEnabled),
 					ClientCertMode:    pointer.To(webapps.ClientCertMode(functionAppFlexConsumption.ClientCertMode)),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
-						AllTraffic: siteConfig.VnetRouteAllEnabled,
+						ApplicationTraffic: pointer.To(functionAppFlexConsumption.VnetApplicationTrafficEnabled),
 					},
 				},
+			}
+
+			if !features.FivePointOh() {
+				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
+				if err != nil {
+					return err
+				}
+
+				if !rawSiteVnetRouting.IsNull() {
+					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
+				}
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -735,7 +762,10 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("retrieving Site Config for %s: %+v", id, err)
 				}
 				if model.Properties.OutboundVnetRouting != nil {
-					siteConfig.VnetRouteAllEnabled = pointer.From(model.Properties.OutboundVnetRouting.AllTraffic)
+					state.VnetApplicationTrafficEnabled = pointer.From(model.Properties.OutboundVnetRouting.ApplicationTraffic)
+					if !features.FivePointOh() {
+						siteConfig.VnetRouteAllEnabled = state.VnetApplicationTrafficEnabled
+					}
 				}
 				state.SiteConfig = []helpers.SiteConfigFunctionAppFlexConsumption{*siteConfig}
 
@@ -946,8 +976,12 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
-			if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-				model.Properties.OutboundVnetRouting.AllTraffic = siteConfig.VnetRouteAllEnabled
+			if metadata.ResourceData.HasChange("vnet_application_traffic_enabled") {
+				model.Properties.OutboundVnetRouting.ApplicationTraffic = pointer.To(state.VnetApplicationTrafficEnabled)
+			}
+
+			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+				model.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("maximum_instance_count") {

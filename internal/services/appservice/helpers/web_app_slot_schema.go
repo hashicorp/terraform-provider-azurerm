@@ -51,7 +51,7 @@ type SiteConfigLinuxWebAppSlot struct {
 	Cors                          []CorsSetting           `tfschema:"cors"`
 	DetailedErrorLogging          bool                    `tfschema:"detailed_error_logging_enabled"`
 	LinuxFxVersion                string                  `tfschema:"linux_fx_version"`
-	VnetRouteAllEnabled           bool                    `tfschema:"vnet_route_all_enabled"`
+	VnetRouteAllEnabled           bool                    `tfschema:"vnet_route_all_enabled,removedInNextMajorVersion"`
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
 }
 
