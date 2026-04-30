@@ -217,7 +217,20 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 				appServicePlan.Sku.Capacity = pointer.To(servicePlan.WorkerCount)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, appServicePlan); err != nil {
+			/*
+				pros:
+				- resolves MSFT concern/issue
+				- resolves our customer issue
+				- can be opted into by setting a flag
+				cons:
+				- requires modifying every single resource as well as regenerating go-azure-sdk to add callback func
+				- potentially end up tracking state for unmanageable resources requiring manual deletion/support intervention, but it's an opt-in behaviour so ¯\_(ツ)_/¯
+
+				unknowns:
+				- any concerns with setting ID / Resource Identity twice?
+			*/
+
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, appServicePlan, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 

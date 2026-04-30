@@ -15,6 +15,14 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	featuresMap := map[string]*pluginsdk.Schema{
+		// TODO: better name and should this be here or top-level provider arg?
+		"track_polling_failures_in_state": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Whether to store failed resources in Terraform state",
+		},
+
 		// lintignore:XS003
 		"api_management": {
 			Type:     pluginsdk.TypeList,
@@ -472,6 +480,10 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	val := input[0].(map[string]interface{})
+
+	if v, ok := val["track_polling_failures_in_state"]; ok {
+		featuresMap.TrackPollingFailuresInState = v.(bool)
+	}
 
 	if raw, ok := val["api_management"]; ok {
 		items := raw.([]interface{})

@@ -63,11 +63,25 @@ func (c AppServicePlansClient) CreateOrUpdate(ctx context.Context, id commonids.
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
 func (c AppServicePlansClient) CreateOrUpdateThenPoll(ctx context.Context, id commonids.AppServicePlanId, input AppServicePlan) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+
+// CreateOrUpdateThenPollThen performs CreateOrUpdate then polls until it's completed
+func (c AppServicePlansClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id commonids.AppServicePlanId, input AppServicePlan, cb func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
 	}
 
+	if cb != nil {
+		if err := cb(); err != nil {
+			return err
+		}
+	}
+
+	return fmt.Errorf("force early exit")
+	
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("polling after CreateOrUpdate: %+v", err)
 	}

@@ -261,6 +261,12 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 					listvalidator.SizeBetween(1, 1),
 				},
 				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"track_polling_failures_in_state": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Whether to store failed resources in Terraform state",
+						},
+					},
 					Blocks: map[string]schema.Block{
 						"api_management": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
