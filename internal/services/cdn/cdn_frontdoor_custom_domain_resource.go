@@ -183,8 +183,9 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["tls"].Elem.(*pluginsdk.Resource).Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ConflictsWith: []string{"tls.0.minimum_version"},
 			// NOTE: O+C so both `minimum_tls_version` and `minimum_version` appear in state during v4.x for backward compatibility
 			Computed:   true,
 			Deprecated: "`minimum_tls_version` has been deprecated in favour of `minimum_version` and will be removed in v5.0 of the AzureRM provider",
@@ -195,8 +196,9 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 		}
 
 		resource.Schema["tls"].Elem.(*pluginsdk.Resource).Schema["minimum_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ConflictsWith: []string{"tls.0.minimum_tls_version"},
 			// NOTE: O+C so both `minimum_tls_version` and `minimum_version` appear in state during v4.x for backward compatibility
 			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
