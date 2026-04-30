@@ -157,8 +157,8 @@ resource "azurerm_cosmosdb_fleetspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   fleet_name          = azurerm_cosmosdb_fleet.test.name
   service_tier        = "BusinessCritical"
-  min_throughput      = 100000
-  max_throughput      = 110000
+  minimum_throughput  = 100000
+  maximum_throughput  = 110000
   data_regions = [
     azurerm_resource_group.test.location,
     "%[3]s",
@@ -181,8 +181,8 @@ resource "azurerm_cosmosdb_fleetspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   fleet_name          = azurerm_cosmosdb_fleet.test.name
   service_tier        = "BusinessCritical"
-  min_throughput      = 110000
-  max_throughput      = 120000
+  minimum_throughput  = 110000
+  maximum_throughput  = 120000
   data_regions = [
     azurerm_resource_group.test.location,
     "%[3]s",

@@ -37,8 +37,8 @@ type CosmosDbFleetspaceModel struct {
 	DataRegions       []string `tfschema:"data_regions"`
 	FleetName         string   `tfschema:"fleet_name"`
 	ServiceTier       string   `tfschema:"service_tier"`
-	MaxThroughput     int64    `tfschema:"max_throughput"`
-	MinThroughput     int64    `tfschema:"min_throughput"`
+	MaximumThroughput int64    `tfschema:"maximum_throughput"`
+	MinimumThroughput int64    `tfschema:"minimum_throughput"`
 }
 
 func (CosmosDbFleetspaceResource) Arguments() map[string]*pluginsdk.Schema {
@@ -82,16 +82,16 @@ func (CosmosDbFleetspaceResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForServiceTier(), true),
 		},
 
-		"max_throughput": {
+		"maximum_throughput": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntDivisibleBy(1000),
 			RequiredWith: []string{
-				"min_throughput",
+				"minimum_throughput",
 			},
 		},
 
-		"min_throughput": {
+		"minimum_throughput": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			ValidateFunc: validation.All(
@@ -99,7 +99,7 @@ func (CosmosDbFleetspaceResource) Arguments() map[string]*pluginsdk.Schema {
 				validation.IntDivisibleBy(1000),
 			),
 			RequiredWith: []string{
-				"max_throughput",
+				"maximum_throughput",
 			},
 		},
 	}
@@ -180,7 +180,7 @@ func (r CosmosDbFleetspaceResource) Update() sdk.ResourceFunc {
 				Properties: &fleets.FleetspaceProperties{},
 			}
 
-			if metadata.ResourceData.HasChange("min_throughput") || metadata.ResourceData.HasChange("max_throughput") {
+			if metadata.ResourceData.HasChange("minimum_throughput") || metadata.ResourceData.HasChange("maximum_throughput") {
 				param.Properties.ThroughputPoolConfiguration = expandFleetspaceThroughputPoolConfiguration(config)
 			}
 
@@ -222,7 +222,7 @@ func (r CosmosDbFleetspaceResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.DataRegions = pointer.From(props.DataRegions)
 					state.ServiceTier = string(pointer.From(props.ServiceTier))
-					state.MinThroughput, state.MaxThroughput = flattenFleetspaceThroughputPoolConfiguration(props.ThroughputPoolConfiguration)
+					state.MinimumThroughput, state.MaximumThroughput = flattenFleetspaceThroughputPoolConfiguration(props.ThroughputPoolConfiguration)
 				}
 			}
 
@@ -263,12 +263,12 @@ func (CosmosDbFleetspaceResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("DecodeDiff: %+v", err)
 			}
 
-			if config.MaxThroughput > config.MinThroughput*10 {
-				return fmt.Errorf("`max_throughput` should be less than or equal to 10 times of `min_throughput` (%d). Refer to https://learn.microsoft.com/en-us/azure/cosmos-db/fleet-pools#how-pooled-throughput-works", config.MinThroughput*10)
+			if config.MaximumThroughput > config.MinimumThroughput*10 {
+				return fmt.Errorf("`maximum_throughput` should be less than or equal to 10 times of `minimum_throughput` (%d). Refer to https://learn.microsoft.com/en-us/azure/cosmos-db/fleet-pools#how-pooled-throughput-works", config.MinimumThroughput*10)
 			}
 
-			if config.MinThroughput > config.MaxThroughput {
-				return errors.New("`min_throughput` should be less than or equal to `max_throughput`")
+			if config.MinimumThroughput > config.MaximumThroughput {
+				return errors.New("`minimum_throughput` should be less than or equal to `maximum_throughput`")
 			}
 
 			return nil
@@ -285,16 +285,16 @@ func (r CosmosDbFleetspaceResource) Identity() resourceids.ResourceId {
 }
 
 func expandFleetspaceThroughputPoolConfiguration(config CosmosDbFleetspaceModel) *fleets.FleetspacePropertiesThroughputPoolConfiguration {
-	if config.MaxThroughput == 0 && config.MinThroughput == 0 {
+	if config.MaximumThroughput == 0 && config.MinimumThroughput == 0 {
 		return nil
 	}
 
 	throughputPoolConfiguration := &fleets.FleetspacePropertiesThroughputPoolConfiguration{}
-	if config.MaxThroughput != 0 {
-		throughputPoolConfiguration.MaxThroughput = pointer.To(config.MaxThroughput)
+	if config.MaximumThroughput != 0 {
+		throughputPoolConfiguration.MaxThroughput = pointer.To(config.MaximumThroughput)
 	}
-	if config.MinThroughput != 0 {
-		throughputPoolConfiguration.MinThroughput = pointer.To(config.MinThroughput)
+	if config.MinimumThroughput != 0 {
+		throughputPoolConfiguration.MinThroughput = pointer.To(config.MinimumThroughput)
 	}
 
 	return throughputPoolConfiguration

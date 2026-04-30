@@ -51,9 +51,9 @@ The following arguments are supported:
 
 ---
 
-* `max_throughput` - (Optional) The maximum throughput for the throughput pool of the Cosmos DB Fleetspace. Must be divisible by 1000, more than or equal to `min_throughput`, and less than or equal to 10 times of `min_throughput`.
+* `maximum_throughput` - (Optional) The maximum throughput for the throughput pool of the Cosmos DB Fleetspace. Must be divisible by 1000, more than or equal to `minimum_throughput`, and less than or equal to 10 times of `minimum_throughput`.
 
-* `min_throughput` - (Optional) The minimum throughput for the throughput pool of the Cosmos DB Fleetspace. Must be divisible by 1000, more than or equal to 100000, and less than or equal to 10000000.
+* `minimum_throughput` - (Optional) The minimum throughput for the throughput pool of the Cosmos DB Fleetspace. Must be divisible by 1000, more than or equal to 100000, and less than or equal to 10000000.
 
 ## Attributes Reference
 
