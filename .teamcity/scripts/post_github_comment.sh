@@ -76,6 +76,14 @@ PASS_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="PASS") print}' | wc -l |
 FAIL_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="FAIL") print}' | wc -l | tr -d ' ')
 TOTAL=$((PASS_COUNT + FAIL_COUNT))
 
+# Get actual build duration from TeamCity (in seconds)
+BUILD_DURATION="%build.duration.seconds%"
+# Convert to hours, minutes and seconds for better readability
+BUILD_HOURS=$((BUILD_DURATION / 3600))
+BUILD_MINUTES=$(((BUILD_DURATION % 3600) / 60))
+BUILD_SECONDS=$((BUILD_DURATION % 60))
+
+
 # Fetch PR author if there are failures
 PREFIX=""
 if [ "$FAIL_COUNT" -gt 0 ]; then
@@ -101,6 +109,7 @@ PR: #$PR_NUMBER
 **Total:** $TOTAL
 **Passed:** $PASS_COUNT
 **Failed:** $FAIL_COUNT
+**Build Duration:** ${BUILD_HOURS}h ${BUILD_MINUTES}m ${BUILD_SECONDS}s
 
 <details>
 <summary>Test Details</summary>
