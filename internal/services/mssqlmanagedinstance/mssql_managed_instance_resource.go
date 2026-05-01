@@ -520,8 +520,8 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			if pointer.From(isGeneralPurposeV2) && model.StorageIOps != nil {
-				parameters.Properties.StorageIOps = model.StorageIOps
+			if pointer.From(isGeneralPurposeV2) {
+				parameters.Properties.StorageIOps = &model.StorageIOps
 			}
 
 			if parameters.Identity != nil && len(parameters.Identity.IdentityIds) > 0 {
@@ -748,8 +748,8 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			if generalPurposeV2Changed || storageIOpsChanged || skuNameChanged {
-				if pointer.From(effectiveIsGeneralPurposeV2) && state.StorageIOps != nil {
-					props.StorageIOps = state.StorageIOps
+				if pointer.From(effectiveIsGeneralPurposeV2) {
+					props.StorageIOps = pointer.To(state.StorageIOps)
 				} else {
 					props.StorageIOps = nil
 				}
