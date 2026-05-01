@@ -47,4 +47,4 @@ jobs:
   comment-on-fail:
     needs: check
     if: ${{ failure() }}
-    uses: ./.github/workflows/comment-failure.yaml
+    uses: ./.github/workflows/comment-ci-failure.yaml
