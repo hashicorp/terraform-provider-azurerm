@@ -56,7 +56,7 @@ type MsSqlManagedInstanceModel struct {
 	ServicePrincipalType              string                              `tfschema:"service_principal_type"`
 	SkuName                           string                              `tfschema:"sku_name"`
 	StorageAccountType                string                              `tfschema:"storage_account_type"`
-	StorageIOps                       *int64                              `tfschema:"storage_iops"`
+	StorageIOps                       int64                               `tfschema:"storage_iops"`
 	StorageSizeInGb                   int64                               `tfschema:"storage_size_in_gb"`
 	SubnetId                          string                              `tfschema:"subnet_id"`
 	TimezoneId                        string                              `tfschema:"timezone_id"`
@@ -324,8 +324,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_iops": {
 			Type:     schema.TypeInt,
 			Optional: true,
-			// O+C - Azure returns a calculated IOPS value for GPv2 instances when `storage_iops`
-			// is omitted, and keeping it in state avoids a follow-up plan to remove the API value.
+			// O+C - Azure returns a calculated IOPS value for GPv2 instances when `storage_iops` is omitted.
 			Computed:     true,
 			ValidateFunc: validation.IntBetween(300, 80000),
 		},
@@ -836,13 +835,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					model.MinimumTlsVersion = pointer.From(props.MinimalTlsVersion)
 					model.PublicDataEndpointEnabled = pointer.From(props.PublicDataEndpointEnabled)
 					model.GeneralPurposeV2Enabled = pointer.From(props.IsGeneralPurposeV2)
-					model.StorageIOps = props.StorageIOps
-					// Azure can continue returning storageIOps after GPv2 is disabled, but
-					// storage_iops is only configurable for GPv2 instances.
-					// tracked on https://github.com/Azure/azure-rest-api-specs/issues/42781
-					if !model.GeneralPurposeV2Enabled {
-						model.StorageIOps = nil
-					}
+					model.StorageIOps = pointer.From(props.StorageIOps)
 					model.StorageSizeInGb = pointer.From(props.StorageSizeInGB)
 					model.SubnetId = pointer.From(props.SubnetId)
 					model.TimezoneId = pointer.From(props.TimezoneId)
