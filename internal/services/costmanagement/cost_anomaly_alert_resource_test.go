@@ -83,12 +83,12 @@ provider "azurerm" {
 
 resource "azurerm_cost_anomaly_alert" "test" {
   name            = "-acctest-%d"
-  display_name    = "costview-%d"
+  display_name    = "Anomaly Alert Test"
   email_subject   = "Hi"
   email_addresses = ["test@test.com", "test@hashicorp.developer"]
   message         = "Oops, cost anomaly"
 }
-`, data.RandomInteger, data.RandomIntOfLength(8))
+`, data.RandomInteger)
 }
 
 func (AnomalyAlertResource) completeConfig(data acceptance.TestData) string {
@@ -101,13 +101,13 @@ data "azurerm_subscription" "test" {}
 
 resource "azurerm_cost_anomaly_alert" "test" {
   name            = "-acctest-%d"
-  display_name    = "costview-%d"
+  display_name    = "Anomaly Alert Test"
   subscription_id = data.azurerm_subscription.test.id
   email_subject   = "Hi"
   email_addresses = ["test@test.com", "test@hashicorp.developer"]
   message         = "Cost anomaly complete test"
 }
-`, data.RandomInteger, data.RandomIntOfLength(8))
+`, data.RandomInteger)
 }
 
 func (r AnomalyAlertResource) requiresImportConfig(data acceptance.TestData) string {
@@ -133,12 +133,12 @@ provider "azurerm" {
 
 resource "azurerm_cost_anomaly_alert" "test" {
   name            = "-acctest-%d"
-  display_name    = "costview-upd-%d"
+  display_name    = "Anomaly Alert Updated"
   email_subject   = "Hi you!"
   email_addresses = ["tester@test.com", "test2@hashicorp.developer"]
   message         = "An updated cost anomaly for you"
 }
-`, data.RandomInteger, data.RandomIntOfLength(8))
+`, data.RandomInteger)
 }
 
 func (AnomalyAlertResource) notificationEmailConfig(data acceptance.TestData) string {
@@ -149,11 +149,11 @@ provider "azurerm" {
 
 resource "azurerm_cost_anomaly_alert" "test" {
   name               = "-acctest-%d"
-  display_name       = "costview-%d"
+  display_name       = "Anomaly Alert Test"
   email_subject      = "Hi"
   email_addresses    = ["test@test.com", "test@hashicorp.developer"]
   notification_email = "othertest@hashicorp.developer"
   message            = "Custom sender email configured"
 }
-`, data.RandomInteger, data.RandomIntOfLength(8))
+`, data.RandomInteger)
 }
