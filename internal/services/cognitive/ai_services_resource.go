@@ -262,15 +262,19 @@ func (AIServices) Arguments() map[string]*pluginsdk.Schema {
 	if !features.FivePointOh() {
 		cmkSchema := args["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema
 		cmkSchema["key_vault_key_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C while `managed_hsm_key_id` is deprecated since both will be set
+			Computed:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
 		}
 
 		cmkSchema["managed_hsm_key_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C while `managed_hsm_key_id` is deprecated since both will be set
+			Computed:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
 			Deprecated:   "`managed_hsm_key_id` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
