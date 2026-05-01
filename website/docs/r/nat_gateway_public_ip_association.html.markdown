@@ -3,13 +3,13 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nat_gateway_public_ip_association"
 description: |-
-  Manages the association between a NAT Gateway and a Public IP.
+  Manages a NAT Gateway Public IP Address association.
 
 ---
 
 # azurerm_nat_gateway_public_ip_association
 
-Manages the association between a NAT Gateway and a Public IP.
+Manages a NAT Gateway Public IP Address association.
 
 ## Example Usage
 
@@ -40,39 +40,71 @@ resource "azurerm_nat_gateway_public_ip_association" "example" {
 }
 ```
 
+## Example Usage for IPv6
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_public_ip" "example" {
+  name                = "example-pip-v6"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  allocation_method   = "Static"
+  sku                 = "StandardV2"
+  ip_version          = "IPv6"
+}
+
+resource "azurerm_nat_gateway" "example" {
+  name                = "example-nat-gateway-v6"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "StandardV2"
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "example" {
+  nat_gateway_id       = azurerm_nat_gateway.example.id
+  public_ip_address_id = azurerm_public_ip.example.id
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
 
 * `nat_gateway_id` - (Required) The ID of the NAT Gateway. Changing this forces a new resource to be created.
 
-* `public_ip_address_id` - (Required) The ID of the Public IP which this NAT Gateway which should be connected to. Changing this forces a new resource to be created.
+* `public_ip_address_id` - (Required) The ID of the Public IP Address which this NAT Gateway should be connected to. Changing this forces a new resource to be created.
 
-~> **Note:** When `nat_gateway_id` references a `StandardV2` NAT Gateway, `public_ip_address_id` must reference a `StandardV2` Public IP. Azure rejects `Standard` Public IPs with `StandardV2` NAT Gateways, and this incompatibility is not validated during terraform plan phase.
+~> **Note:** When `nat_gateway_id` references a NAT Gateway with SKU `Standard`, `public_ip_address_id` must reference a Public IP Address with SKU `Standard`. When `nat_gateway_id` references a NAT Gateway with SKU `StandardV2`, `public_ip_address_id` must reference a Public IP Address with SKU `StandardV2`.
+
+~> **Note:** When `public_ip_address_id` references an `IPv6` Public IP Address, `nat_gateway_id` must reference a NAT Gateway with SKU `StandardV2`, and `public_ip_address_id` must reference an `IPv6` Public IP Address with SKU `StandardV2`.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The (Terraform specific) ID of the Association between the NAT Gateway and the Public IP.
+* `id` - The Terraform-specific ID of the NAT Gateway Public IP Address association.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the association between the NAT Gateway and the Public IP.
-* `read` - (Defaults to 5 minutes) Used when retrieving the association between the NAT Gateway and the Public IP.
-* `delete` - (Defaults to 30 minutes) Used when deleting the association between the NAT Gateway and the Public IP.
+* `create` - (Defaults to 30 minutes) Used when creating the NAT Gateway Public IP Address association.
+* `read` - (Defaults to 5 minutes) Used when retrieving the NAT Gateway Public IP Address association.
+* `delete` - (Defaults to 30 minutes) Used when deleting the NAT Gateway Public IP Address association.
 
 ## Import
 
-Associations between NAT Gateway and Public IP Addresses can be imported using the `resource id`, e.g.
+A NAT Gateway Public IP Address association can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_nat_gateway_public_ip_association.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/natGateways/gateway1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/publicIPAddresses/myPublicIpAddress1"
+terraform import azurerm_nat_gateway_public_ip_association.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/natGateways/natGateway1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/publicIPAddresses/publicIPAddress1"
 ```
 
--> **Note:** This is a Terraform Specific ID in the format `{natGatewayID}|{publicIPAddressID}`
+-> **Note:** This is a Terraform-specific ID in the format `{natGatewayID}|{publicIPAddressID}`.
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->

@@ -32,14 +32,21 @@ func TestAccStorageAccount_list_basic(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicQuery(data),
+				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast(listResourceAddress, 3),
 				},
 			},
 			{
 				Query:  true,
-				Config: r.basicQueryByResourceGroup(data),
+				Config: r.basicQueryByResourceGroup(data, false),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLength(listResourceAddress, 3),
+				},
+			},
+			{
+				Query:  true,
+				Config: r.basicQueryByResourceGroup(data, true),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength(listResourceAddress, 3),
 				},
@@ -76,7 +83,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) basicQuery(_ acceptance.TestData) string {
+func (r StorageAccountResource) basicQuery() string {
 	return `
 list "azurerm_storage_account" "test" {
   provider = azurerm
@@ -84,13 +91,14 @@ list "azurerm_storage_account" "test" {
 }`
 }
 
-func (r StorageAccountResource) basicQueryByResourceGroup(data acceptance.TestData) string {
+func (r StorageAccountResource) basicQueryByResourceGroup(data acceptance.TestData, includeResource bool) string {
 	return fmt.Sprintf(`
 list "azurerm_storage_account" "test" {
   provider = azurerm
   config {
-    resource_group_name = "acctestRG-storage-%d"
+    resource_group_name = "acctestRG-storage-%[1]d"
   }
+  include_resource = %[2]t
 }
-`, data.RandomInteger)
+`, data.RandomInteger, includeResource)
 }
