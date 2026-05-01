@@ -33,7 +33,10 @@ fun BuildFeatures.BuildCacheFeature() {
 fun BuildSteps.ConfigureGoEnv() {
     step(ScriptBuildStep {
         name = "Configure Go Version"
-        scriptContent = "goenv install -s \$(goenv local) && goenv rehash"
+        scriptContent = """
+                        echo "##teamcity[setParameter name='env.BUILD_START_TIME' value='$(date +%s)']"
+                        goenv install -s \$(goenv local) && goenv rehash
+                        """.trimIndent()
     })
 }
 
@@ -141,6 +144,10 @@ fun ParametrizedWithType.TerraformShouldPanicForSchemaErrors() {
 
 fun ParametrizedWithType.WorkingDirectory(packageName: String) {
     text("SERVICE_PATH", servicePath(packageName), "", "The path at which to run - automatically updated", ParameterDisplay.HIDDEN)
+}
+
+fun ParametrizedWithType.BuildStartTime() {
+    text("env.BUILD_START_TIME", "1777662664", "The time at which the build started")
 }
 
 fun ParametrizedWithType.GoCache() {

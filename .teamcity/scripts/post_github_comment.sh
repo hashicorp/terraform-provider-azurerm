@@ -76,8 +76,12 @@ PASS_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="PASS") print}' | wc -l |
 FAIL_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="FAIL") print}' | wc -l | tr -d ' ')
 TOTAL=$((PASS_COUNT + FAIL_COUNT))
 
-# Get actual build duration from TeamCity (in seconds)
-BUILD_DURATION="%build.duration.seconds%"
+# Calculate build duration from start time to now
+# BUILD_START_TIME should is set in the first build step: $(date +%s)
+BUILD_START_TIME="%env.BUILD_START_TIME%"
+CURRENT_TIME_S=$(date +%s)
+BUILD_DURATION=$((CURRENT_TIME_S - BUILD_START_TIME))
+
 # Convert to hours, minutes and seconds for better readability
 BUILD_HOURS=$((BUILD_DURATION / 3600))
 BUILD_MINUTES=$(((BUILD_DURATION % 3600) / 60))
@@ -109,7 +113,7 @@ PR: #$PR_NUMBER
 **Total:** $TOTAL
 **Passed:** $PASS_COUNT
 **Failed:** $FAIL_COUNT
-**Build Duration:** ${BUILD_HOURS}h ${BUILD_MINUTES}m ${BUILD_SECONDS}s
+**Test Duration:** ${BUILD_HOURS}h ${BUILD_MINUTES}m ${BUILD_SECONDS}s
 
 <details>
 <summary>Test Details</summary>

@@ -43,6 +43,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 ReadOnlySettings()
                 WorkingDirectory(packageName)
                 GoCache()
+                BuildStartTime()
             }
 
             triggers {
