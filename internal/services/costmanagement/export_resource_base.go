@@ -185,7 +185,6 @@ func expandExportDataStorageLocationFromModel(input []CostManagementExportDataSt
 
 // flattenExportDataStorageLocationToModel converts the SDK type to the typed model
 func flattenExportDataStorageLocationToModel(input exports.ExportDeliveryInfo) ([]CostManagementExportDataStorageLocationModel, error) {
-
 	destination := input.Destination
 
 	var storageAccountId *commonids.StorageAccountId
@@ -231,7 +230,6 @@ func expandExportDataOptionsFromModel(input []CostManagementExportDataOptionsMod
 
 // flattenExportDataOptionsToModel converts the SDK type to the typed model
 func flattenExportDataOptionsToModel(input exports.ExportDefinition) []CostManagementExportDataOptionsModel {
-
 	queryType := ""
 	if v := input.Type; v != "" {
 		queryType = string(input.Type)
