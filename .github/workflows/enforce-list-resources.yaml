@@ -3,7 +3,7 @@ name: Enforce List Resource for New Resources
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
 
 on:
   pull_request:
