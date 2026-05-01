@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -24,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -313,9 +315,10 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"action_group_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							ValidateFunc:     azure.ValidateResourceID,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"webhook_properties": {
 							Type:     pluginsdk.TypeMap,
@@ -905,7 +908,9 @@ func flattenMonitorMetricAlertAction(input *[]metricalerts.MetricAlertAction) (r
 func resourceMonitorMetricAlertActionHash(input interface{}) int {
 	var buf bytes.Buffer
 	if v, ok := input.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
+		// Use lowercase for the action_group_id to avoid case-sensitivity issues
+		// Azure API returns IDs with inconsistent casing (e.g., microsoft.insights vs Microsoft.Insights)
+		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v["action_group_id"].(string))))
 		if m, ok := v["webhook_properties"].(map[string]interface{}); ok && m != nil {
 			buf.WriteString(fmt.Sprintf("%v-", m))
 		}
