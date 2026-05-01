@@ -16,7 +16,7 @@ func FlexibleServerSkuName(i interface{}, k string) (warnings []string, errors [
 		return
 	}
 
-	if !regexp.MustCompile(`^((B_Standard_B((1|2|4|8|12|16|20)ms|(1|2)s))|(GP_Standard_D(((2|4|8|16|32|48|64)s_v3)|((2|4|8|16|32|48|64)ds_v4)|((2|4|8|16|32|48|64|96)ds_v5)|((2|4|8|16|32|48|64|96)ads_v5)|(C(2|4|8|16|32|48|64|96)ads_v5)))|(MO_Standard_E((((2|4|8|16|20|32|48|64)s)_v3)|((2|4|6|8|16|20|32|48|64)ds_v4)|((2|4|8|16|20|32|48|64|96)ds_v5)|((2|4|8|16|32|48|64|96)ads_v5)|(C(2|4|8|16|20|32|48|64|96)(ads|as)_v5))))$`).MatchString(v) {
+	if !regexp.MustCompile(`^((B_Standard_B((1|2|4|8|12|16|20)ms|(1|2)s))|(GP_Standard_D(((2|4|8|16|32|48|64)s_v3)|((2|4|8|16|32|48|64)ds_v4)|((2|4|8|16|32|48|64|96)ds_v5)|((2|4|8|16|32|48|64|96)ads_v5)|(C(2|4|8|16|32|48|64|96)ads_v5)))|(MO_Standard_E((((2|4|8|16|20|32|48|64)s)_v3)|((2|4|6|8|16|20|32|48|64)ds_v4)|((80)ids_v4)|((2|4|8|16|20|32|48|64|96)ds_v5)|((2|4|8|16|20|32|48|64|96)ads_v5)|(C(2|4|8|16|20|32|48|64|96)(ads|as)_v5))))$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q is not a valid sku name, got %v", k, v))
 		return
 	}
