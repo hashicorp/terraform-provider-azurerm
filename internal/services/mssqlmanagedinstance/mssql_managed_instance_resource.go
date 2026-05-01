@@ -523,8 +523,9 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			if pointer.From(isGeneralPurposeV2) {
-				parameters.Properties.StorageIOps = &model.StorageIOps
+			// If StorageIOps is carried in payload and set to 0, the service will return HTTP 405.
+			if pointer.From(isGeneralPurposeV2) && model.StorageIOps != 0 {
+				parameters.Properties.StorageIOps = pointer.To(model.StorageIOps)
 			}
 
 			if parameters.Identity != nil && len(parameters.Identity.IdentityIds) > 0 {
