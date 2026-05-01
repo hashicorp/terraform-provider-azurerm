@@ -141,7 +141,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 												ForceNew: true,
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
-													ValidateFunc: validate.Email,
+													ValidateFunc: validation.IsEmailAddress,
 												},
 												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 											},
@@ -152,7 +152,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 												ForceNew: true,
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
-													ValidateFunc: validate.Email,
+													ValidateFunc: validation.IsEmailAddress,
 												},
 												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 											},

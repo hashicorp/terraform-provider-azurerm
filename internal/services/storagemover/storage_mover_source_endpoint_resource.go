@@ -11,12 +11,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/endpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_mover_source_endpoint -service-package-name storagemover -properties "name" -compare-values "subscription_id:storage_mover_id,resource_group_name:storage_mover_id,storage_mover_name:storage_mover_id"
 
 type StorageMoverSourceEndpointModel struct {
 	Name           string               `tfschema:"name"`
@@ -29,7 +32,14 @@ type StorageMoverSourceEndpointModel struct {
 
 type StorageMoverSourceEndpointResource struct{}
 
-var _ sdk.ResourceWithUpdate = StorageMoverSourceEndpointResource{}
+var (
+	_ sdk.ResourceWithIdentity = StorageMoverSourceEndpointResource{}
+	_ sdk.ResourceWithUpdate   = StorageMoverSourceEndpointResource{}
+)
+
+func (r StorageMoverSourceEndpointResource) Identity() resourceids.ResourceId {
+	return &endpoints.EndpointId{}
+}
 
 func (r StorageMoverSourceEndpointResource) ResourceType() string {
 	return "azurerm_storage_mover_source_endpoint"
@@ -145,6 +155,9 @@ func (r StorageMoverSourceEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -212,31 +225,39 @@ func (r StorageMoverSourceEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := StorageMoverSourceEndpointModel{
-				Name:           id.EndpointName,
-				StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
-			}
-
-			if model := resp.Model; model != nil {
-				if v, ok := model.Properties.(endpoints.NfsMountEndpointProperties); ok {
-					state.Export = v.Export
-					state.Host = v.Host
-
-					if v := v.NfsVersion; v != nil {
-						state.NfsVersion = *v
-					}
-
-					des := ""
-					if v.Description != nil {
-						des = *v.Description
-					}
-					state.Description = des
-				}
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r StorageMoverSourceEndpointResource) flatten(metadata sdk.ResourceMetaData, id *endpoints.EndpointId, model *endpoints.Endpoint) error {
+	state := StorageMoverSourceEndpointModel{
+		Name:           id.EndpointName,
+		StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
+	}
+
+	if model != nil {
+		if v, ok := model.Properties.(endpoints.NfsMountEndpointProperties); ok {
+			state.Export = v.Export
+			state.Host = v.Host
+
+			if v := v.NfsVersion; v != nil {
+				state.NfsVersion = *v
+			}
+
+			description := ""
+			if v.Description != nil {
+				description = *v.Description
+			}
+			state.Description = description
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r StorageMoverSourceEndpointResource) Delete() sdk.ResourceFunc {

@@ -5,21 +5,24 @@ package synapse
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	managedvirtualnetwork "github.com/jackofallops/kermit/sdk/synapse/2019-06-01-preview/synapse"
 )
 
 func resourceSynapseManagedPrivateEndpoint() *pluginsdk.Resource {
@@ -67,60 +70,77 @@ func resourceSynapseManagedPrivateEndpoint() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: networkValidate.PrivateLinkSubResourceName,
 			},
+
+			"fully_qualified_domain_names": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
 		},
 	}
 }
 
 func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
-	synapseClient := meta.(*clients.Client).Synapse
+	workspaceClient := meta.(*clients.Client).Synapse.WorkspacesClient
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	environment := meta.(*clients.Client).Account.Environment
-	synapseDomainSuffix, ok := environment.Synapse.DomainSuffix()
-	if !ok {
-		return fmt.Errorf("could not determine Synapse domain suffix for environment %q", environment.Name)
-	}
 
-	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 
-	workspace, err := workspaceClient.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name)
+	baseURI, err := NewSynapseWorkspaceBaseURI(meta.(*clients.Client).Account.Environment, workspaceId.WorkspaceName)
 	if err != nil {
-		return fmt.Errorf("retrieving Synapse workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
-	}
-	if workspace.WorkspaceProperties == nil || workspace.ManagedVirtualNetwork == nil {
-		return fmt.Errorf("empty or nil `ManagedVirtualNetwork` for Synapse workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
-	}
-	virtualNetworkName := *workspace.ManagedVirtualNetwork
-
-	id := parse.NewManagedPrivateEndpointID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, virtualNetworkName, d.Get("name").(string))
-	client, err := synapseClient.ManagedPrivateEndpointsClient(workspaceId.Name, *synapseDomainSuffix)
-	if err != nil {
-		return fmt.Errorf("building Client for %s: %+v", id, err)
+		return err
 	}
 
-	// check exist
-	existing, err := client.Get(ctx, id.ManagedVirtualNetworkName, id.Name)
+	workspace, err := workspaceClient.Get(ctx, *workspaceId)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", workspaceId, err)
+	}
+
+	if workspace.Model == nil || workspace.Model.Properties == nil || workspace.Model.Properties.ManagedVirtualNetwork == nil {
+		return fmt.Errorf("empty or nil `ManagedVirtualNetwork` for %s", workspaceId)
+	}
+	virtualNetworkName := *workspace.Model.Properties.ManagedVirtualNetwork
+
+	// TODO: migrate this to a data plane ID, will require a state migration
+	id := parse.NewManagedPrivateEndpointID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, virtualNetworkName, d.Get("name").(string))
+
+	dataPlaneID := managedprivateendpoints.NewManagedPrivateEndpointID(baseURI, id.ManagedVirtualNetworkName, id.Name)
+	client := meta.(*clients.Client).Synapse.ManagedPrivateEndpointsClient.Clone(dataPlaneID.BaseURI)
+
+	existing, err := client.Get(ctx, dataPlaneID)
+	if !response.WasNotFound(existing.HttpResponse) {
+		if err != nil {
+			return fmt.Errorf("checking for presence of existing %s: %w", id, err)
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
 		return tf.ImportAsExistsError("azurerm_synapse_managed_private_endpoint", id.ID())
 	}
 
-	managedPrivateEndpoint := managedvirtualnetwork.ManagedPrivateEndpoint{
-		Properties: &managedvirtualnetwork.ManagedPrivateEndpointProperties{
-			PrivateLinkResourceID: pointer.To(d.Get("target_resource_id").(string)),
-			GroupID:               pointer.To(d.Get("subresource_name").(string)),
+	payload := managedprivateendpoints.ManagedPrivateEndpoint{
+		Properties: &managedprivateendpoints.ManagedPrivateEndpointProperties{
+			Fqdns:                 utils.ExpandStringSlice(d.Get("fully_qualified_domain_names").([]any)),
+			GroupId:               pointer.To(d.Get("subresource_name").(string)),
+			PrivateLinkResourceId: pointer.To(d.Get("target_resource_id").(string)),
 		},
 	}
-	if _, err := client.Create(ctx, id.ManagedVirtualNetworkName, id.Name, managedPrivateEndpoint); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+
+	if _, err := client.Create(ctx, dataPlaneID, payload); err != nil {
+		return fmt.Errorf("creating %s: %w", id, err)
+	}
+
+	// The Create operation returns a 200 but behaves as if it is async, thus requiring polling on `provisioningState`
+	pollerType := custompollers.NewSynapseManagedPrivateEndpointCreatePoller(client, dataPlaneID)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("polling %s: %w", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -128,68 +148,70 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 }
 
 func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	environment := meta.(*clients.Client).Account.Environment
-	synapseDomainSuffix, ok := environment.Synapse.DomainSuffix()
-	if !ok {
-		return fmt.Errorf("could not determine Synapse domain suffix for environment %q", environment.Name)
-	}
 
 	id, err := parse.ManagedPrivateEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client, err := synapseClient.ManagedPrivateEndpointsClient(id.WorkspaceName, *synapseDomainSuffix)
+	baseURI, err := NewSynapseWorkspaceBaseURI(meta.(*clients.Client).Account.Environment, id.WorkspaceName)
 	if err != nil {
-		return fmt.Errorf("building Client for %s: %v", *id, err)
+		return err
 	}
 
-	resp, err := client.Get(ctx, id.ManagedVirtualNetworkName, id.Name)
+	dataPlaneID := managedprivateendpoints.NewManagedPrivateEndpointID(baseURI, id.ManagedVirtualNetworkName, id.Name)
+	client := meta.(*clients.Client).Synapse.ManagedPrivateEndpointsClient.Clone(dataPlaneID.BaseURI)
+
+	resp, err := client.Get(ctx, dataPlaneID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] %s does not exist - removing from state", *id)
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
-	d.Set("synapse_workspace_id", workspaceId)
+	d.Set("synapse_workspace_id", workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	d.Set("name", id.Name)
 
-	if props := resp.Properties; props != nil {
-		d.Set("target_resource_id", props.PrivateLinkResourceID)
-		d.Set("subresource_name", props.GroupID)
+	if resp.Model != nil {
+		if props := resp.Model.Properties; props != nil {
+			d.Set("fully_qualified_domain_names", pointer.From(props.Fqdns))
+			d.Set("subresource_name", props.GroupId)
+			d.Set("target_resource_id", props.PrivateLinkResourceId)
+		}
 	}
 	return nil
 }
 
 func resourceSynapseManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	environment := meta.(*clients.Client).Account.Environment
-	synapseDomainSuffix, ok := environment.Synapse.DomainSuffix()
-	if !ok {
-		return fmt.Errorf("could not determine Synapse domain suffix for environment %q", environment.Name)
-	}
 
 	id, err := parse.ManagedPrivateEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client, err := synapseClient.ManagedPrivateEndpointsClient(id.WorkspaceName, *synapseDomainSuffix)
+	baseURI, err := NewSynapseWorkspaceBaseURI(meta.(*clients.Client).Account.Environment, id.WorkspaceName)
 	if err != nil {
-		return fmt.Errorf("building Client for %s: %v", *id, err)
+		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ManagedVirtualNetworkName, id.Name); err != nil {
+	dataPlaneID := managedprivateendpoints.NewManagedPrivateEndpointID(baseURI, id.ManagedVirtualNetworkName, id.Name)
+	client := meta.(*clients.Client).Synapse.ManagedPrivateEndpointsClient.Clone(dataPlaneID.BaseURI)
+
+	if _, err := client.Delete(ctx, dataPlaneID); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	// The delete operation returns immediately but this doesn't necessarily mean the resource is gone
+	pollerType := custompollers.NewSynapseManagedPrivateEndpointDeletePoller(client, dataPlaneID)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("polling %s: %w", id, err)
 	}
 
 	return nil
