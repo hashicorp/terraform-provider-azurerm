@@ -1,6 +1,7 @@
 ## 4.72.0 (Unreleased)
 
 ENHANCEMENTS:
+* `cosmos` - migrate all resources and data sources to `go-azure-sdk` [GH-32066]
 * dependencies: `loganalytics` - update to API version `2023-09-01` [GH-32280]
 
 FEATURES:
