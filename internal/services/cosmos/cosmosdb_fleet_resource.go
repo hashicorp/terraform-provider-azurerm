@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_fleet -service-package-name cosmos -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+// Comment to generate resource identity test is not added due to inconsistency in Go structure name (`CosmosDbFleetResource`) and Terraform resource name (`azurerm_cosmosdb_fleet`). Test generated will contain incorrect Go structure name (`CosmosdbFleetResource`). Resource identity test is added manually.
 
 type CosmosDbFleetResource struct{}
 
