@@ -82,13 +82,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name            = "schedview%d"
+  name            = "schedview%s"
   display_name    = "Daily Spend Review"
   email_subject   = "Daily Summary"
   email_addresses = ["admin@example.com", "ops@example.com"]
   message         = "Please review the daily spending summary"
 }
-`, data.RandomIntOfLength(8))
+`, data.RandomStringOfLength(8))
 }
 
 func (AnomalyAlertResource) completeConfig(data acceptance.TestData) string {
@@ -100,14 +100,14 @@ provider "azurerm" {
 data "azurerm_subscription" "test" {}
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name            = "schedview%d"
+  name            = "schedview%s"
   display_name    = "Daily Spend Review"
   subscription_id = data.azurerm_subscription.test.id
   email_subject   = "Daily Summary"
   email_addresses = ["admin@example.com", "ops@example.com"]
   message         = "Please review the daily spending summary"
 }
-`, data.RandomIntOfLength(8))
+`, data.RandomStringOfLength(8))
 }
 
 func (r AnomalyAlertResource) requiresImportConfig(data acceptance.TestData) string {
@@ -132,13 +132,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name            = "schedview%d"
+  name            = "schedview%s"
   display_name    = "Weekly Spend Review"
   email_subject   = "Weekly Summary"
   email_addresses = ["ops@example.com", "finance@example.com"]
   message         = "Please review the weekly spending summary"
 }
-`, data.RandomIntOfLength(8))
+`, data.RandomStringOfLength(8))
 }
 
 func (AnomalyAlertResource) notificationEmailConfig(data acceptance.TestData) string {
@@ -148,12 +148,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name               = "schedview%d"
+  name               = "schedview%s"
   display_name       = "Daily Spend Review"
   email_subject      = "Daily Summary"
   email_addresses    = ["admin@example.com", "ops@example.com"]
   notification_email = "finance@example.com"
   message            = "Please review the daily spending summary"
 }
-`, data.RandomIntOfLength(8))
+`, data.RandomStringOfLength(8))
 }
