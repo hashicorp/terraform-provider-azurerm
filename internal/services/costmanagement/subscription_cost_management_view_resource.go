@@ -142,7 +142,7 @@ func (r SubscriptionCostManagementViewResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			state := SubscriptionCostManagementViewModel{
@@ -152,14 +152,10 @@ func (r SubscriptionCostManagementViewResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.ChartType = string(pointer.From(props.Chart))
+					state.ChartType = pointer.FromEnum(props.Chart)
 					state.DisplayName = pointer.From(props.DisplayName)
 
-					accumulated := false
-					if props.Accumulated != nil {
-						accumulated = views.AccumulatedTypeTrue == *props.Accumulated
-					}
-					state.Accumulated = accumulated
+					state.Accumulated = views.AccumulatedTypeTrue == pointer.From(props.Accumulated)
 
 					state.Kpi = flattenKpisToModel(props.Kpis)
 					state.Pivot = flattenPivotsToModel(props.Pivots)
@@ -202,7 +198,7 @@ func (r SubscriptionCostManagementViewResource) Update() sdk.ResourceFunc {
 			// Update operation requires latest eTag to be set in the request.
 			existing, err := client.GetByScope(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 			model := existing.Model
 
@@ -213,7 +209,7 @@ func (r SubscriptionCostManagementViewResource) Update() sdk.ResourceFunc {
 			}
 
 			if model.Properties == nil {
-				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
 			if metadata.ResourceData.HasChange("display_name") {
