@@ -48,3 +48,7 @@ jobs:
     needs: check
     if: ${{ failure() }}
     uses: ./.github/workflows/comment-ci-failure.yaml
+  comment-outdated-on-pass:
+    needs: check
+    if: ${{ success() }}
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
