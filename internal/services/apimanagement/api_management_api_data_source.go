@@ -165,7 +165,7 @@ func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{})
 			}
 
 			if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiDataSourceSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
-				return fmt.Errorf("setting `subscription_key_parameter_names`: %+v", err)
+				return fmt.Errorf("setting the `subscription_key_parameter_names`: %+v", err)
 			}
 		}
 	}
