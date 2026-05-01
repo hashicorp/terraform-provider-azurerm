@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * dependencies: `loganalytics` - update to API version `2023-09-01` [GH-32280]
 
 FEATURES:
+* **New List Resource**: `azurerm_subnet` [GH-32236]
 
 BUG FIXES:
 
