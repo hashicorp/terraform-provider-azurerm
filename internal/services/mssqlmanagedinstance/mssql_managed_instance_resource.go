@@ -906,13 +906,10 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 				return nil
 			}
 
-			waitCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
-			defer cancel()
-
 			log.Printf("[DEBUG] Waiting for SQL Managed Instance network intent policy cleanup on subnet %s", subnetId.ID())
 			pollerType := custompollers.NewManagedInstanceSubnetNetworkIntentPolicyPoller(metadata.Client.Network.Subnets, *subnetId)
 			poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-			if err := poller.PollUntilDone(waitCtx); err != nil {
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for SQL Managed Instance network intent policy cleanup on subnet %s: %+v", subnetId.ID(), err)
 			}
 
