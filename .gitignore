@@ -66,3 +66,4 @@ tf.zip
 # do not upload .bob instructions
 .bob
 AGENTS.md
+terraform-provider-aws
