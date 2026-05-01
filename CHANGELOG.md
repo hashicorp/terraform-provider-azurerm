@@ -1,7 +1,7 @@
 ## 4.72.0 (Unreleased)
 
 ENHANCEMENTS:
- depencences: `loganalytics`- upgrade API version to `2023-09-01` [GH-32280]
+* dependencies: `loganalytics` - update to API version `2023-09-01` [GH-32280]
 
 FEATURES:
 
