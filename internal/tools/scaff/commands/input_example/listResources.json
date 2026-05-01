@@ -1,12 +1,12 @@
 [
   {
-    "service": "PrivateDns",
-    "resource": "AaaaRecord",
-    "include_service_in_name": true,
+    "service": "Containers",
+    "resource": "KubernetesAutomaticClusterResource",
+    "include_service_in_name": false,
     "full_parent": "",
-    "parent": "PrivateDnsZone",
-    "terraform_name": "private_dns_aaaa_record",
-    "id_structure": "privatedns.RecordType",
-    "path": "/Users/mark/gitRepos/azureProviders/refactor1/internal/services/privatedns/"
+    "parent": "",
+    "terraform_name": "kubernetes_automatic_cluster_resource",
+    "id_structure": "commonids.KubernetesClusterId",
+    "path": "/Users/mark/gitRepos/azureProviders/terraform-provider-azurerm/internal/services/containers"
   }
 ]

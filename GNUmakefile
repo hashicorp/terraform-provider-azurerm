@@ -143,6 +143,10 @@ document-fix:
 document-lint:
 	go run $(CURDIR)/internal/tools/document-lint/main.go check
 
+scaff:
+	@echo "make: Installing scaff..."
+	cd ./internal/tools/scaff && $(GO_VER) go install .
+
 scaffold-website:
 	./scripts/scaffold-website.sh
 
