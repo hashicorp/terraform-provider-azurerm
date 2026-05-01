@@ -82,7 +82,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name            = "acctest-anomaly-%d"
+  name            = "testcostaa%d"
   display_name    = "Anomaly Alert Test"
   email_subject   = "Hi"
   email_addresses = ["test@test.com", "test@hashicorp.developer"]
@@ -100,7 +100,7 @@ provider "azurerm" {
 data "azurerm_subscription" "test" {}
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name            = "acctest-anomaly-%d"
+  name            = "testcostaa%d"
   display_name    = "Anomaly Alert Test"
   subscription_id = data.azurerm_subscription.test.id
   email_subject   = "Hi"
@@ -132,7 +132,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name            = "acctest-anomaly-%d"
+  name            = "testcostaa%d"
   display_name    = "Anomaly Alert Updated"
   email_subject   = "Hi you!"
   email_addresses = ["tester@test.com", "test2@hashicorp.developer"]
@@ -148,7 +148,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name               = "acctest-anomaly-%d"
+  name               = "testcostaa%d"
   display_name       = "Anomaly Alert Test"
   email_subject      = "Hi"
   email_addresses    = ["test@test.com", "test@hashicorp.developer"]
