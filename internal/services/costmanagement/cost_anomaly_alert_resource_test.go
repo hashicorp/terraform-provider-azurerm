@@ -82,11 +82,11 @@ provider "azurerm" {
 }
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name            = "testcostaa%d"
-  display_name    = "Anomaly Alert Test"
-  email_subject   = "Hi"
-  email_addresses = ["test@test.com", "test@hashicorp.developer"]
-  message         = "Oops, cost anomaly"
+  name            = "schedview%d"
+  display_name    = "Daily Spend Review"
+  email_subject   = "Daily Summary"
+  email_addresses = ["admin@example.com", "ops@example.com"]
+  message         = "Please review the daily spending summary"
 }
 `, data.RandomIntOfLength(8))
 }
@@ -100,12 +100,12 @@ provider "azurerm" {
 data "azurerm_subscription" "test" {}
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name            = "testcostaa%d"
-  display_name    = "Anomaly Alert Test"
+  name            = "schedview%d"
+  display_name    = "Daily Spend Review"
   subscription_id = data.azurerm_subscription.test.id
-  email_subject   = "Hi"
-  email_addresses = ["test@test.com", "test@hashicorp.developer"]
-  message         = "Cost anomaly complete test"
+  email_subject   = "Daily Summary"
+  email_addresses = ["admin@example.com", "ops@example.com"]
+  message         = "Please review the daily spending summary"
 }
 `, data.RandomIntOfLength(8))
 }
@@ -132,11 +132,11 @@ provider "azurerm" {
 }
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name            = "testcostaa%d"
-  display_name    = "Anomaly Alert Updated"
-  email_subject   = "Hi you!"
-  email_addresses = ["tester@test.com", "test2@hashicorp.developer"]
-  message         = "An updated cost anomaly for you"
+  name            = "schedview%d"
+  display_name    = "Weekly Spend Review"
+  email_subject   = "Weekly Summary"
+  email_addresses = ["ops@example.com", "finance@example.com"]
+  message         = "Please review the weekly spending summary"
 }
 `, data.RandomIntOfLength(8))
 }
@@ -148,12 +148,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name               = "testcostaa%d"
-  display_name       = "Anomaly Alert Test"
-  email_subject      = "Hi"
-  email_addresses    = ["test@test.com", "test@hashicorp.developer"]
-  notification_email = "othertest@hashicorp.developer"
-  message            = "Custom sender email configured"
+  name               = "schedview%d"
+  display_name       = "Daily Spend Review"
+  email_subject      = "Daily Summary"
+  email_addresses    = ["admin@example.com", "ops@example.com"]
+  notification_email = "finance@example.com"
+  message            = "Please review the daily spending summary"
 }
 `, data.RandomIntOfLength(8))
 }
