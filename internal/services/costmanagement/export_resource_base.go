@@ -20,6 +20,9 @@ import (
 
 type costManagementExportBaseResource struct{}
 
+// deliberately unused for CI testing
+var unusedTestVariable = "this triggers a lint error"
+
 func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	output := map[string]*pluginsdk.Schema{
 		"active": {
