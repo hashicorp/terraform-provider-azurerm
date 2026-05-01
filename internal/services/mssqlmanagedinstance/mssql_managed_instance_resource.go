@@ -5,6 +5,7 @@ package mssqlmanagedinstance
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -327,7 +328,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_iops": {
 			Type:     schema.TypeInt,
 			Optional: true,
-			// O+C - Azure returns a calculated IOPS value for GPv2 instances when `storage_iops` is omitted.
+			// NOTE: O+C - Azure returns a calculated IOPS value for GPv2 instances when `storage_iops` is omitted.
 			Computed:     true,
 			ValidateFunc: validation.IntBetween(300, 80000),
 		},
@@ -431,7 +432,7 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 			// validate `storage_iops` rules when the argument is known to be explicitly configured.
 			if storageIOps, ok := rawConfig["storage_iops"]; ok && storageIOps.IsKnown() && !storageIOps.IsNull() {
 				if !rd.Get("general_purpose_v2_enabled").(bool) {
-					return fmt.Errorf("`storage_iops` can only be set when `general_purpose_v2_enabled` is `true`")
+					return errors.New("`storage_iops` can only be set when `general_purpose_v2_enabled` is `true`")
 				}
 
 				if sku := rd.Get("sku_name").(string); strings.HasPrefix(sku, "BC_") {
@@ -446,7 +447,7 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 			// Zone redundancy is not available for Next-gen General Purpose instances.
 			// https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redundancy#next-gen-general-purpose-service-tier
 			if rd.Get("zone_redundant_enabled").(bool) && rd.Get("general_purpose_v2_enabled").(bool) {
-				return fmt.Errorf("`zone_redundant_enabled` cannot be set to `true` when `general_purpose_v2_enabled` is `true`")
+				return errors.New("`zone_redundant_enabled` cannot be set to `true` when `general_purpose_v2_enabled` is `true`")
 			}
 
 			return nil
@@ -752,10 +753,9 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			if generalPurposeV2Changed || storageIOpsChanged || skuNameChanged {
+				props.StorageIOps = nil
 				if pointer.From(effectiveIsGeneralPurposeV2) {
 					props.StorageIOps = pointer.To(state.StorageIOps)
-				} else {
-					props.StorageIOps = nil
 				}
 			}
 
