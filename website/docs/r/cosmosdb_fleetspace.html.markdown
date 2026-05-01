@@ -47,11 +47,11 @@ The following arguments are supported:
 
 * `fleet_name` - (Required) The Cosmos DB Fleet name in which the Cosmos DB Fleetspace is created. Changing this forces a new resource to be created.
 
-* `service_tier` - (Required) The service tier for the Cosmos DB Fleetspace. Possible values include `GeneralPurpose` and `BusinessCritical`. `GeneralPurpose` types refers to single write region accounts that can be added to the Cosmos DB Fleetspace, whereas `BusinessCritical` refers to multi write region. Changing this forces a new resource to be created.
+* `service_tier` - (Required) The service tier for the Cosmos DB Fleetspace. Possible values include `GeneralPurpose` and `BusinessCritical`. `GeneralPurpose` refers to single write region accounts that can be added to the Cosmos DB Fleetspace, whereas `BusinessCritical` refers to multi write region. Changing this forces a new resource to be created.
 
 ---
 
-* `maximum_throughput` - (Optional) The maximum throughput for the throughput pool of the Cosmos DB Fleetspace. Must be divisible by 1000, more than or equal to `minimum_throughput`, and less than or equal to 10 times of `minimum_throughput`.
+* `maximum_throughput` - (Optional) The maximum throughput for the throughput pool of the Cosmos DB Fleetspace. Must be divisible by 1000, more than or equal to `minimum_throughput`, and less than or equal to 10 times `minimum_throughput`.
 
 * `minimum_throughput` - (Optional) The minimum throughput for the throughput pool of the Cosmos DB Fleetspace. Must be divisible by 1000, more than or equal to 100000, and less than or equal to 10000000.
 
@@ -74,7 +74,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-A Cosmos DB Fleetspaces can be imported using the `resource id`, e.g.
+A Cosmos DB Fleetspace can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cosmosdb_fleetspace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DocumentDB/fleets/fleet1/fleetspaces/fleetspace1
