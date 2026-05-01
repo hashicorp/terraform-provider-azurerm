@@ -1,6 +1,7 @@
 ## 4.72.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_data_factory_linked_service_data_lake_storage_gen2` - set schema fields `service_principal_key` and `storage_account_key` as sensitive [GH-32284]
 * `azurerm_machine_learning_compute_cluster` - set schema field `ssh.0.admin_password` as sensitive [GH-32293]
 * `cosmos` - migrate all resources and data sources to `go-azure-sdk` [GH-32066]
 * dependencies: `loganalytics` - update to API version `2023-09-01` [GH-32280]
