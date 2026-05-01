@@ -14,7 +14,7 @@ Manages a Durable Task Scheduler.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
+  name     = "example-resource-group"
   location = "West Europe"
 }
 
@@ -24,10 +24,6 @@ resource "azurerm_durable_task_scheduler" "example" {
   location            = azurerm_resource_group.example.location
   sku_name            = "Consumption"
   ip_allow_list       = ["0.0.0.0/0"]
-
-  tags = {
-    environment = "production"
-  }
 }
 ```
 
@@ -43,13 +39,13 @@ The following arguments are supported:
 
 * `ip_allow_list` - (Required) A list of IP addresses or CIDR ranges that are allowed to access the Durable Task Scheduler.
 
-* `sku_name` - (Required) The SKU of the Durable Task Scheduler. Possible values include `Consumption` and `Dedicated`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) The SKU of the Durable Task Scheduler. Possible values are `Consumption` and `Dedicated`. Changing this forces a new resource to be created.
 
 ---
 
 * `capacity` - (Optional) The capacity of the Durable Task Scheduler.
 
--> **Note:** `capacity` is only applicable when `sku_name` is set to `Dedicated`.
+~> **Note:** `capacity` is only applicable when `sku_name` is set to `Dedicated`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Durable Task Scheduler.
 
