@@ -130,7 +130,7 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 
 			subscriptionId := config.SubscriptionId
 			if subscriptionId == "" {
-				subscriptionId = fmt.Sprint("/subscriptions/", metadata.Client.Account.SubscriptionId)
+				subscriptionId = commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId).ID()
 			}
 			id := scheduledactions.NewScopedScheduledActionID(subscriptionId, config.Name)
 
@@ -212,7 +212,7 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 
 			subscriptionId := config.SubscriptionId
 			if subscriptionId == "" {
-				subscriptionId = fmt.Sprint("/subscriptions/", metadata.Client.Account.SubscriptionId)
+				subscriptionId = commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId).ID()
 			}
 			viewId := views.NewScopedViewID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
 
@@ -279,7 +279,9 @@ func (AnomalyAlertResource) Read() sdk.ResourceFunc {
 				state.Name = pointer.From(model.Name)
 				if props := model.Properties; props != nil {
 					state.DisplayName = props.DisplayName
-					state.SubscriptionId = fmt.Sprint("/", *props.Scope)
+					if props.Scope != nil {
+						state.SubscriptionId = fmt.Sprint("/", *props.Scope)
+					}
 					state.EmailSubject = props.Notification.Subject
 					state.NotificationEmail = pointer.From(props.NotificationEmail)
 					state.EmailAddresses = props.Notification.To
