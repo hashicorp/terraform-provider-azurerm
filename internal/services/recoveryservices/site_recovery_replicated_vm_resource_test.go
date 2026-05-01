@@ -455,7 +455,7 @@ resource "azurerm_public_ip" "test-source" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_public_ip" "test-recovery" {
@@ -463,7 +463,7 @@ resource "azurerm_public_ip" "test-recovery" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -657,7 +657,7 @@ resource "azurerm_public_ip" "test-source" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_public_ip" "test-recovery" {
@@ -665,7 +665,7 @@ resource "azurerm_public_ip" "test-recovery" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -738,7 +738,7 @@ resource "azurerm_public_ip" "tfo" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
@@ -1063,7 +1063,7 @@ resource "azurerm_public_ip" "test-recovery" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_key_vault" "test2" {
@@ -2136,7 +2136,7 @@ resource "azurerm_public_ip" "test-recovery" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_storage_account" "test" {

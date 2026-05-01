@@ -170,7 +170,7 @@ jobs:
               -o "$BIN_PATH" \
               -trimpath \
               -buildvcs=false \
-              -ldflags "-s -w -X 'main.version=${{ needs.set-product-version.outputs.product-version }}'"
+              -ldflags "-s -w -X 'github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=${{ needs.set-product-version.outputs.product-version }}'"
             cp LICENSE "$TARGET_DIR/LICENSE.txt"
 
   whats-next:
