@@ -100,19 +100,24 @@ func (r ResourceGroupCostManagementExportResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("expanding `export_data_storage_location`: %+v", err)
 			}
+			if deliveryInfo == nil {
+				return fmt.Errorf("`export_data_storage_location` was empty")
+			}
+
+			definition := expandExportDataOptionsFromModel(config.ExportDataOptions)
+			if definition == nil {
+				return fmt.Errorf("`export_data_options` was empty")
+			}
 
 			status := exports.StatusTypeActive
 			if !config.Active {
 				status = exports.StatusTypeInactive
 			}
 
-			format := exports.FormatType(config.FileFormat)
-			recurrenceType := exports.RecurrenceType(config.RecurrenceType)
-
 			props := exports.Export{
 				Properties: &exports.ExportProperties{
 					Schedule: &exports.ExportSchedule{
-						Recurrence: &recurrenceType,
+						Recurrence: pointer.ToEnum[exports.RecurrenceType](config.RecurrenceType),
 						RecurrencePeriod: &exports.ExportRecurrencePeriod{
 							From: config.RecurrencePeriodStartDate,
 							To:   pointer.To(config.RecurrencePeriodEndDate),
@@ -120,8 +125,8 @@ func (r ResourceGroupCostManagementExportResource) Create() sdk.ResourceFunc {
 						Status: &status,
 					},
 					DeliveryInfo: *deliveryInfo,
-					Format:       &format,
-					Definition:   *expandExportDataOptionsFromModel(config.ExportDataOptions),
+					Format:       pointer.ToEnum[exports.FormatType](config.FileFormat),
+					Definition:   *definition,
 				},
 			}
 
@@ -152,7 +157,7 @@ func (r ResourceGroupCostManagementExportResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			state := ResourceGroupCostManagementExportModel{
@@ -167,16 +172,18 @@ func (r ResourceGroupCostManagementExportResource) Read() sdk.ResourceFunc {
 							state.RecurrencePeriodStartDate = recurrencePeriod.From
 							state.RecurrencePeriodEndDate = pointer.From(recurrencePeriod.To)
 						}
-						state.Active = *schedule.Status == exports.StatusTypeActive
+						if schedule.Status != nil {
+							state.Active = *schedule.Status == exports.StatusTypeActive
+						}
 						state.RecurrenceType = string(pointer.From(schedule.Recurrence))
 					}
 
-					storageLocation, err := flattenExportDataStorageLocationToModel(&props.DeliveryInfo)
+					storageLocation, err := flattenExportDataStorageLocationToModel(props.DeliveryInfo)
 					if err != nil {
 						return fmt.Errorf("flattening `export_data_storage_location`: %+v", err)
 					}
 					state.ExportDataStorageLocation = storageLocation
-					state.ExportDataOptions = flattenExportDataOptionsToModel(&props.Definition)
+					state.ExportDataOptions = flattenExportDataOptionsToModel(props.Definition)
 					state.FileFormat = string(pointer.From(props.Format))
 				}
 			}
@@ -210,46 +217,78 @@ func (r ResourceGroupCostManagementExportResource) Update() sdk.ResourceFunc {
 			var opts exports.GetOperationOptions
 			resp, err := client.Get(ctx, *id, opts)
 			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if model := resp.Model; model != nil {
-				if model.ETag == nil {
-					return fmt.Errorf("add %s: etag was nil", *id)
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+
+			if resp.Model.ETag == nil {
+				return fmt.Errorf("retrieving %s: etag was nil", *id)
+			}
+
+			model := *resp.Model
+			if model.Properties == nil {
+				return fmt.Errorf("retrieving %s: properties was nil", *id)
+			}
+
+			props := model.Properties
+
+			if metadata.ResourceData.HasChange("active") {
+				status := exports.StatusTypeActive
+				if !config.Active {
+					status = exports.StatusTypeInactive
+				}
+				if props.Schedule == nil {
+					props.Schedule = &exports.ExportSchedule{}
+				}
+				props.Schedule.Status = &status
+			}
+
+			if metadata.ResourceData.HasChange("recurrence_type") {
+				if props.Schedule == nil {
+					props.Schedule = &exports.ExportSchedule{}
+				}
+				props.Schedule.Recurrence = pointer.ToEnum[exports.RecurrenceType](config.RecurrenceType)
+			}
+
+			if metadata.ResourceData.HasChanges("recurrence_period_start_date", "recurrence_period_end_date") {
+				if props.Schedule == nil {
+					props.Schedule = &exports.ExportSchedule{}
+				}
+				props.Schedule.RecurrencePeriod = &exports.ExportRecurrencePeriod{
+					From: config.RecurrencePeriodStartDate,
+					To:   pointer.To(config.RecurrencePeriodEndDate),
 				}
 			}
 
-			deliveryInfo, err := expandExportDataStorageLocationFromModel(config.ExportDataStorageLocation)
-			if err != nil {
-				return fmt.Errorf("expanding `export_data_storage_location`: %+v", err)
+			if metadata.ResourceData.HasChange("export_data_storage_location") {
+				deliveryInfo, err := expandExportDataStorageLocationFromModel(config.ExportDataStorageLocation)
+				if err != nil {
+					return fmt.Errorf("expanding `export_data_storage_location`: %+v", err)
+				}
+				if deliveryInfo == nil {
+					return fmt.Errorf("`export_data_storage_location` was empty")
+				}
+				props.DeliveryInfo = *deliveryInfo
 			}
 
-			status := exports.StatusTypeActive
-			if !config.Active {
-				status = exports.StatusTypeInactive
+			if metadata.ResourceData.HasChange("file_format") {
+				props.Format = pointer.ToEnum[exports.FormatType](config.FileFormat)
 			}
 
-			format := exports.FormatType(config.FileFormat)
-			recurrenceType := exports.RecurrenceType(config.RecurrenceType)
-
-			props := exports.Export{
-				ETag: resp.Model.ETag,
-				Properties: &exports.ExportProperties{
-					Schedule: &exports.ExportSchedule{
-						Recurrence: &recurrenceType,
-						RecurrencePeriod: &exports.ExportRecurrencePeriod{
-							From: config.RecurrencePeriodStartDate,
-							To:   pointer.To(config.RecurrencePeriodEndDate),
-						},
-						Status: &status,
-					},
-					DeliveryInfo: *deliveryInfo,
-					Format:       &format,
-					Definition:   *expandExportDataOptionsFromModel(config.ExportDataOptions),
-				},
+			if metadata.ResourceData.HasChange("export_data_options") {
+				definition := expandExportDataOptionsFromModel(config.ExportDataOptions)
+				if definition == nil {
+					return fmt.Errorf("`export_data_options` was empty")
+				}
+				props.Definition = *definition
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, *id, props); err != nil {
+			model.Properties = props
+
+			if _, err = client.CreateOrUpdate(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
