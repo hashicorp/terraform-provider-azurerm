@@ -202,7 +202,7 @@ func (r RoleAssignmentMarketplaceResource) Create() sdk.ResourceFunc {
 			existing, err := roleAssignmentsClient.Get(ctx, id.ScopedId, options)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					return fmt.Errorf("checking for the presence of existing %s: %s", id, err)
 				}
 			}
 
