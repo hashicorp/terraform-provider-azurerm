@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_billing_account_cost_management_export
 
-Manages a Cost Managment Exoprt for a Billing Acount.
+Manages a Cost Management Export for a Billing Account.
 
 ## Example Usage
 
