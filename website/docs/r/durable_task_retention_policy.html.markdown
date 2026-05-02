@@ -53,7 +53,7 @@ The following arguments are supported:
 
 A `retention_policy` block supports the following:
 
-* `retention_period_in_days` - (Required) The number of days to retain orchestration data.
+* `retention_period_in_days` - (Required) The number of days to retain orchestration data. Possible values range between `1` and `90`.
 
 * `orchestration_state` - (Optional) The orchestration state to which this retention policy applies. Possible values are `Canceled`, `Completed`, `Failed`, and `Terminated`.
 
