@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurefleet/2024-11-01/fleets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
@@ -22,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -166,7 +166,7 @@ func extensionSchema() *pluginsdk.Schema {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ForceNew:     true,
-								ValidateFunc: keyVaultValidate.NestedItemId,
+								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny),
 							},
 
 							"source_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
@@ -534,7 +534,7 @@ func osProfileSchema() *pluginsdk.Schema {
 														Type:         pluginsdk.TypeString,
 														Required:     true,
 														ForceNew:     true,
-														ValidateFunc: keyVaultValidate.NestedItemId,
+														ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny),
 													},
 												},
 											},
@@ -667,7 +667,7 @@ func osProfileSchema() *pluginsdk.Schema {
 														Type:         pluginsdk.TypeString,
 														Required:     true,
 														ForceNew:     true,
-														ValidateFunc: keyVaultValidate.NestedItemId,
+														ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny),
 													},
 
 													"store": {
@@ -712,7 +712,7 @@ func osProfileSchema() *pluginsdk.Schema {
 											Type:         pluginsdk.TypeString,
 											Optional:     true,
 											ForceNew:     true,
-											ValidateFunc: keyVaultValidate.NestedItemId,
+											ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny),
 										},
 									},
 								},

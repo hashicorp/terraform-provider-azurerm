@@ -123,8 +123,6 @@ The following arguments are supported:
 
 * `vm_sizes_profile` - (Required) One or more `vm_sizes_profile` blocks as defined below.
 
--> **Note:** If `spot_capacity` is specified, `on_demand_capacity` is not specified and `spot_capacity.0.maintain_capacity_enabled` is specified as to `false`, changing `vm_sizes_profile` forces a new resource to be created.
-
 * `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below. Changing this forces a new resource to be created.
 
 * `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
@@ -184,6 +182,8 @@ A `virtual_machine_profile` block supports the following:
 * `source_image_id` - (Optional) The ID of an image which each virtual machine in the Compute Fleet should be based on. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s. Changing this forces a new resource to be created.
 
 * `source_image_reference` - (Optional) A `source_image_reference` block as defined above. Changing this forces a new resource to be created.
+
+~> **Note:** Only one of `source_image_id` and `source_image_reference` can be set.
 
 * `user_data_base64` - (Optional) The base64-encoded User Data which should be used for the Compute Fleet. Changing this forces a new resource to be created.
 
@@ -499,7 +499,7 @@ A `vm_sizes_profile` block supports the following:
 
 * `name` - (Required) The name of the virtual machine size.
 
-* `rank` - (Optional) The rank of the virtual machine size.
+* `rank` - (Optional) The rank of the virtual machine size. This can only be set when `on_demand_capacity.0.allocation_strategy` is `Prioritized`.
 
 ---
 
