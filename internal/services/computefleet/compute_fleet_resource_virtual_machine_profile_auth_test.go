@@ -97,10 +97,10 @@ resource "azurerm_compute_fleet" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
-  spot_priority_profile {
-    min_capacity              = 1
+  spot_capacity {
+    minimum_capacity          = 1
     maintain_capacity_enabled = false
-    capacity                  = 1
+    target_capacity           = 1
   }
 
   vm_sizes_profile {
@@ -154,10 +154,10 @@ resource "azurerm_compute_fleet" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
-  spot_priority_profile {
-    min_capacity              = 1
+  spot_capacity {
+    minimum_capacity          = 1
     maintain_capacity_enabled = false
-    capacity                  = 1
+    target_capacity           = 1
   }
 
   vm_sizes_profile {
@@ -210,10 +210,10 @@ resource "azurerm_compute_fleet" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
-  spot_priority_profile {
-    min_capacity              = 1
+  spot_capacity {
+    minimum_capacity          = 1
     maintain_capacity_enabled = false
-    capacity                  = 1
+    target_capacity           = 1
   }
 
   vm_sizes_profile {
@@ -265,10 +265,10 @@ resource "azurerm_compute_fleet" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
-  spot_priority_profile {
-    min_capacity              = 1
+  spot_capacity {
+    minimum_capacity          = 1
     maintain_capacity_enabled = false
-    capacity                  = 1
+    target_capacity           = 1
   }
 
   vm_sizes_profile {
@@ -322,10 +322,10 @@ resource "azurerm_compute_fleet" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
-  spot_priority_profile {
-    min_capacity              = 1
+  spot_capacity {
+    minimum_capacity          = 1
     maintain_capacity_enabled = false
-    capacity                  = 1
+    target_capacity           = 1
   }
 
   vm_sizes_profile {

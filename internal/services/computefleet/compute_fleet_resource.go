@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurefleet/2024-11-01/fleets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -32,8 +33,8 @@ type ComputeFleetResourceModel struct {
 	VirtualMachineProfile    []VirtualMachineProfileModel               `tfschema:"virtual_machine_profile"`
 	ComputeApiVersion        string                                     `tfschema:"compute_api_version"`
 	PlatformFaultDomainCount int64                                      `tfschema:"platform_fault_domain_count"`
-	RegularPriorityProfile   []RegularPriorityProfileModel              `tfschema:"regular_priority_profile"`
-	SpotPriorityProfile      []SpotPriorityProfileModel                 `tfschema:"spot_priority_profile"`
+	OnDemandCapacity         []OnDemandCapacityModel                    `tfschema:"on_demand_capacity"`
+	SpotCapacity             []SpotCapacityModel                        `tfschema:"spot_capacity"`
 	UniqueId                 string                                     `tfschema:"unique_id"`
 	VMSizesProfile           []VMSizeProfileModel                       `tfschema:"vm_sizes_profile"`
 	Tags                     map[string]string                          `tfschema:"tags"`
@@ -235,19 +236,19 @@ type PlanModel struct {
 	Publisher     string `tfschema:"publisher"`
 }
 
-type RegularPriorityProfileModel struct {
-	AllocationStrategy string `tfschema:"allocation_strategy"`
-	Capacity           int64  `tfschema:"capacity"`
-	MinCapacity        int64  `tfschema:"min_capacity"`
+type OnDemandCapacityModel struct {
+	AllocationStrategy      string `tfschema:"allocation_strategy"`
+	TargetCapacity          int64  `tfschema:"target_capacity"`
+	MinimumStartingCapacity int64  `tfschema:"minimum_starting_capacity"`
 }
 
-type SpotPriorityProfileModel struct {
+type SpotCapacityModel struct {
 	AllocationStrategy      string  `tfschema:"allocation_strategy"`
-	Capacity                int64   `tfschema:"capacity"`
+	TargetCapacity          int64   `tfschema:"target_capacity"`
 	EvictionPolicy          string  `tfschema:"eviction_policy"`
 	MaintainCapacityEnabled bool    `tfschema:"maintain_capacity_enabled"`
 	MaxHourlyPricePerVM     float64 `tfschema:"max_hourly_price_per_vm"`
-	MinCapacity             int64   `tfschema:"min_capacity"`
+	MinimumCapacity         int64   `tfschema:"minimum_capacity"`
 }
 
 type VMSizeProfileModel struct {
@@ -433,6 +434,9 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 		"vm_sizes_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			MinItems: 1,
+			// In Azure portal, maximum number of items is 15 while in Azure REST API, it is 10
+			// Leaving `MaxItems` as 15 while confirming with service team whether the limit can be fixed
 			MaxItems: 15,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -443,8 +447,9 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"rank": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(0),
 					},
 				},
 			},
@@ -520,8 +525,9 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 		"compute_api_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// NOTE: O+C Azure generates a value if not specified
+			// NOTE: O+C When creating new resource without providing this property, Azure will return a default value. As the default value is not documented anywhere, user experience will be poor to make this a `Required` property
 			Computed: true,
+			// This property is tested to be non-updatable
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^\d{4}-\d{2}-\d{2}(-preview)?$`),
@@ -531,14 +537,14 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
-		"regular_priority_profile": {
+		"on_demand_capacity": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MaxItems:     1,
-			AtLeastOneOf: []string{"regular_priority_profile", "spot_priority_profile"},
+			AtLeastOneOf: []string{"on_demand_capacity", "spot_capacity"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"capacity": {
+					"target_capacity": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 10000),
@@ -547,14 +553,12 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 					"allocation_strategy": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ForceNew:     true,
 						Default:      string(fleets.RegularPriorityAllocationStrategyLowestPrice),
 						ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForRegularPriorityAllocationStrategy(), false),
 					},
 
-					"min_capacity": {
+					"minimum_starting_capacity": {
 						Type:         pluginsdk.TypeInt,
-						ForceNew:     true,
 						Optional:     true,
 						Default:      0,
 						ValidateFunc: validation.IntAtLeast(0),
@@ -563,29 +567,30 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"spot_priority_profile": {
+		"spot_capacity": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MaxItems:     1,
-			AtLeastOneOf: []string{"regular_priority_profile", "spot_priority_profile"},
+			AtLeastOneOf: []string{"on_demand_capacity", "spot_capacity"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"capacity": {
+					// `maintain_capacity_enabled` is `Required` as multiple properties depend on its value
+					// `maintain_capacity_enabled` can be `true` using Azure REST API even if less than 3 `vm_sizes_profile` blocks are defined, which is different from Azure portal behavior
+					// `vm_sizes_profile` can be updated in Azure portal even if `maintain_capacity_enabled` is `false`
+					"maintain_capacity_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+
+					"target_capacity": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 10000),
 					},
 
-					"maintain_capacity_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-						ForceNew: true,
-					},
-
 					"allocation_strategy": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ForceNew:     true,
 						Default:      string(fleets.SpotAllocationStrategyPriceCapacityOptimized),
 						ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForSpotAllocationStrategy(), false),
 					},
@@ -593,7 +598,6 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 					"eviction_policy": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ForceNew:     true,
 						Default:      string(fleets.EvictionPolicyDelete),
 						ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForEvictionPolicy(), false),
 					},
@@ -601,15 +605,13 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 					"max_hourly_price_per_vm": {
 						Type:         pluginsdk.TypeFloat,
 						Optional:     true,
-						ForceNew:     true,
 						Default:      -1,
 						ValidateFunc: computeValidate.SpotMaxPrice,
 					},
 
-					"min_capacity": {
+					"minimum_capacity": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ForceNew:     true,
 						Default:      0,
 						ValidateFunc: validation.IntAtLeast(0),
 					},
@@ -657,9 +659,9 @@ func (r ComputeFleetResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Plan:     expandPlanModel(model.Plan),
 				Properties: &fleets.FleetProperties{
-					RegularPriorityProfile: expandRegularPriorityProfileModel(model.RegularPriorityProfile),
-					SpotPriorityProfile:    expandSpotPriorityProfileModel(model.SpotPriorityProfile),
-					VMSizesProfile:         pointer.From(expandVMSizeProfileModel(model.VMSizesProfile)),
+					RegularPriorityProfile: expandOnDemandCapacityModel(model.OnDemandCapacity),
+					SpotPriorityProfile:    expandSpotCapacityModel(model.SpotCapacity),
+					VMSizesProfile:         pointer.From(expandVMSizeProfileModel(model.VMSizesProfile, metadata)),
 				},
 			}
 
@@ -757,16 +759,16 @@ func (r ComputeFleetResource) Update() sdk.ResourceFunc {
 				properties.Plan = expandPlanModel(model.Plan)
 			}
 
-			if metadata.ResourceData.HasChange("regular_priority_profile") {
-				properties.Properties.RegularPriorityProfile = expandRegularPriorityProfileModel(model.RegularPriorityProfile)
+			if metadata.ResourceData.HasChange("on_demand_capacity") {
+				properties.Properties.RegularPriorityProfile = expandOnDemandCapacityModel(model.OnDemandCapacity)
 			}
 
-			if metadata.ResourceData.HasChange("spot_priority_profile") {
-				properties.Properties.SpotPriorityProfile = expandSpotPriorityProfileModel(model.SpotPriorityProfile)
+			if metadata.ResourceData.HasChange("spot_capacity") {
+				properties.Properties.SpotPriorityProfile = expandSpotCapacityModel(model.SpotCapacity)
 			}
 
 			if metadata.ResourceData.HasChange("vm_sizes_profile") {
-				properties.Properties.VMSizesProfile = pointer.From(expandVMSizeProfileModel(model.VMSizesProfile))
+				properties.Properties.VMSizesProfile = pointer.From(expandVMSizeProfileModel(model.VMSizesProfile, metadata))
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -831,8 +833,8 @@ func (r ComputeFleetResource) Read() sdk.ResourceFunc {
 
 					state.ComputeApiVersion = pointer.From(props.ComputeProfile.ComputeApiVersion)
 					state.PlatformFaultDomainCount = pointer.From(props.ComputeProfile.PlatformFaultDomainCount)
-					state.RegularPriorityProfile = flattenRegularPriorityProfileModel(props.RegularPriorityProfile)
-					state.SpotPriorityProfile = flattenSpotPriorityProfileModel(props.SpotPriorityProfile)
+					state.OnDemandCapacity = flattenOnDemandCapacityModel(props.RegularPriorityProfile)
+					state.SpotCapacity = flattenSpotCapacityModel(props.SpotPriorityProfile)
 					state.UniqueId = pointer.From(props.UniqueId)
 					state.VMSizesProfile = flattenVMSizeProfileModel(&props.VMSizesProfile)
 				}
@@ -881,43 +883,78 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if len(state.SpotPriorityProfile) > 0 && len(state.RegularPriorityProfile) > 0 {
-				if state.SpotPriorityProfile[0].Capacity+state.RegularPriorityProfile[0].Capacity > 10000 {
-					return errors.New("the sum of `spot_priority_profile.0.capacity` and `regular_priority_profile.0.capacity` must be between `0` and `10000`, inclusive")
+			if len(state.SpotCapacity) > 0 && len(state.OnDemandCapacity) > 0 {
+				if state.SpotCapacity[0].TargetCapacity+state.OnDemandCapacity[0].TargetCapacity > 10000 {
+					return errors.New("the sum of `spot_capacity.0.target_capacity` and `on_demand_capacity.0.target_capacity` must be between `0` and `10000`, inclusive")
 				}
 			}
 
-			if len(state.SpotPriorityProfile) > 0 {
-				if state.SpotPriorityProfile[0].MaintainCapacityEnabled {
-					if state.SpotPriorityProfile[0].MinCapacity > 0 {
-						return errors.New("`spot_priority_profile.0.min_capacity` is unable to be specified if `spot_priority_profile.0.maintain_capacity_enabled` is enabled")
+			if len(state.SpotCapacity) > 0 {
+				if state.SpotCapacity[0].MaintainCapacityEnabled {
+					if state.SpotCapacity[0].MinimumCapacity > 0 {
+						return errors.New("`spot_capacity.0.minimum_capacity` is unable to be specified if `spot_capacity.0.maintain_capacity_enabled` is enabled")
 					}
 
 					if len(state.VMSizesProfile) < 3 {
-						return errors.New("`vm_sizes_profile` must be at least 3 Vm sizes if `spot_priority_profile.0.maintain_capacity_enabled` is enabled")
+						return errors.New("`vm_sizes_profile` must be at least 3 Vm sizes if `spot_capacity.0.maintain_capacity_enabled` is enabled")
 					}
 
 					if len(state.Zones) == 0 {
-						return errors.New("enabling `spot_priority_profile.0.maintain_capacity_enabled` requires all qualified availability zones in the region to be supported")
-					}
-				} else if len(state.RegularPriorityProfile) == 0 {
-					// For Spot VMs, you may delete or replace existing VM sizes in your Compute Fleet configuration, if the capacity preference is set to Maintain capacity.
-					// In all other scenarios requiring a modification to the running Compute Fleet, you may have to delete the existing Compute Fleet and create a new one.
-					if metadata.ResourceDiff.HasChange("vm_sizes_profile") {
-						if err := metadata.ResourceDiff.ForceNew("vm_sizes_profile"); err != nil {
-							return err
-						}
+						return errors.New("enabling `spot_capacity.0.maintain_capacity_enabled` requires all qualified availability zones in the region to be supported")
 					}
 				}
 
-				if state.SpotPriorityProfile[0].MinCapacity > state.SpotPriorityProfile[0].Capacity {
-					return errors.New("`spot_priority_profile.0.min_capacity` must be between `0` and `spot_priority_profile.0.capacity`, inclusive")
+				if state.SpotCapacity[0].MinimumCapacity > state.SpotCapacity[0].TargetCapacity {
+					return errors.New("`spot_capacity.0.minimum_capacity` must be between `0` and `spot_capacity.0.target_capacity`, inclusive")
 				}
 			}
 
-			if len(state.RegularPriorityProfile) > 0 {
-				if state.RegularPriorityProfile[0].MinCapacity > state.RegularPriorityProfile[0].Capacity {
-					return errors.New("`regular_priority_profile.0.min_capacity` must be between `0` and `regular_priority_profile.0.capacity`, inclusive")
+			// Relax `ForceNew` behavior of `spot_capacity` properties to allow updating resource from without to with `spot_capacity` properties
+			// Apart from this, other changes are not allowed
+			forceNewSpotCapacityProperties := []string{
+				"maintain_capacity_enabled",
+				"allocation_strategy",
+				"eviction_policy",
+				"max_hourly_price_per_vm",
+				"minimum_capacity",
+			}
+			oldSpotCapacity, _ := metadata.ResourceDiff.GetChange("spot_capacity")
+			if len(oldSpotCapacity.([]interface{})) > 0 {
+				if len(state.SpotCapacity) == 0 {
+					metadata.ResourceDiff.ForceNew("spot_capacity")
+				}
+
+				for _, spotCapacityProperty := range forceNewSpotCapacityProperties {
+					spotCapacityProperty = fmt.Sprintf("spot_capacity.0.%s", spotCapacityProperty)
+					if metadata.ResourceDiff.HasChange(spotCapacityProperty) {
+						metadata.ResourceDiff.ForceNew(spotCapacityProperty)
+					}
+				}
+			}
+
+			if len(state.OnDemandCapacity) > 0 {
+				if state.OnDemandCapacity[0].MinimumStartingCapacity > state.OnDemandCapacity[0].TargetCapacity {
+					return errors.New("`on_demand_capacity.0.minimum_starting_capacity` must be between `0` and `on_demand_capacity.0.target_capacity`, inclusive")
+				}
+			}
+
+			// Relax `ForceNew` behavior of `on_demand_capacity` properties to allow updating resource from without to with `on_demand_capacity` properties
+			// Apart from this, other changes are not allowed
+			forceNewOnDemandCapacityProperties := []string{
+				"allocation_strategy",
+				"minimum_starting_capacity",
+			}
+			oldOnDemandCapacity, _ := metadata.ResourceDiff.GetChange("on_demand_capacity")
+			if len(oldOnDemandCapacity.([]interface{})) > 0 {
+				if len(state.OnDemandCapacity) == 0 {
+					metadata.ResourceDiff.ForceNew("on_demand_capacity")
+				}
+
+				for _, onDemandCapacityProperty := range forceNewOnDemandCapacityProperties {
+					onDemandCapacityProperty = fmt.Sprintf("on_demand_capacity.0.%s", onDemandCapacityProperty)
+					if metadata.ResourceDiff.HasChange(onDemandCapacityProperty) {
+						metadata.ResourceDiff.ForceNew(onDemandCapacityProperty)
+					}
 				}
 			}
 
@@ -951,13 +988,23 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			for i, vmSizesProfile := range state.VMSizesProfile {
-				if !metadata.ResourceDiff.GetRawConfig().AsValueMap()["vm_sizes_profile"].AsValueSlice()[i].AsValueMap()["rank"].IsNull() && (len(state.RegularPriorityProfile) == 0 || state.RegularPriorityProfile[0].AllocationStrategy != string(fleets.RegularPriorityAllocationStrategyPrioritized)) {
-					return errors.New("`regular_priority_profile` should be specified with `allocation_strategy` equal to `Prioritized` when `virtual_machine_profile.0.vm_sizes_profile.#.rank` is specified")
+				if !metadata.ResourceDiff.GetRawConfig().AsValueMap()["vm_sizes_profile"].AsValueSlice()[i].AsValueMap()["rank"].IsNull() && (len(state.OnDemandCapacity) == 0 || state.OnDemandCapacity[0].AllocationStrategy != string(fleets.RegularPriorityAllocationStrategyPrioritized)) {
+					return errors.New("`on_demand_capacity` should be specified with `allocation_strategy` equal to `Prioritized` when `virtual_machine_profile.0.vm_sizes_profile.#.rank` is specified")
 				}
 
 				if vmSizesProfile.Rank >= int64(len(state.VMSizesProfile)) {
 					return fmt.Errorf("`virtual_machine_profile.0.vm_sizes_profile.%d.rank` must be less than the number of `vm_sizes_profile` blocks", i)
 				}
+			}
+
+			vmSizesProfileNames := make([]interface{}, len(state.VMSizesProfile))
+			for i, v := range state.VMSizesProfile {
+				vmSizesProfileNames[i] = v.Name
+			}
+
+			vmSizesProfileNamesWithoutDuplicate := schema.NewSet(pluginsdk.HashString, vmSizesProfileNames)
+			if len(state.VMSizesProfile) > vmSizesProfileNamesWithoutDuplicate.Len() {
+				return errors.New("`virtual_machine_profile.0.vm_sizes_profile` blocks with duplicated `name` are not allowed")
 			}
 
 			err := validateSecuritySetting(state.VirtualMachineProfile)
@@ -1009,21 +1056,21 @@ func expandPlanModel(inputList []PlanModel) *fleets.Plan {
 	return &output
 }
 
-func expandRegularPriorityProfileModel(inputList []RegularPriorityProfileModel) *fleets.RegularPriorityProfile {
+func expandOnDemandCapacityModel(inputList []OnDemandCapacityModel) *fleets.RegularPriorityProfile {
 	if len(inputList) == 0 {
 		return nil
 	}
 	input := &inputList[0]
 	output := fleets.RegularPriorityProfile{
 		AllocationStrategy: pointer.To(fleets.RegularPriorityAllocationStrategy(input.AllocationStrategy)),
-		Capacity:           pointer.To(input.Capacity),
-		MinCapacity:        pointer.To(input.MinCapacity),
+		Capacity:           pointer.To(input.TargetCapacity),
+		MinCapacity:        pointer.To(input.MinimumStartingCapacity),
 	}
 
 	return &output
 }
 
-func expandSpotPriorityProfileModel(inputList []SpotPriorityProfileModel) *fleets.SpotPriorityProfile {
+func expandSpotCapacityModel(inputList []SpotCapacityModel) *fleets.SpotPriorityProfile {
 	if len(inputList) == 0 {
 		return nil
 	}
@@ -1031,10 +1078,10 @@ func expandSpotPriorityProfileModel(inputList []SpotPriorityProfileModel) *fleet
 	input := &inputList[0]
 	output := fleets.SpotPriorityProfile{
 		AllocationStrategy: pointer.To(fleets.SpotAllocationStrategy(input.AllocationStrategy)),
-		Capacity:           pointer.To(input.Capacity),
+		Capacity:           pointer.To(input.TargetCapacity),
 		EvictionPolicy:     pointer.To(fleets.EvictionPolicy(input.EvictionPolicy)),
 		Maintain:           pointer.To(input.MaintainCapacityEnabled),
-		MinCapacity:        pointer.To(input.MinCapacity),
+		MinCapacity:        pointer.To(input.MinimumCapacity),
 	}
 
 	if input.MaxHourlyPricePerVM > 0 || input.MaxHourlyPricePerVM == -1 {
@@ -1043,18 +1090,18 @@ func expandSpotPriorityProfileModel(inputList []SpotPriorityProfileModel) *fleet
 	return &output
 }
 
-func expandVMSizeProfileModel(inputList []VMSizeProfileModel) *[]fleets.VMSizeProfile {
+func expandVMSizeProfileModel(inputList []VMSizeProfileModel, metadata sdk.ResourceMetaData) *[]fleets.VMSizeProfile {
 	if len(inputList) == 0 {
 		return nil
 	}
 
 	outputList := make([]fleets.VMSizeProfile, 0)
-	for _, v := range inputList {
+	for i, v := range inputList {
 		input := v
 		output := fleets.VMSizeProfile{
 			Name: input.Name,
 		}
-		if input.Rank > 0 {
+		if !metadata.ResourceData.GetRawConfig().AsValueMap()["vm_sizes_profile"].AsValueSlice()[i].AsValueMap()["rank"].IsNull() {
 			output.Rank = pointer.To(input.Rank)
 		}
 		outputList = append(outputList, output)
@@ -1103,33 +1150,33 @@ func flattenAdditionalCapabilities(input *fleets.AdditionalCapabilities) []Addit
 	return append(outputList, output)
 }
 
-func flattenRegularPriorityProfileModel(input *fleets.RegularPriorityProfile) []RegularPriorityProfileModel {
-	outputList := make([]RegularPriorityProfileModel, 0)
+func flattenOnDemandCapacityModel(input *fleets.RegularPriorityProfile) []OnDemandCapacityModel {
+	outputList := make([]OnDemandCapacityModel, 0)
 	if input == nil {
 		return outputList
 	}
 
-	output := RegularPriorityProfileModel{
-		AllocationStrategy: string(pointer.From(input.AllocationStrategy)),
-		Capacity:           pointer.From(input.Capacity),
-		MinCapacity:        pointer.From(input.MinCapacity),
+	output := OnDemandCapacityModel{
+		AllocationStrategy:      string(pointer.From(input.AllocationStrategy)),
+		TargetCapacity:          pointer.From(input.Capacity),
+		MinimumStartingCapacity: pointer.From(input.MinCapacity),
 	}
 
 	return append(outputList, output)
 }
 
-func flattenSpotPriorityProfileModel(input *fleets.SpotPriorityProfile) []SpotPriorityProfileModel {
-	outputList := make([]SpotPriorityProfileModel, 0)
+func flattenSpotCapacityModel(input *fleets.SpotPriorityProfile) []SpotCapacityModel {
+	outputList := make([]SpotCapacityModel, 0)
 	if input == nil {
 		return outputList
 	}
 
-	output := SpotPriorityProfileModel{
+	output := SpotCapacityModel{
 		AllocationStrategy:      string(pointer.From(input.AllocationStrategy)),
-		Capacity:                pointer.From(input.Capacity),
+		TargetCapacity:          pointer.From(input.Capacity),
 		EvictionPolicy:          string(pointer.From(input.EvictionPolicy)),
 		MaintainCapacityEnabled: pointer.From(input.Maintain),
-		MinCapacity:             pointer.From(input.MinCapacity),
+		MinimumCapacity:         pointer.From(input.MinCapacity),
 	}
 
 	// defaulted since MaxHourlyPricePerVM isn't returned if it's unset

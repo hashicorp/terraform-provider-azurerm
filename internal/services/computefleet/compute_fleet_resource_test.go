@@ -183,9 +183,9 @@ resource "azurerm_compute_fleet" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
-  spot_priority_profile {
+  spot_capacity {
     maintain_capacity_enabled = false
-    capacity                  = 1
+    target_capacity           = 1
   }
 
   vm_sizes_profile {
@@ -230,9 +230,9 @@ resource "azurerm_compute_fleet" "import" {
   resource_group_name = azurerm_compute_fleet.test.resource_group_name
   location            = azurerm_compute_fleet.test.location
 
-  spot_priority_profile {
+  spot_capacity {
     maintain_capacity_enabled = false
-    capacity                  = 1
+    target_capacity           = 1
   }
 
   vm_sizes_profile {
@@ -309,19 +309,19 @@ resource "azurerm_compute_fleet" "test" {
     promotion_code = "test"
   }
 
-  spot_priority_profile {
+  spot_capacity {
     allocation_strategy       = "PriceCapacityOptimized"
     eviction_policy           = "Delete"
     max_hourly_price_per_vm   = -1
-    min_capacity              = 0
+    minimum_capacity          = 0
     maintain_capacity_enabled = true
-    capacity                  = 1
+    target_capacity           = 1
   }
 
-  regular_priority_profile {
-    allocation_strategy = "Prioritized"
-    capacity            = 1
-    min_capacity        = 0
+  on_demand_capacity {
+    allocation_strategy       = "Prioritized"
+    target_capacity           = 1
+    minimum_starting_capacity = 0
   }
 
   vm_sizes_profile {
@@ -436,19 +436,19 @@ resource "azurerm_compute_fleet" "test" {
     promotion_code = "test"
   }
 
-  spot_priority_profile {
+  spot_capacity {
     allocation_strategy       = "PriceCapacityOptimized"
     eviction_policy           = "Delete"
     max_hourly_price_per_vm   = -1
-    min_capacity              = 0
+    minimum_capacity          = 0
     maintain_capacity_enabled = true
-    capacity                  = 0
+    target_capacity           = 0
   }
 
-  regular_priority_profile {
-    allocation_strategy = "Prioritized"
-    capacity            = 2
-    min_capacity        = 0
+  on_demand_capacity {
+    allocation_strategy       = "Prioritized"
+    target_capacity           = 2
+    minimum_starting_capacity = 0
   }
 
   vm_sizes_profile {

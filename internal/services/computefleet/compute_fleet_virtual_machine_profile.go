@@ -33,7 +33,7 @@ func galleryApplicationSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		ForceNew: true,
-		MaxItems: 100,
+		MaxItems: 25,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"version_id": {
@@ -199,6 +199,7 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		ForceNew: true,
+		MaxItems: 8,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -222,7 +223,6 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// NOTE: because there is a `None` value in the possible values, it's handled in the Create/Update and Read functions.
 						string(fleets.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
 						string(fleets.NetworkInterfaceAuxiliaryModeFloating),
 					}, false),
@@ -233,7 +233,6 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// NOTE: because there is a `None` value in the possible values, it's handled in the Create/Update and Read functions.
 						string(fleets.NetworkInterfaceAuxiliarySkuATwo),
 						string(fleets.NetworkInterfaceAuxiliarySkuAFour),
 						string(fleets.NetworkInterfaceAuxiliarySkuAEight),
@@ -748,7 +747,6 @@ func storageProfileDataDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// NOTE: because there is a `None` value in the possible values, it's handled in the Create/Update and Read functions.
 						string(fleets.CachingTypesReadOnly),
 						string(fleets.CachingTypesReadWrite),
 					}, false),
@@ -814,7 +812,6 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// NOTE: because there is a `None` value in the possible values, it's handled in the Create/Update and Read functions.
 						string(fleets.CachingTypesReadOnly),
 						string(fleets.CachingTypesReadWrite),
 					}, false),

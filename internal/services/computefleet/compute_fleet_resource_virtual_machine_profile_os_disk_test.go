@@ -46,6 +46,7 @@ func TestAccComputeFleet_virtualMachineProfileOsDisk_complete(t *testing.T) {
 func (r ComputeFleetTestResource) osDiskBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_compute_fleet" "test" {
@@ -54,10 +55,10 @@ resource "azurerm_compute_fleet" "test" {
   location                    = "%[3]s"
   platform_fault_domain_count = 1
 
-  spot_priority_profile {
-    min_capacity              = 0
+  spot_capacity {
+    minimum_capacity          = 0
     maintain_capacity_enabled = false
-    capacity                  = 1
+    target_capacity           = 1
   }
 
   vm_sizes_profile {
@@ -118,10 +119,10 @@ resource "azurerm_compute_fleet" "test" {
   location                    = "%[4]s"
   platform_fault_domain_count = 1
 
-  spot_priority_profile {
-    min_capacity              = 0
+  spot_capacity {
+    minimum_capacity          = 0
     maintain_capacity_enabled = false
-    capacity                  = 1
+    target_capacity           = 1
   }
 
   vm_sizes_profile {

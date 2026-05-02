@@ -63,10 +63,10 @@ resource "azurerm_compute_fleet" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  spot_priority_profile {
-    min_capacity              = 0
+  spot_capacity {
+    minimum_capacity          = 0
     maintain_capacity_enabled = false
-    capacity                  = 1
+    target_capacity           = 1
   }
 
   vm_sizes_profile {
@@ -123,7 +123,7 @@ The following arguments are supported:
 
 * `vm_sizes_profile` - (Required) One or more `vm_sizes_profile` blocks as defined below.
 
--> **Note:** If `spot_priority_profile` is specified, `regular_priority_profile` is not specified and `spot_priority_profile.0.maintain_capacity_enabled` is specified as to `false`, changing `vm_sizes_profile` forces a new resource to be created.
+-> **Note:** If `spot_capacity` is specified, `on_demand_capacity` is not specified and `spot_capacity.0.maintain_capacity_enabled` is specified as to `false`, changing `vm_sizes_profile` forces a new resource to be created.
 
 * `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below. Changing this forces a new resource to be created.
 
@@ -133,13 +133,13 @@ The following arguments are supported:
 
 * `zones` - (Optional) Specifies a list of availability zones in which the Compute Fleet is available. Changing this forces a new resource to be created.
 
-* `compute_api_version` - (Optional) Specifies the `Microsoft.Compute` API version to use when creating the Compute Fleet. Changing this forces a new resource to be created.
+* `compute_api_version` - (Optional) Specifies the `Microsoft.Compute` API version to use when creating the Compute Fleet. Defaults to latest supported API version if not provided. Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `regular_priority_profile` - (Optional) A `regular_priority_profile` block as defined below.
+* `on_demand_capacity` - (Optional) A `on_demand_capacity` block as defined below.
 
-* `spot_priority_profile` - (Optional) A `spot_priority_profile` block as defined below.
+* `spot_capacity` - (Optional) A `spot_capacity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Compute Fleet.
 
@@ -447,13 +447,13 @@ A `public_ip_address` block supports the following:
 
 ---
 
-A `regular_priority_profile` block supports the following:
+A `on_demand_capacity` block supports the following:
 
-* `capacity` - (Required) The total number of the standard virtual machines in the Compute Fleet.
+* `target_capacity` - (Required) The total number of the standard virtual machines in the Compute Fleet.
 
 * `allocation_strategy` - (Optional) Specifies the allocation strategy for the Compute Fleet on which the standard virtual machines will be allocated. Defaults to `LowestPrice`. Possible values are `LowestPrice` and `Prioritized`. Changing this forces a new resource to be created.
 
-* `min_capacity` - (Optional) The minimum number of standard virtual machines in the Compute Fleet. Defaults to `0`. Changing this forces a new resource to be created.
+* `minimum_starting_capacity` - (Optional) The minimum number of standard virtual machines in the Compute Fleet. Defaults to `0`. Changing this forces a new resource to be created.
 
 ---
 
@@ -477,11 +477,11 @@ A `source_image_reference` block supports the following:
 
 ---
 
-A `spot_priority_profile` block supports the following:
-
-* `capacity` - (Required) The total number of the spot virtual machines in the Compute Fleet.
+A `spot_capacity` block supports the following:
 
 * `maintain_capacity_enabled` - (Required) Whether to enable the continuous goal seeking for the desired capacity and restoration of evicted spot virtual machines. Changing this forces a new resource to be created.
+
+* `target_capacity` - (Required) The total number of the spot virtual machines in the Compute Fleet.
 
 * `allocation_strategy` - (Optional) Specifies the allocation strategy for the Compute Fleet on which the Azure spot virtual machines will be allocated. Defaults to `PriceCapacityOptimized`. Possible values are `LowestPrice`, `PriceCapacityOptimized`, `CapacityOptimized`. Changing this forces a new resource to be created.
 
@@ -491,7 +491,7 @@ A `spot_priority_profile` block supports the following:
 
 -> **Note:** A value of `-1` indicates that the Azure Spot VM will not be evicted due to price changes.
 
-* `min_capacity` - (Optional) The minimum number of spot virtual machines in the Compute Fleet. Defaults to `0`. Changing this forces a new resource to be created.
+* `minimum_capacity` - (Optional) The minimum number of spot virtual machines in the Compute Fleet. Defaults to `0`. Changing this forces a new resource to be created.
 
 ---
 

@@ -241,9 +241,9 @@ resource "azurerm_compute_fleet" "test" {
   location            = "%[3]s"
   compute_api_version = "2024-03-01"
 
-  regular_priority_profile {
-    capacity     = 1
-    min_capacity = 1
+  on_demand_capacity {
+    target_capacity           = 1
+    minimum_starting_capacity = 1
   }
 
   vm_sizes_profile {
@@ -309,9 +309,9 @@ resource "azurerm_compute_fleet" "image_id" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
-  regular_priority_profile {
-    capacity     = 1
-    min_capacity = 1
+  on_demand_capacity {
+    target_capacity           = 1
+    minimum_starting_capacity = 1
   }
 
   vm_sizes_profile {
@@ -408,9 +408,9 @@ resource "azurerm_compute_fleet" "image_id" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
-  regular_priority_profile {
-    capacity     = 1
-    min_capacity = 1
+  on_demand_capacity {
+    target_capacity           = 1
+    minimum_starting_capacity = 1
   }
   vm_sizes_profile {
     name = "Standard_D2as_v5"
@@ -508,9 +508,9 @@ resource "azurerm_compute_fleet" "image_id" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
-  regular_priority_profile {
-    capacity     = 1
-    min_capacity = 1
+  on_demand_capacity {
+    target_capacity           = 1
+    minimum_starting_capacity = 1
   }
 
   vm_sizes_profile {
@@ -616,9 +616,9 @@ resource "azurerm_compute_fleet" "image_id" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
-  regular_priority_profile {
-    capacity     = 1
-    min_capacity = 1
+  on_demand_capacity {
+    target_capacity           = 1
+    minimum_starting_capacity = 1
   }
 
   vm_sizes_profile {
@@ -724,9 +724,9 @@ resource "azurerm_compute_fleet" "image_id" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
-  regular_priority_profile {
-    capacity     = 1
-    min_capacity = 1
+  on_demand_capacity {
+    target_capacity           = 1
+    minimum_starting_capacity = 1
   }
 
   vm_sizes_profile {
