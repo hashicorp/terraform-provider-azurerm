@@ -17,7 +17,7 @@ func TestRemoveDuplicatesInStringArray(t *testing.T) {
 		{
 			Name:   "contain duplicates",
 			Input:  []string{"string1", "string2", "string1", "string3", ""},
-			Result: []string{"string1", "string2", "string3", "", "SHOULD_FAIL"},
+			Result: []string{"string1", "string2", "string3", ""},
 		},
 		{
 			Name:   "does not contain duplicates",
