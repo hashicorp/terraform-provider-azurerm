@@ -134,7 +134,7 @@ jobs:
               console.log(`No existing unified comment found for commit ${shortSha} — creating new one`);
 
               const body = `<b>${marker}</b>\n\n` +
-                `1 build has failed and needs to be addressed:\n\n` +
+                `1 job has failed and needs to be addressed:\n\n` +
                 failureLine +
                 footer;
 
@@ -157,11 +157,11 @@ jobs:
               ).length;
 
               const counterText = activeFailures === totalFailures
-                ? `${activeFailures} build${activeFailures === 1 ? ' has' : 's have'} failed and need${activeFailures === 1 ? 's' : ''} to be addressed:`
-                : `${activeFailures}/${totalFailures} builds still failing:`;
+                ? `${activeFailures} job${activeFailures === 1 ? ' has' : 's have'} failed and need${activeFailures === 1 ? 's' : ''} to be addressed:`
+                : `${activeFailures}/${totalFailures} jobs still failing:`;
 
               console.log(`Counter update: ${activeFailures} active / ${totalFailures} total → "${counterText}"`);
 
               // Replace the counter line
-              return body.replace(/^(?:\d+(?:\/\d+)?\s+build.*:|All builds have been fixed.*$)/m, counterText);
+              return body.replace(/^(?:\d+(?:\/\d+)?\s+job.*:|All jobs have been fixed.*$)/m, counterText);
             }

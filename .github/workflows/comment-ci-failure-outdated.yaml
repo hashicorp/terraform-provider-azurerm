@@ -153,16 +153,16 @@ jobs:
             // Update counter line
             let body;
             if (activeFailures === 0) {
-              console.log(`All failures resolved — updating counter to "All builds have been fixed!"`);
+              console.log(`All failures resolved — updating counter to "All jobs have been fixed!"`);
               body = updatedLines.join('\n').replace(
-                /^(?:\d+(?:\/\d+)?\s+build.*:|All builds have been fixed.*$)/m,
-                `All builds have been fixed! ✅`
+                /^(?:\d+(?:\/\d+)?\s+job.*:|All jobs have been fixed.*$)/m,
+                `All jobs have been fixed! ✅`
               );
             } else {
-              const counterText = `${activeFailures}/${totalFailures} builds still failing:`;
+              const counterText = `${activeFailures}/${totalFailures} jobs still failing:`;
               console.log(`Updating counter to "${counterText}"`);
               body = updatedLines.join('\n').replace(
-                /^(?:\d+(?:\/\d+)?\s+build.*:|All builds have been fixed.*$)/m,
+                /^(?:\d+(?:\/\d+)?\s+job.*:|All jobs have been fixed.*$)/m,
                 counterText
               );
             }
