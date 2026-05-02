@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -166,7 +166,7 @@ func extensionSchema() *pluginsdk.Schema {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ForceNew:     true,
-								ValidateFunc: validate.NestedItemId,
+								ValidateFunc: keyVaultNestedItemId,
 							},
 
 							"source_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
@@ -534,7 +534,7 @@ func osProfileSchema() *pluginsdk.Schema {
 														Type:         pluginsdk.TypeString,
 														Required:     true,
 														ForceNew:     true,
-														ValidateFunc: validate.NestedItemId,
+														ValidateFunc: keyVaultNestedItemId,
 													},
 												},
 											},
@@ -667,7 +667,7 @@ func osProfileSchema() *pluginsdk.Schema {
 														Type:         pluginsdk.TypeString,
 														Required:     true,
 														ForceNew:     true,
-														ValidateFunc: validate.NestedItemId,
+														ValidateFunc: keyVaultNestedItemId,
 													},
 
 													"store": {
@@ -712,7 +712,7 @@ func osProfileSchema() *pluginsdk.Schema {
 											Type:         pluginsdk.TypeString,
 											Optional:     true,
 											ForceNew:     true,
-											ValidateFunc: validate.NestedItemId,
+											ValidateFunc: keyVaultNestedItemId,
 										},
 									},
 								},
@@ -2462,4 +2462,24 @@ func computeFleetVirtualMachineProfileOsDiskConstraint() []string {
 		"virtual_machine_profile.0.os_disk.0.storage_account_type",
 		"virtual_machine_profile.0.os_disk.0.write_accelerator_enabled",
 	}
+}
+
+// Move `NestedItemId` function from `internal/services/keyvault/validate/nested_item_id.go` to here due to error in GitHub checks
+func keyVaultNestedItemId(i interface{}, k string) (warnings []string, errors []error) {
+	if warnings, errors = validation.StringIsNotEmpty(i, k); len(errors) > 0 {
+		return warnings, errors
+	}
+
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %s to be a string", k))
+		return warnings, errors
+	}
+
+	if _, err := keyVaultParse.ParseNestedItemID(v); err != nil {
+		errors = append(errors, fmt.Errorf("parsing %q: %s", v, err))
+		return warnings, errors
+	}
+
+	return warnings, errors
 }
