@@ -42,8 +42,8 @@ jobs:
   comment-on-fail:
     needs: website-lint
     if: ${{ failure() }}
-    uses: ./.github/workflows/comment-failure.yaml
+    uses: ./.github/workflows/comment-ci-failure.yaml
   comment-outdated-on-pass:
     needs: website-lint
     if: ${{ success() }}
-    uses: ./.github/workflows/comment-cleanup.yaml
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml

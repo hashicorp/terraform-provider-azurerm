@@ -1,0 +1,195 @@
+name: Comment CI Failure Outdated
+
+on:
+  # This file is reused, and called from other workflows
+  workflow_call:
+
+permissions:
+  pull-requests: write
+
+jobs:
+  comment-ci-failure-outdated:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Strike through fixed failure and clean up
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          result-encoding: string
+          retries: 3
+          script: |
+            const workflowName = '${{ github.workflow }}';
+            const sha = '${{ github.event.pull_request.head.sha }}';
+            const shortSha = sha.substring(0, 7);
+            const prNumber = ${{ github.event.number }};
+            const marker = `CI Build Failures for <code>${shortSha}</code>`;
+
+            console.log(`=== Comment Cleanup: "${workflowName}" ===`);
+            console.log(`PR #${prNumber}, commit ${shortSha} (${sha})`);
+
+            // Fetch all comments using GraphQL for minimize capability
+            console.log(`Fetching PR comments via GraphQL...`);
+            const query = `
+              query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    comments(first: 100, after: $cursor) {
+                      pageInfo {
+                        hasNextPage
+                        endCursor
+                      }
+                      nodes {
+                        id
+                        databaseId
+                        body
+                        isMinimized
+                        author { login }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            let cursor = null;
+            let hasNextPage = true;
+            let currentComment = null;
+            const oldComments = [];
+            let totalFetched = 0;
+            let pageCount = 0;
+
+            while (hasNextPage) {
+              pageCount++;
+              const result = await github.graphql(query, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                number: prNumber,
+                cursor: cursor
+              });
+
+              const { nodes, pageInfo } = result.repository.pullRequest.comments;
+              hasNextPage = pageInfo.hasNextPage;
+              cursor = pageInfo.endCursor;
+              totalFetched += nodes.length;
+
+              for (const comment of nodes) {
+                // GraphQL returns author.login as 'github-actions' while the REST API
+                // returns it as 'github-actions[bot]'. Using startsWith to handle both.
+                if (!comment.author.login.startsWith('github-actions')) continue;
+                if (!comment.body) continue;
+
+                if (comment.body.includes(marker)) {
+                  currentComment = comment;
+                } else if (comment.body.includes('CI Build Failures for <code>') && !comment.isMinimized) {
+                  // This is a comment for a different (older) commit SHA — minimize it
+                  oldComments.push(comment);
+                }
+              }
+            }
+
+            console.log(`Fetched ${totalFetched} comments across ${pageCount} page(s)`);
+            console.log(`Current commit comment: ${currentComment ? `found (id: ${currentComment.databaseId})` : 'not found'}`);
+            console.log(`Old commit comments to minimize: ${oldComments.length}`);
+
+            // Minimize old commit comments
+            for (const old of oldComments) {
+              console.log(`Minimizing outdated comment (id: ${old.databaseId}) for older commit...`);
+              await github.graphql(`
+                mutation($id: ID!) {
+                  minimizeComment(input: {
+                    subjectId: $id,
+                    classifier: OUTDATED
+                  }) {
+                    minimizedComment {
+                      isMinimized
+                    }
+                  }
+                }
+              `, { id: old.id });
+              console.log(`✅ Minimized outdated failure comment (id: ${old.databaseId})`);
+            }
+
+            // No comment for current commit — nothing to update
+            if (!currentComment) {
+              console.log(`✅ No unified failure comment found for commit ${shortSha} — nothing to clean up (workflow "${workflowName}" likely never failed)`);
+              return;
+            }
+
+            // Already minimized — skip
+            if (currentComment.isMinimized) {
+              console.log(`✅ Unified failure comment for ${shortSha} is already minimized — skipping`);
+              return;
+            }
+
+            // Strike through the line for this workflow
+            console.log(`Looking for active failure line for "${workflowName}"...`);
+            const lines = currentComment.body.split('\n');
+            let modified = false;
+            const updatedLines = lines.map(line => {
+              if (line.trim().startsWith('- ❌') &&
+                  line.includes(`<b>${workflowName}</b>`) &&
+                  !line.trim().startsWith('<del>')) {
+                modified = true;
+                console.log(`Found active failure line — striking through`);
+                return `<del>${line.trim()}</del>`;
+              }
+              return line;
+            });
+
+            if (!modified) {
+              console.log(`✅ No active failure line found for "${workflowName}" in comment for ${shortSha} — nothing to strike through`);
+              return;
+            }
+
+            // Count remaining active failures
+            const activeFailures = updatedLines.filter(l =>
+              l.trim().startsWith('- ❌') && !l.trim().startsWith('<del>')
+            ).length;
+            const totalFailures = updatedLines.filter(l =>
+              l.trim().startsWith('- ❌') || l.trim().startsWith('<del>- ❌')
+            ).length;
+
+            console.log(`Failure count: ${activeFailures} active / ${totalFailures} total`);
+
+            // Update counter line
+            let body;
+            if (activeFailures === 0) {
+              console.log(`All failures resolved — updating counter to "All builds have been fixed!"`);
+              body = updatedLines.join('\n').replace(
+                /^(?:\d+.*(?:failed|failing):|All builds have been fixed.*$)/m,
+                `All builds have been fixed! ✅`
+              );
+            } else {
+              const counterText = `${activeFailures}/${totalFailures} builds still failing:`;
+              console.log(`Updating counter to "${counterText}"`);
+              body = updatedLines.join('\n').replace(
+                /^(?:\d+.*(?:failed|failing):|All builds have been fixed.*$)/m,
+                counterText
+              );
+            }
+
+            // Update the comment
+            await github.rest.issues.updateComment({
+              comment_id: currentComment.databaseId,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body,
+            });
+            console.log(`✅ Struck through "${workflowName}" in unified comment for ${shortSha}`);
+
+            // If all failures are resolved, minimize the comment
+            if (activeFailures === 0) {
+              console.log(`All failures resolved — minimizing unified comment (id: ${currentComment.databaseId})...`);
+              await github.graphql(`
+                mutation($id: ID!) {
+                  minimizeComment(input: {
+                    subjectId: $id,
+                    classifier: RESOLVED
+                  }) {
+                    minimizedComment {
+                      isMinimized
+                    }
+                  }
+                }
+              `, { id: currentComment.id });
+              console.log(`✅ All failures resolved — minimized unified comment for ${shortSha}`);
+            }
