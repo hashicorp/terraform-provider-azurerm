@@ -5,6 +5,7 @@ package cdn
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -402,7 +403,7 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 	tlsAny := diff.Get("tls")
 	tlsRaw, ok := tlsAny.([]interface{})
 	if !ok {
-		return fmt.Errorf("unexpected value for `tls`: expected list")
+		return errors.New("unexpected value for `tls`: expected list")
 	}
 	if len(tlsRaw) == 0 || tlsRaw[0] == nil {
 		return nil
@@ -410,7 +411,7 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 
 	tls, ok := tlsRaw[0].(map[string]interface{})
 	if !ok {
-		return fmt.Errorf("unexpected value for `tls`: expected object")
+		return errors.New("unexpected value for `tls`: expected object")
 	}
 
 	if !features.FivePointOh() {
@@ -421,7 +422,7 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 				if !tlsBlock.IsNull() {
 					if !tlsBlock.GetAttr("minimum_tls_version").IsNull() {
 						if minTlsVersion := tls["minimum_tls_version"].(string); minTlsVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneZero) {
-							return fmt.Errorf("support for TLS 1.0 and 1.1 was retired on March 1, 2025. Please use `minimum_version = \"TLS12\"` instead")
+							return errors.New("support for TLS 1.0 and 1.1 was retired on March 1, 2025. Please use `minimum_version = \"TLS12\"` instead")
 						}
 					}
 				}
@@ -436,7 +437,7 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 
 	cipherSuiteRaw, ok := cipherSuiteAny.([]interface{})
 	if !ok {
-		return fmt.Errorf("unexpected value for `tls.cipher_suite`: expected list")
+		return errors.New("unexpected value for `tls.cipher_suite`: expected list")
 	}
 	if cipherSuiteRaw == nil {
 		return nil
@@ -448,37 +449,37 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 
 	cipherSuite, ok := cipherSuiteRaw[0].(map[string]interface{})
 	if !ok {
-		return fmt.Errorf("unexpected value for `tls.cipher_suite`: expected object")
+		return errors.New("unexpected value for `tls.cipher_suite`: expected object")
 	}
 	cipherSuiteTypeAny, exists := cipherSuite["type"]
 	if !exists || cipherSuiteTypeAny == nil {
-		return fmt.Errorf("unexpected value for `tls.cipher_suite.type`: expected string")
+		return errors.New("unexpected value for `tls.cipher_suite.type`: expected string")
 	}
 	cipherSuiteType, ok := cipherSuiteTypeAny.(string)
 	if !ok {
-		return fmt.Errorf("unexpected value for `tls.cipher_suite.type`: expected string")
+		return errors.New("unexpected value for `tls.cipher_suite.type`: expected string")
 	}
 	customCiphersRaw := make([]interface{}, 0)
 	if raw, exists := cipherSuite["custom_ciphers"]; exists && raw != nil {
 		v, ok := raw.([]interface{})
 		if !ok {
-			return fmt.Errorf("unexpected value for `tls.cipher_suite.custom_ciphers`: expected list")
+			return errors.New("unexpected value for `tls.cipher_suite.custom_ciphers`: expected list")
 		}
 		customCiphersRaw = v
 	}
 
 	if cipherSuiteType == string(afdcustomdomains.AfdCipherSuiteSetTypeCustomized) {
 		if len(customCiphersRaw) == 0 {
-			return fmt.Errorf("`custom_ciphers` is required when `type` is `Customized`")
+			return errors.New("`custom_ciphers` is required when `type` is `Customized`")
 		}
 
 		if customCiphersRaw[0] == nil {
-			return fmt.Errorf("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`")
+			return errors.New("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`")
 		}
 
 		customCiphers, ok := customCiphersRaw[0].(map[string]interface{})
 		if !ok {
-			return fmt.Errorf("unexpected value for `tls.cipher_suite.custom_ciphers`: expected object")
+			return errors.New("unexpected value for `tls.cipher_suite.custom_ciphers`: expected object")
 		}
 
 		setLen := func(s *pluginsdk.Set) int {
@@ -492,7 +493,7 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 		if raw, exists := customCiphers["tls12"]; exists && raw != nil {
 			v, ok := raw.(*pluginsdk.Set)
 			if !ok {
-				return fmt.Errorf("unexpected value for `custom_ciphers.tls12`: expected set")
+				return errors.New("unexpected value for `custom_ciphers.tls12`: expected set")
 			}
 			tls12Suites = v
 		}
@@ -501,7 +502,7 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 		if raw, exists := customCiphers["tls13"]; exists && raw != nil {
 			v, ok := raw.(*pluginsdk.Set)
 			if !ok {
-				return fmt.Errorf("unexpected value for `custom_ciphers.tls13`: expected set")
+				return errors.New("unexpected value for `custom_ciphers.tls13`: expected set")
 			}
 			tls13Suites = v
 		}
@@ -531,7 +532,7 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 		}
 
 		if setLen(tls12Suites) == 0 && setLen(tls13Suites) == 0 {
-			return fmt.Errorf("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`")
+			return errors.New("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`")
 		}
 
 		if tls13Configured {
@@ -553,7 +554,7 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 			}
 
 			if !has128 || !has256 {
-				return fmt.Errorf("`custom_ciphers.tls13` must contain both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` when specified")
+				return errors.New("`custom_ciphers.tls13` must contain both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` when specified")
 			}
 		}
 
@@ -564,7 +565,7 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 				if minStr, ok := rawMin.(string); ok {
 					minimumVersion = minStr
 				} else {
-					return fmt.Errorf("unexpected value for `tls.minimum_version`: expected string")
+					return errors.New("unexpected value for `tls.minimum_version`: expected string")
 				}
 			}
 		}
@@ -589,14 +590,14 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 		}
 
 		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo) && setLen(tls12Suites) == 0 {
-			return fmt.Errorf("at least one TLS 1.2 cipher suite must be specified in `custom_ciphers.tls12` when `minimum_version` is set to `TLS12`")
+			return errors.New("at least one TLS 1.2 cipher suite must be specified in `custom_ciphers.tls12` when `minimum_version` is set to `TLS12`")
 		}
 
 		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneThree) && tls13Configured && setLen(tls13Suites) == 0 {
-			return fmt.Errorf("at least one TLS 1.3 cipher suite must be specified in `custom_ciphers.tls13` when `minimum_version` is set to `TLS13`")
+			return errors.New("at least one TLS 1.3 cipher suite must be specified in `custom_ciphers.tls13` when `minimum_version` is set to `TLS13`")
 		}
 	} else if len(customCiphersRaw) > 0 && customCiphersRaw[0] != nil {
-		return fmt.Errorf("`custom_ciphers` cannot be specified when `type` is not `Customized`")
+		return errors.New("`custom_ciphers` cannot be specified when `type` is not `Customized`")
 	}
 
 	return nil
@@ -664,12 +665,12 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 	}
 
 	if certType == string(afdcustomdomains.AfdCertificateTypeCustomerCertificate) && secretRaw == "" {
-		return nil, fmt.Errorf("the `cdn_frontdoor_secret_id` field must be set if the `certificate_type` is `CustomerCertificate`")
+		return nil, errors.New("the `cdn_frontdoor_secret_id` field must be set if the `certificate_type` is `CustomerCertificate`")
 	} else if certType == string(afdcustomdomains.AfdCertificateTypeManagedCertificate) {
 		// Ignore computed `cdn_frontdoor_secret_id` for managed certs unless the
 		// user explicitly configured it.
 		if secretRaw != "" && secretWasConfigured {
-			return nil, fmt.Errorf("the `cdn_frontdoor_secret_id` field is not supported if the `certificate_type` is `ManagedCertificate`")
+			return nil, errors.New("the `cdn_frontdoor_secret_id` field is not supported if the `certificate_type` is `ManagedCertificate`")
 		}
 		if !secretWasConfigured {
 			secretRaw = ""
