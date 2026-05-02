@@ -86,99 +86,86 @@ jobs:
             console.log(`Fetched ${totalFetched} comments across ${pageCount} page(s)`);
             console.log(`Found ${failureComments.length} active (non-minimized) failure comment(s)`);
 
-            if (failureComments.length === 0) {
-              console.log(`✅ No active failure comments found — nothing to clean up (workflow "${workflowName}" likely never failed)`);
-              return;
-            }
-
-            // Search ALL non-minimized failure comments for this workflow's active failure line
-            let targetComment = null;
+            // Process ALL non-minimized failure comments for this workflow
+            let struckCount = 0;
             for (const comment of failureComments) {
               const hasActiveLine = comment.body.split('\n').some(line =>
                 line.trim().startsWith('- ❌') &&
                 line.includes(`<b>${workflowName}</b>`) &&
                 !line.trim().startsWith('<del>')
               );
-              if (hasActiveLine) {
-                targetComment = comment;
-                console.log(`Found active failure line for "${workflowName}" in comment (id: ${comment.databaseId})`);
-                break;
-              }
-            }
+              if (!hasActiveLine) continue;
 
-            if (!targetComment) {
-              console.log(`✅ No active failure line found for "${workflowName}" in any comment — nothing to strike through`);
-              return;
-            }
+              console.log(`\n--- Processing comment (id: ${comment.databaseId}) ---`);
 
-            // Strike through the line for this workflow
-            const lines = targetComment.body.split('\n');
-            const updatedLines = lines.map(line => {
-              if (line.trim().startsWith('- ❌') &&
-                  line.includes(`<b>${workflowName}</b>`) &&
-                  !line.trim().startsWith('<del>')) {
-                console.log(`Striking through: ${line.trim().substring(0, 60)}...`);
-                return `<del>${line.trim()}</del>`;
-              }
-              return line;
-            });
-
-            // Count remaining active failures in this comment
-            const activeFailures = updatedLines.filter(l =>
-              l.trim().startsWith('- ❌') && !l.trim().startsWith('<del>')
-            ).length;
-            const totalFailures = updatedLines.filter(l =>
-              l.trim().startsWith('- ❌') || l.trim().startsWith('<del>- ❌')
-            ).length;
-
-            console.log(`Failure count: ${activeFailures} active / ${totalFailures} total`);
-
-            // Update counter line
-            let body;
-            if (activeFailures === 0) {
-              console.log(`All failures resolved in this comment — updating counter to "All jobs have been fixed!"`);
-              body = updatedLines.join('\n').replace(
-                /^(?:\d+(?:\/\d+)?\s+job.*:|All jobs have been fixed.*$)/m,
-                `All jobs have been fixed! ✅`
-              );
-            } else {
-              const counterText = `${activeFailures}/${totalFailures} jobs still failing:`;
-              console.log(`Updating counter to "${counterText}"`);
-              body = updatedLines.join('\n').replace(
-                /^(?:\d+(?:\/\d+)?\s+job.*:|All jobs have been fixed.*$)/m,
-                counterText
-              );
-            }
-
-            // Update the comment
-            await github.rest.issues.updateComment({
-              comment_id: targetComment.databaseId,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body,
-            });
-            console.log(`✅ Struck through "${workflowName}" in failure comment (id: ${targetComment.databaseId})`);
-
-            // If all failures in this comment are resolved, minimize it
-            if (activeFailures === 0) {
-              console.log(`All failures resolved — minimizing comment (id: ${targetComment.databaseId})...`);
-              await github.graphql(`
-                mutation($id: ID!) {
-                  minimizeComment(input: {
-                    subjectId: $id,
-                    classifier: RESOLVED
-                  }) {
-                    minimizedComment { isMinimized }
-                  }
+              // Strike through the line for this workflow
+              const lines = comment.body.split('\n');
+              const updatedLines = lines.map(line => {
+                if (line.trim().startsWith('- ❌') &&
+                    line.includes(`<b>${workflowName}</b>`) &&
+                    !line.trim().startsWith('<del>')) {
+                  console.log(`Striking through: ${line.trim().substring(0, 60)}...`);
+                  return `<del>${line.trim()}</del>`;
                 }
-              `, { id: targetComment.id });
-              console.log(`✅ Minimized resolved comment (id: ${targetComment.databaseId})`);
+                return line;
+              });
 
-              // Check if ALL failure comments are now minimized/resolved
-              const remainingActive = failureComments.filter(c => c.id !== targetComment.id);
-              if (remainingActive.length > 0) {
-                console.log(`${remainingActive.length} other failure comment(s) still active — not minimizing them`);
+              // Count remaining active failures in this comment
+              const activeFailures = updatedLines.filter(l =>
+                l.trim().startsWith('- ❌') && !l.trim().startsWith('<del>')
+              ).length;
+              const totalFailures = updatedLines.filter(l =>
+                l.trim().startsWith('- ❌') || l.trim().startsWith('<del>- ❌')
+              ).length;
+
+              console.log(`Failure count: ${activeFailures} active / ${totalFailures} total`);
+
+              // Update counter line
+              let body;
+              if (activeFailures === 0) {
+                console.log(`All failures resolved in this comment — updating counter to "All jobs have been fixed!"`);
+                body = updatedLines.join('\n').replace(
+                  /^(?:\d+(?:\/\d+)?\s+job.*:|All jobs have been fixed.*$)/m,
+                  `All jobs have been fixed! ✅`
+                );
               } else {
-                console.log(`✅ All failure comments resolved and minimized`);
+                const counterText = `${activeFailures}/${totalFailures} jobs still failing:`;
+                console.log(`Updating counter to "${counterText}"`);
+                body = updatedLines.join('\n').replace(
+                  /^(?:\d+(?:\/\d+)?\s+job.*:|All jobs have been fixed.*$)/m,
+                  counterText
+                );
               }
+
+              // Update the comment
+              await github.rest.issues.updateComment({
+                comment_id: comment.databaseId,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body,
+              });
+              struckCount++;
+              console.log(`✅ Struck through "${workflowName}" in comment (id: ${comment.databaseId})`);
+
+              // If all failures in this comment are resolved, minimize it
+              if (activeFailures === 0) {
+                console.log(`All failures resolved — minimizing comment (id: ${comment.databaseId})...`);
+                await github.graphql(`
+                  mutation($id: ID!) {
+                    minimizeComment(input: {
+                      subjectId: $id,
+                      classifier: RESOLVED
+                    }) {
+                      minimizedComment { isMinimized }
+                    }
+                  }
+                `, { id: comment.id });
+                console.log(`✅ Minimized resolved comment (id: ${comment.databaseId})`);
+              }
+            }
+
+            if (struckCount === 0) {
+              console.log(`✅ No active failure line found for "${workflowName}" in any comment — nothing to strike through`);
+            } else {
+              console.log(`\n✅ Done — struck through "${workflowName}" in ${struckCount} comment(s)`);
             }
