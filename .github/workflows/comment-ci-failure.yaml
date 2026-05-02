@@ -75,14 +75,14 @@ jobs:
               let body = botComment.body;
 
               const activeLinePattern = `- ❌ <b>${workflowName}</b>`;
-              const struckLinePattern = `<del>- ❌ <b>${workflowName}</b>`;
+              const struckLinePattern = `- <del>❌ <b>${workflowName}</b>`;
 
               if (body.includes(struckLinePattern)) {
                 console.log(`"${workflowName}" was previously struck through (fixed) — removing old line and re-adding as active failure`);
                 const lines = body.split('\n');
                 const filtered = lines.filter(line => {
                   const trimmed = line.trim();
-                  return !(trimmed.startsWith('<del>') && trimmed.includes(`<b>${workflowName}</b>`));
+                  return !(trimmed.startsWith('- <del>') && trimmed.includes(`<b>${workflowName}</b>`));
                 });
                 body = filtered.join('\n');
                 // Fall through to insert the new failure line below
@@ -90,7 +90,7 @@ jobs:
                 console.log(`"${workflowName}" already has an active failure line — updating log URL`);
                 const lines = body.split('\n');
                 const updated = lines.map(line => {
-                  if (line.includes(`<b>${workflowName}</b>`) && !line.trim().startsWith('<del>')) {
+                  if (line.includes(`<b>${workflowName}</b>`) && !line.includes('<del>')) {
                     return failureLine;
                   }
                   return line;
@@ -150,10 +150,10 @@ jobs:
             function updateCounter(body) {
               const lines = body.split('\n');
               const activeFailures = lines.filter(l =>
-                l.trim().startsWith('- ❌') && !l.trim().startsWith('<del>')
+                l.trim().startsWith('- ❌') && !l.includes('<del>')
               ).length;
               const totalFailures = lines.filter(l =>
-                (l.trim().startsWith('- ❌') || (l.trim().startsWith('<del>- ❌')))
+                (l.trim().startsWith('- ❌') || (l.trim().startsWith('- <del>')))
               ).length;
 
               const counterText = activeFailures === totalFailures

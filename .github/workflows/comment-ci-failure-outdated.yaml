@@ -92,7 +92,7 @@ jobs:
               const hasActiveLine = comment.body.split('\n').some(line =>
                 line.trim().startsWith('- ❌') &&
                 line.includes(`<b>${workflowName}</b>`) &&
-                !line.trim().startsWith('<del>')
+                !line.includes('<del>')
               );
               if (!hasActiveLine) continue;
 
@@ -103,19 +103,19 @@ jobs:
               const updatedLines = lines.map(line => {
                 if (line.trim().startsWith('- ❌') &&
                     line.includes(`<b>${workflowName}</b>`) &&
-                    !line.trim().startsWith('<del>')) {
+                    !line.includes('<del>')) {
                   console.log(`Striking through: ${line.trim().substring(0, 60)}...`);
-                  return `<del>${line.trim()}</del>`;
+                  return `- <del>${line.trim().substring(2)}</del>`;
                 }
                 return line;
               });
 
               // Count remaining active failures in this comment
               const activeFailures = updatedLines.filter(l =>
-                l.trim().startsWith('- ❌') && !l.trim().startsWith('<del>')
+                l.trim().startsWith('- ❌') && !l.includes('<del>')
               ).length;
               const totalFailures = updatedLines.filter(l =>
-                l.trim().startsWith('- ❌') || l.trim().startsWith('<del>- ❌')
+                l.trim().startsWith('- ❌') || l.trim().startsWith('- <del>')
               ).length;
 
               console.log(`Failure count: ${activeFailures} active / ${totalFailures} total`);
