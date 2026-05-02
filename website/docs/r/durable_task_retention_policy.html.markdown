@@ -14,7 +14,7 @@ Manages a Durable Task Retention Policy for a Durable Task Scheduler.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
+  name     = "example-resource-group"
   location = "West Europe"
 }
 

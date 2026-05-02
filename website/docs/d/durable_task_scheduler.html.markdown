@@ -15,7 +15,7 @@ Use this data source to access information about an existing Durable Task Schedu
 ```hcl
 data "azurerm_durable_task_scheduler" "example" {
   name                = "existing-durable-task-scheduler"
-  resource_group_name = "existing-resources"
+  resource_group_name = "existing-resource-group"
 }
 
 output "endpoint" {
