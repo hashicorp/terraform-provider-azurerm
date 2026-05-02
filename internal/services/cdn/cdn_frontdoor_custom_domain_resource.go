@@ -138,6 +138,10 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 												"tls12": {
 													Type:     pluginsdk.TypeSet,
 													Optional: true,
+													AtLeastOneOf: []string{
+														"tls.0.cipher_suite.0.custom_ciphers.0.tls12",
+														"tls.0.cipher_suite.0.custom_ciphers.0.tls13",
+													},
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 														ValidateFunc: validation.StringInSlice(
@@ -148,7 +152,11 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 												},
 
 												"tls13": {
-													Type:     pluginsdk.TypeSet,
+													Type: pluginsdk.TypeSet,
+													AtLeastOneOf: []string{
+														"tls.0.cipher_suite.0.custom_ciphers.0.tls12",
+														"tls.0.cipher_suite.0.custom_ciphers.0.tls13",
+													},
 													Optional: true,
 													// NOTE: O+C Azure Front Door returns TLS 1.3 cipher suites even when `tls13` is not specified (see https://learn.microsoft.com/azure/frontdoor/standard-premium/tls-policy#custom-tls-policy)
 													Computed: true,
