@@ -53,7 +53,6 @@ jobs:
             let cursor = null;
             let hasNextPage = true;
             let currentComment = null;
-            const oldComments = [];
             let totalFetched = 0;
             let pageCount = 0;
 
@@ -79,34 +78,14 @@ jobs:
 
                 if (comment.body.includes('CI Build Failures for') && comment.body.includes(marker)) {
                   currentComment = comment;
-                } else if (comment.body.includes('CI Build Failures for') && !comment.isMinimized) {
-                  // This is a comment for a different (older) commit SHA — minimize it
-                  oldComments.push(comment);
                 }
               }
             }
 
             console.log(`Fetched ${totalFetched} comments across ${pageCount} page(s)`);
             console.log(`Current commit comment: ${currentComment ? `found (id: ${currentComment.databaseId})` : 'not found'}`);
-            console.log(`Old commit comments to minimize: ${oldComments.length}`);
 
-            // Minimize old commit comments
-            for (const old of oldComments) {
-              console.log(`Minimizing outdated comment (id: ${old.databaseId}) for older commit...`);
-              await github.graphql(`
-                mutation($id: ID!) {
-                  minimizeComment(input: {
-                    subjectId: $id,
-                    classifier: OUTDATED
-                  }) {
-                    minimizedComment {
-                      isMinimized
-                    }
-                  }
-                }
-              `, { id: old.id });
-              console.log(`✅ Minimized outdated failure comment (id: ${old.databaseId})`);
-            }
+
 
             // No comment for current commit — nothing to update
             if (!currentComment) {
@@ -176,20 +155,55 @@ jobs:
             });
             console.log(`✅ Struck through "${workflowName}" in unified comment for ${shortSha}`);
 
-            // If all failures are resolved, minimize the comment
+            // If all failures are resolved, minimize the current comment and all old ones
             if (activeFailures === 0) {
-              console.log(`All failures resolved — minimizing unified comment (id: ${currentComment.databaseId})...`);
+              console.log(`All failures resolved — minimizing current and old failure comments...`);
+
+              // Minimize the current commit's comment
               await github.graphql(`
                 mutation($id: ID!) {
                   minimizeComment(input: {
                     subjectId: $id,
                     classifier: RESOLVED
                   }) {
-                    minimizedComment {
-                      isMinimized
-                    }
+                    minimizedComment { isMinimized }
                   }
                 }
               `, { id: currentComment.id });
-              console.log(`✅ All failures resolved — minimized unified comment for ${shortSha}`);
+              console.log(`✅ Minimized current commit comment for ${shortSha}`);
+
+              // Now minimize any older commit failure comments too
+              // Re-scan since we already have the pagination data
+              let oldCursor = null;
+              let oldHasNext = true;
+              while (oldHasNext) {
+                const oldResult = await github.graphql(query, {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  number: prNumber,
+                  cursor: oldCursor
+                });
+                const { nodes: oldNodes, pageInfo: oldPageInfo } = oldResult.repository.pullRequest.comments;
+                oldHasNext = oldPageInfo.hasNextPage;
+                oldCursor = oldPageInfo.endCursor;
+
+                for (const comment of oldNodes) {
+                  if (!comment.author.login.startsWith('github-actions')) continue;
+                  if (!comment.body || comment.isMinimized) continue;
+                  if (comment.id === currentComment.id) continue;
+                  if (!comment.body.includes('CI Build Failures for')) continue;
+
+                  await github.graphql(`
+                    mutation($id: ID!) {
+                      minimizeComment(input: {
+                        subjectId: $id,
+                        classifier: OUTDATED
+                      }) {
+                        minimizedComment { isMinimized }
+                      }
+                    }
+                  `, { id: comment.id });
+                  console.log(`✅ Minimized old failure comment (id: ${comment.databaseId})`);
+                }
+              }
             }
