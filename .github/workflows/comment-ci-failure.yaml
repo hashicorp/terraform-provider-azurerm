@@ -112,7 +112,7 @@ jobs:
               }
 
               // Insert the new failure line before the footer
-              const footerIndex = body.lastIndexOf('\nFor more information');
+              const footerIndex = body.lastIndexOf('\n\nFor more information');
               if (footerIndex !== -1) {
                 body = body.substring(0, footerIndex) + '\n' + failureLine + body.substring(footerIndex);
                 console.log(`Inserted failure line before footer`);
