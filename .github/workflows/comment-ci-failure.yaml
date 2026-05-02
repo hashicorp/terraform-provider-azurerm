@@ -44,7 +44,8 @@ jobs:
               'Preview ARM API Version Linter': 'Your changes reference Azure ARM API versions that are in preview. Please update the API version references to use GA (stable) versions.',
             };
 
-            const marker = `CI Build Failures for <code>${shortSha}</code>`;
+            const commitUrl = `https://github.com/${{ github.repository }}/commit/${sha}`;
+            const marker = `CI Build Failures for <a href="${commitUrl}"><code>${shortSha}</code></a>`;
             const guideText = guidance[workflowName] || 'Check the logs for details on the failure.';
             const failureLine = `- ❌ <b>${workflowName}</b> — ${guideText} (<a href="${runUrl}">logs</a>)`;
 
@@ -52,7 +53,7 @@ jobs:
               console.log(`⚠️  No guidance text found for workflow "${workflowName}", using default`);
             }
 
-            const footer = `\nFor more information, please refer to our <a href="https://github.com/${{ github.repository }}/blob/main/contributing/README.md">Contributing Guide</a>.`;
+            const footer = `\n\nFor more information, please refer to our <a href="https://github.com/${{ github.repository }}/blob/main/contributing/README.md">Contributing Guide</a>.`;
 
             // Find existing unified comment for this commit
             console.log(`Searching for existing unified comment with marker: "${marker}"`);
@@ -66,7 +67,7 @@ jobs:
             const botComments = comments.filter(c => c.user.login === 'github-actions[bot]');
             console.log(`Found ${comments.length} total comments, ${botComments.length} from github-actions[bot]`);
 
-            const botComment = botComments.find(c => c.body && c.body.includes(marker));
+            const botComment = botComments.find(c => c.body && c.body.includes('CI Build Failures for') && c.body.includes(`<code>${shortSha}</code>`));
 
             if (botComment) {
               console.log(`Found existing unified comment (id: ${botComment.id}) for commit ${shortSha}`);
@@ -162,5 +163,5 @@ jobs:
               console.log(`Counter update: ${activeFailures} active / ${totalFailures} total → "${counterText}"`);
 
               // Replace the counter line
-              return body.replace(/^(?:\d+.*(?:failed|failing):|All builds have been fixed.*$)/m, counterText);
+              return body.replace(/^(?:\d+(?:\/\d+)?\s+build.*:|All builds have been fixed.*$)/m, counterText);
             }

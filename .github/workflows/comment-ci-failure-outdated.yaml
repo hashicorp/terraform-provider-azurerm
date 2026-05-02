@@ -21,7 +21,7 @@ jobs:
             const sha = '${{ github.event.pull_request.head.sha }}';
             const shortSha = sha.substring(0, 7);
             const prNumber = ${{ github.event.number }};
-            const marker = `CI Build Failures for <code>${shortSha}</code>`;
+            const marker = `<code>${shortSha}</code>`;
 
             console.log(`=== Comment Cleanup: "${workflowName}" ===`);
             console.log(`PR #${prNumber}, commit ${shortSha} (${sha})`);
@@ -77,9 +77,9 @@ jobs:
                 if (!comment.author.login.startsWith('github-actions')) continue;
                 if (!comment.body) continue;
 
-                if (comment.body.includes(marker)) {
+                if (comment.body.includes('CI Build Failures for') && comment.body.includes(marker)) {
                   currentComment = comment;
-                } else if (comment.body.includes('CI Build Failures for <code>') && !comment.isMinimized) {
+                } else if (comment.body.includes('CI Build Failures for') && !comment.isMinimized) {
                   // This is a comment for a different (older) commit SHA — minimize it
                   oldComments.push(comment);
                 }
@@ -155,14 +155,14 @@ jobs:
             if (activeFailures === 0) {
               console.log(`All failures resolved — updating counter to "All builds have been fixed!"`);
               body = updatedLines.join('\n').replace(
-                /^(?:\d+.*(?:failed|failing):|All builds have been fixed.*$)/m,
+                /^(?:\d+(?:\/\d+)?\s+build.*:|All builds have been fixed.*$)/m,
                 `All builds have been fixed! ✅`
               );
             } else {
               const counterText = `${activeFailures}/${totalFailures} builds still failing:`;
               console.log(`Updating counter to "${counterText}"`);
               body = updatedLines.join('\n').replace(
-                /^(?:\d+.*(?:failed|failing):|All builds have been fixed.*$)/m,
+                /^(?:\d+(?:\/\d+)?\s+build.*:|All builds have been fixed.*$)/m,
                 counterText
               );
             }
