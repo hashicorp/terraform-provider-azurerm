@@ -352,8 +352,11 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 }
 
 func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProperties {
-	if v, ok := d.GetOk("include_disk_luns"); ok {
-		diskLun := expandDiskLunList(v.(*pluginsdk.Set).List())
+	// `GetOk` collapses "absent" and an explicit empty list into the same false
+	// case, but `IsInclusionList=true, DiskLunList=[]` is the API's way of
+	// expressing "OS disk only". Use the raw config to tell them apart.
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "include_disk_luns") {
+		diskLun := expandDiskLunList(d.Get("include_disk_luns").(*pluginsdk.Set).List())
 
 		return &protecteditems.ExtendedProperties{
 			DiskExclusionProperties: &protecteditems.DiskExclusionProperties{
@@ -363,8 +366,8 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProp
 		}
 	}
 
-	if v, ok := d.GetOk("exclude_disk_luns"); ok {
-		diskLun := expandDiskLunList(v.(*pluginsdk.Set).List())
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "exclude_disk_luns") {
+		diskLun := expandDiskLunList(d.Get("exclude_disk_luns").(*pluginsdk.Set).List())
 
 		return &protecteditems.ExtendedProperties{
 			DiskExclusionProperties: &protecteditems.DiskExclusionProperties{
