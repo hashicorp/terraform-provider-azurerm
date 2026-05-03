@@ -304,8 +304,8 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		publicIp.Properties.DnsSettings = &dnsSettings
 	}
 
-	if ipAddress, ipAddressOk := d.GetOk("ip_address"); ipAddressOk {
-		publicIp.Properties.IPAddress = pointer.To(ipAddress.(string))
+	if v, ok := d.GetOk("ip_address"); ok {
+		publicIp.Properties.IPAddress = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("ip_tags"); ok {
