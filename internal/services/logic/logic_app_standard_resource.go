@@ -552,7 +552,6 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 
 			state.Name = id.SiteName
 			state.ResourceGroupName = id.ResourceGroupName
-			state.ForceDisableContentShare = metadata.ResourceData.Get("content_share_force_disabled").(bool)
 
 			if model := resp.Model; model != nil {
 				state.Kind = pointer.From(model.Kind)
@@ -632,6 +631,12 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 				}
 
 				state.StorageAccountShareName = appSettings[contentShareAppSettingName]
+
+				// Infer content_share_force_disabled from the absence of content share settings
+				_, hasContentFileConnString := appSettings[contentFileConnStringAppSettingName]
+				_, hasContentShare := appSettings[contentShareAppSettingName]
+				state.ForceDisableContentShare = !hasContentFileConnString && !hasContentShare
+
 				delete(appSettings, contentFileConnStringAppSettingName)
 				delete(appSettings, "APP_KIND")
 				delete(appSettings, "AzureFunctionsJobHost__extensionBundle__id")
@@ -767,7 +772,7 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			}
 			existingSiteConfig.AppSettings = pointer.To(currentAppSettings)
 
-			if metadata.ResourceData.HasChanges("site_config", "app_settings", "version", "storage_account_name", "storage_account_access_key") {
+			if metadata.ResourceData.HasChanges("site_config", "app_settings", "version", "storage_account_name", "storage_account_access_key", "content_share_force_disabled") {
 				existingSiteConfig, err = expandLogicAppStandardSiteConfigForUpdate(data.SiteConfig, metadata, existingSiteConfig)
 				if err != nil {
 					return fmt.Errorf("expanding site_config update for %s: %v", *id, err)
@@ -858,6 +863,41 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			// When toggling content_share_force_disabled, we need to explicitly update
+			// app settings via the dedicated API since SiteConfig.AppSettings changes
+			// may not be fully applied during CreateOrUpdate for existing resources.
+			if metadata.ResourceData.HasChange("content_share_force_disabled") {
+				appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("listing application settings for %s: %+v", *id, err)
+				}
+
+				if appSettingsResp.Model != nil {
+					currentSettings := pointer.From(appSettingsResp.Model.Properties)
+
+					if data.ForceDisableContentShare {
+						delete(currentSettings, contentShareAppSettingName)
+						delete(currentSettings, contentFileConnStringAppSettingName)
+					} else {
+						env := metadata.Client.Account.Environment
+						storageSuffix, _ := env.Storage.DomainSuffix()
+						storageConnection := fmt.Sprintf(storageConnectionStringFmt, data.StorageAccountName, data.StorageAccountAccessKey, *storageSuffix)
+						currentSettings[contentFileConnStringAppSettingName] = storageConnection
+
+						if data.StorageAccountShareName != "" {
+							currentSettings[contentShareAppSettingName] = data.StorageAccountShareName
+						} else {
+							currentSettings[contentShareAppSettingName] = strings.ToLower(data.Name) + "-content"
+						}
+					}
+
+					appSettingsResp.Model.Properties = &currentSettings
+					if _, err := client.UpdateApplicationSettings(ctx, *id, *appSettingsResp.Model); err != nil {
+						return fmt.Errorf("updating application settings for %s: %+v", *id, err)
+					}
+				}
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {
@@ -1303,6 +1343,19 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 	if forceDisableContentShare {
 		delete(eMap, contentShareAppSettingName)
 		delete(eMap, contentFileConnStringAppSettingName)
+	} else if metadata.ResourceData.HasChange("content_share_force_disabled") {
+		// Toggling from true to false — re-add content share settings
+		accountName := metadata.ResourceData.Get("storage_account_name").(string)
+		accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
+		suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
+
+		eMap[contentFileConnStringAppSettingName] = fmt.Sprintf(storageConnectionStringFmt, accountName, accountAccessKey, *suffix)
+		if n := metadata.ResourceData.Get("storage_account_share_name").(string); n != "" {
+			eMap[contentShareAppSettingName] = n
+		} else {
+			name := metadata.ResourceData.Get("name").(string)
+			eMap[contentShareAppSettingName] = strings.ToLower(name) + "-content"
+		}
 	}
 
 	if metadata.ResourceData.HasChange("version") {
