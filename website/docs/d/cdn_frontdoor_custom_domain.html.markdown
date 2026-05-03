@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_cdn_frontdoor_custom_domain
 
-Use this data source to access information about an existing Front Door (standard/premium) Custom Domain.
+Gets information about an existing Front Door (standard/premium) Custom Domain.
 
 ## Example Usage
 
@@ -52,9 +52,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `tls` block exports the following:
 
-* `cdn_frontdoor_secret_id` - The Resource ID of the Front Door Secret.
-
 * `certificate_type` - The SSL certificate type.
+
+* `cdn_frontdoor_secret_id` - The Resource ID of the Front Door Secret.
 
 * `cipher_suite` - A `cipher_suite` block as defined below.
 
