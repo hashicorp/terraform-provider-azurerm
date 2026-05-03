@@ -707,6 +707,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
+~> **Note:** Azure Front Door Rule operations are currently affected by a service-side regression where unattached rules or rule sets can fail with `400 Bad Request` until they are associated with a Front Door Route. As a result, unattached and attached scenarios can currently behave differently while the service-side fix is pending.
+
 * `create` - (Defaults to 4 hours) Used when creating the Front Door Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Rule.
 * `update` - (Defaults to 4 hours) Used when updating the Front Door Rule.
