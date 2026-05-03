@@ -193,3 +193,15 @@ func (a Float64Attribute) IsSensitive() bool {
 func (a Float64Attribute) IsWriteOnly() bool {
 	return false
 }
+
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a Float64Attribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a Float64Attribute) IsOptionalForImport() bool {
+	return false
+}

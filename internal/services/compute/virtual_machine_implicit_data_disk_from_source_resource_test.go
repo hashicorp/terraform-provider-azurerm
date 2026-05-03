@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -258,8 +258,7 @@ func TestAccVirtualMachineImplicitDataDiskFromSource_detachImplicitDataDisk(t *t
 						return err
 					}
 
-					_, err = diskClient.Get(ctx, *id)
-					if err != nil {
+					if _, err = diskClient.Get(ctx, *id); err != nil {
 						return fmt.Errorf("retrieving %s: %+v", id, err)
 					}
 

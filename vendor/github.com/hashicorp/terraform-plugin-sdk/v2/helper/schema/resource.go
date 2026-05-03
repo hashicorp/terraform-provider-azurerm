@@ -89,6 +89,12 @@ type Resource struct {
 	// their Versioning at any integer >= 1
 	SchemaVersion int
 
+	// Identity is a nested structure containing information about the structure
+	// and type of this resource's identity. This field is only valid when the
+	// Resource is a managed resource.
+	// This field, is optional.
+	Identity *ResourceIdentity
+
 	// MigrateState is responsible for updating an InstanceState with an old
 	// version to the format expected by the current version of the Schema.
 	// This field is only valid when the Resource is a managed resource.
@@ -668,6 +674,11 @@ type ResourceBehavior struct {
 	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
 	// to change or break without warning. It is not protected by version compatibility guarantees.
 	ProviderDeferred ProviderDeferredBehavior
+
+	// MutableIdentity indicates that the managed resource supports an identity that can change during the
+	// resource's lifecycle. Setting this flag to true will disable the SDK validation that ensures identity
+	// data doesn't change during RPC calls.
+	MutableIdentity bool
 }
 
 // ProviderDeferredBehavior enables provider-defined logic to be executed
@@ -722,7 +733,7 @@ func (r *Resource) ShimInstanceStateFromValue(state cty.Value) (*terraform.Insta
 
 	// We now rebuild the state through the ResourceData, so that the set indexes
 	// match what helper/schema expects.
-	data, err := schemaMap(r.SchemaMap()).Data(s, nil)
+	data, err := schemaMapWithIdentity{r.SchemaMap(), r.Identity.SchemaMap()}.Data(s, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -895,7 +906,7 @@ func (r *Resource) Apply(
 	s *terraform.InstanceState,
 	d *terraform.InstanceDiff,
 	meta interface{}) (*terraform.InstanceState, diag.Diagnostics) {
-	schema := schemaMap(r.SchemaMap())
+	schema := schemaMapWithIdentity{r.SchemaMap(), r.Identity.SchemaMap()}
 	data, err := schema.Data(s, d)
 	if err != nil {
 		return s, diag.FromErr(err)
@@ -1019,13 +1030,15 @@ func (r *Resource) SimpleDiff(
 	c *terraform.ResourceConfig,
 	meta interface{}) (*terraform.InstanceDiff, error) {
 
-	instanceDiff, err := schemaMap(r.SchemaMap()).Diff(ctx, s, c, r.CustomizeDiff, meta, false)
+	// TODO: figure out if it makes sense to be able to set identity in CustomizeDiff at all
+	instanceDiff, err := schemaMapWithIdentity{r.SchemaMap(), r.Identity.SchemaMap()}.Diff(ctx, s, c, r.CustomizeDiff, meta, false)
 	if err != nil {
 		return instanceDiff, err
 	}
 
 	if instanceDiff == nil {
 		instanceDiff = terraform.NewInstanceDiff()
+		instanceDiff.Identity = s.Identity // if we create a new diff, we need to copy the identity
 	}
 
 	// Make sure the old value is set in each of the instance diffs.
@@ -1107,7 +1120,7 @@ func (r *Resource) RefreshWithoutUpgrade(
 		}
 	}
 
-	schema := schemaMap(r.SchemaMap())
+	schema := schemaMapWithIdentity{r.SchemaMap(), r.Identity.SchemaMap()}
 
 	if r.Exists != nil {
 		// Make a copy of data so that if it is modified it doesn't
@@ -1208,7 +1221,7 @@ func (r *Resource) InternalValidate(topSchemaMap schemaMap, writable bool) error
 		if !r.updateFuncSet() {
 			nonForceNewAttrs := make([]string, 0)
 			for k, v := range schema {
-				if !v.ForceNew && !v.Computed {
+				if !v.ForceNew && !v.Computed && !v.WriteOnly {
 					nonForceNewAttrs = append(nonForceNewAttrs, k)
 				}
 			}
@@ -1390,7 +1403,7 @@ func isReservedResourceFieldName(name string) bool {
 //
 // This function is useful for unit tests and ResourceImporter functions.
 func (r *Resource) Data(s *terraform.InstanceState) *ResourceData {
-	result, err := schemaMap(r.SchemaMap()).Data(s, nil)
+	result, err := schemaMapWithIdentity{r.SchemaMap(), r.Identity.SchemaMap()}.Data(s, nil)
 	if err != nil {
 		// At the time of writing, this isn't possible (Data never returns
 		// non-nil errors). We panic to find this in the future if we have to.
@@ -1417,7 +1430,8 @@ func (r *Resource) Data(s *terraform.InstanceState) *ResourceData {
 // TODO: May be able to be removed with the above ResourceData function.
 func (r *Resource) TestResourceData() *ResourceData {
 	return &ResourceData{
-		schema: r.SchemaMap(),
+		schema:         r.SchemaMap(),
+		identitySchema: r.Identity.SchemaMap(),
 	}
 }
 
@@ -1455,5 +1469,137 @@ func NoopContext(context.Context, *ResourceData, interface{}) diag.Diagnostics {
 // and returns no error.
 func RemoveFromState(d *ResourceData, _ interface{}) error {
 	d.SetId("")
+	return nil
+}
+
+// Internal validation of provider implementation
+func (r *ResourceIdentity) InternalIdentityValidate() error {
+	if r == nil {
+		return fmt.Errorf(`The resource identity is empty`)
+	}
+
+	if len(r.SchemaMap()) == 0 {
+		return fmt.Errorf(`The resource identity schema is empty`)
+	}
+
+	for k, v := range r.SchemaMap() {
+		if !v.OptionalForImport && !v.RequiredForImport {
+			return fmt.Errorf(`OptionalForImport or RequiredForImport must be set for resource identity`)
+		}
+		if v.OptionalForImport && v.RequiredForImport {
+			return fmt.Errorf(`OptionalForImport or RequiredForImport must be set for resource identity, not both`)
+		}
+
+		if v.Type == TypeMap {
+			return fmt.Errorf(`TypeMap is not valid for resource identity`)
+		}
+		if v.Type == TypeSet {
+			return fmt.Errorf(`TypeSet is not valid for resource identity`)
+		}
+		if v.Type == typeObject {
+			return fmt.Errorf(`TypeObject is not valid for resource identity`)
+		}
+		if v.Type == TypeInvalid {
+			return fmt.Errorf(`TypeInvalid is not valid for resource identity`)
+		}
+
+		if v.Type == TypeList {
+			if v.Elem != nil {
+				if v.Elem == TypeMap {
+					return fmt.Errorf(`TypeMap is not valid for resource identity element type`)
+				}
+				if v.Elem == TypeSet {
+					return fmt.Errorf(`TypeSet is not valid for resource identity element type`)
+				}
+				if v.Elem == typeObject {
+					return fmt.Errorf(`TypeObject is not valid for resource identity element type`)
+				}
+				if v.Elem == TypeInvalid {
+					return fmt.Errorf(`TypeInvalid is not valid for resource identity element type`)
+				}
+			}
+		}
+
+		if v.ForceNew {
+			return fmt.Errorf(`ForceNew is not used in resource identity`)
+		}
+		if v.Required {
+			return fmt.Errorf(`Required is not used in resource identity`)
+		}
+		if v.Optional {
+			return fmt.Errorf(`Optional is not used in resource identity`)
+		}
+		if v.WriteOnly {
+			return fmt.Errorf(`WriteOnly is not used in resource identity`)
+		}
+		if v.Computed {
+			return fmt.Errorf(`Computed is not used in resource identity`)
+		}
+		if v.Sensitive {
+			return fmt.Errorf(`Sensitive is not used in resource identity`)
+		}
+		if v.DiffSuppressOnRefresh {
+			return fmt.Errorf(`DiffSuppressOnRefresh is not used in resource identity`)
+		}
+		if v.Deprecated != "" {
+			return fmt.Errorf(`Deprecated is not used in resource identity`)
+		}
+		if len(v.RequiredWith) > 0 {
+			return fmt.Errorf(`RequiredWith is not used in resource identity`)
+		}
+		if len(v.ComputedWhen) > 0 {
+			return fmt.Errorf(`ComputedWhen is not used in resource identity`)
+		}
+		if len(v.AtLeastOneOf) > 0 {
+			return fmt.Errorf("%s: AtLeastOneOf is for configurable attributes,"+
+				"there's nothing to configure for resource identity", k)
+		}
+		if len(v.ConflictsWith) > 0 {
+			return fmt.Errorf("%s: ConflictsWith is for configurable attributes,"+
+				"there's nothing to configure for resource identity", k)
+		}
+		if v.Default != nil {
+			return fmt.Errorf("%s: Default is for configurable attributes,"+
+				"there's nothing to configure for resource identity", k)
+		}
+		if v.DefaultFunc != nil {
+			return fmt.Errorf("%s: DefaultFunc is for configurable attributes,"+
+				"there's nothing to configure for resource identity", k)
+		}
+		if v.DiffSuppressFunc != nil {
+			return fmt.Errorf("%s: DiffSuppressFunc is for suppressing differences"+
+				" between config and state representation. "+
+				"There is no config for resource identity, nothing to compare.", k)
+		}
+		if len(v.ExactlyOneOf) > 0 {
+			return fmt.Errorf("%s: ExactlyOneOf is for configurable attributes,"+
+				"there's nothing to configure for resource identity", k)
+		}
+		if v.InputDefault != "" {
+			return fmt.Errorf("%s: InputDefault is for configurable attributes,"+
+				"there's nothing to configure for resource identity", k)
+		}
+		if v.MaxItems > 0 {
+			return fmt.Errorf("%s: MaxItems is for configurable attributes,"+
+				"there's nothing to configure for resource identity", k)
+		}
+		if v.MinItems > 0 {
+			return fmt.Errorf("%s: MinItems is for configurable attributes,"+
+				"there's nothing to configure for resource identity", k)
+		}
+		if v.StateFunc != nil {
+			return fmt.Errorf("%s: StateFunc is extraneous, "+
+				"value should just be changed before setting for resource identity", k)
+		}
+		if v.ValidateFunc != nil {
+			return fmt.Errorf("%s: ValidateFunc is for validating user input, "+
+				"there's nothing to validate for resource identity", k)
+		}
+		if v.ValidateDiagFunc != nil {
+			return fmt.Errorf("%s: ValidateDiagFunc is for validating user input, "+
+				"there's nothing to validate for resource identity", k)
+		}
+	}
+
 	return nil
 }

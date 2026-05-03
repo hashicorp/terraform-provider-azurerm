@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -15,17 +15,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultSecret() *pluginsdk.Resource {
@@ -35,7 +35,7 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 		Update: resourceKeyVaultSecretUpdate,
 		Delete: resourceKeyVaultSecretDelete,
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.ParseNestedItemID(id)
+			_, err := keyvault.ParseNestedItemID(id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 			return err
 		}, nestedItemResourceImporter),
 
@@ -52,7 +52,7 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: keyVaultValidate.NestedItemName,
+				ValidateFunc: keyvault.ValidateNestedItemName,
 			},
 
 			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
@@ -116,7 +116,7 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaWithMax(15),
+			"tags": commonschema.TagsWithMaximumElements(15),
 		},
 	}
 }
@@ -164,11 +164,11 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	contentType := d.Get("content_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	parameters := keyvault.SecretSetParameters{
-		Value:            utils.String(value),
-		ContentType:      utils.String(contentType),
+	parameters := kv.SecretSetParameters{
+		Value:            pointer.To(value),
+		ContentType:      pointer.To(contentType),
 		Tags:             tags.Expand(t),
-		SecretAttributes: &keyvault.SecretAttributes{},
+		SecretAttributes: &kv.SecretAttributes{},
 	}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
@@ -209,8 +209,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				}
 				log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredSecret.ID)
 
-				_, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters)
-				if err != nil {
+				if _, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
 					return err
 				}
 			}
@@ -230,7 +229,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("cannot read KeyVault Secret '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
 	}
 
-	secretId, err := parse.ParseNestedItemID(*read.ID)
+	secretId, err := keyvault.ParseNestedItemID(*read.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return err
 	}
@@ -247,7 +246,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
 
-	id, err := parse.ParseNestedItemID(d.Id())
+	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return err
 	}
@@ -257,14 +256,14 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseUrl)
+	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseURL)
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseURL)
 		d.SetId("")
 		return nil
 	}
@@ -273,7 +272,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	contentType := d.Get("content_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	secretAttributes := &keyvault.SecretAttributes{}
+	secretAttributes := &kv.SecretAttributes{}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
@@ -296,35 +295,35 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			value = valueWo.AsString()
 		}
 		// for changing the value of the secret we need to create a new version
-		parameters := keyvault.SecretSetParameters{
-			Value:            utils.String(value),
-			ContentType:      utils.String(contentType),
+		parameters := kv.SecretSetParameters{
+			Value:            pointer.To(value),
+			ContentType:      pointer.To(contentType),
 			Tags:             tags.Expand(t),
 			SecretAttributes: secretAttributes,
 		}
 
-		if _, err = client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters); err != nil {
+		if _, err = client.SetSecret(ctx, id.KeyVaultBaseURL, id.Name, parameters); err != nil {
 			return err
 		}
 	} else {
-		parameters := keyvault.SecretUpdateParameters{
-			ContentType:      utils.String(contentType),
+		parameters := kv.SecretUpdateParameters{
+			ContentType:      pointer.To(contentType),
 			Tags:             tags.Expand(t),
 			SecretAttributes: secretAttributes,
 		}
 
-		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, "", parameters); err != nil {
+		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseURL, id.Name, "", parameters); err != nil {
 			return err
 		}
 	}
 
 	// "" indicates the latest version
-	read, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	read, err := client.GetSecret(ctx, id.KeyVaultBaseURL, id.Name, "")
 	if err != nil {
 		return fmt.Errorf("getting Key Vault Secret %q : %+v", id.Name, err)
 	}
 
-	secretId, err := parse.ParseNestedItemID(*read.ID)
+	secretId, err := keyvault.ParseNestedItemID(*read.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return err
 	}
@@ -342,18 +341,18 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseNestedItemID(d.Id())
+	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return err
 	}
 
 	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseURL)
 	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseURL, err)
 	}
 	if keyVaultIdRaw == nil {
-		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseURL)
 		d.SetId("")
 		return nil
 	}
@@ -364,19 +363,19 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseURL)
 		d.SetId("")
 		return nil
 	}
 
 	// we always want to get the latest version
-	resp, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	resp, err := client.GetSecret(ctx, id.KeyVaultBaseURL, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Secret %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
+			log.Printf("[DEBUG] Secret %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseURL)
 			d.SetId("")
 			return nil
 		}
@@ -384,7 +383,7 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// the version may have changed, so parse the updated id
-	respID, err := parse.ParseNestedItemID(*resp.ID)
+	respID, err := keyvault.ParseNestedItemID(*resp.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return err
 	}
@@ -401,13 +400,17 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("value_wo_version", d.Get("value_wo_version").(int))
 
 	if attributes := resp.Attributes; attributes != nil {
+		notBeforeDate := ""
 		if v := attributes.NotBefore; v != nil {
-			d.Set("not_before_date", time.Time(*v).Format(time.RFC3339))
+			notBeforeDate = time.Time(*v).Format(time.RFC3339)
 		}
+		d.Set("not_before_date", notBeforeDate)
 
+		expirationDate := ""
 		if v := attributes.Expires; v != nil {
-			d.Set("expiration_date", time.Time(*v).Format(time.RFC3339))
+			expirationDate = time.Time(*v).Format(time.RFC3339)
 		}
+		d.Set("expiration_date", expirationDate)
 	}
 
 	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, id.Version).ID())
@@ -423,18 +426,18 @@ func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseNestedItemID(d.Id())
+	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return err
 	}
 
 	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseURL)
 	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseURL, err)
 	}
 	if keyVaultIdRaw == nil {
-		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
+		return fmt.Errorf("unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseURL)
 	}
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
@@ -444,11 +447,11 @@ func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	kv, err := keyVaultsClient.VaultsClient.Get(ctx, *keyVaultId)
 	if err != nil {
 		if response.WasNotFound(kv.HttpResponse) {
-			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseURL)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedSecretsOnDestroy
@@ -457,10 +460,10 @@ func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		shouldPurge = false
 	}
 
-	description := fmt.Sprintf("Secret %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
+	description := fmt.Sprintf("Secret %q (Key Vault %q)", id.Name, id.KeyVaultBaseURL)
 	deleter := deleteAndPurgeSecret{
 		client:      client,
-		keyVaultUri: id.KeyVaultBaseUrl,
+		keyVaultUri: id.KeyVaultBaseURL,
 		name:        id.Name,
 	}
 	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
@@ -473,7 +476,7 @@ func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) e
 var _ deleteAndPurgeNestedItem = deleteAndPurgeSecret{}
 
 type deleteAndPurgeSecret struct {
-	client      *keyvault.BaseClient
+	client      *kv.BaseClient
 	keyVaultUri string
 	name        string
 }

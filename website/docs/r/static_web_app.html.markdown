@@ -51,6 +51,8 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
+~> **Note:** If using the `api_key` to deploy a Static Web App from a CI/CD pipeline or other source, `repository_branch` and `repository_url` will get updated in Azure, but it is not possible to set `repository_token` in that case. Use a `lifecycle` block to `ignore_changes` for `repository_branch` and`repository_url` if that is your deployment scenario.
+
 * `repository_branch` - (Optional) Repository branch to use for the Static Web App. `repository_url` and `repository_token` must also be set.
 
 * `repository_url` - (Optional) Repository URL to use for the Static Web App. `repository_branch` and `repository_token` must also be set.
@@ -88,7 +90,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Static Web App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Static Web App.
@@ -107,4 +109,4 @@ terraform import azurerm_static_web_app.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-01-01
+* `Microsoft.Web` - 2023-01-01

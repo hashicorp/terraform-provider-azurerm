@@ -95,7 +95,7 @@ resource "azurerm_web_pubsub_custom_domain" "test" {
   web_pubsub_custom_certificate_id = azurerm_web_pubsub_custom_certificate.test.id
 }
 ```
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -117,7 +117,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the custom domain of the Web PubSub service
 * `read` - (Defaults to 5 minutes) Used when retrieving the custom domain of the Web PubSub service
@@ -135,4 +135,4 @@ terraform import azurerm_web_pubsub_custom_domain.example /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.SignalRService`: 2024-03-01
+* `Microsoft.SignalRService` - 2024-03-01

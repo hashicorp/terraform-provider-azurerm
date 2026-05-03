@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -94,8 +95,8 @@ func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	props := cdn.AFDEndpoint{
-		Name:     utils.String(d.Get("name").(string)),
-		Location: utils.String(location.Normalize("global")),
+		Name:     pointer.To(d.Get("name").(string)),
+		Location: pointer.To(location.Normalize("global")),
 		AFDEndpointProperties: &cdn.AFDEndpointProperties{
 			EnabledState: expandEnabledBool(d.Get("enabled").(bool)),
 		},

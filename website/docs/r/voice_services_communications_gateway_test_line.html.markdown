@@ -59,7 +59,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Voice Services Communications Gateway Test Line.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Voice Services Communications Gateway Test Line.
@@ -78,4 +78,4 @@ terraform import azurerm_voice_services_communications_gateway_test_line.example
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.VoiceServices`: 2023-04-03
+* `Microsoft.VoiceServices` - 2023-04-03

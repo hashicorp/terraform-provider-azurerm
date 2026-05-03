@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -32,7 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -75,6 +74,23 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
+
+			"network_api_version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForNetworkApiVersion(), false),
+				Default:      virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne,
+				DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+					// This `DiffSuppressFunc` is used to keep compatible with the legacy Orchestrated VMSS and can be removed once the legacy VMSS is removed.
+					if _, ok := d.GetOk("sku_name"); !ok {
+						if old == "" && new == string(virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne) {
+							return true
+						}
+					}
+
+					return false
+				},
+			},
 
 			"network_interface": OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema(),
 
@@ -359,6 +375,28 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					return fmt.Errorf("`rolling_upgrade_policy` is required when `upgrade_mode` is set to `%s`", string(upgradeMode))
 				}
 
+				networkInterfaces := diff.Get("network_interface").([]interface{})
+				for _, networkInterface := range networkInterfaces {
+					raw := networkInterface.(map[string]interface{})
+					auxiliaryMode := raw["auxiliary_mode"].(string)
+					auxiliarySku := raw["auxiliary_sku"].(string)
+
+					if auxiliaryMode != "" && auxiliarySku == "" {
+						return fmt.Errorf("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
+					}
+
+					if auxiliarySku != "" && auxiliaryMode == "" {
+						return fmt.Errorf("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
+					}
+
+					if auxiliaryMode != "" {
+						networkApiVersion := (virtualmachinescalesets.NetworkApiVersion)(diff.Get("network_api_version").(string))
+						if networkApiVersion == virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne {
+							return fmt.Errorf("`auxiliary_mode` and `auxiliary_sku` can be set only when `network_api_version` is later than `2020-11-01`")
+						}
+					}
+				}
+
 				return nil
 			}),
 		),
@@ -431,8 +469,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	networkProfile := &virtualmachinescalesets.VirtualMachineScaleSetNetworkProfile{
-		// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
-		NetworkApiVersion: pointer.To(virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne),
+		NetworkApiVersion: pointer.To((virtualmachinescalesets.NetworkApiVersion)(d.Get("network_api_version").(string))),
 	}
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
@@ -510,7 +547,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.UserData = pointer.To(userData.(string))
 	}
 
-	osType := virtualmachinescalesets.OperatingSystemTypesWindows
+	var osType virtualmachinescalesets.OperatingSystemTypes
 	var winConfigRaw []interface{}
 	var linConfigRaw []interface{}
 	var vmssOsProfile *virtualmachinescalesets.VirtualMachineScaleSetOSProfile
@@ -529,6 +566,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		if len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
+			osType = virtualmachinescalesets.OperatingSystemTypesWindows
 			winConfig := winConfigRaw[0].(map[string]interface{})
 			provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 			patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
@@ -636,13 +674,12 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 		}
 
+		if vmssOsProfile != nil {
+			vmssOsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
+		}
+
 		virtualMachineProfile.OsProfile = vmssOsProfile
 	}
-
-	if virtualMachineProfile.OsProfile == nil {
-		virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
-	}
-	virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
 
 	if v, ok := d.GetOk("boot_diagnostics"); ok {
 		virtualMachineProfile.DiagnosticsProfile = expandBootDiagnosticsVMSS(v.([]interface{}))
@@ -807,7 +844,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	updateProps := virtualmachinescalesets.VirtualMachineScaleSetUpdateProperties{}
 	update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{}
-	osType := virtualmachinescalesets.OperatingSystemTypesWindows
+	var osType virtualmachinescalesets.OperatingSystemTypes
 
 	if !isLegacy {
 		updateProps = virtualmachinescalesets.VirtualMachineScaleSetUpdateProperties{
@@ -875,6 +912,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			}
 
 			if len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
+				osType = virtualmachinescalesets.OperatingSystemTypesWindows
 				winConfig := winConfigRaw[0].(map[string]interface{})
 				provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 				patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
@@ -1056,18 +1094,20 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			}
 		}
 
-		if d.HasChange("network_interface") {
+		if d.HasChange("network_api_version") || d.HasChange("network_interface") {
+			if updateProps.VirtualMachineProfile.NetworkProfile == nil {
+				updateProps.VirtualMachineProfile.NetworkProfile = &virtualmachinescalesets.VirtualMachineScaleSetUpdateNetworkProfile{}
+			}
+
+			updateProps.VirtualMachineProfile.NetworkProfile.NetworkApiVersion = pointer.To(virtualmachinescalesets.NetworkApiVersion(d.Get("network_api_version").(string)))
+
 			networkInterfacesRaw := d.Get("network_interface").([]interface{})
 			networkInterfaces, err := ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
 			if err != nil {
 				return fmt.Errorf("expanding `network_interface`: %w", err)
 			}
 
-			updateProps.VirtualMachineProfile.NetworkProfile = &virtualmachinescalesets.VirtualMachineScaleSetUpdateNetworkProfile{
-				NetworkInterfaceConfigurations: networkInterfaces,
-				// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
-				NetworkApiVersion: pointer.To(virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne),
-			}
+			updateProps.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations = networkInterfaces
 		}
 
 		if d.HasChange("boot_diagnostics") {
@@ -1407,6 +1447,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				}
 
 				if nwProfile := profile.NetworkProfile; nwProfile != nil {
+					d.Set("network_api_version", pointer.From(nwProfile.NetworkApiVersion))
+
 					flattenedNics := FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
 					if err := d.Set("network_interface", flattenedNics); err != nil {
 						return fmt.Errorf("setting `network_interface`: %w", err)
@@ -1456,7 +1498,9 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			d.Set("extension_operations_enabled", extensionOperationsEnabled)
 			d.Set("upgrade_mode", upgradeMode)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1488,7 +1532,7 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	// /{nicResourceID}/|providers|Microsoft.Compute|virtualMachineScaleSets|acctestvmss-190923101253410278|virtualMachines|0|networkInterfaces|example/ipConfigurations/internal and cannot be deleted.
 	// In order to delete the subnet, delete all the resources within the subnet. See aka.ms/deletesubnet.
 	if resp.Model != nil && resp.Model.Sku != nil {
-		resp.Model.Sku.Capacity = utils.Int64(int64(0))
+		resp.Model.Sku.Capacity = pointer.To(int64(0))
 
 		log.Printf("[DEBUG] Scaling instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 		update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{
@@ -1562,7 +1606,7 @@ func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*v
 
 	sku := &virtualmachinescalesets.Sku{
 		Name:     pointer.To(input),
-		Capacity: utils.Int64(int64(capacity)),
+		Capacity: pointer.To(int64(capacity)),
 	}
 
 	if input != SkuNameMix {

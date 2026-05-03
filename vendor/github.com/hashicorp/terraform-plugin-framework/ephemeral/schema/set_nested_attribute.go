@@ -230,6 +230,18 @@ func (a SetNestedAttribute) IsWriteOnly() bool {
 	return false
 }
 
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SetNestedAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SetNestedAttribute) IsOptionalForImport() bool {
+	return false
+}
+
 // SetValidators returns the Validators field value.
 func (a SetNestedAttribute) SetValidators() []validator.Set {
 	return a.Validators

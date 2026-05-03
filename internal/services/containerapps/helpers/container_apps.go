@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -9,12 +9,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/daprcomponents"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/daprcomponents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -159,6 +159,16 @@ type Ingress struct {
 	Transport              string                  `tfschema:"transport"`
 	IpSecurityRestrictions []IpSecurityRestriction `tfschema:"ip_security_restriction"`
 	ClientCertificateMode  string                  `tfschema:"client_certificate_mode"`
+	Cors                   []Cors                  `tfschema:"cors"`
+}
+
+type Cors struct {
+	AllowCredentialsEnabled bool     `tfschema:"allow_credentials_enabled"`
+	AllowedHeaders          []string `tfschema:"allowed_headers"`
+	AllowedMethods          []string `tfschema:"allowed_methods"`
+	AllowedOrigins          []string `tfschema:"allowed_origins"`
+	ExposedHeaders          []string `tfschema:"exposed_headers"`
+	MaxAgeInSeconds         int64    `tfschema:"max_age_in_seconds"`
 }
 
 func ContainerAppIngressSchema() *pluginsdk.Schema {
@@ -183,6 +193,55 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 				},
 
 				"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
+
+				"cors": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"allowed_origins": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"allow_credentials_enabled": {
+								Type:     pluginsdk.TypeBool,
+								Optional: true,
+								Default:  false,
+							},
+							"allowed_headers": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"allowed_methods": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"exposed_headers": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"max_age_in_seconds": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntAtLeast(0),
+							},
+						},
+					},
+				},
 
 				"fqdn": {
 					Type:        pluginsdk.TypeString,
@@ -245,6 +304,52 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 
 				"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
 
+				"cors": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"allowed_origins": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"allow_credentials_enabled": {
+								Type:     pluginsdk.TypeBool,
+								Computed: true,
+							},
+							"allowed_headers": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"allowed_methods": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"exposed_headers": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"max_age_in_seconds": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+						},
+					},
+				},
+
 				"external_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
@@ -304,6 +409,7 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 		ExposedPort:            pointer.To(ingress.ExposedPort),
 		Traffic:                expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
 		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
+		CorsPolicy:             expandCorsPolicy(ingress.Cors),
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
 	result.Transport = &transport
@@ -313,6 +419,49 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 	}
 
 	return result
+}
+
+func expandCorsPolicy(inputList []Cors) *containerapps.CorsPolicy {
+	if len(inputList) == 0 {
+		return nil
+	}
+
+	input := &inputList[0]
+	result := containerapps.CorsPolicy{
+		AllowCredentials: pointer.To(input.AllowCredentialsEnabled),
+		AllowedOrigins:   input.AllowedOrigins,
+		MaxAge:           pointer.To(input.MaxAgeInSeconds),
+	}
+
+	if len(input.AllowedHeaders) > 0 {
+		result.AllowedHeaders = pointer.To(input.AllowedHeaders)
+	}
+	if len(input.AllowedMethods) > 0 {
+		result.AllowedMethods = pointer.To(input.AllowedMethods)
+	}
+	if len(input.ExposedHeaders) > 0 {
+		result.ExposeHeaders = pointer.To(input.ExposedHeaders)
+	}
+
+	return &result
+}
+
+func flattenCorsPolicy(input *containerapps.CorsPolicy) []Cors {
+	outputList := make([]Cors, 0)
+	if input == nil {
+		return outputList
+	}
+
+	output := Cors{
+		AllowCredentialsEnabled: pointer.From(input.AllowCredentials),
+		AllowedHeaders:          pointer.From(input.AllowedHeaders),
+		AllowedMethods:          pointer.From(input.AllowedMethods),
+		AllowedOrigins:          input.AllowedOrigins,
+		ExposedHeaders:          pointer.From(input.ExposeHeaders),
+		MaxAgeInSeconds:         pointer.From(input.MaxAge),
+	}
+
+	return append(outputList, output)
 }
 
 func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []Ingress {
@@ -338,6 +487,10 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 
 	if ingress.ClientCertificateMode != nil {
 		result.ClientCertificateMode = string(*ingress.ClientCertificateMode)
+	}
+
+	if ingress.CorsPolicy != nil {
+		result.Cors = flattenCorsPolicy(ingress.CorsPolicy)
 	}
 
 	return []Ingress{result}
@@ -810,6 +963,8 @@ type ContainerTemplate struct {
 	Suffix                 string                `tfschema:"revision_suffix"`
 	MinReplicas            int64                 `tfschema:"min_replicas"`
 	MaxReplicas            int64                 `tfschema:"max_replicas"`
+	CooldownPeriod         int64                 `tfschema:"cooldown_period_in_seconds"`
+	PollingInterval        int64                 `tfschema:"polling_interval_in_seconds"`
 	AzureQueueScaleRules   []AzureQueueScaleRule `tfschema:"azure_queue_scale_rule"`
 	CustomScaleRules       []CustomScaleRule     `tfschema:"custom_scale_rule"`
 	HTTPScaleRules         []HTTPScaleRule       `tfschema:"http_scale_rule"`
@@ -843,6 +998,22 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Default:      10,
 					ValidateFunc: validation.IntBetween(1, 300),
 					Description:  "The maximum number of replicas for this container.",
+				},
+
+				"cooldown_period_in_seconds": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      300,
+					ValidateFunc: validation.IntAtLeast(1),
+					Description:  "The number of seconds to wait before scaling down the number of instances again.",
+				},
+
+				"polling_interval_in_seconds": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      30,
+					ValidateFunc: validation.IntAtLeast(1),
+					Description:  "The interval in seconds used for polling KEDA.",
 				},
 
 				"azure_queue_scale_rule": AzureQueueScaleRuleSchema(),
@@ -894,6 +1065,18 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
 					Description: "The maximum number of replicas for this container.",
+				},
+
+				"cooldown_period_in_seconds": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The number of seconds to wait before scaling down the number of instances again.",
+				},
+
+				"polling_interval_in_seconds": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The interval in seconds used for polling KEDA.",
 				},
 
 				"azure_queue_scale_rule": AzureQueueScaleRuleSchemaComputed(),
@@ -950,6 +1133,20 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 		template.Scale.MinReplicas = pointer.To(config.MinReplicas)
 	}
 
+	if config.CooldownPeriod > 0 {
+		if template.Scale == nil {
+			template.Scale = &containerapps.Scale{}
+		}
+		template.Scale.CooldownPeriod = pointer.To(config.CooldownPeriod)
+	}
+
+	if config.PollingInterval > 0 {
+		if template.Scale == nil {
+			template.Scale = &containerapps.Scale{}
+		}
+		template.Scale.PollingInterval = pointer.To(config.PollingInterval)
+	}
+
 	if rules := config.expandContainerAppScaleRules(); len(rules) != 0 {
 		if template.Scale == nil {
 			template.Scale = &containerapps.Scale{}
@@ -982,6 +1179,8 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 	if scale := input.Scale; scale != nil {
 		result.MaxReplicas = pointer.From(scale.MaxReplicas)
 		result.MinReplicas = pointer.From(scale.MinReplicas)
+		result.CooldownPeriod = pointer.From(scale.CooldownPeriod)
+		result.PollingInterval = pointer.From(scale.PollingInterval)
 		result.flattenContainerAppScaleRules(scale.Rules)
 	}
 
@@ -1028,14 +1227,14 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeFloat,
 					Required:     true,
 					ValidateFunc: validation.FloatAtLeast(0.1),
-					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`. When there's a workload profile specified, there's no such constraint.",
+					Description:  "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`. When there's a workload profile specified, there's no such constraint.",
+					Description:  "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
@@ -1097,13 +1296,13 @@ func ContainerAppContainerSchemaComputed() *pluginsdk.Schema {
 				"cpu": {
 					Type:        pluginsdk.TypeFloat,
 					Computed:    true,
-					Description: "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`",
+					Description: "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`",
+					Description: "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
@@ -1181,14 +1380,14 @@ func InitContainerAppContainerSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeFloat,
 					Optional:     true,
 					ValidateFunc: validation.FloatAtLeast(0.1),
-					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`. When there's a workload profile specified, there's no such constraint.",
+					Description:  "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`. When there's a workload profile specified, there's no such constraint.",
+					Description:  "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
@@ -1244,13 +1443,13 @@ func InitContainerAppContainerSchemaComputed() *pluginsdk.Schema {
 				"cpu": {
 					Type:        pluginsdk.TypeFloat,
 					Computed:    true,
-					Description: "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`",
+					Description: "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`",
+					Description: "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
@@ -1867,8 +2066,8 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 30),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+					ValidateFunc: validation.IntBetween(1, 48),
+					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `48`. Defaults to `3`.",
 				},
 
 				"success_count_threshold": {
@@ -1954,7 +2153,7 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `48`. Defaults to `3`.",
 				},
 
 				"success_count_threshold": {
@@ -2437,8 +2636,8 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 30),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+					ValidateFunc: validation.IntBetween(1, 240),
+					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `240`. Defaults to `3`.",
 				},
 			},
 		},
@@ -2522,7 +2721,7 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `240`. Defaults to `3`.",
 				},
 			},
 		},
@@ -2652,7 +2851,7 @@ type Secret struct {
 }
 
 func SecretsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:      pluginsdk.TypeSet,
 		Optional:  true,
 		Sensitive: true,
@@ -2671,7 +2870,7 @@ func SecretsSchema() *pluginsdk.Schema {
 				"key_vault_secret_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 					Description:  "The Key Vault Secret ID. Could be either one of `id` or `versionless_id`.",
 				},
 
@@ -2691,6 +2890,12 @@ func SecretsSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	}
+
+	return s
 }
 
 func SecretsDataSourceSchema() *pluginsdk.Schema {
@@ -2858,7 +3063,7 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 		}
 	}
 
-	return !(hasLiveness || hasReadiness || hasStartup)
+	return !hasLiveness && !hasReadiness && !hasStartup
 }
 
 type AzureQueueScaleRule struct {
@@ -2965,6 +3170,7 @@ type CustomScaleRule struct {
 	Metadata        map[string]string         `tfschema:"metadata"`
 	CustomRuleType  string                    `tfschema:"custom_rule_type"`
 	Authentications []ScaleRuleAuthentication `tfschema:"authentication"`
+	IdentityID      string                    `tfschema:"identity_id"`
 }
 
 func CustomScaleRuleSchema() *pluginsdk.Schema {
@@ -3026,6 +3232,15 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 						},
 					},
 				},
+				"identity_id": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.Any(
+						commonids.ValidateUserAssignedIdentityID,
+						validation.StringInSlice([]string{"System"}, false),
+					),
+					Description: "ID of the System or User Managed Identity used to execute scale rule.",
+				},
 			},
 		},
 	}
@@ -3071,6 +3286,11 @@ func CustomScaleRuleSchemaComputed() *pluginsdk.Schema {
 							},
 						},
 					},
+				},
+				"identity_id": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "ID of the System or User Managed Identity used to execute scale rule.",
 				},
 			},
 		},
@@ -3290,6 +3510,7 @@ func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.Scale
 			Custom: &containerapps.CustomScaleRule{
 				Metadata: pointer.To(v.Metadata),
 				Type:     pointer.To(v.CustomRuleType),
+				Identity: pointer.To(v.IdentityID),
 			},
 		}
 
@@ -3394,6 +3615,7 @@ func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps
 					Name:           pointer.From(v.Name),
 					Metadata:       pointer.From(r.Metadata),
 					CustomRuleType: pointer.From(r.Type),
+					IdentityID:     pointer.From(r.Identity),
 				}
 
 				authentications := make([]ScaleRuleAuthentication, 0)

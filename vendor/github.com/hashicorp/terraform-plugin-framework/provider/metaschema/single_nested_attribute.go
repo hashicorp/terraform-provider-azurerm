@@ -181,3 +181,15 @@ func (a SingleNestedAttribute) IsSensitive() bool {
 func (a SingleNestedAttribute) IsWriteOnly() bool {
 	return false
 }
+
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SingleNestedAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SingleNestedAttribute) IsOptionalForImport() bool {
+	return false
+}

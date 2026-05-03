@@ -230,6 +230,18 @@ func (a DynamicAttribute) IsWriteOnly() bool {
 	return a.WriteOnly
 }
 
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a DynamicAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a DynamicAttribute) IsOptionalForImport() bool {
+	return false
+}
+
 // DynamicDefaultValue returns the Default field value.
 func (a DynamicAttribute) DynamicDefaultValue() defaults.Dynamic {
 	return a.Default

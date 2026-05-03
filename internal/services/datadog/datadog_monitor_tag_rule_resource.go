@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datadog
@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // @tombuildsstuff: in 4.0 consider inlining this within the `azurerm_datadog_monitors` resource
@@ -243,9 +242,9 @@ func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	payload := rules.MonitoringTagRules{
 		Properties: &rules.MonitoringTagRulesProperties{
 			LogRules: &rules.LogRules{
-				SendAadLogs:          utils.Bool(false),
-				SendSubscriptionLogs: utils.Bool(false),
-				SendResourceLogs:     utils.Bool(false),
+				SendAadLogs:          pointer.To(false),
+				SendSubscriptionLogs: pointer.To(false),
+				SendResourceLogs:     pointer.To(false),
 				FilteringTags:        &[]rules.FilteringTag{},
 			},
 			MetricRules: &rules.MetricRules{
@@ -268,9 +267,9 @@ func expandLogRules(input []interface{}) *rules.LogRules {
 	filteringTag := v["filter"].([]interface{})
 
 	return &rules.LogRules{
-		SendAadLogs:          utils.Bool(v["aad_log_enabled"].(bool)),
-		SendSubscriptionLogs: utils.Bool(v["subscription_log_enabled"].(bool)),
-		SendResourceLogs:     utils.Bool(v["resource_log_enabled"].(bool)),
+		SendAadLogs:          pointer.To(v["aad_log_enabled"].(bool)),
+		SendSubscriptionLogs: pointer.To(v["subscription_log_enabled"].(bool)),
+		SendResourceLogs:     pointer.To(v["resource_log_enabled"].(bool)),
 		FilteringTags:        expandFilteringTag(filteringTag),
 	}
 }
@@ -294,8 +293,8 @@ func expandFilteringTag(input []interface{}) *[]rules.FilteringTag {
 		config := v.(map[string]interface{})
 
 		filteringTags = append(filteringTags, rules.FilteringTag{
-			Name:   utils.String(config["name"].(string)),
-			Value:  utils.String(config["value"].(string)),
+			Name:   pointer.To(config["name"].(string)),
+			Value:  pointer.To(config["value"].(string)),
 			Action: pointer.To(rules.TagAction(config["action"].(string))),
 		})
 	}

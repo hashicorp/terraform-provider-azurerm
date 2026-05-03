@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
@@ -10,15 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomCertSignalrServiceResourceModel struct {
@@ -49,13 +46,10 @@ func (r CustomCertSignalrServiceResource) Arguments() map[string]*pluginsdk.Sche
 		},
 
 		"custom_certificate_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.Any(
-				keyVaultValidate.NestedItemId,
-				keyVaultValidate.NestedItemIdWithOptionalVersion,
-			),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate),
 		},
 	}
 }
@@ -92,12 +86,12 @@ func (r CustomCertSignalrServiceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing signalr service id error: %+v", err)
 			}
 
-			keyVaultCertificateId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(metadata.ResourceData.Get("custom_certificate_id").(string))
+			keyVaultCertificateId, err := keyvault.ParseNestedItemID(metadata.ResourceData.Get("custom_certificate_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
 			if err != nil {
 				return fmt.Errorf("parsing custom certificate id error: %+v", err)
 			}
 
-			keyVaultUri := keyVaultCertificateId.KeyVaultBaseUrl
+			keyVaultUri := keyVaultCertificateId.KeyVaultBaseURL
 			keyVaultSecretName := keyVaultCertificateId.Name
 
 			id := signalr.NewCustomCertificateID(signalRServiceId.SubscriptionId, signalRServiceId.ResourceGroupName, signalRServiceId.SignalRName, metadata.ResourceData.Get("name").(string))
@@ -125,7 +119,7 @@ func (r CustomCertSignalrServiceResource) Create() sdk.ResourceFunc {
 				if customCertSignalrService.CertificateVersion != "" && certVersion != customCertSignalrService.CertificateVersion {
 					return fmt.Errorf("certificate version in cert id is different from `certificate_version`")
 				}
-				customCert.Properties.KeyVaultSecretVersion = utils.String(certVersion)
+				customCert.Properties.KeyVaultSecretVersion = pointer.To(certVersion)
 			}
 
 			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCert); err != nil {
@@ -143,7 +137,6 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SignalR.SignalRClient
-			keyVaultClient := metadata.Client.KeyVault
 			id, err := signalr.ParseCustomCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -164,23 +157,13 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 			vaultBasedUri := resp.Model.Properties.KeyVaultBaseUri
 			certName := resp.Model.Properties.KeyVaultSecretName
 
-			subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-			keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, vaultBasedUri)
-			if err != nil {
-				return fmt.Errorf("getting key vault base uri from %s: %+v", id, err)
-			}
-			vaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
-			if err != nil {
-				return fmt.Errorf("parsing key vault %s: %+v", vaultId, err)
-			}
-
 			signalrServiceId := signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID()
 
 			certVersion := ""
 			if resp.Model.Properties.KeyVaultSecretVersion != nil {
 				certVersion = *resp.Model.Properties.KeyVaultSecretVersion
 			}
-			nestedItem, err := keyVaultParse.NewNestedItemID(vaultBasedUri, keyVaultParse.NestedItemTypeCertificate, certName, certVersion)
+			nestedItem, err := keyvault.NewNestedItemID(vaultBasedUri, keyvault.NestedItemTypeCertificate, certName, certVersion)
 			if err != nil {
 				return err
 			}

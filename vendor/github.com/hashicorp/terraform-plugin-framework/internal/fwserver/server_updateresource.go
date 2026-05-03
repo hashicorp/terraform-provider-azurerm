@@ -5,6 +5,7 @@ package fwserver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -20,13 +21,16 @@ import (
 // UpdateResourceRequest is the framework server request for an update request
 // with the ApplyResourceChange RPC.
 type UpdateResourceRequest struct {
-	Config         *tfsdk.Config
-	PlannedPrivate *privatestate.Data
-	PlannedState   *tfsdk.Plan
-	PriorState     *tfsdk.State
-	ProviderMeta   *tfsdk.Config
-	ResourceSchema fwschema.Schema
-	Resource       resource.Resource
+	Config           *tfsdk.Config
+	PlannedPrivate   *privatestate.Data
+	PlannedState     *tfsdk.Plan
+	PlannedIdentity  *tfsdk.ResourceIdentity
+	PriorState       *tfsdk.State
+	ProviderMeta     *tfsdk.Config
+	ResourceSchema   fwschema.Schema
+	IdentitySchema   fwschema.Schema
+	Resource         resource.Resource
+	ResourceBehavior resource.ResourceBehavior
 }
 
 // UpdateResourceResponse is the framework server response for an update request
@@ -34,6 +38,7 @@ type UpdateResourceRequest struct {
 type UpdateResourceResponse struct {
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
+	NewIdentity *tfsdk.ResourceIdentity
 	Private     *privatestate.Data
 }
 
@@ -118,12 +123,36 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		resp.Private = req.PlannedPrivate
 	}
 
+	// If the resource supports identity and there is no planned identity data, pre-populate with a null value.
+	if req.PlannedIdentity == nil && req.IdentitySchema != nil {
+		nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
+
+		req.PlannedIdentity = &tfsdk.ResourceIdentity{
+			Schema: req.IdentitySchema,
+			Raw:    nullIdentityTfValue.Copy(),
+		}
+	}
+
+	// Pre-populate the new identity with the planned identity.
+	if req.PlannedIdentity != nil {
+		updateReq.Identity = &tfsdk.ResourceIdentity{
+			Schema: req.PlannedIdentity.Schema,
+			Raw:    req.PlannedIdentity.Raw.Copy(),
+		}
+
+		updateResp.Identity = &tfsdk.ResourceIdentity{
+			Schema: req.PlannedIdentity.Schema,
+			Raw:    req.PlannedIdentity.Raw.Copy(),
+		}
+	}
+
 	logging.FrameworkTrace(ctx, "Calling provider defined Resource Update")
 	req.Resource.Update(ctx, updateReq, &updateResp)
 	logging.FrameworkTrace(ctx, "Called provider defined Resource Update")
 
 	resp.Diagnostics = updateResp.Diagnostics
 	resp.NewState = &updateResp.State
+	resp.NewIdentity = updateResp.Identity
 
 	if !resp.Diagnostics.HasError() && updateResp.State.Raw.Equal(nullSchemaData) {
 		resp.Diagnostics.AddError(
@@ -143,6 +172,42 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	if resp.NewIdentity != nil {
+		if req.IdentitySchema == nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Update Response",
+				"An unexpected error was encountered when creating the apply response. New identity data was returned by the provider update operation, but the resource does not indicate identity support.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.",
+			)
+
+			return
+		}
+
+		// If we already have an identity stored, validate that the new identity hasn't changing
+		if !req.ResourceBehavior.MutableIdentity && !req.PlannedIdentity.Raw.IsFullyNull() && !req.PlannedIdentity.Raw.Equal(resp.NewIdentity.Raw) {
+			resp.Diagnostics.AddError(
+				"Unexpected Identity Change",
+				"During the update operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
+					fmt.Sprintf("Planned Identity: %s\n\n", req.PlannedIdentity.Raw.String())+
+					fmt.Sprintf("New Identity: %s", resp.NewIdentity.Raw.String()),
+			)
+
+			return
+		}
+	}
+
+	if req.IdentitySchema != nil {
+		if resp.NewIdentity.Raw.IsFullyNull() {
+			resp.Diagnostics.AddError(
+				"Missing Resource Identity After Update",
+				"The Terraform Provider unexpectedly returned no resource identity data after having no errors in the resource update. "+
+					"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+			)
+			return
+		}
 	}
 
 	semanticEqualityReq := SchemaSemanticEqualityRequest{

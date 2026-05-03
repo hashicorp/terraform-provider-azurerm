@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -87,6 +87,10 @@ func TestAccFrontDoorFirewallPolicy_validateName(t *testing.T) {
 
 		if tc.ExpectError && !hasError {
 			t.Fatalf("Expected the FrontDoor WAF Name to trigger a validation error for '%s'", tc.Name)
+		}
+
+		if !tc.ExpectError && hasError {
+			t.Fatalf("Encountered unexpected validation error for FrontDoor WAF Name '%s'", tc.Input)
 		}
 	}
 }

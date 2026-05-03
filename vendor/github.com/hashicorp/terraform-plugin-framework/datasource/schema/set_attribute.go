@@ -206,6 +206,18 @@ func (a SetAttribute) IsWriteOnly() bool {
 	return false
 }
 
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SetAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SetAttribute) IsOptionalForImport() bool {
+	return false
+}
+
 // SetValidators returns the Validators field value.
 func (a SetAttribute) SetValidators() []validator.Set {
 	return a.Validators

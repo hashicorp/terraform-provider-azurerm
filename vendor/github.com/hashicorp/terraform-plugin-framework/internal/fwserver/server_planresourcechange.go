@@ -30,9 +30,11 @@ type PlanResourceChangeRequest struct {
 	Config             *tfsdk.Config
 	PriorPrivate       *privatestate.Data
 	PriorState         *tfsdk.State
+	PriorIdentity      *tfsdk.ResourceIdentity
 	ProposedNewState   *tfsdk.Plan
 	ProviderMeta       *tfsdk.Config
 	ResourceSchema     fwschema.Schema
+	IdentitySchema     fwschema.Schema
 	Resource           resource.Resource
 	ResourceBehavior   resource.ResourceBehavior
 }
@@ -44,6 +46,7 @@ type PlanResourceChangeResponse struct {
 	Diagnostics     diag.Diagnostics
 	PlannedPrivate  *privatestate.Data
 	PlannedState    *tfsdk.State
+	PlannedIdentity *tfsdk.ResourceIdentity
 	RequiresReplace path.Paths
 }
 
@@ -112,6 +115,24 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		req.PriorState = &tfsdk.State{
 			Raw:    nullTfValue,
 			Schema: req.ResourceSchema,
+		}
+	}
+
+	// If the resource supports identity and there is no prior identity data, pre-populate with a null value.
+	if req.PriorIdentity == nil && req.IdentitySchema != nil {
+		nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
+
+		req.PriorIdentity = &tfsdk.ResourceIdentity{
+			Schema: req.IdentitySchema,
+			Raw:    nullIdentityTfValue.Copy(),
+		}
+	}
+
+	// Set the planned identity to the prior identity by default (can be modified later).
+	if req.PriorIdentity != nil {
+		resp.PlannedIdentity = &tfsdk.ResourceIdentity{
+			Schema: req.PriorIdentity.Schema,
+			Raw:    req.PriorIdentity.Raw.Copy(),
 		}
 	}
 
@@ -311,12 +332,24 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			Private:         modifyPlanReq.Private,
 		}
 
+		if resp.PlannedIdentity != nil {
+			modifyPlanReq.Identity = &tfsdk.ResourceIdentity{
+				Schema: resp.PlannedIdentity.Schema,
+				Raw:    resp.PlannedIdentity.Raw.Copy(),
+			}
+			modifyPlanResp.Identity = &tfsdk.ResourceIdentity{
+				Schema: resp.PlannedIdentity.Schema,
+				Raw:    resp.PlannedIdentity.Raw.Copy(),
+			}
+		}
+
 		logging.FrameworkTrace(ctx, "Calling provider defined Resource ModifyPlan")
 		resourceWithModifyPlan.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
 		logging.FrameworkTrace(ctx, "Called provider defined Resource ModifyPlan")
 
 		resp.Diagnostics = modifyPlanResp.Diagnostics
 		resp.PlannedState = planToState(modifyPlanResp.Plan)
+		resp.PlannedIdentity = modifyPlanResp.Identity
 		resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 		resp.PlannedPrivate.Provider = modifyPlanResp.Private
 		resp.Deferred = modifyPlanResp.Deferred
@@ -334,6 +367,31 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 					"replacing provider deferred reason: %s with resource deferred reason: %s",
 					s.deferred.Reason.String(), modifyPlanResp.Deferred.Reason.String()))
 			}
+			return
+		}
+	}
+
+	if resp.PlannedIdentity != nil {
+		if req.IdentitySchema == nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Plan Response",
+				"An unexpected error was encountered when creating the plan response. New identity data was returned by the provider planning operation, but the resource does not indicate identity support.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.",
+			)
+
+			return
+		}
+
+		// If we're updating or deleting and we already have an identity stored, validate that the planned identity isn't changing
+		if !req.ResourceBehavior.MutableIdentity && !req.PriorState.Raw.IsNull() && !req.PriorIdentity.Raw.IsFullyNull() && !req.PriorIdentity.Raw.Equal(resp.PlannedIdentity.Raw) {
+			resp.Diagnostics.AddError(
+				"Unexpected Identity Change",
+				"During the planning operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
+					fmt.Sprintf("Prior Identity: %s\n\n", req.PriorIdentity.Raw.String())+
+					fmt.Sprintf("Planned Identity: %s", resp.PlannedIdentity.Raw.String()),
+			)
+
 			return
 		}
 	}
