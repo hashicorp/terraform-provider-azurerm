@@ -109,6 +109,8 @@ The name of your DNS TXT record should be in the format of `_dnsauth.<your_subdo
 
 -> **Note:** Domain ownership validation is performed asynchronously by the Azure Front Door service (the domain typically transitions through states like `Submitting` and `Pending` before becoming `Approved`). If validation appears to be taking longer than expected, refer to the Azure Front Door documentation on [domain validation](https://learn.microsoft.com/azure/frontdoor/domain#domain-validation) and [domain validation states](https://learn.microsoft.com/azure/frontdoor/domain#domain-validation).
 
+~> **Note:** Azure Front Door custom domain operations are currently gated by an internal service-side validation and backend synchronization process. While that process is running, the service can reject otherwise valid follow-up write operations until the custom domain reaches an approved state, which can make create, update, and delete operations take significantly longer than expected.
+
 ```hcl
 resource "azurerm_dns_txt_record" "example" {
   name                = join(".", ["_dnsauth", split(".", azurerm_cdn_frontdoor_custom_domain.example.host_name)[0]])

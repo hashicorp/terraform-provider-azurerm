@@ -361,6 +361,10 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		props.Properties.TlsSettings = tls
 	}
 
+	// The AFDx service currently rejects custom-domain updates until its internal
+	// validation and backend synchronization flow completes. The service team
+	// confirmed clients must wait for approval here, otherwise Update can return
+	// 409 Conflict while the sync job is still in progress.
 	approvalPollerType := custompollers.NewFrontDoorCustomDomainWaitForApprovedPoller(client, *id)
 	approvalPoller := pollers.NewPoller(approvalPollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := approvalPoller.PollUntilDone(ctx); err != nil {
