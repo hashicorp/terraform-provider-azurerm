@@ -1,7 +1,7 @@
 ---
 subcategory: "CDN"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_custom_domain"
+page_title: "Azure Resource Manager: Data Source: azurerm_cdn_frontdoor_custom_domain"
 description: |-
   Gets information about an existing Front Door (standard/premium) Custom Domain.
 ---
