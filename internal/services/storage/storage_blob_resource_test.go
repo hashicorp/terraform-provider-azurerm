@@ -95,6 +95,13 @@ func TestAccStorageBlob_blockEmptyAzureADAuth(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		{
+			Config: r.blockEmptyAzureADAuthUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("metadata.hello").HasValue("world"),
+			),
+		},
 		data.ImportStep("parallelism", "size", "type"),
 	})
 }
@@ -804,6 +811,48 @@ resource "azurerm_storage_blob" "test" {
   name                 = "example.vhd"
   storage_container_id = azurerm_storage_container.test.id
   type                 = "Block"
+}
+`, r.template(data, "private"))
+}
+
+func (r StorageBlobResource) blockEmptyAzureADAuthUpdated(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+  storage_use_azuread = true
+}
+
+		%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, r.template(data, "private"))
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+  storage_use_azuread = true
+}
+
+	%s
+
+resource "azurerm_storage_blob" "test" {
+  name                 = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+
+  metadata = {
+    hello = "world"
+  }
 }
 `, r.template(data, "private"))
 }
