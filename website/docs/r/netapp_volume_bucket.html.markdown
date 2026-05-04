@@ -358,7 +358,7 @@ A `server` block supports the following:
 
 * `certificate_pem` - (Optional, Sensitive) Base64-encoded PEM blob containing the server certificate concatenated with the private key. Used when the certificate is supplied directly instead of via Key Vault. Mutually exclusive with `key_vault`.
 
-* `on_certificate_conflict_action` - (Optional) Behaviour when an existing certificate already matches during a certificate rotation. Possible values are `Update` and `Fail`. Only used during update.
+* `on_certificate_conflict_action` - (Optional) Behaviour when an existing certificate already matches during a certificate rotation. Possible values are `Update` and `Fail`. Defaults to `Fail`. Only used during update.
 
 ---
 

@@ -168,6 +168,7 @@ func (r NetAppVolumeBucketResource) Arguments() map[string]*pluginsdk.Schema {
 					"on_certificate_conflict_action": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Default:      string(buckets.OnCertificateConflictActionFail),
 						ValidateFunc: validation.StringInSlice(buckets.PossibleValuesForOnCertificateConflictAction(), false),
 					},
 				},
