@@ -31,6 +31,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name signalr_service -service-package-name signalr -properties "name,resource_group_name"
 func resourceArmSignalRService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmSignalRServiceCreate,
@@ -50,10 +51,11 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 		}),
 		SchemaVersion: 1,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := signalr.ParseSignalRID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&signalr.SignalRId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&signalr.SignalRId{}),
+		},
 
 		Schema: resourceArmSignalRServiceSchema(),
 	}
@@ -167,6 +169,9 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceArmSignalRServiceRead(d, meta)
 }
 
@@ -196,13 +201,17 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
+	return resourceArmSignalRServiceFlatten(d, id, resp.Model, keys.Model)
+}
+
+func resourceArmSignalRServiceFlatten(d *pluginsdk.ResourceData, id *signalr.SignalRId, model *signalr.SignalRResource, keyModel *signalr.SignalRKeys) error {
 	d.Set("name", id.SignalRName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
-		if err = d.Set("sku", flattenSignalRServiceSku(model.Sku)); err != nil {
+		if err := d.Set("sku", flattenSignalRServiceSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 
@@ -217,12 +226,14 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			httpLogsEnabled := false
 			liveTraceEnabled := false
 			serviceMode := "Default"
-			for _, feature := range *props.Features {
-				if feature.Flag == "EnableLiveTrace" {
-					liveTraceEnabled = strings.EqualFold(feature.Value, "True")
-				}
-				if feature.Flag == signalr.FeatureFlagsServiceMode {
-					serviceMode = feature.Value
+			if props.Features != nil {
+				for _, feature := range *props.Features {
+					if feature.Flag == "EnableLiveTrace" {
+						liveTraceEnabled = strings.EqualFold(feature.Value, "True")
+					}
+					if feature.Flag == signalr.FeatureFlagsServiceMode {
+						serviceMode = feature.Value
+					}
 				}
 			}
 
@@ -296,28 +307,29 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("connectivity_logs_enabled", connectivityLogsEnabled)
 			d.Set("messaging_logs_enabled", messagingLogsEnabled)
 			d.Set("http_request_logs_enabled", httpLogsEnabled)
-			identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
-			if err := d.Set("identity", identity); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
-			}
+		}
 
-			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-				return err
-			}
+		identityValue, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identityValue); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
 
-	if model := keys.Model; model != nil {
-		d.Set("primary_access_key", model.PrimaryKey)
-		d.Set("primary_connection_string", model.PrimaryConnectionString)
-		d.Set("secondary_access_key", model.SecondaryKey)
-		d.Set("secondary_connection_string", model.SecondaryConnectionString)
+	if keyModel != nil {
+		d.Set("primary_access_key", keyModel.PrimaryKey)
+		d.Set("primary_connection_string", keyModel.PrimaryConnectionString)
+		d.Set("secondary_access_key", keyModel.SecondaryKey)
+		d.Set("secondary_connection_string", keyModel.SecondaryConnectionString)
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

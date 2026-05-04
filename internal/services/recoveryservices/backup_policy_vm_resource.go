@@ -97,6 +97,14 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 			default:
 				return errors.New("unrecognized value for backup.0.frequency")
 			}
+
+			consistencyType, hasConsistencyType := diff.GetOk("consistency_type")
+			if hasConsistencyType && consistencyType.(string) == string(protectionpolicies.IaasVMSnapshotConsistencyTypeOnlyCrashConsistent) {
+				if diff.Get("policy_type").(string) != string(protectionpolicies.IAASVMPolicyTypeVTwo) {
+					return errors.New("`policy_type` must be `V2` when `consistency_type` is `OnlyCrashConsistent`")
+				}
+			}
+
 			return nil
 		}),
 	}
@@ -139,11 +147,12 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 
 	policyType := protectionpolicies.IAASVMPolicyType(d.Get("policy_type").(string))
 	vmProtectionPolicyProperties := &protectionpolicies.AzureIaaSVMProtectionPolicy{
-		TimeZone:         pointer.To(d.Get("timezone").(string)),
-		PolicyType:       pointer.To(policyType),
-		SchedulePolicy:   schedulePolicy,
-		TieringPolicy:    expandBackupProtectionPolicyVMTieringPolicy(d.Get("tiering_policy").([]interface{})),
-		InstantRPDetails: expandBackupProtectionPolicyVMResourceGroup(d),
+		TimeZone:                pointer.To(d.Get("timezone").(string)),
+		SnapshotConsistencyType: pointer.ToEnum[protectionpolicies.IaasVMSnapshotConsistencyType](d.Get("consistency_type").(string)),
+		PolicyType:              pointer.To(policyType),
+		SchedulePolicy:          schedulePolicy,
+		TieringPolicy:           expandBackupProtectionPolicyVMTieringPolicy(d.Get("tiering_policy").([]interface{})),
+		InstantRPDetails:        expandBackupProtectionPolicyVMResourceGroup(d),
 		RetentionPolicy: &protectionpolicies.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 			DailySchedule:   expandBackupProtectionPolicyVMRetentionDaily(d, times),
 			WeeklySchedule:  expandBackupProtectionPolicyVMRetentionWeekly(d, times),
@@ -227,6 +236,8 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 				policyType = string(pointer.From(properties.PolicyType))
 			}
 			d.Set("policy_type", policyType)
+
+			d.Set("consistency_type", pointer.FromEnum(properties.SnapshotConsistencyType))
 
 			if retention, ok := properties.RetentionPolicy.(protectionpolicies.LongTermRetentionPolicy); ok {
 				if s := retention.DailySchedule; s != nil {
@@ -320,6 +331,10 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 
 		properties.InstantRpRetentionRangeInDays = pointer.To(int64(days))
+	}
+
+	if d.HasChange("consistency_type") {
+		properties.SnapshotConsistencyType = pointer.ToEnum[protectionpolicies.IaasVMSnapshotConsistencyType](d.Get("consistency_type").(string))
 	}
 
 	if d.HasChange("tiering_policy") {
@@ -1190,6 +1205,12 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"consistency_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(protectionpolicies.PossibleValuesForIaasVMSnapshotConsistencyType(), false),
 		},
 
 		"policy_type": {
