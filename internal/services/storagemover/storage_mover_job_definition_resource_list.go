@@ -77,7 +77,7 @@ func (StorageMoverJobDefinitionListResource) List(ctx context.Context, request l
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			id, err := jobdefinitions.ParseJobDefinitionIDInsensitively(pointer.From(item.Id))
+			id, err := jobdefinitions.ParseJobDefinitionID(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Storage Mover Job Definition ID", err)
 				return
