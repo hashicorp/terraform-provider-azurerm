@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -9,11 +9,13 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -27,6 +29,8 @@ import (
 
 func resourceSpringCloudApp() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+
 		Create: resourceSpringCloudAppCreate,
 		Read:   resourceSpringCloudAppRead,
 		Update: resourceSpringCloudAppUpdate,
@@ -267,8 +271,8 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Identity: identity,
 		Properties: &appplatform.AppResourceProperties{
 			AddonConfigs:          addonConfig,
-			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
-			Public:                utils.Bool(d.Get("is_public").(bool)),
+			EnableEndToEndTLS:     pointer.To(d.Get("tls_enabled").(bool)),
+			Public:                pointer.To(d.Get("is_public").(bool)),
 			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), id),
 		},
 	}
@@ -281,12 +285,12 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// HTTPSOnly and PersistentDisk could only be set by update
-	app.Properties.HTTPSOnly = utils.Bool(d.Get("https_only").(bool))
+	app.Properties.HTTPSOnly = pointer.To(d.Get("https_only").(bool))
 	app.Properties.PersistentDisk = expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{}))
 	// VNetAddons.PublicEndpoint could only be set by update
 	if enabled := d.Get("public_endpoint_enabled").(bool); enabled {
 		app.Properties.VnetAddons = &appplatform.AppVNetAddons{
-			PublicEndpoint: utils.Bool(enabled),
+			PublicEndpoint: pointer.To(enabled),
 		}
 	}
 	// IngressSettings could only be set by update
@@ -328,9 +332,9 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		Identity: identity,
 		Properties: &appplatform.AppResourceProperties{
 			AddonConfigs:          addonConfig,
-			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
-			Public:                utils.Bool(d.Get("is_public").(bool)),
-			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
+			EnableEndToEndTLS:     pointer.To(d.Get("tls_enabled").(bool)),
+			Public:                pointer.To(d.Get("is_public").(bool)),
+			HTTPSOnly:             pointer.To(d.Get("https_only").(bool)),
 			IngressSettings:       expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]interface{})),
 			PersistentDisk:        expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
 			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), *id),
@@ -338,7 +342,7 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	if enabled := d.Get("public_endpoint_enabled").(bool); enabled {
 		app.Properties.VnetAddons = &appplatform.AppVNetAddons{
-			PublicEndpoint: utils.Bool(enabled),
+			PublicEndpoint: pointer.To(enabled),
 		}
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
@@ -458,8 +462,8 @@ func expandSpringCloudAppPersistentDisk(input []interface{}) *appplatform.Persis
 	}
 	raw := input[0].(map[string]interface{})
 	return &appplatform.PersistentDisk{
-		SizeInGB:  utils.Int32(int32(raw["size_in_gb"].(int))),
-		MountPath: utils.String(raw["mount_path"].(string)),
+		SizeInGB:  pointer.To(int32(raw["size_in_gb"].(int))),
+		MountPath: pointer.To(raw["mount_path"].(string)),
 	}
 }
 
@@ -468,11 +472,11 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, appplatform.CustomPersistentDiskResource{
-			StorageID: utils.String(parse.NewSpringCloudStorageID(id.SubscriptionId, id.ResourceGroup, id.SpringName, v["storage_name"].(string)).ID()),
+			StorageID: pointer.To(parse.NewSpringCloudStorageID(id.SubscriptionId, id.ResourceGroup, id.SpringName, v["storage_name"].(string)).ID()),
 			CustomPersistentDiskProperties: &appplatform.AzureFileVolume{
-				ShareName:    utils.String(v["share_name"].(string)),
-				MountPath:    utils.String(v["mount_path"].(string)),
-				ReadOnly:     utils.Bool(v["read_only_enabled"].(bool)),
+				ShareName:    pointer.To(v["share_name"].(string)),
+				MountPath:    pointer.To(v["mount_path"].(string)),
+				ReadOnly:     pointer.To(v["read_only_enabled"].(bool)),
 				MountOptions: utils.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
 			},
 		})
@@ -498,10 +502,10 @@ func expandSpringCloudAppIngressSetting(input []interface{}) *appplatform.Ingres
 	raw := input[0].(map[string]interface{})
 
 	return &appplatform.IngressSettings{
-		ReadTimeoutInSeconds: utils.Int32(int32(raw["read_timeout_in_seconds"].(int))),
-		SendTimeoutInSeconds: utils.Int32(int32(raw["send_timeout_in_seconds"].(int))),
+		ReadTimeoutInSeconds: pointer.To(int32(raw["read_timeout_in_seconds"].(int))),
+		SendTimeoutInSeconds: pointer.To(int32(raw["send_timeout_in_seconds"].(int))),
 		SessionAffinity:      appplatform.SessionAffinity(raw["session_affinity"].(string)),
-		SessionCookieMaxAge:  utils.Int32(int32(raw["session_cookie_max_age"].(int))),
+		SessionCookieMaxAge:  pointer.To(int32(raw["session_cookie_max_age"].(int))),
 		BackendProtocol:      appplatform.BackendProtocol(raw["backend_protocol"].(string)),
 	}
 }
@@ -629,7 +633,7 @@ func flattenSpringCloudAppAddon(configs map[string]interface{}) *string {
 		}
 	}
 	addonConfig, _ := json.Marshal(configs)
-	return utils.String(string(addonConfig))
+	return pointer.To(string(addonConfig))
 }
 
 func flattenSpringCloudAppIngressSettings(input *appplatform.IngressSettings) interface{} {

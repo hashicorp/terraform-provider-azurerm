@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -12,15 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumequotarules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetAppVolumeQuotaRuleResource struct{}
@@ -61,7 +60,7 @@ func (r NetAppVolumeQuotaRuleResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice(volumequotarules.PossibleValuesForType(), false),
+			ValidateFunc: validation.StringInSlice(volumequotarules.PossibleValuesForQuotaType(), false),
 		},
 
 		"quota_size_in_kib": {
@@ -123,14 +122,18 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Properties: &volumequotarules.VolumeQuotaRulesProperties{
 					QuotaSizeInKiBs: pointer.To(model.QuotaSizeInKiB),
-					QuotaType:       pointer.To(volumequotarules.Type(model.QuotaType)),
-					QuotaTarget:     utils.String(model.QuotaTarget),
+					QuotaType:       pointer.To(volumequotarules.QuotaType(model.QuotaType)),
+					QuotaTarget:     pointer.To(model.QuotaTarget),
 				},
 			}
 
-			err = client.CreateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// Waiting for quota rule to be created
+			if err := waitForQuotaRuleCreateOrUpdate(ctx, client, id); err != nil {
+				return fmt.Errorf("waiting create %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -164,10 +167,15 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 					Properties: &volumequotarules.VolumeQuotaRulesProperties{},
 				}
 
-				update.Properties.QuotaSizeInKiBs = utils.Int64(state.QuotaSizeInKiB)
+				update.Properties.QuotaSizeInKiBs = pointer.To(state.QuotaSizeInKiB)
 
 				if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
+				}
+
+				// Waiting for quota rule to be updated
+				if err := waitForQuotaRuleCreateOrUpdate(ctx, client, pointer.From(id)); err != nil {
+					return fmt.Errorf("waiting update %s: %+v", id, err)
 				}
 			}
 
@@ -242,7 +250,73 @@ func (r NetAppVolumeQuotaRuleResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 			}
 
+			// Waiting for quota rule to be deleted
+			if err := waitForQuotaRuleDelete(ctx, client, pointer.From(id)); err != nil {
+				return fmt.Errorf("waiting delete %s: %+v", id, err)
+			}
+
 			return nil
 		},
 	}
+}
+
+func waitForQuotaRuleCreateOrUpdate(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"204", "404"},
+		Target:                    []string{"200", "202"},
+		Refresh:                   netAppVolumeQuotaRuleStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish creating/updating: %+v", id, err)
+	}
+
+	return nil
+}
+
+func netAppVolumeQuotaRuleStateRefreshFunc(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
+			}
+		}
+
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = fmt.Sprintf("%d", res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
+	}
+}
+
+func waitForQuotaRuleDelete(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200", "202"},
+		Target:                    []string{"204", "404"},
+		Refresh:                   netAppVolumeQuotaRuleStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish deleting: %+v", id, err)
+	}
+
+	return nil
 }

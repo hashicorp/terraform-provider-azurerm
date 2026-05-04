@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -9,9 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -26,6 +28,8 @@ const springCloudAppRedisAssociationKeySSL = "useSsl"
 
 func resourceSpringCloudAppRedisAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_redis_association` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+
 		Create: resourceSpringCloudAppRedisAssociationCreateUpdate,
 		Read:   resourceSpringCloudAppRedisAssociationRead,
 		Update: resourceSpringCloudAppRedisAssociationCreateUpdate,
@@ -111,10 +115,10 @@ func resourceSpringCloudAppRedisAssociationCreateUpdate(d *pluginsdk.ResourceDat
 	bindingResource := appplatform.BindingResource{
 		Properties: &appplatform.BindingResourceProperties{
 			BindingParameters: map[string]*string{
-				springCloudAppRedisAssociationKeySSL: utils.String(fmt.Sprintf("%t", d.Get("ssl_enabled").(bool))),
+				springCloudAppRedisAssociationKeySSL: pointer.To(fmt.Sprintf("%t", d.Get("ssl_enabled").(bool))),
 			},
-			Key:        utils.String(d.Get("redis_access_key").(string)),
-			ResourceID: utils.String(d.Get("redis_cache_id").(string)),
+			Key:        pointer.To(d.Get("redis_access_key").(string)),
+			ResourceID: pointer.To(d.Get("redis_cache_id").(string)),
 		},
 	}
 

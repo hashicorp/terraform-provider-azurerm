@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -26,8 +26,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub -service-package-name signalr -properties "name,resource_group_name"
+
+const webPubSubResourceType = "azurerm_web_pubsub"
 
 func resourceWebPubSub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -48,10 +51,11 @@ func resourceWebPubSub() *pluginsdk.Resource {
 		}),
 		SchemaVersion: 1,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := webpubsub.ParseWebPubSubID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&webpubsub.WebPubSubId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&webpubsub.WebPubSubId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -220,7 +224,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_web_pubsub", id.ID())
+			return tf.ImportAsExistsError(webPubSubResourceType, id.ID())
 		}
 	}
 
@@ -235,15 +239,15 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	parameters := webpubsub.WebPubSubResource{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: location.Normalize(d.Get("location").(string)),
 		Identity: identity,
 		Properties: &webpubsub.WebPubSubProperties{
 			LiveTraceConfiguration: expandLiveTraceConfig(liveTraceConfig),
-			PublicNetworkAccess:    utils.String(publicNetworkAcc),
-			DisableAadAuth:         utils.Bool(!d.Get("aad_auth_enabled").(bool)),
-			DisableLocalAuth:       utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			PublicNetworkAccess:    pointer.To(publicNetworkAcc),
+			DisableAadAuth:         pointer.To(!d.Get("aad_auth_enabled").(bool)),
+			DisableLocalAuth:       pointer.To(!d.Get("local_auth_enabled").(bool)),
 			Tls: &webpubsub.WebPubSubTlsSettings{
-				ClientCertEnabled: utils.Bool(d.Get("tls_client_cert_enabled").(bool)),
+				ClientCertEnabled: pointer.To(d.Get("tls_client_cert_enabled").(bool)),
 			},
 		},
 		Sku: &webpubsub.ResourceSku{
@@ -280,6 +284,10 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceWebPubSubRead(d, meta)
 }
 
@@ -308,78 +316,7 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.WebPubSubName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-
-		skuName := ""
-		skuCapacity := int64(0)
-		if model.Sku != nil {
-			skuName = model.Sku.Name
-			skuCapacity = *model.Sku.Capacity
-		}
-		d.Set("sku", skuName)
-		d.Set("capacity", skuCapacity)
-
-		if props := model.Properties; props != nil {
-			d.Set("external_ip", props.ExternalIP)
-			d.Set("hostname", props.HostName)
-			d.Set("public_port", props.PublicPort)
-			d.Set("server_port", props.ServerPort)
-			d.Set("version", props.Version)
-
-			aadAuthEnabled := true
-			if props.DisableAadAuth != nil {
-				aadAuthEnabled = !(*props.DisableAadAuth)
-			}
-			d.Set("aad_auth_enabled", aadAuthEnabled)
-
-			disableLocalAuth := false
-			if props.DisableLocalAuth != nil {
-				disableLocalAuth = !(*props.DisableLocalAuth)
-			}
-			d.Set("local_auth_enabled", disableLocalAuth)
-
-			publicNetworkAccessEnabled := true
-			if props.PublicNetworkAccess != nil {
-				publicNetworkAccessEnabled = strings.EqualFold(*props.PublicNetworkAccess, "Enabled")
-			}
-			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
-
-			tlsClientCertEnabled := false
-			if props.Tls != nil && props.Tls.ClientCertEnabled != nil {
-				tlsClientCertEnabled = *props.Tls.ClientCertEnabled
-			}
-			d.Set("tls_client_cert_enabled", tlsClientCertEnabled)
-
-			if err := d.Set("live_trace", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
-				return fmt.Errorf("setting `live_trace`:%+v", err)
-			}
-
-			identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
-			if err := d.Set("identity", identity); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
-			}
-
-			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-				return fmt.Errorf("setting `tags`: %+v", err)
-			}
-		}
-	}
-
-	if model := keys.Model; model != nil {
-		d.Set("primary_access_key", model.PrimaryKey)
-		d.Set("primary_connection_string", model.PrimaryConnectionString)
-		d.Set("secondary_access_key", model.SecondaryKey)
-		d.Set("secondary_connection_string", model.SecondaryConnectionString)
-	}
-
-	return nil
+	return resourceWebPubSubFlatten(d, id, resp.Model, keys.Model)
 }
 
 func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -420,8 +357,8 @@ func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguratio
 		messageLogEnabled = "true"
 	}
 	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
-		Name:    utils.String("MessagingLogs"),
-		Enabled: utils.String(messageLogEnabled),
+		Name:    pointer.To("MessagingLogs"),
+		Enabled: pointer.To(messageLogEnabled),
 	})
 
 	connectivityLogEnabled := "false"
@@ -429,8 +366,8 @@ func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguratio
 		connectivityLogEnabled = "true"
 	}
 	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
-		Name:    utils.String("ConnectivityLogs"),
-		Enabled: utils.String(connectivityLogEnabled),
+		Name:    pointer.To("ConnectivityLogs"),
+		Enabled: pointer.To(connectivityLogEnabled),
 	})
 
 	httpLogEnabled := "false"
@@ -438,8 +375,8 @@ func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguratio
 		httpLogEnabled = "true"
 	}
 	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
-		Name:    utils.String("HttpRequestLogs"),
-		Enabled: utils.String(httpLogEnabled),
+		Name:    pointer.To("HttpRequestLogs"),
+		Enabled: pointer.To(httpLogEnabled),
 	})
 
 	return &webpubsub.LiveTraceConfiguration{
@@ -515,4 +452,79 @@ func webPubsubProvisioningStateRefreshFunc(ctx context.Context, client *webpubsu
 
 		return res, provisioningState, nil
 	}
+}
+
+func resourceWebPubSubFlatten(d *pluginsdk.ResourceData, id *webpubsub.WebPubSubId, model *webpubsub.WebPubSubResource, keyModel *webpubsub.WebPubSubKeys) error {
+	d.Set("name", id.WebPubSubName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		skuName := ""
+		skuCapacity := int64(0)
+		if model.Sku != nil {
+			skuName = model.Sku.Name
+			skuCapacity = *model.Sku.Capacity
+		}
+		d.Set("sku", skuName)
+		d.Set("capacity", skuCapacity)
+
+		if props := model.Properties; props != nil {
+			d.Set("external_ip", props.ExternalIP)
+			d.Set("hostname", props.HostName)
+			d.Set("public_port", props.PublicPort)
+			d.Set("server_port", props.ServerPort)
+			d.Set("version", props.Version)
+
+			aadAuthEnabled := true
+			if props.DisableAadAuth != nil {
+				aadAuthEnabled = !(*props.DisableAadAuth)
+			}
+			d.Set("aad_auth_enabled", aadAuthEnabled)
+
+			disableLocalAuth := false
+			if props.DisableLocalAuth != nil {
+				disableLocalAuth = !(*props.DisableLocalAuth)
+			}
+			d.Set("local_auth_enabled", disableLocalAuth)
+
+			publicNetworkAccessEnabled := true
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccessEnabled = strings.EqualFold(*props.PublicNetworkAccess, "Enabled")
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+
+			tlsClientCertEnabled := false
+			if props.Tls != nil && props.Tls.ClientCertEnabled != nil {
+				tlsClientCertEnabled = *props.Tls.ClientCertEnabled
+			}
+			d.Set("tls_client_cert_enabled", tlsClientCertEnabled)
+
+			if err := d.Set("live_trace", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
+				return fmt.Errorf("setting `live_trace`:%+v", err)
+			}
+
+			identityValue, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := d.Set("identity", identityValue); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+				return fmt.Errorf("setting `tags`: %+v", err)
+			}
+		}
+	}
+
+	if keyModel != nil {
+		d.Set("primary_access_key", keyModel.PrimaryKey)
+		d.Set("primary_connection_string", keyModel.PrimaryConnectionString)
+		d.Set("secondary_access_key", keyModel.SecondaryKey)
+		d.Set("secondary_connection_string", keyModel.SecondaryConnectionString)
+	}
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }

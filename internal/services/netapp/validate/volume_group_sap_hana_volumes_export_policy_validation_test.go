@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -7,11 +7,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumegroups"
 )
 
-func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
+func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHana(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Protocol string
@@ -23,7 +22,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV41),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(false),
-				Nfsv41: utils.Bool(true),
+				Nfsv41: pointer.To(true),
 			},
 			Errors: 0,
 		},
@@ -32,7 +31,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV3),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(true),
-				Nfsv41: utils.Bool(false),
+				Nfsv41: pointer.To(false),
 			},
 			Errors: 0,
 		},
@@ -41,7 +40,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV41),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(true),
-				Nfsv41: utils.Bool(true),
+				Nfsv41: pointer.To(true),
 			},
 			Errors: 2,
 		},
@@ -50,7 +49,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV3),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(true),
-				Nfsv41: utils.Bool(true),
+				Nfsv41: pointer.To(true),
 			},
 			Errors: 2,
 		},
@@ -59,7 +58,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV3),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(false),
-				Nfsv41: utils.Bool(false),
+				Nfsv41: pointer.To(false),
 			},
 			Errors: 1,
 		},
@@ -68,7 +67,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV41),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(false),
-				Nfsv41: utils.Bool(false),
+				Nfsv41: pointer.To(false),
 			},
 			Errors: 1,
 		},
@@ -77,7 +76,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV41),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(true),
-				Nfsv41: utils.Bool(false),
+				Nfsv41: pointer.To(false),
 			},
 			Errors: 1,
 		},
@@ -86,7 +85,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV3),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(false),
-				Nfsv41: utils.Bool(true),
+				Nfsv41: pointer.To(true),
 			},
 			Errors: 1,
 		},
@@ -94,7 +93,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			errors := ValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(tc.Rule, tc.Protocol)
+			errors := ValidateNetAppVolumeGroupExportPolicyRule(tc.Rule, tc.Protocol)
 
 			if len(errors) != tc.Errors {
 				t.Fatalf("expected ValidateNetAppVolumeGroupSAPHanaVolumes to return %d error(s) not %d", tc.Errors, len(errors))

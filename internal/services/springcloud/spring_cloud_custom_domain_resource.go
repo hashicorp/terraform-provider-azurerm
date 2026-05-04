@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -8,8 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -22,6 +24,8 @@ import (
 
 func resourceSpringCloudCustomDomain() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_custom_domain` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+
 		Create: resourceSpringCloudCustomDomainCreateUpdate,
 		Read:   resourceSpringCloudCustomDomainRead,
 		Update: resourceSpringCloudCustomDomainCreateUpdate,
@@ -103,8 +107,8 @@ func resourceSpringCloudCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	domain := appplatform.CustomDomainResource{
 		Properties: &appplatform.CustomDomainProperties{
-			Thumbprint: utils.String(d.Get("thumbprint").(string)),
-			CertName:   utils.String(d.Get("certificate_name").(string)),
+			Thumbprint: pointer.To(d.Get("thumbprint").(string)),
+			CertName:   pointer.To(d.Get("certificate_name").(string)),
 		},
 	}
 

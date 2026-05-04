@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -8,10 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
@@ -113,14 +113,14 @@ func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta interface{
 	channel := botservice.BotChannel{
 		Properties: botservice.FacebookChannel{
 			Properties: &botservice.FacebookChannelProperties{
-				AppID:     utils.String(d.Get("facebook_application_id").(string)),
-				AppSecret: utils.String(d.Get("facebook_application_secret").(string)),
+				AppID:     pointer.To(d.Get("facebook_application_id").(string)),
+				AppSecret: pointer.To(d.Get("facebook_application_secret").(string)),
 				Pages:     expandFacebookPage(d.Get("page").(*pluginsdk.Set).List()),
-				IsEnabled: utils.Bool(true),
+				IsEnabled: pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameFacebookChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -191,14 +191,14 @@ func resourceBotChannelFacebookUpdate(d *pluginsdk.ResourceData, meta interface{
 	channel := botservice.BotChannel{
 		Properties: botservice.FacebookChannel{
 			Properties: &botservice.FacebookChannelProperties{
-				AppID:     utils.String(d.Get("facebook_application_id").(string)),
-				AppSecret: utils.String(d.Get("facebook_application_secret").(string)),
+				AppID:     pointer.To(d.Get("facebook_application_id").(string)),
+				AppSecret: pointer.To(d.Get("facebook_application_secret").(string)),
 				Pages:     expandFacebookPage(d.Get("page").(*pluginsdk.Set).List()),
-				IsEnabled: utils.Bool(true),
+				IsEnabled: pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameFacebookChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -236,8 +236,8 @@ func expandFacebookPage(input []interface{}) *[]botservice.FacebookPage {
 		v := item.(map[string]interface{})
 
 		result := botservice.FacebookPage{
-			AccessToken: utils.String(v["access_token"].(string)),
-			ID:          utils.String(v["id"].(string)),
+			AccessToken: pointer.To(v["access_token"].(string)),
+			ID:          pointer.To(v["id"].(string)),
 		}
 
 		results = append(results, result)

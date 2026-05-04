@@ -117,23 +117,6 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `SqlVirtualMachinesClient.ListBySqlVMGroup`
-
-```go
-ctx := context.TODO()
-id := sqlvirtualmachines.NewSqlVirtualMachineGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupName")
-
-// alternatively `client.ListBySqlVMGroup(ctx, id)` can be used to do batched pagination
-items, err := client.ListBySqlVMGroupComplete(ctx, id)
-if err != nil {
-	// handle the error
-}
-for _, item := range items {
-	// do something
-}
-```
-
-
 ### Example Usage: `SqlVirtualMachinesClient.Redeploy`
 
 ```go
@@ -141,6 +124,23 @@ ctx := context.TODO()
 id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineName")
 
 if err := client.RedeployThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `SqlVirtualMachinesClient.SqlVirtualMachineTroubleshootTroubleshoot`
+
+```go
+ctx := context.TODO()
+id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineName")
+
+payload := sqlvirtualmachines.SqlVMTroubleshooting{
+	// ...
+}
+
+
+if err := client.SqlVirtualMachineTroubleshootTroubleshootThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package healthcare
@@ -250,7 +250,9 @@ func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta in
 			d.Set("device_mapping_json", mapContent)
 		}
 
-		return tags.FlattenAndSet(d, m.Tags)
+		if err := tags.FlattenAndSet(d, m.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -59,12 +59,14 @@ resource "azurerm_kusto_attached_database_configuration" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   cluster_name        = azurerm_kusto_cluster.follower_cluster.name
-  cluster_resource_id = azurerm_kusto_cluster.followed_cluster.id
+  cluster_id          = azurerm_kusto_cluster.followed_cluster.id
   database_name       = azurerm_kusto_database.example.name
 
   sharing {
     external_tables_to_exclude    = ["ExternalTable2"]
     external_tables_to_include    = ["ExternalTable1"]
+    functions_to_exclude          = ["Function2"]
+    functions_to_include          = ["Function1"]
     materialized_views_to_exclude = ["MaterializedViewTable2"]
     materialized_views_to_include = ["MaterializedViewTable1"]
     tables_to_exclude             = ["Table2"]
@@ -73,7 +75,7 @@ resource "azurerm_kusto_attached_database_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -85,9 +87,15 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) Specifies the name of the Kusto Cluster for which the configuration will be created. Changing this forces a new resource to be created.
 
-* `cluster_resource_id` - (Required) The resource id of the cluster where the databases you would like to attach reside. Changing this forces a new resource to be created.
+* `cluster_id` - (Optional) The resource id of the cluster where the databases you would like to attach reside.
 
 * `database_name` - (Required) The name of the database which you would like to attach, use * if you want to follow all current and future databases. Changing this forces a new resource to be created.
+
+* `database_name_override` - (Optional) The database name to use for the attached database instead of using the original database name. Relevant only when attaching to a specific database.
+
+* `database_name_prefix` - (Optional) Adds a prefix to the attached databases name. When following an entire cluster, that prefix would be added to all of the databases original names from leader cluster.
+
+~> **Note:** Exactly one of  `database_name_override` and `database_name_prefix` can be specified.
 
 * `default_principal_modification_kind` - (Optional) The default principals modification kind. Valid values are: `None` (default), `Replace` and `Union`. Defaults to `None`.
 
@@ -100,6 +108,10 @@ An `sharing` block exports the following:
 * `external_tables_to_exclude` - (Optional) List of external tables exclude from the follower database.
 
 * `external_tables_to_include` - (Optional) List of external tables to include in the follower database.
+
+* `functions_to_exclude` - (Optional) List of functions to exclude from the follower database.
+
+* `functions_to_include` - (Optional) List of functions to include in the follower database.
 
 * `materialized_views_to_exclude` - (Optional) List of materialized views exclude from the follower database.
 
@@ -119,12 +131,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Kusto Database.
-* `update` - (Defaults to 60 minutes) Used when updating the Kusto Database.
+* `create` - (Defaults to 1 hour) Used when creating the Kusto Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Database.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Kusto Database.
+* `update` - (Defaults to 1 hour) Used when updating the Kusto Database.
+* `delete` - (Defaults to 1 hour) Used when deleting the Kusto Database.
 
 ## Import
 
@@ -133,3 +145,9 @@ Kusto Attached Database Configurations can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_kusto_attached_database_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/attachedDatabaseConfigurations/configuration1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Kusto` - 2024-04-13

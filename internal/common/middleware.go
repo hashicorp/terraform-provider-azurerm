@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package common
@@ -14,7 +14,9 @@ import (
 func correlationRequestIDMiddleware(id string) client.RequestMiddleware {
 	return func(request *http.Request) (*http.Request, error) {
 		// ensure the `X-Correlation-ID` field is set
-		request.Header.Add(HeaderCorrelationRequestID, id)
+		if request.Header.Get(HeaderCorrelationRequestID) == "" {
+			request.Header.Add(HeaderCorrelationRequestID, id)
+		}
 		return request, nil
 	}
 }

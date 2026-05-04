@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
@@ -16,7 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -25,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
@@ -53,15 +55,19 @@ type FeatureResourceModel struct {
 	PercentageFilter     float64                      `tfschema:"percentage_filter_value"`
 	TimewindowFilters    []TimewindowFilterParameters `tfschema:"timewindow_filter"`
 	TargetingFilters     []TargetingFilterAudience    `tfschema:"targeting_filter"`
+	CustomFilters        []CustomFilter               `tfschema:"custom_filter"`
 }
 
 func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			// User-specified segments are lowercased in the API response
+			// tracked in https://github.com/Azure/azure-rest-api-specs/issues/24337
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     configurationstores.ValidateConfigurationStoreID,
 		},
 		"description": {
 			Type:     pluginsdk.TypeString,
@@ -163,7 +169,27 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		"tags": tags.Schema(),
+		"custom_filter": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"parameters": {
+						Type:     pluginsdk.TypeMap,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+		},
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -244,7 +270,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				} else {
 					return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
 				}
-			} else if kv.Response.StatusCode == 200 {
+			} else if kv.StatusCode == 200 {
 				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 
@@ -285,6 +311,15 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 					value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, TimewindowFeatureFilter{
 						Name:       TimewindowFilterName,
 						Parameters: twf,
+					})
+				}
+			}
+
+			if len(model.CustomFilters) > 0 {
+				for _, cf := range model.CustomFilters {
+					value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, CustomFilter{
+						Name:       cf.Name,
+						Parameters: cf.Parameters,
 					})
 				}
 			}
@@ -415,6 +450,9 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 					case PercentageFeatureFilter:
 						pfp := f
 						model.PercentageFilter = pfp.Parameters.Value
+					case CustomFilter:
+						cf := f
+						model.CustomFilters = append(model.CustomFilters, cf)
 					default:
 						return fmt.Errorf("while unmarshaling feature payload: unknown filter type %+v", f)
 					}
@@ -488,6 +526,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			timewindowFilters := make([]interface{}, 0)
 			targetingFilters := make([]interface{}, 0)
 			percentageFilter := PercentageFeatureFilter{}
+			customFilters := make([]interface{}, 0)
 			if len(fv.Conditions.ClientFilters.Filters) > 0 {
 				for _, f := range fv.Conditions.ClientFilters.Filters {
 					switch f := f.(type) {
@@ -500,6 +539,9 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 					case PercentageFeatureFilter:
 						pfp := f
 						percentageFilter = pfp
+					case CustomFilter:
+						cf := f
+						customFilters = append(customFilters, cf)
 					default:
 						return fmt.Errorf("while unmarshaling feature payload: unknown filter type %+v", f)
 					}
@@ -538,6 +580,18 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 				filterChanged = true
 			} else {
 				filters = append(filters, timewindowFilters...)
+			}
+
+			if metadata.ResourceData.HasChange("custom_filter") {
+				for _, cf := range model.CustomFilters {
+					filters = append(filters, CustomFilter{
+						Name:       cf.Name,
+						Parameters: cf.Parameters,
+					})
+				}
+				filterChanged = true
+			} else {
+				filters = append(filters, customFilters...)
 			}
 
 			if filterChanged {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -204,17 +204,15 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	id := blobs.NewBlobID(accountId, containerName, name)
-	if d.IsNewResource() {
-		input := blobs.GetPropertiesInput{}
-		props, err := blobsClient.GetProperties(ctx, containerName, name, input)
-		if err != nil {
-			if !response.WasNotFound(props.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %v", id, err)
-			}
-		}
+	input := blobs.GetPropertiesInput{}
+	props, err := blobsClient.GetProperties(ctx, containerName, name, input)
+	if err != nil {
 		if !response.WasNotFound(props.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
+			return fmt.Errorf("checking for existing %s: %v", id, err)
 		}
+	}
+	if !response.WasNotFound(props.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
 	}
 
 	contentMD5Raw := d.Get("content_md5").(string)

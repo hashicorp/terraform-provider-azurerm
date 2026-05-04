@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -35,6 +35,10 @@ func TestExpandFeatures(t *testing.T) {
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   true,
 					PurgeSoftDeletedKeysOnDestroy:    true,
@@ -60,7 +64,6 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           true,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
@@ -95,6 +98,9 @@ func TestExpandFeatures(t *testing.T) {
 				NetApp: features.NetAppFeatures{
 					DeleteBackupsOnBackupVaultDestroy: false,
 					PreventVolumeDestruction:          true,
+				},
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
 				},
 			},
 		},
@@ -183,7 +189,6 @@ func TestExpandFeatures(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": true,
 							"delete_os_disk_on_deletion":            true,
-							"graceful_shutdown":                     true,
 							"skip_shutdown_and_force_delete":        true,
 						},
 					},
@@ -213,6 +218,11 @@ func TestExpandFeatures(t *testing.T) {
 							"prevent_volume_destruction":             true,
 						},
 					},
+					"databricks_workspace": []interface{}{
+						map[string]interface{}{
+							"force_delete": true,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -229,6 +239,10 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
+				},
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
 				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   true,
@@ -267,7 +281,6 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: true,
 					DeleteOSDiskOnDeletion:           true,
-					GracefulShutdown:                 true,
 					SkipShutdownAndForceDelete:       true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
@@ -290,6 +303,9 @@ func TestExpandFeatures(t *testing.T) {
 				NetApp: features.NetAppFeatures{
 					DeleteBackupsOnBackupVaultDestroy: true,
 					PreventVolumeDestruction:          true,
+				},
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: true,
 				},
 			},
 		},
@@ -378,7 +394,6 @@ func TestExpandFeatures(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     false,
 							"skip_shutdown_and_force_delete":        false,
 						},
 					},
@@ -408,6 +423,11 @@ func TestExpandFeatures(t *testing.T) {
 							"prevent_volume_destruction":             false,
 						},
 					},
+					"databricks_workspace": []interface{}{
+						map[string]interface{}{
+							"force_delete": false,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -424,6 +444,10 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: false,
+				},
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
 				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   false,
@@ -462,7 +486,6 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
@@ -485,6 +508,9 @@ func TestExpandFeatures(t *testing.T) {
 				NetApp: features.NetAppFeatures{
 					DeleteBackupsOnBackupVaultDestroy: false,
 					PreventVolumeDestruction:          false,
+				},
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
 				},
 			},
 		},
@@ -967,7 +993,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           true,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
@@ -980,7 +1005,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": true,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     false,
 							"force_delete":                          false,
 							"shutdown_before_deletion":              false,
 						},
@@ -991,7 +1015,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: true,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
@@ -1004,7 +1027,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            true,
-							"graceful_shutdown":                     false,
 							"force_delete":                          false,
 							"shutdown_before_deletion":              false,
 						},
@@ -1015,7 +1037,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           true,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
@@ -1028,7 +1049,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     true,
 							"force_delete":                          false,
 						},
 					},
@@ -1038,7 +1058,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 true,
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
@@ -1051,7 +1070,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     false,
 							"skip_shutdown_and_force_delete":        true,
 						},
 					},
@@ -1061,7 +1079,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       true,
 				},
 			},
@@ -1074,7 +1091,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     false,
 							"skip_shutdown_and_force_delete":        false,
 						},
 					},
@@ -1084,7 +1100,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
@@ -1865,6 +1880,71 @@ func TestExpandFeaturesNetApp(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.Subscription, testCase.Expected.Subscription) {
 			t.Fatalf("Expected %+v but got %+v", result.Subscription, testCase.Expected.Subscription)
+		}
+	}
+}
+
+func TestExpandFeaturesDatabricksWorkspace(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"databricks_workspace": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
+				},
+			},
+		},
+		{
+			Name: "Databricks Workspace Features Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"databricks_workspace": []interface{}{
+						map[string]interface{}{
+							"force_delete": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: true,
+				},
+			},
+		},
+		{
+			Name: "Databricks Workspace Features Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"databricks_workspace": []interface{}{
+						map[string]interface{}{
+							"force_delete": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.DatabricksWorkspace, testCase.Expected.DatabricksWorkspace) {
+			t.Fatalf("Expected %+v but got %+v", result.DatabricksWorkspace, testCase.Expected.DatabricksWorkspace)
 		}
 	}
 }

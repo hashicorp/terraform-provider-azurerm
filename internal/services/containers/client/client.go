@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,20 +6,22 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2025-09-01/containerinstance"
 	containerregistry_v2019_06_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/cacherules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/credentialsets"
-	containerregistry "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview"
+	containerregistry "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetupdatestrategies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/updateruns"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2023-05-01/fluxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/fleetupdatestrategies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/updateruns"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/deploymentsafeguards"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/trustedaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/extensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2025-04-01/fluxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -33,6 +35,7 @@ type Client struct {
 	ContainerRegistryClient *containerregistry.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
+	DeploymentSafeguardsClient                  *deploymentsafeguards.DeploymentSafeguardsClient
 	FleetUpdateRunsClient                       *updateruns.UpdateRunsClient
 	FleetUpdateStrategiesClient                 *fleetupdatestrategies.FleetUpdateStrategiesClient
 	KubernetesClustersClient                    *managedclusters.ManagedClustersClient
@@ -41,6 +44,7 @@ type Client struct {
 	MaintenanceConfigurationsClient             *maintenanceconfigurations.MaintenanceConfigurationsClient
 	ServicesClient                              *containerservices.ContainerServicesClient
 	SnapshotClient                              *snapshots.SnapshotsClient
+	TrustedAccessClient                         *trustedaccess.TrustedAccessClient
 	Environment                                 environments.Environment
 }
 
@@ -78,6 +82,12 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(credentialSetsClient.Client, o.Authorizers.ResourceManager)
 
 	// AKS
+	deploymentSafeguardsClient, err := deploymentsafeguards.NewDeploymentSafeguardsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Deployment Safeguards Client: %+v", err)
+	}
+	o.Configure(deploymentSafeguardsClient.Client, o.Authorizers.ResourceManager)
+
 	fleetUpdateRunsClient, err := updateruns.NewUpdateRunsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Fleet Update Runs Client: %+v", err)
@@ -132,6 +142,12 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(snapshotClient.Client, o.Authorizers.ResourceManager)
 
+	trustedAccessClient, err := trustedaccess.NewTrustedAccessClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Trusted Access Client: %+v", err)
+	}
+	o.Configure(trustedAccessClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		AgentPoolsClient:                            agentPoolsClient,
 		ContainerInstanceClient:                     containerInstanceClient,
@@ -139,6 +155,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		CredentialSetsClient:                        credentialSetsClient,
 		ContainerRegistryClient:                     containerRegistryClient,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
+		DeploymentSafeguardsClient:                  deploymentSafeguardsClient,
 		FleetUpdateRunsClient:                       fleetUpdateRunsClient,
 		FleetUpdateStrategiesClient:                 fleetUpdateStrategiesClient,
 		KubernetesClustersClient:                    kubernetesClustersClient,
@@ -147,6 +164,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		MaintenanceConfigurationsClient:             maintenanceConfigurationsClient,
 		ServicesClient:                              servicesClient,
 		SnapshotClient:                              snapshotClient,
+		TrustedAccessClient:                         trustedAccessClient,
 		Environment:                                 o.Environment,
 	}, nil
 }

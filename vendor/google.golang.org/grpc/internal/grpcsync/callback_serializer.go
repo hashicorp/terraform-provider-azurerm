@@ -53,7 +53,7 @@ func NewCallbackSerializer(ctx context.Context) *CallbackSerializer {
 	return cs
 }
 
-// TrySchedule tries to schedules the provided callback function f to be
+// TrySchedule tries to schedule the provided callback function f to be
 // executed in the order it was added. This is a best-effort operation. If the
 // context passed to NewCallbackSerializer was canceled before this method is
 // called, the callback will not be scheduled.
@@ -80,25 +80,11 @@ func (cs *CallbackSerializer) ScheduleOr(f func(ctx context.Context), onFailure 
 func (cs *CallbackSerializer) run(ctx context.Context) {
 	defer close(cs.done)
 
-	// TODO: when Go 1.21 is the oldest supported version, this loop and Close
-	// can be replaced with:
-	//
-	// context.AfterFunc(ctx, cs.callbacks.Close)
-	for ctx.Err() == nil {
-		select {
-		case <-ctx.Done():
-			// Do nothing here. Next iteration of the for loop will not happen,
-			// since ctx.Err() would be non-nil.
-		case cb := <-cs.callbacks.Get():
-			cs.callbacks.Load()
-			cb.(func(context.Context))(ctx)
-		}
-	}
+	// Close the buffer when the context is canceled
+	// to prevent new callbacks from being added.
+	context.AfterFunc(ctx, cs.callbacks.Close)
 
-	// Close the buffer to prevent new callbacks from being added.
-	cs.callbacks.Close()
-
-	// Run all pending callbacks.
+	// Run all callbacks.
 	for cb := range cs.callbacks.Get() {
 		cs.callbacks.Load()
 		cb.(func(context.Context))(ctx)

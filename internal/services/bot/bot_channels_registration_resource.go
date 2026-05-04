@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -9,14 +9,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
-	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -53,13 +56,13 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					return nil, fmt.Errorf("Bot Channels Registration %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
+					return nil, fmt.Errorf("the Bot Channels Registration %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 				}
 
-				return nil, fmt.Errorf("retrieving Bot Channels Registration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 			if resp.Kind != botservice.KindBot {
-				return nil, fmt.Errorf("Bot %q (Resource Group %q) was not a Channel Registration - got %q", id.Name, id.ResourceGroup, string(resp.Kind))
+				return nil, fmt.Errorf(" %s was not a Channel Registration - got %q", id, string(resp.Kind))
 			}
 
 			return []*pluginsdk.ResourceData{d}, nil
@@ -94,10 +97,35 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
+			"microsoft_app_type": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(botservice.MsaAppTypeMultiTenant),
+					string(botservice.MsaAppTypeSingleTenant),
+					string(botservice.MsaAppTypeUserAssignedMSI),
+				}, false),
+			},
+
+			"microsoft_app_tenant_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"microsoft_app_user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
+
 			"cmk_key_vault_url": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			},
 
 			"description": {
@@ -156,8 +184,25 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
+	}
+
+	if !features.FivePointOh() {
+		resource.Schema["cmk_key_vault_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+
+		resource.Schema["microsoft_app_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// O+C because Azure sets a value for this if omitted
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(botservice.MsaAppTypeMultiTenant),
+				string(botservice.MsaAppTypeSingleTenant),
+				string(botservice.MsaAppTypeUserAssignedMSI),
+			}, false),
+		}
 	}
 
 	return resource
@@ -189,19 +234,20 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 
 	bot := botservice.Bot{
 		Properties: &botservice.BotProperties{
-			DisplayName:                       utils.String(displayName),
-			Endpoint:                          utils.String(d.Get("endpoint").(string)),
-			MsaAppID:                          utils.String(d.Get("microsoft_app_id").(string)),
-			CmekKeyVaultURL:                   utils.String(d.Get("cmk_key_vault_url").(string)),
-			Description:                       utils.String(d.Get("description").(string)),
-			DeveloperAppInsightKey:            utils.String(d.Get("developer_app_insights_key").(string)),
-			DeveloperAppInsightsAPIKey:        utils.String(d.Get("developer_app_insights_api_key").(string)),
-			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
-			IconURL:                           utils.String(d.Get("icon_url").(string)),
-			IsCmekEnabled:                     utils.Bool(false),
-			IsStreamingSupported:              utils.Bool(d.Get("streaming_endpoint_enabled").(bool)),
+			DisplayName:                       pointer.To(displayName),
+			Endpoint:                          pointer.To(d.Get("endpoint").(string)),
+			MsaAppType:                        botservice.MsaAppType(d.Get("microsoft_app_type").(string)),
+			MsaAppID:                          pointer.To(d.Get("microsoft_app_id").(string)),
+			CmekKeyVaultURL:                   pointer.To(d.Get("cmk_key_vault_url").(string)),
+			Description:                       pointer.To(d.Get("description").(string)),
+			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
+			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
+			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
+			IconURL:                           pointer.To(d.Get("icon_url").(string)),
+			IsCmekEnabled:                     pointer.To(false),
+			IsStreamingSupported:              pointer.To(d.Get("streaming_endpoint_enabled").(bool)),
 		},
-		Location: utils.String(d.Get("location").(string)),
+		Location: pointer.To(d.Get("location").(string)),
 		Sku: &botservice.Sku{
 			Name: botservice.SkuName(d.Get("sku").(string)),
 		},
@@ -210,7 +256,15 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if _, ok := d.GetOk("cmk_key_vault_url"); ok {
-		bot.Properties.IsCmekEnabled = utils.Bool(true)
+		bot.Properties.IsCmekEnabled = pointer.To(true)
+	}
+
+	if v, ok := d.GetOk("microsoft_app_tenant_id"); ok {
+		bot.Properties.MsaAppTenantID = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("microsoft_app_user_assigned_identity_id"); ok {
+		bot.Properties.MsaAppMSIResourceID = pointer.To(v.(string))
 	}
 
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.Name, bot); err != nil {
@@ -260,6 +314,9 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 	if props := resp.Properties; props != nil {
 		d.Set("cmk_key_vault_url", props.CmekKeyVaultURL)
 		d.Set("microsoft_app_id", props.MsaAppID)
+		d.Set("microsoft_app_type", string(props.MsaAppType))
+		d.Set("microsoft_app_tenant_id", pointer.From(props.MsaAppTenantID))
+		d.Set("microsoft_app_user_assigned_identity_id", pointer.From(props.MsaAppMSIResourceID))
 		d.Set("endpoint", props.Endpoint)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
@@ -295,19 +352,20 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 
 	bot := botservice.Bot{
 		Properties: &botservice.BotProperties{
-			DisplayName:                       utils.String(displayName),
-			Endpoint:                          utils.String(d.Get("endpoint").(string)),
-			MsaAppID:                          utils.String(d.Get("microsoft_app_id").(string)),
-			CmekKeyVaultURL:                   utils.String(d.Get("cmk_key_vault_url").(string)),
-			Description:                       utils.String(d.Get("description").(string)),
-			DeveloperAppInsightKey:            utils.String(d.Get("developer_app_insights_key").(string)),
-			DeveloperAppInsightsAPIKey:        utils.String(d.Get("developer_app_insights_api_key").(string)),
-			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
-			IconURL:                           utils.String(d.Get("icon_url").(string)),
-			IsCmekEnabled:                     utils.Bool(false),
-			IsStreamingSupported:              utils.Bool(d.Get("streaming_endpoint_enabled").(bool)),
+			DisplayName:                       pointer.To(displayName),
+			Endpoint:                          pointer.To(d.Get("endpoint").(string)),
+			MsaAppID:                          pointer.To(d.Get("microsoft_app_id").(string)),
+			MsaAppType:                        botservice.MsaAppType(d.Get("microsoft_app_type").(string)),
+			CmekKeyVaultURL:                   pointer.To(d.Get("cmk_key_vault_url").(string)),
+			Description:                       pointer.To(d.Get("description").(string)),
+			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
+			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
+			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
+			IconURL:                           pointer.To(d.Get("icon_url").(string)),
+			IsCmekEnabled:                     pointer.To(false),
+			IsStreamingSupported:              pointer.To(d.Get("streaming_endpoint_enabled").(bool)),
 		},
-		Location: utils.String(d.Get("location").(string)),
+		Location: pointer.To(d.Get("location").(string)),
 		Sku: &botservice.Sku{
 			Name: botservice.SkuName(d.Get("sku").(string)),
 		},
@@ -316,7 +374,15 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if _, ok := d.GetOk("cmk_key_vault_url"); ok {
-		bot.Properties.IsCmekEnabled = utils.Bool(true)
+		bot.Properties.IsCmekEnabled = pointer.To(true)
+	}
+
+	if v, ok := d.GetOk("microsoft_app_tenant_id"); ok {
+		bot.Properties.MsaAppTenantID = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("microsoft_app_user_assigned_identity_id"); ok {
+		bot.Properties.MsaAppMSIResourceID = pointer.To(v.(string))
 	}
 
 	// d.GetOk cannot identify whether user sets the property that is bool type and `public_network_access_enabled` is set as `false`. So it has to identify it using `d.GetRawConfig()`

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package newrelic_test
@@ -9,18 +9,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NewRelicTagRuleResource struct{}
 
 func TestAccNewRelicTagRule_basic(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
 	r := NewRelicTagRuleResource{}
 	email := "27362230-e2d8-4c73-9ee3-fdef83459ca3@example.com"
@@ -36,6 +38,8 @@ func TestAccNewRelicTagRule_basic(t *testing.T) {
 }
 
 func TestAccNewRelicTagRule_requiresImport(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
 	r := NewRelicTagRuleResource{}
 	email := "85b5febd-127d-4633-9c25-bcfea555af46@example.com"
@@ -54,6 +58,8 @@ func TestAccNewRelicTagRule_requiresImport(t *testing.T) {
 }
 
 func TestAccNewRelicTagRule_complete(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
 	r := NewRelicTagRuleResource{}
 	email := "672d9312-65a7-484c-870d-94584850a423@example.com"
@@ -69,6 +75,8 @@ func TestAccNewRelicTagRule_complete(t *testing.T) {
 }
 
 func TestAccNewRelicTagRule_update(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
 	r := NewRelicTagRuleResource{}
 	email := "f0ff47c3-3aed-45b0-b239-260d9625045a@example.com"
@@ -100,11 +108,11 @@ func (r NewRelicTagRuleResource) Exists(ctx context.Context, clients *clients.Cl
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r NewRelicTagRuleResource) template(data acceptance.TestData, email string) string {

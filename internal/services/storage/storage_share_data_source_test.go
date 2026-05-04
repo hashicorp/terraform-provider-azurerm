@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -15,7 +16,7 @@ import (
 type dataSourceStorageShare struct{}
 
 func TestAccDataSourceStorageShare_basicDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -29,6 +30,7 @@ func TestAccDataSourceStorageShare_basicDeprecated(t *testing.T) {
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
 				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
 				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
+				check.That(data.ResourceName).Key("rbac_scope_id").MatchesRegex(regexp.MustCompile(`/fileshares/`)),
 			),
 		},
 	})
@@ -45,6 +47,7 @@ func TestAccStorageShareDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
 				check.That(data.ResourceName).Key("metadata.hello").HasValue("world"),
 				check.That(data.ResourceName).Key("metadata.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("rbac_scope_id").MatchesRegex(regexp.MustCompile(`/fileshares/`)),
 			),
 		},
 	})

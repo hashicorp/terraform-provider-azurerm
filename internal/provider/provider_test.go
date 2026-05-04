@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -97,6 +97,9 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 					"azurerm_key_vault_key":         true,
 					"azurerm_key_vault_secret":      true,
 					"azurerm_key_vault_certificate": true,
+					// The `azurerm_resource_provider_registration` resource has a longer read timeout due to extensive polling being required to work around
+					// API inconsistency issues
+					"azurerm_resource_provider_registration": true,
 				}
 				if !exceptionResources[resourceName] {
 					t.Fatalf("Read timeouts shouldn't be more than 5 minutes, this indicates a bug which needs to be fixed")
@@ -178,10 +181,6 @@ func TestAccProvider_resourceProviders_deprecatedSkip(t *testing.T) {
 }
 
 func TestAccProvider_resourceProviders_legacyWithAdditional(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("skipping 4.0 specific test")
-	}
-
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -219,10 +218,6 @@ func TestAccProvider_resourceProviders_legacyWithAdditional(t *testing.T) {
 }
 
 func TestAccProvider_resourceProviders_core(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("skipping 4.0 specific test")
-	}
-
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -250,10 +245,6 @@ func TestAccProvider_resourceProviders_core(t *testing.T) {
 }
 
 func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("skipping 4.0 specific test")
-	}
-
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -288,10 +279,6 @@ func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
 }
 
 func TestAccProvider_resourceProviders_explicit(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("skipping 4.0 specific test")
-	}
-
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -327,6 +314,255 @@ func TestAccProvider_resourceProviders_explicit(t *testing.T) {
 	}
 }
 
+func TestAccProvider_enhancedValidation(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	var cases []struct {
+		name     string
+		setupEnv func(*testing.T)
+		config   map[string]any
+		expect   features.EnhancedValidationFeatures
+	}
+
+	if features.FivePointOh() {
+		cases = []struct {
+			name     string
+			setupEnv func(*testing.T)
+			config   map[string]any
+			expect   features.EnhancedValidationFeatures
+		}{
+			{
+				name: "default",
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "New env vars enabled",
+				setupEnv: func(t *testing.T) {
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+			{
+				name: "New env vars disabled",
+				setupEnv: func(t *testing.T) {
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "Provider config disabled",
+				config: map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          false,
+							"resource_providers": false,
+						},
+					},
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "Provider config enabled",
+				config: map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          true,
+							"resource_providers": true,
+						},
+					},
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+		}
+	} else {
+		cases = []struct {
+			name     string
+			setupEnv func(*testing.T)
+			config   map[string]any
+			expect   features.EnhancedValidationFeatures
+		}{
+			{
+				name: "default v4",
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+			{
+				name:     "default v5",
+				setupEnv: func(t *testing.T) { t.Setenv("ARM_FIVEPOINTZERO_BETA", "true") },
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name:     "Legacy env var enabled v4",
+				setupEnv: func(t *testing.T) { t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "true") },
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+			{
+				name:     "Legacy env var disabled v4",
+				setupEnv: func(t *testing.T) { t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false") },
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "New env vars enabled v4",
+				setupEnv: func(t *testing.T) {
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+			{
+				name: "New env vars enabled v5",
+				setupEnv: func(t *testing.T) {
+					t.Setenv("ARM_FIVEPOINTZERO_BETA", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+			{
+				name: "New env vars disabled v4",
+				setupEnv: func(t *testing.T) {
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "New env vars disabled v5",
+				setupEnv: func(t *testing.T) {
+					t.Setenv("ARM_FIVEPOINTZERO_BETA", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "Provider config disabled v4",
+				config: map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          false,
+							"resource_providers": false,
+						},
+					},
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "Provider config enabled v4",
+				config: map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          true,
+							"resource_providers": true,
+						},
+					},
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+			{
+				name:     "Provider config disabled v5",
+				setupEnv: func(t *testing.T) { t.Setenv("ARM_FIVEPOINTZERO_BETA", "true") },
+				config: map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          false,
+							"resource_providers": false,
+						},
+					},
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name:     "Provider config enabled v5",
+				setupEnv: func(t *testing.T) { t.Setenv("ARM_FIVEPOINTZERO_BETA", "true") },
+				config: map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          true,
+							"resource_providers": true,
+						},
+					},
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+		}
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setupEnv != nil {
+				tt.setupEnv(t)
+			}
+			provider := TestAzureProvider()
+			if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(tt.config)); diags != nil && diags.HasError() {
+				t.Fatalf("provider failed to configure: %v", diags)
+			}
+			if v := provider.Meta().(*clients.Client).Features.EnhancedValidation; !reflect.DeepEqual(v, tt.expect) {
+				t.Fatalf("unexpected value for `Features.EnhancedValidation`: %#v", v)
+			}
+		})
+	}
+}
+
 func TestAccProvider_cliAuth(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
@@ -352,7 +588,7 @@ func TestAccProvider_cliAuth(t *testing.T) {
 			AzureCliSubscriptionIDHint:        d.Get("subscription_id").(string),
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -424,7 +660,7 @@ func TestAccProvider_clientCertificateAuth(t *testing.T) {
 			EnableAuthenticatingUsingClientCertificate: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -497,7 +733,7 @@ func testAccProvider_clientSecretAuthFromEnvironment(t *testing.T) {
 			EnableAuthenticatingUsingClientSecret: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -565,7 +801,7 @@ func testAccProvider_clientSecretAuthFromFiles(t *testing.T) {
 			EnableAuthenticatingUsingClientSecret: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -625,7 +861,7 @@ func TestAccProvider_genericOidcAuth(t *testing.T) {
 			OIDCAssertionToken:            *oidcToken,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -679,12 +915,75 @@ func TestAccProvider_githubOidcAuth(t *testing.T) {
 			Environment:                         *env,
 			TenantID:                            *tenantId,
 			ClientID:                            *clientId,
-			GitHubOIDCTokenRequestToken:         d.Get("oidc_request_token").(string),
-			GitHubOIDCTokenRequestURL:           d.Get("oidc_request_url").(string),
+			OIDCTokenRequestToken:               d.Get("oidc_request_token").(string),
+			OIDCTokenRequestURL:                 d.Get("oidc_request_url").(string),
 			EnableAuthenticationUsingGitHubOIDC: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
+	}
+
+	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+	if d != nil && d.HasError() {
+		t.Fatalf("err: %+v", d)
+	}
+
+	if errs := testCheckProvider(provider); len(errs) > 0 {
+		for _, err := range errs {
+			t.Error(err)
+		}
+	}
+}
+
+func TestAccProvider_adoOidcAuth(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+	if os.Getenv("SYSTEM_ACCESSTOKEN") == "" {
+		t.Skip("SYSTEM_ACCESSTOKEN not set")
+	}
+	if os.Getenv("SYSTEM_OIDCREQUESTURI") == "" {
+		t.Skip("SYSTEM_OIDCREQUESTURI not set")
+	}
+	if os.Getenv("ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID") == "" {
+		t.Skip("ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID")
+	}
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Support only ADO OIDC authentication
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		envName := d.Get("environment").(string)
+		env, err := environments.FromName(envName)
+		if err != nil {
+			t.Fatalf("configuring environment %q: %v", envName, err)
+		}
+
+		clientId, err := getClientId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		tenantId, err := getTenantId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		authConfig := &auth.Credentials{
+			Environment:                              *env,
+			TenantID:                                 *tenantId,
+			ClientID:                                 *clientId,
+			OIDCTokenRequestToken:                    d.Get("oidc_request_token").(string),
+			OIDCTokenRequestURL:                      d.Get("oidc_request_url").(string),
+			ADOPipelineServiceConnectionID:           d.Get("ado_pipeline_service_connection_id").(string),
+			EnableAuthenticationUsingADOPipelineOIDC: true,
+		}
+
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -750,7 +1049,7 @@ func TestAccProvider_aksWorkloadIdentityAuth(t *testing.T) {
 			EnableAuthenticationUsingOIDC: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	// Ensure we enable AKS Workload Identity else the configuration will not be detected

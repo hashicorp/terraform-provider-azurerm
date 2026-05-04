@@ -105,6 +105,8 @@ An `ipfx_emission` block supports the following:
 
 * `destination_types` - (Required) A list of emission destination types. The only possible value is `AzureMonitor`. Changing this forces a new Network Function Collector Policy to be created.
 
+~> **Note:** Please use the [`azurerm_monitor_diagnostic_setting`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) resource to forward logs to a Log Analytics Workspace.
+
 ---
 
 An `ipfx_ingestion` block supports the following:
@@ -119,7 +121,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Function Collector Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Function Collector Policy.
@@ -133,3 +135,9 @@ Network Function Collector Policy can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_network_function_collector_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.NetworkFunction/azureTrafficCollectors/azureTrafficCollector1/collectorPolicies/collectorPolicy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.NetworkFunction` - 2022-11-01
