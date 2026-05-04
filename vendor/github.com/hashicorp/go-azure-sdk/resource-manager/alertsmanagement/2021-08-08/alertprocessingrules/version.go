@@ -8,3 +8,7 @@ const defaultApiVersion = "2021-08-08"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/alertprocessingrules/2021-08-08"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

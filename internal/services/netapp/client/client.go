@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/buckets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/capacitypools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/netappaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/snapshotpolicies"
@@ -30,6 +31,7 @@ type Client struct {
 	BackupVaultsClient     *backupvaults.BackupVaultsClient
 	BackupPolicyClient     *backuppolicies.BackupPoliciesClient
 	BackupClient           *backups.BackupsClient
+	BucketsClient          *buckets.BucketsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -93,6 +95,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(backupClient.Client, o.Authorizers.ResourceManager)
 
+	bucketsClient, err := buckets.NewBucketsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building BucketsClient client: %+v", err)
+	}
+	o.Configure(bucketsClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		AccountClient:          accountClient,
 		PoolClient:             poolClient,
@@ -104,5 +112,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		BackupVaultsClient:     backupVaultsClient,
 		BackupPolicyClient:     backupPolicyClient,
 		BackupClient:           backupClient,
+		BucketsClient:          bucketsClient,
 	}, nil
 }
