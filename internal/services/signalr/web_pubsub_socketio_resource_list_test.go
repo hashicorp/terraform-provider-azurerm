@@ -2,6 +2,7 @@ package signalr_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -25,7 +26,7 @@ func TestAccWebPubSubSocketIO_list(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicList(data),
 			},
 			{
 				Query:  true,
@@ -46,7 +47,7 @@ func TestAccWebPubSubSocketIO_list(t *testing.T) {
 				Query:  true,
 				Config: r.basicListQueryByResourceGroupName(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLength("azurerm_web_pubsub_socketio.list", 1),
+					querycheck.ExpectLength("azurerm_web_pubsub_socketio.list", 2),
 					querycheck.ExpectIdentity(
 						"azurerm_web_pubsub_socketio.list",
 						map[string]knownvalue.Check{
@@ -61,7 +62,7 @@ func TestAccWebPubSubSocketIO_list(t *testing.T) {
 	})
 }
 
-func (WebPubsubSocketioResource) basicListQuery() string {
+func (r WebPubsubSocketioResource) basicListQuery() string {
 	return `
 list "azurerm_web_pubsub_socketio" "list" {
   provider = azurerm
@@ -70,7 +71,7 @@ list "azurerm_web_pubsub_socketio" "list" {
 `
 }
 
-func (WebPubsubSocketioResource) basicListQueryByResourceGroupName() string {
+func (r WebPubsubSocketioResource) basicListQueryByResourceGroupName() string {
 	return `
 list "azurerm_web_pubsub_socketio" "list" {
   provider = azurerm
@@ -79,4 +80,32 @@ list "azurerm_web_pubsub_socketio" "list" {
   }
 }
 `
+}
+
+func (r WebPubsubSocketioResource) basicList(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_web_pubsub_socketio" "test" {
+  name                = "acctestWebPubsubSocketIO-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Standard_S1"
+    capacity = 1
+  }
+}
+
+resource "azurerm_web_pubsub_socketio" "test2" {
+  name                = "acctestWebPubsubSocketIO2-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Standard_S1"
+    capacity = 1
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }

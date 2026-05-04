@@ -25,7 +25,7 @@ func (r WebPubSubSocketIOListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (r WebPubSubSocketIOListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = webPubSubSocketIOResourceType
+	response.TypeName = WebPubSubSocketIOResource{}.ResourceType()
 }
 
 func (r WebPubSubSocketIOListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
@@ -49,14 +49,14 @@ func (r WebPubSubSocketIOListResource) List(ctx context.Context, request list.Li
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", webPubSubSocketIOResourceType), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", WebPubSubSocketIOResource{}.ResourceType()), err)
 			return
 		}
 		results = resp.Items
 	default:
 		resp, err := client.ListBySubscriptionComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", webPubSubSocketIOResourceType), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", WebPubSubSocketIOResource{}.ResourceType()), err)
 			return
 		}
 		results = resp.Items
@@ -71,7 +71,7 @@ func (r WebPubSubSocketIOListResource) List(ctx context.Context, request list.Li
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			id, err := webpubsub.ParseWebPubSubIDInsensitively(pointer.From(item.Id))
+			id, err := webpubsub.ParseWebPubSubID(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Web PubSub Socket.IO ID", err)
 				return

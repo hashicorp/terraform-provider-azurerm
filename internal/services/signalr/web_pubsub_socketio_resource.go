@@ -60,8 +60,6 @@ type WebPubSubSocketIOSkuModel struct {
 	Capacity int64  `tfschema:"capacity"`
 }
 
-const webPubSubSocketIOResourceType = "azurerm_web_pubsub_socketio"
-
 var (
 	_ sdk.ResourceWithUpdate        = WebPubSubSocketIOResource{}
 	_ sdk.ResourceWithCustomizeDiff = WebPubSubSocketIOResource{}
@@ -270,7 +268,7 @@ func (w WebPubSubSocketIOResource) ModelObject() interface{} {
 }
 
 func (w WebPubSubSocketIOResource) ResourceType() string {
-	return webPubSubSocketIOResourceType
+	return "azurerm_web_pubsub_socketio"
 }
 
 func (w WebPubSubSocketIOResource) Create() sdk.ResourceFunc {
@@ -296,7 +294,7 @@ func (w WebPubSubSocketIOResource) Create() sdk.ResourceFunc {
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(webPubSubSocketIOResourceType, id.ID())
+				return tf.ImportAsExistsError(w.ResourceType(), id.ID())
 			}
 
 			expandedIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(config.Identity)
@@ -546,7 +544,7 @@ func (w WebPubSubSocketIOResource) IDValidationFunc() pluginsdk.SchemaValidateFu
 }
 
 func expandLiveTraceConfigFromModel(input WebPubSubSocketIOResourceModel) *webpubsub.LiveTraceConfiguration {
-	resourceCategories := make([]webpubsub.LiveTraceCategory, 0)
+	resourceCategories := make([]webpubsub.LiveTraceCategory, 0, 3)
 
 	enabled := pointer.To("false")
 	if input.LiveTraceEnabled {
@@ -629,7 +627,7 @@ func expandWebPubSubSocketIOSkuFromModel(input []WebPubSubSocketIOSkuModel) *web
 }
 
 func flattenWebPubSubSocketIOSkuToModel(input *webpubsub.ResourceSku) []WebPubSubSocketIOSkuModel {
-	result := make([]WebPubSubSocketIOSkuModel, 0)
+	result := make([]WebPubSubSocketIOSkuModel, 0, 1)
 	if input == nil {
 		return result
 	}
