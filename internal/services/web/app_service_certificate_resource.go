@@ -77,8 +77,8 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-			// The service may cause case different, tracked by https://github.com/Azure/azure-rest-api-specs/issues/34436
-			DiffSuppressFunc: suppress.CaseDifference,
+				// The service may cause case different, tracked by https://github.com/Azure/azure-rest-api-specs/issues/34436
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     commonids.ValidateKeyVaultID,
 				RequiredWith:     []string{"key_vault_secret_id"},
 			},
