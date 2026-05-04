@@ -5,22 +5,19 @@ package cosmos
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
@@ -31,7 +28,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 		Delete: resourceCosmosDbCassandraTableDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CassandraTableID(id)
+			_, err := cosmosdb.ParseCassandraKeyspaceTableID(id)
 			return err
 		}),
 
@@ -54,7 +51,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CassandraKeyspaceID,
+				ValidateFunc: cosmosdb.ValidateCassandraKeyspaceID,
 			},
 
 			"default_ttl": {
@@ -88,68 +85,56 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CassandraClient
+	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	keyspaceId, err := parse.CassandraKeyspaceID(d.Get("cassandra_keyspace_id").(string))
+	keyspaceId, err := cosmosdb.ParseCassandraKeyspaceID(d.Get("cassandra_keyspace_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing Cassandra Keyspace ID: %+v", err)
+		return err
 	}
-	account := keyspaceId.DatabaseAccountName
-	keyspace := keyspaceId.Name
-	resourceGroup := keyspaceId.ResourceGroup
 
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := parse.NewCassandraTableID(subscriptionId, resourceGroup, account, keyspace, name)
-	existing, err := client.GetCassandraTable(ctx, resourceGroup, account, keyspace, name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+	id := cosmosdb.NewCassandraKeyspaceTableID(meta.(*clients.Client).Account.SubscriptionId, keyspaceId.ResourceGroupName, keyspaceId.DatabaseAccountName, keyspaceId.CassandraKeyspaceName, d.Get("name").(string))
+
+	existing, err := client.CassandraResourcesGetCassandraTable(ctx, id)
+	if !response.WasNotFound(existing.HttpResponse) {
+		if err != nil {
 			return fmt.Errorf("checking for presence of existing %+v: %+v", id, err)
 		}
-	} else {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_table", id.ID())
-		}
+		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_table", id.ID())
 	}
 
-	table := documentdb.CassandraTableCreateUpdateParameters{
-		CassandraTableCreateUpdateProperties: &documentdb.CassandraTableCreateUpdateProperties{
-			Resource: &documentdb.CassandraTableResource{
-				ID: &name,
+	table := cosmosdb.CassandraTableCreateUpdateParameters{
+		Properties: cosmosdb.CassandraTableCreateUpdateProperties{
+			Options: &cosmosdb.CreateUpdateOptions{},
+			Resource: cosmosdb.CassandraTableResource{
+				Id:     id.TableName,
+				Schema: expandTableSchema(d),
 			},
-			Options: &documentdb.CreateUpdateOptions{},
 		},
 	}
 
-	table.Resource.Schema = expandTableSchema(d)
-
-	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
-		table.Resource.DefaultTTL = pointer.To(int32(defaultTTL.(int)))
+	if defaultTTL, ok := d.GetOk("default_ttl"); ok {
+		table.Properties.Resource.DefaultTtl = pointer.To(int64(defaultTTL.(int)))
 	}
 
 	if analyticalTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		table.Resource.AnalyticalStorageTTL = pointer.To(int32(analyticalTTL.(int)))
+		table.Properties.Resource.AnalyticalStorageTtl = pointer.To(int64(analyticalTTL.(int)))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		if throughput != 0 {
-			table.Options.Throughput = common.ConvertThroughputFromResourceDataLegacy(throughput)
+			table.Properties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
 		}
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
-		table.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettingsLegacy(d)
+		table.Properties.Options.AutoScaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
-	future, err := client.CreateUpdateCassandraTable(ctx, resourceGroup, account, keyspace, name, table)
-	if err != nil {
+	if err := client.CassandraResourcesCreateUpdateCassandraTableThenPoll(ctx, id, table); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -158,56 +143,59 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CassandraClient
+	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CassandraTableID(d.Id())
+	id, err := cosmosdb.ParseCassandraKeyspaceTableID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
-	if err != nil {
-		return fmt.Errorf("updating %s: %+v", *id, err)
+	if err := common.CheckForChangeFromAutoscaleAndManualThroughput(d); err != nil {
+		return fmt.Errorf("checking `autoscale_settings` and `throughput` for %s: %w", id, err)
 	}
 
-	table := documentdb.CassandraTableCreateUpdateParameters{
-		CassandraTableCreateUpdateProperties: &documentdb.CassandraTableCreateUpdateProperties{
-			Resource: &documentdb.CassandraTableResource{
-				ID: &id.TableName,
+	existing, err := client.CassandraResourcesGetCassandraTable(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %w", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: model was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: properties was nil", id)
+	}
+
+	if existing.Model.Properties.Resource == nil {
+		return fmt.Errorf("retrieving %s: resource was nil", id)
+	}
+
+	table := cosmosdb.CassandraTableCreateUpdateParameters{
+		Properties: cosmosdb.CassandraTableCreateUpdateProperties{
+			Resource: cosmosdb.CassandraTableResource{
+				Id:         id.TableName,
+				Schema:     existing.Model.Properties.Resource.Schema,
+				DefaultTtl: existing.Model.Properties.Resource.DefaultTtl,
 			},
-			Options: &documentdb.CreateUpdateOptions{},
+			Options: &cosmosdb.CreateUpdateOptions{},
 		},
 	}
 
-	table.Resource.Schema = expandTableSchema(d)
+	if d.HasChange("default_ttl") {
+		table.Properties.Resource.DefaultTtl = pointer.To(int64(d.Get("default_ttl").(int)))
 
-	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
-		table.Resource.DefaultTTL = pointer.To(int32(defaultTTL.(int)))
-	}
-
-	future, err := client.CreateUpdateCassandraTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName, table)
-	if err != nil {
-		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
+		if err := client.CassandraResourcesCreateUpdateCassandraTableThenPoll(ctx, *id, table); err != nil {
+			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
 	}
 
 	if common.HasThroughputChange(d) {
-		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParametersLegacy(d)
-		throughputFuture, err := client.UpdateCassandraTableThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName, *throughputParameters)
-		if err != nil {
-			if response.WasNotFound(throughputFuture.Response()) {
-				return fmt.Errorf("setting Throughput for %s: %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later", *id, err)
-			}
-		}
-
-		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("updating Throughput for %s: %+v", *id, err)
+		if err := client.CassandraResourcesUpdateCassandraTableThroughputThenPoll(ctx, *id, common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)); err != nil {
+			return fmt.Errorf("setting Throughput for %s: %+v - If the collection has not been created with an initial throughput, you cannot configure it later", id, err)
 		}
 	}
 
@@ -215,21 +203,19 @@ func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CassandraClient
-	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	id, err := parse.CassandraTableID(d.Id())
+	id, err := cosmosdb.ParseCassandraKeyspaceTableID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetCassandraTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName)
+	resp, err := client.CassandraResourcesGetCassandraTable(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] %s was not found - removing from state", *id)
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -237,78 +223,60 @@ func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	keyspaceId := parse.NewCassandraKeyspaceID(subscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName)
+	d.Set("cassandra_keyspace_id", cosmosdb.NewCassandraKeyspaceID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.CassandraKeyspaceName).ID())
+	d.Set("name", id.TableName)
 
-	d.Set("cassandra_keyspace_id", keyspaceId.ID())
-	if props := resp.CassandraTableGetProperties; props != nil {
-		if res := props.Resource; res != nil {
-			d.Set("name", res.ID)
-
-			if defaultTTL := res.DefaultTTL; defaultTTL != nil {
-				d.Set("default_ttl", defaultTTL)
-			}
-
-			var analyticalTTL int
-			if res.AnalyticalStorageTTL != nil {
-				analyticalTTL = int(*res.AnalyticalStorageTTL)
-			}
-			d.Set("analytical_storage_ttl", analyticalTTL)
-
-			if schema := res.Schema; schema != nil {
-				d.Set("schema", flattenTableSchema(schema))
+	if respModel := resp.Model; respModel != nil {
+		if props := respModel.Properties; props != nil {
+			if res := props.Resource; res != nil {
+				d.Set("default_ttl", res.DefaultTtl)
+				d.Set("analytical_storage_ttl", pointer.From(res.AnalyticalStorageTtl))
+				d.Set("schema", flattenTableSchema(res.Schema))
 			}
 		}
 	}
-	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
+
+	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)
 	if err != nil {
-		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
-	}
-	if accResp.ID == nil || *accResp.ID == "" {
-		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroup)
+		return fmt.Errorf("retrieving %s: %+v", databaseAccountID, err)
 	}
 
-	if !isServerlessCapacityMode(accResp) {
-		throughputResp, err := client.GetCassandraTableThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName)
+	if !isServerlessCapacityMode(accResp.Model) {
+		throughputResp, err := client.CassandraResourcesGetCassandraTableThroughput(ctx, *id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(throughputResp.Response) {
+			if !response.WasNotFound(throughputResp.HttpResponse) {
 				return fmt.Errorf("retrieving Throughput for %s: %+v", *id, err)
 			} else {
 				d.Set("throughput", nil)
 				d.Set("autoscale_settings", nil)
 			}
 		} else {
-			common.SetResourceDataThroughputFromResponseLegacy(throughputResp, d)
+			common.SetResourceDataThroughputFromResponse(pointer.From(throughputResp.Model), d)
 		}
 	}
 	return nil
 }
 
 func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CassandraClient
+	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CassandraTableID(d.Id())
+	id, err := cosmosdb.ParseCassandraKeyspaceTableID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.DeleteCassandraTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName)
-	if err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("deleting %s: %+v", *id, err)
-		}
-	}
-
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	if err := client.CassandraResourcesDeleteCassandraTableThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandTableSchema(d *pluginsdk.ResourceData) *documentdb.CassandraSchema {
+func expandTableSchema(d *pluginsdk.ResourceData) *cosmosdb.CassandraSchema {
 	i := d.Get("schema").([]interface{})
 
 	if len(i) == 0 || i[0] == nil {
@@ -316,7 +284,7 @@ func expandTableSchema(d *pluginsdk.ResourceData) *documentdb.CassandraSchema {
 	}
 	input := i[0].(map[string]interface{})
 
-	cassandraSchema := documentdb.CassandraSchema{}
+	cassandraSchema := cosmosdb.CassandraSchema{}
 
 	if v, ok := input["column"].([]interface{}); ok {
 		cassandraSchema.Columns = expandTableSchemaColumns(v)
@@ -333,11 +301,11 @@ func expandTableSchema(d *pluginsdk.ResourceData) *documentdb.CassandraSchema {
 	return &cassandraSchema
 }
 
-func expandTableSchemaColumns(input []interface{}) *[]documentdb.Column {
-	columns := make([]documentdb.Column, 0)
+func expandTableSchemaColumns(input []interface{}) *[]cosmosdb.Column {
+	columns := make([]cosmosdb.Column, 0)
 	for _, col := range input {
 		data := col.(map[string]interface{})
-		column := documentdb.Column{
+		column := cosmosdb.Column{
 			Name: pointer.To(data["name"].(string)),
 			Type: pointer.To(data["type"].(string)),
 		}
@@ -347,11 +315,11 @@ func expandTableSchemaColumns(input []interface{}) *[]documentdb.Column {
 	return &columns
 }
 
-func expandTableSchemaPartitionKeys(input []interface{}) *[]documentdb.CassandraPartitionKey {
-	keys := make([]documentdb.CassandraPartitionKey, 0)
+func expandTableSchemaPartitionKeys(input []interface{}) *[]cosmosdb.CassandraPartitionKey {
+	keys := make([]cosmosdb.CassandraPartitionKey, 0)
 	for _, key := range input {
 		data := key.(map[string]interface{})
-		k := documentdb.CassandraPartitionKey{
+		k := cosmosdb.CassandraPartitionKey{
 			Name: pointer.To(data["name"].(string)),
 		}
 		keys = append(keys, k)
@@ -360,11 +328,11 @@ func expandTableSchemaPartitionKeys(input []interface{}) *[]documentdb.Cassandra
 	return &keys
 }
 
-func expandTableSchemaClusterKeys(input []interface{}) *[]documentdb.ClusterKey {
-	keys := make([]documentdb.ClusterKey, 0)
+func expandTableSchemaClusterKeys(input []interface{}) *[]cosmosdb.ClusterKey {
+	keys := make([]cosmosdb.ClusterKey, 0)
 	for _, key := range input {
 		data := key.(map[string]interface{})
-		k := documentdb.ClusterKey{
+		k := cosmosdb.ClusterKey{
 			Name:    pointer.To(data["name"].(string)),
 			OrderBy: pointer.To(data["order_by"].(string)),
 		}
@@ -374,7 +342,7 @@ func expandTableSchemaClusterKeys(input []interface{}) *[]documentdb.ClusterKey 
 	return &keys
 }
 
-func flattenTableSchema(input *documentdb.CassandraSchema) []interface{} {
+func flattenTableSchema(input *cosmosdb.CassandraSchema) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -389,7 +357,7 @@ func flattenTableSchema(input *documentdb.CassandraSchema) []interface{} {
 	return results
 }
 
-func flattenTableSchemaColumns(input *[]documentdb.Column) []interface{} {
+func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -414,7 +382,7 @@ func flattenTableSchemaColumns(input *[]documentdb.Column) []interface{} {
 	return columns
 }
 
-func flattenTableSchemaPartitionKeys(input *[]documentdb.CassandraPartitionKey) []interface{} {
+func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -434,7 +402,7 @@ func flattenTableSchemaPartitionKeys(input *[]documentdb.CassandraPartitionKey) 
 	return keys
 }
 
-func flattenTableSchemaClusterKeys(input *[]documentdb.ClusterKey) []interface{} {
+func flattenTableSchemaClusterKeys(input *[]cosmosdb.ClusterKey) []interface{} {
 	if input == nil {
 		return nil
 	}
