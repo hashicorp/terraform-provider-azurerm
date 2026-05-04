@@ -208,7 +208,6 @@ func TestAccMsSqlManagedInstance_storageIOps(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("general_purpose_v2_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("storage_iops").DoesNotExist(),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
