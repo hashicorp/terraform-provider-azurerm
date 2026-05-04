@@ -13,6 +13,10 @@ Use this data source to access information about an existing NetApp Files Volume
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_netapp_volume_bucket" "example" {
   name                = "example-bucket"
   resource_group_name = "example-resources"
@@ -23,6 +27,10 @@ data "azurerm_netapp_volume_bucket" "example" {
 
 output "bucket_status" {
   value = data.azurerm_netapp_volume_bucket.example.status
+}
+
+output "bucket_server_ip_address" {
+  value = data.azurerm_netapp_volume_bucket.example.server_ip_address
 }
 ```
 

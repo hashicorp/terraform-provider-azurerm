@@ -10,7 +10,7 @@ description: |-
 
 Generates the access key and secret key pair used by S3 clients to authenticate against an `azurerm_netapp_volume_bucket`.
 
-~> **Note:** Generating new credentials immediately invalidates any existing credentials for the bucket. To rotate the credentials, replace this resource — `key_pair_expiry_days` is `ForceNew`.
+~> **Note:** Generating new credentials immediately invalidates any existing credentials for the bucket. To rotate the credentials, replace this resource - `key_pair_expiry_days` is `ForceNew`.
 
 ~> **Note:** The Azure NetApp Files Object REST API does not expose an explicit revoke operation. Credentials become invalid on their expiry date or when a new credential pair is generated for the same bucket. Destroying this resource is therefore a no-op; the credentials remain valid until expiry.
 
@@ -18,7 +18,108 @@ Generates the access key and secret key pair used by S3 clients to authenticate 
 
 ## Example Usage
 
+This example generates an inline credential pair for an `azurerm_netapp_volume_bucket`. The keys are returned by the Azure NetApp Files API and stored as sensitive attributes on this resource. Replace this with `store_in_key_vault = true` (and a `key_vault` block on the parent bucket) for production deployments.
+
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example-vnet"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "example-delegated"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "netapp"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_account" "example" {
+  name                = "example-anfaccount"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_netapp_pool" "example" {
+  name                = "example-anfpool"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_netapp_account.example.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+}
+
+resource "azurerm_netapp_volume" "example" {
+  name                = "example-anfvolume"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_netapp_account.example.name
+  pool_name           = azurerm_netapp_pool.example.name
+  volume_path         = "example-vol"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.example.id
+  storage_quota_in_gb = 100
+  protocols           = ["NFSv3"]
+}
+
+resource "tls_private_key" "bucket" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+resource "tls_self_signed_cert" "bucket" {
+  private_key_pem = tls_private_key.bucket.private_key_pem
+
+  subject {
+    common_name = "example-bucket.example.internal"
+  }
+
+  dns_names             = ["example-bucket.example.internal"]
+  validity_period_hours = 8760
+
+  allowed_uses = [
+    "key_encipherment",
+    "digital_signature",
+    "server_auth",
+  ]
+}
+
+resource "azurerm_netapp_volume_bucket" "example" {
+  name      = "example-bucket"
+  volume_id = azurerm_netapp_volume.example.id
+
+  file_system_user {
+    nfs_user {
+      group_id = 1000
+      user_id  = 1000
+    }
+  }
+
+  server {
+    fqdn            = "example-bucket.example.internal"
+    certificate_pem = base64encode("${tls_self_signed_cert.bucket.cert_pem}${tls_private_key.bucket.private_key_pem}")
+  }
+}
+
 resource "azurerm_netapp_volume_bucket_credentials" "example" {
   bucket_id            = azurerm_netapp_volume_bucket.example.id
   key_pair_expiry_days = 30
@@ -55,7 +156,6 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 1 hour) Used when creating the bucket credentials.
 * `read` - (Defaults to 5 minutes) Used when retrieving the bucket credentials state.
-* `update` - (Defaults to 5 minutes) Used when updating the bucket credentials state.
 * `delete` - (Defaults to 5 minutes) Used when deleting the bucket credentials from state.
 
 ## Import
