@@ -18,21 +18,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type WebAppSlotDistributionAction struct {
+type WebAppChangeSlotDistributionAction struct {
 	sdk.ActionMetadata
 }
 
-func newWebAppSlotDistributionAction() action.Action {
-	return &WebAppSlotDistributionAction{}
+func newWebAppChangeSlotDistributionAction() action.Action {
+	return &WebAppChangeSlotDistributionAction{}
 }
 
-type WebAppSlotDistributionActionModel struct {
-	AppServiceId types.String                                                               `tfsdk:"app_service_id"`
-	SlotRule     typehelpers.ListNestedObjectValueOf[WebAppSlotDistributionActionRuleModel] `tfsdk:"slot_rule"`
-	Timeout      types.String                                                               `tfsdk:"timeout"`
+type WebAppChangeSlotDistributionActionModel struct {
+	AppServiceId types.String                                                                     `tfsdk:"app_service_id"`
+	SlotRule     typehelpers.ListNestedObjectValueOf[WebAppChangeSlotDistributionActionRuleModel] `tfsdk:"slot_rule"`
+	Timeout      types.String                                                                     `tfsdk:"timeout"`
 }
 
-type WebAppSlotDistributionActionRuleModel struct {
+type WebAppChangeSlotDistributionActionRuleModel struct {
 	Hostname                  types.String  `tfsdk:"hostname"`
 	RuleName                  types.String  `tfsdk:"rule_name"`
 	ReroutePercentage         types.Float64 `tfsdk:"reroute_percentage"`
@@ -43,9 +43,9 @@ type WebAppSlotDistributionActionRuleModel struct {
 	ChangeDecisionCallbackUrl types.String  `tfsdk:"change_decision_callback_url"`
 }
 
-var _ sdk.Action = &WebAppSlotDistributionAction{}
+var _ sdk.Action = &WebAppChangeSlotDistributionAction{}
 
-func (*WebAppSlotDistributionAction) Schema(ctx context.Context, _ action.SchemaRequest, response *action.SchemaResponse) {
+func (*WebAppChangeSlotDistributionAction) Schema(ctx context.Context, _ action.SchemaRequest, response *action.SchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"app_service_id": schema.StringAttribute{
@@ -63,12 +63,12 @@ func (*WebAppSlotDistributionAction) Schema(ctx context.Context, _ action.Schema
 			},
 		},
 		Blocks: map[string]schema.Block{
-			"slot_rule": webAppSlotDistributionActionRuleSchema(ctx),
+			"slot_rule": webAppChangeSlotDistributionActionRuleSchema(ctx),
 		},
 	}
 }
 
-func webAppSlotDistributionActionRuleSchema(ctx context.Context) schema.Block {
+func webAppChangeSlotDistributionActionRuleSchema(ctx context.Context) schema.Block {
 	return schema.ListNestedBlock{
 		NestedObject: schema.NestedBlockObject{
 			Attributes: map[string]schema.Attribute{
@@ -111,18 +111,18 @@ func webAppSlotDistributionActionRuleSchema(ctx context.Context) schema.Block {
 				},
 			},
 		},
-		CustomType: typehelpers.NewListNestedObjectTypeOf[WebAppSlotDistributionActionRuleModel](ctx),
+		CustomType: typehelpers.NewListNestedObjectTypeOf[WebAppChangeSlotDistributionActionRuleModel](ctx),
 	}
 }
 
-func (a *WebAppSlotDistributionAction) Metadata(_ context.Context, _ action.MetadataRequest, response *action.MetadataResponse) {
-	response.TypeName = "azurerm_web_app_slot_distribution"
+func (a *WebAppChangeSlotDistributionAction) Metadata(_ context.Context, _ action.MetadataRequest, response *action.MetadataResponse) {
+	response.TypeName = "azurerm_web_app_change_slot_distribution"
 }
 
-func (a *WebAppSlotDistributionAction) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
+func (a *WebAppChangeSlotDistributionAction) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
 	client := a.Client.AppService.WebAppsClient
 
-	model := WebAppSlotDistributionActionModel{}
+	model := WebAppChangeSlotDistributionActionModel{}
 
 	response.Diagnostics.Append(request.Config.Get(ctx, &model)...)
 	if response.Diagnostics.HasError() {
@@ -178,11 +178,11 @@ func (a *WebAppSlotDistributionAction) Invoke(ctx context.Context, request actio
 	})
 }
 
-func (a *WebAppSlotDistributionAction) Configure(ctx context.Context, request action.ConfigureRequest, response *action.ConfigureResponse) {
+func (a *WebAppChangeSlotDistributionAction) Configure(ctx context.Context, request action.ConfigureRequest, response *action.ConfigureResponse) {
 	a.Defaults(ctx, request, response)
 }
 
-func (a *WebAppSlotDistributionAction) expand(ctx context.Context, model WebAppSlotDistributionActionModel, diags *diag.Diagnostics) *webapps.SiteConfigResource {
+func (a *WebAppChangeSlotDistributionAction) expand(ctx context.Context, model WebAppChangeSlotDistributionActionModel, diags *diag.Diagnostics) *webapps.SiteConfigResource {
 	rampupRulesEnvelope := a.expandSlotDistributionRules(ctx, model.SlotRule, diags)
 	if diags.HasError() {
 		return nil
@@ -199,7 +199,7 @@ func (a *WebAppSlotDistributionAction) expand(ctx context.Context, model WebAppS
 	return &siteConfigEnvelope
 }
 
-func (*WebAppSlotDistributionAction) expandSlotDistributionRules(ctx context.Context, input typehelpers.ListNestedObjectValueOf[WebAppSlotDistributionActionRuleModel], diags *diag.Diagnostics) []webapps.RampUpRule {
+func (*WebAppChangeSlotDistributionAction) expandSlotDistributionRules(ctx context.Context, input typehelpers.ListNestedObjectValueOf[WebAppChangeSlotDistributionActionRuleModel], diags *diag.Diagnostics) []webapps.RampUpRule {
 	rules, d := input.ToSlice(ctx)
 	if d.HasError() {
 		diags.Append(d...)
