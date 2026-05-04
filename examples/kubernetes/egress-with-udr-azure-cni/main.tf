@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -28,7 +28,7 @@ resource "azurerm_route_table" "example" {
   name                          = "${var.prefix}fwrt"
   location                      = azurerm_resource_group.example.location
   resource_group_name           = azurerm_resource_group.example.name
-  disable_bgp_route_propagation = false
+  bgp_route_propagation_enabled = true
 
   route {
     name                   = "${var.prefix}fwrn"

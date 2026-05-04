@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_test
@@ -6,17 +6,18 @@ package eventhub_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type EventHubResource struct{}
@@ -248,6 +249,30 @@ func TestAccEventHub_partitionCountUpdate(t *testing.T) {
 	})
 }
 
+func TestAccEventHub_dedicatedClusterPartitionCountUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dedicatedClusterStandard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_count").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dedicatedClusterStandardPartitionCountUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_count").HasValue("10"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEventHub_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 	r := EventHubResource{}
@@ -263,6 +288,56 @@ func TestAccEventHub_standard(t *testing.T) {
 	})
 }
 
+func TestAccEventHub_retentionDescriptionWithDeleteCleanupPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.retentionDescriptionWithDeleteCleanupPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHub_retentionDescriptionWithCompactCleanupPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.retentionDescriptionWithCompactCleanupPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHub_retentionDescriptionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.retentionDescriptionWithDeleteCleanupPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.retentionDescriptionUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccEventHub_captureDescription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 	r := EventHubResource{}
@@ -274,6 +349,115 @@ func TestAccEventHub_captureDescription(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("capture_description.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("capture_description.0.skip_empty_archives").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHub_captureDescriptionSystemIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.captureDescriptionUsingSystemAssignedIdentity(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("capture_description.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("capture_description.0.skip_empty_archives").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHub_captureDescriptionUserAssignIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.captureDescriptionUsingUserAssignedIdentity(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHub_captureDescriptionUserAssignIdentityError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.captureDescriptionUsingUserAssignedIdentityError(data, true),
+			ExpectError: regexp.MustCompile("`storage_authentication_id` must be specified when `storage_authentication_type` is set to `UserAssigned`"),
+		},
+	})
+}
+
+func TestAccEventHub_captureDescriptionIdentityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.captureDescription(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.captureDescriptionUsingSystemAssignedIdentity(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.captureDescriptionUsingUserAssignedIdentity(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.captureDescription(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHub_captureDescriptionManagedIdentityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.captureDescription(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.captureDescriptionUsingUserAssignedIdentity(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.captureDescription(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -357,11 +541,11 @@ func (EventHubResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (EventHubResource) basic(data acceptance.TestData, partitionCount int) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -482,8 +666,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (EventHubResource) captureDescription(data acceptance.TestData, enabled bool) string {
-	enabledString := strconv.FormatBool(enabled)
+func (EventHubResource) dedicatedClusterStandardPartitionCountUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -494,29 +677,81 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctest"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
+resource "azurerm_eventhub_cluster" "test" {
+  name                = "acctest-EHC-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Dedicated_1"
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctest-EHN%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
+  name                 = "acctest-EHN-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  sku                  = "Standard"
+  dedicated_cluster_id = azurerm_eventhub_cluster.test.id
 }
 
 resource "azurerm_eventhub" "test" {
-  name              = "acctest-EH%d"
+  name              = "acctest-EH-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 10
+  message_retention = 1
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (EventHubResource) dedicatedClusterStandard(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eventhub-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_cluster" "test" {
+  name                = "acctest-EHC-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Dedicated_1"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                 = "acctest-EHN-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  sku                  = "Standard"
+  dedicated_cluster_id = azurerm_eventhub_cluster.test.id
+}
+
+resource "azurerm_eventhub" "test" {
+  name              = "acctest-EH-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 7
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r EventHubResource) captureDescription(data acceptance.TestData, enabled bool) string {
+	enabledString := strconv.FormatBool(enabled)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctestehn%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_eventhub" "test" {
+  name              = "acctesteh%s"
   namespace_id      = azurerm_eventhub_namespace.test.id
   partition_count   = 2
   message_retention = 7
@@ -536,7 +771,258 @@ resource "azurerm_eventhub" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, enabledString)
+`, r.template(data), data.RandomString, data.RandomString, enabledString)
+}
+
+func (r EventHubResource) captureDescriptionUsingSystemAssignedIdentity(data acceptance.TestData, enabled bool) string {
+	enabledString := strconv.FormatBool(enabled)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctestehn%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_role_assignment" "saContributorRoleAssignment" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_eventhub_namespace.test.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "saOwnerRoleAssignment" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_eventhub_namespace.test.identity[0].principal_id
+}
+
+resource "azurerm_eventhub" "test" {
+  name              = "acctesteh%s"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 7
+
+  capture_description {
+    enabled             = %s
+    encoding            = "Avro"
+    interval_in_seconds = 60
+    size_limit_in_bytes = 10485760
+    skip_empty_archives = true
+
+    destination {
+      name                        = "EventHubArchive.AzureBlockBlob"
+      archive_name_format         = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
+      blob_container_name         = azurerm_storage_container.test.name
+      storage_account_id          = azurerm_storage_account.test.id
+      storage_authentication_type = "SystemAssigned"
+    }
+  }
+  depends_on = [azurerm_role_assignment.saContributorRoleAssignment, azurerm_role_assignment.saOwnerRoleAssignment]
+}
+`, r.template(data), data.RandomString, data.RandomString, enabledString)
+}
+
+func (r EventHubResource) captureDescriptionUsingUserAssignedIdentity(data acceptance.TestData, enabled bool) string {
+	enabledString := strconv.FormatBool(enabled)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctestehn%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+
+resource "azurerm_role_assignment" "saContributorRoleAssignment" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "saOwnerRoleAssignment" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_eventhub" "test" {
+  name              = "acctesteh%s"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 7
+
+  capture_description {
+    enabled             = %s
+    encoding            = "Avro"
+    interval_in_seconds = 60
+    size_limit_in_bytes = 10485760
+    skip_empty_archives = true
+
+    destination {
+      name                        = "EventHubArchive.AzureBlockBlob"
+      archive_name_format         = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
+      blob_container_name         = azurerm_storage_container.test.name
+      storage_account_id          = azurerm_storage_account.test.id
+      storage_authentication_type = "UserAssigned"
+      storage_authentication_id   = azurerm_user_assigned_identity.test.id
+    }
+  }
+  depends_on = [azurerm_eventhub_namespace.test, azurerm_role_assignment.saContributorRoleAssignment, azurerm_role_assignment.saOwnerRoleAssignment]
+}
+`, r.template(data), data.RandomString, data.RandomString, enabledString)
+}
+
+func (r EventHubResource) captureDescriptionUsingUserAssignedIdentityError(data acceptance.TestData, enabled bool) string {
+	enabledString := strconv.FormatBool(enabled)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctestehn%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+
+resource "azurerm_role_assignment" "saContributorRoleAssignment" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "saOwnerRoleAssignment" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_eventhub" "test" {
+  name              = "acctesteh%s"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 7
+
+  capture_description {
+    enabled             = %s
+    encoding            = "Avro"
+    interval_in_seconds = 60
+    size_limit_in_bytes = 10485760
+    skip_empty_archives = true
+
+    destination {
+      name                        = "EventHubArchive.AzureBlockBlob"
+      archive_name_format         = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
+      blob_container_name         = azurerm_storage_container.test.name
+      storage_account_id          = azurerm_storage_account.test.id
+      storage_authentication_type = "UserAssigned"
+    }
+  }
+  depends_on = [azurerm_eventhub_namespace.test, azurerm_role_assignment.saContributorRoleAssignment, azurerm_role_assignment.saOwnerRoleAssignment]
+}
+`, r.template(data), data.RandomString, data.RandomString, enabledString)
+}
+
+func (EventHubResource) retentionDescriptionWithDeleteCleanupPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eventhub-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name            = "acctest-EH-%d"
+  namespace_id    = azurerm_eventhub_namespace.test.id
+  partition_count = 2
+  retention_description {
+    cleanup_policy          = "Delete"
+    retention_time_in_hours = 7
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (EventHubResource) retentionDescriptionWithCompactCleanupPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eventhub-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name            = "acctest-EH-%d"
+  namespace_id    = azurerm_eventhub_namespace.test.id
+  partition_count = 2
+  retention_description {
+    cleanup_policy                    = "Compact"
+    tombstone_retention_time_in_hours = 7
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (EventHubResource) retentionDescriptionUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eventhub-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name            = "acctest-EH-%d"
+  namespace_id    = azurerm_eventhub_namespace.test.id
+  partition_count = 2
+  retention_description {
+    cleanup_policy          = "Delete"
+    retention_time_in_hours = 9
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (EventHubResource) messageRetentionUpdate(data acceptance.TestData) string {
@@ -592,4 +1078,37 @@ resource "azurerm_eventhub" "test" {
   status            = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, status)
+}
+
+func (r EventHubResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eventhub-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai1-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctest%s"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString)
 }

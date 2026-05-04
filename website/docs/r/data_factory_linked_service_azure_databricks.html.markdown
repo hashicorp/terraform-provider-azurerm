@@ -42,7 +42,7 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "msi_linked" {
   description     = "ADB Linked Service via MSI"
   adb_domain      = "https://${azurerm_databricks_workspace.example.workspace_url}"
 
-  msi_work_space_resource_id = azurerm_databricks_workspace.example.id
+  msi_workspace_id = azurerm_databricks_workspace.example.id
 
   new_cluster_config {
     node_type             = "Standard_NC12"
@@ -126,7 +126,7 @@ You must specify exactly one of the following authentication blocks:
 
 * `key_vault_password` - (Optional) Authenticate to ADB via Azure Key Vault Linked Service as defined in the `key_vault_password` block below.
 
-* `msi_work_space_resource_id` - (Optional) Authenticate to ADB via managed service identity.
+* `msi_workspace_id` - (Optional) Authenticate to ADB via managed service identity.
 
 ---
 
@@ -204,7 +204,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Linked Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Linked Service.

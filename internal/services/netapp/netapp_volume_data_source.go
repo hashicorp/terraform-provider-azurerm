@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -144,6 +144,19 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				},
 			},
 
+			"data_protection_advanced_ransomware": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"protection_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"encryption_key_source": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -162,6 +175,17 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 			"smb_access_based_enumeration_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
+			},
+
+			"large_volume_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"accept_grow_capacity_pool_for_short_term_clone_split": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The accept grow capacity pool for short term clone split property.",
 			},
 		},
 	}
@@ -207,6 +231,8 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
 		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
+		d.Set("large_volume_enabled", props.IsLargeVolume)
+		d.Set("accept_grow_capacity_pool_for_short_term_clone_split", pointer.FromEnum(props.AcceptGrowCapacityPoolForShortTermCloneSplit))
 
 		smbNonBrowsable := false
 		if props.SmbNonBrowsable != nil {
@@ -237,6 +263,9 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		if err := d.Set("data_protection_backup_policy", flattenNetAppVolumeDataProtectionBackupPolicy(props.DataProtection)); err != nil {
 			return fmt.Errorf("setting `data_protection_backup_policy`: %+v", err)
+		}
+		if err := d.Set("data_protection_advanced_ransomware", flattenNetAppVolumeDataProtectionAdvancedRansomwareProtection(props.DataProtection)); err != nil {
+			return fmt.Errorf("setting `data_protection_advanced_ransomware`: %+v", err)
 		}
 	}
 

@@ -1,34 +1,36 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package purview
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-12-01/account"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePurviewAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePurviewAccountCreateUpdate,
+		Create: resourcePurviewAccountCreate,
 		Read:   resourcePurviewAccountRead,
-		Update: resourcePurviewAccountCreateUpdate,
+		Update: resourcePurviewAccountUpdate,
 		Delete: resourcePurviewAccountDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -43,41 +45,129 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourcePurviewSchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^[a-zA-Z0-9][-a-zA-Z0-9]{1,61}[a-zA-Z0-9]$`),
+					"The Purview account name must be between 3 and 63 characters long, it can contain only letters, numbers and hyphens, and the first and last characters must be a letter or number."),
+			},
+
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": commonschema.Location(),
+
+			"identity": resourcePurviewAccountIdentitySchema(),
+
+			"managed_event_hub_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Default:  true,
+				Optional: true,
+			},
+
+			"managed_resource_group_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: resourcegroups.ValidateName,
+			},
+
+			"public_network_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"managed_resources": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"resource_group_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"storage_account_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"event_hub_namespace_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"catalog_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"guardian_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"scan_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"atlas_kafka_endpoint_primary_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"atlas_kafka_endpoint_secondary_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"aws_external_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"tags": commonschema.Tags(),
+		},
 	}
 }
 
-func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Purview.AccountsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := account.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_purview_account", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_purview_account", id.ID())
 	}
 
 	purviewAccount := account.Account{
 		Properties: &account.AccountProperties{},
-		Location:   utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-
 	purviewAccount.Identity = expandedIdentity
 
 	publicNetworkAccessEnabled := account.PublicNetworkAccessDisabled
@@ -87,11 +177,17 @@ func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	purviewAccount.Properties.PublicNetworkAccess = &publicNetworkAccessEnabled
 
 	if v, ok := d.GetOk("managed_resource_group_name"); ok {
-		purviewAccount.Properties.ManagedResourceGroupName = utils.String(v.(string))
+		purviewAccount.Properties.ManagedResourceGroupName = pointer.To(v.(string))
+	}
+
+	if d.Get("managed_event_hub_enabled").(bool) {
+		purviewAccount.Properties.ManagedEventHubState = pointer.To(account.ManagedEventHubStateEnabled)
+	} else {
+		purviewAccount.Properties.ManagedEventHubState = pointer.To(account.ManagedEventHubStateDisabled)
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, purviewAccount); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -124,10 +220,11 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
-		flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
+
 		if err := d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
@@ -137,22 +234,20 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("flattening `managed_resources`: %+v", err)
 			}
 
-			publicNetworkAccessEnabled := false
-			if props.PublicNetworkAccess != nil {
-				publicNetworkAccessEnabled = *props.PublicNetworkAccess == account.PublicNetworkAccessEnabled
-			}
-			d.Set("public_network_enabled", publicNetworkAccessEnabled)
+			d.Set("public_network_enabled", pointer.From(props.PublicNetworkAccess) == account.PublicNetworkAccessEnabled)
 
-			managedResourceGroupName := ""
-			if props.ManagedResourceGroupName != nil {
-				managedResourceGroupName = *props.ManagedResourceGroupName
-			}
-			d.Set("managed_resource_group_name", managedResourceGroupName)
+			d.Set("managed_event_hub_enabled", pointer.From(props.ManagedEventHubState) == account.ManagedEventHubStateEnabled)
+
+			d.Set("managed_resource_group_name", pointer.From(props.ManagedResourceGroupName))
 
 			if endpoints := props.Endpoints; endpoints != nil {
 				d.Set("catalog_endpoint", endpoints.Catalog)
 				d.Set("guardian_endpoint", endpoints.Guardian)
 				d.Set("scan_endpoint", endpoints.Scan)
+			}
+
+			if props.CloudConnectors != nil {
+				d.Set("aws_external_id", pointer.From(props.CloudConnectors.AwsExternalId))
 			}
 		}
 
@@ -161,8 +256,7 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	keys, err := client.ListKeys(ctx, *id)
-	if err == nil {
+	if keys, err := client.ListKeys(ctx, *id); err == nil {
 		if model := keys.Model; model != nil {
 			d.Set("atlas_kafka_endpoint_primary_connection_string", model.AtlasKafkaPrimaryEndpoint)
 			d.Set("atlas_kafka_endpoint_secondary_connection_string", model.AtlasKafkaSecondaryEndpoint)
@@ -178,6 +272,55 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	return nil
+}
+
+func resourcePurviewAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Purview.AccountsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := account.ParseAccountID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := account.AccountUpdateParameters{
+		Properties: &account.AccountProperties{},
+	}
+
+	if d.HasChange("public_network_enabled") {
+		if d.Get("public_network_enabled").(bool) {
+			parameters.Properties.PublicNetworkAccess = pointer.To(account.PublicNetworkAccessEnabled)
+		} else {
+			parameters.Properties.PublicNetworkAccess = pointer.To(account.PublicNetworkAccessDisabled)
+		}
+	}
+
+	if d.HasChange("managed_event_hub_enabled") {
+		if d.Get("managed_event_hub_enabled").(bool) {
+			parameters.Properties.ManagedEventHubState = pointer.To(account.ManagedEventHubStateEnabled)
+		} else {
+			parameters.Properties.ManagedEventHubState = pointer.To(account.ManagedEventHubStateDisabled)
+		}
+	}
+
+	if d.HasChange("tags") {
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		parameters.Identity = expandedIdentity
+	}
+
+	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	return resourcePurviewAccountRead(d, meta)
 }
 
 func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -203,106 +346,38 @@ func flattenPurviewAccountManagedResources(managedResources *account.ManagedReso
 		return make([]interface{}, 0)
 	}
 
-	resourceGroup := ""
-	if managedResources.ResourceGroup != nil {
-		resourceGroup = *managedResources.ResourceGroup
-	}
-	storageAccount := ""
-	if managedResources.StorageAccount != nil {
-		storageAccount = *managedResources.StorageAccount
-	}
-	eventHubNamespace := ""
-	if managedResources.EventHubNamespace != nil {
-		eventHubNamespace = *managedResources.EventHubNamespace
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"resource_group_id":      resourceGroup,
-			"storage_account_id":     storageAccount,
-			"event_hub_namespace_id": eventHubNamespace,
+			"resource_group_id":      pointer.From(managedResources.ResourceGroup),
+			"storage_account_id":     pointer.From(managedResources.StorageAccount),
+			"event_hub_namespace_id": pointer.From(managedResources.EventHubNamespace),
 		},
 	}
 }
 
-func resourcePurviewSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-zA-Z0-9][-a-zA-Z0-9]{1,61}[a-zA-Z0-9]$`),
-				"The Purview account name must be between 3 and 63 characters long, it can contain only letters, numbers and hyphens, and the first and last characters must be a letter or number."),
-		},
+// resourcePurviewAccountIdentitySchema will take the common `SystemAssignedUserAssignedIdentityRequired` schema and make
+// small changes to match this purview resource schemas with what is supported by API.
+// The API inconsistency has been reported: https://github.com/Azure/azure-rest-api-specs/issues/22257
+func resourcePurviewAccountIdentitySchema() *schema.Schema {
+	customSchema := commonschema.SystemAssignedUserAssignedIdentityRequired()
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+	// remove UserAssigned from type validation, it is not supported in API
+	customSchema.Elem.(*schema.Resource).Schema["type"].ValidateFunc = validation.StringInSlice([]string{
+		string(identity.TypeSystemAssigned),
+		string(identity.TypeSystemAssignedUserAssigned),
+	}, false)
 
-		"location": commonschema.Location(),
+	// API is returning lower-case IDs which cause false diff report if mixed case was used by client.
+	// Change the Set hash function to hash lower case always, which will suppress this invalid diff.
+	customSchema.Elem.(*schema.Resource).Schema["identity_ids"].Set = resourcePurviewAccountIdentityIdsSetHash
 
-		"public_network_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
+	return customSchema
+}
 
-		"managed_resource_group_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: resourcegroups.ValidateName,
-		},
+func resourcePurviewAccountIdentityIdsSetHash(v interface{}) int {
+	var buf bytes.Buffer
 
-		"identity": commonschema.SystemOrUserAssignedIdentityRequired(),
+	buf.WriteString(strings.ToLower(v.(string)))
 
-		"managed_resources": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"resource_group_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"storage_account_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"event_hub_namespace_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
-		"catalog_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"guardian_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"scan_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"atlas_kafka_endpoint_primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"atlas_kafka_endpoint_secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"tags": commonschema.Tags(),
-	}
+	return pluginsdk.HashString(buf.String())
 }

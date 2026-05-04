@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -24,12 +24,10 @@ type storageTableEntitiesDataSource struct{}
 var _ sdk.DataSource = storageTableEntitiesDataSource{}
 
 type TableEntitiesDataSourceModel struct {
-	StorageTableId     string                       `tfschema:"storage_table_id"`
-	TableName          string                       `tfschema:"table_name,removedInNextMajorVersion"`
-	StorageAccountName string                       `tfschema:"storage_account_name,removedInNextMajorVersion"`
-	Filter             string                       `tfschema:"filter"`
-	Select             []string                     `tfschema:"select"`
-	Items              []TableEntityDataSourceModel `tfschema:"items"`
+	StorageTableId string                       `tfschema:"storage_table_id"`
+	Filter         string                       `tfschema:"filter"`
+	Select         []string                     `tfschema:"select"`
+	Items          []TableEntityDataSourceModel `tfschema:"items"`
 }
 
 type TableEntityDataSourceModel struct {

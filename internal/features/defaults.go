@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package features
@@ -9,6 +9,10 @@ func Default() UserFeatures {
 		ApiManagement: ApiManagementFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
+		},
+		EnhancedValidation: EnhancedValidationFeatures{
+			Locations:         !FivePointOh(),
+			ResourceProviders: !FivePointOh(),
 		},
 		AppConfiguration: AppConfigurationFeatures{
 			PurgeSoftDeleteOnDestroy: true,
@@ -75,12 +79,16 @@ func Default() UserFeatures {
 			PurgeSoftDeletedWorkspaceOnDestroy: false,
 		},
 		RecoveryService: RecoveryServiceFeatures{
-			VMBackupStopProtectionAndRetainDataOnDestroy: false,
-			PurgeProtectedItemsFromVaultOnDestroy:        false,
+			VMBackupStopProtectionAndRetainDataOnDestroy:    false,
+			VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
+			PurgeProtectedItemsFromVaultOnDestroy:           false,
 		},
 		NetApp: NetAppFeatures{
 			DeleteBackupsOnBackupVaultDestroy: false,
 			PreventVolumeDestruction:          true,
+		},
+		DatabricksWorkspace: DatabricksWorkspaceFeatures{
+			ForceDelete: false,
 		},
 	}
 }

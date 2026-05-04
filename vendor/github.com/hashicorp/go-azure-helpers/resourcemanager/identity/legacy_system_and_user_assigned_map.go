@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package identity
@@ -21,30 +21,28 @@ type LegacySystemAndUserAssignedMap struct {
 	IdentityIds map[string]UserAssignedIdentityDetails `json:"userAssignedIdentities"`
 }
 
-func (s *LegacySystemAndUserAssignedMap) MarshalJSON() ([]byte, error) {
+func (s LegacySystemAndUserAssignedMap) MarshalJSON() ([]byte, error) {
 	// we use a custom marshal function here since we can only send the Type / UserAssignedIdentities field
 	identityType := TypeNone
 	userAssignedIdentityIds := map[string]UserAssignedIdentityDetails{}
 
-	if s != nil {
-		if s.Type == typeLegacySystemAssignedUserAssigned {
-			return nil, fmt.Errorf("internal error: the legacy `SystemAssigned,UserAssigned` identity type should be being converted to the schema type - this is a bug")
-		}
+	if s.Type == typeLegacySystemAssignedUserAssigned {
+		return nil, fmt.Errorf("internal error: the legacy `SystemAssigned,UserAssigned` identity type should be being converted to the schema type - this is a bug")
+	}
 
-		if s.Type == TypeSystemAssigned {
-			identityType = TypeSystemAssigned
-		}
-		if s.Type == TypeSystemAssignedUserAssigned {
-			// convert the Schema value (w/spaces) to the legacy API value (w/o spaces)
-			identityType = typeLegacySystemAssignedUserAssigned
-		}
-		if s.Type == TypeUserAssigned {
-			identityType = TypeUserAssigned
-		}
+	if s.Type == TypeSystemAssigned {
+		identityType = TypeSystemAssigned
+	}
+	if s.Type == TypeSystemAssignedUserAssigned {
+		// convert the Schema value (w/spaces) to the legacy API value (w/o spaces)
+		identityType = typeLegacySystemAssignedUserAssigned
+	}
+	if s.Type == TypeUserAssigned {
+		identityType = TypeUserAssigned
+	}
 
-		if identityType != TypeNone {
-			userAssignedIdentityIds = s.IdentityIds
-		}
+	if identityType != TypeNone {
+		userAssignedIdentityIds = s.IdentityIds
 	}
 
 	out := map[string]interface{}{
@@ -206,7 +204,7 @@ func FlattenLegacySystemAndUserAssignedMapToModel(input *LegacySystemAndUserAssi
 	}
 
 	identityIds := make([]string, 0)
-	for raw, _ := range input.IdentityIds {
+	for raw := range input.IdentityIds {
 		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
 		if err != nil {
 			return nil, fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)

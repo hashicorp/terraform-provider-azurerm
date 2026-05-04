@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -6,10 +6,13 @@ package web
 import (
 	"fmt"
 	"log"
+	"math"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -228,7 +231,7 @@ func schemaAppServiceAuthSettings() *pluginsdk.Schema {
 }
 
 func schemaAppServiceSiteConfig() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
@@ -351,8 +354,6 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"VS2017",
-						"VS2019",
 						"VS2022",
 					}, false),
 				},
@@ -462,6 +463,16 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
+			"VS2017",
+			"VS2019",
+			"VS2022",
+		}, false)
+	}
+
+	return s
 }
 
 func schemaAppServiceLogsConfig() *pluginsdk.Schema {
@@ -844,7 +855,7 @@ func schemaAppServiceIpRestriction() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      65000,
-					ValidateFunc: validation.IntBetween(1, 2147483647),
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 				},
 
 				"action": {
@@ -1014,7 +1025,7 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 	setting := input[0].(map[string]interface{})
 
 	if v, ok := setting["enabled"]; ok {
-		siteAuthSettingsProperties.Enabled = utils.Bool(v.(bool))
+		siteAuthSettingsProperties.Enabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := setting["additional_login_params"]; ok {
@@ -1044,19 +1055,19 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 	}
 
 	if v, ok := setting["issuer"]; ok {
-		siteAuthSettingsProperties.Issuer = utils.String(v.(string))
+		siteAuthSettingsProperties.Issuer = pointer.To(v.(string))
 	}
 
 	if v, ok := setting["runtime_version"]; ok {
-		siteAuthSettingsProperties.RuntimeVersion = utils.String(v.(string))
+		siteAuthSettingsProperties.RuntimeVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := setting["token_refresh_extension_hours"]; ok {
-		siteAuthSettingsProperties.TokenRefreshExtensionHours = utils.Float(v.(float64))
+		siteAuthSettingsProperties.TokenRefreshExtensionHours = pointer.To(v.(float64))
 	}
 
 	if v, ok := setting["token_store_enabled"]; ok {
-		siteAuthSettingsProperties.TokenStoreEnabled = utils.Bool(v.(bool))
+		siteAuthSettingsProperties.TokenStoreEnabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := setting["unauthenticated_client_action"]; ok {
@@ -1074,11 +1085,11 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 			activeDirectorySetting := setting.(map[string]interface{})
 
 			if v, ok := activeDirectorySetting["client_id"]; ok {
-				siteAuthSettingsProperties.ClientID = utils.String(v.(string))
+				siteAuthSettingsProperties.ClientID = pointer.To(v.(string))
 			}
 
 			if v, ok := activeDirectorySetting["client_secret"]; ok {
-				siteAuthSettingsProperties.ClientSecret = utils.String(v.(string))
+				siteAuthSettingsProperties.ClientSecret = pointer.To(v.(string))
 			}
 
 			if v, ok := activeDirectorySetting["allowed_audiences"]; ok {
@@ -1101,11 +1112,11 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 			facebookSetting := setting.(map[string]interface{})
 
 			if v, ok := facebookSetting["app_id"]; ok {
-				siteAuthSettingsProperties.FacebookAppID = utils.String(v.(string))
+				siteAuthSettingsProperties.FacebookAppID = pointer.To(v.(string))
 			}
 
 			if v, ok := facebookSetting["app_secret"]; ok {
-				siteAuthSettingsProperties.FacebookAppSecret = utils.String(v.(string))
+				siteAuthSettingsProperties.FacebookAppSecret = pointer.To(v.(string))
 			}
 
 			if v, ok := facebookSetting["oauth_scopes"]; ok {
@@ -1128,11 +1139,11 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 			googleSetting := setting.(map[string]interface{})
 
 			if v, ok := googleSetting["client_id"]; ok {
-				siteAuthSettingsProperties.GoogleClientID = utils.String(v.(string))
+				siteAuthSettingsProperties.GoogleClientID = pointer.To(v.(string))
 			}
 
 			if v, ok := googleSetting["client_secret"]; ok {
-				siteAuthSettingsProperties.GoogleClientSecret = utils.String(v.(string))
+				siteAuthSettingsProperties.GoogleClientSecret = pointer.To(v.(string))
 			}
 
 			if v, ok := googleSetting["oauth_scopes"]; ok {
@@ -1155,11 +1166,11 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 			microsoftSetting := setting.(map[string]interface{})
 
 			if v, ok := microsoftSetting["client_id"]; ok {
-				siteAuthSettingsProperties.MicrosoftAccountClientID = utils.String(v.(string))
+				siteAuthSettingsProperties.MicrosoftAccountClientID = pointer.To(v.(string))
 			}
 
 			if v, ok := microsoftSetting["client_secret"]; ok {
-				siteAuthSettingsProperties.MicrosoftAccountClientSecret = utils.String(v.(string))
+				siteAuthSettingsProperties.MicrosoftAccountClientSecret = pointer.To(v.(string))
 			}
 
 			if v, ok := microsoftSetting["oauth_scopes"]; ok {
@@ -1182,11 +1193,11 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 			twitterSetting := setting.(map[string]interface{})
 
 			if v, ok := twitterSetting["consumer_key"]; ok {
-				siteAuthSettingsProperties.TwitterConsumerKey = utils.String(v.(string))
+				siteAuthSettingsProperties.TwitterConsumerKey = pointer.To(v.(string))
 			}
 
 			if v, ok := twitterSetting["consumer_secret"]; ok {
-				siteAuthSettingsProperties.TwitterConsumerSecret = utils.String(v.(string))
+				siteAuthSettingsProperties.TwitterConsumerSecret = pointer.To(v.(string))
 			}
 		}
 	}
@@ -1490,8 +1501,8 @@ func expandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 
 					logs.ApplicationLogs.AzureBlobStorage = &web.AzureBlobStorageApplicationLogsConfig{
 						Level:           web.LogLevel(storageConfig["level"].(string)),
-						SasURL:          utils.String(storageConfig["sas_url"].(string)),
-						RetentionInDays: utils.Int32(int32(storageConfig["retention_in_days"].(int))),
+						SasURL:          pointer.To(storageConfig["sas_url"].(string)),
+						RetentionInDays: pointer.To(int32(storageConfig["retention_in_days"].(int))),
 					}
 				}
 			}
@@ -1516,9 +1527,9 @@ func expandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 					fileSystemConfig := config.(map[string]interface{})
 
 					logs.HTTPLogs.FileSystem = &web.FileSystemHTTPLogsConfig{
-						RetentionInMb:   utils.Int32(int32(fileSystemConfig["retention_in_mb"].(int))),
-						RetentionInDays: utils.Int32(int32(fileSystemConfig["retention_in_days"].(int))),
-						Enabled:         utils.Bool(true),
+						RetentionInMb:   pointer.To(int32(fileSystemConfig["retention_in_mb"].(int))),
+						RetentionInDays: pointer.To(int32(fileSystemConfig["retention_in_days"].(int))),
+						Enabled:         pointer.To(true),
 					}
 				}
 			}
@@ -1530,9 +1541,9 @@ func expandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 					storageConfig := config.(map[string]interface{})
 
 					logs.HTTPLogs.AzureBlobStorage = &web.AzureBlobStorageHTTPLogsConfig{
-						SasURL:          utils.String(storageConfig["sas_url"].(string)),
-						RetentionInDays: utils.Int32(int32(storageConfig["retention_in_days"].(int))),
-						Enabled:         utils.Bool(true),
+						SasURL:          pointer.To(storageConfig["sas_url"].(string)),
+						RetentionInDays: pointer.To(int32(storageConfig["retention_in_days"].(int))),
+						Enabled:         pointer.To(true),
 					}
 				}
 			}
@@ -1541,13 +1552,13 @@ func expandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 
 	if v, ok := config["detailed_error_messages_enabled"]; ok {
 		logs.DetailedErrorMessages = &web.EnabledConfig{
-			Enabled: utils.Bool(v.(bool)),
+			Enabled: pointer.To(v.(bool)),
 		}
 	}
 
 	if v, ok := config["failed_request_tracing_enabled"]; ok {
 		logs.FailedRequestsTracing = &web.EnabledConfig{
-			Enabled: utils.Bool(v.(bool)),
+			Enabled: pointer.To(v.(bool)),
 		}
 	}
 
@@ -1610,11 +1621,11 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	config := configs[0].(map[string]interface{})
 
 	if v, ok := config["always_on"]; ok {
-		siteConfig.AlwaysOn = utils.Bool(v.(bool))
+		siteConfig.AlwaysOn = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["app_command_line"]; ok {
-		siteConfig.AppCommandLine = utils.String(v.(string))
+		siteConfig.AppCommandLine = pointer.To(v.(string))
 	}
 
 	if v, ok := config["default_documents"]; ok {
@@ -1629,31 +1640,31 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["dotnet_framework_version"]; ok {
-		siteConfig.NetFrameworkVersion = utils.String(v.(string))
+		siteConfig.NetFrameworkVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["java_version"]; ok {
-		siteConfig.JavaVersion = utils.String(v.(string))
+		siteConfig.JavaVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["java_container"]; ok {
-		siteConfig.JavaContainer = utils.String(v.(string))
+		siteConfig.JavaContainer = pointer.To(v.(string))
 	}
 
 	if v, ok := config["java_container_version"]; ok {
-		siteConfig.JavaContainerVersion = utils.String(v.(string))
+		siteConfig.JavaContainerVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["linux_fx_version"]; ok {
-		siteConfig.LinuxFxVersion = utils.String(v.(string))
+		siteConfig.LinuxFxVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["windows_fx_version"]; ok {
-		siteConfig.WindowsFxVersion = utils.String(v.(string))
+		siteConfig.WindowsFxVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["http2_enabled"]; ok {
-		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
+		siteConfig.HTTP20Enabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["ip_restriction"]; ok {
@@ -1665,7 +1676,7 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["scm_use_main_ip_restriction"]; ok {
-		siteConfig.ScmIPSecurityRestrictionsUseMain = utils.Bool(v.(bool))
+		siteConfig.ScmIPSecurityRestrictionsUseMain = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["scm_ip_restriction"]; ok {
@@ -1678,7 +1689,7 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["local_mysql_enabled"]; ok {
-		siteConfig.LocalMySQLEnabled = utils.Bool(v.(bool))
+		siteConfig.LocalMySQLEnabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["managed_pipeline_mode"]; ok {
@@ -1686,27 +1697,27 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["php_version"]; ok {
-		siteConfig.PhpVersion = utils.String(v.(string))
+		siteConfig.PhpVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["python_version"]; ok {
-		siteConfig.PythonVersion = utils.String(v.(string))
+		siteConfig.PythonVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["remote_debugging_enabled"]; ok {
-		siteConfig.RemoteDebuggingEnabled = utils.Bool(v.(bool))
+		siteConfig.RemoteDebuggingEnabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["remote_debugging_version"]; ok {
-		siteConfig.RemoteDebuggingVersion = utils.String(v.(string))
+		siteConfig.RemoteDebuggingVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["use_32_bit_worker_process"]; ok {
-		siteConfig.Use32BitWorkerProcess = utils.Bool(v.(bool))
+		siteConfig.Use32BitWorkerProcess = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["websockets_enabled"]; ok {
-		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
+		siteConfig.WebSocketsEnabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["scm_type"]; ok {
@@ -1718,11 +1729,11 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["health_check_path"]; ok {
-		siteConfig.HealthCheckPath = utils.String(v.(string))
+		siteConfig.HealthCheckPath = pointer.To(v.(string))
 	}
 
 	if v, ok := config["number_of_workers"]; ok && v.(int) != 0 {
-		siteConfig.NumberOfWorkers = utils.Int32(int32(v.(int)))
+		siteConfig.NumberOfWorkers = pointer.To(int32(v.(int)))
 	}
 
 	if v, ok := config["min_tls_version"]; ok {
@@ -1735,19 +1746,19 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["auto_swap_slot_name"]; ok {
-		siteConfig.AutoSwapSlotName = utils.String(v.(string))
+		siteConfig.AutoSwapSlotName = pointer.To(v.(string))
 	}
 
 	if v, ok := config["acr_use_managed_identity_credentials"]; ok {
-		siteConfig.AcrUseManagedIdentityCreds = utils.Bool(v.(bool))
+		siteConfig.AcrUseManagedIdentityCreds = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["acr_user_managed_identity_client_id"]; ok {
-		siteConfig.AcrUserManagedIdentityID = utils.String(v.(string))
+		siteConfig.AcrUserManagedIdentityID = pointer.To(v.(string))
 	}
 
 	if v, ok := config["vnet_route_all_enabled"]; ok {
-		siteConfig.VnetRouteAllEnabled = utils.Bool(v.(bool))
+		siteConfig.VnetRouteAllEnabled = pointer.To(v.(bool))
 	}
 
 	return siteConfig, nil
@@ -1949,10 +1960,10 @@ func expandAppServiceStorageAccounts(input []interface{}) map[string]*web.AzureS
 
 		output[saName] = &web.AzureStorageInfoValue{
 			Type:        web.AzureStorageType(saType),
-			AccountName: utils.String(saAccountName),
-			ShareName:   utils.String(saShareName),
-			AccessKey:   utils.String(saAccessKey),
-			MountPath:   utils.String(saMountPath),
+			AccountName: pointer.To(saAccountName),
+			ShareName:   pointer.To(saShareName),
+			AccessKey:   pointer.To(saAccessKey),
+			MountPath:   pointer.To(saMountPath),
 		}
 	}
 
@@ -2038,7 +2049,7 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 		}
 
 		if priority != 0 {
-			ipSecurityRestriction.Priority = utils.Int32(int32(priority))
+			ipSecurityRestriction.Priority = pointer.To(int32(priority))
 		}
 
 		if action != "" {

@@ -1,7 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package workloads
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name workloads_sap_discovery_virtual_instance -service-package-name workloads -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-sequential
 
 import (
 	"context"
@@ -15,31 +17,39 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WorkloadsSAPDiscoveryVirtualInstanceModel struct {
-	Name                      string                       `tfschema:"name"`
-	ResourceGroupName         string                       `tfschema:"resource_group_name"`
-	Location                  string                       `tfschema:"location"`
-	CentralServerVmId         string                       `tfschema:"central_server_virtual_machine_id"`
-	Environment               string                       `tfschema:"environment"`
-	Identity                  []identity.ModelUserAssigned `tfschema:"identity"`
-	ManagedResourceGroupName  string                       `tfschema:"managed_resource_group_name"`
-	ManagedStorageAccountName string                       `tfschema:"managed_storage_account_name"`
-	SapProduct                string                       `tfschema:"sap_product"`
-	Tags                      map[string]string            `tfschema:"tags"`
+	Name                              string                       `tfschema:"name"`
+	ResourceGroupName                 string                       `tfschema:"resource_group_name"`
+	Location                          string                       `tfschema:"location"`
+	CentralServerVmId                 string                       `tfschema:"central_server_virtual_machine_id"`
+	Environment                       string                       `tfschema:"environment"`
+	Identity                          []identity.ModelUserAssigned `tfschema:"identity"`
+	ManagedResourceGroupName          string                       `tfschema:"managed_resource_group_name"`
+	ManagedResourcesNetworkAccessType string                       `tfschema:"managed_resources_network_access_type"`
+	ManagedStorageAccountName         string                       `tfschema:"managed_storage_account_name"`
+	SapProduct                        string                       `tfschema:"sap_product"`
+	Tags                              map[string]string            `tfschema:"tags"`
 }
 
 type WorkloadsSAPDiscoveryVirtualInstanceResource struct{}
 
-var _ sdk.ResourceWithUpdate = WorkloadsSAPDiscoveryVirtualInstanceResource{}
+var (
+	_ sdk.ResourceWithUpdate   = WorkloadsSAPDiscoveryVirtualInstanceResource{}
+	_ sdk.ResourceWithIdentity = WorkloadsSAPDiscoveryVirtualInstanceResource{}
+)
+
+func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Identity() resourceids.ResourceId {
+	return &sapvirtualinstances.SapVirtualInstanceId{}
+}
 
 func (r WorkloadsSAPDiscoveryVirtualInstanceResource) ResourceType() string {
 	return "azurerm_workloads_sap_discovery_virtual_instance"
@@ -94,6 +104,13 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Arguments() map[string]*pl
 			ValidateFunc: resourcegroups.ValidateName,
 		},
 
+		"managed_resources_network_access_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(sapvirtualinstances.ManagedResourcesNetworkAccessTypePublic),
+			ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForManagedResourcesNetworkAccessType(), false),
+		},
+
 		"managed_storage_account_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -141,9 +158,10 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Create() sdk.ResourceFunc 
 			parameters := &sapvirtualinstances.SAPVirtualInstance{
 				Identity: identity,
 				Location: location.Normalize(model.Location),
-				Properties: sapvirtualinstances.SAPVirtualInstanceProperties{
-					Environment: sapvirtualinstances.SAPEnvironmentType(model.Environment),
-					SapProduct:  sapvirtualinstances.SAPProductType(model.SapProduct),
+				Properties: &sapvirtualinstances.SAPVirtualInstanceProperties{
+					Environment:                       sapvirtualinstances.SAPEnvironmentType(model.Environment),
+					SapProduct:                        sapvirtualinstances.SAPProductType(model.SapProduct),
+					ManagedResourcesNetworkAccessType: pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType)),
 				},
 				Tags: &model.Tags,
 			}
@@ -160,7 +178,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Create() sdk.ResourceFunc 
 
 			if v := model.ManagedResourceGroupName; v != "" {
 				parameters.Properties.ManagedResourceGroupConfiguration = &sapvirtualinstances.ManagedRGConfiguration{
-					Name: utils.String(v),
+					Name: pointer.To(v),
 				}
 			}
 
@@ -169,6 +187,9 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Create() sdk.ResourceFunc 
 			}
 
 			metadata.SetID(id)
+			if err = pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return fmt.Errorf("setting resource identity data: %+v", err)
+			}
 			return nil
 		},
 	}
@@ -190,7 +211,9 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Update() sdk.ResourceFunc 
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{}
+			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{
+				Properties: &sapvirtualinstances.UpdateSAPVirtualInstanceProperties{},
+			}
 
 			if metadata.ResourceData.HasChange("identity") {
 				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -200,11 +223,15 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Update() sdk.ResourceFunc 
 				parameters.Identity = identityValue
 			}
 
+			if metadata.ResourceData.HasChange("managed_resources_network_access_type") {
+				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType))
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				parameters.Tags = &model.Tags
 			}
 
-			if _, err := client.Update(ctx, *id, *parameters); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, *parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -233,38 +260,50 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := WorkloadsSAPDiscoveryVirtualInstanceModel{}
-			if model := resp.Model; model != nil {
-				state.Name = id.SapVirtualInstanceName
-				state.ResourceGroupName = id.ResourceGroupName
-				state.Location = location.Normalize(model.Location)
+			return r.flatten(metadata, id, resp.Model)
+		},
+	}
+}
 
-				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-				state.Identity = pointer.From(identity)
+func (WorkloadsSAPDiscoveryVirtualInstanceResource) flatten(metadata sdk.ResourceMetaData, id *sapvirtualinstances.SapVirtualInstanceId, model *sapvirtualinstances.SAPVirtualInstance) error {
+	state := WorkloadsSAPDiscoveryVirtualInstanceModel{
+		Name:              id.SapVirtualInstanceName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
 
-				props := &model.Properties
-				state.Environment = string(props.Environment)
-				state.SapProduct = string(props.SapProduct)
-				state.Tags = pointer.From(model.Tags)
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
 
-				if config := props.Configuration; config != nil {
-					if v, ok := config.(sapvirtualinstances.DiscoveryConfiguration); ok {
-						state.CentralServerVmId = pointer.From(v.CentralServerVMId)
-						state.ManagedStorageAccountName = pointer.From(v.ManagedRgStorageAccountName)
-					}
-				}
+		identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		state.Identity = pointer.From(identity)
 
-				if v := props.ManagedResourceGroupConfiguration; v != nil {
-					state.ManagedResourceGroupName = pointer.From(v.Name)
+		if props := model.Properties; props != nil {
+			state.Environment = string(props.Environment)
+			state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+			state.SapProduct = string(props.SapProduct)
+			state.Tags = pointer.From(model.Tags)
+
+			if config := props.Configuration; config != nil {
+				if v, ok := config.(sapvirtualinstances.DiscoveryConfiguration); ok {
+					state.CentralServerVmId = pointer.From(v.CentralServerVMId)
+					state.ManagedStorageAccountName = pointer.From(v.ManagedRgStorageAccountName)
 				}
 			}
 
-			return metadata.Encode(&state)
-		},
+			if v := props.ManagedResourceGroupConfiguration; v != nil {
+				state.ManagedResourceGroupName = pointer.From(v.Name)
+			}
+		}
 	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Delete() sdk.ResourceFunc {

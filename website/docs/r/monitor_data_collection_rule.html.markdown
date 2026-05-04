@@ -51,11 +51,10 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_eventhub" "example" {
-  name                = "exevent2"
-  namespace_name      = azurerm_eventhub_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "exevent2"
+  namespace_id      = azurerm_eventhub_namespace.example.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_storage_account" "example" {
@@ -235,7 +234,7 @@ The following arguments are supported:
 
 * `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore` and `WorkspaceTransforms`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
 
-~> **NOTE** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
+~> **Note:** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
 
 * `stream_declaration` - (Optional) A `stream_declaration` block as defined below.
 
@@ -284,7 +283,7 @@ A `data_sources` block supports the following:
 * `extension` - (Optional) One or more `extension` blocks as defined below.
 
 * `iis_log` - (Optional) One or more `iis_log` blocks as defined below.
- 
+
 * `log_file` - (Optional) One or more `log_file` blocks as defined below.
 
 * `performance_counter` - (Optional) One or more `performance_counter` blocks as defined below.
@@ -319,9 +318,9 @@ A `destinations` block supports the following:
 
 * `storage_table_direct` - (Optional) One or more `storage_table_direct` blocks as defined below.
 
--> **NOTE** `event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` are only available for rules of kind `AgentDirectToStore`.
+-> **Note:** `event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` are only available for rules of kind `AgentDirectToStore`.
 
--> **NOTE** At least one of `azure_monitor_metrics`, `event_hub`, `event_hub_direct`, `log_analytics`, `monitor_account`, `storage_blob`, `storage_blob_direct`,and `storage_table_direct` blocks must be specified.
+-> **Note:** At least one of `azure_monitor_metrics`, `event_hub`, `event_hub_direct`, `log_analytics`, `monitor_account`, `storage_blob`, `storage_blob_direct`,and `storage_table_direct` blocks must be specified.
 
 ---
 
@@ -368,7 +367,7 @@ An `extension` block supports the following:
 An `iis_log` block supports the following:
 
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
- 
+
 * `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible value is `Microsoft-W3CIISLog`.
 
 * `log_directories` - (Optional) Specifies a list of absolute paths where the log files are located.
@@ -381,7 +380,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Data Collection Rule. Currently, up to 1 identity is supported.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
@@ -409,7 +408,7 @@ An `log_file` block supports the following:
 
 * `file_patterns` - (Required) Specifies a list of file patterns where the log files are located. For example, `C:\\JavaLogs\\*.log`.
 
-* `format` - (Required) The data format of the log files. possible value is `text`.
+* `format` - (Required) The data format of the log files. Possible values are `text` and `json`.
 
 * `settings` - (Optional) A `settings` block as defined below.
 
@@ -448,7 +447,7 @@ A `prometheus_forwarder` block supports the following:
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
 * `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible value is `Microsoft-PrometheusMetrics`.
- 
+
 * `label_include_filter` - (Optional) One or more `label_include_filter` blocks as defined above.
 
 ---
@@ -478,7 +477,6 @@ A `storage_blob_direct` block supports the following:
 * `storage_account_id` - (Required) The resource ID of the Storage Account.
 
 ---
-
 
 ---
 
@@ -552,7 +550,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Collection Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Collection Rule.
@@ -566,3 +564,9 @@ Data Collection Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_monitor_data_collection_rule.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/dataCollectionRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights` - 2023-03-11

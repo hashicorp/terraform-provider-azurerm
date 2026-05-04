@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-12-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

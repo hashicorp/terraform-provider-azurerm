@@ -18,7 +18,7 @@ jobs:
       - name: Get Artifact
         id: get_artifact
         continue-on-error: true
-        uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe # v3.1.4
+        uses: dawidd6/action-download-artifact@07ab29fd4a977ae4d2b275087cf67563dfdf0295 # v9
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           workflow: pull-request-reviewed.yaml
@@ -32,7 +32,7 @@ jobs:
           echo "prNumber=$(cat artifact/prnumber.txt)" >>${GITHUB_OUTPUT}
 
       - name: Assign the reviewer as assignee when changes are requested
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -26,16 +27,20 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_application_firewall_policy -properties "name,resource_group_name"
+
 func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceWebApplicationFirewallPolicyCreate,
 		Read:   resourceWebApplicationFirewallPolicyRead,
 		Update: resourceWebApplicationFirewallPolicyUpdate,
 		Delete: resourceWebApplicationFirewallPolicyDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&webapplicationfirewallpolicies.ApplicationGatewayWebApplicationFirewallPolicyId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&webapplicationfirewallpolicies.ApplicationGatewayWebApplicationFirewallPolicyId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -73,6 +78,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionAllow),
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionBlock),
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionLog),
+								string(webapplicationfirewallpolicies.ActionTypeJSChallenge),
 							}, false),
 						},
 						"enabled": {
@@ -395,7 +401,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							*/
 							Optional: true,
 							// We'll remove computed in 5.0 so we don't break existing configurations
-							Computed: !features.FivePointOhBeta(),
+							Computed: !features.FivePointOh(),
 						},
 
 						"max_request_body_size_in_kb": {
@@ -509,14 +515,14 @@ func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta 
 		return tf.ImportAsExistsError("azurerm_web_application_firewall_policy", id.ID())
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	customRules := d.Get("custom_rules").([]interface{})
 	policySettings := d.Get("policy_settings").([]interface{})
 	managedRules := d.Get("managed_rules").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := webapplicationfirewallpolicies.WebApplicationFirewallPolicy{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &webapplicationfirewallpolicies.WebApplicationFirewallPolicyPropertiesFormat{
 			CustomRules:    expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(customRules),
 			PolicySettings: expandWebApplicationFirewallPolicyPolicySettings(policySettings),
@@ -530,6 +536,9 @@ func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceWebApplicationFirewallPolicyRead(d, meta)
 }
@@ -598,10 +607,13 @@ func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 		}
 		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
+	return resourceWebApplicationFirewallPolicySetFlatten(d, id, resp.Model)
+}
 
+func resourceWebApplicationFirewallPolicySetFlatten(d *pluginsdk.ResourceData, id *webapplicationfirewallpolicies.ApplicationGatewayWebApplicationFirewallPolicyId, model *webapplicationfirewallpolicies.WebApplicationFirewallPolicy) error {
 	d.Set("name", id.ApplicationGatewayWebApplicationFirewallPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if prop := model.Properties; prop != nil {
 			if err := d.Set("custom_rules", flattenWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(prop.CustomRules)); err != nil {
@@ -621,9 +633,11 @@ func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceWebApplicationFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -952,7 +966,7 @@ func expandWebApplicationFirewallPolicyMatchCondition(input []interface{}) []web
 		result := webapplicationfirewallpolicies.MatchCondition{
 			MatchValues:      pointer.From(utils.ExpandStringSlice(matchValues)),
 			MatchVariables:   expandWebApplicationFirewallPolicyMatchVariable(matchVariables),
-			NegationConditon: utils.Bool(negationCondition),
+			NegationConditon: pointer.To(negationCondition),
 			Operator:         webapplicationfirewallpolicies.WebApplicationFirewallOperator(operator),
 			Transforms:       &transforms,
 		}
@@ -970,7 +984,7 @@ func expandWebApplicationFirewallPolicyMatchVariable(input []interface{}) []weba
 		selector := v["selector"].(string)
 
 		result := webapplicationfirewallpolicies.MatchVariable{
-			Selector:     utils.String(selector),
+			Selector:     pointer.To(selector),
 			VariableName: webapplicationfirewallpolicies.WebApplicationFirewallMatchVariable(variableName),
 		}
 
@@ -1027,7 +1041,12 @@ func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfire
 	result["file_upload_limit_in_mb"] = int(pointer.From(input.FileUploadLimitInMb))
 	result["log_scrubbing"] = flattenWebApplicationFirewallPolicyLogScrubbing(input.LogScrubbing)
 	result["request_body_inspect_limit_in_kb"] = pointer.From(input.RequestBodyInspectLimitInKB)
-	result["js_challenge_cookie_expiration_in_minutes"] = pointer.From(input.JsChallengeCookieExpirationInMins)
+
+	jsChallengeCookieExpirationInMins := 30 // default value is not returned, https://github.com/Azure/azure-rest-api-specs/issues/36330
+	if v := pointer.From(input.JsChallengeCookieExpirationInMins); v != 0 {
+		jsChallengeCookieExpirationInMins = int(v)
+	}
+	result["js_challenge_cookie_expiration_in_minutes"] = jsChallengeCookieExpirationInMins
 
 	return []interface{}{result}
 }

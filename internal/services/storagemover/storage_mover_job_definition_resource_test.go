@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagemover_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/jobdefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/jobdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageMoverJobDefinitionTestResource struct{}
@@ -92,11 +92,11 @@ func (r StorageMoverJobDefinitionTestResource) Exists(ctx context.Context, clien
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r StorageMoverJobDefinitionTestResource) template(data acceptance.TestData) string {
@@ -147,7 +147,7 @@ resource "azurerm_storage_mover_project" "test" {
   name             = "acctest-sp-%[2]d"
   storage_mover_id = azurerm_storage_mover.test.id
 }
-`, StorageMoverAgentTestResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, StorageMoverAgentResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageMoverJobDefinitionTestResource) basic(data acceptance.TestData) string {

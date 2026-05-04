@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -50,6 +51,11 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"eviction_policy": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"gpu_driver": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -103,6 +109,11 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"node_image_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"orchestrator_version": {
@@ -208,6 +219,12 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		}
 		d.Set("eviction_policy", evictionPolicy)
 
+		gpuDriver := ""
+		if props.GpuProfile != nil {
+			gpuDriver = string(pointer.From(props.GpuProfile.Driver))
+		}
+		d.Set("gpu_driver", gpuDriver)
+
 		maxCount := 0
 		if props.MaxCount != nil {
 			maxCount = int(*props.MaxCount)
@@ -247,6 +264,8 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
+
+		d.Set("node_image_version", props.NodeImageVersion)
 
 		d.Set("orchestrator_version", props.OrchestratorVersion)
 		osDiskSizeGB := 0
