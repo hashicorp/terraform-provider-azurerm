@@ -208,7 +208,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.CustomerContactEmail,
+				ValidateFunc: validation.IsEmailAddress,
 			},
 		},
 		"subnet_id": {

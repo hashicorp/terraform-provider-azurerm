@@ -124,6 +124,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
+							Sensitive:    true,
 							AtLeastOneOf: []string{"ssh.0.admin_password", "ssh.0.key_value"},
 						},
 						"key_value": {
