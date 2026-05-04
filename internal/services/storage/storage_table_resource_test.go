@@ -19,28 +19,7 @@ import (
 
 type StorageTableResource struct{}
 
-func TestAccStorageTable_basicDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Deprecated test skipping in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
-	r := StorageTableResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccStorageTable_basic(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip("5.0 test skipping in 4.x")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
 	r := StorageTableResource{}
 
@@ -77,28 +56,7 @@ func TestAccStorageTable_basicAzureADAuth(t *testing.T) {
 	})
 }
 
-func TestAccStorageTable_requiresImportDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Deprecated test skipping in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
-	r := StorageTableResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.RequiresImportErrorStep(r.requiresImportDeprecated),
-	})
-}
-
 func TestAccStorageTable_requiresImport(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip("5.0 test skipping in 4.x")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
 	r := StorageTableResource{}
 
@@ -113,25 +71,7 @@ func TestAccStorageTable_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccStorageTable_disappearsDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Deprecated test skipping in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
-	r := StorageTableResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       r.basic,
-			TestResource: r,
-		}),
-	})
-}
-
 func TestAccStorageTable_disappears(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip("5.0 test skipping in 4.x")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
 	r := StorageTableResource{}
 
@@ -140,38 +80,10 @@ func TestAccStorageTable_disappears(t *testing.T) {
 			Config:       r.basic,
 			TestResource: r,
 		}),
-	})
-}
-
-func TestAccStorageTable_aclDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Deprecated test skipping in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
-	r := StorageTableResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.aclDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.aclUpdatedDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
 func TestAccStorageTable_acl(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip("5.0 test skipping in 4.x")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
 	r := StorageTableResource{}
 
@@ -243,8 +155,9 @@ func (r StorageTableResource) Destroy(ctx context.Context, client *clients.Clien
 	return pointer.To(true), nil
 }
 
-func (r StorageTableResource) basicDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (r StorageTableResource) basic(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -270,10 +183,8 @@ resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
   storage_account_name = azurerm_storage_account.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
-}
-
-func (r StorageTableResource) basic(data acceptance.TestData) string {
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -425,19 +336,18 @@ resource "azurerm_storage_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageTableResource) requiresImportDeprecated(data acceptance.TestData) string {
-	template := r.basicDeprecated(data)
-	return fmt.Sprintf(`
-%s
+func (r StorageTableResource) requiresImport(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		template := r.basic(data)
+		return fmt.Sprintf(`
+	%s
 
 resource "azurerm_storage_table" "import" {
   name                 = azurerm_storage_table.test.name
   storage_account_name = azurerm_storage_table.test.storage_account_name
 }
-`, template)
-}
-
-func (r StorageTableResource) requiresImport(data acceptance.TestData) string {
+	`, template)
+	}
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -449,8 +359,9 @@ resource "azurerm_storage_table" "import" {
 `, template)
 }
 
-func (r StorageTableResource) aclDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (r StorageTableResource) acl(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -485,10 +396,8 @@ resource "azurerm_storage_table" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
-}
-
-func (r StorageTableResource) acl(data acceptance.TestData) string {
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -527,8 +436,9 @@ resource "azurerm_storage_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func (r StorageTableResource) aclUpdatedDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (r StorageTableResource) aclUpdated(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -573,10 +483,8 @@ resource "azurerm_storage_table" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
-}
-
-func (r StorageTableResource) aclUpdated(data acceptance.TestData) string {
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -15,39 +15,7 @@ import (
 
 type StorageBlobDataSource struct{}
 
-func TestAccDataSourceStorageBlob_basicDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Deprecated test skipping in 5.0")
-	}
-	sourceBlob, err := os.CreateTemp("", "")
-	if err != nil {
-		t.Fatalf("Failed to create local source blob file")
-	}
-
-	if err := populateTempFile(sourceBlob); err != nil {
-		t.Fatalf("Error populating temp file: %s", err)
-	}
-
-	data := acceptance.BuildTestData(t, "data.azurerm_storage_blob", "test")
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: StorageBlobDataSource{}.basicWithDataSourceDeprecated(data, sourceBlob.Name()),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("encryption_scope").HasValue(fmt.Sprintf("acctestEScontainer%d", data.RandomInteger)),
-				check.That(data.ResourceName).Key("type").HasValue("Block"),
-				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
-				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
-				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
-			),
-		},
-	})
-}
-
 func TestAccDataSourceStorageBlob_basic(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip("5.0 test skipping in 4.x")
-	}
 	sourceBlob, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
@@ -73,8 +41,9 @@ func TestAccDataSourceStorageBlob_basic(t *testing.T) {
 	})
 }
 
-func (d StorageBlobDataSource) basicDeprecated(data acceptance.TestData, fileName string) string {
-	return fmt.Sprintf(`
+func (d StorageBlobDataSource) basic(data acceptance.TestData, fileName string) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -118,10 +87,8 @@ resource "azurerm_storage_blob" "test" {
     k2 = "v2"
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomInteger, fileName)
-}
-
-func (d StorageBlobDataSource) basic(data acceptance.TestData, fileName string) string {
+	`, data.RandomString, data.Locations.Primary, data.RandomInteger, fileName)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -168,21 +135,19 @@ resource "azurerm_storage_blob" "test" {
 `, data.RandomString, data.Locations.Primary, data.RandomInteger, fileName)
 }
 
-func (d StorageBlobDataSource) basicWithDataSourceDeprecated(data acceptance.TestData, fileName string) string {
-	config := d.basicDeprecated(data, fileName)
-	return fmt.Sprintf(`
-%s
+func (d StorageBlobDataSource) basicWithDataSource(data acceptance.TestData, fileName string) string {
+	config := d.basic(data, fileName)
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+	%s
 
 data "azurerm_storage_blob" "test" {
   name                   = azurerm_storage_blob.test.name
   storage_account_name   = azurerm_storage_blob.test.storage_account_name
   storage_container_name = azurerm_storage_blob.test.storage_container_name
 }
-`, config)
-}
-
-func (d StorageBlobDataSource) basicWithDataSource(data acceptance.TestData, fileName string) string {
-	config := d.basic(data, fileName)
+	`, config)
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -192,3 +157,4 @@ data "azurerm_storage_blob" "test" {
 }
 `, config)
 }
+

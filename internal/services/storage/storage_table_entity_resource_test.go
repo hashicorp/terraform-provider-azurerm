@@ -20,28 +20,7 @@ import (
 
 type StorageTableEntityResource struct{}
 
-func TestAccTableEntity_basicDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Deprecated test skipping in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
-	r := StorageTableEntityResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccTableEntity_basic(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip("5.0 test skipping in 4.x")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 	r := StorageTableEntityResource{}
 
@@ -56,28 +35,7 @@ func TestAccTableEntity_basic(t *testing.T) {
 	})
 }
 
-func TestAccTableEntity_basicAzureADAuthDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Deprecated test skipping in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
-	r := StorageTableEntityResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicAzureADAuthDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccTableEntity_basicAzureADAuth(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip("5.0 test skipping in 4.x")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 	r := StorageTableEntityResource{}
 
@@ -92,28 +50,7 @@ func TestAccTableEntity_basicAzureADAuth(t *testing.T) {
 	})
 }
 
-func TestAccTableEntity_requiresImportDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Deprecated test skipping in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
-	r := StorageTableEntityResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.RequiresImportErrorStep(r.requiresImportDeprecated),
-	})
-}
-
 func TestAccTableEntity_requiresImport(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip("5.0 test skipping in 4.x")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 	r := StorageTableEntityResource{}
 
@@ -128,35 +65,7 @@ func TestAccTableEntity_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccTableEntity_updateDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Deprecated test skipping in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
-	r := StorageTableEntityResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updatedDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccTableEntity_update(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip("5.0 test skipping in 4.x")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 	r := StorageTableEntityResource{}
 
@@ -178,58 +87,7 @@ func TestAccTableEntity_update(t *testing.T) {
 	})
 }
 
-func TestAccTableEntity_updateTypedDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Deprecated test skipping in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
-	r := StorageTableEntityResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateTypeDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updatedTypeInt64Deprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.updatedTypeDoubleDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.updateTypeStringDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.updateTypeBooleanDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
-
 func TestAccTableEntity_updateTyped(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip("5.0 test skipping in 4.x")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 	r := StorageTableEntityResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -307,10 +165,11 @@ func (r StorageTableEntityResource) Exists(ctx context.Context, client *clients.
 	return pointer.To(true), nil
 }
 
-func (r StorageTableEntityResource) basicDeprecated(data acceptance.TestData) string {
-	template := r.templateDeprecated(data)
-	return fmt.Sprintf(`
-%[1]s
+func (r StorageTableEntityResource) basic(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		template := r.template(data)
+		return fmt.Sprintf(`
+	%[1]s
 
 resource "azurerm_storage_table_entity" "test" {
   storage_table_id = azurerm_storage_table.test.id
@@ -321,10 +180,8 @@ resource "azurerm_storage_table_entity" "test" {
     Foo = "Bar"
   }
 }
-`, template, data.RandomInteger)
-}
-
-func (r StorageTableEntityResource) basic(data acceptance.TestData) string {
+	`, template, data.RandomInteger)
+	}
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -341,44 +198,43 @@ resource "azurerm_storage_table_entity" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageTableEntityResource) basicAzureADAuthDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  storage_use_azuread = true
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
-}
-
-resource "azurerm_storage_table_entity" "test" {
-  storage_table_id = azurerm_storage_table.test.id
-
-  partition_key = "test_partition%[1]d"
-  row_key       = "test_row%[1]d"
-  entity = {
-    Foo = "Bar"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
 func (r StorageTableEntityResource) basicAzureADAuth(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%[1]d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_storage_table_entity" "test" {
+  storage_table_id = azurerm_storage_table.test.id
+
+  partition_key = "test_partition%[1]d"
+  row_key       = "test_row%[1]d"
+  entity = {
+    Foo = "Bar"
+  }
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   storage_use_azuread = true
@@ -415,10 +271,11 @@ resource "azurerm_storage_table_entity" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageTableEntityResource) requiresImportDeprecated(data acceptance.TestData) string {
-	template := r.basicDeprecated(data)
-	return fmt.Sprintf(`
-%[1]s
+func (r StorageTableEntityResource) requiresImport(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		template := r.basic(data)
+		return fmt.Sprintf(`
+	%[1]s
 
 resource "azurerm_storage_table_entity" "import" {
   storage_table_id = azurerm_storage_table.test.id
@@ -429,10 +286,8 @@ resource "azurerm_storage_table_entity" "import" {
     Foo = "Bar"
   }
 }
-`, template, data.RandomInteger)
-}
-
-func (r StorageTableEntityResource) requiresImport(data acceptance.TestData) string {
+	`, template, data.RandomInteger)
+	}
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -449,10 +304,11 @@ resource "azurerm_storage_table_entity" "import" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageTableEntityResource) updatedDeprecated(data acceptance.TestData) string {
-	template := r.templateDeprecated(data)
-	return fmt.Sprintf(`
-%[1]s
+func (r StorageTableEntityResource) updated(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		template := r.template(data)
+		return fmt.Sprintf(`
+	%[1]s
 
 resource "azurerm_storage_table_entity" "test" {
   storage_table_id = azurerm_storage_table.test.id
@@ -464,10 +320,8 @@ resource "azurerm_storage_table_entity" "test" {
     Test = "Updated"
   }
 }
-`, template, data.RandomInteger)
-}
-
-func (r StorageTableEntityResource) updated(data acceptance.TestData) string {
+	`, template, data.RandomInteger)
+	}
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -480,34 +334,16 @@ resource "azurerm_storage_table_entity" "test" {
   entity = {
     Foo  = "Bar"
     Test = "Updated"
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func (r StorageTableEntityResource) updateTypeDeprecated(data acceptance.TestData) string {
-	template := r.templateDeprecated(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_storage_table_entity" "test" {
-  storage_table_id = azurerm_storage_table.test.id
-
-  partition_key = "test_partition%[2]d"
-  row_key       = "test_row%[2]d"
-  entity = {
-    Foo              = 123
-    "Foo@odata.type" = "Edm.Int32"
-    Test             = "Updated"
   }
 }
 `, template, data.RandomInteger)
 }
 
 func (r StorageTableEntityResource) updateType(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%[1]s
+	if !features.FivePointOh() {
+		template := r.template(data)
+		return fmt.Sprintf(`
+	%[1]s
 
 resource "azurerm_storage_table_entity" "test" {
   storage_table_id = azurerm_storage_table.test.id
@@ -520,11 +356,9 @@ resource "azurerm_storage_table_entity" "test" {
     Test             = "Updated"
   }
 }
-`, template, data.RandomInteger)
-}
-
-func (r StorageTableEntityResource) updatedTypeInt64Deprecated(data acceptance.TestData) string {
-	template := r.templateDeprecated(data)
+	`, template, data.RandomInteger)
+	}
+	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -535,7 +369,7 @@ resource "azurerm_storage_table_entity" "test" {
   row_key       = "test_row%[2]d"
   entity = {
     Foo              = 123
-    "Foo@odata.type" = "Edm.Int64"
+    "Foo@odata.type" = "Edm.Int32"
     Test             = "Updated"
   }
 }
@@ -543,6 +377,24 @@ resource "azurerm_storage_table_entity" "test" {
 }
 
 func (r StorageTableEntityResource) updatedTypeInt64(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		template := r.template(data)
+		return fmt.Sprintf(`
+	%[1]s
+
+resource "azurerm_storage_table_entity" "test" {
+  storage_table_id = azurerm_storage_table.test.id
+
+  partition_key = "test_partition%[2]d"
+  row_key       = "test_row%[2]d"
+  entity = {
+    Foo              = 123
+    "Foo@odata.type" = "Edm.Int64"
+    Test             = "Updated"
+  }
+}
+	`, template, data.RandomInteger)
+	}
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -561,10 +413,11 @@ resource "azurerm_storage_table_entity" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageTableEntityResource) updatedTypeDoubleDeprecated(data acceptance.TestData) string {
-	template := r.templateDeprecated(data)
-	return fmt.Sprintf(`
-%[1]s
+func (r StorageTableEntityResource) updatedTypeDouble(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		template := r.template(data)
+		return fmt.Sprintf(`
+	%[1]s
 
 resource "azurerm_storage_table_entity" "test" {
   storage_table_id = azurerm_storage_table.test.id
@@ -577,10 +430,8 @@ resource "azurerm_storage_table_entity" "test" {
     Test             = "Updated"
   }
 }
-`, template, data.RandomInteger)
-}
-
-func (r StorageTableEntityResource) updatedTypeDouble(data acceptance.TestData) string {
+	`, template, data.RandomInteger)
+	}
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -594,34 +445,33 @@ resource "azurerm_storage_table_entity" "test" {
     Foo              = 123.123
     "Foo@odata.type" = "Edm.Double"
     Test             = "Updated"
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func (r StorageTableEntityResource) updateTypeStringDeprecated(data acceptance.TestData) string {
-	template := r.templateDeprecated(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_storage_table_entity" "test" {
-  storage_table_id = azurerm_storage_table.test.id
-
-  partition_key = "test_partition%[2]d"
-  row_key       = "test_row%[2]d"
-  entity = {
-    Foo              = "123.123"
-    "Foo@odata.type" = "Edm.String"
-    Test             = "Updated"
-  }
-  lifecycle {
-    ignore_changes = [entity]
   }
 }
 `, template, data.RandomInteger)
 }
 
 func (r StorageTableEntityResource) updateTypeString(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		template := r.template(data)
+		return fmt.Sprintf(`
+	%[1]s
+
+resource "azurerm_storage_table_entity" "test" {
+  storage_table_id = azurerm_storage_table.test.id
+
+  partition_key = "test_partition%[2]d"
+  row_key       = "test_row%[2]d"
+  entity = {
+    Foo              = "123.123"
+    "Foo@odata.type" = "Edm.String"
+    Test             = "Updated"
+  }
+  lifecycle {
+    ignore_changes = [entity]
+  }
+}
+	`, template, data.RandomInteger)
+	}
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -643,10 +493,11 @@ resource "azurerm_storage_table_entity" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageTableEntityResource) updateTypeBooleanDeprecated(data acceptance.TestData) string {
-	template := r.templateDeprecated(data)
-	return fmt.Sprintf(`
-%[1]s
+func (r StorageTableEntityResource) updateTypeBoolean(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		template := r.template(data)
+		return fmt.Sprintf(`
+	%[1]s
 
 resource "azurerm_storage_table_entity" "test" {
   storage_table_id = azurerm_storage_table.test.id
@@ -659,10 +510,8 @@ resource "azurerm_storage_table_entity" "test" {
     Test             = "Updated"
   }
 }
-`, template, data.RandomInteger)
-}
-
-func (r StorageTableEntityResource) updateTypeBoolean(data acceptance.TestData) string {
+	`, template, data.RandomInteger)
+	}
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -681,8 +530,9 @@ resource "azurerm_storage_table_entity" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageTableEntityResource) templateDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (r StorageTableEntityResource) template(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -704,10 +554,8 @@ resource "azurerm_storage_table" "test" {
   name                 = "acctestst%[1]d"
   storage_account_name = azurerm_storage_account.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func (r StorageTableEntityResource) template(data acceptance.TestData) string {
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
