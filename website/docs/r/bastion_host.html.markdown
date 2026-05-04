@@ -56,7 +56,7 @@ resource "azurerm_bastion_host" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Developer`, `Basic`, `Standard` and `Premium`. Defaults to `Basic`.
 
-~> **Note** Downgrading the SKU will force a new resource to be created.
+~> **Note:** Downgrading the SKU will force a new resource to be created.
 
 * `ip_configuration` - (Optional) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
 
@@ -118,7 +118,9 @@ A `ip_configuration` block supports the following:
 
 ~> **Note:** The Subnet used for the Bastion Host must have the name `AzureBastionSubnet` and the subnet mask must be at least a `/26`.
 
-* `public_ip_address_id` - (Required) Reference to a Public IP Address to associate with this Bastion Host. Changing this forces a new resource to be created.
+* `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this Bastion Host. Changing this forces a new resource to be created.
+
+~> **Note:** `public_ip_address_id` is required when `sku` is `Basic` or `Standard`. When `sku` is `Premium` and `public_ip_address_id` is omitted, the Bastion Host is deployed in Private-Only mode (`private_only_enabled` will be `true`).
 
 ## Attributes Reference
 
@@ -128,13 +130,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `dns_name` - The FQDN for the Bastion Host.
 
+* `private_only_enabled` - Whether Private-Only deployment is enabled for the Bastion Host. 
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Bastion Host.
-* `update` - (Defaults to 30 minutes) Used when updating the Bastion Host.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Bastion Host.
+* `update` - (Defaults to 30 minutes) Used when updating the Bastion Host.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Bastion Host.
 
 ## Import
@@ -144,3 +148,9 @@ Bastion Hosts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_bastion_host.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/bastionHosts/instance1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

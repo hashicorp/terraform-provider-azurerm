@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -112,7 +112,7 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.Module
+			client := metadata.Client.Automation.ModuleClientV2023
 
 			var model AutomationPowerShell72ModuleModel
 			if err := metadata.Decode(&model); err != nil {
@@ -213,7 +213,7 @@ func (r PowerShell72ModuleResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.Module
+			client := metadata.Client.Automation.ModuleClientV2023
 
 			id, err := module.ParsePowerShell72ModuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -305,7 +305,7 @@ func (r PowerShell72ModuleResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.Module
+			client := metadata.Client.Automation.ModuleClientV2023
 			id, err := module.ParsePowerShell72ModuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -342,7 +342,7 @@ func (PowerShell72ModuleResource) Delete() sdk.ResourceFunc {
 
 		// the Func returns a function which deletes the Resource Group
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.Module
+			client := metadata.Client.Automation.ModuleClientV2023
 			id, err := module.ParsePowerShell72ModuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

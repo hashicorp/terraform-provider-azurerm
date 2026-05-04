@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -160,7 +161,7 @@ func (s SpringCloudDevToolPortalResource) Create() sdk.ResourceFunc {
 
 			DevToolPortalResource := appplatform.DevToolPortalResource{
 				Properties: &appplatform.DevToolPortalProperties{
-					Public:        utils.Bool(model.PublicNetworkAccessEnabled),
+					Public:        pointer.To(model.PublicNetworkAccessEnabled),
 					SsoProperties: expandSpringCloudDevToolPortalSsoProperties(model.Sso),
 					Features:      expandSpringCloudDevToolPortalFeatures(model.ApplicationAcceleratorEnabled, model.ApplicationLiveViewEnabled),
 				},
@@ -202,7 +203,7 @@ func (s SpringCloudDevToolPortalResource) Update() sdk.ResourceFunc {
 
 			DevToolPortalResource := appplatform.DevToolPortalResource{
 				Properties: &appplatform.DevToolPortalProperties{
-					Public:        utils.Bool(model.PublicNetworkAccessEnabled),
+					Public:        pointer.To(model.PublicNetworkAccessEnabled),
 					SsoProperties: expandSpringCloudDevToolPortalSsoProperties(model.Sso),
 					Features:      expandSpringCloudDevToolPortalFeatures(model.ApplicationAcceleratorEnabled, model.ApplicationLiveViewEnabled),
 				},
@@ -327,9 +328,9 @@ func expandSpringCloudDevToolPortalSsoProperties(input []SsoModel) *appplatform.
 
 	return &appplatform.DevToolPortalSsoProperties{
 		Scopes:       &sso.Scope,
-		ClientID:     utils.String(sso.ClientId),
-		ClientSecret: utils.String(sso.ClientSecret),
-		MetadataURL:  utils.String(sso.MetadataUrl),
+		ClientID:     pointer.To(sso.ClientId),
+		ClientSecret: pointer.To(sso.ClientSecret),
+		MetadataURL:  pointer.To(sso.MetadataUrl),
 	}
 }
 

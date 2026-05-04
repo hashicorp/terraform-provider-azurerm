@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration_test
@@ -49,7 +49,7 @@ func TestAccAppConfiguration_standard(t *testing.T) {
 	})
 }
 
-func TestAccAppConfiguration_upgradesku(t *testing.T) {
+func TestAccAppConfiguration_skuUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
 
@@ -63,6 +63,13 @@ func TestAccAppConfiguration_upgradesku(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

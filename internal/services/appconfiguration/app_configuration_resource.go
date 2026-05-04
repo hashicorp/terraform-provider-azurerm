@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
@@ -53,10 +53,10 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			// sku cannot be downgraded
+			// sku cannot be downgraded from a production tier (`premium` or `standard`) to a non-production tier (`developer` or `free`), or downgraded from `developer` to `free`
 			// https://learn.microsoft.com/azure/azure-app-configuration/faq#can-i-upgrade-or-downgrade-an-app-configuration-store
 			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old == "premium" || new == "free"
+				return ((old == "premium" || old == "standard") && new == "developer") || new == "free"
 			}),
 
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
@@ -169,6 +169,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Default:  "free",
 				ValidateFunc: validation.StringInSlice([]string{
 					"free",
+					"developer",
 					"standard",
 					"premium",
 				}, false),
@@ -523,23 +524,6 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		update.Properties.EnablePurgeProtection = pointer.To(d.Get("purge_protection_enabled").(bool))
 	}
 
-	if d.HasChange("public_network_enabled") {
-		v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]
-		if v.IsNull() && existing.Model.Properties.SoftDeleteRetentionInDays != nil {
-			return fmt.Errorf("updating %s: once Public Network Access has been explicitly Enabled or Disabled it's not possible to unset it to which means Automatic", *id)
-		}
-
-		if update.Properties == nil {
-			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
-		}
-
-		publicNetworkAccess := configurationstores.PublicNetworkAccessEnabled
-		if v.False() {
-			publicNetworkAccess = configurationstores.PublicNetworkAccessDisabled
-		}
-		update.Properties.PublicNetworkAccess = &publicNetworkAccess
-	}
-
 	if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -696,7 +680,9 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		d.Set("replica", replica)
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

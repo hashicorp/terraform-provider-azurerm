@@ -12,10 +12,10 @@ type AzureSqlDWLinkedServiceTypeProperties struct {
 	ApplicationIntent              *interface{}                  `json:"applicationIntent,omitempty"`
 	AuthenticationType             *AzureSqlDWAuthenticationType `json:"authenticationType,omitempty"`
 	AzureCloudType                 *interface{}                  `json:"azureCloudType,omitempty"`
-	CommandTimeout                 *int64                        `json:"commandTimeout,omitempty"`
-	ConnectRetryCount              *int64                        `json:"connectRetryCount,omitempty"`
-	ConnectRetryInterval           *int64                        `json:"connectRetryInterval,omitempty"`
-	ConnectTimeout                 *int64                        `json:"connectTimeout,omitempty"`
+	CommandTimeout                 *interface{}                  `json:"commandTimeout,omitempty"`
+	ConnectRetryCount              *interface{}                  `json:"connectRetryCount,omitempty"`
+	ConnectRetryInterval           *interface{}                  `json:"connectRetryInterval,omitempty"`
+	ConnectTimeout                 *interface{}                  `json:"connectTimeout,omitempty"`
 	ConnectionString               *interface{}                  `json:"connectionString,omitempty"`
 	Credential                     *CredentialReference          `json:"credential,omitempty"`
 	Database                       *interface{}                  `json:"database,omitempty"`
@@ -23,22 +23,22 @@ type AzureSqlDWLinkedServiceTypeProperties struct {
 	EncryptedCredential            *string                       `json:"encryptedCredential,omitempty"`
 	FailoverPartner                *interface{}                  `json:"failoverPartner,omitempty"`
 	HostNameInCertificate          *interface{}                  `json:"hostNameInCertificate,omitempty"`
-	IntegratedSecurity             *bool                         `json:"integratedSecurity,omitempty"`
-	LoadBalanceTimeout             *int64                        `json:"loadBalanceTimeout,omitempty"`
-	MaxPoolSize                    *int64                        `json:"maxPoolSize,omitempty"`
-	MinPoolSize                    *int64                        `json:"minPoolSize,omitempty"`
-	MultiSubnetFailover            *bool                         `json:"multiSubnetFailover,omitempty"`
-	MultipleActiveResultSets       *bool                         `json:"multipleActiveResultSets,omitempty"`
-	PacketSize                     *int64                        `json:"packetSize,omitempty"`
+	IntegratedSecurity             *interface{}                  `json:"integratedSecurity,omitempty"`
+	LoadBalanceTimeout             *interface{}                  `json:"loadBalanceTimeout,omitempty"`
+	MaxPoolSize                    *interface{}                  `json:"maxPoolSize,omitempty"`
+	MinPoolSize                    *interface{}                  `json:"minPoolSize,omitempty"`
+	MultiSubnetFailover            *interface{}                  `json:"multiSubnetFailover,omitempty"`
+	MultipleActiveResultSets       *interface{}                  `json:"multipleActiveResultSets,omitempty"`
+	PacketSize                     *interface{}                  `json:"packetSize,omitempty"`
 	Password                       *AzureKeyVaultSecretReference `json:"password,omitempty"`
-	Pooling                        *bool                         `json:"pooling,omitempty"`
+	Pooling                        *interface{}                  `json:"pooling,omitempty"`
 	Server                         *interface{}                  `json:"server,omitempty"`
 	ServicePrincipalCredential     SecretBase                    `json:"servicePrincipalCredential"`
 	ServicePrincipalCredentialType *interface{}                  `json:"servicePrincipalCredentialType,omitempty"`
 	ServicePrincipalId             *interface{}                  `json:"servicePrincipalId,omitempty"`
 	ServicePrincipalKey            SecretBase                    `json:"servicePrincipalKey"`
 	Tenant                         *interface{}                  `json:"tenant,omitempty"`
-	TrustServerCertificate         *bool                         `json:"trustServerCertificate,omitempty"`
+	TrustServerCertificate         *interface{}                  `json:"trustServerCertificate,omitempty"`
 	UserName                       *interface{}                  `json:"userName,omitempty"`
 }
 
@@ -49,10 +49,10 @@ func (s *AzureSqlDWLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) erro
 		ApplicationIntent              *interface{}                  `json:"applicationIntent,omitempty"`
 		AuthenticationType             *AzureSqlDWAuthenticationType `json:"authenticationType,omitempty"`
 		AzureCloudType                 *interface{}                  `json:"azureCloudType,omitempty"`
-		CommandTimeout                 *int64                        `json:"commandTimeout,omitempty"`
-		ConnectRetryCount              *int64                        `json:"connectRetryCount,omitempty"`
-		ConnectRetryInterval           *int64                        `json:"connectRetryInterval,omitempty"`
-		ConnectTimeout                 *int64                        `json:"connectTimeout,omitempty"`
+		CommandTimeout                 *interface{}                  `json:"commandTimeout,omitempty"`
+		ConnectRetryCount              *interface{}                  `json:"connectRetryCount,omitempty"`
+		ConnectRetryInterval           *interface{}                  `json:"connectRetryInterval,omitempty"`
+		ConnectTimeout                 *interface{}                  `json:"connectTimeout,omitempty"`
 		ConnectionString               *interface{}                  `json:"connectionString,omitempty"`
 		Credential                     *CredentialReference          `json:"credential,omitempty"`
 		Database                       *interface{}                  `json:"database,omitempty"`
@@ -60,20 +60,20 @@ func (s *AzureSqlDWLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) erro
 		EncryptedCredential            *string                       `json:"encryptedCredential,omitempty"`
 		FailoverPartner                *interface{}                  `json:"failoverPartner,omitempty"`
 		HostNameInCertificate          *interface{}                  `json:"hostNameInCertificate,omitempty"`
-		IntegratedSecurity             *bool                         `json:"integratedSecurity,omitempty"`
-		LoadBalanceTimeout             *int64                        `json:"loadBalanceTimeout,omitempty"`
-		MaxPoolSize                    *int64                        `json:"maxPoolSize,omitempty"`
-		MinPoolSize                    *int64                        `json:"minPoolSize,omitempty"`
-		MultiSubnetFailover            *bool                         `json:"multiSubnetFailover,omitempty"`
-		MultipleActiveResultSets       *bool                         `json:"multipleActiveResultSets,omitempty"`
-		PacketSize                     *int64                        `json:"packetSize,omitempty"`
+		IntegratedSecurity             *interface{}                  `json:"integratedSecurity,omitempty"`
+		LoadBalanceTimeout             *interface{}                  `json:"loadBalanceTimeout,omitempty"`
+		MaxPoolSize                    *interface{}                  `json:"maxPoolSize,omitempty"`
+		MinPoolSize                    *interface{}                  `json:"minPoolSize,omitempty"`
+		MultiSubnetFailover            *interface{}                  `json:"multiSubnetFailover,omitempty"`
+		MultipleActiveResultSets       *interface{}                  `json:"multipleActiveResultSets,omitempty"`
+		PacketSize                     *interface{}                  `json:"packetSize,omitempty"`
 		Password                       *AzureKeyVaultSecretReference `json:"password,omitempty"`
-		Pooling                        *bool                         `json:"pooling,omitempty"`
+		Pooling                        *interface{}                  `json:"pooling,omitempty"`
 		Server                         *interface{}                  `json:"server,omitempty"`
 		ServicePrincipalCredentialType *interface{}                  `json:"servicePrincipalCredentialType,omitempty"`
 		ServicePrincipalId             *interface{}                  `json:"servicePrincipalId,omitempty"`
 		Tenant                         *interface{}                  `json:"tenant,omitempty"`
-		TrustServerCertificate         *bool                         `json:"trustServerCertificate,omitempty"`
+		TrustServerCertificate         *interface{}                  `json:"trustServerCertificate,omitempty"`
 		UserName                       *interface{}                  `json:"userName,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

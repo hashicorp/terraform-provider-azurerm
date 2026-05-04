@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -195,6 +195,29 @@ func resourceVPNGateway() *pluginsdk.Resource {
 			},
 
 			"tags": commonschema.Tags(),
+
+			"ip_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"private_ip_address": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"public_ip_address": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -225,7 +248,7 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			EnableBgpRouteTranslationForNat: pointer.To(d.Get("bgp_route_translation_for_nat_enabled").(bool)),
 			BgpSettings:                     bgpSettings,
 			VirtualHub: &virtualwans.SubResource{
-				Id: utils.String(d.Get("virtual_hub_id").(string)),
+				Id: pointer.To(d.Get("virtual_hub_id").(string)),
 			},
 			VpnGatewayScaleUnit:         pointer.To(int64(d.Get("scale_unit").(int))),
 			IsRoutingPreferenceInternet: pointer.To(d.Get("routing_preference").(string) == "Internet"),
@@ -306,7 +329,7 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 	if d.HasChange("bgp_route_translation_for_nat_enabled") {
-		model.Properties.EnableBgpRouteTranslationForNat = utils.Bool(d.Get("bgp_route_translation_for_nat_enabled").(bool))
+		model.Properties.EnableBgpRouteTranslationForNat = pointer.To(d.Get("bgp_route_translation_for_nat_enabled").(bool))
 	}
 
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
@@ -389,6 +412,10 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				isRoutingPreferenceInternet = "Internet"
 			}
 			d.Set("routing_preference", isRoutingPreferenceInternet)
+
+			if err := d.Set("ip_configuration", flattenVPNGatewayIpConfiguration(props.IPConfigurations)); err != nil {
+				return fmt.Errorf("setting `ip_configuration`: %+v", err)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -481,4 +508,21 @@ func flattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwans.IPConfi
 			"tunnel_ips":          utils.FlattenStringSlice(input.TunnelIPAddresses),
 		},
 	}
+}
+
+func flattenVPNGatewayIpConfiguration(input *[]virtualwans.VpnGatewayIPConfiguration) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, item := range *input {
+		result = append(result, map[string]interface{}{
+			"id":                 pointer.From(item.Id),
+			"private_ip_address": pointer.From(item.PrivateIPAddress),
+			"public_ip_address":  pointer.From(item.PublicIPAddress),
+		})
+	}
+
+	return result
 }

@@ -36,11 +36,11 @@ resource "azurerm_storage_queue" "example" {
 }
 
 resource "azurerm_eventgrid_system_topic" "example" {
-  name                   = "example-system-topic"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.example.name
-  source_arm_resource_id = azurerm_resource_group.example.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "example-system-topic"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.example.name
+  source_resource_id  = azurerm_resource_group.example.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "example" {
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
+~> **Note:** One of `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -187,7 +187,7 @@ OR
 
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 
-~> **NOTE:** A maximum of total number of advanced filter values allowed on event subscription is 25.
+~> **Note:** A maximum of total number of advanced filter values allowed on event subscription is 25.
 
 ---
 
@@ -201,7 +201,7 @@ A `delivery_identity` block supports the following:
 
 A `delivery_property` block supports the following:
 
-~> **NOTE:** `delivery_property` blocks are only effective when using an `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_topic_endpoint_id`, or `webhook_endpoint` endpoint specification.
+~> **Note:** `delivery_property` blocks are only effective when using an `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_topic_endpoint_id`, or `webhook_endpoint` endpoint specification.
 
 * `header_name` - (Required) The name of the header to send on to the destination.
 
@@ -245,7 +245,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Messaging.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Messaging.
@@ -259,3 +259,9 @@ EventGrid System Topic Event Subscriptions can be imported using the `resource i
 ```shell
 terraform import azurerm_eventgrid_system_topic_event_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/systemTopics/topic1/eventSubscriptions/subscription1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.EventGrid` - 2025-02-15

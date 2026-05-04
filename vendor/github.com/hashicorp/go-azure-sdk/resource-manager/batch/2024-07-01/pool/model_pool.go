@@ -2,6 +2,7 @@ package pool
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -13,6 +14,7 @@ type Pool struct {
 	Identity   *identity.UserAssignedMap `json:"identity,omitempty"`
 	Name       *string                   `json:"name,omitempty"`
 	Properties *PoolProperties           `json:"properties,omitempty"`
+	SystemData *systemdata.SystemData    `json:"systemData,omitempty"`
 	Tags       *map[string]string        `json:"tags,omitempty"`
 	Type       *string                   `json:"type,omitempty"`
 }

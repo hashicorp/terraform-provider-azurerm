@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -78,6 +78,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"v7.0",
 						"v8.0",
 						"v9.0",
+						"v10.0",
 					}, false),
 					AtLeastOneOf: windowsApplicationStackConstraint,
 				},
@@ -363,6 +364,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"7.0",
 						"8.0",
 						"9.0",
+						"10.0",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -386,6 +388,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"8.1",
 						"8.2",
 						"8.3",
+						"8.4",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -401,6 +404,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.11",
 						"3.12",
 						"3.13",
+						"3.14",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -415,6 +419,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"18-lts",
 						"20-lts",
 						"22-lts",
+						"24-lts",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -437,6 +442,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"11",
 						"17",
 						"21",
+						"25",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 					RequiredWith: []string{
