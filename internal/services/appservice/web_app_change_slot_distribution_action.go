@@ -37,7 +37,7 @@ type WebAppChangeSlotDistributionActionRuleModel struct {
 	RuleName                  types.String  `tfsdk:"rule_name"`
 	ReroutePercentage         types.Float64 `tfsdk:"reroute_percentage"`
 	ChangeStep                types.Float64 `tfsdk:"change_step"`
-	ChangeIntervalMinutes     types.Int32   `tfsdk:"change_interval_minutes"`
+	ChangeIntervalMinutes     types.Int64   `tfsdk:"change_interval_minutes"`
 	MinReroutePercentage      types.Float64 `tfsdk:"min_reroute_percentage"`
 	MaxReroutePercentage      types.Float64 `tfsdk:"max_reroute_percentage"`
 	ChangeDecisionCallbackUrl types.String  `tfsdk:"change_decision_callback_url"`
@@ -88,7 +88,7 @@ func webAppChangeSlotDistributionActionRuleSchema(ctx context.Context) schema.Bl
 					Optional:    true,
 					Description: "In auto ramp up scenario this is the step to add/remove from ReroutePercentage.",
 				},
-				"change_interval_minutes": schema.Int32Attribute{
+				"change_interval_minutes": schema.Int64Attribute{
 					Optional:    true,
 					Description: "Specifies interval in minutes to reevaluate ReroutePercentage.",
 				},
@@ -210,9 +210,14 @@ func (*WebAppChangeSlotDistributionAction) expandSlotDistributionRules(ctx conte
 
 	for _, rule := range rules {
 		rampUpRule := webapps.RampUpRule{
-			Name:              rule.RuleName.ValueStringPointer(),
-			ActionHostName:    rule.Hostname.ValueStringPointer(),
-			ReroutePercentage: rule.ReroutePercentage.ValueFloat64Pointer(),
+			Name:                      rule.RuleName.ValueStringPointer(),
+			ActionHostName:            rule.Hostname.ValueStringPointer(),
+			ReroutePercentage:         rule.ReroutePercentage.ValueFloat64Pointer(),
+			ChangeStep:                rule.ChangeStep.ValueFloat64Pointer(),
+			ChangeIntervalInMinutes:   rule.ChangeIntervalMinutes.ValueInt64Pointer(),
+			MinReroutePercentage:      rule.MinReroutePercentage.ValueFloat64Pointer(),
+			MaxReroutePercentage:      rule.MaxReroutePercentage.ValueFloat64Pointer(),
+			ChangeDecisionCallbackURL: rule.ChangeDecisionCallbackUrl.ValueStringPointer(),
 		}
 
 		rampupRules = append(rampupRules, rampUpRule)
