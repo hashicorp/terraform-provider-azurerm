@@ -504,9 +504,13 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 				kv.Tags = tags.Expand(model.Tags)
 			}
 
-			// Always set enabled and description to ensure they match the config
-			fv.Enabled = model.Enabled
-			fv.Description = model.Description
+			if metadata.ResourceData.HasChange("enabled") {
+				fv.Enabled = model.Enabled
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				fv.Description = model.Description
+			}
 
 			filters := make([]interface{}, 0)
 			filterChanged := false
