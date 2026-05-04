@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,10 +33,13 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	InternalLoadBalancerEnabled bool                   `tfschema:"internal_load_balancer_enabled"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
 
+	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
+
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
 	PlatformReservedCidr  string `tfschema:"platform_reserved_cidr"`
 	PlatformReservedDnsIP string `tfschema:"platform_reserved_dns_ip_address"`
+	PublicNetworkAccess   string `tfschema:"public_network_access"`
 	StaticIP              string `tfschema:"static_ip_address"`
 }
 
@@ -87,6 +90,12 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 
 		"tags": commonschema.TagsDataSource(),
 
+		"custom_domain_verification_id": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The ID of the Custom Domain Verification for this Container App Environment.",
+		},
+
 		"default_domain": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
@@ -109,6 +118,12 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Description: "The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.",
+		},
+
+		"public_network_access": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The public network access setting for this Container App Environment.",
 		},
 
 		"static_ip_address": {
@@ -167,6 +182,8 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 
 					environment.StaticIP = pointer.From(props.StaticIP)
 					environment.DefaultDomain = pointer.From(props.DefaultDomain)
+					environment.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
+					environment.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 				}
 			}
 
@@ -199,5 +216,5 @@ func findLogAnalyticsWorkspaceName(ctx context.Context, client *workspaces.Works
 		}
 	}
 
-	return "", fmt.Errorf("no matching workspace found")
+	return "", nil
 }

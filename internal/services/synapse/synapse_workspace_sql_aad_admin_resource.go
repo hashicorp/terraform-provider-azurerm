@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -65,7 +66,7 @@ func resourceSynapseWorkspaceSqlAADAdmin() *pluginsdk.Resource {
 }
 
 func resourceSynapseWorkspaceSqlAADAdminCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
+	client := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -78,10 +79,10 @@ func resourceSynapseWorkspaceSqlAADAdminCreateUpdate(d *pluginsdk.ResourceData, 
 
 	aadAdmin := &synapse.WorkspaceAadAdminInfo{
 		AadAdminProperties: &synapse.AadAdminProperties{
-			TenantID:          utils.String(d.Get("tenant_id").(string)),
-			Login:             utils.String(d.Get("login").(string)),
-			AdministratorType: utils.String("ActiveDirectory"),
-			Sid:               utils.String(d.Get("object_id").(string)),
+			TenantID:          pointer.To(d.Get("tenant_id").(string)),
+			Login:             pointer.To(d.Get("login").(string)),
+			AdministratorType: pointer.To("ActiveDirectory"),
+			Sid:               pointer.To(d.Get("object_id").(string)),
 		},
 	}
 
@@ -101,7 +102,7 @@ func resourceSynapseWorkspaceSqlAADAdminCreateUpdate(d *pluginsdk.ResourceData, 
 }
 
 func resourceSynapseWorkspaceSqlAADAdminRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
+	client := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -122,15 +123,15 @@ func resourceSynapseWorkspaceSqlAADAdminRead(d *pluginsdk.ResourceData, meta int
 	workspaceID := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
 	d.Set("synapse_workspace_id", workspaceID.ID())
-	d.Set("login", aadAdmin.AadAdminProperties.Login)
-	d.Set("object_id", aadAdmin.AadAdminProperties.Sid)
-	d.Set("tenant_id", aadAdmin.AadAdminProperties.TenantID)
+	d.Set("login", aadAdmin.Login)
+	d.Set("object_id", aadAdmin.Sid)
+	d.Set("tenant_id", aadAdmin.TenantID)
 
 	return nil
 }
 
 func resourceSynapseWorkspaceSqlAADAdminDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
+	client := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

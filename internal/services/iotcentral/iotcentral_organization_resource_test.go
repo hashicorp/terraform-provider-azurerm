@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iotcentral_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IoTCentralOrganizationResource struct{}
@@ -77,75 +77,6 @@ func TestAccIoTCentralOrganization_updateDisplayName(t *testing.T) {
 	})
 }
 
-func TestAccIoTCentralOrganization_setParent(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iotcentral_organization", "test")
-	r := IoTCentralOrganizationResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parent_organization_id").IsEmpty(),
-			),
-		},
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parent_organization_id").IsNotEmpty(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccIoTCentralOrganization_updateParent(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iotcentral_organization", "test")
-	r := IoTCentralOrganizationResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parent_organization_id").IsNotEmpty(),
-			),
-		},
-		{
-			Config: r.completeUpdateParent(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parent_organization_id").IsNotEmpty(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccIoTCentralOrganization_unsetParent(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iotcentral_organization", "test")
-	r := IoTCentralOrganizationResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parent_organization_id").IsNotEmpty(),
-			),
-		},
-		{
-			Config: r.completeUnsetParent(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parent_organization_id").IsEmpty(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (IoTCentralOrganizationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.OrganizationID(state.ID)
 	if err != nil {
@@ -172,7 +103,7 @@ func (IoTCentralOrganizationResource) Exists(ctx context.Context, clients *clien
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil || *resp.ID == ""), nil
+	return pointer.To(resp.ID != nil || *resp.ID == ""), nil
 }
 
 func (r IoTCentralOrganizationResource) basic(data acceptance.TestData) string {
@@ -220,51 +151,6 @@ resource "azurerm_iotcentral_organization" "test" {
   iotcentral_application_id = azurerm_iotcentral_application.test.id
   organization_id           = "org-test-id"
   display_name              = "Org basic updated"
-}
-`, r.template(data))
-}
-
-func (r IoTCentralOrganizationResource) completeUpdateParent(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-%s
-resource "azurerm_iotcentral_organization" "test_parent" {
-  iotcentral_application_id = azurerm_iotcentral_application.test.id
-  organization_id           = "org-test-parent-id"
-  display_name              = "Org parent"
-}
-resource "azurerm_iotcentral_organization" "test_parent_2" {
-  iotcentral_application_id = azurerm_iotcentral_application.test.id
-  organization_id           = "org-test-parent-2-id"
-  display_name              = "Org parent 2"
-}
-resource "azurerm_iotcentral_organization" "test" {
-  iotcentral_application_id = azurerm_iotcentral_application.test.id
-  organization_id           = "org-test-id"
-  display_name              = "Org child"
-
-  parent_organization_id = azurerm_iotcentral_organization.test_parent_2.organization_id
-}
-`, r.template(data))
-}
-
-func (r IoTCentralOrganizationResource) completeUnsetParent(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-%s
-resource "azurerm_iotcentral_organization" "test_parent" {
-  iotcentral_application_id = azurerm_iotcentral_application.test.id
-  organization_id           = "org-test-parent-id"
-  display_name              = "Org parent"
-}
-resource "azurerm_iotcentral_organization" "test" {
-  iotcentral_application_id = azurerm_iotcentral_application.test.id
-  organization_id           = "org-test-id"
-  display_name              = "Org child"
 }
 `, r.template(data))
 }

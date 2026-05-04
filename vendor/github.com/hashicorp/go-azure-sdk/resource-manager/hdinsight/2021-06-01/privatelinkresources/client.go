@@ -15,7 +15,7 @@ type PrivateLinkResourcesClient struct {
 }
 
 func NewPrivateLinkResourcesClientWithBaseURI(sdkApi sdkEnv.Api) (*PrivateLinkResourcesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "privatelinkresources", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "privatelinkresources", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PrivateLinkResourcesClient: %+v", err)
 	}

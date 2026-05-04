@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -6,16 +6,14 @@ package storage_test
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/encryptionscopes"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/encryptionscopes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageEncryptionScopeResource struct{}
@@ -189,17 +187,17 @@ func (t StorageEncryptionScopeResource) Exists(ctx context.Context, clients *cli
 		return nil, err
 	}
 
-	resp, err := clients.Storage.EncryptionScopesClient.Get(ctx, id.ResourceGroupName, id.StorageAccountName, id.EncryptionScopeName)
+	resp, err := clients.Storage.ResourceManager.EncryptionScopes.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	enabled := false
-	if resp.EncryptionScopeProperties != nil {
-		enabled = strings.EqualFold(string(resp.EncryptionScopeProperties.State), string(storage.EncryptionScopeStateEnabled))
+	if model := resp.Model; model != nil && model.Properties != nil && model.Properties.State != nil {
+		enabled = *model.Properties.State == encryptionscopes.EncryptionScopeStateEnabled
 	}
 
-	return utils.Bool(enabled), nil
+	return pointer.To(enabled), nil
 }
 
 func (t StorageEncryptionScopeResource) keyVaultKey(data acceptance.TestData) string {
@@ -386,12 +384,13 @@ resource "azurerm_storage_account" "test" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {

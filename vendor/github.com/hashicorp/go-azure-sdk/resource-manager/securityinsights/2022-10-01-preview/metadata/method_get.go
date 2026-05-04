@@ -45,7 +45,6 @@ func (c MetadataClient) Get(ctx context.Context, id MetadataId) (result GetOpera
 
 	var model MetadataModel
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -27,6 +27,18 @@ type ResumeCompleteResult struct {
 	Items              []Site
 }
 
+type ResumeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ResumeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // Resume ...
 func (c AppServiceEnvironmentsClient) Resume(ctx context.Context, id commonids.AppServiceEnvironmentId) (result ResumeOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -36,6 +48,7 @@ func (c AppServiceEnvironmentsClient) Resume(ctx context.Context, id commonids.A
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ResumeCustomPager{},
 		Path:       fmt.Sprintf("%s/resume", id.ID()),
 	}
 

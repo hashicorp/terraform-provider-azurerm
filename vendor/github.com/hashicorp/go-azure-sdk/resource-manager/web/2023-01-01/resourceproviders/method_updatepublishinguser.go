@@ -49,7 +49,6 @@ func (c ResourceProvidersClient) UpdatePublishingUser(ctx context.Context, input
 
 	var model User
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

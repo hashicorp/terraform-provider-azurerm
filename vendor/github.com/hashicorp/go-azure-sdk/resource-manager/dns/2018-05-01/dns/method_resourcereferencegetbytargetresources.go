@@ -51,7 +51,6 @@ func (c DnsClient) ResourceReferenceGetByTargetResources(ctx context.Context, id
 
 	var model DnsResourceReferenceResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

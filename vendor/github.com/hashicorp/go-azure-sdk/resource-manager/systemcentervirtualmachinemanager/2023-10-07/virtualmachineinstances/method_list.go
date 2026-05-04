@@ -24,6 +24,18 @@ type ListCompleteResult struct {
 	Items              []VirtualMachineInstance
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c VirtualMachineInstancesClient) List(ctx context.Context, id commonids.ScopeId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VirtualMachineInstancesClient) List(ctx context.Context, id commonids.Sc
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.ScVmm/virtualMachineInstances", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c VirtualMachineInstancesClient) ListCompleteMatchingPredicate(ctx context
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,9 +6,10 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
-	storage_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01"
+	storage "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
@@ -20,19 +21,17 @@ import (
 var StorageDomainSuffix *string
 
 type Client struct {
-	AccountsClient           *storage.AccountsClient
-	BlobServicesClient       *storage.BlobServicesClient
-	EncryptionScopesClient   *storage.EncryptionScopesClient
-	FileServicesClient       *storage.FileServicesClient
-	SyncCloudEndpointsClient *cloudendpointresource.CloudEndpointResourceClient
-	SyncGroupsClient         *syncgroupresource.SyncGroupResourceClient
-	SyncServiceClient        *storagesyncservicesresource.StorageSyncServicesResourceClient
-
-	ResourceManager *storage_v2023_01_01.Client
-
 	StorageDomainSuffix string
 
-	authorizerForAad auth.Authorizer
+	ResourceManager *storage.Client
+	// TODO: import the Storage Sync Meta Client and use that
+	SyncCloudEndpointsClient   *cloudendpointresource.CloudEndpointResourceClient
+	SyncGroupsClient           *syncgroupresource.SyncGroupResourceClient
+	SyncRegisteredServerClient *registeredserverresource.RegisteredServerResourceClient
+	SyncServerEndpointsClient  *serverendpointresource.ServerEndpointResourceClient
+	SyncServiceClient          *storagesyncservicesresource.StorageSyncServicesResourceClient
+
+	authConfigForAzureAD *auth.Credentials
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -44,19 +43,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	// Set global variable for post-configure validation
 	StorageDomainSuffix = storageSuffix
 
-	accountsClient := storage.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&accountsClient.Client, o.ResourceManagerAuthorizer)
-
-	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&blobServicesClient.Client, o.ResourceManagerAuthorizer)
-
-	encryptionScopesClient := storage.NewEncryptionScopesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&encryptionScopesClient.Client, o.ResourceManagerAuthorizer)
-
-	fileServicesClient := storage.NewFileServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&fileServicesClient.Client, o.ResourceManagerAuthorizer)
-
-	resourceManager, err := storage_v2023_01_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	resourceManager, err := storage.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
@@ -68,6 +55,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building CloudEndpoint client: %+v", err)
 	}
 	o.Configure(syncCloudEndpointsClient.Client, o.Authorizers.ResourceManager)
+
+	syncRegisteredServersClient, err := registeredserverresource.NewRegisteredServerResourceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building StorageRegisteredServer client: %+v", err)
+	}
+	o.Configure(syncRegisteredServersClient.Client, o.Authorizers.ResourceManager)
+
+	syncServerEndpointClient, err := serverendpointresource.NewServerEndpointResourceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building StorageSyncServerEndpoint client: %+v", err)
+	}
+	o.Configure(syncServerEndpointClient.Client, o.Authorizers.ResourceManager)
 
 	syncServiceClient, err := storagesyncservicesresource.NewStorageSyncServicesResourceClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -84,20 +83,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
-		AccountsClient:           &accountsClient,
-		BlobServicesClient:       &blobServicesClient,
-		EncryptionScopesClient:   &encryptionScopesClient,
-		FileServicesClient:       &fileServicesClient,
-		ResourceManager:          resourceManager,
-		SyncCloudEndpointsClient: syncCloudEndpointsClient,
-		SyncServiceClient:        syncServiceClient,
-		SyncGroupsClient:         syncGroupsClient,
+		ResourceManager:            resourceManager,
+		SyncCloudEndpointsClient:   syncCloudEndpointsClient,
+		SyncRegisteredServerClient: syncRegisteredServersClient,
+		SyncServerEndpointsClient:  syncServerEndpointClient,
+		SyncServiceClient:          syncServiceClient,
+		SyncGroupsClient:           syncGroupsClient,
 
 		StorageDomainSuffix: *storageSuffix,
 	}
 
 	if o.StorageUseAzureAD {
-		client.authorizerForAad = o.Authorizers.Storage
+		client.authConfigForAzureAD = o.AuthConfig
 	}
 
 	return &client, nil

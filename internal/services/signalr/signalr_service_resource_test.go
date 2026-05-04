@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr_test
@@ -8,16 +8,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SignalRServiceResource struct{}
+
+type SignalrServiceResource = SignalRServiceResource
 
 func TestAccSignalRService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
@@ -108,13 +110,36 @@ func TestAccSignalRService_identity(t *testing.T) {
 	})
 }
 
-func TestAccSignalRService_premium(t *testing.T) {
+func TestAccSignalRService_premiumP1(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.premium(data),
+			Config: r.premium(data, "Premium_P1", 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSignalRService_premiumP2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premium(data, "Premium_P2", 100),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("hostname").Exists(),
@@ -554,11 +579,11 @@ func (r SignalRServiceResource) Exists(ctx context.Context, client *clients.Clie
 	resp, err := client.SignalR.SignalRClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SignalRServiceResource) basic(data acceptance.TestData) string {
@@ -690,7 +715,7 @@ resource "azurerm_signalr_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r SignalRServiceResource) premium(data acceptance.TestData) string {
+func (r SignalRServiceResource) premium(data acceptance.TestData, planSku string, capacity int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -707,11 +732,11 @@ resource "azurerm_signalr_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Premium_P1"
-    capacity = 1
+    name     = "%s"
+    capacity = %d
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, planSku, capacity)
 }
 
 func (r SignalRServiceResource) requiresImport(data acceptance.TestData) string {
@@ -944,7 +969,6 @@ resource "azurerm_signalr_service" "test" {
   messaging_logs_enabled    = true
   live_trace_enabled        = true
   service_mode              = "Serverless"
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -974,7 +998,6 @@ resource "azurerm_signalr_service" "test" {
   messaging_logs_enabled    = false
   live_trace_enabled        = false
   service_mode              = "Classic"
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

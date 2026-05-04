@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,9 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 func resourceStorageBlob() *pluginsdk.Resource {
@@ -111,6 +111,13 @@ func resourceStorageBlob() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"encryption_scope": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.StorageEncryptionScopeName,
+			},
+
 			"source": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
@@ -169,6 +176,7 @@ func resourceStorageBlob() *pluginsdk.Resource {
 
 func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -176,7 +184,7 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	containerName := d.Get("storage_container_name").(string)
 	name := d.Get("name").(string)
 
-	account, err := storageClient.FindAccount(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Storage Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
 	}
@@ -196,17 +204,15 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	id := blobs.NewBlobID(accountId, containerName, name)
-	if d.IsNewResource() {
-		input := blobs.GetPropertiesInput{}
-		props, err := blobsClient.GetProperties(ctx, containerName, name, input)
-		if err != nil {
-			if !response.WasNotFound(props.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %v", id, err)
-			}
-		}
+	input := blobs.GetPropertiesInput{}
+	props, err := blobsClient.GetProperties(ctx, containerName, name, input)
+	if err != nil {
 		if !response.WasNotFound(props.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
+			return fmt.Errorf("checking for existing %s: %v", id, err)
 		}
+	}
+	if !response.WasNotFound(props.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
 	}
 
 	contentMD5Raw := d.Get("content_md5").(string)
@@ -238,6 +244,11 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		SourceContent: d.Get("source_content").(string),
 		SourceUri:     d.Get("source_uri").(string),
 	}
+
+	if encryptionScope := d.Get("encryption_scope"); encryptionScope.(string) != "" {
+		blobInput.EncryptionScope = encryptionScope.(string)
+	}
+
 	if err = blobInput.Create(ctx); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
@@ -250,6 +261,7 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -258,7 +270,7 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("parsing %q: %v", d.Id(), err)
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}
@@ -271,11 +283,24 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("building Blobs Client: %v", err)
 	}
 
+	log.Printf("[INFO] Retrieving %s", id)
+	input := blobs.GetPropertiesInput{}
+	props, err := blobsClient.GetProperties(ctx, id.ContainerName, id.BlobName, input)
+	if err != nil {
+		if response.WasNotFound(props.HttpResponse) {
+			log.Printf("[INFO] Blob %q was not found in Container %q / Account %q - assuming removed & removing from state...", id.BlobName, id.ContainerName, id.AccountId.AccountName)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("retrieving properties for %s: %v", id, err)
+	}
+
 	if d.HasChange("content_type") || d.HasChange("cache_control") {
 		log.Printf("[DEBUG] Updating Properties for %s...", id)
 		input := blobs.SetPropertiesInput{
-			ContentType:  utils.String(d.Get("content_type").(string)),
-			CacheControl: utils.String(d.Get("cache_control").(string)),
+			ContentType:  pointer.To(d.Get("content_type").(string)),
+			CacheControl: pointer.To(d.Get("cache_control").(string)),
 		}
 
 		// `content_md5` is `ForceNew` but must be included in the `SetPropertiesInput` update payload, or it will be zeroed on the blob.
@@ -284,10 +309,8 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			if err != nil {
 				return fmt.Errorf("converting hex to base64 encoding for content_md5: %v", err)
 			}
-
-			input.ContentMD5 = utils.String(data)
+			input.ContentMD5 = pointer.To(data)
 		}
-
 		if _, err = blobsClient.SetProperties(ctx, id.ContainerName, id.BlobName, input); err != nil {
 			return fmt.Errorf("updating Properties for %s: %v", id, err)
 		}
@@ -299,6 +322,10 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 		input := blobs.SetMetaDataInput{
 			MetaData: ExpandMetaData(metaDataRaw),
+		}
+		// Encryption Scope must be specified when updating metadata
+		if props.EncryptionScope != "" {
+			input.EncryptionScope = pointer.To(props.EncryptionScope)
 		}
 		if _, err = blobsClient.SetMetaData(ctx, id.ContainerName, id.BlobName, input); err != nil {
 			return fmt.Errorf("updating MetaData for %s: %v", id, err)
@@ -323,6 +350,7 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -331,7 +359,7 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("parsing %q: %v", d.Id(), err)
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}
@@ -377,6 +405,8 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	d.Set("content_md5", contentMD5)
 
+	d.Set("encryption_scope", props.EncryptionScope)
+
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 	d.Set("url", d.Id())
 
@@ -394,6 +424,7 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -402,7 +433,7 @@ func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("parsing %q: %v", d.Id(), err)
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}
@@ -418,7 +449,10 @@ func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	input := blobs.DeleteInput{
 		DeleteSnapshots: true,
 	}
-	if _, err = blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+	if resp, err := blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %v", id, err)
 	}
 

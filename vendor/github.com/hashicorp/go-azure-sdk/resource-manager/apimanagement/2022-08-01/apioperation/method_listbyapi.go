@@ -42,6 +42,7 @@ func (o ListByApiOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByApiOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -62,6 +63,18 @@ func (o ListByApiOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByApiCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByApiCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByApi ...
 func (c ApiOperationClient) ListByApi(ctx context.Context, id ApiId, options ListByApiOperationOptions) (result ListByApiOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -70,8 +83,9 @@ func (c ApiOperationClient) ListByApi(ctx context.Context, id ApiId, options Lis
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/operations", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByApiCustomPager{},
+		Path:          fmt.Sprintf("%s/operations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -112,6 +126,7 @@ func (c ApiOperationClient) ListByApiCompleteMatchingPredicate(ctx context.Conte
 
 	resp, err := c.ListByApi(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

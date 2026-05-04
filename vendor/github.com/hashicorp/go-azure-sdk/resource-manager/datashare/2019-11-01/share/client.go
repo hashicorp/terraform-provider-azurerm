@@ -15,7 +15,7 @@ type ShareClient struct {
 }
 
 func NewShareClientWithBaseURI(sdkApi sdkEnv.Api) (*ShareClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "share", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "share", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ShareClient: %+v", err)
 	}

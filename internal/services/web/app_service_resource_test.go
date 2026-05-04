@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web_test
@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -722,9 +723,9 @@ func TestAccAppService_zeroedIpRestrictionHeaders(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.#").HasValue("1"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.0").HasValue("9.9.9.9/32"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.1").DoesNotExist(),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid").DoesNotExist(),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe").DoesNotExist(),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid.#").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe.#").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host.#").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -738,9 +739,9 @@ func TestAccAppService_zeroedIpRestrictionHeaders(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.#").HasValue("1"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.0").HasValue("9.9.9.9/32"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.1").DoesNotExist(),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid").DoesNotExist(),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe").DoesNotExist(),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid.#").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe.#").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host.#").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -1133,7 +1134,7 @@ func TestAccAppService_remoteDebugging(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.remote_debugging_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("site_config.0.remote_debugging_version").HasValue("VS2019"),
+				check.That(data.ResourceName).Key("site_config.0.remote_debugging_version").HasValue("VS2022"),
 			),
 		},
 		data.ImportStep(),
@@ -1411,7 +1412,7 @@ func TestAccAppService_windowsPHP7(t *testing.T) {
 			Config: r.windowsPHP(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.php_version").HasValue("7.3"),
+				check.That(data.ResourceName).Key("site_config.0.php_version").HasValue("7.4"),
 			),
 		},
 		data.ImportStep(),
@@ -1931,22 +1932,6 @@ func TestAccAppService_AcrUserAssignedIdentity(t *testing.T) {
 	})
 }
 
-// (@jackofallops) - renamed to allow filtering out long running test from AppService
-func TestAccAppServiceEnvironment_scopeNameCheck(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	r := AppServiceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.inAppServiceEnvironment(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccAppService_keyVaultUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
@@ -1971,17 +1956,17 @@ func (r AppServiceResource) Exists(ctx context.Context, clients *clients.Client,
 	resp, err := clients.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
 	// The SDK defines 404 as an "ok" status code..
 	if utils.ResponseWasNotFound(resp.Response) {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r AppServiceResource) basic(data acceptance.TestData) string {
@@ -4292,7 +4277,7 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     remote_debugging_enabled = true
-    remote_debugging_version = "VS2019"
+    remote_debugging_version = "VS2022"
   }
 
   tags = {
@@ -4474,7 +4459,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = azurerm_app_service_plan.test.id
 
   site_config {
-    php_version = "7.3"
+    php_version = "7.4"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -5516,66 +5501,6 @@ resource "azurerm_app_service" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (r AppServiceResource) inAppServiceEnvironment(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "ase" {
-  name                 = "asesubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_subnet" "gateway" {
-  name                 = "gatewaysubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_app_service_environment" "test" {
-  name                = "acctest-ase-%d"
-  subnet_id           = azurerm_subnet.ase.id
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                       = "acctest-ASP-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_environment_id = azurerm_app_service_environment.test.id
-
-  sku {
-    tier     = "Isolated"
-    size     = "I1"
-    capacity = 1
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r AppServiceResource) AcrUseManagedIdentity(data acceptance.TestData) string {

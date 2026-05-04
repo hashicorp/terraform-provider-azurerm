@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights
@@ -106,7 +106,7 @@ func dataSourceArmApplicationInsightsRead(d *pluginsdk.ResourceData, meta interf
 			return fmt.Errorf("flattening `tags`: %+v", err)
 		}
 		if props := model.Properties; props != nil {
-			d.Set("app_id", props.ApplicationId)
+			d.Set("app_id", props.AppId)
 			d.Set("application_type", props.ApplicationType)
 			d.Set("connection_string", props.ConnectionString)
 			d.Set("instrumentation_key", props.InstrumentationKey)

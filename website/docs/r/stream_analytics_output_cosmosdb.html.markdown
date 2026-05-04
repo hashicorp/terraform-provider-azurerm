@@ -85,6 +85,8 @@ The following arguments are supported:
 
 * `partition_key` - (Optional) The name of the field in output events used to specify the key for partitioning output across collections. If `container_name` contains `{partition}` token, this property is required to be specified.
 
+* `authentication_mode` - (Optional) The authentication mode for the CosmosDB database. Possible values are `ConnectionString` and `Msi`. Defaults to `ConnectionString`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -93,7 +95,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output for CosmosDB.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Output for CosmosDB.
@@ -107,3 +109,9 @@ Stream Analytics Outputs for CosmosDB can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_stream_analytics_output_cosmosdb.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1/outputs/output1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StreamAnalytics` - 2021-10-01-preview

@@ -1,0 +1,104 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package framework
+
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-testing/echoprovider"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
+)
+
+func ProtoV6ProviderFactoriesInit(_ context.Context, providerNames ...string) map[string]func() (tfprotov6.ProviderServer, error) {
+	factories := make(map[string]func() (tfprotov6.ProviderServer, error), len(providerNames))
+
+	for _, name := range providerNames {
+		// This is all we need from protoV6 for now to properly test ephemeral resources
+		if name == "echo" {
+			factories[name] = echoprovider.NewProviderServer()
+		}
+	}
+
+	return factories
+}
+
+// ProtoV5ProviderFactoriesInit allows tests outside the acceptance test suite to instantiate the ServerFactory required
+// to run tests directly. Primary use case today is List resources until thy are supported by the acceptance package as
+// testing type.
+func ProtoV5ProviderFactoriesInit(ctx context.Context, providerNames ...string) map[string]func() (tfprotov5.ProviderServer, error) {
+	factories := make(map[string]func() (tfprotov5.ProviderServer, error), len(providerNames))
+
+	for _, name := range providerNames {
+		factories[name] = func() (tfprotov5.ProviderServer, error) {
+			providerServerFactory, _, err := ProtoV5ProviderServerFactory(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			return providerServerFactory(), nil
+		}
+	}
+
+	return factories
+}
+
+// ProtoV5ProviderServerFactory is the MUX provider server constructor
+func ProtoV5ProviderServerFactory(ctx context.Context) (func() tfprotov5.ProviderServer, *schema.Provider, error) {
+	v2Provider := provider.AzureProvider()
+
+	providers := []func() tfprotov5.ProviderServer{
+		v2Provider.GRPCProvider,
+		providerserver.NewProtocol5(NewFrameworkProvider(v2Provider)),
+	}
+
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return muxServer.ProviderServer, v2Provider, nil
+}
+
+// ProtoV5ProviderFactoriesInitWithTestName is a new Factory for the acceptance test suite.
+func ProtoV5ProviderFactoriesInitWithTestName(ctx context.Context, testName string, providerNames ...string) map[string]func() (tfprotov5.ProviderServer, error) {
+	factories := make(map[string]func() (tfprotov5.ProviderServer, error), len(providerNames))
+
+	for _, name := range providerNames {
+		factories[name] = func() (tfprotov5.ProviderServer, error) {
+			providerServerFactory, _, err := ProtoV5ProviderServerFactoryWithTestName(ctx, testName)
+			if err != nil {
+				return nil, err
+			}
+
+			return providerServerFactory(), nil
+		}
+	}
+
+	return factories
+}
+
+func ProtoV5ProviderServerFactoryWithTestName(ctx context.Context, testName string) (func() tfprotov5.ProviderServer, *schema.Provider, error) {
+	v2Provider := provider.AzureProviderWithTestName(testName)
+
+	providers := []func() tfprotov5.ProviderServer{
+		v2Provider.GRPCProvider,
+		providerserver.NewProtocol5(NewFrameworkProvider(v2Provider)),
+	}
+
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return muxServer.ProviderServer, v2Provider, nil
+}
+
+func V5ProviderWithoutPluginSDK() func() tfprotov5.ProviderServer {
+	return providerserver.NewProtocol5(NewFrameworkV5Provider())
+}

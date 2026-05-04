@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -8,11 +8,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopedresources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
@@ -95,7 +95,7 @@ func resourceMonitorPrivateLinkScopedServiceCreate(d *pluginsdk.ResourceData, me
 
 	parameters := privatelinkscopedresources.ScopedResource{
 		Properties: &privatelinkscopedresources.ScopedResourceProperties{
-			LinkedResourceId: utils.String(d.Get("linked_resource_id").(string)),
+			LinkedResourceId: pointer.To(d.Get("linked_resource_id").(string)),
 		},
 	}
 
@@ -134,7 +134,7 @@ func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("linked_resource_id", props.LinkedResourceId)
+			d.Set("linked_resource_id", normalizeLinkedResourceId(props.LinkedResourceId))
 		}
 	}
 
@@ -157,4 +157,25 @@ func resourceMonitorPrivateLinkScopedServiceDelete(d *pluginsdk.ResourceData, me
 	}
 
 	return nil
+}
+
+func normalizeLinkedResourceId(input *string) *string {
+	if input == nil {
+		return input
+	}
+
+	if resourceId, err := components.ParseComponentIDInsensitively(*input); err == nil {
+		nomalizedId := resourceId.ID()
+		return &nomalizedId
+	}
+	if resourceId, err := workspaces.ParseWorkspaceIDInsensitively(*input); err == nil {
+		nomalizedId := resourceId.ID()
+		return &nomalizedId
+	}
+	if resourceId, err := datacollectionendpoints.ParseDataCollectionEndpointIDInsensitively(*input); err == nil {
+		nomalizedId := resourceId.ID()
+		return &nomalizedId
+	}
+
+	return input
 }

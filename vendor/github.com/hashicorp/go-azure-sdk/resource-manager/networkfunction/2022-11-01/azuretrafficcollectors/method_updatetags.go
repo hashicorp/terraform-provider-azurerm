@@ -49,7 +49,6 @@ func (c AzureTrafficCollectorsClient) UpdateTags(ctx context.Context, id AzureTr
 
 	var model AzureTrafficCollector
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

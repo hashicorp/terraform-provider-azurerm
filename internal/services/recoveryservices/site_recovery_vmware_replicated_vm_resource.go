@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -20,10 +21,10 @@ import (
 	vmwaremachines "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
 	vmwarerunasaccounts "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -596,7 +597,7 @@ func (s VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 				vmNics = expandVMWareReplicatedVMNics(model.NetworkInterface)
 			} else {
 				if existingDetails.VMNics == nil {
-					return fmt.Errorf("retrieving `network_interface`: VMNics was nil.")
+					return errors.New("retrieving `network_interface`: VMNics was nil")
 				} else {
 					for _, respNic := range *existingDetails.VMNics {
 						vmNics = append(vmNics, replicationprotecteditems.InMageRcmNicInput{
@@ -852,8 +853,8 @@ func (s VMWareReplicatedVmResource) Delete() sdk.ResourceFunc {
 				Properties: replicationprotecteditems.DisableProtectionInputProperties{
 					DisableProtectionReason: &disableProtectionReason,
 					// It's a workaround for https://github.com/hashicorp/pandora/issues/1864
-					ReplicationProviderInput: &siterecovery.DisableProtectionProviderSpecificInput{
-						InstanceType: siterecovery.InstanceTypeDisableProtectionProviderSpecificInput,
+					ReplicationProviderInput: replicationprotecteditems.BaseDisableProtectionProviderSpecificInputImpl{
+						InstanceType: string(siterecovery.InstanceTypeDisableProtectionProviderSpecificInput),
 					},
 				},
 			}

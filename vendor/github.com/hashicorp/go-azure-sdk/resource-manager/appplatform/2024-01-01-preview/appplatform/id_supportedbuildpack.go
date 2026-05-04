@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&SupportedBuildPackId{})
+}
 
 var _ resourceids.ResourceId = &SupportedBuildPackId{}
 
@@ -41,7 +46,7 @@ func ParseSupportedBuildPackID(input string) (*SupportedBuildPackId, error) {
 	}
 
 	id := SupportedBuildPackId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +63,7 @@ func ParseSupportedBuildPackIDInsensitively(input string) (*SupportedBuildPackId
 	}
 
 	id := SupportedBuildPackId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -122,11 +127,11 @@ func (id SupportedBuildPackId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "springName"),
 		resourceids.StaticSegment("staticBuildServices", "buildServices", "buildServices"),
-		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceValue"),
+		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceName"),
 		resourceids.StaticSegment("staticSupportedBuildPacks", "supportedBuildPacks", "supportedBuildPacks"),
-		resourceids.UserSpecifiedSegment("supportedBuildPackName", "supportedBuildPackValue"),
+		resourceids.UserSpecifiedSegment("supportedBuildPackName", "supportedBuildPackName"),
 	}
 }
 

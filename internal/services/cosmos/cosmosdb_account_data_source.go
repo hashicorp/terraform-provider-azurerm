@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,7 +22,7 @@ import (
 )
 
 func dataSourceCosmosDbAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	dataSource := &pluginsdk.Resource{
 		Read: dataSourceCosmosDbAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -56,14 +56,12 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_free_tier": {
+			"free_tier_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_automatic_failover": {
+			"automatic_failover_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -150,8 +148,7 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_multiple_write_locations": {
+			"multiple_write_locations_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -199,16 +196,6 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
-			},
-
-			"connection_strings": {
-				Type:      pluginsdk.TypeList,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &pluginsdk.Schema{
-					Type:      pluginsdk.TypeString,
-					Sensitive: true,
-				},
 			},
 
 			"primary_sql_connection_string": {
@@ -260,6 +247,8 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	return dataSource
 }
 
 func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -290,11 +279,12 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		if props := model.Properties; props != nil {
 			d.Set("offer_type", string(pointer.From(props.DatabaseAccountOfferType)))
-			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterThreePointOh(props.IPRules))
+			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterDataSource(props.IPRules))
 			d.Set("endpoint", props.DocumentEndpoint)
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
-			d.Set("enable_free_tier", props.EnableFreeTier)
-			d.Set("enable_automatic_failover", props.EnableAutomaticFailover)
+			d.Set("free_tier_enabled", props.EnableFreeTier)
+			d.Set("automatic_failover_enabled", props.EnableAutomaticFailover)
+			d.Set("multiple_write_locations_enabled", props.EnableMultipleWriteLocations)
 
 			if v := props.KeyVaultKeyUri; v != nil {
 				d.Set("key_vault_key_id", v)
@@ -368,8 +358,6 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if err := d.Set("write_endpoints", writeEndpoints); err != nil {
 				return fmt.Errorf("setting `write_endpoints`: %s", err)
 			}
-
-			d.Set("enable_multiple_write_locations", props.EnableMultipleWriteLocations)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -416,8 +404,6 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 					}
 				}
 			}
-
-			d.Set("connection_strings", connStrings)
 		}
 	}
 	return nil

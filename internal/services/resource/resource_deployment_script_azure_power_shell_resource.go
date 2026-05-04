@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -144,7 +144,7 @@ func (r ResourceDeploymentScriptAzurePowerShellResource) Read() sdk.ResourceFunc
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model, ok := (*resp.Model).(deploymentscripts.AzurePowerShellScript)
+			model, ok := resp.Model.(deploymentscripts.AzurePowerShellScript)
 			if !ok {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}

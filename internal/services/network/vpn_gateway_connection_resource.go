@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,16 +6,16 @@ package network
 import (
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -24,9 +24,9 @@ import (
 
 func resourceVPNGatewayConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVpnGatewayConnectionResourceCreateUpdate,
+		Create: resourceVpnGatewayConnectionResourceCreate,
 		Read:   resourceVpnGatewayConnectionResourceRead,
-		Update: resourceVpnGatewayConnectionResourceCreateUpdate,
+		Update: resourceVpnGatewayConnectionResourceUpdate,
 		Delete: resourceVpnGatewayConnectionResourceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -80,19 +80,19 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 						"associated_route_table": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.HubRouteTableID,
+							ValidateFunc: virtualwans.ValidateHubRouteTableID,
 						},
 
 						"inbound_route_map_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteMapID,
+							ValidateFunc: virtualwans.ValidateRouteMapID,
 						},
 
 						"outbound_route_map_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteMapID,
+							ValidateFunc: virtualwans.ValidateRouteMapID,
 						},
 
 						"propagated_route_table": {
@@ -107,7 +107,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: validate.HubRouteTableID,
+											ValidateFunc: virtualwans.ValidateHubRouteTableID,
 										},
 									},
 
@@ -146,12 +146,18 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							ValidateFunc: virtualwans.ValidateVpnSiteLinkID,
 						},
 
+						"dpd_timeout_seconds": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(9, 3600),
+						},
+
 						"egress_nat_rule_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.VpnGatewayNatRuleID,
+								ValidateFunc: virtualwans.ValidateNatRuleID,
 							},
 						},
 
@@ -160,7 +166,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.VpnGatewayNatRuleID,
+								ValidateFunc: virtualwans.ValidateNatRuleID,
 							},
 						},
 
@@ -193,8 +199,10 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 						},
 
 						"shared_key": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							// NOTE: O+C the API generates a key for the user if not supplied
+							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -219,7 +227,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 									"sa_data_size_kb": {
 										Type:         pluginsdk.TypeInt,
 										Required:     true,
-										ValidateFunc: validation.IntBetween(0, 2147483647),
+										ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 									},
 									"encryption_algorithm": {
 										Type:         pluginsdk.TypeString,
@@ -329,9 +337,9 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceVpnGatewayConnectionResourceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVpnGatewayConnectionResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -341,17 +349,15 @@ func resourceVpnGatewayConnectionResourceCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	id := commonids.NewVPNConnectionID(gatewayId.SubscriptionId, gatewayId.ResourceGroupName, gatewayId.VpnGatewayName, name)
-	if d.IsNewResource() {
-		resp, err := client.VpnConnectionsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	resp, err := client.VpnConnectionsGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_vpn_gateway_connection", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_vpn_gateway_connection", id.ID())
 	}
 
 	locks.ByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
@@ -373,7 +379,7 @@ func resourceVpnGatewayConnectionResourceCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if err := client.VpnConnectionsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -439,6 +445,60 @@ func resourceVpnGatewayConnectionResourceRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
+func resourceVpnGatewayConnectionResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := commonids.ParseVPNConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.VpnConnectionsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	gatewayId := virtualwans.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroupName, id.GatewayName)
+
+	locks.ByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
+	defer locks.UnlockByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
+
+	if d.HasChange("internet_security_enabled") {
+		payload.Properties.EnableInternetSecurity = pointer.To(d.Get("internet_security_enabled").(bool))
+	}
+
+	if d.HasChange("routing") {
+		payload.Properties.RoutingConfiguration = expandVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]interface{}))
+	}
+
+	if d.HasChange("vpn_link") {
+		payload.Properties.VpnLinkConnections = expandVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{}))
+	}
+
+	if d.HasChange("traffic_selector_policy") {
+		payload.Properties.TrafficSelectorPolicies = expandVpnGatewayConnectionTrafficSelectorPolicy(d.Get("traffic_selector_policy").(*pluginsdk.Set).List())
+	}
+
+	if err = client.VpnConnectionsCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceVpnGatewayConnectionResourceRead(d, meta)
+}
+
 func resourceVpnGatewayConnectionResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -468,10 +528,10 @@ func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]vi
 	for _, itemRaw := range input {
 		item := itemRaw.(map[string]interface{})
 		v := virtualwans.VpnSiteLinkConnection{
-			Name: utils.String(item["name"].(string)),
+			Name: pointer.To(item["name"].(string)),
 			Properties: &virtualwans.VpnSiteLinkConnectionProperties{
 				VpnSiteLink: &virtualwans.SubResource{
-					Id: utils.String(item["vpn_site_link_id"].(string)),
+					Id: pointer.To(item["vpn_site_link_id"].(string)),
 				},
 				RoutingWeight:                  pointer.To(int64(item["route_weight"].(int))),
 				VpnConnectionProtocolType:      pointer.To(virtualwans.VirtualNetworkGatewayConnectionProtocol(item["protocol"].(string))),
@@ -484,6 +544,10 @@ func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]vi
 				UsePolicyBasedTrafficSelectors: pointer.To(item["policy_based_traffic_selector_enabled"].(bool)),
 				VpnGatewayCustomBgpAddresses:   expandVpnGatewayConnectionCustomBgpAddresses(item["custom_bgp_address"].(*pluginsdk.Set).List()),
 			},
+		}
+
+		if dpdTimeoutSeconds := item["dpd_timeout_seconds"].(int); dpdTimeoutSeconds != 0 {
+			v.Properties.DpdTimeoutSeconds = pointer.To(int64(dpdTimeoutSeconds))
 		}
 
 		if egressNatRuleIds := item["egress_nat_rule_ids"].(*pluginsdk.Set).List(); len(egressNatRuleIds) != 0 {
@@ -534,6 +598,7 @@ func flattenVpnGatewayConnectionVpnSiteLinkConnections(input *[]virtualwans.VpnS
 
 		output = append(output, map[string]interface{}{
 			"name":                                  pointer.From(item.Name),
+			"dpd_timeout_seconds":                   int(pointer.From(props.DpdTimeoutSeconds)),
 			"egress_nat_rule_ids":                   flattenVpnGatewayConnectionNatRuleIds(props.EgressNatRules),
 			"ingress_nat_rule_ids":                  flattenVpnGatewayConnectionNatRuleIds(props.IngressNatRules),
 			"vpn_site_link_id":                      vpnSiteLinkId,
@@ -608,19 +673,19 @@ func expandVpnGatewayConnectionRoutingConfiguration(input []interface{}) *virtua
 
 	output := &virtualwans.RoutingConfiguration{
 		AssociatedRouteTable: &virtualwans.SubResource{
-			Id: utils.String(raw["associated_route_table"].(string)),
+			Id: pointer.To(raw["associated_route_table"].(string)),
 		},
 	}
 
 	if inboundRouteMapId := raw["inbound_route_map_id"].(string); inboundRouteMapId != "" {
 		output.InboundRouteMap = &virtualwans.SubResource{
-			Id: utils.String(inboundRouteMapId),
+			Id: pointer.To(inboundRouteMapId),
 		}
 	}
 
 	if outboundRouteMapId := raw["outbound_route_map_id"].(string); outboundRouteMapId != "" {
 		output.OutboundRouteMap = &virtualwans.SubResource{
-			Id: utils.String(outboundRouteMapId),
+			Id: pointer.To(outboundRouteMapId),
 		}
 	}
 
@@ -748,7 +813,7 @@ func expandVpnGatewayConnectionNatRuleIds(input []interface{}) *[]virtualwans.Su
 
 	for _, item := range input {
 		results = append(results, virtualwans.SubResource{
-			Id: utils.String(item.(string)),
+			Id: pointer.To(item.(string)),
 		})
 	}
 

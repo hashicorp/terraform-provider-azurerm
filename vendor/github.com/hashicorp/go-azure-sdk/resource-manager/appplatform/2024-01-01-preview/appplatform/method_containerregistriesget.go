@@ -45,7 +45,6 @@ func (c AppPlatformClient) ContainerRegistriesGet(ctx context.Context, id Contai
 
 	var model ContainerRegistryResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

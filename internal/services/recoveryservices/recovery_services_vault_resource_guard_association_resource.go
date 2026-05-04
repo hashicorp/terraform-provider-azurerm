@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -11,25 +11,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/resourceguards"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguards"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-const VaultGuardResourceType = "Microsoft.RecoveryServices/vaults/backupResourceGuardProxies"
-const VaultGuardProxyDeleteRequestName = "default" // this name does not matter, this value comes from Portal.
+const (
+	VaultGuardResourceType           = "Microsoft.RecoveryServices/vaults/backupResourceGuardProxies"
+	VaultGuardProxyDeleteRequestName = "default" // this name does not matter, this value comes from Portal.
+)
 
 type VaultGuardProxyResource struct{}
 
 var _ sdk.Resource = VaultGuardProxyResource{}
 
 type VaultGuardProxyModel struct {
-	Name            string `tfschema:"name"`
 	VaultId         string `tfschema:"vault_id"`
 	ResourceGuardId string `tfschema:"resource_guard_id"`
 }
@@ -47,26 +48,19 @@ func (r VaultGuardProxyResource) ResourceType() string {
 }
 
 func (r VaultGuardProxyResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		// todo 4.0: remove the `name` field as the service only allow create `VaultProxy`
-		"name": {
-			Deprecated:   "The `name` field will be removed in v4.0 of the AzureRM Provider.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			Default:      "VaultProxy",
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
+	args := map[string]*schema.Schema{
 		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&vaults.VaultId{}),
 
-		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceguards.ResourceGuardId{}),
+		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceguardresources.ResourceGuardId{}),
 	}
+
+	return args
 }
 
 func (r VaultGuardProxyResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
+
 func (r VaultGuardProxyResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -82,7 +76,8 @@ func (r VaultGuardProxyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing vault id %w", err)
 			}
 
-			id := resourceguardproxy.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, plan.Name)
+			name := "VaultProxy"
+			id := resourceguardproxy.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -135,7 +130,6 @@ func (r VaultGuardProxyResource) Read() sdk.ResourceFunc {
 			vaultId := vaults.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
 			state := VaultGuardProxyModel{
 				VaultId: vaultId.ID(),
-				Name:    id.BackupResourceGuardProxyName,
 			}
 
 			if resp.Model != nil && resp.Model.Properties != nil {
@@ -159,12 +153,12 @@ func (r VaultGuardProxyResource) Delete() sdk.ResourceFunc {
 
 			id, err := resourceguardproxy.ParseBackupResourceGuardProxyID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %q:%+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
-			guardId, err := resourceguards.ParseResourceGuardID(plan.ResourceGuardId)
+			guardId, err := resourceguardresources.ParseResourceGuardID(plan.ResourceGuardId)
 			if err != nil {
-				return fmt.Errorf("parsing %q:%+v", plan.ResourceGuardId, err)
+				return err
 			}
 
 			requestId := resourceguards.NewDeleteResourceGuardProxyRequestID(guardId.SubscriptionId, guardId.ResourceGroupName, guardId.ResourceGuardName, VaultGuardProxyDeleteRequestName)
@@ -178,7 +172,7 @@ func (r VaultGuardProxyResource) Delete() sdk.ResourceFunc {
 			}
 
 			if _, err = client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s:%+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil

@@ -6,12 +6,12 @@
 
 The AzureRM Terraform Provider allows managing resources within Azure Resource Manager.
 
-When using version 3.0 of the AzureRM Provider we recommend using Terraform 1.x ([the latest version can be found here](https://www.terraform.io/downloads)). Whilst older versions of Terraform Core (0.12.x and later) remain compatible with v3.0 of the AzureRM Provider - support for versions prior to 1.0 will be removed in the next major release of the AzureRM Provider (v4.0).
+When using version 4.0 of the AzureRM Provider we recommend using the latest version of Terraform Core ([the latest version can be found here](https://developer.hashicorp.com/terraform/install)). 
 
 * [Terraform Website](https://www.terraform.io)
 * [AzureRM Provider Documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 * [AzureRM Provider Usage Examples](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples)
-* [Slack Workspace for Contributors](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/enQtNDMzNjQ5NzcxMDc3LWNiY2ZhNThhNDgzNmY0MTM0N2MwZjE4ZGU0MjcxYjUyMzRmN2E5NjZhZmQ0ZTA1OTExMGNjYzA4ZDkwZDYxNDE))
+* [Slack Workspace for Contributors](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/zt-3qcv2dj6v-aKas6O6FSBZaxSSZph~Uvg))
 
 ## Usage Example
 
@@ -21,7 +21,7 @@ terraform {
   required_providers {
     azurerm = {
       source = "hashicorp/azurerm"
-      version = "=3.0.1"
+      version = "=4.0.0"
     }
   }
 }

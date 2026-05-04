@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_test
@@ -9,25 +9,25 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type BotChannelEmailResource struct{}
 
-func testAccBotChannelEmail_basic(t *testing.T) {
+func TestAccBotChannelEmail_basic(t *testing.T) {
 	if ok := skipEmailChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -38,14 +38,14 @@ func testAccBotChannelEmail_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelEmail_update(t *testing.T) {
+func TestAccBotChannelEmail_update(t *testing.T) {
 	if ok := skipEmailChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,7 +63,7 @@ func testAccBotChannelEmail_update(t *testing.T) {
 	})
 }
 
-func testAccBotChannelEmail_magicCode(t *testing.T) {
+func TestAccBotChannelEmail_magicCode(t *testing.T) {
 	if os.Getenv("ARM_TEST_BOT_RESOURCE_GROUP_NAME") == "" || os.Getenv("ARM_TEST_BOT_NAME") == "" || os.Getenv("ARM_TEST_EMAIL") == "" || os.Getenv("ARM_TEST_MAGIC_CODE") == "" {
 		t.Skip("Skipping as one of `ARM_TEST_BOT_RESOURCE_GROUP_NAME`, `ARM_TEST_BOT_LOCATION`, `ARM_TEST_BOT_NAME`, `ARM_TEST_EMAIL`, AND `ARM_TEST_MAGIC_CODE` was not specified")
 	}
@@ -71,7 +71,7 @@ func testAccBotChannelEmail_magicCode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.magicCode(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -93,7 +93,7 @@ func (t BotChannelEmailResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return pointer.To(resp.Properties != nil), nil
 }
 
 func (BotChannelEmailResource) basicConfig(data acceptance.TestData) string {

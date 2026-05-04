@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse_test
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -174,12 +175,12 @@ func (SynapseSqlPoolExtendedAuditingPolicyResource) Exists(ctx context.Context, 
 	resp, err := client.Synapse.SqlPoolExtendedBlobAuditingPoliciesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (SynapseSqlPoolExtendedAuditingPolicyResource) template(data acceptance.TestData) string {
@@ -388,9 +389,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id         = azurerm_synapse_sql_pool.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
 
     retention_policy {
       enabled = false
@@ -399,15 +399,11 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  // log, metric will return all disabled categories
+  // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [metric]
   }
 }
 
@@ -427,9 +423,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id         = azurerm_synapse_sql_pool.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
 
     retention_policy {
       enabled = false
@@ -438,15 +433,11 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  // log, metric will return all disabled categories
+  // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [metric]
   }
 }
 
@@ -470,9 +461,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_name                  = azurerm_eventhub.test.name
 
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
 
     retention_policy {
       enabled = false
@@ -481,15 +471,11 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  // log, metric will return all disabled categories
+  // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [metric]
   }
 
 }
@@ -512,9 +498,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_name                  = azurerm_eventhub.test.name
 
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
 
     retention_policy {
       enabled = false
@@ -523,15 +508,11 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  // log, metric will return all disabled categories
+  // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [metric]
   }
 
 }

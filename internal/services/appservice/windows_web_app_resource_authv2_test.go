@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -171,6 +171,9 @@ func TestAccWindowsWebApp_authV2Update(t *testing.T) {
 			Config: r.authV2Apple(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.apple_v2.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.apple_v2.0.client_id").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -178,6 +181,30 @@ func TestAccWindowsWebApp_authV2Update(t *testing.T) {
 			Config: r.authV2Facebook(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.apple_v2.#").HasValue("0"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.facebook_v2.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.facebook_v2.0.app_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.authV2Removed(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.apple_v2.#").HasValue("0"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.facebook_v2.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.authV2Apple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.apple_v2.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.apple_v2.0.client_id").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -242,6 +269,7 @@ resource "azurerm_windows_web_app" "test" {
       client_id                  = data.azurerm_client_config.current.client_id
       client_secret_setting_name = "%[3]s"
       tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
+      allowed_applications       = ["WhoopsMissedThisOne"]
     }
     login {}
   }
@@ -405,6 +433,25 @@ resource "azurerm_windows_web_app" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+func (r WindowsWebAppResource) authV2Removed(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger)
 }
 
 func (r WindowsWebAppResource) authV2Github(data acceptance.TestData) string {
@@ -777,19 +824,20 @@ resource "azurerm_windows_web_app" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = true
-    scm_use_main_ip_restriction = true
-    local_mysql_enabled         = true
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2019"
-    use_32_bit_worker           = false
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health"
-    worker_count                = 1
-    minimum_tls_version         = "1.1"
-    scm_minimum_tls_version     = "1.1"
+    http2_enabled                     = true
+    scm_use_main_ip_restriction       = true
+    local_mysql_enabled               = true
+    managed_pipeline_mode             = "Integrated"
+    remote_debugging_enabled          = true
+    remote_debugging_version          = "VS2022"
+    use_32_bit_worker                 = false
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 1
+    minimum_tls_version               = "1.1"
+    scm_minimum_tls_version           = "1.1"
     cors {
       allowed_origins = [
         "http://www.contoso.com",
@@ -801,8 +849,6 @@ resource "azurerm_windows_web_app" "test" {
 
     container_registry_use_managed_identity       = true
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
-
-    auto_heal_enabled = true
 
     virtual_application {
       virtual_path  = "/"

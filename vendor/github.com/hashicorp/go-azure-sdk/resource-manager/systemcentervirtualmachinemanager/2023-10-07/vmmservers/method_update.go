@@ -18,11 +18,11 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *VMMServer
+	Model        *VMmServer
 }
 
 // Update ...
-func (c VMmServersClient) Update(ctx context.Context, id VMmServerId, input ResourcePatch) (result UpdateOperationResponse, err error) {
+func (c VMmServersClient) Update(ctx context.Context, id VMmServerId, input VMmServerTagsUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +61,7 @@ func (c VMmServersClient) Update(ctx context.Context, id VMmServerId, input Reso
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c VMmServersClient) UpdateThenPoll(ctx context.Context, id VMmServerId, input ResourcePatch) error {
+func (c VMmServersClient) UpdateThenPoll(ctx context.Context, id VMmServerId, input VMmServerTagsUpdate) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)

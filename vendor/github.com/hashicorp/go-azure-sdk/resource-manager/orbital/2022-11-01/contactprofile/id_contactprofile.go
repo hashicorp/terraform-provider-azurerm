@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ContactProfileId{})
+}
 
 var _ resourceids.ResourceId = &ContactProfileId{}
 
@@ -37,7 +42,7 @@ func ParseContactProfileID(input string) (*ContactProfileId, error) {
 	}
 
 	id := ContactProfileId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseContactProfileIDInsensitively(input string) (*ContactProfileId, error)
 	}
 
 	id := ContactProfileId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id ContactProfileId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOrbital", "Microsoft.Orbital", "Microsoft.Orbital"),
 		resourceids.StaticSegment("staticContactProfiles", "contactProfiles", "contactProfiles"),
-		resourceids.UserSpecifiedSegment("contactProfileName", "contactProfileValue"),
+		resourceids.UserSpecifiedSegment("contactProfileName", "contactProfileName"),
 	}
 }
 

@@ -1,0 +1,17 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+#
+# Intended for internal HashiCorp use only
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hc-install
+  description: Go module for downloading or locating HashiCorp binaries
+  annotations:
+    github.com/project-slug: hashicorp/hc-install
+    jira/project-key: TF
+    jira/label: hc-install
+spec:
+  type: library
+  owner: terraform-core
+  lifecycle: production

@@ -23,6 +23,18 @@ type ListWebWorkerMetricDefinitionsCompleteResult struct {
 	Items              []ResourceMetricDefinition
 }
 
+type ListWebWorkerMetricDefinitionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListWebWorkerMetricDefinitionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListWebWorkerMetricDefinitions ...
 func (c AppServiceEnvironmentsClient) ListWebWorkerMetricDefinitions(ctx context.Context, id WorkerPoolId) (result ListWebWorkerMetricDefinitionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppServiceEnvironmentsClient) ListWebWorkerMetricDefinitions(ctx context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListWebWorkerMetricDefinitionsCustomPager{},
 		Path:       fmt.Sprintf("%s/metricdefinitions", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c AppServiceEnvironmentsClient) ListWebWorkerMetricDefinitionsCompleteMatc
 
 	resp, err := c.ListWebWorkerMetricDefinitions(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

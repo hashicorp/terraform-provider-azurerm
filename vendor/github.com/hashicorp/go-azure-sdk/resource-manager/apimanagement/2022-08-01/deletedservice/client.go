@@ -15,7 +15,7 @@ type DeletedServiceClient struct {
 }
 
 func NewDeletedServiceClientWithBaseURI(sdkApi sdkEnv.Api) (*DeletedServiceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "deletedservice", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "deletedservice", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DeletedServiceClient: %+v", err)
 	}

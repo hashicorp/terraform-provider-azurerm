@@ -1,41 +1,43 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
 
 import (
 	"fmt"
-	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routetables"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_table -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var routeTableResourceName = "azurerm_route_table"
 
 func resourceRouteTable() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRouteTableCreateUpdate,
+		Create: resourceRouteTableCreate,
 		Read:   resourceRouteTableRead,
-		Update: resourceRouteTableCreateUpdate,
+		Update: resourceRouteTableUpdate,
 		Delete: resourceRouteTableDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := routetables.ParseRouteTableID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&routetables.RouteTableId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&routetables.RouteTableId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -96,11 +98,10 @@ func resourceRouteTable() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO rename to bgp_route_propagation_enabled in 4.0
-			"disable_bgp_route_propagation": {
+			"bgp_route_propagation_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"subnets": {
@@ -115,46 +116,88 @@ func resourceRouteTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Route Table creation.")
-
 	id := routetables.NewRouteTableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, routetables.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id, routetables.DefaultGetOperationOptions())
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_route_table", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_route_table", id.ID())
+	}
+
+	bgpRoutePropagationEnabled := d.Get("bgp_route_propagation_enabled").(bool)
 
 	routeSet := routetables.RouteTable{
 		Name:     &id.RouteTableName,
-		Location: &location,
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &routetables.RouteTablePropertiesFormat{
 			Routes:                     expandRouteTableRoutes(d),
-			DisableBgpRoutePropagation: utils.Bool(d.Get("disable_bgp_route_propagation").(bool)),
+			DisableBgpRoutePropagation: pointer.To(!bgpRoutePropagationEnabled),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, routeSet); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
+	return resourceRouteTableRead(d, meta)
+}
+
+func resourceRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.RouteTables
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := routetables.ParseRouteTableID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id, routetables.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("route") {
+		payload.Properties.Routes = expandRouteTableRoutes(d)
+	}
+
+	if d.HasChange("bgp_route_propagation_enabled") {
+		payload.Properties.DisableBgpRoutePropagation = pointer.To(!d.Get("bgp_route_propagation_enabled").(bool))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
 
 	return resourceRouteTableRead(d, meta)
 }
@@ -178,14 +221,22 @@ func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	if err := resourceRouteTableFlatten(d, id, resp.Model); err != nil {
+		return fmt.Errorf("flattening %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceRouteTableFlatten(d *pluginsdk.ResourceData, id *routetables.RouteTableId, table *routetables.RouteTable) error {
 	d.Set("name", id.RouteTableName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+	if table != nil {
+		d.Set("location", location.NormalizeNilable(table.Location))
 
-		if props := model.Properties; props != nil {
-			d.Set("disable_bgp_route_propagation", props.DisableBgpRoutePropagation)
+		if props := table.Properties; props != nil {
+			d.Set("bgp_route_propagation_enabled", !pointer.From(props.DisableBgpRoutePropagation))
 			if err := d.Set("route", flattenRouteTableRoutes(props.Routes)); err != nil {
 				return err
 			}
@@ -195,10 +246,12 @@ func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, table.Tags); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -226,9 +279,9 @@ func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]routetables.Route {
 		data := configRaw.(map[string]interface{})
 
 		route := routetables.Route{
-			Name: utils.String(data["name"].(string)),
+			Name: pointer.To(data["name"].(string)),
 			Properties: &routetables.RoutePropertiesFormat{
-				AddressPrefix: utils.String(data["address_prefix"].(string)),
+				AddressPrefix: pointer.To(data["address_prefix"].(string)),
 				NextHopType:   routetables.RouteNextHopType(data["next_hop_type"].(string)),
 			},
 		}

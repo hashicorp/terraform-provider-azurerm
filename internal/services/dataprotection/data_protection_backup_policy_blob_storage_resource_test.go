@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DataProtectionBackupPolicyBlobStorageResource struct{}
@@ -25,6 +25,20 @@ func TestAccDataProtectionBackupPolicyBlobStorage_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataProtectionBackupPolicyBlobStorage_vaultbackup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_blob_storage", "test")
+	r := DataProtectionBackupPolicyBlobStorageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vaultBackup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -48,18 +62,18 @@ func TestAccDataProtectionBackupPolicyBlobStorage_requiresImport(t *testing.T) {
 }
 
 func (r DataProtectionBackupPolicyBlobStorageResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := backuppolicies.ParseBackupPolicyID(state.ID)
+	id, err := basebackuppolicyresources.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupPolicyClient.Get(ctx, *id)
+	resp, err := client.DataProtection.BackupPolicyClient.BackupPoliciesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving DataProtection BackupPolicy (%q): %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r DataProtectionBackupPolicyBlobStorageResource) template(data acceptance.TestData) string {
@@ -89,9 +103,51 @@ func (r DataProtectionBackupPolicyBlobStorageResource) basic(data acceptance.Tes
 %s
 
 resource "azurerm_data_protection_backup_policy_blob_storage" "test" {
-  name               = "acctest-dbp-%d"
-  vault_id           = azurerm_data_protection_backup_vault.test.id
-  retention_duration = "P30D"
+  name                                   = "acctest-dbp-%d"
+  vault_id                               = azurerm_data_protection_backup_vault.test.id
+  operational_default_retention_duration = "P30D"
+}
+`, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupPolicyBlobStorageResource) vaultBackup(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_policy_blob_storage" "test" {
+  name                                   = "acctest-dbp-%d"
+  vault_id                               = azurerm_data_protection_backup_vault.test.id
+  operational_default_retention_duration = "P30D"
+  vault_default_retention_duration       = "P7D"
+  backup_repeating_time_intervals        = ["R/2024-05-08T11:30:00+00:00/P1W"]
+
+  retention_rule {
+    name     = "Monthly"
+    priority = 15
+    life_cycle {
+      duration        = "P6M"
+      data_store_type = "VaultStore"
+    }
+    criteria {
+      days_of_month = [1, 2, 0]
+    }
+  }
+
+  retention_rule {
+    name     = "Daily"
+    priority = 25
+    life_cycle {
+      duration        = "P7D"
+      data_store_type = "VaultStore"
+    }
+    criteria {
+      days_of_week           = ["Thursday"]
+      months_of_year         = ["November"]
+      weeks_of_month         = ["First"]
+      scheduled_backup_times = ["2024-05-08T02:30:00Z"]
+    }
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -102,9 +158,9 @@ func (r DataProtectionBackupPolicyBlobStorageResource) requiresImport(data accep
 %s
 
 resource "azurerm_data_protection_backup_policy_blob_storage" "import" {
-  name               = azurerm_data_protection_backup_policy_blob_storage.test.name
-  vault_id           = azurerm_data_protection_backup_policy_blob_storage.test.vault_id
-  retention_duration = "P30D"
+  name                                   = azurerm_data_protection_backup_policy_blob_storage.test.name
+  vault_id                               = azurerm_data_protection_backup_policy_blob_storage.test.vault_id
+  operational_default_retention_duration = "P30D"
 }
 `, config)
 }

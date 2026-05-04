@@ -23,6 +23,18 @@ type ListPrivateEndpointConnectionsCompleteResult struct {
 	Items              []PrivateEndpointConnection
 }
 
+type ListPrivateEndpointConnectionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListPrivateEndpointConnectionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListPrivateEndpointConnections ...
 func (c DiskAccessesClient) ListPrivateEndpointConnections(ctx context.Context, id DiskAccessId) (result ListPrivateEndpointConnectionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c DiskAccessesClient) ListPrivateEndpointConnections(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListPrivateEndpointConnectionsCustomPager{},
 		Path:       fmt.Sprintf("%s/privateEndpointConnections", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c DiskAccessesClient) ListPrivateEndpointConnectionsCompleteMatchingPredic
 
 	resp, err := c.ListPrivateEndpointConnections(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

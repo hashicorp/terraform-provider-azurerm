@@ -23,6 +23,18 @@ type ListWebWorkerUsagesCompleteResult struct {
 	Items              []Usage
 }
 
+type ListWebWorkerUsagesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListWebWorkerUsagesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListWebWorkerUsages ...
 func (c AppServiceEnvironmentsClient) ListWebWorkerUsages(ctx context.Context, id WorkerPoolId) (result ListWebWorkerUsagesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppServiceEnvironmentsClient) ListWebWorkerUsages(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListWebWorkerUsagesCustomPager{},
 		Path:       fmt.Sprintf("%s/usages", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c AppServiceEnvironmentsClient) ListWebWorkerUsagesCompleteMatchingPredica
 
 	resp, err := c.ListWebWorkerUsages(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routefilters"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RouteFilterResource struct{}
@@ -119,6 +119,7 @@ func TestAccRouteFilter_withRules(t *testing.T) {
 				check.That(data.ResourceName).Key("rule.0.communities.1").HasValue("12076:53006"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.withRulesUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -130,6 +131,14 @@ func TestAccRouteFilter_withRules(t *testing.T) {
 				check.That(data.ResourceName).Key("rule.0.communities.1").HasValue("12076:52006"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withRulesRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -144,7 +153,7 @@ func (t RouteFilterResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, fmt.Errorf("reading Route Filter (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (RouteFilterResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -157,7 +166,7 @@ func (RouteFilterResource) Destroy(ctx context.Context, client *clients.Client, 
 		return nil, fmt.Errorf("deleting Route Filter %q: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (RouteFilterResource) basic(data acceptance.TestData) string {
@@ -308,4 +317,24 @@ resource "azurerm_route_filter" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (RouteFilterResource) withRulesRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_route_filter" "test" {
+  name                = "acctestrf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  rule                = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

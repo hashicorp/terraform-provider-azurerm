@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -16,17 +16,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -34,45 +34,47 @@ import (
 type LinuxFunctionAppSlotResource struct{}
 
 type LinuxFunctionAppSlotModel struct {
-	Name                             string                                     `tfschema:"name"`
-	FunctionAppID                    string                                     `tfschema:"function_app_id"`
-	ServicePlanID                    string                                     `tfschema:"service_plan_id"`
-	StorageAccountName               string                                     `tfschema:"storage_account_name"`
-	StorageAccountKey                string                                     `tfschema:"storage_account_access_key"`
-	StorageUsesMSI                   bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
-	StorageKeyVaultSecretID          string                                     `tfschema:"storage_key_vault_secret_id"`
-	AppSettings                      map[string]string                          `tfschema:"app_settings"`
-	AuthSettings                     []helpers.AuthSettings                     `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
-	Backup                           []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging                   bool                                       `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled                bool                                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                                     `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings                []helpers.ConnectionString                 `tfschema:"connection_string"`
-	DailyMemoryTimeQuota             int64                                      `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
-	Enabled                          bool                                       `tfschema:"enabled"`
-	FunctionExtensionsVersion        string                                     `tfschema:"functions_extension_version"`
-	ForceDisableContentShare         bool                                       `tfschema:"content_share_force_disabled"`
-	HttpsOnly                        bool                                       `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID      string                                     `tfschema:"key_vault_reference_identity_id"`
-	SiteConfig                       []helpers.SiteConfigLinuxFunctionAppSlot   `tfschema:"site_config"`
-	Tags                             map[string]string                          `tfschema:"tags"`
-	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
-	CustomDomainVerificationId       string                                     `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                     string                                     `tfschema:"hosting_environment_id"`
-	DefaultHostname                  string                                     `tfschema:"default_hostname"`
-	Kind                             string                                     `tfschema:"kind"`
-	OutboundIPAddresses              string                                     `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList            []string                                   `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses      string                                     `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList    []string                                   `tfschema:"possible_outbound_ip_address_list"`
-	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
-	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
-	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
-	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Name                               string                                     `tfschema:"name"`
+	FunctionAppID                      string                                     `tfschema:"function_app_id"`
+	ServicePlanID                      string                                     `tfschema:"service_plan_id"`
+	StorageAccountName                 string                                     `tfschema:"storage_account_name"`
+	StorageAccountKey                  string                                     `tfschema:"storage_account_access_key"`
+	StorageUsesMSI                     bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
+	StorageKeyVaultSecretID            string                                     `tfschema:"storage_key_vault_secret_id"`
+	AppSettings                        map[string]string                          `tfschema:"app_settings"`
+	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                             []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging                     bool                                       `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                  bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                     string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths           string                                     `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                  []helpers.ConnectionString                 `tfschema:"connection_string"`
+	DailyMemoryTimeQuota               int64                                      `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
+	Enabled                            bool                                       `tfschema:"enabled"`
+	FunctionExtensionsVersion          string                                     `tfschema:"functions_extension_version"`
+	ForceDisableContentShare           bool                                       `tfschema:"content_share_force_disabled"`
+	HttpsOnly                          bool                                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID        string                                     `tfschema:"key_vault_reference_identity_id"`
+	SiteConfig                         []helpers.SiteConfigLinuxFunctionAppSlot   `tfschema:"site_config"`
+	Tags                               map[string]string                          `tfschema:"tags"`
+	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
+	CustomDomainVerificationId         string                                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                       string                                     `tfschema:"hosting_environment_id"`
+	DefaultHostname                    string                                     `tfschema:"default_hostname"`
+	Kind                               string                                     `tfschema:"kind"`
+	OutboundIPAddresses                string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList              []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses        string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList      []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess                bool                                       `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
+	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
+	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppSlotResource{}
@@ -92,7 +94,7 @@ func (r LinuxFunctionAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -152,7 +154,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_key_vault_secret_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_key_vault_secret_id",
@@ -273,14 +275,32 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"storage_account": helpers.StorageAccountSchema(),
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
+
+		"virtual_network_backup_restore_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"virtual_network_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
+		"vnet_image_pull_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
+		},
 	}
+
+	if !features.FivePointOh() {
+		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	}
+
+	return args
 }
 
 func (r LinuxFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
@@ -427,11 +447,16 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 					availabilityRequest.Name = fmt.Sprintf("%s.%s", functionAppSlot.Name, nameSuffix)
 					availabilityRequest.IsFqdn = pointer.To(true)
-				}
 
+					if !functionAppSlot.VnetImagePullEnabled {
+						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
+					}
+				}
 			}
-			// Only send for ElasticPremium
-			sendContentSettings := helpers.PlanIsElastic(planSKU) && !functionAppSlot.ForceDisableContentShare
+
+			// Only send for ElasticPremium and Consumption plan
+			elasticOrConsumptionPlan := helpers.PlanIsElastic(planSKU) || helpers.PlanIsConsumption(planSKU)
+			sendContentSettings := elasticOrConsumptionPlan && !functionAppSlot.ForceDisableContentShare
 
 			existing, err := client.GetSlot(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -506,17 +531,18 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			siteEnvelope := webapps.Site{
 				Location: location.Normalize(functionApp.Model.Location),
 				Tags:     pointer.To(functionAppSlot.Tags),
-				Kind:     pointer.To("functionapp,linux"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:         pointer.To(servicePlanId.ID()),
-					Enabled:              pointer.To(functionAppSlot.Enabled),
-					HTTPSOnly:            pointer.To(functionAppSlot.HttpsOnly),
-					SiteConfig:           siteConfig,
-					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
-					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
-					DailyMemoryTimeQuota: pointer.To(functionAppSlot.DailyMemoryTimeQuota),
-					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+					ServerFarmId:             pointer.To(servicePlanId.ID()),
+					Enabled:                  pointer.To(functionAppSlot.Enabled),
+					HTTPSOnly:                pointer.To(functionAppSlot.HttpsOnly),
+					SiteConfig:               siteConfig,
+					ClientCertEnabled:        pointer.To(functionAppSlot.ClientCertEnabled),
+					ClientCertMode:           pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
+					DailyMemoryTimeQuota:     pointer.To(functionAppSlot.DailyMemoryTimeQuota),
+					VnetBackupRestoreEnabled: pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
+					VnetImagePullEnabled:     pointer.To(functionAppSlot.VnetImagePullEnabled),
+					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				},
 			}
 
@@ -544,6 +570,8 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			if err := client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
 			}
+
+			metadata.SetID(id)
 
 			if !functionAppSlot.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
@@ -606,9 +634,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			storageConfig := helpers.ExpandStorageConfig(functionAppSlot.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id, *storageConfig); err != nil {
-					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
-					}
+					return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
 				}
 			}
 
@@ -619,7 +645,6 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -735,6 +760,8 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
+					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -910,6 +937,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				model.Tags = pointer.To(state.Tags)
 			}
 
+			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
+				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
+			}
+
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
 				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
 				if subnetId == "" {
@@ -921,6 +952,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
+				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
 			}
 
 			storageString := state.StorageAccountName
@@ -1033,17 +1068,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
 				if authUpdate.Properties == nil {
-					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
-						Enabled:                           pointer.To(false),
-						ClientSecret:                      pointer.To(""),
-						ClientSecretSettingName:           pointer.To(""),
-						ClientSecretCertificateThumbprint: pointer.To(""),
-						GoogleClientSecret:                pointer.To(""),
-						FacebookAppSecret:                 pointer.To(""),
-						GitHubClientSecret:                pointer.To(""),
-						TwitterConsumerSecret:             pointer.To(""),
-						MicrosoftAccountClientSecret:      pointer.To(""),
-					}
+					authUpdate.Properties = helpers.DefaultAuthSettingsProperties()
 				}
 				if _, err := client.UpdateAuthSettingsSlot(ctx, *id, *authUpdate); err != nil {
 					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
@@ -1052,6 +1077,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
 				}
@@ -1183,6 +1212,38 @@ func (r LinuxFunctionAppSlotResource) StateUpgraders() sdk.StateUpgradeData {
 		SchemaVersion: 1,
 		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.LinuxFunctionAppSlotV0toV1{},
+		},
+	}
+}
+
+func (r LinuxFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			appClient := metadata.Client.AppService.WebAppsClient
+			rd := metadata.ResourceDiff
+			if rd.HasChange("vnet_image_pull_enabled") {
+				appId := rd.Get("function_app_id")
+				if appId.(string) == "" {
+					return nil
+				}
+				_, newValue := rd.GetChange("vnet_image_pull_enabled")
+				functionAppId, err := commonids.ParseAppServiceID(appId.(string))
+				if err != nil {
+					return err
+				}
+
+				functionApp, err := appClient.Get(ctx, *functionAppId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %+v", functionAppId, err)
+				}
+				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
+					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
+						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
+					}
+				}
+			}
+			return nil
 		},
 	}
 }

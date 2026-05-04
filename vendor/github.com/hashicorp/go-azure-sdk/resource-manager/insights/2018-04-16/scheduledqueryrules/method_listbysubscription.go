@@ -35,6 +35,7 @@ func (o ListBySubscriptionOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListBySubscriptionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,8 +55,8 @@ func (c ScheduledQueryRulesClient) ListBySubscription(ctx context.Context, id co
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Insights/scheduledQueryRules", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Insights/scheduledQueryRules", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -75,7 +76,6 @@ func (c ScheduledQueryRulesClient) ListBySubscription(ctx context.Context, id co
 
 	var model LogSearchRuleResourceCollection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

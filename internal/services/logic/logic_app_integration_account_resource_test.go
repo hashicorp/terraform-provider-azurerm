@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogicAppIntegrationAccountResource struct{}
@@ -98,23 +98,6 @@ func TestAccLogicAppIntegrationAccount_update(t *testing.T) {
 	})
 }
 
-func TestAccLogicAppIntegrationAccount_integrationServiceEnvironment(t *testing.T) {
-	t.Skip("skip as Integration Service Environment is being deprecated")
-
-	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account", "test")
-	r := LogicAppIntegrationAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.integrationServiceEnvironment(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (LogicAppIntegrationAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := integrationaccounts.ParseIntegrationAccountID(state.ID)
 	if err != nil {
@@ -126,7 +109,7 @@ func (LogicAppIntegrationAccountResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r LogicAppIntegrationAccountResource) template(data acceptance.TestData) string {
@@ -198,18 +181,4 @@ resource "azurerm_logic_app_integration_account" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-}
-
-func (r LogicAppIntegrationAccountResource) integrationServiceEnvironment(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_logic_app_integration_account" "test" {
-  name                               = "acctest-IA-%d"
-  location                           = azurerm_resource_group.test.location
-  resource_group_name                = azurerm_resource_group.test.name
-  sku_name                           = "Standard"
-  integration_service_environment_id = azurerm_integration_service_environment.test.id
-}
-`, IntegrationServiceEnvironmentResource{}.basic(data), data.RandomInteger)
 }

@@ -22,6 +22,10 @@ type ProviderServer interface {
 	// and data sources.
 	GetProviderSchema(context.Context, *GetProviderSchemaRequest) (*GetProviderSchemaResponse, error)
 
+	// GetResourceIdentitySchemas is called when Terraform needs to know
+	// what the provider's resource identity schemas are.
+	GetResourceIdentitySchemas(context.Context, *GetResourceIdentitySchemasRequest) (*GetResourceIdentitySchemasResponse, error)
+
 	// PrepareProviderConfig is called to give a provider a chance to
 	// modify the configuration the user specified before validation.
 	PrepareProviderConfig(context.Context, *PrepareProviderConfigRequest) (*PrepareProviderConfigResponse, error)
@@ -47,6 +51,62 @@ type ProviderServer interface {
 	// data source is to terraform-plugin-go, so they're their own
 	// interface that is composed into ProviderServer.
 	DataSourceServer
+
+	// FunctionServer is an interface encapsulating all the function-related RPC
+	// requests. ProviderServer implementations must implement them, but they
+	// are a handy interface for defining what a function is to
+	// terraform-plugin-go, so they are their own interface that is composed
+	// into ProviderServer.
+	FunctionServer
+
+	// EphemeralResourceServer is an interface encapsulating all the ephemeral
+	// resource-related RPC requests. ProviderServer implementations must
+	// implement them, but they are a handy interface for defining what an
+	// ephemeral resource is to terraform-plugin-go, so they're their own
+	// interface that is composed into ProviderServer.
+	EphemeralResourceServer
+
+	/* // Add this back once temporary interface is removed
+	   // ListResourceServer is an interface encapsulating all the list
+	   // resource-related RPC requests.
+	   ListResourceServer*/
+
+	/* // Add this back once temporary interface is removed
+	   // ActionServer is an interface encapsulating all the action-related RPC requests.
+	   ActionServer*/
+}
+
+// ProviderServerWithListResource is a temporary interface for servers
+// to implement List Resource RPC handling with:
+//
+// - ListResource
+// - ValidateListResourceConfig
+//
+// Deprecated: All methods will be moved into the
+// ProviderServer and ResourceServer interfaces and this interface will be removed in a future
+// version.
+type ProviderServerWithListResource interface {
+	ProviderServer
+
+	// ListResourceServer is an interface encapsulating all the list
+	// resource-related RPC requests.
+	ListResourceServer
+}
+
+// ProviderServerWithActions is a temporary interface for servers
+// to implement Action RPCs
+//
+// - PlanAction
+// - InvokeAction
+//
+// Deprecated: All methods will be moved into the
+// ProviderServer interface and this interface will be removed in a future
+// version.
+type ProviderServerWithActions interface {
+	ProviderServer
+
+	// ActionServer is an interface encapsulating all the action-related RPC requests.
+	ActionServer
 }
 
 // GetMetadataRequest represents a GetMetadata RPC request.
@@ -66,8 +126,20 @@ type GetMetadataResponse struct {
 	// DataSources returns metadata for all data resources.
 	DataSources []DataSourceMetadata
 
+	// Functions returns metadata for all functions.
+	Functions []FunctionMetadata
+
 	// Resources returns metadata for all managed resources.
 	Resources []ResourceMetadata
+
+	// EphemeralResources returns metadata for all ephemeral resources.
+	EphemeralResources []EphemeralResourceMetadata
+
+	// ListResources returns metadata for all list resources.
+	ListResources []ListResourceMetadata
+
+	// Actions returns metadata for all actions.
+	Actions []ActionMetadata
 }
 
 // GetProviderSchemaRequest represents a Terraform RPC request for the
@@ -106,9 +178,52 @@ type GetProviderSchemaResponse struct {
 	// `data` in a user's configuration.
 	DataSourceSchemas map[string]*Schema
 
+	// Functions is a map of function names to their definition.
+	//
+	// Unlike data resources and managed resources, the name should NOT be
+	// prefixed with the provider name and an underscore. Configuration
+	// references to functions use a separate namespacing syntax that already
+	// includes the provider name.
+	Functions map[string]*Function
+
+	// EphemeralResourceSchemas is a map of ephemeral resource names to the schema for
+	// the configuration specified in the ephemeral resource. The name should be an
+	// ephemeral resource name, and should be prefixed with your provider's
+	// shortname and an underscore. It should match the first label after
+	// `ephemeral` in a user's configuration.
+	EphemeralResourceSchemas map[string]*Schema
+
+	// ListResourceSchemas is a map of list resource schemas and names.
+	ListResourceSchemas map[string]*Schema
+
+	// ActionSchemas is a map of action names to their schema and action type.
+	// The name should be an action name that is prefixed with your provider's
+	// shortname and an underscore.
+	ActionSchemas map[string]*ActionSchema
+
 	// Diagnostics report errors or warnings related to returning the
 	// provider's schemas. Returning an empty slice indicates success, with
 	// no errors or warnings generated.
+	Diagnostics []*Diagnostic
+}
+
+// GetResourceIdentitySchemasRequest represents a Terraform RPC request for the
+// provider's resource identity schemas.
+type GetResourceIdentitySchemasRequest struct{}
+
+// GetResourceIdentitySchemasResponse represents a Terraform RPC response containing
+// the provider's resource identity schemas.
+type GetResourceIdentitySchemasResponse struct {
+	// IdentitySchemas is a map of resource names to the schema for the
+	// identity specified for the resource. The name should be a
+	// resource name, and should be prefixed with your provider's shortname
+	// and an underscore. It should match the first label after `resource`
+	// in a user's configuration.
+	IdentitySchemas map[string]*ResourceIdentitySchema
+
+	// Diagnostics report errors or warnings related to returning the
+	// provider's resource identity schemas. Returning an empty slice
+	// indicates success, with no errors or warnings generated.
 	Diagnostics []*Diagnostic
 }
 
@@ -190,6 +305,10 @@ type ConfigureProviderRequest struct {
 	// known values. Values that are not set in the configuration will be
 	// null.
 	Config *DynamicValue
+
+	// ClientCapabilities defines optionally supported protocol features for the
+	// ConfigureProvider RPC, such as forward-compatible Terraform behavior changes.
+	ClientCapabilities *ConfigureProviderClientCapabilities
 }
 
 // ConfigureProviderResponse represents a Terraform RPC response to the

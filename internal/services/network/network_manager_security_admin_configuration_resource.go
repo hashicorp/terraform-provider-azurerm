@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/securityadminconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/securityadminconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerSecurityAdminConfigurationModel struct {
@@ -165,7 +165,7 @@ func (r ManagerSecurityAdminConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				properties.Description = utils.String(model.Description)
+				properties.Description = pointer.To(model.Description)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
@@ -233,7 +233,7 @@ func (r ManagerSecurityAdminConfigurationResource) Delete() sdk.ResourceFunc {
 			}
 
 			err = client.DeleteThenPoll(ctx, *id, securityadminconfigurations.DeleteOperationOptions{
-				Force: utils.Bool(true),
+				Force: pointer.To(true),
 			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
@@ -245,7 +245,7 @@ func (r ManagerSecurityAdminConfigurationResource) Delete() sdk.ResourceFunc {
 }
 
 func expandNetworkIntentPolicyBasedServiceModel(inputList []string) *[]securityadminconfigurations.NetworkIntentPolicyBasedService {
-	var outputList []securityadminconfigurations.NetworkIntentPolicyBasedService
+	outputList := make([]securityadminconfigurations.NetworkIntentPolicyBasedService, 0, len(inputList))
 	for _, input := range inputList {
 		output := securityadminconfigurations.NetworkIntentPolicyBasedService(input)
 
@@ -256,11 +256,11 @@ func expandNetworkIntentPolicyBasedServiceModel(inputList []string) *[]securitya
 }
 
 func flattenNetworkIntentPolicyBasedServiceModel(inputList *[]securityadminconfigurations.NetworkIntentPolicyBasedService) []string {
-	var outputList []string
 	if inputList == nil {
-		return outputList
+		return []string{}
 	}
 
+	outputList := make([]string, 0, len(*inputList))
 	for _, input := range *inputList {
 		outputList = append(outputList, string(input))
 	}

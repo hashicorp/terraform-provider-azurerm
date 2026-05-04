@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
@@ -10,8 +10,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -45,12 +43,6 @@ func EnvironmentName() string {
 	return envName
 }
 
-func Environment() (*azure.Environment, error) {
-	envName := EnvironmentName()
-	metadataURL := os.Getenv("ARM_METADATA_HOSTNAME")
-	return authentication.AzureEnvironmentByNameFromEndpoint(context.TODO(), metadataURL, envName)
-}
-
 func GetAuthConfig(t *testing.T) *auth.Credentials {
 	if os.Getenv(resource.EnvTfAcc) == "" {
 		t.Skipf("Acceptance test skipped unless env '%s' set", resource.EnvTfAcc)
@@ -68,7 +60,7 @@ func GetAuthConfig(t *testing.T) *auth.Credentials {
 	)
 
 	if metadataHost != "" {
-		if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+		if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost)); err != nil {
 			t.Fatalf("building test client: %+v", err)
 			return nil
 		}
@@ -96,6 +88,11 @@ func GetAuthConfig(t *testing.T) *auth.Credentials {
 }
 
 func RequiresImportError(resourceName string) *regexp.Regexp {
-	message := "to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information."
+	message := `to\s+be\s+managed\s+via\s+Terraform\s+this\s+resource\s+needs\s+to\s+be\s+imported\s+into\s+the\s+State\.\s+Please\s+see\s+the\s+resource\s+documentation\s+for\s+%q\s+for\s+more\s+information`
+	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
+}
+
+func RequiresImportAssociationError(resourceName string) *regexp.Regexp {
+	message := `to\s+be\s+managed\s+via\s+Terraform\s+this\s+association\s+needs\s+to\s+be\s+imported\s+into\s+the\s+State\.\s+Please\s+see\s+the\s+resource\s+documentation\s+for\s+%q\s+for\s+more\s+information`
 	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
 }

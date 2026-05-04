@@ -50,7 +50,6 @@ func (c GlobalSchedulesClient) CreateOrUpdate(ctx context.Context, id ScheduleId
 
 	var model Schedule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -45,7 +45,6 @@ func (c ExtensionsClient) Get(ctx context.Context, id ExtensionId) (result GetOp
 
 	var model Extension
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

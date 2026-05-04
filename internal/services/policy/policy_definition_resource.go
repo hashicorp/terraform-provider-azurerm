@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -12,6 +12,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
@@ -42,6 +43,35 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 		},
 
 		Schema: resourceArmPolicyDefinitionSchema(),
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			// `parameters` cannot have values removed so we'll ForceNew if there are less parameters between Terraform runs
+			if d.HasChange("parameters") {
+				oldParametersRaw, newParametersRaw := d.GetChange("parameters")
+				if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
+					newParametersString := newParametersRaw.(string)
+					if newParametersString == "" {
+						return d.ForceNew("parameters")
+					}
+
+					oldParameters, err := expandParameterDefinitionsValueFromStringTrack1(oldParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					newParameters, err := expandParameterDefinitionsValueFromStringTrack1(newParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					if len(newParameters) < len(oldParameters) {
+						return d.ForceNew("parameters")
+					}
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -80,9 +110,9 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	properties := policy.DefinitionProperties{
 		PolicyType:  policy.Type(policyType),
-		Mode:        utils.String(mode),
-		DisplayName: utils.String(displayName),
-		Description: utils.String(description),
+		Mode:        pointer.To(mode),
+		DisplayName: pointer.To(displayName),
+		Description: pointer.To(description),
 	}
 
 	if policyRuleString := d.Get("policy_rule").(string); policyRuleString != "" {
@@ -102,7 +132,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if parametersString := d.Get("parameters").(string); parametersString != "" {
-		parameters, err := expandParameterDefinitionsValueFromString(parametersString)
+		parameters, err := expandParameterDefinitionsValueFromStringTrack1(parametersString)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 		}
@@ -110,7 +140,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	definition := policy.Definition{
-		Name:                 utils.String(name),
+		Name:                 pointer.To(name),
 		DefinitionProperties: &properties,
 	}
 
@@ -216,7 +246,7 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("metadata", metadataStr)
 		}
 
-		if parametersStr, err := flattenParameterDefinitionsValueToString(props.Parameters); err == nil {
+		if parametersStr, err := flattenParameterDefinitionsValueToStringTrack1(props.Parameters); err == nil {
 			d.Set("parameters", parametersStr)
 		} else {
 			return fmt.Errorf("flattening policy definition parameters %+v", err)

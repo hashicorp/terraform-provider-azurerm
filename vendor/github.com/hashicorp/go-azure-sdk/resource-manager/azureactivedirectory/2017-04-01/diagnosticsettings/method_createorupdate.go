@@ -49,7 +49,6 @@ func (c DiagnosticSettingsClient) CreateOrUpdate(ctx context.Context, id Diagnos
 
 	var model DiagnosticSettingsResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

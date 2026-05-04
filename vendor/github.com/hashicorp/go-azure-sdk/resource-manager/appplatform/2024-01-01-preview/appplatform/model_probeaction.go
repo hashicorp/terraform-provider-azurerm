@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ProbeAction interface {
+	ProbeAction() BaseProbeActionImpl
 }
 
-// RawProbeActionImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ ProbeAction = BaseProbeActionImpl{}
+
+type BaseProbeActionImpl struct {
+	Type ProbeActionType `json:"type"`
+}
+
+func (s BaseProbeActionImpl) ProbeAction() BaseProbeActionImpl {
+	return s
+}
+
+var _ ProbeAction = RawProbeActionImpl{}
+
+// RawProbeActionImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawProbeActionImpl struct {
-	Type   string
-	Values map[string]interface{}
+	probeAction BaseProbeActionImpl
+	Type        string
+	Values      map[string]interface{}
 }
 
-func unmarshalProbeActionImplementation(input []byte) (ProbeAction, error) {
+func (s RawProbeActionImpl) ProbeAction() BaseProbeActionImpl {
+	return s.probeAction
+}
+
+func UnmarshalProbeActionImplementation(input []byte) (ProbeAction, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalProbeActionImplementation(input []byte) (ProbeAction, error) {
 		return nil, fmt.Errorf("unmarshaling ProbeAction into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "ExecAction") {
@@ -60,10 +77,15 @@ func unmarshalProbeActionImplementation(input []byte) (ProbeAction, error) {
 		return out, nil
 	}
 
-	out := RawProbeActionImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseProbeActionImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseProbeActionImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawProbeActionImpl{
+		probeAction: parent,
+		Type:        value,
+		Values:      temp,
+	}, nil
 
 }

@@ -18,9 +18,33 @@ type SubscriptionCancelOperationResponse struct {
 	Model        *CanceledSubscriptionId
 }
 
+type SubscriptionCancelOperationOptions struct {
+	IgnoreResourceCheck *bool
+}
+
+func DefaultSubscriptionCancelOperationOptions() SubscriptionCancelOperationOptions {
+	return SubscriptionCancelOperationOptions{}
+}
+
+func (o SubscriptionCancelOperationOptions) toHeaders() map[string]interface{} {
+	out := make(map[string]interface{})
+
+	return out
+}
+
+func (o SubscriptionCancelOperationOptions) toQueryString() map[string]interface{} {
+	out := make(map[string]interface{})
+
+	if o.IgnoreResourceCheck != nil {
+		out["IgnoreResourceCheck"] = *o.IgnoreResourceCheck
+	}
+
+	return out
+}
+
 // SubscriptionCancel ...
-func (c SubscriptionsClient) SubscriptionCancel(ctx context.Context, id commonids.SubscriptionId) (result SubscriptionCancelOperationResponse, err error) {
-	req, err := c.preparerForSubscriptionCancel(ctx, id)
+func (c SubscriptionsClient) SubscriptionCancel(ctx context.Context, id commonids.SubscriptionId, options SubscriptionCancelOperationOptions) (result SubscriptionCancelOperationResponse, err error) {
+	req, err := c.preparerForSubscriptionCancel(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "subscriptions.SubscriptionsClient", "SubscriptionCancel", nil, "Failure preparing request")
 		return
@@ -42,15 +66,20 @@ func (c SubscriptionsClient) SubscriptionCancel(ctx context.Context, id commonid
 }
 
 // preparerForSubscriptionCancel prepares the SubscriptionCancel request.
-func (c SubscriptionsClient) preparerForSubscriptionCancel(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
+func (c SubscriptionsClient) preparerForSubscriptionCancel(ctx context.Context, id commonids.SubscriptionId, options SubscriptionCancelOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
+	}
+
+	for k, v := range options.toQueryString() {
+		queryParameters[k] = autorest.Encode("query", v)
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(c.baseUri),
+		autorest.WithHeaders(options.toHeaders()),
 		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.Subscription/cancel", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))

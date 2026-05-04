@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -37,7 +37,12 @@ func waitForPolicyAssignmentToStabilize(ctx context.Context, client *assignments
 					return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
 				}
 
-				return nil, strconv.Itoa(resp.HttpResponse.StatusCode), fmt.Errorf("polling for %s: %+v", id, err)
+				// The `HttpResponse` might be nil, reported on https://github.com/hashicorp/terraform-provider-azurerm/issues/27693
+				if resp.HttpResponse != nil {
+					return nil, strconv.Itoa(resp.HttpResponse.StatusCode), fmt.Errorf("polling for %s: %+v", id, err)
+				}
+
+				return nil, "0", fmt.Errorf("polling for %s: %+v", id, err)
 			}
 
 			return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil

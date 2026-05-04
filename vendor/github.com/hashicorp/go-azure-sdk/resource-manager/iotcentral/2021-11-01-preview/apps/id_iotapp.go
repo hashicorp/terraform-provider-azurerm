@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&IotAppId{})
+}
 
 var _ resourceids.ResourceId = &IotAppId{}
 
@@ -37,7 +42,7 @@ func ParseIotAppID(input string) (*IotAppId, error) {
 	}
 
 	id := IotAppId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseIotAppIDInsensitively(input string) (*IotAppId, error) {
 	}
 
 	id := IotAppId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id IotAppId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftIoTCentral", "Microsoft.IoTCentral", "Microsoft.IoTCentral"),
 		resourceids.StaticSegment("staticIotApps", "iotApps", "iotApps"),
-		resourceids.UserSpecifiedSegment("iotAppName", "iotAppValue"),
+		resourceids.UserSpecifiedSegment("iotAppName", "iotAppName"),
 	}
 }
 

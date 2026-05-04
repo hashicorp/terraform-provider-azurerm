@@ -6,7 +6,7 @@ package appplatform
 type GatewayApiMetadataProperties struct {
 	Description   *string `json:"description,omitempty"`
 	Documentation *string `json:"documentation,omitempty"`
-	ServerUrl     *string `json:"serverUrl,omitempty"`
+	ServerURL     *string `json:"serverUrl,omitempty"`
 	Title         *string `json:"title,omitempty"`
 	Version       *string `json:"version,omitempty"`
 }

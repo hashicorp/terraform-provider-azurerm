@@ -23,15 +23,9 @@ output "rule_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the ServiceBus Namespace Authorization Rule.
-
-* `namespace_name` - (Required) Specifies the name of the ServiceBus Namespace.
-
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the ServiceBus Namespace exists.
-
-~> **Note:** `namespace_name` and `resource_group_name` has been deprecated and will be removed in version 4.0 of the provider in favour of `namespace_id`.
 
 * `namespace_id` - (Required) Specifies the ID of the ServiceBus Namespace where the Service Bus Namespace Authorization Rule exists.
 
@@ -53,6 +47,12 @@ output "rule_id" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace Authorization Rule.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.ServiceBus` - 2024-01-01

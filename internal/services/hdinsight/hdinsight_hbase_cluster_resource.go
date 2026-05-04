@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hdinsight
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE: this isn't a recommended way of building resources in Terraform
@@ -111,6 +110,8 @@ func resourceHDInsightHBaseCluster() *pluginsdk.Resource {
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
+			"private_link_configuration": SchemaHDInsightPrivateLinkConfigurations(),
+
 			"roles": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -181,6 +182,9 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	networkPropertiesRaw := d.Get("network").([]interface{})
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
 
+	privateLinkConfigurationsRaw := d.Get("private_link_configuration").([]interface{})
+	privateLinkConfigurations := ExpandHDInsightPrivateLinkConfigurations(privateLinkConfigurationsRaw)
+
 	hbaseRoles := hdInsightRoleDefinition{
 		HeadNodeDef:      hdInsightHBaseClusterHeadNodeDefinition,
 		WorkerNodeDef:    hdInsightHBaseClusterWorkerNodeDefinition,
@@ -207,13 +211,14 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 	var configurationsRaw interface{} = configurations
 	params := clusters.ClusterCreateParametersExtended{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &clusters.ClusterCreateProperties{
-			Tier:                   pointer.To(tier),
-			OsType:                 pointer.To(clusters.OSTypeLinux),
-			ClusterVersion:         utils.String(clusterVersion),
-			MinSupportedTlsVersion: utils.String(tls),
-			NetworkProperties:      networkProperties,
+			Tier:                      pointer.To(tier),
+			OsType:                    pointer.To(clusters.OSTypeLinux),
+			ClusterVersion:            pointer.To(clusterVersion),
+			MinSupportedTlsVersion:    pointer.To(tls),
+			NetworkProperties:         networkProperties,
+			PrivateLinkConfigurations: privateLinkConfigurations,
 			ClusterDefinition: &clusters.ClusterDefinition{
 				Kind:             pointer.To(clusters.ClusterKindHBase),
 				ComponentVersion: pointer.To(componentVersions),
@@ -350,6 +355,10 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 
 			if err := d.Set("network", flattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
 				return fmt.Errorf("flattening `network`: %+v", err)
+			}
+
+			if err := d.Set("private_link_configuration", flattenHDInsightPrivateLinkConfigurations(props.PrivateLinkConfigurations)); err != nil {
+				return fmt.Errorf("flattening `private_link_configuration`: %+v", err)
 			}
 
 			diskEncryptionProps, err := flattenHDInsightsDiskEncryptionProperties(props.DiskEncryptionProperties)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -6,6 +6,7 @@ package storage
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -13,12 +14,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 func resourceStorageTable() *pluginsdk.Resource {
@@ -97,21 +99,28 @@ func resourceStorageTable() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"resource_manager_id": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The Resource Manager ID of this Storage Table.",
+			},
 		},
 	}
 }
 
 func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*clients.Client).Storage
 
 	tableName := d.Get("name").(string)
 	accountName := d.Get("storage_account_name").(string)
 	aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 	acls := expandStorageTableACLs(aclsRaw)
 
-	account, err := storageClient.FindAccount(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Table %q: %s", accountName, tableName, err)
 	}
@@ -167,6 +176,7 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -175,12 +185,12 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", id.AccountId.AccountName, id.TableName, err)
 	}
 	if account == nil {
-		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountId.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountId.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -213,6 +223,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.Set("name", id.TableName)
 	d.Set("storage_account_name", id.AccountId.AccountName)
+	d.Set("resource_manager_id", parse.NewStorageTableResourceManagerID(subscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, "default", id.TableName).ID())
 
 	if err = d.Set("acl", flattenStorageTableACLs(acls)); err != nil {
 		return fmt.Errorf("setting `acl`: %v", err)
@@ -223,6 +234,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -231,7 +243,7 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", id.AccountId.AccountName, id.TableName, err)
 	}
@@ -245,6 +257,9 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if err = client.Delete(ctx, id.TableName); err != nil {
+		if strings.Contains(err.Error(), "unexpected status 404") {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %v", id, err)
 	}
 
@@ -253,6 +268,7 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -261,7 +277,7 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", id.AccountId.AccountName, id.TableName, err)
 	}

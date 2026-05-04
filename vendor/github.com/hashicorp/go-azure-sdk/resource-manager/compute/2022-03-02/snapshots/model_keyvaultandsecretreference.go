@@ -4,6 +4,6 @@ package snapshots
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type KeyVaultAndSecretReference struct {
-	SecretUrl   string      `json:"secretUrl"`
+	SecretURL   string      `json:"secretUrl"`
 	SourceVault SourceVault `json:"sourceVault"`
 }

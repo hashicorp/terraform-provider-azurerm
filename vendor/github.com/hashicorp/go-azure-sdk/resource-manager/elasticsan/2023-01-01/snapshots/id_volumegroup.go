@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&VolumeGroupId{})
+}
 
 var _ resourceids.ResourceId = &VolumeGroupId{}
 
@@ -39,7 +44,7 @@ func ParseVolumeGroupID(input string) (*VolumeGroupId, error) {
 	}
 
 	id := VolumeGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseVolumeGroupIDInsensitively(input string) (*VolumeGroupId, error) {
 	}
 
 	id := VolumeGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id VolumeGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftElasticSan", "Microsoft.ElasticSan", "Microsoft.ElasticSan"),
 		resourceids.StaticSegment("staticElasticSans", "elasticSans", "elasticSans"),
-		resourceids.UserSpecifiedSegment("elasticSanName", "elasticSanValue"),
+		resourceids.UserSpecifiedSegment("elasticSanName", "elasticSanName"),
 		resourceids.StaticSegment("staticVolumeGroups", "volumeGroups", "volumeGroups"),
-		resourceids.UserSpecifiedSegment("volumeGroupName", "volumeGroupValue"),
+		resourceids.UserSpecifiedSegment("volumeGroupName", "volumeGroupName"),
 	}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights
@@ -30,9 +30,10 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ApiKeyUpgradeV0ToV1{},
+			1: migration.ApiKeyUpgradeV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -108,7 +109,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	for existingAPIKeyList.Model != nil && len(existingAPIKeyList.Model.Value) > 0 {
+	if existingAPIKeyList.Model != nil && len(existingAPIKeyList.Model.Value) > 0 {
 		for _, existingAPIKey := range existingAPIKeyList.Model.Value {
 			existingAPIKeyId, err = apikeys.ParseApiKeyIDInsensitively(*existingAPIKey.Id)
 			if err != nil {

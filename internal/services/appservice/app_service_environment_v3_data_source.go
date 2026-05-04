@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -15,9 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppServiceEnvironmentV3DataSource struct{}
@@ -189,7 +187,7 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 		},
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 	}
 }
 
@@ -232,7 +230,7 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 					state.DedicatedHostCount = pointer.From(props.DedicatedHostCount)
 					state.PricingTier = pointer.From(props.MultiSize)
 					state.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)
-					state.DnsSuffix = utils.NormalizeNilableString(props.DnsSuffix)
+					state.DnsSuffix = pointer.From(props.DnsSuffix)
 					state.IpSSLAddressCount = pointer.From(props.IPsslAddressCount)
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 				}
@@ -260,7 +258,6 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 				state.InboundNetworkDependencies = *inboundNetworkDependencies
 
 				state.Tags = pointer.From(model.Tags)
-
 			}
 
 			metadata.SetID(id)

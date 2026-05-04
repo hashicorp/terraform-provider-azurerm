@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package identity
@@ -6,6 +6,7 @@ package identity
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -20,30 +21,28 @@ type LegacySystemAndUserAssignedMap struct {
 	IdentityIds map[string]UserAssignedIdentityDetails `json:"userAssignedIdentities"`
 }
 
-func (s *LegacySystemAndUserAssignedMap) MarshalJSON() ([]byte, error) {
+func (s LegacySystemAndUserAssignedMap) MarshalJSON() ([]byte, error) {
 	// we use a custom marshal function here since we can only send the Type / UserAssignedIdentities field
 	identityType := TypeNone
 	userAssignedIdentityIds := map[string]UserAssignedIdentityDetails{}
 
-	if s != nil {
-		if s.Type == typeLegacySystemAssignedUserAssigned {
-			return nil, fmt.Errorf("internal error: the legacy `SystemAssigned,UserAssigned` identity type should be being converted to the schema type - this is a bug")
-		}
+	if s.Type == typeLegacySystemAssignedUserAssigned {
+		return nil, fmt.Errorf("internal error: the legacy `SystemAssigned,UserAssigned` identity type should be being converted to the schema type - this is a bug")
+	}
 
-		if s.Type == TypeSystemAssigned {
-			identityType = TypeSystemAssigned
-		}
-		if s.Type == TypeSystemAssignedUserAssigned {
-			// convert the Schema value (w/spaces) to the legacy API value (w/o spaces)
-			identityType = typeLegacySystemAssignedUserAssigned
-		}
-		if s.Type == TypeUserAssigned {
-			identityType = TypeUserAssigned
-		}
+	if s.Type == TypeSystemAssigned {
+		identityType = TypeSystemAssigned
+	}
+	if s.Type == TypeSystemAssignedUserAssigned {
+		// convert the Schema value (w/spaces) to the legacy API value (w/o spaces)
+		identityType = typeLegacySystemAssignedUserAssigned
+	}
+	if s.Type == TypeUserAssigned {
+		identityType = TypeUserAssigned
+	}
 
-		if identityType != TypeNone {
-			userAssignedIdentityIds = s.IdentityIds
-		}
+	if identityType != TypeNone {
+		userAssignedIdentityIds = s.IdentityIds
 	}
 
 	out := map[string]interface{}{
@@ -54,6 +53,45 @@ func (s *LegacySystemAndUserAssignedMap) MarshalJSON() ([]byte, error) {
 		out["userAssignedIdentities"] = userAssignedIdentityIds
 	}
 	return json.Marshal(out)
+}
+
+func (s *LegacySystemAndUserAssignedMap) UnmarshalJSON(input []byte) error {
+	if input == nil {
+		return nil
+	}
+
+	var temp map[string]interface{}
+	if err := json.Unmarshal(input, &temp); err != nil {
+		return fmt.Errorf("unmarshaling LegacySystemAndUserAssignedMap into map[string]interface: %+v", err)
+	}
+	typeVal := TypeNone
+	if v, ok := temp["type"].(string); ok && v != "" {
+		if strings.EqualFold(v, string(TypeSystemAssigned)) {
+			typeVal = TypeSystemAssigned
+		}
+		if strings.EqualFold(v, string(TypeUserAssigned)) {
+			typeVal = TypeUserAssigned
+		}
+		if strings.EqualFold(v, string(typeLegacySystemAssignedUserAssigned)) {
+			typeVal = TypeSystemAssignedUserAssigned
+		}
+		if strings.EqualFold(v, string(TypeSystemAssignedUserAssigned)) {
+			typeVal = TypeSystemAssignedUserAssigned
+		}
+	}
+
+	type alias LegacySystemAndUserAssignedMap
+	var decoded alias
+	if err := json.Unmarshal(input, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+
+	s.Type = typeVal
+	s.IdentityIds = decoded.IdentityIds
+	s.PrincipalId = decoded.PrincipalId
+	s.TenantId = decoded.TenantId
+
+	return nil
 }
 
 // ExpandLegacySystemAndUserAssignedMap expands the schema input into a LegacySystemAndUserAssignedMap struct
@@ -166,7 +204,7 @@ func FlattenLegacySystemAndUserAssignedMapToModel(input *LegacySystemAndUserAssi
 	}
 
 	identityIds := make([]string, 0)
-	for raw, _ := range input.IdentityIds {
+	for raw := range input.IdentityIds {
 		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
 		if err != nil {
 			return nil, fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)

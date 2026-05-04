@@ -15,7 +15,7 @@ type WorkflowTriggersClient struct {
 }
 
 func NewWorkflowTriggersClientWithBaseURI(sdkApi sdkEnv.Api) (*WorkflowTriggersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "workflowtriggers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "workflowtriggers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WorkflowTriggersClient: %+v", err)
 	}

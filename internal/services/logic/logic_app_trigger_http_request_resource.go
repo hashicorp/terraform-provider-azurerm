@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -42,7 +42,7 @@ func resourceLogicAppTriggerHttpRequest() *pluginsdk.Resource {
 			if relativePath != "" {
 				method := diff.Get("method").(string)
 				if method == "" {
-					return fmt.Errorf("`method` must be specified when `relative_path` is set.")
+					return fmt.Errorf("`method` must be specified when `relative_path` is set")
 				}
 			}
 
@@ -141,7 +141,7 @@ func resourceLogicAppTriggerHttpRequestRead(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	t, app, url, err := retrieveLogicAppHttpTrigger(d, meta, *id)
+	t, app, url, err := retrieveLogicAppTrigger(d, meta, *id)
 	if err != nil {
 		return err
 	}

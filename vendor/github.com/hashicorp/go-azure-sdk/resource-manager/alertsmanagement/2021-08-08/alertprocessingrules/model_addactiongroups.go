@@ -14,6 +14,14 @@ type AddActionGroups struct {
 	ActionGroupIds []string `json:"actionGroupIds"`
 
 	// Fields inherited from Action
+
+	ActionType ActionType `json:"actionType"`
+}
+
+func (s AddActionGroups) Action() BaseActionImpl {
+	return BaseActionImpl{
+		ActionType: s.ActionType,
+	}
 }
 
 var _ json.Marshaler = AddActionGroups{}
@@ -27,9 +35,10 @@ func (s AddActionGroups) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AddActionGroups: %+v", err)
 	}
+
 	decoded["actionType"] = "AddActionGroups"
 
 	encoded, err = json.Marshal(decoded)

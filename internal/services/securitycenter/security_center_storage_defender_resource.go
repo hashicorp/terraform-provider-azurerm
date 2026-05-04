@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-12-01-preview/defenderforstorage"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2025-06-01/defenderforstorage"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -27,6 +29,7 @@ type StorageDefenderModel struct {
 	MalwareScanningOnUploadEnabled   bool   `tfschema:"malware_scanning_on_upload_enabled"`
 	MalwareScanningOnUploadCapPerMon int64  `tfschema:"malware_scanning_on_upload_cap_gb_per_month"`
 	SensitiveDataDiscoveryEnabled    bool   `tfschema:"sensitive_data_discovery_enabled"`
+	ScanResultsEventGridTopicId      string `tfschema:"scan_results_event_grid_topic_id"`
 }
 
 var _ sdk.ResourceWithUpdate = StorageDefenderResource{}
@@ -79,6 +82,8 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 			Optional: true,
 			Default:  false,
 		},
+
+		"scan_results_event_grid_topic_id": commonschema.ResourceIDReferenceOptional(&topics.TopicId{}),
 	}
 }
 
@@ -127,8 +132,15 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.Create(ctx, id, input)
-			if err != nil {
+			if plan.ScanResultsEventGridTopicId != "" {
+				topicId, err := topics.ParseTopicID(plan.ScanResultsEventGridTopicId)
+				if err != nil {
+					return err
+				}
+				input.Properties.MalwareScanning.ScanResultsEventGridTopicResourceId = pointer.To(topicId.ID())
+			}
+
+			if _, err = client.Create(ctx, id, input); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -189,6 +201,10 @@ func (s StorageDefenderResource) Update() sdk.ResourceFunc {
 				prop.MalwareScanning.OnUpload.CapGBPerMonth = pointer.To(plan.MalwareScanningOnUploadCapPerMon)
 			}
 
+			if metadata.ResourceData.HasChange("scan_results_event_grid_topic_id") {
+				prop.MalwareScanning.ScanResultsEventGridTopicResourceId = pointer.To(plan.ScanResultsEventGridTopicId)
+			}
+
 			if prop.SensitiveDataDiscovery == nil {
 				prop.SensitiveDataDiscovery = &defenderforstorage.SensitiveDataDiscoveryProperties{}
 			}
@@ -201,8 +217,7 @@ func (s StorageDefenderResource) Update() sdk.ResourceFunc {
 				Properties: prop,
 			}
 
-			_, err = client.Create(ctx, *id, input)
-			if err != nil {
+			if _, err = client.Create(ctx, *id, input); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -251,6 +266,13 @@ func (s StorageDefenderResource) Read() sdk.ResourceFunc {
 							state.MalwareScanningOnUploadEnabled = pointer.From(onUpload.IsEnabled)
 							state.MalwareScanningOnUploadCapPerMon = pointer.From(onUpload.CapGBPerMonth)
 						}
+						if ms.ScanResultsEventGridTopicResourceId != nil {
+							topicId, err := topics.ParseTopicID(*ms.ScanResultsEventGridTopicResourceId)
+							if err != nil {
+								return err
+							}
+							state.ScanResultsEventGridTopicId = topicId.ID()
+						}
 					}
 
 					if sdd := prop.SensitiveDataDiscovery; sdd != nil {
@@ -275,8 +297,7 @@ func (s StorageDefenderResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %+v", err)
 			}
 
-			_, err = client.Get(ctx, *id)
-			if err != nil {
+			if _, err = client.Get(ctx, *id); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
@@ -286,8 +307,7 @@ func (s StorageDefenderResource) Delete() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.Create(ctx, *id, input)
-			if err != nil {
+			if _, err = client.Create(ctx, *id, input); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault_test
@@ -10,15 +10,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultKeyResource struct{}
@@ -131,6 +131,47 @@ func TestAccKeyVaultKey_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
 				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkv-%s.vault.azure.net/keys/key-%s", data.RandomString, data.RandomString)),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+	})
+}
+
+func TestAccKeyVaultKey_updateExpirationDate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("not_before_date").HasValue("2020-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("expiration_date").HasValue("2021-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkv-%s.vault.azure.net/keys/key-%s", data.RandomString, data.RandomString)),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+		{
+			Config: r.expirationDate(data, "2021-01-01T01:02:03Z"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+		{
+			Config: r.expirationDate(data, "2022-01-01T01:02:03Z"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+		{
+			Config: r.expirationDate(data, "2021-01-01T01:02:03Z"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("key_size", "key_vault_id"),
@@ -401,15 +442,15 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 	client := clients.KeyVault
 	subscriptionId := clients.Account.SubscriptionId
 
-	id, err := parse.ParseNestedItemID(state.ID)
+	id, err := keyvault.ParseNestedItemID(state.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return nil, err
 	}
 
 	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-	keyVaultIdRaw, err := client.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := client.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseURL)
 	if err != nil || keyVaultIdRaw == nil {
-		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseURL, err)
 	}
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
@@ -418,15 +459,20 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 
 	ok, err := client.Exists(ctx, *keyVaultId)
 	if err != nil || !ok {
-		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
 	}
 
-	resp, err := client.ManagementClient.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	keysClient := client.DataPlaneKeyVaultClient.Keys.Clone(id.KeyVaultBaseURL)
+	keyVersionId := keys.NewKeyversionID(id.KeyVaultBaseURL, id.Name, "")
+	resp, err := keysClient.GetKey(ctx, keyVersionId)
 	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
 		return nil, fmt.Errorf("retrieving Key Vault Key %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.Key != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Key != nil), nil
 }
 
 func (KeyVaultKeyResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -444,6 +490,12 @@ func (KeyVaultKeyResource) destroyParentKeyVault(ctx context.Context, client *cl
 
 func (KeyVaultKeyResource) updateExpiryDate(expiryDate string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		if _, ok := ctx.Deadline(); !ok {
+			// set timeout if not already set because the new client requires deadline on the ctx
+			ctx2, cancel := context.WithTimeout(ctx, time.Minute*5)
+			defer cancel()
+			ctx = ctx2
+		}
 		name := state.Attributes["name"]
 		keyVaultId, err := commonids.ParseKeyVaultID(state.Attributes["key_vault_id"])
 		if err != nil {
@@ -459,13 +511,14 @@ func (KeyVaultKeyResource) updateExpiryDate(expiryDate string) acceptance.Client
 		if err != nil {
 			return err
 		}
-		expirationUnixTime := date.UnixTime(expirationDate)
-		update := keyvault.KeyUpdateParameters{
-			KeyAttributes: &keyvault.KeyAttributes{
-				Expires: &expirationUnixTime,
+		keysClient := clients.KeyVault.DataPlaneKeyVaultClient.Keys.Clone(*vaultBaseUrl)
+		keyVersionId := keys.NewKeyversionID(*vaultBaseUrl, name, "")
+		update := keys.KeyUpdateParameters{
+			Attributes: &keys.KeyAttributes{
+				Exp: pointer.To(expirationDate.Unix()),
 			},
 		}
-		if _, err = clients.KeyVault.ManagementClient.UpdateKey(ctx, *vaultBaseUrl, name, "", update); err != nil {
+		if _, err = keysClient.UpdateKey(ctx, keyVersionId, update); err != nil {
 			return fmt.Errorf("updating secret: %+v", err)
 		}
 
@@ -485,11 +538,13 @@ func (KeyVaultKeyResource) Destroy(ctx context.Context, client *clients.Client, 
 		return nil, fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	if _, err := client.KeyVault.ManagementClient.DeleteKey(ctx, *vaultBaseUrl, name); err != nil {
-		return nil, fmt.Errorf("deleting keyVaultManagementClient: %+v", err)
+	keysClient := client.KeyVault.DataPlaneKeyVaultClient.Keys.Clone(*vaultBaseUrl)
+	keyId := keys.NewKeyID(*vaultBaseUrl, name)
+	if _, err := keysClient.DeleteKey(ctx, keyId); err != nil {
+		return nil, fmt.Errorf("deleting key vault key: %+v", err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r KeyVaultKeyResource) basicEC(data acceptance.TestData) string {
@@ -641,6 +696,38 @@ resource "azurerm_key_vault_key" "test" {
   }
 }
 `, r.templateStandard(data), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) expirationDate(data acceptance.TestData, expirationDate string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name            = "key-%s"
+  key_vault_id    = azurerm_key_vault.test.id
+  key_type        = "RSA"
+  key_size        = 2048
+  not_before_date = "2020-01-01T01:02:03Z"
+  expiration_date = "%s"
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  tags = {
+    "hello" = "world"
+  }
+}
+`, r.templateStandard(data), data.RandomString, expirationDate)
 }
 
 func (r KeyVaultKeyResource) basicUpdated(data acceptance.TestData) string {

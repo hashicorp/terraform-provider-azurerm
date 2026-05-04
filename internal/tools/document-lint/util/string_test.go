@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package util
@@ -59,5 +59,4 @@ func TestTimeoutIdx(t *testing.T) {
 	line = "* `delete` - (Defaults to 30 minutes) Used when deleting the EventGrid Event Subscription."
 	idxs = timeoutValueReg.FindStringSubmatchIndex(line)
 	t.Logf("%v: %s", idxs, line[idxs[0]:idxs[1]])
-
 }

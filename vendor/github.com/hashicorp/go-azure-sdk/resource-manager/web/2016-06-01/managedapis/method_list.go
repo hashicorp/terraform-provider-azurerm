@@ -46,7 +46,6 @@ func (c ManagedAPIsClient) List(ctx context.Context, id LocationId) (result List
 
 	var model ManagedApiDefinitionCollection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&CollectorPolicyId{})
+}
 
 var _ resourceids.ResourceId = &CollectorPolicyId{}
 
@@ -39,7 +44,7 @@ func ParseCollectorPolicyID(input string) (*CollectorPolicyId, error) {
 	}
 
 	id := CollectorPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseCollectorPolicyIDInsensitively(input string) (*CollectorPolicyId, erro
 	}
 
 	id := CollectorPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id CollectorPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetworkFunction", "Microsoft.NetworkFunction", "Microsoft.NetworkFunction"),
 		resourceids.StaticSegment("staticAzureTrafficCollectors", "azureTrafficCollectors", "azureTrafficCollectors"),
-		resourceids.UserSpecifiedSegment("azureTrafficCollectorName", "azureTrafficCollectorValue"),
+		resourceids.UserSpecifiedSegment("azureTrafficCollectorName", "azureTrafficCollectorName"),
 		resourceids.StaticSegment("staticCollectorPolicies", "collectorPolicies", "collectorPolicies"),
-		resourceids.UserSpecifiedSegment("collectorPolicyName", "collectorPolicyValue"),
+		resourceids.UserSpecifiedSegment("collectorPolicyName", "collectorPolicyName"),
 	}
 }
 

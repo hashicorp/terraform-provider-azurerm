@@ -69,7 +69,7 @@ data "azurerm_role_definition" "contributor" {
 resource "azurerm_role_assignment" "example" {
   scope              = data.azurerm_subscription.current.id
   role_definition_id = "${data.azurerm_subscription.current.id}${data.azurerm_role_definition.contributor.id}"
-  principal_id       = azurerm_user_assigned_identity.wayfinder_main.principal_id
+  principal_id       = azurerm_user_assigned_identity.myworkload_identity.principal_id
 }
 
 output "myworkload_identity_client_id" {
@@ -108,7 +108,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -130,7 +130,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }

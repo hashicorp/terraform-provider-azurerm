@@ -5,5 +5,5 @@ package appplatform
 
 type AppVNetAddons struct {
 	PublicEndpoint    *bool   `json:"publicEndpoint,omitempty"`
-	PublicEndpointUrl *string `json:"publicEndpointUrl,omitempty"`
+	PublicEndpointURL *string `json:"publicEndpointUrl,omitempty"`
 }

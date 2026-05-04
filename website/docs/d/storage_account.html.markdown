@@ -24,7 +24,7 @@ output "storage_account_tier" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Storage Account
 * `resource_group_name` - Specifies the name of the resource group the Storage Account is located in.
@@ -45,8 +45,9 @@ output "storage_account_tier" {
 
 * `access_tier` - The access tier for `BlobStorage` accounts.
 
-* `enable_https_traffic_only` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/)
-    for more information.
+* `dns_endpoint_type` - Which DNS endpoint type is used - either `Standard` or `AzureDnsZone`.
+
+* `https_traffic_only_enabled` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/) for more information.
 
 * `min_tls_version` - The minimum supported TLS version for this storage account.
 
@@ -241,6 +242,8 @@ output "storage_account_tier" {
 
 * `active_directory` - An `active_directory` block as documented below.
 
+* `default_share_level_permission` - The default share level permissions applied to all users.
+
 ---
 
 `active_directory` supports the following:
@@ -259,6 +262,12 @@ output "storage_account_tier" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Storage` - 2025-08-01

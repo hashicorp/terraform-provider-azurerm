@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package subscription_test
@@ -33,7 +33,7 @@ func TestAccDataSourceExtendedLocations_westUS(t *testing.T) {
 			Config: ExtendedLocationsDataSource{}.basic("westus"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("extended_locations.#").HasValue("1"),
-				check.That(data.ResourceName).Key("extended_locations.0").HasValue("microsoftlosangeles1"),
+				check.That(data.ResourceName).Key("extended_locations.0").HasValue("losangeles"),
 			),
 		},
 	})

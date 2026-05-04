@@ -23,7 +23,7 @@ output "cosmosdb_account_endpoint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -47,13 +47,13 @@ The following attributes are exported:
 
 * `key_vault_key_id` - The Key Vault key URI for CMK encryption.
 
-~> **NOTE:** The CosmosDB service always uses the latest version of the specified key.
+~> **Note:** The CosmosDB service always uses the latest version of the specified key.
 
 * `ip_range_filter` - The current IP Filter for this CosmosDB account
 
-* `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account. You can have up to one free tier Azure Cosmos DB account per Azure subscription.
+* `free_tier_enabled` - If Free Tier pricing option is enabled for this CosmosDB Account. You can have up to one free tier Azure Cosmos DB account per Azure subscription.
 
-* `enable_automatic_failover` - If automatic failover is enabled for this CosmosDB Account.
+* `automatic_failover_enabled` - If automatic failover is enabled for this CosmosDB Account.
 
 * `capabilities` - Capabilities enabled on this Cosmos DB account.
 
@@ -61,7 +61,7 @@ The following attributes are exported:
 
 * `virtual_network_rule` - Subnets that are allowed to access this CosmosDB account.
 
-* `enable_multiple_write_locations` - If multiple write locations are enabled for this Cosmos DB account.
+* `multiple_write_locations_enabled` - If multiple write locations are enabled for this Cosmos DB account.
 
 `consistency_policy` The current consistency Settings for this CosmosDB account with the following properties:
 
@@ -93,8 +93,6 @@ The following attributes are exported:
 
 * `secondary_readonly_key` - The secondary read-only key for the CosmosDB account.
 
-* `connection_strings` - A list of connection strings available for this CosmosDB account.
-
 * `primary_sql_connection_string` - The primary SQL connection string for the CosmosDB Account.
 
 * `secondary_sql_connection_string` - The secondary SQL connection string for the CosmosDB Account.
@@ -113,6 +111,12 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Account.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.DocumentDB` - 2024-08-15

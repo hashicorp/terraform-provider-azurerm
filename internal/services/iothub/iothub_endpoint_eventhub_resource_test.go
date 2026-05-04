@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub_test
@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubEndpointEventHubResource struct{}
@@ -183,6 +183,10 @@ resource "azurerm_iothub" "test" {
   tags = {
     purpose = "testing"
   }
+
+  lifecycle {
+    ignore_changes = [endpoint]
+  }
 }
 
 resource "azurerm_iothub_endpoint_eventhub" "test" {
@@ -214,6 +218,8 @@ func (IotHubEndpointEventHubResource) withIotHubIdAndTwoResourceGroups(data acce
 provider "azurerm" {
   features {}
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%[1]d"
@@ -264,12 +270,17 @@ resource "azurerm_iothub" "test" {
   tags = {
     purpose = "testing"
   }
+
+  lifecycle {
+    ignore_changes = [endpoint]
+  }
 }
 
 resource "azurerm_iothub_endpoint_eventhub" "test" {
   resource_group_name = azurerm_resource_group.test.name
   name                = "acctest"
   iothub_id           = azurerm_iothub.test.id
+  subscription_id     = data.azurerm_client_config.current.subscription_id
 
   connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
 }
@@ -291,13 +302,13 @@ func (t IotHubEndpointEventHubResource) Exists(ctx context.Context, clients *cli
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
-					return utils.Bool(true), nil
+					return pointer.To(true), nil
 				}
 			}
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r IotHubEndpointEventHubResource) authenticationTypeDefault(data acceptance.TestData) string {
@@ -419,6 +430,10 @@ resource "azurerm_iothub" "test" {
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
+  }
+
+  lifecycle {
+    ignore_changes = [endpoint]
   }
 
   depends_on = [

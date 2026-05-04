@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package commonids
@@ -19,6 +19,14 @@ type CompositeResourceID[T1 resourceids.ResourceId, T2 resourceids.ResourceId] s
 	// Second specifies the second component of this Resource ID
 	// This is in the format `{first}|{second}`.
 	Second T2
+}
+
+// NewCompositeResourceID returns a new CompositeResourceID struct
+func NewCompositeResourceID[T1 resourceids.ResourceId, T2 resourceids.ResourceId](first T1, second T2) CompositeResourceID[T1, T2] {
+	return CompositeResourceID[T1, T2]{
+		First:  first,
+		Second: second,
+	}
 }
 
 // ID returns the formatted Composite Resource Id
@@ -54,7 +62,6 @@ func ParseCompositeResourceIDInsensitively[T1 resourceids.ResourceId, T2 resourc
 }
 
 func parseCompositeResourceID[T1 resourceids.ResourceId, T2 resourceids.ResourceId](input string, first T1, second T2, insensitively bool) (*CompositeResourceID[T1, T2], error) {
-
 	components := strings.Split(input, "|")
 	if len(components) != 2 {
 		return nil, fmt.Errorf("expected 2 resourceids but got %d", len(components))

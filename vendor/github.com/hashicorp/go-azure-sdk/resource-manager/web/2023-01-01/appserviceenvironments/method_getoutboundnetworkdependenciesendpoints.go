@@ -24,6 +24,18 @@ type GetOutboundNetworkDependenciesEndpointsCompleteResult struct {
 	Items              []OutboundEnvironmentEndpoint
 }
 
+type GetOutboundNetworkDependenciesEndpointsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetOutboundNetworkDependenciesEndpointsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetOutboundNetworkDependenciesEndpoints ...
 func (c AppServiceEnvironmentsClient) GetOutboundNetworkDependenciesEndpoints(ctx context.Context, id commonids.AppServiceEnvironmentId) (result GetOutboundNetworkDependenciesEndpointsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppServiceEnvironmentsClient) GetOutboundNetworkDependenciesEndpoints(ct
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetOutboundNetworkDependenciesEndpointsCustomPager{},
 		Path:       fmt.Sprintf("%s/outboundNetworkDependenciesEndpoints", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c AppServiceEnvironmentsClient) GetOutboundNetworkDependenciesEndpointsCom
 
 	resp, err := c.GetOutboundNetworkDependenciesEndpoints(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

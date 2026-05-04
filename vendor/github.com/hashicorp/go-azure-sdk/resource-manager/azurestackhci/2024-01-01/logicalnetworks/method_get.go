@@ -45,7 +45,6 @@ func (c LogicalNetworksClient) Get(ctx context.Context, id LogicalNetworkId) (re
 
 	var model LogicalNetworks
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

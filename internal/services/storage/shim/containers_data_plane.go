@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package shim
@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 type DataPlaneStorageContainerWrapper struct {
@@ -60,10 +60,12 @@ func (w DataPlaneStorageContainerWrapper) Get(ctx context.Context, containerName
 	}
 
 	return &StorageContainerProperties{
-		AccessLevel:           props.AccessLevel,
-		MetaData:              props.MetaData,
-		HasImmutabilityPolicy: props.HasImmutabilityPolicy,
-		HasLegalHold:          props.HasLegalHold,
+		AccessLevel:                     props.AccessLevel,
+		DefaultEncryptionScope:          props.DefaultEncryptionScope,
+		EncryptionScopeOverrideDisabled: props.EncryptionScopeOverrideDisabled,
+		MetaData:                        props.MetaData,
+		HasImmutabilityPolicy:           props.HasImmutabilityPolicy,
+		HasLegalHold:                    props.HasLegalHold,
 	}, nil
 }
 

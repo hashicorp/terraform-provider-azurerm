@@ -45,7 +45,6 @@ func (c IotConnectorsClient) Get(ctx context.Context, id IotConnectorId) (result
 
 	var model IotConnector
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

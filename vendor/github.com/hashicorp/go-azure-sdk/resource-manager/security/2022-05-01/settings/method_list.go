@@ -25,6 +25,18 @@ type ListCompleteResult struct {
 	Items              []Setting
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c SettingsClient) List(ctx context.Context, id commonids.SubscriptionId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -33,6 +45,7 @@ func (c SettingsClient) List(ctx context.Context, id commonids.SubscriptionId) (
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Security/settings", id.ID()),
 	}
 
@@ -61,7 +74,7 @@ func (c SettingsClient) List(ctx context.Context, id commonids.SubscriptionId) (
 	temp := make([]Setting, 0)
 	if values.Values != nil {
 		for i, v := range *values.Values {
-			val, err := unmarshalSettingImplementation(v)
+			val, err := UnmarshalSettingImplementation(v)
 			if err != nil {
 				err = fmt.Errorf("unmarshalling item %d for Setting (%q): %+v", i, v, err)
 				return result, err
@@ -85,6 +98,7 @@ func (c SettingsClient) ListCompleteMatchingPredicate(ctx context.Context, id co
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

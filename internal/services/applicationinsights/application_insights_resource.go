@@ -1,48 +1,49 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights -test-name basicForResourceIdentity -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
 
 package applicationinsights
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules"
 	billing "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentfeaturesandpricingapis"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
-	monitorParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApplicationInsights() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceApplicationInsightsCreateUpdate,
+	resource := &pluginsdk.Resource{
+		Create: resourceApplicationInsightsCreate,
 		Read:   resourceApplicationInsightsRead,
-		Update: resourceApplicationInsightsCreateUpdate,
+		Update: resourceApplicationInsightsUpdate,
 		Delete: resourceApplicationInsightsDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := components.ParseComponentID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&components.ComponentId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&components.ComponentId{}),
+		},
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ComponentUpgradeV0ToV1{},
+			1: migration.ComponentUpgradeV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -79,9 +80,11 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				}, false),
 			},
 
+			// NOTE: O+C A Log Analytics Workspace will be attached to the Application Insight by default, which should be computed=true
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
@@ -120,14 +123,13 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 			"daily_data_cap_in_gb": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
-				Computed:     true,
+				Default:      100,
 				ValidateFunc: validation.FloatAtLeast(0),
 			},
 
 			"daily_data_cap_notifications_disabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
 			},
 
 			"app_id": {
@@ -171,27 +173,27 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	return resource
 }
 
-func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	ruleClient := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := components.NewComponentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.ComponentsGet(ctx, id)
+
+	existing, err := client.ComponentsGet(ctx, id)
+
+	if !response.WasNotFound(existing.HttpResponse) {
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
-			}
+			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_application_insights", id.ID())
-		}
+		return tf.ImportAsExistsError("azurerm_application_insights", id.ID())
 	}
 
 	internetIngestionEnabled := components.PublicNetworkAccessTypeDisabled
@@ -215,14 +217,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		ForceCustomerStorageForProfiler: pointer.To(d.Get("force_customer_storage_for_profiler").(bool)),
 	}
 
-	if !d.IsNewResource() {
-		oldWorkspaceId, newWorkspaceId := d.GetChange("workspace_id")
-		if oldWorkspaceId.(string) != "" && newWorkspaceId.(string) == "" {
-			return fmt.Errorf("`workspace_id` can not be removed after set")
-		}
-	}
-
-	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {
+	if workspaceRaw, ok := d.GetOk("workspace_id"); ok {
 		workspaceID, err := workspaces.ParseWorkspaceID(workspaceRaw.(string))
 		if err != nil {
 			return err
@@ -242,8 +237,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	_, err := client.ComponentsCreateOrUpdate(ctx, id, insightProperties)
-	if err != nil {
+	if _, err := client.ComponentsCreateOrUpdate(ctx, id, insightProperties); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -251,8 +245,12 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if read.Model == nil && read.Model.Id == nil {
-		return fmt.Errorf("cannot read %s", id)
+	if read.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if read.Model.Id == nil {
+		return fmt.Errorf("retrieving %s: `id` was nil", id)
 	}
 
 	billingId, err := billing.ParseComponentID(id.ID())
@@ -267,17 +265,22 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if billingRead.Model == nil {
 		return fmt.Errorf("model is nil for billing features")
 	}
+
+	if billingRead.Model.DataVolumeCap == nil {
+		billingRead.Model.DataVolumeCap = &billing.ApplicationInsightsComponentDataVolumeCap{}
+	}
+
 	applicationInsightsComponentBillingFeatures := billing.ApplicationInsightsComponentBillingFeatures{
 		CurrentBillingFeatures: billingRead.Model.CurrentBillingFeatures,
 		DataVolumeCap:          billingRead.Model.DataVolumeCap,
 	}
 
 	if v, ok := d.GetOk("daily_data_cap_in_gb"); ok {
-		applicationInsightsComponentBillingFeatures.DataVolumeCap.Cap = utils.Float(v.(float64))
+		applicationInsightsComponentBillingFeatures.DataVolumeCap.Cap = pointer.To(v.(float64))
 	}
 
 	if v, ok := d.GetOk("daily_data_cap_notifications_disabled"); ok {
-		applicationInsightsComponentBillingFeatures.DataVolumeCap.StopSendNotificationWhenHitCap = utils.Bool(v.(bool))
+		applicationInsightsComponentBillingFeatures.DataVolumeCap.StopSendNotificationWhenHitCap = pointer.To(v.(bool))
 	}
 
 	if _, err = billingClient.ComponentCurrentBillingFeaturesUpdate(ctx, *billingId, applicationInsightsComponentBillingFeatures); err != nil {
@@ -288,29 +291,32 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	// Azure creates a rule and action group when creating this resource that are very noisy
 	// We would like to delete them but deleting them just causes them to be recreated after a few minutes.
 	// Instead, we'll opt to disable them here
-	if d.IsNewResource() && meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
+	if meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
 		// TODO: replace this with a StateWait func
 		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			time.Sleep(30 * time.Second)
 			ruleName := fmt.Sprintf("Failure Anomalies - %s", id.ComponentName)
-			ruleId := monitorParse.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroupName, ruleName)
-			result, err := ruleClient.Get(ctx, ruleId.ResourceGroup, ruleId.Name, pointer.To(true))
+			ruleId := smartdetectoralertrules.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroupName, ruleName)
+			result, err := ruleClient.Get(ctx, ruleId, smartdetectoralertrules.DefaultGetOperationOptions())
 			if err != nil {
-				if utils.ResponseWasNotFound(result.Response) {
+				if response.WasNotFound(result.HttpResponse) {
 					return pluginsdk.RetryableError(fmt.Errorf("expected %s to be created but was not found, retrying", ruleId))
 				}
 				return pluginsdk.NonRetryableError(fmt.Errorf("making Read request for %s: %+v", ruleId, err))
 			}
 
-			if result.AlertRuleProperties != nil {
-				result.AlertRuleProperties.State = alertsmanagement.AlertRuleStateDisabled
-				updateRuleResult, err := ruleClient.CreateOrUpdate(ctx, ruleId.ResourceGroup, ruleId.Name, result)
-				if err != nil {
-					if !utils.ResponseWasNotFound(updateRuleResult.Response) {
-						return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", ruleId, err))
+			if model := result.Model; model != nil {
+				if props := model.Properties; props != nil {
+					props.State = smartdetectoralertrules.AlertRuleStateDisabled
+					updateRuleResult, err := ruleClient.CreateOrUpdate(ctx, ruleId, *model)
+					if err != nil {
+						if !response.WasNotFound(updateRuleResult.HttpResponse) {
+							return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", ruleId, err))
+						}
 					}
 				}
 			}
+
 			return nil
 		})
 		if err != nil {
@@ -319,6 +325,9 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApplicationInsightsRead(d, meta)
 }
@@ -372,7 +381,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 			} else {
 				d.Set("application_type", string(props.ApplicationType))
 			}
-			d.Set("app_id", props.ApplicationId)
+			d.Set("app_id", props.AppId)
 			d.Set("instrumentation_key", props.InstrumentationKey)
 			d.Set("sampling_percentage", props.SamplingPercentage)
 			d.Set("disable_ip_masking", props.DisableIPMasking)
@@ -401,7 +410,131 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
+}
+
+func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	billingClient := meta.(*clients.Client).AppInsights.BillingClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := components.ParseComponentID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.ComponentsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %v", id, err)
+	}
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	component := existing.Model
+
+	oldWorkspaceId, newWorkspaceId := d.GetChange("workspace_id")
+	if oldWorkspaceId.(string) != "" && newWorkspaceId.(string) == "" {
+		return fmt.Errorf("`workspace_id` cannot be removed after set. If `workspace_id` is not specified but you encounter a diff, this might indicate a Microsoft initiated automatic migration from classic resources to workspace-based resources. If this is the case, please update `workspace_id` in your config file to the new value")
+	}
+
+	if d.HasChange("sampling_percentage") {
+		component.Properties.SamplingPercentage = pointer.To(d.Get("sampling_percentage").(float64))
+	}
+
+	if d.HasChange("disable_ip_masking") {
+		component.Properties.DisableIPMasking = pointer.To(d.Get("disable_ip_masking").(bool))
+	}
+
+	if d.HasChange("local_authentication_disabled") {
+		component.Properties.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
+	}
+
+	if d.HasChange("internet_ingestion_enabled") {
+		component.Properties.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeDisabled)
+		if d.Get("internet_ingestion_enabled").(bool) {
+			component.Properties.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeEnabled)
+		}
+	}
+
+	if d.HasChange("internet_query_enabled") {
+		component.Properties.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeDisabled)
+		if d.Get("internet_query_enabled").(bool) {
+			component.Properties.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeEnabled)
+		}
+	}
+
+	if d.HasChange("force_customer_storage_for_profiler") {
+		component.Properties.ForceCustomerStorageForProfiler = pointer.To(d.Get("force_customer_storage_for_profiler").(bool))
+	}
+
+	if d.HasChange("workspace_id") {
+		workspaceID, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
+		if err != nil {
+			return err
+		}
+		component.Properties.WorkspaceResourceId = pointer.To(workspaceID.ID())
+	}
+
+	if d.HasChange("retention_in_days") {
+		component.Properties.RetentionInDays = pointer.To(int64(d.Get("retention_in_days").(int)))
+	}
+
+	if d.HasChange("tags") {
+		component.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if _, err = client.ComponentsCreateOrUpdate(ctx, *id, *component); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	read, err := client.ComponentsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	if read.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if read.Model.Id == nil {
+		return fmt.Errorf("retrieving %s: `id` was nil", id)
+	}
+	billingId, err := billing.ParseComponentID(id.ID())
+	if err != nil {
+		return err
+	}
+	billingExisting, err := billingClient.ComponentCurrentBillingFeaturesGet(ctx, *billingId)
+	if err != nil {
+		return fmt.Errorf("retrieving Billing Features for %s: %+v", id, err)
+	}
+
+	if billingExisting.Model == nil {
+		return fmt.Errorf("retrieving Billing Features for %s: `model` was nil", id)
+	}
+
+	billingProps := billingExisting.Model
+
+	if billingProps.DataVolumeCap == nil {
+		billingProps.DataVolumeCap = &billing.ApplicationInsightsComponentDataVolumeCap{}
+	}
+
+	if d.HasChange("daily_data_cap_in_gb") {
+		billingProps.DataVolumeCap.Cap = pointer.To(d.Get(("daily_data_cap_in_gb")).(float64))
+	}
+
+	if d.HasChange("daily_data_cap_notifications_disabled") {
+		billingProps.DataVolumeCap.StopSendNotificationWhenHitCap = pointer.To(d.Get("daily_data_cap_notifications_disabled").(bool))
+	}
+
+	if _, err = billingClient.ComponentCurrentBillingFeaturesUpdate(ctx, *billingId, *billingProps); err != nil {
+		return fmt.Errorf("updating Billing Features for %s: %+v", id, err)
+	}
+
+	return resourceApplicationInsightsRead(d, meta)
 }
 
 func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -426,9 +559,9 @@ func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface
 	// if disable_generated_rule=true, the generated rule is not automatically deleted.
 	if meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
 		ruleName := fmt.Sprintf("Failure Anomalies - %s", id.ComponentName)
-		ruleId := monitorParse.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroupName, ruleName)
-		deleteResp, deleteErr := ruleClient.Delete(ctx, ruleId.ResourceGroup, ruleId.Name)
-		if deleteErr != nil && deleteResp.StatusCode != http.StatusNotFound {
+		ruleId := smartdetectoralertrules.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroupName, ruleName)
+		deleteResp, deleteErr := ruleClient.Delete(ctx, ruleId)
+		if deleteErr != nil && !response.WasNotFound(deleteResp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", ruleId, deleteErr)
 		}
 	}

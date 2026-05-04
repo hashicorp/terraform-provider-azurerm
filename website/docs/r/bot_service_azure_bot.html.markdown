@@ -13,6 +13,8 @@ Manages an Azure Bot Service.
 ## Example Usage
 
 ```hcl
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -34,11 +36,13 @@ resource "azurerm_application_insights_api_key" "example" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_bot_service_azure_bot" "example" {
-  name                = "exampleazurebot"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = "global"
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
-  sku                 = "F0"
+  name                    = "exampleazurebot"
+  resource_group_name     = azurerm_resource_group.example.name
+  location                = "global"
+  microsoft_app_id        = data.azurerm_client_config.current.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
+  sku                     = "F0"
 
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.example.api_key
@@ -78,9 +82,15 @@ The following arguments are supported:
 
 * `microsoft_app_msi_id` - (Optional) The ID of the Microsoft App Managed Identity for this Azure Bot Service. Changing this forces a new resource to be created.
 
+* `cmk_key_vault_key_url` - (Optional) The CMK Key Vault Key URL that will be used to encrypt the Bot with the Customer Managed Encryption Key.
+
+~> **Note:** In order to utilize CMEK, you must add the `Key Vault Crypto Service Encryption User` role to the Azure-defined `Bot Service CMEK Prod` Service Principal. You must also enable `soft_delete_enabled` and `purge_protection_enabled` on the `azurerm_key_vault` that `cmk_key_vault_key_url` refers to. [See Azure Documentation](https://learn.microsoft.com/en-us/azure/bot-service/bot-service-encryption?view=azure-bot-service-4.0#how-to-configure-your-azure-key-vault-instance)
+
 * `microsoft_app_tenant_id` - (Optional) The Tenant ID of the Microsoft App for this Azure Bot Service. Changing this forces a new resource to be created.
 
 * `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
+
+~> **Note:** Creation of `azurerm_bot_service_azure_bot` resources using the `MultiTenant` type is no longer supported by Azure, existing resources can continue using this type.
 
 * `local_authentication_enabled` - (Optional) Is local authentication enabled? Defaults to `true`.
 
@@ -92,8 +102,6 @@ The following arguments are supported:
 
 * `streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for this Azure Bot Service. Defaults to `false`.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to this Azure Bot Service.
 
 ## Attributes Reference
@@ -104,7 +112,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Bot Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Bot Service.

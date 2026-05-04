@@ -6,7 +6,7 @@ description: |-
   Gets all existing entities from Storage Tablethat match a filter.
 ---
 
-# Data Source: azurerm_storage_table_entity
+# Data Source: azurerm_storage_table_entities
 
 Use this data source to access information about an existing Storage Table Entity.
 
@@ -14,19 +14,16 @@ Use this data source to access information about an existing Storage Table Entit
 
 ```hcl
 data "azurerm_storage_table_entities" "example" {
-  table_name           = "example-table-name"
-  storage_account_name = "example-storage-account-name"
-  filter               = "PartitionKey eq 'example'"
+  storage_table_id = azurerm_storage_table.example.id
+  filter           = "PartitionKey eq 'example'"
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-* `table_name` - The name of the Table.
-
-* `storage_account_name` - The name of the Storage Account where the Table exists.
+* `storage_table_id` - The Storage Table ID where the entities exist.
 
 * `filter` - The filter used to retrieve the entities.
 
@@ -50,6 +47,6 @@ Each element in `items` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Table Entity.

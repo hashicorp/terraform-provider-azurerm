@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization
@@ -8,11 +8,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var hostPoolResourceType = "azurerm_virtual_desktop_host_pool"
@@ -114,6 +114,13 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"public_network_access": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForHostpoolPublicNetworkAccess(), false),
+				Default:      string(hostpool.HostpoolPublicNetworkAccessEnabled),
+			},
+
 			"maximum_sessions_allowed": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -130,7 +137,6 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			"preferred_app_group_type": {
 				Type:        pluginsdk.TypeString,
 				Optional:    true,
-				ForceNew:    true,
 				Description: "Preferred App Group type to display",
 				ValidateFunc: validation.StringInSlice([]string{
 					string(hostpool.PreferredAppGroupTypeDesktop),
@@ -231,25 +237,25 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 	if vmTemplate != "" {
 		// we have no use with the json object as azure accepts string only
 		// merely here for validation
-		_, err := pluginsdk.ExpandJsonFromString(vmTemplate)
-		if err != nil {
+		if _, err := pluginsdk.ExpandJsonFromString(vmTemplate); err != nil {
 			return fmt.Errorf("expanding JSON for `vm_template`: %+v", err)
 		}
 	}
 	payload := hostpool.HostPool{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: location.Normalize(d.Get("location").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: hostpool.HostPoolProperties{
 			HostPoolType:                  hostpool.HostPoolType(d.Get("type").(string)),
-			FriendlyName:                  utils.String(d.Get("friendly_name").(string)),
-			Description:                   utils.String(d.Get("description").(string)),
-			ValidationEnvironment:         utils.Bool(d.Get("validate_environment").(bool)),
-			CustomRdpProperty:             utils.String(d.Get("custom_rdp_properties").(string)),
-			MaxSessionLimit:               utils.Int64(int64(d.Get("maximum_sessions_allowed").(int))),
-			StartVMOnConnect:              utils.Bool(d.Get("start_vm_on_connect").(bool)),
+			FriendlyName:                  pointer.To(d.Get("friendly_name").(string)),
+			Description:                   pointer.To(d.Get("description").(string)),
+			ValidationEnvironment:         pointer.To(d.Get("validate_environment").(bool)),
+			CustomRdpProperty:             pointer.To(d.Get("custom_rdp_properties").(string)),
+			MaxSessionLimit:               pointer.To(int64(d.Get("maximum_sessions_allowed").(int))),
+			StartVMOnConnect:              pointer.To(d.Get("start_vm_on_connect").(bool)),
 			LoadBalancerType:              hostpool.LoadBalancerType(d.Get("load_balancer_type").(string)),
 			PersonalDesktopAssignmentType: &personalDesktopAssignmentType,
 			PreferredAppGroupType:         hostpool.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
+			PublicNetworkAccess:           pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string))),
 			AgentUpdate:                   expandAgentUpdateCreate(d.Get("scheduled_agent_updates").([]interface{})),
 			VMTemplate:                    &vmTemplate,
 		},
@@ -282,19 +288,19 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
+	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "public_network_access", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
 		payload.Properties = &hostpool.HostPoolPatchProperties{}
 
 		if d.HasChange("custom_rdp_properties") {
-			payload.Properties.CustomRdpProperty = utils.String(d.Get("custom_rdp_properties").(string))
+			payload.Properties.CustomRdpProperty = pointer.To(d.Get("custom_rdp_properties").(string))
 		}
 
 		if d.HasChange("description") {
-			payload.Properties.Description = utils.String(d.Get("description").(string))
+			payload.Properties.Description = pointer.To(d.Get("description").(string))
 		}
 
 		if d.HasChange("friendly_name") {
-			payload.Properties.FriendlyName = utils.String(d.Get("friendly_name").(string))
+			payload.Properties.FriendlyName = pointer.To(d.Get("friendly_name").(string))
 		}
 
 		if d.HasChange("load_balancer_type") {
@@ -303,7 +309,7 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 
 		if d.HasChange("maximum_sessions_allowed") {
-			payload.Properties.MaxSessionLimit = utils.Int64(int64(d.Get("maximum_sessions_allowed").(int)))
+			payload.Properties.MaxSessionLimit = pointer.To(int64(d.Get("maximum_sessions_allowed").(int)))
 		}
 
 		if d.HasChange("preferred_app_group_type") {
@@ -311,12 +317,16 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 			payload.Properties.PreferredAppGroupType = &preferredAppGroupType
 		}
 
+		if d.HasChange("public_network_access") {
+			payload.Properties.PublicNetworkAccess = pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string)))
+		}
+
 		if d.HasChange("start_vm_on_connect") {
-			payload.Properties.StartVMOnConnect = utils.Bool(d.Get("start_vm_on_connect").(bool))
+			payload.Properties.StartVMOnConnect = pointer.To(d.Get("start_vm_on_connect").(bool))
 		}
 
 		if d.HasChange("validate_environment") {
-			payload.Properties.ValidationEnvironment = utils.Bool(d.Get("validate_environment").(bool))
+			payload.Properties.ValidationEnvironment = pointer.To(d.Get("validate_environment").(bool))
 		}
 
 		if d.HasChanges("scheduled_agent_updates") {
@@ -324,7 +334,7 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 
 		if d.HasChanges("vm_template") {
-			payload.Properties.VMTemplate = utils.String(d.Get("vm_template").(string))
+			payload.Properties.VMTemplate = pointer.To(d.Get("vm_template").(string))
 		}
 	}
 
@@ -360,7 +370,7 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
@@ -382,6 +392,7 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		}
 		d.Set("personal_desktop_assignment_type", personalDesktopAssignmentType)
 		d.Set("preferred_app_group_type", string(props.PreferredAppGroupType))
+		d.Set("public_network_access", string(pointer.From(props.PublicNetworkAccess)))
 		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
@@ -406,7 +417,7 @@ func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interf
 	defer locks.UnlockByName(id.HostPoolName, hostPoolResourceType)
 
 	options := hostpool.DeleteOperationOptions{
-		Force: utils.Bool(true),
+		Force: pointer.To(true),
 	}
 	if _, err = client.Delete(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -433,7 +444,7 @@ func expandAgentUpdateSchedule(input []interface{}) *[]hostpool.MaintenanceWindo
 
 		results = append(results, hostpool.MaintenanceWindowProperties{
 			DayOfWeek: &dayOfWeek,
-			Hour:      utils.Int64(hourOfDay),
+			Hour:      pointer.To(hourOfDay),
 		})
 	}
 
@@ -451,8 +462,8 @@ func expandAgentUpdateCreate(input []interface{}) *hostpool.AgentUpdatePropertie
 	updatesScheduled := hostpool.SessionHostComponentUpdateTypeScheduled
 	updatesDefault := hostpool.SessionHostComponentUpdateTypeDefault
 
-	useSessionHostLocalTime := *utils.Bool(raw["use_session_host_timezone"].(bool))
-	updateScheduleTimeZone := utils.String(raw["timezone"].(string))
+	useSessionHostLocalTime := *pointer.To(raw["use_session_host_timezone"].(bool))
+	updateScheduleTimeZone := pointer.To(raw["timezone"].(string))
 
 	if raw["enabled"].(bool) {
 		props.Type = &updatesScheduled
@@ -482,8 +493,8 @@ func expandAgentUpdatePatch(input []interface{}) *hostpool.AgentUpdatePatchPrope
 	updatesScheduled := hostpool.SessionHostComponentUpdateTypeScheduled
 	updatesDefault := hostpool.SessionHostComponentUpdateTypeDefault
 
-	useSessionHostLocalTime := *utils.Bool(raw["use_session_host_timezone"].(bool))
-	updateScheduleTimeZone := utils.String(raw["timezone"].(string))
+	useSessionHostLocalTime := *pointer.To(raw["use_session_host_timezone"].(bool))
+	updateScheduleTimeZone := pointer.To(raw["timezone"].(string))
 	props.MaintenanceWindowTimeZone = updateScheduleTimeZone
 	props.UseSessionHostLocalTime = &useSessionHostLocalTime
 
@@ -516,7 +527,7 @@ func expandAgentUpdateSchedulePatch(input []interface{}) *[]hostpool.Maintenance
 
 		results = append(results, hostpool.MaintenanceWindowPatchProperties{
 			DayOfWeek: &dayOfWeek,
-			Hour:      utils.Int64(hourOfDay),
+			Hour:      pointer.To(hourOfDay),
 		})
 	}
 
@@ -532,11 +543,11 @@ func flattenAgentUpdateSchedule(input *[]hostpool.MaintenanceWindowProperties) [
 	for _, item := range *input {
 		dayOfWeek := ""
 		if item.DayOfWeek != nil {
-			dayOfWeek = *utils.String(string(*item.DayOfWeek))
+			dayOfWeek = string(*item.DayOfWeek)
 		}
-		hourOfDay := utils.Int64(0)
+		hourOfDay := pointer.To(int64(0))
 		if item.Hour != nil {
-			hourOfDay = utils.Int64(*item.Hour)
+			hourOfDay = item.Hour
 		}
 		results = append(results, map[string]interface{}{
 			"day_of_week": dayOfWeek,

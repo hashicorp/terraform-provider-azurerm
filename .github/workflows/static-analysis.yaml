@@ -1,0 +1,36 @@
+---
+name: Static Analysis
+
+permissions:
+  contents: read
+  pull-requests: read
+
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '.github/workflows/static-analysis.yaml'
+      - 'vendor/**'
+      - 'internal/**.go'
+
+concurrency:
+  group: 'staticAnalysys-${{ github.head_ref }}'
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    runs-on: custom-linux-small
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: ./.go-version
+      - run: bash ./scripts/run-static-analysis.sh
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Static Analysis failed."
+          echo ""
+          echo "Run 'bash ./scripts/run-static-analysis.sh' locally to reproduce."
+          echo "This check looks for common code patterns that may indicate bugs or"
+          echo "deviations from project conventions."

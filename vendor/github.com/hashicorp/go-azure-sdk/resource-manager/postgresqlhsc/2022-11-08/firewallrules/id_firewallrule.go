@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&FirewallRuleId{})
+}
 
 var _ resourceids.ResourceId = &FirewallRuleId{}
 
@@ -39,7 +44,7 @@ func ParseFirewallRuleID(input string) (*FirewallRuleId, error) {
 	}
 
 	id := FirewallRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseFirewallRuleIDInsensitively(input string) (*FirewallRuleId, error) {
 	}
 
 	id := FirewallRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id FirewallRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforPostgreSQL", "Microsoft.DBforPostgreSQL", "Microsoft.DBforPostgreSQL"),
 		resourceids.StaticSegment("staticServerGroupsv2", "serverGroupsv2", "serverGroupsv2"),
-		resourceids.UserSpecifiedSegment("serverGroupsv2Name", "serverGroupsv2Value"),
+		resourceids.UserSpecifiedSegment("serverGroupsv2Name", "serverGroupsv2Name"),
 		resourceids.StaticSegment("staticFirewallRules", "firewallRules", "firewallRules"),
-		resourceids.UserSpecifiedSegment("firewallRuleName", "firewallRuleValue"),
+		resourceids.UserSpecifiedSegment("firewallRuleName", "firewallRuleName"),
 	}
 }
 

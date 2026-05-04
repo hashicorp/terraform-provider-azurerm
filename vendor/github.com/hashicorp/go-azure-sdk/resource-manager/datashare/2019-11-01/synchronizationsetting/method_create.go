@@ -15,7 +15,7 @@ import (
 type CreateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *SynchronizationSetting
+	Model        SynchronizationSetting
 }
 
 // Create ...
@@ -53,11 +53,11 @@ func (c SynchronizationSettingClient) Create(ctx context.Context, id Synchroniza
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalSynchronizationSettingImplementation(respObj)
+	model, err := UnmarshalSynchronizationSettingImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

@@ -46,7 +46,6 @@ func (c DevicesClient) GenerateCertificate(ctx context.Context, id DataBoxEdgeDe
 
 	var model GenerateCertResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

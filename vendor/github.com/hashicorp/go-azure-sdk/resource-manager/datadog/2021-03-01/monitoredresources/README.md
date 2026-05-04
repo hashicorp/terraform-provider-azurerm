@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitoredresources` Documentation
 
-The `monitoredresources` SDK allows for interaction with the Azure Resource Manager Service `datadog` (API Version `2021-03-01`).
+The `monitoredresources` SDK allows for interaction with Azure Resource Manager `datadog` (API Version `2021-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := monitoredresources.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitoredresources.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 // alternatively `client.MonitorsListMonitoredResources(ctx, id)` can be used to do batched pagination
 items, err := client.MonitorsListMonitoredResourcesComplete(ctx, id)

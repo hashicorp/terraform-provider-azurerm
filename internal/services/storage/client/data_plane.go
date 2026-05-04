@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -10,17 +10,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/shim"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/filesystems"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/paths"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/directories"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/files"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/filesystems"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/paths"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/directories"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/files"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 type DataPlaneOperation struct {
@@ -44,9 +44,15 @@ func (Client) DataPlaneOperationSupportingOnlySharedKeyAuth() DataPlaneOperation
 	}
 }
 
-func (c Client) configureDataPlane(ctx context.Context, clientName string, baseClient client.BaseClient, account accountDetails, operation DataPlaneOperation) error {
-	if operation.SupportsAadAuthentication && c.authorizerForAad != nil {
-		baseClient.SetAuthorizer(c.authorizerForAad)
+func (c Client) configureDataPlane(ctx context.Context, clientName, resourceIdentifier string, baseClient client.BaseClient, account AccountDetails, operation DataPlaneOperation) error {
+	if operation.SupportsAadAuthentication && c.authConfigForAzureAD != nil {
+		api := c.authConfigForAzureAD.Environment.Storage.WithResourceIdentifier(resourceIdentifier)
+		storageAuth, err := auth.NewAuthorizerFromCredentials(ctx, *c.authConfigForAzureAD, api)
+		if err != nil {
+			return fmt.Errorf("unable to build authorizer for Storage API: %+v", err)
+		}
+
+		baseClient.SetAuthorizer(storageAuth)
 		return nil
 	}
 
@@ -56,7 +62,7 @@ func (c Client) configureDataPlane(ctx context.Context, clientName string, baseC
 			return fmt.Errorf("retrieving Storage Account Key: %s", err)
 		}
 
-		storageAuth, err := auth.NewSharedKeyAuthorizer(account.name, *accountKey, operation.sharedKeyAuthenticationType)
+		storageAuth, err := auth.NewSharedKeyAuthorizer(account.StorageAccountId.StorageAccountName, *accountKey, operation.sharedKeyAuthenticationType)
 		if err != nil {
 			return fmt.Errorf("building Shared Key Authorizer for %s client: %+v", clientName, err)
 		}
@@ -68,7 +74,7 @@ func (c Client) configureDataPlane(ctx context.Context, clientName string, baseC
 	return fmt.Errorf("building %s client: no configured authentication types are supported", clientName)
 }
 
-func (c Client) AccountsDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (*accounts.Client, error) {
+func (c Client) AccountsDataPlaneClient(ctx context.Context, account AccountDetails, operation DataPlaneOperation) (*accounts.Client, error) {
 	const clientName = "Blob Storage Accounts"
 	operation.sharedKeyAuthenticationType = auth.SharedKey
 
@@ -82,7 +88,7 @@ func (c Client) AccountsDataPlaneClient(ctx context.Context, account accountDeta
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +96,7 @@ func (c Client) AccountsDataPlaneClient(ctx context.Context, account accountDeta
 	return apiClient, nil
 }
 
-func (c Client) BlobsDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (*blobs.Client, error) {
+func (c Client) BlobsDataPlaneClient(ctx context.Context, account AccountDetails, operation DataPlaneOperation) (*blobs.Client, error) {
 	const clientName = "Blob Storage Blobs"
 	operation.sharedKeyAuthenticationType = auth.SharedKey
 
@@ -104,7 +110,7 @@ func (c Client) BlobsDataPlaneClient(ctx context.Context, account accountDetails
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +118,7 @@ func (c Client) BlobsDataPlaneClient(ctx context.Context, account accountDetails
 	return apiClient, nil
 }
 
-func (c Client) ContainersDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (shim.StorageContainerWrapper, error) {
+func (c Client) ContainersDataPlaneClient(ctx context.Context, account AccountDetails, operation DataPlaneOperation) (shim.StorageContainerWrapper, error) {
 	const clientName = "Blob Storage Containers"
 	operation.sharedKeyAuthenticationType = auth.SharedKey
 
@@ -126,7 +132,7 @@ func (c Client) ContainersDataPlaneClient(ctx context.Context, account accountDe
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +140,7 @@ func (c Client) ContainersDataPlaneClient(ctx context.Context, account accountDe
 	return shim.NewDataPlaneStorageContainerWrapper(apiClient), nil
 }
 
-func (c Client) DataLakeFilesystemsDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (*filesystems.Client, error) {
+func (c Client) DataLakeFilesystemsDataPlaneClient(ctx context.Context, account AccountDetails, operation DataPlaneOperation) (*filesystems.Client, error) {
 	const clientName = "Data Lake Gen2 Filesystems"
 	operation.sharedKeyAuthenticationType = auth.SharedKey
 
@@ -148,7 +154,7 @@ func (c Client) DataLakeFilesystemsDataPlaneClient(ctx context.Context, account 
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +162,7 @@ func (c Client) DataLakeFilesystemsDataPlaneClient(ctx context.Context, account 
 	return apiClient, nil
 }
 
-func (c Client) DataLakePathsDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (*paths.Client, error) {
+func (c Client) DataLakePathsDataPlaneClient(ctx context.Context, account AccountDetails, operation DataPlaneOperation) (*paths.Client, error) {
 	const clientName = "Data Lake Gen2 Paths"
 	operation.sharedKeyAuthenticationType = auth.SharedKey
 
@@ -170,7 +176,7 @@ func (c Client) DataLakePathsDataPlaneClient(ctx context.Context, account accoun
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +184,7 @@ func (c Client) DataLakePathsDataPlaneClient(ctx context.Context, account accoun
 	return apiClient, nil
 }
 
-func (c Client) FileShareDirectoriesDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (*directories.Client, error) {
+func (c Client) FileShareDirectoriesDataPlaneClient(ctx context.Context, account AccountDetails, operation DataPlaneOperation) (*directories.Client, error) {
 	const clientName = "File Storage Share Directories"
 	operation.sharedKeyAuthenticationType = auth.SharedKey
 
@@ -192,7 +198,7 @@ func (c Client) FileShareDirectoriesDataPlaneClient(ctx context.Context, account
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +206,7 @@ func (c Client) FileShareDirectoriesDataPlaneClient(ctx context.Context, account
 	return apiClient, nil
 }
 
-func (c Client) FileShareFilesDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (*files.Client, error) {
+func (c Client) FileShareFilesDataPlaneClient(ctx context.Context, account AccountDetails, operation DataPlaneOperation) (*files.Client, error) {
 	const clientName = "File Storage Share Files"
 	operation.sharedKeyAuthenticationType = auth.SharedKey
 
@@ -214,7 +220,7 @@ func (c Client) FileShareFilesDataPlaneClient(ctx context.Context, account accou
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +228,7 @@ func (c Client) FileShareFilesDataPlaneClient(ctx context.Context, account accou
 	return apiClient, nil
 }
 
-func (c Client) FileSharesDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (shim.StorageShareWrapper, error) {
+func (c Client) FileSharesDataPlaneClient(ctx context.Context, account AccountDetails, operation DataPlaneOperation) (shim.StorageShareWrapper, error) {
 	const clientName = "File Storage Shares"
 	operation.sharedKeyAuthenticationType = auth.SharedKey
 
@@ -236,7 +242,7 @@ func (c Client) FileSharesDataPlaneClient(ctx context.Context, account accountDe
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +250,7 @@ func (c Client) FileSharesDataPlaneClient(ctx context.Context, account accountDe
 	return shim.NewDataPlaneStorageShareWrapper(apiClient), nil
 }
 
-func (c Client) QueuesDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (shim.StorageQueuesWrapper, error) {
+func (c Client) QueuesDataPlaneClient(ctx context.Context, account AccountDetails, operation DataPlaneOperation) (shim.StorageQueuesWrapper, error) {
 	const clientName = "File Storage Queue Queues"
 	operation.sharedKeyAuthenticationType = auth.SharedKey
 
@@ -258,7 +264,7 @@ func (c Client) QueuesDataPlaneClient(ctx context.Context, account accountDetail
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +272,7 @@ func (c Client) QueuesDataPlaneClient(ctx context.Context, account accountDetail
 	return shim.NewDataPlaneStorageQueueWrapper(apiClient), nil
 }
 
-func (c Client) TableEntityDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (*entities.Client, error) {
+func (c Client) TableEntityDataPlaneClient(ctx context.Context, account AccountDetails, operation DataPlaneOperation) (*entities.Client, error) {
 	const clientName = "Table Storage Share Entities"
 	operation.sharedKeyAuthenticationType = auth.SharedKeyTable
 
@@ -280,7 +286,7 @@ func (c Client) TableEntityDataPlaneClient(ctx context.Context, account accountD
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +294,7 @@ func (c Client) TableEntityDataPlaneClient(ctx context.Context, account accountD
 	return apiClient, nil
 }
 
-func (c Client) TablesDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (shim.StorageTableWrapper, error) {
+func (c Client) TablesDataPlaneClient(ctx context.Context, account AccountDetails, operation DataPlaneOperation) (shim.StorageTableWrapper, error) {
 	const clientName = "Table Storage Share Tables"
 	operation.sharedKeyAuthenticationType = auth.SharedKeyTable
 
@@ -302,7 +308,7 @@ func (c Client) TablesDataPlaneClient(ctx context.Context, account accountDetail
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}

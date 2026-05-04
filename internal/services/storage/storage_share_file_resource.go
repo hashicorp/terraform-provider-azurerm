@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -9,21 +9,104 @@ import (
 	"os"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/files"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/files"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
 
 func resourceStorageShareFile() *pluginsdk.Resource {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"storage_share_url": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: storageValidate.StorageShareDataPlaneID,
+		},
+
+		"path": {
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			Optional:     true,
+			Default:      "",
+			ValidateFunc: storageValidate.StorageShareDirectoryName,
+		},
+
+		"content_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "application/octet-stream",
+		},
+
+		"content_encoding": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"content_md5": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"content_disposition": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"source": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			ForceNew:     true,
+		},
+
+		"content_length": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"metadata": MetaDataSchema(),
+	}
+
+	if !features.FivePointOh() {
+		schema["storage_share_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: storageValidate.StorageShareDataPlaneID,
+			ExactlyOneOf: []string{"storage_share_id", "storage_share_url"},
+			Deprecated:   "This property has been deprecated in favour of `storage_share_url` and will be removed in version 5.0 of the Provider.",
+		}
+		schema["storage_share_url"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: storageValidate.StorageShareDataPlaneID,
+			ExactlyOneOf: []string{"storage_share_id", "storage_share_url"},
+		}
+	}
+
 	return &pluginsdk.Resource{
 		Create: resourceStorageShareFileCreate,
 		Read:   resourceStorageShareFileRead,
@@ -42,84 +125,40 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
-			"storage_share_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageShareDataPlaneID,
-			},
-
-			"path": {
-				Type:         pluginsdk.TypeString,
-				ForceNew:     true,
-				Optional:     true,
-				Default:      "",
-				ValidateFunc: storageValidate.StorageShareDirectoryName,
-			},
-
-			"content_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "application/octet-stream",
-			},
-
-			"content_encoding": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"content_md5": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"content_disposition": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"source": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-				ForceNew:     true,
-			},
-
-			"content_length": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"metadata": MetaDataSchema(),
-		},
+		Schema: schema,
 	}
 }
 
 func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*clients.Client).Storage
 
-	storageShareId, err := shares.ParseShareID(d.Get("storage_share_id").(string), storageClient.StorageDomainSuffix)
-	if err != nil {
-		return err
+	var (
+		storageShareId *shares.ShareId
+		err            error
+	)
+	if !features.FivePointOh() {
+		storageShareURL := d.Get("storage_share_url")
+		if storageShareURL == "" {
+			storageShareURL = d.Get("storage_share_id")
+		}
+		storageShareId, err = shares.ParseShareID(storageShareURL.(string), storageClient.StorageDomainSuffix)
+		if err != nil {
+			return err
+		}
+	} else {
+		storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
+		if err != nil {
+			return err
+		}
 	}
 
 	fileName := d.Get("name").(string)
 	path := d.Get("path").(string)
 
-	account, err := storageClient.FindAccount(ctx, storageShareId.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, storageShareId.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for File %q (Share %q): %v", storageShareId.AccountId.AccountName, fileName, storageShareId.ShareName, err)
 	}
@@ -152,13 +191,18 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	input := files.CreateInput{
 		MetaData:           ExpandMetaData(d.Get("metadata").(map[string]interface{})),
-		ContentType:        utils.String(d.Get("content_type").(string)),
-		ContentEncoding:    utils.String(d.Get("content_encoding").(string)),
-		ContentDisposition: utils.String(d.Get("content_disposition").(string)),
+		ContentType:        pointer.To(d.Get("content_type").(string)),
+		ContentEncoding:    pointer.To(d.Get("content_encoding").(string)),
+		ContentDisposition: pointer.To(d.Get("content_disposition").(string)),
 	}
 
 	if v, ok := d.GetOk("content_md5"); ok {
-		input.ContentMD5 = utils.String(v.(string))
+		// Azure uses a Base64 encoded representation of the standard MD5 sum of the file
+		contentMD5, err := convertHexToBase64Encoding(v.(string))
+		if err != nil {
+			return fmt.Errorf("failed to hex decode then base64 encode `content_md5` value: %s", err)
+		}
+		input.ContentMD5 = &contentMD5
 	}
 
 	var file *os.File
@@ -196,16 +240,17 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*clients.Client).Storage
 
 	id, err := files.ParseFileID(d.Id(), storageClient.StorageDomainSuffix)
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for %s: %v", id.AccountId.AccountName, id, err)
 	}
@@ -227,15 +272,20 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("content_type") || d.HasChange("content_encoding") || d.HasChange("content_disposition") {
 		input := files.SetPropertiesInput{
-			ContentType:        utils.String(d.Get("content_type").(string)),
-			ContentEncoding:    utils.String(d.Get("content_encoding").(string)),
-			ContentDisposition: utils.String(d.Get("content_disposition").(string)),
+			ContentType:        pointer.To(d.Get("content_type").(string)),
+			ContentEncoding:    pointer.To(d.Get("content_encoding").(string)),
+			ContentDisposition: pointer.To(d.Get("content_disposition").(string)),
 			ContentLength:      int64(d.Get("content_length").(int)),
 			MetaData:           ExpandMetaData(d.Get("metadata").(map[string]interface{})),
 		}
 
 		if v, ok := d.GetOk("content_md5"); ok {
-			input.ContentMD5 = utils.String(v.(string))
+			// Azure uses a Base64 encoded representation of the standard MD5 sum of the file
+			contentMD5, err := convertHexToBase64Encoding(v.(string))
+			if err != nil {
+				return fmt.Errorf("failed to hex decode then base64 encode `content_md5` value: %s", err)
+			}
+			input.ContentMD5 = &contentMD5
 		}
 
 		if _, err = client.SetProperties(ctx, id.ShareName, id.DirectoryPath, id.FileName, input); err != nil {
@@ -247,16 +297,17 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*clients.Client).Storage
 
 	id, err := files.ParseFileID(d.Id(), storageClient.StorageDomainSuffix)
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountId.AccountName, id.FileName, id.ShareName, err)
 	}
@@ -280,14 +331,27 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.Set("name", id.FileName)
 	d.Set("path", id.DirectoryPath)
-	d.Set("storage_share_id", shares.NewShareID(id.AccountId, id.ShareName).ID())
+	d.Set("storage_share_url", shares.NewShareID(id.AccountId, id.ShareName).ID())
+	if !features.FivePointOh() {
+		d.Set("storage_share_id", shares.NewShareID(id.AccountId, id.ShareName).ID())
+	}
 
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %s", err)
 	}
 	d.Set("content_type", props.ContentType)
 	d.Set("content_encoding", props.ContentEncoding)
-	d.Set("content_md5", props.ContentMD5)
+
+	// Set the ContentMD5 value to md5 hash in hex
+	contentMD5 := ""
+	if props.ContentMD5 != "" {
+		contentMD5, err = convertBase64ToHexEncoding(props.ContentMD5)
+		if err != nil {
+			return fmt.Errorf("converting hex to base64 encoding for content_md5: %v", err)
+		}
+	}
+	d.Set("content_md5", contentMD5)
+
 	d.Set("content_disposition", props.ContentDisposition)
 
 	if props.ContentLength == nil {
@@ -300,16 +364,17 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceStorageShareFileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*clients.Client).Storage
 
 	id, err := files.ParseFileID(d.Id(), storageClient.StorageDomainSuffix)
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for File %q (Share %q): %v", id.AccountId.AccountName, id.FileName, id.ShareName, err)
 	}
@@ -319,7 +384,7 @@ func resourceStorageShareFileDelete(d *pluginsdk.ResourceData, meta interface{})
 
 	client, err := storageClient.FileShareFilesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building File Share File Client for Storage Account %q (Resource Group %q): %v", id.AccountId.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share File Client for %s: %v", account.StorageAccountId, err)
 	}
 
 	if _, err = client.Delete(ctx, id.ShareName, id.DirectoryPath, id.FileName); err != nil {

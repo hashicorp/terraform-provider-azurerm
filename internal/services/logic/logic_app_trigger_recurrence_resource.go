@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -57,7 +57,6 @@ func resourceLogicAppTriggerRecurrence() *pluginsdk.Resource {
 					"Day",
 					"Hour",
 					"Minute",
-					"Hour",
 					"Second",
 				}, false),
 			},
@@ -169,9 +168,7 @@ func resourceLogicAppTriggerRecurrenceRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
-
-	t, app, err := retrieveLogicAppTrigger(d, meta, workflowId, id.TriggerName)
+	t, app, _, err := retrieveLogicAppTrigger(d, meta, *id)
 	if err != nil {
 		return err
 	}

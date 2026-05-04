@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/firewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -28,6 +28,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name firewall_policy -service-package-name firewall -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 const AzureFirewallPolicyResourceName = "azurerm_firewall_policy"
 
 func resourceFirewallPolicy() *pluginsdk.Resource {
@@ -37,10 +39,11 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 		Update: resourceFirewallPolicyCreateUpdate,
 		Delete: resourceFirewallPolicyDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := firewallpolicies.ParseFirewallPolicyID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&firewallpolicies.FirewallPolicyId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&firewallpolicies.FirewallPolicyId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -84,7 +87,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			Insights:             expandFirewallPolicyInsights(d.Get("insights").([]interface{})),
 			ExplicitProxy:        expandFirewallPolicyExplicitProxy(d.Get("explicit_proxy").([]interface{})),
 		},
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -98,7 +101,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if id, ok := d.GetOk("base_policy_id"); ok {
-		props.Properties.BasePolicy = &firewallpolicies.SubResource{Id: utils.String(id.(string))}
+		props.Properties.BasePolicy = &firewallpolicies.SubResource{Id: pointer.To(id.(string))}
 	}
 
 	if v, ok := d.GetOk("sku"); ok {
@@ -109,7 +112,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("sql_redirect_allowed"); ok {
 		props.Properties.Sql = &firewallpolicies.FirewallPolicySQL{
-			AllowSqlRedirect: utils.Bool(v.(bool)),
+			AllowSqlRedirect: pointer.To(v.(bool)),
 		}
 	}
 
@@ -137,6 +140,9 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceFirewallPolicyRead(d, meta)
 }
@@ -161,11 +167,14 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+	return resourceFirewallPolicySetFlatten(d, id, resp.Model)
+}
 
+func resourceFirewallPolicySetFlatten(d *pluginsdk.ResourceData, id *firewallpolicies.FirewallPolicyId, model *firewallpolicies.FirewallPolicy) error {
 	d.Set("name", id.FirewallPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
@@ -247,10 +256,12 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("flattening `tags`: %+v", err)
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -294,7 +305,7 @@ func expandFirewallPolicyDNSSetting(input []interface{}) *firewallpolicies.DnsSe
 	raw := input[0].(map[string]interface{})
 	output := &firewallpolicies.DnsSettings{
 		Servers:     utils.ExpandStringSlice(raw["servers"].([]interface{})),
-		EnableProxy: utils.Bool(raw["proxy_enabled"].(bool)),
+		EnableProxy: pointer.To(raw["proxy_enabled"].(bool)),
 	}
 
 	return output
@@ -307,22 +318,23 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *firewallpolici
 
 	raw := input[0].(map[string]interface{})
 
-	var signatureOverrides []firewallpolicies.FirewallPolicyIntrusionDetectionSignatureSpecification
-	for _, v := range raw["signature_overrides"].([]interface{}) {
+	signatureOverridesRaw := raw["signature_overrides"].([]interface{})
+	signatureOverrides := make([]firewallpolicies.FirewallPolicyIntrusionDetectionSignatureSpecification, 0, len(signatureOverridesRaw))
+	for _, v := range signatureOverridesRaw {
 		overrides := v.(map[string]interface{})
 		signatureOverrides = append(signatureOverrides, firewallpolicies.FirewallPolicyIntrusionDetectionSignatureSpecification{
-			Id:   utils.String(overrides["id"].(string)),
+			Id:   pointer.To(overrides["id"].(string)),
 			Mode: pointer.To(firewallpolicies.FirewallPolicyIntrusionDetectionStateType(overrides["state"].(string))),
 		})
 	}
 
-	var trafficBypass []firewallpolicies.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications
-
-	for _, v := range raw["traffic_bypass"].([]interface{}) {
+	trafficBypassRaw := raw["traffic_bypass"].([]interface{})
+	trafficBypass := make([]firewallpolicies.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications, 0, len(trafficBypassRaw))
+	for _, v := range trafficBypassRaw {
 		bypass := v.(map[string]interface{})
 		trafficBypass = append(trafficBypass, firewallpolicies.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{
-			Name:                 utils.String(bypass["name"].(string)),
-			Description:          utils.String(bypass["description"].(string)),
+			Name:                 pointer.To(bypass["name"].(string)),
+			Description:          pointer.To(bypass["description"].(string)),
 			Protocol:             pointer.To(firewallpolicies.FirewallPolicyIntrusionDetectionProtocol(bypass["protocol"].(string))),
 			SourceAddresses:      utils.ExpandStringSlice(bypass["source_addresses"].(*pluginsdk.Set).List()),
 			DestinationAddresses: utils.ExpandStringSlice(bypass["destination_addresses"].(*pluginsdk.Set).List()),
@@ -332,8 +344,9 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *firewallpolici
 		})
 	}
 
-	var privateRanges []string
-	for _, v := range raw["private_ranges"].([]interface{}) {
+	privateRangesRaw := raw["private_ranges"].([]interface{})
+	privateRanges := make([]string, 0, len(privateRangesRaw))
+	for _, v := range privateRangesRaw {
 		privateRanges = append(privateRanges, v.(string))
 	}
 
@@ -356,8 +369,8 @@ func expandFirewallPolicyTransportSecurity(input []interface{}) *firewallpolicie
 
 	return &firewallpolicies.FirewallPolicyTransportSecurity{
 		CertificateAuthority: &firewallpolicies.FirewallPolicyCertificateAuthority{
-			KeyVaultSecretId: utils.String(raw["key_vault_secret_id"].(string)),
-			Name:             utils.String(raw["name"].(string)),
+			KeyVaultSecretId: pointer.To(raw["key_vault_secret_id"].(string)),
+			Name:             pointer.To(raw["name"].(string)),
 		},
 	}
 }
@@ -369,8 +382,8 @@ func expandFirewallPolicyInsights(input []interface{}) *firewallpolicies.Firewal
 
 	raw := input[0].(map[string]interface{})
 	output := &firewallpolicies.FirewallPolicyInsights{
-		IsEnabled:             utils.Bool(raw["enabled"].(bool)),
-		RetentionDays:         utils.Int64(int64(raw["retention_in_days"].(int))),
+		IsEnabled:             pointer.To(raw["enabled"].(bool)),
+		RetentionDays:         pointer.To(int64(raw["retention_in_days"].(int))),
 		LogAnalyticsResources: expandFirewallPolicyLogAnalyticsResources(raw["default_log_analytics_workspace_id"].(string), raw["log_analytics_workspace"].([]interface{})),
 	}
 
@@ -388,15 +401,15 @@ func expandFirewallPolicyExplicitProxy(input []interface{}) *firewallpolicies.Ex
 	}
 
 	output := &firewallpolicies.ExplicitProxy{
-		EnableExplicitProxy: utils.Bool(raw["enabled"].(bool)),
-		HTTPPort:            utils.Int64(int64(raw["http_port"].(int))),
-		HTTPSPort:           utils.Int64(int64(raw["https_port"].(int))),
-		PacFilePort:         utils.Int64(int64(raw["pac_file_port"].(int))),
-		PacFile:             utils.String(raw["pac_file"].(string)),
+		EnableExplicitProxy: pointer.To(raw["enabled"].(bool)),
+		HTTPPort:            pointer.To(int64(raw["http_port"].(int))),
+		HTTPSPort:           pointer.To(int64(raw["https_port"].(int))),
+		PacFilePort:         pointer.To(int64(raw["pac_file_port"].(int))),
+		PacFile:             pointer.To(raw["pac_file"].(string)),
 	}
 
 	if val, ok := raw["enable_pac_file"]; ok {
-		output.EnablePacFile = utils.Bool(val.(bool))
+		output.EnablePacFile = pointer.To(val.(bool))
 	}
 
 	return output
@@ -409,13 +422,13 @@ func expandFirewallPolicyLogAnalyticsResources(defaultWorkspaceId string, worksp
 		},
 	}
 
-	var workspaceList []firewallpolicies.FirewallPolicyLogAnalyticsWorkspace
+	workspaceList := make([]firewallpolicies.FirewallPolicyLogAnalyticsWorkspace, 0, len(workspaces))
 	for _, workspace := range workspaces {
 		workspace := workspace.(map[string]interface{})
 		workspaceList = append(workspaceList, firewallpolicies.FirewallPolicyLogAnalyticsWorkspace{
-			Region: utils.String(location.Normalize(workspace["firewall_location"].(string))),
+			Region: pointer.To(location.Normalize(workspace["firewall_location"].(string))),
 			WorkspaceId: &firewallpolicies.SubResource{
-				Id: utils.String(workspace["id"].(string)),
+				Id: pointer.To(workspace["id"].(string)),
 			},
 		})
 	}
@@ -453,7 +466,8 @@ func flattenFirewallPolicyDNSSetting(input *firewallpolicies.DnsSettings) []inte
 		map[string]interface{}{
 			"servers":       utils.FlattenStringSlice(input.Servers),
 			"proxy_enabled": proxyEnabled,
-		}}
+		},
+	}
 }
 
 func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPolicyIntrusionDetection) []interface{} {
@@ -637,7 +651,7 @@ func flattenFirewallPolicyLogAnalyticsResources(input *firewallpolicies.Firewall
 }
 
 func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -650,7 +664,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		"sku": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Default:  string(firewallpolicies.FirewallPolicySkuTierStandard),
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(firewallpolicies.FirewallPolicySkuTierPremium),
@@ -987,4 +1001,6 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	return resource
 }

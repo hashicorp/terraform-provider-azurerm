@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,9 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/connectionmonitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/connectionmonitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -28,9 +31,9 @@ import (
 
 func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkConnectionMonitorCreateUpdate,
+		Create: resourceNetworkConnectionMonitorCreate,
 		Read:   resourceNetworkConnectionMonitorRead,
-		Update: resourceNetworkConnectionMonitorCreateUpdate,
+		Update: resourceNetworkConnectionMonitorUpdate,
 		Delete: resourceNetworkConnectionMonitorDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := connectionmonitors.ParseConnectionMonitorID(id)
@@ -169,12 +172,12 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 					"target_resource_id": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
 						ValidateFunc: validation.Any(
 							commonids.ValidateVirtualMachineID,
 							workspaces.ValidateWorkspaceID,
 							commonids.ValidateSubnetID,
 							commonids.ValidateVirtualNetworkID,
+							machines.ValidateMachineID,
 						),
 					},
 
@@ -182,6 +185,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
+							string(connectionmonitors.EndpointTypeAzureArcVM),
 							string(connectionmonitors.EndpointTypeAzureSubnet),
 							string(connectionmonitors.EndpointTypeAzureVM),
 							string(connectionmonitors.EndpointTypeAzureVNet),
@@ -421,10 +425,8 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"output_workspace_resource_ids": {
-			Type:       pluginsdk.TypeSet,
-			Optional:   true,
-			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
@@ -435,13 +437,11 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkConnectionMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ConnectionMonitors
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	watcherId, err := connectionmonitors.ParseNetworkWatcherID(d.Get("network_watcher_id").(string))
 	if err != nil {
@@ -450,21 +450,19 @@ func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, met
 
 	connectionMonitorId := connectionmonitors.NewConnectionMonitorID(subscriptionId, watcherId.ResourceGroupName, watcherId.NetworkWatcherName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, connectionMonitorId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", connectionMonitorId, err)
-			}
-		}
-
-		if existing.Model != nil {
-			return tf.ImportAsExistsError("azurerm_network_connection_monitor", connectionMonitorId.ID())
+	existing, err := client.Get(ctx, connectionMonitorId)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %s", connectionMonitorId, err)
 		}
 	}
 
+	if existing.Model != nil {
+		return tf.ImportAsExistsError("azurerm_network_connection_monitor", connectionMonitorId.ID())
+	}
+
 	properties := connectionmonitors.ConnectionMonitor{
-		Location: utils.String(location),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: connectionmonitors.ConnectionMonitorParameters{
 			Outputs:            expandNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*pluginsdk.Set).List()),
@@ -476,7 +474,7 @@ func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, met
 	properties.Properties.Endpoints = expandNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*pluginsdk.Set).List())
 
 	if notes, ok := d.GetOk("notes"); ok {
-		properties.Properties.Notes = utils.String(notes.(string))
+		properties.Properties.Notes = pointer.To(notes.(string))
 	}
 
 	if err = client.CreateOrUpdateThenPoll(ctx, connectionMonitorId, properties, connectionmonitors.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -484,6 +482,73 @@ func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	d.SetId(connectionMonitorId.ID())
+
+	return resourceNetworkConnectionMonitorRead(d, meta)
+}
+
+func resourceNetworkConnectionMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.ConnectionMonitors
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := connectionmonitors.ParseConnectionMonitorID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := connectionmonitors.ConnectionMonitor{
+		Location: existing.Model.Location,
+		Properties: connectionmonitors.ConnectionMonitorParameters{
+			Endpoints:          existing.Model.Properties.Endpoints,
+			TestConfigurations: existing.Model.Properties.TestConfigurations,
+			TestGroups:         existing.Model.Properties.TestGroups,
+			Notes:              existing.Model.Properties.Notes,
+			Outputs:            existing.Model.Properties.Outputs,
+		},
+		Tags: existing.Model.Tags,
+	}
+
+	if d.HasChange("endpoint") {
+		payload.Properties.Endpoints = expandNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("test_configuration") {
+		payload.Properties.TestConfigurations = expandNetworkConnectionMonitorTestConfiguration(d.Get("test_configuration").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("test_group") {
+		payload.Properties.TestGroups = expandNetworkConnectionMonitorTestGroup(d.Get("test_group").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("notes") {
+		payload.Properties.Notes = pointer.To(d.Get("notes").(string))
+	}
+
+	if d.HasChange("output_workspace_resource_ids") {
+		payload.Properties.Outputs = expandNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, payload, connectionmonitors.DefaultCreateOrUpdateOperationOptions()); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
 
 	return resourceNetworkConnectionMonitorRead(d, meta)
 }
@@ -513,13 +578,13 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 		networkWatcherId := networkwatchers.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroupName, id.NetworkWatcherName)
 		d.Set("network_watcher_id", networkWatcherId.ID())
 
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
+		if loc := model.Location; loc != nil {
+			d.Set("location", location.Normalize(*loc))
 		}
 
 		if props := model.Properties; props != nil {
 			if props.ConnectionMonitorType != nil && *props.ConnectionMonitorType == connectionmonitors.ConnectionMonitorTypeSingleSourceDestination {
-				return fmt.Errorf("the resource created via API version 2019-06-01 or before (a.k.a v1) isn't compatible to this version of provider. Please migrate to v2 pluginsdk.")
+				return errors.New("the resource created via API version 2019-06-01 or before (a.k.a v1) isn't compatible to this version of provider. Please migrate to v2 pluginsdk")
 			}
 			d.Set("notes", props.Notes)
 
@@ -540,7 +605,9 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -575,7 +642,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]connectionmo
 		}
 
 		if address := v["address"]; address != "" {
-			result.Address = utils.String(address.(string))
+			result.Address = pointer.To(address.(string))
 		}
 
 		if coverageLevel := v["coverage_level"]; coverageLevel != "" {
@@ -591,7 +658,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]connectionmo
 				var excludedAddresses []connectionmonitors.ConnectionMonitorEndpointScopeItem
 				for _, v := range excludedItems {
 					excludedAddresses = append(excludedAddresses, connectionmonitors.ConnectionMonitorEndpointScopeItem{
-						Address: utils.String(v.(string)),
+						Address: pointer.To(v.(string)),
 					})
 				}
 				result.Scope.Exclude = &excludedAddresses
@@ -601,7 +668,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]connectionmo
 				var includedAddresses []connectionmonitors.ConnectionMonitorEndpointScopeItem
 				for _, v := range includedItems {
 					includedAddresses = append(includedAddresses, connectionmonitors.ConnectionMonitorEndpointScopeItem{
-						Address: utils.String(v.(string)),
+						Address: pointer.To(v.(string)),
 					})
 				}
 				result.Scope.Include = &includedAddresses
@@ -609,7 +676,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]connectionmo
 		}
 
 		if resourceId := v["target_resource_id"]; resourceId != "" {
-			result.ResourceId = utils.String(resourceId.(string))
+			result.ResourceId = pointer.To(resourceId.(string))
 		}
 
 		if endpointType := v["target_resource_type"]; endpointType != "" {
@@ -650,7 +717,7 @@ func expandNetworkConnectionMonitorEndpointFilterItem(input []interface{}) *[]co
 		}
 
 		if address := v["address"]; address != "" {
-			result.Address = utils.String(address.(string))
+			result.Address = pointer.To(address.(string))
 		}
 
 		results = append(results, result)
@@ -672,7 +739,7 @@ func expandNetworkConnectionMonitorTestConfiguration(input []interface{}) *[]con
 			Protocol:          connectionmonitors.ConnectionMonitorTestConfigurationProtocol(v["protocol"].(string)),
 			SuccessThreshold:  expandNetworkConnectionMonitorSuccessThreshold(v["success_threshold"].([]interface{})),
 			TcpConfiguration:  expandNetworkConnectionMonitorTCPConfiguration(v["tcp_configuration"].([]interface{})),
-			TestFrequencySec:  utils.Int64(int64(v["test_frequency_in_seconds"].(int))),
+			TestFrequencySec:  pointer.To(int64(v["test_frequency_in_seconds"].(int))),
 		}
 
 		if preferredIPVersion := v["preferred_ip_version"]; preferredIPVersion != "" {
@@ -694,16 +761,16 @@ func expandNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *conne
 
 	props := &connectionmonitors.ConnectionMonitorHTTPConfiguration{
 		Method:         pointer.To(connectionmonitors.HTTPConfigurationMethod(v["method"].(string))),
-		PreferHTTPS:    utils.Bool(v["prefer_https"].(bool)),
+		PreferHTTPS:    pointer.To(v["prefer_https"].(bool)),
 		RequestHeaders: expandNetworkConnectionMonitorHTTPHeader(v["request_header"].(*pluginsdk.Set).List()),
 	}
 
 	if path := v["path"]; path != "" {
-		props.Path = utils.String(path.(string))
+		props.Path = pointer.To(path.(string))
 	}
 
 	if port := v["port"]; port != 0 {
-		props.Port = utils.Int64(int64(port.(int)))
+		props.Port = pointer.To(int64(port.(int)))
 	}
 
 	if ranges := v["valid_status_code_ranges"].(*pluginsdk.Set).List(); len(ranges) != 0 {
@@ -721,8 +788,8 @@ func expandNetworkConnectionMonitorTCPConfiguration(input []interface{}) *connec
 	v := input[0].(map[string]interface{})
 
 	result := &connectionmonitors.ConnectionMonitorTcpConfiguration{
-		Port:              utils.Int64(int64(v["port"].(int))),
-		DisableTraceRoute: utils.Bool(!v["trace_route_enabled"].(bool)),
+		Port:              pointer.To(int64(v["port"].(int))),
+		DisableTraceRoute: pointer.To(!v["trace_route_enabled"].(bool)),
 	}
 
 	if destinationPortBehavior := v["destination_port_behavior"].(string); destinationPortBehavior != "" {
@@ -740,7 +807,7 @@ func expandNetworkConnectionMonitorIcmpConfiguration(input []interface{}) *conne
 	v := input[0].(map[string]interface{})
 
 	return &connectionmonitors.ConnectionMonitorIcmpConfiguration{
-		DisableTraceRoute: utils.Bool(!v["trace_route_enabled"].(bool)),
+		DisableTraceRoute: pointer.To(!v["trace_route_enabled"].(bool)),
 	}
 }
 
@@ -752,8 +819,8 @@ func expandNetworkConnectionMonitorSuccessThreshold(input []interface{}) *connec
 	v := input[0].(map[string]interface{})
 
 	return &connectionmonitors.ConnectionMonitorSuccessThreshold{
-		ChecksFailedPercent: utils.Int64(int64(v["checks_failed_percent"].(int))),
-		RoundTripTimeMs:     utils.Float(v["round_trip_time_ms"].(float64)),
+		ChecksFailedPercent: pointer.To(int64(v["checks_failed_percent"].(int))),
+		RoundTripTimeMs:     pointer.To(v["round_trip_time_ms"].(float64)),
 	}
 }
 
@@ -768,8 +835,8 @@ func expandNetworkConnectionMonitorHTTPHeader(input []interface{}) *[]connection
 		v := item.(map[string]interface{})
 
 		result := connectionmonitors.HTTPHeader{
-			Name:  utils.String(v["name"].(string)),
-			Value: utils.String(v["value"].(string)),
+			Name:  pointer.To(v["name"].(string)),
+			Value: pointer.To(v["value"].(string)),
 		}
 
 		results = append(results, result)
@@ -787,7 +854,7 @@ func expandNetworkConnectionMonitorTestGroup(input []interface{}) *[]connectionm
 		result := connectionmonitors.ConnectionMonitorTestGroup{
 			Name:               v["name"].(string),
 			Destinations:       *utils.ExpandStringSlice(v["destination_endpoints"].(*pluginsdk.Set).List()),
-			Disable:            utils.Bool(!v["enabled"].(bool)),
+			Disable:            pointer.To(!v["enabled"].(bool)),
 			Sources:            *utils.ExpandStringSlice(v["source_endpoints"].(*pluginsdk.Set).List()),
 			TestConfigurations: *utils.ExpandStringSlice(v["test_configuration_names"].(*pluginsdk.Set).List()),
 		}
@@ -805,7 +872,7 @@ func expandNetworkConnectionMonitorOutput(input []interface{}) *[]connectionmoni
 		result := connectionmonitors.ConnectionMonitorOutput{
 			Type: pointer.To(connectionmonitors.OutputTypeWorkspace),
 			WorkspaceSettings: &connectionmonitors.ConnectionMonitorWorkspaceSettings{
-				WorkspaceResourceId: utils.String(item.(string)),
+				WorkspaceResourceId: pointer.To(item.(string)),
 			},
 		}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datashare
@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/synchronizationsetting"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
@@ -21,8 +22,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_share -service-package-name datashare -properties "name" -compare-values "subscription_id:account_id,resource_group_name:account_id,account_name:account_id"
 
 func resourceDataShare() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -38,10 +40,10 @@ func resourceDataShare() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := share.ParseShareID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&share.ShareId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&share.ShareId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -141,8 +143,8 @@ func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	share := share.Share{
 		Properties: &share.ShareProperties{
 			ShareKind:   pointer.To(share.ShareKind(d.Get("kind").(string))),
-			Description: utils.String(d.Get("description").(string)),
-			Terms:       utils.String(d.Get("terms").(string)),
+			Description: pointer.To(d.Get("description").(string)),
+			Terms:       pointer.To(d.Get("terms").(string)),
 		},
 	}
 
@@ -151,6 +153,9 @@ func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	if d.HasChange("snapshot_schedule") {
 		// only one dependent sync setting is allowed in one data share
@@ -225,7 +230,7 @@ func resourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDataShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {

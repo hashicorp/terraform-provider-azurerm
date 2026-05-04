@@ -19,12 +19,12 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_analysis_services_server" "server" {
-  name                    = "analysisservicesserver"
-  location                = azurerm_resource_group.example.location
-  resource_group_name     = azurerm_resource_group.example.name
-  sku                     = "S0"
-  admin_users             = ["myuser@domain.tld"]
-  enable_power_bi_service = true
+  name                     = "analysisservicesserver"
+  location                 = azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.example.name
+  sku                      = "S0"
+  admin_users              = ["myuser@domain.tld"]
+  power_bi_service_enabled = true
 
   ipv4_firewall_rule {
     name        = "myRule1"
@@ -38,9 +38,9 @@ resource "azurerm_analysis_services_server" "server" {
 }
 ```
 
--> **NOTE:** The server resource will automatically be started and stopped during an update if it is in `paused` state.
+-> **Note:** The server resource will automatically be started and stopped during an update if it is in `paused` state.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -54,11 +54,13 @@ The following arguments are supported:
 
 * `admin_users` - (Optional) List of email addresses of admin users.
 
-* `querypool_connection_mode` - (Optional) Controls how the read-write server is used in the query pool. If this value is set to `All` then read-write servers are also used for queries. Otherwise with `ReadOnly` these servers do not participate in query operations.
+* `querypool_connection_mode` - (Optional) Controls how the read-write server is used in the query pool. If this value is set to `All` then read-write servers are also used for queries. Otherwise with `ReadOnly` these servers do not participate in query operations. Defaults to `All`.
 
 * `backup_blob_container_uri` - (Optional) URI and SAS token for a blob container to store backups.
 
-* `enable_power_bi_service` - (Optional) Indicates if the Power BI service is allowed to access or not.
+* `power_bi_service_enabled` - (Optional) Indicates if the Power BI service is allowed to access or not.
+
+~> **Note:** `power_bi_service_enabled` is required when `ipv4_firewall_rule` is defined.
 
 * `ipv4_firewall_rule` - (Optional) One or more `ipv4_firewall_rule` block(s) as defined below.
 
@@ -84,11 +86,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Analysis Services Server.
-* `update` - (Defaults to 30 minutes) Used when updating the Analysis Services Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Analysis Services Server.
+* `update` - (Defaults to 30 minutes) Used when updating the Analysis Services Server.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Analysis Services Server.
 
 ## Import
@@ -98,3 +100,9 @@ Analysis Services Server can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_analysis_services_server.server /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.AnalysisServices/servers/server1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AnalysisServices` - 2017-08-01

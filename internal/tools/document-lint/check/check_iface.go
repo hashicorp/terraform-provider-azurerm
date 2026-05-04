@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -30,9 +30,11 @@ type checkBase struct {
 }
 
 func (c checkBase) ShouldSkip() bool {
-	if c.line == 0 || c.MDField() == nil || c.MDField().Skip {
+	mdField := c.MDField()
+	if mdField == nil || mdField.Skip {
 		return true
 	}
+
 	return false
 }
 
@@ -60,5 +62,32 @@ func newCheckBase(line int, key string, mdField *model.Field) checkBase {
 		line:    line,
 		key:     key,
 		mdField: mdField,
+	}
+}
+
+// for some special diff, we need to show message instead of diff
+type diffWithMessage struct {
+	checkBase
+	msg  string
+	skip bool
+}
+
+func (i diffWithMessage) Fix(line string) (string, error) {
+	return line, nil
+}
+
+func (i diffWithMessage) String() string {
+	return i.msg
+}
+
+func (i diffWithMessage) ShouldSkip() bool {
+	return i.skip
+}
+
+func newDiffWithMessage(msg string, skip bool) Checker {
+	return diffWithMessage{
+		checkBase: newCheckBase(0, msg, nil),
+		msg:       msg,
+		skip:      skip,
 	}
 }

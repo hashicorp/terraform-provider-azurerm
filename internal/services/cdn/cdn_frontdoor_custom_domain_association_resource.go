@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -16,8 +16,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var cdnFrontDoorCustomDomainResourceName = "azurerm_cdn_frontdoor_custom_domain"
-var cdnFrontDoorRouteResourceName = "azurerm_cdn_frontdoor_route"
+var (
+	cdnFrontDoorCustomDomainResourceName = "azurerm_cdn_frontdoor_custom_domain"
+	cdnFrontDoorRouteResourceName        = "azurerm_cdn_frontdoor_route"
+)
 
 func resourceCdnFrontDoorCustomDomainAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

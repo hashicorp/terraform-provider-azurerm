@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/privatelinkassociation` Documentation
 
-The `privatelinkassociation` SDK allows for interaction with the Azure Resource Manager Service `resources` (API Version `2020-05-01`).
+The `privatelinkassociation` SDK allows for interaction with Azure Resource Manager `resources` (API Version `2020-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := privatelinkassociation.NewPrivateLinkAssociationID("groupIdValue", "plaIdValue")
+id := privatelinkassociation.NewPrivateLinkAssociationID("groupId", "plaId")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkassociation.NewPrivateLinkAssociationID("groupIdValue", "plaIdValue")
+id := privatelinkassociation.NewPrivateLinkAssociationID("groupId", "plaId")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -57,7 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewManagementGroupID("groupIdValue")
+id := commonids.NewManagementGroupID("groupId")
 
 read, err := client.List(ctx, id)
 if err != nil {
@@ -73,7 +73,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkassociation.NewPrivateLinkAssociationID("groupIdValue", "plaIdValue")
+id := privatelinkassociation.NewPrivateLinkAssociationID("groupId", "plaId")
 
 payload := privatelinkassociation.PrivateLinkAssociationObject{
 	// ...

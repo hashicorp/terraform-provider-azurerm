@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -9,23 +9,23 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KubernetesClusterResource struct{}
 
 var (
-	olderKubernetesVersion        = "1.28.5"
-	currentKubernetesVersion      = "1.29.0"
-	olderKubernetesVersionAlias   = "1.28"
-	currentKubernetesVersionAlias = "1.29"
+	olderKubernetesVersion        = "1.34.3"
+	currentKubernetesVersion      = "1.35.1"
+	olderKubernetesVersionAlias   = "1.34"
+	currentKubernetesVersionAlias = "1.35"
 )
 
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
@@ -37,7 +37,7 @@ func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 			Config: r.hostEncryption(data, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_host_encryption").HasValue("true"),
+				check.That(data.ResourceName).Key("default_node_pool.0.host_encryption_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -182,6 +182,49 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerTogg
 	})
 }
 
+func TestAccKubernetesCluster_nodeProvisioningProfileUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodeProvisioningProfile(data, "Auto", "Auto"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeProvisioningProfile(data, "Auto", "None"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeProvisioningProfile(data, "Manual", "None"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeProvisioningProfile(data, "Auto", "Auto"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeProvisioningProfileRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_edgeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -202,6 +245,93 @@ func TestAccKubernetesCluster_edgeZone(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "userDefinedRouting"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
+		},
+		data.ImportStep(),
+		// 'none' tested in network isolated setup with bootstrap profile
+	})
+}
+
+func TestAccKubernetesCluster_bootstrapProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkIsolatedBootstrapProfileArtifactSourceDirect(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkIsolatedBootstrapProfileArtifactSourceCache(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkIsolatedBootstrapProfileRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_upgradeOverrideSetting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeOverrideSetting(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeOverrideSetting(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeOverrideSetting(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseKubernetesClusterID(state.ID)
 	if err != nil {
@@ -213,11 +343,17 @@ func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("reading Kubernetes Cluster (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Id != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 1*time.Hour)
+			defer cancel()
+		}
+
 		nodePoolName := state.Attributes["default_node_pool.0.name"]
 		clusterName := state.Attributes["name"]
 		resourceGroup := state.Attributes["resource_group_name"]
@@ -236,12 +372,9 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q): `properties` was nil", nodePoolName, clusterName, resourceGroup)
 		}
 
-		nodePool.Model.Properties.Count = utils.Int64(int64(nodeCount))
+		nodePool.Model.Properties.Count = pointer.To(int64(nodeCount))
 
-		ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
-		defer cancel()
-
-		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model)
+		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
 		}
@@ -287,10 +420,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   kubernetes_version  = %q
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 1
-    vm_size                = "Standard_DS2_v2"
-    enable_host_encryption = true
+    name                    = "default"
+    node_count              = 1
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -298,6 +434,165 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
+}
+
+func (KubernetesClusterResource) vnetWithNetworkProfileInfra(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "k8s-vnet"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["172.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "node_subnet" {
+  name                 = "node-subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.32.0/24"]
+}
+
+resource "azurerm_subnet" "pod_subnet" {
+  name                 = "pod-subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.48.0/20"]
+
+  delegation {
+    name = "aks-delegation"
+
+    service_delegation {
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+      name = "Microsoft.ContainerService/managedClusters"
+    }
+  }
+}
+
+resource "azurerm_subnet" "firewall_subnet" {
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.35.0/26"]
+}
+
+resource "azurerm_public_ip" "fw" {
+  name                = "fw-pip"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "firewall"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.firewall_subnet.id
+    public_ip_address_id = azurerm_public_ip.fw.id
+  }
+}
+
+resource "azurerm_public_ip" "nat_gw" {
+  name                = "nat-gw"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_nat_gateway" "test" {
+  name                = "test"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard"
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.nat_gw.id
+}
+
+resource "azurerm_subnet_nat_gateway_association" "pod" {
+  subnet_id      = azurerm_subnet.pod_subnet.id
+  nat_gateway_id = azurerm_nat_gateway.test.id
+}
+
+resource "azurerm_subnet_nat_gateway_association" "node" {
+  subnet_id      = azurerm_subnet.node_subnet.id
+  nat_gateway_id = azurerm_nat_gateway.test.id
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "test"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  route {
+    name           = "internal"
+    address_prefix = tolist(azurerm_virtual_network.test.address_space)[0]
+    next_hop_type  = "VnetLocal"
+  }
+  route {
+    name                   = "internet"
+    address_prefix         = "0.0.0.0/0"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.test.ip_configuration[0].private_ip_address
+  }
+}
+
+resource "azurerm_subnet_route_table_association" "node_subnet" {
+  route_table_id = azurerm_route_table.test.id
+  subnet_id      = azurerm_subnet.node_subnet.id
+}
+  `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r KubernetesClusterResource) networkProfileWithOutboundType(data acceptance.TestData, outboundType string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "%s"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = %q
+    }
+    vnet_subnet_id = azurerm_subnet.node_subnet.id
+    pod_subnet_id  = azurerm_subnet.pod_subnet.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+  network_profile {
+    network_plugin = "azure"
+    outbound_type  = %q
+  }
+}
+  `, r.vnetWithNetworkProfileInfra(data), data.RandomInteger, data.RandomInteger, currentKubernetesVersionAlias, "10%", outboundType)
 }
 
 func (KubernetesClusterResource) dedicatedHost(data acceptance.TestData) string {
@@ -350,6 +645,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count    = 1
     vm_size       = "Standard_D2s_v3"
     host_group_id = azurerm_dedicated_host_group.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -388,6 +686,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -398,8 +699,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) workloadAutoscalerProfileKeda(data acceptance.TestData, controlPlaneVersion string, kedaEnabled bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
+	return fmt.Sprintf(`provider "azurerm" {
   features {}
 }
 
@@ -423,18 +723,86 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
     type = "SystemAssigned"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, kedaEnabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, kedaEnabled)
+}
+
+func (KubernetesClusterResource) nodeProvisioningProfile(data acceptance.TestData, mode, defaultNodePools string) string {
+	return fmt.Sprintf(`provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+  node_provisioning_profile {
+    mode               = "%[3]s"
+    default_node_pools = "%[4]s"
+  }
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, mode, defaultNodePools)
+}
+
+func (KubernetesClusterResource) nodeProvisioningProfileRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (KubernetesClusterResource) workloadAutoscalerProfileVerticalPodAutoscaler(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
+	return fmt.Sprintf(`provider "azurerm" {
   features {}
 }
 
@@ -458,13 +826,16 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
     type = "SystemAssigned"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
 }
 
 func (KubernetesClusterResource) imageCleanerSecurityProfile(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
@@ -492,6 +863,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -499,43 +873,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
-}
-
-func (r KubernetesClusterResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string) string {
-	if maxSurge != "" {
-		maxSurge = fmt.Sprintf(`upgrade_settings {
-    max_surge = %q
-  }`, maxSurge)
-	}
-
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-    %s
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, maxSurge)
 }
 
 func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_OlderKubernetesVersion(t *testing.T) {
@@ -580,6 +917,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
   identity {
     type = "SystemAssigned"
@@ -661,6 +1001,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -694,6 +1037,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -703,7 +1049,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   storage_profile {
     blob_driver_enabled         = true
     disk_driver_enabled         = true
-    disk_driver_version         = "v1"
     file_driver_enabled         = false
     snapshot_controller_enabled = false
   }
@@ -733,6 +1078,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -740,4 +1088,286 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
+}
+
+func (KubernetesClusterResource) upgradeOverrideSetting(data acceptance.TestData, isUpgradeOverrideSettingEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]s"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]s"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  upgrade_override {
+    effective_until       = "%[3]s"
+    force_upgrade_enabled = %[4]t
+  }
+}
+  `, data.RandomString, data.Locations.Primary, time.Now().UTC().Add(8*time.Minute).Format(time.RFC3339), isUpgradeOverrideSettingEnabled)
+}
+
+func (KubernetesClusterResource) networkIsolatedBootstrapProfileTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_container_registry" "registry" {
+  name                          = "acctestacr%[2]d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  sku                           = "Premium"
+  public_network_access_enabled = false
+  admin_enabled                 = false
+  network_rule_bypass_option    = "None"
+}
+
+resource "azurerm_container_registry_cache_rule" "cache_rule" {
+  name                  = "aks-managed-mcr"
+  container_registry_id = azurerm_container_registry.registry.id
+  target_repo           = "aks-managed-repository/*"
+  source_repo           = "mcr.microsoft.com/*"
+}
+
+resource "azurerm_role_assignment" "aks_pull_from_acr" {
+  scope                = azurerm_container_registry.registry.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.aks_kubelet.principal_id
+}
+
+resource "azurerm_private_dns_zone" "acr_private_dns_zone" {
+  name                = "privatelink.azurecr.io"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr" {
+  name                  = "acctest-dns-vnet-link-acr"
+  private_dns_zone_name = azurerm_private_dns_zone.acr_private_dns_zone.name
+  resource_group_name   = azurerm_resource_group.test.name
+  virtual_network_id    = azurerm_virtual_network.vnet.id
+}
+
+resource "azurerm_private_endpoint" "acr_private_endpoint" {
+  name                = "acctest-acr-pe"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.vnet-nodepool.id
+
+  private_service_connection {
+    name                           = "acctest-sc-acr"
+    private_connection_resource_id = azurerm_container_registry.registry.id
+    is_manual_connection           = false
+    subresource_names = [
+      "registry"
+    ]
+  }
+
+  private_dns_zone_group {
+    name = "acctest-dns-group-acr"
+    private_dns_zone_ids = [
+      azurerm_private_dns_zone.acr_private_dns_zone.id
+    ]
+  }
+}
+
+resource "azurerm_virtual_network" "vnet" {
+  name                = "acctestvnet"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["172.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "vnet-nodepool" {
+  name                 = "aks"
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  resource_group_name  = azurerm_resource_group.test.name
+  address_prefixes     = ["172.0.32.0/24"]
+}
+
+resource "azurerm_user_assigned_identity" "aks_kubelet" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "aks_kubelet-identity"
+}
+
+resource "azurerm_user_assigned_identity" "aks" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "aks-identity"
+}
+
+resource "azurerm_role_assignment" "aks_to_vnet" {
+  scope                = azurerm_virtual_network.vnet.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_user_assigned_identity.aks.principal_id
+}
+
+resource "azurerm_role_assignment" "aks_to_kubeletidentity" {
+  scope                = azurerm_user_assigned_identity.aks_kubelet.id
+  role_definition_name = "Managed Identity Operator"
+  principal_id         = azurerm_user_assigned_identity.aks.principal_id
+}
+
+
+  `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r KubernetesClusterResource) networkIsolatedBootstrapProfileArtifactSourceCache(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  private_cluster_enabled = true
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+    vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
+  }
+
+  network_profile {
+    network_plugin_mode = "overlay"
+    network_plugin      = "azure"
+    load_balancer_sku   = "standard"
+    outbound_type       = "none"
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.aks.id]
+  }
+
+  kubelet_identity {
+    user_assigned_identity_id = azurerm_user_assigned_identity.aks_kubelet.id
+    client_id                 = azurerm_user_assigned_identity.aks_kubelet.client_id
+    object_id                 = azurerm_user_assigned_identity.aks_kubelet.principal_id
+  }
+
+  bootstrap_profile {
+    artifact_source       = "Cache"
+    container_registry_id = azurerm_container_registry.registry.id
+  }
+}`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
+}
+
+func (r KubernetesClusterResource) networkIsolatedBootstrapProfileArtifactSourceDirect(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  private_cluster_enabled = true
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+    vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
+  }
+
+  network_profile {
+    network_plugin_mode = "overlay"
+    network_plugin      = "azure"
+    load_balancer_sku   = "standard"
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.aks.id]
+  }
+
+  kubelet_identity {
+    user_assigned_identity_id = azurerm_user_assigned_identity.aks_kubelet.id
+    client_id                 = azurerm_user_assigned_identity.aks_kubelet.client_id
+    object_id                 = azurerm_user_assigned_identity.aks_kubelet.principal_id
+  }
+
+  bootstrap_profile {
+    artifact_source = "Direct"
+  }
+}`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
+}
+
+func (r KubernetesClusterResource) networkIsolatedBootstrapProfileRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  private_cluster_enabled = true
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+    vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
+  }
+
+  network_profile {
+    network_plugin_mode = "overlay"
+    network_plugin      = "azure"
+    load_balancer_sku   = "standard"
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.aks.id]
+  }
+
+  kubelet_identity {
+    user_assigned_identity_id = azurerm_user_assigned_identity.aks_kubelet.id
+    client_id                 = azurerm_user_assigned_identity.aks_kubelet.client_id
+    object_id                 = azurerm_user_assigned_identity.aks_kubelet.principal_id
+  }
+}`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
 }

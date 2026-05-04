@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups"
+	prometheusrulegroups "github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroupresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -43,7 +43,7 @@ type PrometheusRuleModel struct {
 	Labels          map[string]string                    `tfschema:"labels"`
 	Record          string                               `tfschema:"record"`
 	AlertResolution []PrometheusRuleAlertResolutionModel `tfschema:"alert_resolution"`
-	Severity        int                                  `tfschema:"severity"`
+	Severity        int64                                `tfschema:"severity"`
 }
 
 type PrometheusRuleGroupActionModel struct {
@@ -270,7 +270,7 @@ func (r AlertPrometheusRuleGroupResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Monitor.AlertPrometheusRuleGroupClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := prometheusrulegroups.NewPrometheusRuleGroupID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
+			existing, err := client.PrometheusRuleGroupsGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
@@ -293,9 +293,9 @@ func (r AlertPrometheusRuleGroupResource) Create() sdk.ResourceFunc {
 			if _, ok := metadata.ResourceData.GetOk("interval"); ok {
 				properties.Properties.Interval = pointer.To(model.Interval)
 			}
-			properties.Properties.Rules = expandPrometheusRuleModel(model.Rule)
+			properties.Properties.Rules = expandPrometheusRuleModel(model.Rule, metadata.ResourceData)
 
-			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
+			if _, err := client.PrometheusRuleGroupsCreateOrUpdate(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -321,7 +321,7 @@ func (r AlertPrometheusRuleGroupResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.PrometheusRuleGroupsGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -344,7 +344,7 @@ func (r AlertPrometheusRuleGroupResource) Update() sdk.ResourceFunc {
 				properties.Properties.Interval = pointer.To(model.Interval)
 			}
 			if metadata.ResourceData.HasChange("rule") {
-				properties.Properties.Rules = expandPrometheusRuleModel(model.Rule)
+				properties.Properties.Rules = expandPrometheusRuleModel(model.Rule, metadata.ResourceData)
 			}
 			if metadata.ResourceData.HasChange("scopes") {
 				properties.Properties.Scopes = model.Scopes
@@ -353,7 +353,7 @@ func (r AlertPrometheusRuleGroupResource) Update() sdk.ResourceFunc {
 				properties.Tags = pointer.To(model.Tags)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *properties); err != nil {
+			if _, err := client.PrometheusRuleGroupsCreateOrUpdate(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -373,7 +373,7 @@ func (r AlertPrometheusRuleGroupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.PrometheusRuleGroupsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -413,7 +413,7 @@ func (r AlertPrometheusRuleGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, *id); err != nil {
+			if _, err := client.PrometheusRuleGroupsDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -422,10 +422,10 @@ func (r AlertPrometheusRuleGroupResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandPrometheusRuleModel(inputList []PrometheusRuleModel) []prometheusrulegroups.PrometheusRule {
+func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.ResourceData) []prometheusrulegroups.PrometheusRule {
 	outputList := make([]prometheusrulegroups.PrometheusRule, 0)
 
-	for _, v := range inputList {
+	for i, v := range inputList {
 		output := prometheusrulegroups.PrometheusRule{
 			Enabled:    pointer.To(v.Enabled),
 			Expression: v.Expression,
@@ -435,12 +435,15 @@ func expandPrometheusRuleModel(inputList []PrometheusRuleModel) []prometheusrule
 		if v.Alert != "" {
 			output.Actions = expandPrometheusRuleGroupActionModel(v.Action)
 			output.Alert = pointer.To(v.Alert)
-			if v.Severity != 0 {
-				output.Severity = pointer.To(int64(v.Severity))
+			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.severity", i)); ok {
+				output.Severity = pointer.To(int64(v.(int)))
 			}
 			output.Annotations = pointer.To(v.Annotations)
-			output.For = pointer.To(v.For)
 			output.ResolveConfiguration = expandPrometheusRuleAlertResolutionModel(v.AlertResolution)
+
+			if v.For != "" {
+				output.For = pointer.To(v.For)
+			}
 		} else {
 			// action, alert, severity, annotations, for, alert_resolution must be empty when type is recording rule
 			output.Record = pointer.To(v.Record)
@@ -499,7 +502,7 @@ func flattenPrometheusRuleModel(inputList *[]prometheusrulegroups.PrometheusRule
 		output.Record = pointer.From(input.Record)
 		resolveConfigurationValue := flattenPrometheusRuleAlertResolutionModel(input.ResolveConfiguration)
 		output.AlertResolution = resolveConfigurationValue
-		output.Severity = int(pointer.From(input.Severity))
+		output.Severity = pointer.From(input.Severity)
 		outputList = append(outputList, output)
 	}
 

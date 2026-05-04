@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ProductGroupId{})
+}
 
 var _ resourceids.ResourceId = &ProductGroupId{}
 
@@ -41,7 +46,7 @@ func ParseProductGroupID(input string) (*ProductGroupId, error) {
 	}
 
 	id := ProductGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +63,7 @@ func ParseProductGroupIDInsensitively(input string) (*ProductGroupId, error) {
 	}
 
 	id := ProductGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -122,11 +127,11 @@ func (id ProductGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticProducts", "products", "products"),
-		resourceids.UserSpecifiedSegment("productId", "productIdValue"),
+		resourceids.UserSpecifiedSegment("productId", "productId"),
 		resourceids.StaticSegment("staticGroups", "groups", "groups"),
-		resourceids.UserSpecifiedSegment("groupId", "groupIdValue"),
+		resourceids.UserSpecifiedSegment("groupId", "groupId"),
 	}
 }
 

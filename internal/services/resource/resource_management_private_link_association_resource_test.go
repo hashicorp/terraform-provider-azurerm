@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -8,20 +8,25 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/privatelinkassociation"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ResourceManagementPrivateLinkAssociationTestResource struct{}
+type ResourceManagementPrivateLinkAssociationTestResource struct {
+	uuid string
+}
 
 func TestAccResourceManagementPrivateLinkAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
-	r := ResourceManagementPrivateLinkAssociationTestResource{}
+	randomUUID, _ := uuid.GenerateUUID()
+	r := ResourceManagementPrivateLinkAssociationTestResource{
+		uuid: randomUUID,
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +41,10 @@ func TestAccResourceManagementPrivateLinkAssociation_basic(t *testing.T) {
 
 func TestAccResourceManagementPrivateLinkAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
-	r := ResourceManagementPrivateLinkAssociationTestResource{}
+	randomUUID, _ := uuid.GenerateUUID()
+	r := ResourceManagementPrivateLinkAssociationTestResource{
+		uuid: randomUUID,
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,11 +83,10 @@ func (r ResourceManagementPrivateLinkAssociationTestResource) Exists(ctx context
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ResourceManagementPrivateLinkAssociationTestResource) basic(data acceptance.TestData) string {
-	randomUUID, _ := uuid.GenerateUUID()
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -93,7 +100,7 @@ resource "azurerm_resource_management_private_link_association" "test" {
   resource_management_private_link_id = azurerm_resource_management_private_link.test.id
   public_network_access_enabled       = true
 }
-`, r.template(data), randomUUID)
+`, r.template(data), r.uuid)
 }
 
 func (r ResourceManagementPrivateLinkAssociationTestResource) generateName(data acceptance.TestData) string {

@@ -45,7 +45,6 @@ func (c AppPlatformClient) ApmsGet(ctx context.Context, id ApmId) (result ApmsGe
 
 	var model ApmResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

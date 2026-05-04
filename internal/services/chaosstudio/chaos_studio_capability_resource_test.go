@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package chaosstudio_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ChaosStudioCapabilityTestResource struct{}
@@ -74,8 +74,9 @@ func (r ChaosStudioCapabilityTestResource) Exists(ctx context.Context, clients *
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
+
 func (r ChaosStudioCapabilityTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -96,9 +97,8 @@ func (r ChaosStudioCapabilityTestResource) requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_chaos_studio_capability" "import" {
-  location           = azurerm_chaos_studio_capability.test.location
-  target_resource_id = azurerm_chaos_studio_capability.test.target_resource_id
-  target_type        = azurerm_chaos_studio_capability.test.target_type
+  chaos_studio_target_id = azurerm_chaos_studio_capability.test.chaos_studio_target_id
+  capability_type        = azurerm_chaos_studio_capability.test.capability_type
 }
 `, r.basic(data))
 }
@@ -111,16 +111,14 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_chaos_studio_capability" "test" {
-  location           = azurerm_resource_group.test.location
-  target_resource_id = azurerm_storage_account.test.id
-  target_type        = "NetworkChaos-2.0"
+resource "azurerm_chaos_studio_capability" "another" {
+  chaos_studio_target_id = azurerm_chaos_studio_target.test.id
+  capability_type        = "NetworkChaos-2.0"
 }
 
 resource "azurerm_chaos_studio_capability" "test" {
-  location           = azurerm_resource_group.test.location
-  target_resource_id = azurerm_storage_account.test.id
-  target_type        = "PodChaos-2.1"
+  chaos_studio_target_id = azurerm_chaos_studio_target.test.id
+  capability_type        = "PodChaos-2.1"
 }
 `, r.template(data))
 }
@@ -142,7 +140,6 @@ resource "azurerm_resource_group" "test" {
   location = var.primary_location
 }
 
-
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks${var.random_string}"
   location            = azurerm_resource_group.test.location
@@ -153,6 +150,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {

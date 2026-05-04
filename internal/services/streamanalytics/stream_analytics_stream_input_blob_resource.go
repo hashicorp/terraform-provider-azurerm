@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsStreamInputBlob() *pluginsdk.Resource {
@@ -98,6 +98,16 @@ func resourceStreamAnalyticsStreamInputBlob() *pluginsdk.Resource {
 			},
 
 			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
+
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(inputs.AuthenticationModeConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(inputs.AuthenticationModeConnectionString),
+					string(inputs.AuthenticationModeMsi),
+				}, false),
+			},
 		},
 	}
 }
@@ -138,22 +148,23 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	props := inputs.Input{
-		Name: utils.String(id.InputName),
+		Name: pointer.To(id.InputName),
 		Properties: &inputs.StreamInputProperties{
 			// Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
 			Datasource: &inputs.BlobStreamInputDataSource{
 				// Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
 				Properties: &inputs.BlobStreamInputDataSourceProperties{
-					Container:   utils.String(containerName),
-					DateFormat:  utils.String(dateFormat),
-					PathPattern: utils.String(pathPattern),
-					TimeFormat:  utils.String(timeFormat),
+					Container:   pointer.To(containerName),
+					DateFormat:  pointer.To(dateFormat),
+					PathPattern: pointer.To(pathPattern),
+					TimeFormat:  pointer.To(timeFormat),
 					StorageAccounts: &[]inputs.StorageAccount{
 						{
-							AccountName: utils.String(storageAccountName),
-							AccountKey:  utils.String(storageAccountKey),
+							AccountName: pointer.To(storageAccountName),
+							AccountKey:  pointer.To(storageAccountKey),
 						},
 					},
+					AuthenticationMode: pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 				},
 			},
 			Serialization: serialization,
@@ -202,12 +213,7 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties) // nolint: gosimple
-			if !ok {
-				return fmt.Errorf("converting %s to an Input", *id)
-			}
-
-			streamInput, ok := input.(inputs.StreamInputProperties)
+			streamInput, ok := props.(inputs.StreamInputProperties)
 			if !ok {
 				return fmt.Errorf("converting %s to a Stream Input", *id)
 			}
@@ -241,6 +247,12 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 					timeFormat = *v
 				}
 				d.Set("time_format", timeFormat)
+
+				authMode := ""
+				if v := streamBlobInputProps.AuthenticationMode; v != nil {
+					authMode = string(*v)
+				}
+				d.Set("authentication_mode", authMode)
 
 				if accounts := streamBlobInputProps.StorageAccounts; accounts != nil && len(*accounts) > 0 {
 					account := (*accounts)[0]

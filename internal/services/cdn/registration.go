@@ -1,9 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -11,6 +13,10 @@ import (
 type Registration struct{}
 
 var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+var _ sdk.FrameworkServiceRegistration = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/cdn"
@@ -29,6 +35,7 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
+// lintignore:AZNR005
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		// CDN
@@ -45,7 +52,18 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	}
 }
 
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		CdnFrontDoorSecurityPolicyDataSource{},
+	}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{}
+}
+
 // SupportedResources returns the supported Resources supported by this Service
+// lintignore:AZNR005
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		// CDN
@@ -54,18 +72,39 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_cdn_profile":                resourceCdnProfile(),
 
 		// FrontDoor
-		"azurerm_cdn_frontdoor_custom_domain":                        resourceCdnFrontDoorCustomDomain(),
-		"azurerm_cdn_frontdoor_custom_domain_association":            resourceCdnFrontDoorCustomDomainAssociation(),
-		"azurerm_cdn_frontdoor_endpoint":                             resourceCdnFrontDoorEndpoint(),
-		"azurerm_cdn_frontdoor_firewall_policy":                      resourceCdnFrontDoorFirewallPolicy(),
-		"azurerm_cdn_frontdoor_origin":                               resourceCdnFrontDoorOrigin(),
-		"azurerm_cdn_frontdoor_origin_group":                         resourceCdnFrontDoorOriginGroup(),
-		"azurerm_cdn_frontdoor_profile":                              resourceCdnFrontDoorProfile(),
-		"azurerm_cdn_frontdoor_route":                                resourceCdnFrontDoorRoute(),
-		"azurerm_cdn_frontdoor_route_disable_link_to_default_domain": resourceCdnFrontDoorRouteDisableLinkToDefaultDomain(),
-		"azurerm_cdn_frontdoor_rule":                                 resourceCdnFrontDoorRule(),
-		"azurerm_cdn_frontdoor_rule_set":                             resourceCdnFrontDoorRuleSet(),
-		"azurerm_cdn_frontdoor_secret":                               resourceCdnFrontDoorSecret(),
-		"azurerm_cdn_frontdoor_security_policy":                      resourceCdnFrontDoorSecurityPolicy(),
+		"azurerm_cdn_frontdoor_custom_domain":             resourceCdnFrontDoorCustomDomain(),
+		"azurerm_cdn_frontdoor_custom_domain_association": resourceCdnFrontDoorCustomDomainAssociation(),
+		"azurerm_cdn_frontdoor_endpoint":                  resourceCdnFrontDoorEndpoint(),
+		"azurerm_cdn_frontdoor_firewall_policy":           resourceCdnFrontDoorFirewallPolicy(),
+		"azurerm_cdn_frontdoor_origin":                    resourceCdnFrontDoorOrigin(),
+		"azurerm_cdn_frontdoor_origin_group":              resourceCdnFrontDoorOriginGroup(),
+		"azurerm_cdn_frontdoor_profile":                   resourceCdnFrontDoorProfile(),
+		"azurerm_cdn_frontdoor_route":                     resourceCdnFrontDoorRoute(),
+		"azurerm_cdn_frontdoor_rule":                      resourceCdnFrontDoorRule(),
+		"azurerm_cdn_frontdoor_rule_set":                  resourceCdnFrontDoorRuleSet(),
+		"azurerm_cdn_frontdoor_secret":                    resourceCdnFrontDoorSecret(),
+		"azurerm_cdn_frontdoor_security_policy":           resourceCdnFrontDoorSecurityPolicy(),
 	}
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{
+		newCDNFrontDoorCachePurgeAction,
+	}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{}
 }

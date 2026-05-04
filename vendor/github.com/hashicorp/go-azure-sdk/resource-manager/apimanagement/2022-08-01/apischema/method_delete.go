@@ -36,6 +36,7 @@ func (o DeleteOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeleteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -56,8 +57,8 @@ func (c ApiSchemaClient) Delete(ctx context.Context, id ApiSchemaId, options Del
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

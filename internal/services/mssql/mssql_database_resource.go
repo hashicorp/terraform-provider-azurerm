@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -7,31 +7,34 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databasesecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/geobackuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/replicationlinks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/transparentdataencryptions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -41,6 +44,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_database -service-package-name mssql -properties "name" -compare-values "resource_group_name:server_id,server_name:server_id"
+
 func resourceMsSqlDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMsSqlDatabaseCreate,
@@ -48,10 +53,11 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 		Update: resourceMsSqlDatabaseUpdate,
 		Delete: resourceMsSqlDatabaseDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := commonids.ParseSqlDatabaseID(id)
-			return err
-		}, resourceMsSqlDatabaseImporter),
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&commonids.SqlDatabaseId{}, resourceMsSqlDatabaseImporter),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SqlDatabaseId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -69,14 +75,25 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, _ interface{}) bool {
-				// "hyperscale can not change to other sku
+				// hyperscale can not be changed to another sku
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
+			}),
+			pluginsdk.ForceNewIfChange("enclave_type", func(ctx context.Context, old, new, _ interface{}) bool {
+				// enclave_type cannot be removed once it has been set
+				// but can be changed between VBS and Default...
+				// this Diff will not work until 4.0 when we remove
+				// the computed property from the field scheam.
+				if old.(string) != "" && new.(string) == "" {
+					return true
+				}
+
+				return false
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				transparentDataEncryption := d.Get("transparent_data_encryption_enabled").(bool)
 				skuName := d.Get("sku_name").(string)
 
-				if !strings.HasPrefix(skuName, "DW") && !transparentDataEncryption {
+				if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !transparentDataEncryption {
 					return fmt.Errorf("transparent data encryption can only be disabled on Data Warehouse SKUs")
 				}
 
@@ -87,13 +104,46 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 					}
 				}
 
+				if strings.HasPrefix(strings.ToLower(skuName), "dw") {
+					// NOTE: Got `PerDatabaseCMKDWNotSupported` error from API when `sku_name` is set to `DW100c` and `transparent_data_encryption_key_vault_key_id` is specified
+					keyVaultKeyId := d.Get("transparent_data_encryption_key_vault_key_id").(string)
+					if keyVaultKeyId != "" {
+						return fmt.Errorf("database-level CMK is not supported for Data Warehouse SKUs")
+					}
+					// NOTE: Got `InternalServerError` error from API when `sku_name` is set to `DW100c` and `transparent_data_encryption_key_automatic_rotation_enabled` is specified
+					if d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool) {
+						return fmt.Errorf("transparent_data_encryption_key_automatic_rotation_enabled should not be specified when using Data Warehouse SKUs")
+					}
+				}
+
 				return nil
-			}),
+			},
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+				if !strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && !strings.HasPrefix(d.Get("sku_name").(string), "HS_S_") {
+					rawConfig := d.GetRawConfig().AsValueMap()
+					minCapacityVal := rawConfig["min_capacity"]
+					if minCapacityVal.IsKnown() && !minCapacityVal.IsNull() {
+						minCapacityValFloat, _ := minCapacityVal.AsBigFloat().Float64()
+						if minCapacityValFloat > 0 {
+							return fmt.Errorf("`min_capacity` should only be specified when using a serverless database")
+						}
+					}
+					autoPauseDelayVal := rawConfig["auto_pause_delay_in_minutes"]
+					if autoPauseDelayVal.IsKnown() && !autoPauseDelayVal.IsNull() {
+						autoPauseDelayValInt, _ := autoPauseDelayVal.AsBigFloat().Int64()
+						if autoPauseDelayValInt > 0 {
+							return fmt.Errorf("`auto_pause_delay_in_minutes` should only be specified when using a serverless database")
+						}
+					}
+				}
+				return nil
+			},
+		),
 	}
 }
 
 func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-	legacyreplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 
@@ -102,12 +152,14 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 		return nil, err
 	}
 
-	enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
-	if v := d.Get("enclave_type").(string); v != "" {
-		enclaveType = databases.AlwaysEncryptedEnclaveTypeVBS
+	// NOTE: The service default is actually nil/empty which indicates enclave is disabled. the value `Default` is NOT the default.
+	var enclaveType databases.AlwaysEncryptedEnclaveType
+	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
+		enclaveType = databases.AlwaysEncryptedEnclaveType(v.(string))
 	}
+	d.Set("enclave_type", enclaveType)
 
-	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyreplicationLinksClient, resourcesClient, *id, enclaveType, []sql.ReplicationRole{sql.ReplicationRolePrimary})
+	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, *id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRolePrimary})
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +191,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	legacyReplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
@@ -200,16 +252,16 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	// NOTE: Set the default value, if the field exists in the config the only value
-	// that it could be is 'VBS'...
-	enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
-	if _, ok := d.GetOk("enclave_type"); ok {
-		enclaveType = databases.AlwaysEncryptedEnclaveTypeVBS
+	// NOTE: The service default is actually nil/empty which indicates enclave is disabled. the value `Default` is NOT the default.
+	var enclaveType databases.AlwaysEncryptedEnclaveType
+	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
+		enclaveType = databases.AlwaysEncryptedEnclaveType(v.(string))
 	}
 
 	skuName := d.Get("sku_name").(string)
+
 	if skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyReplicationLinksClient, resourcesClient, id, enclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
 		}
@@ -240,15 +292,19 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 					},
 				})
 				if err != nil {
-					return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
+					return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 				}
 			}
 		}
 	}
 
+	// Determine whether the SKU is for SQL Data Warehouse
+	isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
+
 	// NOTE: If the database is being added to an elastic pool, we need to GET the elastic pool and check
-	// if the 'enclave_type' match. If they don't we need to raise an error stating that they must match.
+	// if the 'enclave_type' matches. If they don't we need to raise an error stating that they must match.
 	elasticPoolId := d.Get("elastic_pool_id").(string)
+	elasticPoolSku := ""
 	if elasticPoolId != "" {
 		elasticId, err := commonids.ParseSqlElasticPoolID(elasticPoolId)
 		if err != nil {
@@ -257,15 +313,21 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
 		if err != nil {
-			return fmt.Errorf("retrieving %s: %s", elasticId, err)
+			return fmt.Errorf("retrieving %s: %v", elasticId, err)
 		}
 
-		if elasticPool.Model != nil && elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
-			elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
-			databaseEnclaveType := string(enclaveType)
+		if elasticPool.Model != nil {
+			if elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
+				elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
+				databaseEnclaveType := string(enclaveType)
 
-			if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
-				return fmt.Errorf("adding the %s with enclave type %q to the %s with enclave type %q is not supported. Before adding a database to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
+				if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
+					return fmt.Errorf("adding the %s with enclave type %q to the %s with enclave type %q is not supported. Before adding a database to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
+				}
+			}
+
+			if elasticPool.Model.Sku != nil {
+				elasticPoolSku = elasticPool.Model.Sku.Name
 			}
 		}
 	}
@@ -283,7 +345,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			RequestedBackupStorageRedundancy: pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string))),
 			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       pointer.To(ledgerEnabled),
-			EncryptionProtectorAutoRotation:  pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool)),
 			SecondaryType:                    pointer.To(databases.SecondaryType(d.Get("secondary_type").(string))),
 		},
 
@@ -291,8 +352,15 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...
-	if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") {
+	if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") && enclaveType != "" {
 		input.Properties.PreferredEnclaveType = pointer.To(enclaveType)
+	}
+
+	v, ok := d.GetOk("transparent_data_encryption_key_automatic_rotation_enabled")
+	if ok && !v.(bool) && isDwSku {
+		input.Properties.EncryptionProtectorAutoRotation = nil
+	} else if !isDwSku {
+		input.Properties.EncryptionProtectorAutoRotation = pointer.To(v.(bool))
 	}
 
 	createMode := d.Get("create_mode").(string)
@@ -346,8 +414,13 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
 		if createMode != string(databases.CreateModeOnlineSecondary) && createMode != string(databases.CreateModeSecondary) {
-			input.Properties.MaxSizeBytes = pointer.To(int64(v.(int)) * 1073741824)
+			v, err := calculateMaxSizeBytes(v.(float64))
+			if err != nil {
+				return err
+			}
+			input.Properties.MaxSizeBytes = v
 		}
+
 		// `max_size_gb` only has change if it is configured
 		if d.HasChange("max_size_gb") && (createMode == string(databases.CreateModeOnlineSecondary) || createMode == string(databases.CreateModeSecondary)) {
 			return fmt.Errorf("it is not possible to change maximum size nor advised to configure maximum size in secondary create mode for %s", id)
@@ -405,16 +478,15 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if v, ok := d.GetOk("transparent_data_encryption_key_vault_key_id"); ok {
 		keyVaultKeyId := v.(string)
 
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
-			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+			return err
 		}
 
 		input.Properties.EncryptionProtector = pointer.To(keyId.ID())
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, input)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, input); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -467,9 +539,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			state = transparentdataencryptions.TransparentDataEncryptionStateEnabled
 		}
 
-		tde, err := transparentEncryptionClient.Get(ctx, id)
-		if err != nil {
-			return fmt.Errorf("while retrieving Transparent Data Encryption state for %s: %+v", id, err)
+		tde, retryErr := transparentEncryptionClient.Get(ctx, id)
+		if retryErr != nil {
+			return fmt.Errorf("while retrieving Transparent Data Encryption state for %s: %+v", id, retryErr)
 		}
 
 		currentState := transparentdataencryptions.TransparentDataEncryptionStateDisabled
@@ -481,22 +553,21 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Submit TDE state only when state is being changed, otherwise it can cause unwanted detection of state changes from the cloud side
 		if !strings.EqualFold(string(currentState), string(state)) {
-			input := transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
+			tdePayload := transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
 				Properties: &transparentdataencryptions.TransparentDataEncryptionProperties{
 					State: state,
 				},
 			}
 
-			err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input)
-			if err != nil {
+			if err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, tdePayload); err != nil {
 				return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
 			}
 
 			// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
-			if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-				c, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
-				if err != nil {
-					return pluginsdk.NonRetryableError(fmt.Errorf("while polling %s for status: %+v", id.String(), err))
+			if retryErr = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+				c, err2 := client.Get(ctx, id, databases.DefaultGetOperationOptions())
+				if err2 != nil {
+					return pluginsdk.NonRetryableError(fmt.Errorf("while polling %s for status: %+v", id.String(), err2))
 				}
 				if c.Model != nil && c.Model.Properties != nil && c.Model.Properties.Status != nil {
 					if c.Model.Properties.Status == pointer.To(databases.DatabaseStatusScaling) {
@@ -507,8 +578,8 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				}
 
 				return nil
-			}); err != nil {
-				return nil
+			}); retryErr != nil {
+				return retryErr
 			}
 		} else {
 			log.Print("[DEBUG] Skipping re-writing of Transparent Data Encryption, since encryption state is not changing ...")
@@ -517,16 +588,19 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if _, ok := d.GetOk("import"); ok {
 		importParameters := expandMsSqlServerImport(d)
-		err := client.ImportThenPoll(ctx, id, importParameters)
-		if err != nil {
+
+		if err := client.ImportThenPoll(ctx, id, importParameters); err != nil {
 			return fmt.Errorf("while import bacpac into the new database %s: %+v", id, err)
 		}
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
-	// For datawarehouse SKUs only
-	if strings.HasPrefix(skuName, "DW") {
+	// For Data Warehouse SKUs only
+	if isDwSku {
 		enabled := d.Get("geo_backup_enabled").(bool)
 
 		// The default geo backup policy configuration for a new resource is 'enabled', so we don't need to set it in that scenario
@@ -556,38 +630,38 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		return nil
 	}); err != nil {
-		return nil
+		return err
 	}
 
-	securityAlertPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]interface{}))
-	if securityAlertPolicyProps != nil {
-		securityAlertPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
+	longTermRetentionPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]interface{}))
+	if longTermRetentionPolicyProps != nil {
+		longTermRetentionPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
 
-		// DataWarehouse SKU's do not support LRP currently
-		if !strings.HasPrefix(skuName, "DW") {
-			securityAlertPolicyPayload.Properties = securityAlertPolicyProps
+		// DataWarehouse SKUs do not support LRP currently
+		if !isDwSku {
+			longTermRetentionPolicyPayload.Properties = longTermRetentionPolicyProps
 		}
 
-		err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload)
-		if err != nil {
+		if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicyPayload); err != nil {
 			return fmt.Errorf("setting Long Term Retention Policies for %s: %+v", id, err)
 		}
 	}
 
-	shortTermSecurityAlertPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]interface{}))
-	if shortTermSecurityAlertPolicyProps != nil {
-		securityAlertPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
+	shortTermRetentionPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]interface{}))
+	if shortTermRetentionPolicyProps != nil {
+		shortTermRetentionPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
-		if !strings.HasPrefix(skuName, "DW") {
-			securityAlertPolicyPayload.Properties = shortTermSecurityAlertPolicyProps
+		if !isDwSku {
+			shortTermRetentionPolicyPayload.Properties = shortTermRetentionPolicyProps
 		}
 
-		if strings.HasPrefix(skuName, "HS") {
-			securityAlertPolicyPayload.Properties.DiffBackupIntervalInHours = nil
+		if strings.HasPrefix(skuName, "HS") || strings.HasPrefix(elasticPoolSku, "HS") {
+			shortTermRetentionPolicyPayload.Properties.DiffBackupIntervalInHours = nil
+		} else if shortTermRetentionPolicyProps.DiffBackupIntervalInHours == nil || pointer.From(shortTermRetentionPolicyProps.DiffBackupIntervalInHours) == 0 {
+			shortTermRetentionPolicyPayload.Properties.DiffBackupIntervalInHours = pointer.To(backupshorttermretentionpolicies.DiffBackupIntervalInHoursOneTwo)
 		}
 
-		err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload)
-		if err != nil {
+		if err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, shortTermRetentionPolicyPayload); err != nil {
 			return fmt.Errorf("setting Short Term Retention Policies for %s: %+v", id, err)
 		}
 	}
@@ -603,7 +677,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	elasticPoolClient := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	legacyReplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
@@ -618,7 +692,10 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	createMode := d.Get("create_mode").(string)
 	restorePointInTime := d.Get("restore_point_in_time").(string)
 
-	if strings.HasPrefix(skuName, "GP_S_") && d.Get("license_type").(string) != "" {
+	// Determine whether the SKU is for SQL Data Warehouse
+	isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
+
+	if strings.HasPrefix(skuName, "GP_S_") && !pluginsdk.IsExplicitlyNullInConfig(d, "license_type") {
 		return fmt.Errorf("serverless databases do not support license type")
 	}
 
@@ -634,8 +711,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+q", id, err)
 	}
 
-	_, err = serversClient.Get(ctx, pointer.From(serverId), servers.DefaultGetOperationOptions())
-	if err != nil {
+	if _, err = serversClient.Get(ctx, pointer.From(serverId), servers.DefaultGetOperationOptions()); err != nil {
 		return fmt.Errorf("retrieving %s: %q", serverId, err)
 	}
 
@@ -687,15 +763,17 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("enclave_type") {
-		enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
-		if v := d.Get("enclave_type").(string); v != "" {
-			enclaveType = databases.AlwaysEncryptedEnclaveTypeVBS
+		var enclaveType databases.AlwaysEncryptedEnclaveType
+		if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
+			enclaveType = databases.AlwaysEncryptedEnclaveType(v.(string))
 		}
 
 		// The 'PreferredEnclaveType' field cannot be passed to the APIs Update if the
 		// 'sku_name' is a DW or DC-series SKU...
-		if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") {
+		if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") && enclaveType != "" {
 			props.PreferredEnclaveType = pointer.To(enclaveType)
+		} else {
+			props.PreferredEnclaveType = nil
 		}
 
 		// If the database belongs to an elastic pool, we need to GET the elastic pool and check
@@ -712,12 +790,14 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("retrieving %s: %s", elasticId, err)
 			}
 
+			var elasticEnclaveType elasticpools.AlwaysEncryptedEnclaveType
 			if elasticPool.Model != nil && elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
-				elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
-				databaseEnclaveType := string(enclaveType)
+				elasticEnclaveType = pointer.From(elasticPool.Model.Properties.PreferredEnclaveType)
+			}
 
-				if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
-					return fmt.Errorf("updating the %s with enclave type %q to the %s with enclave type %q is not supported. Before updating a database that belongs to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
+			if elasticEnclaveType != "" || enclaveType != "" {
+				if !strings.EqualFold(string(elasticEnclaveType), string(enclaveType)) {
+					return fmt.Errorf("updating the %s with enclave type %q to the %s with enclave type %q is not supported. Before updating a database that belongs to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, enclaveType, elasticId, elasticEnclaveType)
 				}
 			}
 		}
@@ -736,9 +816,12 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
-		if createMode != string(databases.CreateModeOnlineSecondary) && createMode != string(databases.CreateModeSecondary) {
-			props.MaxSizeBytes = pointer.To(int64(v.(int)) * 1073741824)
+		v, err := calculateMaxSizeBytes(v.(float64))
+		if err != nil {
+			return err
 		}
+		props.MaxSizeBytes = v
+
 		// `max_size_gb` only has change if it is configured
 		if d.HasChange("max_size_gb") && (createMode == string(databases.CreateModeOnlineSecondary) || createMode == string(databases.CreateModeSecondary)) {
 			return fmt.Errorf("it is not possible to change maximum size nor advised to configure maximum size in secondary create mode for %s", id)
@@ -776,15 +859,17 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Place a lock for the current database so any partner resources can't bump its SKU out of band
 		if skuName != "" {
-			existingEnclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
+			var existingEnclaveType databases.AlwaysEncryptedEnclaveType
 			if model := existing.Model; model != nil && model.Properties != nil && model.Properties.PreferredEnclaveType != nil {
 				existingEnclaveType = *model.Properties.PreferredEnclaveType
 			}
 
-			partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyReplicationLinksClient, resourcesClient, id, existingEnclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+			partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, existingEnclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
 			if err != nil {
 				return err
 			}
+
+			log.Printf("[INFO] Found %d Partner Databases", len(partnerDatabases))
 
 			// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
 			for _, v := range partnerDatabases {
@@ -799,6 +884,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 			// Update the SKUs of any partner databases where deemed necessary
 			for _, partnerDatabase := range partnerDatabases {
+				log.Printf("[INFO] Parsing Replication Partner Database ID: %s", *partnerDatabase.Id)
 				partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
 				if err != nil {
 					return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
@@ -806,14 +892,17 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 				// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
+					log.Printf("[INFO] Updating SKU of Replication Partner Database from %q to %q", partnerDatabase.Sku.Name, skuName)
 					err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 						Sku: &databases.Sku{
 							Name: skuName,
 						},
 					})
 					if err != nil {
-						return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
+						return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 					}
+
+					log.Printf("[INFO] SKU of Replication Partner Database updated successfully to %q", skuName)
 				}
 			}
 		}
@@ -852,9 +941,9 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("transparent_data_encryption_key_vault_key_id") {
-		keyVaultKeyId := d.Get(("transparent_data_encryption_key_vault_key_id")).(string)
+		keyVaultKeyId := d.Get("transparent_data_encryption_key_vault_key_id").(string)
 
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
 		}
@@ -863,7 +952,12 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("transparent_data_encryption_key_automatic_rotation_enabled") {
-		props.EncryptionProtectorAutoRotation = pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool))
+		v, ok := d.GetOk("transparent_data_encryption_key_automatic_rotation_enabled")
+		if ok && !v.(bool) && isDwSku {
+			props.EncryptionProtectorAutoRotation = nil
+		} else if !isDwSku {
+			props.EncryptionProtectorAutoRotation = pointer.To(v.(bool))
+		}
 	}
 
 	payload.Properties = pointer.To(props)
@@ -930,8 +1024,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				}),
 			}
 
-			err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input)
-			if err != nil {
+			if err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input); err != nil {
 				return fmt.Errorf("while updating Transparent Data Encryption state for %s: %+v", id, err)
 			}
 
@@ -949,7 +1042,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				}
 				return nil
 			}); err != nil {
-				return nil
+				return err
 			}
 		}
 	}
@@ -958,15 +1051,14 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if _, ok := d.GetOk("import"); ok {
 			importParameters := expandMsSqlServerImport(d)
 
-			err := client.ImportThenPoll(ctx, id, importParameters)
-			if err != nil {
+			if err := client.ImportThenPoll(ctx, id, importParameters); err != nil {
 				return fmt.Errorf("while importing the BACPAC file into the new database %s: %+v", id.ID(), err)
 			}
 		}
 	}
 
 	// For datawarehouse SKUs only
-	if strings.HasPrefix(skuName, "DW") && d.HasChange("geo_backup_enabled") {
+	if isDwSku && d.HasChange("geo_backup_enabled") {
 		isEnabled := d.Get("geo_backup_enabled").(bool)
 		var geoBackupPolicyState geobackuppolicies.GeoBackupPolicyState
 
@@ -999,7 +1091,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		return nil
 	}); err != nil {
-		return nil
+		return err
 	}
 
 	if d.HasChange("long_term_retention_policy") {
@@ -1008,13 +1100,12 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if longTermRetentionProps != nil {
 			longTermRetentionPolicy := longtermretentionpolicies.LongTermRetentionPolicy{}
 
-			// DataWarehouse SKU's do not support LRP currently
-			if !strings.HasPrefix(skuName, "DW") {
+			// DataWarehouse SKUs do not support LRP currently
+			if !isDwSku {
 				longTermRetentionPolicy.Properties = longTermRetentionProps
 			}
 
-			err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicy)
-			if err != nil {
+			if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicy); err != nil {
 				return fmt.Errorf("setting Long Term Retention Policies for %s: %+v", id, err)
 			}
 		}
@@ -1026,16 +1117,32 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if backupShortTermPolicyProps != nil {
 			backupShortTermPolicy := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
-			if !strings.HasPrefix(skuName, "DW") {
+			if !isDwSku {
 				backupShortTermPolicy.Properties = backupShortTermPolicyProps
 			}
 
-			if strings.HasPrefix(skuName, "HS") {
+			elasticPoolSku := ""
+			if elasticPoolId != "" {
+				elasticId, err := commonids.ParseSqlElasticPoolID(elasticPoolId)
+				if err != nil {
+					return err
+				}
+
+				elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %v", elasticId, err)
+				}
+
+				if elasticPool.Model != nil && elasticPool.Model.Sku != nil {
+					elasticPoolSku = elasticPool.Model.Sku.Name
+				}
+			}
+
+			if strings.HasPrefix(skuName, "HS") || strings.HasPrefix(elasticPoolSku, "HS") {
 				backupShortTermPolicy.Properties.DiffBackupIntervalInHours = nil
 			}
 
-			err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, backupShortTermPolicy)
-			if err != nil {
+			if err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, backupShortTermPolicy); err != nil {
 				return fmt.Errorf("setting Short Term Retention Policies for %s: %+v", id, err)
 			}
 		}
@@ -1046,12 +1153,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
-
-	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
-	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
-	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1073,18 +1174,30 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceMssqlDatabaseSetFlatten(d, id, resp.Model, meta.(*clients.Client))
+}
+
+func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.SqlDatabaseId, model *databases.Database, metaClient *clients.Client) error {
+	securityAlertPoliciesClient := metaClient.MSSQL.DatabaseSecurityAlertPoliciesClient
+
+	longTermRetentionClient := metaClient.MSSQL.LongTermRetentionPoliciesClient
+	shortTermRetentionClient := metaClient.MSSQL.BackupShortTermRetentionPoliciesClient
+	geoBackupPoliciesClient := metaClient.MSSQL.GeoBackupPoliciesClient
+	transparentEncryptionClient := metaClient.MSSQL.TransparentDataEncryptionsClient
+	ctx, cancel := timeouts.ForRead(metaClient.StopContext, d)
+	defer cancel()
+
 	geoBackupPolicy := true
 	skuName := ""
 	elasticPoolId := ""
-	minCapacity := float64(0)
 	ledgerEnabled := false
 	enclaveType := ""
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
-			minCapacity = pointer.From(props.MinCapacity)
+			minCapacity := pointer.From(props.MinCapacity)
 
 			requestedBackupStorageRedundancy := ""
 			if props.RequestedBackupStorageRedundancy != nil {
@@ -1116,9 +1229,16 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				d.Set("license_type", d.Get("license_type").(string))
 			}
 
-			if props.MaxSizeBytes != nil {
-				d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
+			// when `max_size_gb` is below 1GB, the API only accepts 100MB and 500MB. 100MB is 104857600, and 500MB is 524288000.
+			// directly set `max_size_gb` when API returns `104857600` or `524288000`.
+			size := float64((pointer.From(props.MaxSizeBytes)) / int64(1073741824))
+			switch pointer.From(props.MaxSizeBytes) {
+			case 104857600:
+				size = 0.1
+			case 524288000:
+				size = 0.5
 			}
+			d.Set("max_size_gb", size)
 
 			if props.CurrentServiceObjectiveName != nil {
 				skuName = *props.CurrentServiceObjectiveName
@@ -1128,8 +1248,9 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				ledgerEnabled = *props.IsLedgerOn
 			}
 
-			// NOTE: Always set the PreferredEnclaveType to an empty string unless it isn't 'Default'...
-			if v := props.PreferredEnclaveType; v != nil && pointer.From(v) != databases.AlwaysEncryptedEnclaveTypeDefault {
+			// NOTE: Always set the PreferredEnclaveType to an empty string
+			// if not in the properties that were returned from Azure...
+			if v := props.PreferredEnclaveType; v != nil {
 				enclaveType = string(pointer.From(v))
 			}
 
@@ -1165,32 +1286,37 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
-		// DW SKU's do not currently support LRP and do not honour normal SRP operations
-		if !strings.HasPrefix(skuName, "DW") {
+		// Determine whether the SKU is for SQL Data Warehouse
+		isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
+
+		// Determine whether the SKU is for SQL Database Free tier
+		isFreeSku := strings.EqualFold(skuName, "free")
+
+		// DW SKUs and SQL Database Free tier do not currently support LRP and do not honour normal SRP operations
+		if !isDwSku && !isFreeSku {
 			longTermPolicy, err := longTermRetentionClient.Get(ctx, pointer.From(id))
 			if err != nil {
 				return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
 			}
 
-			if model := longTermPolicy.Model; model != nil {
-				if err := d.Set("long_term_retention_policy", helper.FlattenLongTermRetentionPolicy(model)); err != nil {
+			if longTermPolicyModel := longTermPolicy.Model; longTermPolicyModel != nil {
+				if err := d.Set("long_term_retention_policy", helper.FlattenLongTermRetentionPolicy(longTermPolicyModel)); err != nil {
 					return fmt.Errorf("setting `long_term_retention_policy`: %+v", err)
 				}
 			}
 
 			shortTermPolicy, err := shortTermRetentionClient.Get(ctx, pointer.From(id))
+			if err != nil {
+				return fmt.Errorf("retrieving Short Term Retention Policies for %s: %+v", id, err)
+			}
 
-			if model := shortTermPolicy.Model; model != nil {
-				if err != nil {
-					return fmt.Errorf("retrieving Short Term Retention Policies for %s: %+v", id, err)
-				}
-
-				if err := d.Set("short_term_retention_policy", helper.FlattenShortTermRetentionPolicy(model)); err != nil {
+			if shortTermPolicyModel := shortTermPolicy.Model; shortTermPolicyModel != nil {
+				if err := d.Set("short_term_retention_policy", helper.FlattenShortTermRetentionPolicy(shortTermPolicyModel)); err != nil {
 					return fmt.Errorf("setting `short_term_retention_policy`: %+v", err)
 				}
 			}
 		} else {
-			// DW SKUs need the retention policies to be empty for state consistency
+			// DW SKUs and SQL Database Free tier need the retention policies to be empty for state consistency
 			emptySlice := make([]interface{}, 0)
 			d.Set("long_term_retention_policy", emptySlice)
 			d.Set("short_term_retention_policy", emptySlice)
@@ -1205,9 +1331,9 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("retrieving Geo Backup Policies for %s: %+v", id, err)
 			}
 
-			// For Datawarehouse SKUs, set the geo-backup policy setting
-			if model := geoPoliciesResponse.Model; model != nil {
-				if strings.HasPrefix(skuName, "DW") && model.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
+			// For Datawarehouse SKUs and SQL Database Free tier, set the geo-backup policy setting
+			if geoPolicyModel := geoPoliciesResponse.Model; geoPolicyModel != nil {
+				if (isDwSku || isFreeSku) && geoPolicyModel.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
 					geoBackupPolicy = false
 				}
 			}
@@ -1238,7 +1364,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 	d.Set("transparent_data_encryption_enabled", tdeState)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1382,15 +1508,19 @@ func expandMsSqlServerImport(d *pluginsdk.ResourceData) (out databases.ImportExi
 	return
 }
 
+// The following data comes from the results of "az maintenance public-configuration list --query "[?contains(name, `SQL`) && contains(name, `DB`)]".name --output table"
 func resourceMsSqlDatabaseMaintenanceNames() []string {
-	return []string{"SQL_Default", "SQL_EastUS_DB_1", "SQL_EastUS2_DB_1", "SQL_SoutheastAsia_DB_1", "SQL_AustraliaEast_DB_1", "SQL_NorthEurope_DB_1", "SQL_SouthCentralUS_DB_1", "SQL_WestUS2_DB_1",
+	return []string{
+		"SQL_Default", "SQL_EastUS_DB_1", "SQL_EastUS2_DB_1", "SQL_SoutheastAsia_DB_1", "SQL_AustraliaEast_DB_1", "SQL_NorthEurope_DB_1", "SQL_SouthCentralUS_DB_1", "SQL_WestUS2_DB_1",
 		"SQL_UKSouth_DB_1", "SQL_WestEurope_DB_1", "SQL_EastUS_DB_2", "SQL_EastUS2_DB_2", "SQL_WestUS2_DB_2", "SQL_SoutheastAsia_DB_2", "SQL_AustraliaEast_DB_2", "SQL_NorthEurope_DB_2", "SQL_SouthCentralUS_DB_2",
 		"SQL_UKSouth_DB_2", "SQL_WestEurope_DB_2", "SQL_AustraliaSoutheast_DB_1", "SQL_BrazilSouth_DB_1", "SQL_CanadaCentral_DB_1", "SQL_CanadaEast_DB_1", "SQL_CentralUS_DB_1", "SQL_EastAsia_DB_1",
 		"SQL_FranceCentral_DB_1", "SQL_GermanyWestCentral_DB_1", "SQL_CentralIndia_DB_1", "SQL_SouthIndia_DB_1", "SQL_JapanEast_DB_1", "SQL_JapanWest_DB_1", "SQL_NorthCentralUS_DB_1", "SQL_UKWest_DB_1",
 		"SQL_WestUS_DB_1", "SQL_AustraliaSoutheast_DB_2", "SQL_BrazilSouth_DB_2", "SQL_CanadaCentral_DB_2", "SQL_CanadaEast_DB_2", "SQL_CentralUS_DB_2", "SQL_EastAsia_DB_2", "SQL_FranceCentral_DB_2",
 		"SQL_GermanyWestCentral_DB_2", "SQL_CentralIndia_DB_2", "SQL_SouthIndia_DB_2", "SQL_JapanEast_DB_2", "SQL_JapanWest_DB_2", "SQL_NorthCentralUS_DB_2", "SQL_UKWest_DB_2", "SQL_WestUS_DB_2",
 		"SQL_WestCentralUS_DB_1", "SQL_FranceSouth_DB_1", "SQL_WestCentralUS_DB_2", "SQL_FranceSouth_DB_2", "SQL_SwitzerlandNorth_DB_1", "SQL_SwitzerlandNorth_DB_2", "SQL_BrazilSoutheast_DB_1",
-		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2"}
+		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2", "SQL_SouthAfricaNorth_DB_1", "SQL_SouthAfricaNorth_DB_2", "SQL_WestUS3_DB_1", "SQL_WestUS3_DB_2", "SQL_SwedenCentral_DB_1",
+		"SQL_SwedenCentral_DB_2",
+	}
 }
 
 type EmailAccountAdminsStatus string
@@ -1408,7 +1538,7 @@ func PossibleValuesForEmailAccountAdminsStatus() []string {
 }
 
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1505,8 +1635,10 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"enclave_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true, // TODO: Remove Computed in 4.0
 			ValidateFunc: validation.StringInSlice([]string{
 				string(databases.AlwaysEncryptedEnclaveTypeVBS),
+				string(databases.AlwaysEncryptedEnclaveTypeDefault),
 			}, false),
 		},
 
@@ -1523,10 +1655,10 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"short_term_retention_policy": helper.ShortTermRetentionPolicySchema(),
 
 		"max_size_gb": {
-			Type:         pluginsdk.TypeInt,
+			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: validation.IntBetween(1, 4096),
+			ValidateFunc: validation.FloatBetween(0.1, 4096),
 		},
 
 		"min_capacity": {
@@ -1726,7 +1858,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"transparent_data_encryption_key_vault_key_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: keyVaultValidate.NestedItemId,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 		},
 
 		"transparent_data_encryption_key_automatic_rotation_enabled": {
@@ -1747,4 +1879,88 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		atLeastOneOf := []string{
+			"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
+			"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
+		}
+		resource["long_term_retention_policy"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
+					"weekly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
+					"monthly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
+					"yearly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
+					"week_of_year": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IntBetween(0, 52),
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					"immutable_backups_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		}
+	}
+
+	return resource
+}
+
+func calculateMaxSizeBytes(v float64) (*int64, error) {
+	var maxSizeBytes int64
+	if isPositiveInteger(v) {
+		maxSizeBytes = int64(math.Round(v)) * 1073741824
+	} else {
+		// When `max_size_gb` is below 1GB, the API only accepts 100MB and 500MB. 100MB is 104857600, and 500MB is 524288000.
+		// Since 100MB != 0.1 * 1073741824 and 500MB != 0.5 * 1073741824, directly specify the Bytes when `max_size_gb` is specified `0.1` or `0.5`.
+		switch int64(math.Round(v * 10)) {
+		case 1:
+			maxSizeBytes = 104857600
+		case 5:
+			maxSizeBytes = 524288000
+		default:
+			return nil, fmt.Errorf("`max_size_gb` allows `0.1`, `0.5` and positive integers greater than or equal to 1")
+		}
+	}
+	return pointer.To(maxSizeBytes), nil
+}
+
+func isPositiveInteger(num float64) bool {
+	// Determine whether `num` is a positive integer and >= 1
+	return num >= 1 && num == math.Floor(num)
 }

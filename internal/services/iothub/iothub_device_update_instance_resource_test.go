@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceupdate/2022-10-01/deviceupdates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubDeviceUpdateInstanceResource struct{}
@@ -142,11 +142,11 @@ func (r IotHubDeviceUpdateInstanceResource) Exists(ctx context.Context, clients 
 	resp, err := client.InstancesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r IotHubDeviceUpdateInstanceResource) template(data acceptance.TestData) string {
@@ -288,7 +288,6 @@ resource "azurerm_iothub_device_update_instance" "test" {
   name                     = "acc-dui-%[2]s"
   device_update_account_id = azurerm_iothub_device_update_account.test.id
   iothub_id                = azurerm_iothub.test.id
-
 
   diagnostic_storage_account {
     connection_string = azurerm_storage_account.test2.primary_connection_string

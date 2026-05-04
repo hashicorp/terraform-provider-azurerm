@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WebPubsubResource struct{}
@@ -26,6 +26,50 @@ func TestAccWebPubsub_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebPubsub_premiumP1(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebPubsubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premium(data, "Premium_P1", 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebPubsub_premiumP2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebPubsubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premium(data, "Premium_P2", 100),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("hostname").Exists(),
@@ -243,11 +287,11 @@ func (r WebPubsubResource) Exists(ctx context.Context, client *clients.Client, s
 	resp, err := client.SignalR.WebPubSubClient.WebPubSub.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r WebPubsubResource) basic(data acceptance.TestData) string {
@@ -262,6 +306,20 @@ resource "azurerm_web_pubsub" "test" {
   capacity            = 1
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r WebPubsubResource) premium(data acceptance.TestData, sku string, capacity int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_web_pubsub" "test" {
+  name                = "acctestWebPubsub-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "%s"
+  capacity            = %d
+}
+`, r.template(data), data.RandomInteger, sku, capacity)
 }
 
 func (r WebPubsubResource) complete(data acceptance.TestData) string {

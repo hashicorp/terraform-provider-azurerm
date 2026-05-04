@@ -45,7 +45,6 @@ func (c AppPlatformClient) BindingsGet(ctx context.Context, id BindingId) (resul
 
 	var model BindingResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

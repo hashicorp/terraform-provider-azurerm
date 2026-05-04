@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&TestLineId{})
+}
 
 var _ resourceids.ResourceId = &TestLineId{}
 
@@ -39,7 +44,7 @@ func ParseTestLineID(input string) (*TestLineId, error) {
 	}
 
 	id := TestLineId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseTestLineIDInsensitively(input string) (*TestLineId, error) {
 	}
 
 	id := TestLineId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id TestLineId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftVoiceServices", "Microsoft.VoiceServices", "Microsoft.VoiceServices"),
 		resourceids.StaticSegment("staticCommunicationsGateways", "communicationsGateways", "communicationsGateways"),
-		resourceids.UserSpecifiedSegment("communicationsGatewayName", "communicationsGatewayValue"),
+		resourceids.UserSpecifiedSegment("communicationsGatewayName", "communicationsGatewayName"),
 		resourceids.StaticSegment("staticTestLines", "testLines", "testLines"),
-		resourceids.UserSpecifiedSegment("testLineName", "testLineValue"),
+		resourceids.UserSpecifiedSegment("testLineName", "testLineName"),
 	}
 }
 

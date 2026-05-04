@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package common
@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func expandAzureRmCosmosDBIndexingPolicyIncludedPaths(input []interface{}) *[]cosmosdb.IncludedPath {
@@ -17,12 +17,11 @@ func expandAzureRmCosmosDBIndexingPolicyIncludedPaths(input []interface{}) *[]co
 		return nil
 	}
 
-	var includedPaths []cosmosdb.IncludedPath
-
+	includedPaths := make([]cosmosdb.IncludedPath, 0, len(input))
 	for _, v := range input {
 		includedPath := v.(map[string]interface{})
 		path := cosmosdb.IncludedPath{
-			Path: utils.String(includedPath["path"].(string)),
+			Path: pointer.To(includedPath["path"].(string)),
 		}
 
 		includedPaths = append(includedPaths, path)
@@ -36,12 +35,11 @@ func expandAzureRmCosmosDBIndexingPolicyExcludedPaths(input []interface{}) *[]co
 		return nil
 	}
 
-	var paths []cosmosdb.ExcludedPath
-
+	paths := make([]cosmosdb.ExcludedPath, 0, len(input))
 	for _, v := range input {
 		block := v.(map[string]interface{})
 		paths = append(paths, cosmosdb.ExcludedPath{
-			Path: utils.String(block["path"].(string)),
+			Path: pointer.To(block["path"].(string)),
 		})
 	}
 
@@ -59,7 +57,7 @@ func ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexes(input []interface{}) *[
 
 			order := cosmosdb.CompositePathSortOrder(strings.ToLower(data["order"].(string)))
 			index := cosmosdb.CompositePath{
-				Path:  utils.String(data["path"].(string)),
+				Path:  pointer.To(data["path"].(string)),
 				Order: &order,
 			}
 			indexPairs = append(indexPairs, index)
@@ -87,7 +85,7 @@ func ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input []interface{}) *[]c
 		indexPair := i.(map[string]interface{})
 		indexes = append(indexes, cosmosdb.SpatialSpec{
 			Types: &spatialTypes,
-			Path:  utils.String(indexPair["path"].(string)),
+			Path:  pointer.To(indexPair["path"].(string)),
 		})
 	}
 
@@ -297,7 +295,7 @@ func ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy *cosmosdb.IndexingPoli
 	}
 
 	// The root path must be included or excluded
-	if (includedPathsDefined || excludedPathsDefined) && !(includedPathsContainRootPath || excludedPathsContainRootPath) {
+	if (includedPathsDefined || excludedPathsDefined) && (!includedPathsContainRootPath && !excludedPathsContainRootPath) {
 		return fmt.Errorf("either included_path or excluded_path must include the path %q", rootPath)
 	}
 

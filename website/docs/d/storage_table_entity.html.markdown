@@ -14,20 +14,17 @@ Use this data source to access information about an existing Storage Table Entit
 
 ```hcl
 data "azurerm_storage_table_entity" "example" {
-  table_name           = "example-table-name"
-  storage_account_name = "example-storage-account-name"
-  partition_key        = "example-partition-key"
-  row_key              = "example-row-key"
+  storage_table_id = azurerm_storage_table.example.id
+  partition_key    = "example-partition-key"
+  row_key          = "example-row-key"
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-* `table_name` - The name of the Table.
-
-* `storage_account_name` - The name of the Storage Account where the Table exists.
+* `storage_table_id` - (Required) The Storage Table ID where the entity exists.
 
 * `partition_key` - The key for the partition where the entity will be retrieved.
 
@@ -41,6 +38,6 @@ The following arguments are supported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Table Entity.

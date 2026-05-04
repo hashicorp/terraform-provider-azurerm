@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package healthcare_test
@@ -80,6 +80,7 @@ func TestAccHealthCareService_publicNetworkAccessDisabled(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccHealthCareService_updateIdentitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
 	r := HealthCareServiceResource{}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package search
@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/adminkeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/querykeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/services"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSearchService() *pluginsdk.Resource {
@@ -37,6 +37,16 @@ func dataSourceSearchService() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"customer_managed_key_encryption_compliance_status": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
 			"replica_count": {
 				Type:     pluginsdk.TypeInt,
@@ -71,8 +81,9 @@ func dataSourceSearchService() *pluginsdk.Resource {
 						},
 
 						"key": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -83,7 +94,9 @@ func dataSourceSearchService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityComputed(),
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
+
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -112,6 +125,11 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			partitionCount := 1
 			replicaCount := 1
 			publicNetworkAccess := true
+			endpoint := ""
+
+			if props.EncryptionWithCmk != nil {
+				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
+			}
 
 			if count := props.PartitionCount; count != nil {
 				partitionCount = int(*count)
@@ -125,13 +143,26 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 				publicNetworkAccess = strings.EqualFold(string(pointer.From(props.PublicNetworkAccess)), string(services.PublicNetworkAccessEnabled))
 			}
 
+			if props.Endpoint != nil {
+				endpoint = pointer.From(props.Endpoint)
+			}
+
 			d.Set("partition_count", partitionCount)
 			d.Set("replica_count", replicaCount)
 			d.Set("public_network_access_enabled", publicNetworkAccess)
+			d.Set("endpoint", endpoint)
 		}
 
-		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err = d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %s", err)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
 
@@ -147,8 +178,8 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving Admin Keys for %s: %+v", id, err)
 	}
 	if model := adminKeysResp.Model; model != nil {
-		primaryKey = utils.NormalizeNilableString(model.PrimaryKey)
-		secondaryKey = utils.NormalizeNilableString(model.SecondaryKey)
+		primaryKey = pointer.From(model.PrimaryKey)
+		secondaryKey = pointer.From(model.SecondaryKey)
 	}
 	d.Set("primary_key", primaryKey)
 	d.Set("secondary_key", secondaryKey)

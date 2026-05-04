@@ -3,7 +3,7 @@ package attestationproviders
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type JsonWebKey struct {
+type JSONWebKey struct {
 	Alg *string   `json:"alg,omitempty"`
 	Crv *string   `json:"crv,omitempty"`
 	D   *string   `json:"d,omitempty"`

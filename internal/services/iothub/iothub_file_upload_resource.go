@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -18,14 +19,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 type IotHubFileUploadResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotHubFileUploadResource{}
-)
+var _ sdk.ResourceWithUpdate = IotHubFileUploadResource{}
 
 type IotHubFileUploadResourceModel struct {
 	AuthenticationType   string `tfschema:"authentication_type"`
@@ -35,7 +34,7 @@ type IotHubFileUploadResourceModel struct {
 	IdentityId           string `tfschema:"identity_id"`
 	IotHubId             string `tfschema:"iothub_id"`
 	LockDuration         string `tfschema:"lock_duration"`
-	MaxDeliveryCount     int    `tfschema:"max_delivery_count"`
+	MaxDeliveryCount     int64  `tfschema:"max_delivery_count"`
 	NotificationsEnabled bool   `tfschema:"notifications_enabled"`
 	SasTTL               string `tfschema:"sas_ttl"`
 }
@@ -169,16 +168,16 @@ func (r IotHubFileUploadResource) Create() sdk.ResourceFunc {
 			storageEndpointProperties := make(map[string]*devices.StorageEndpointProperties)
 
 			messagingEndpointProperties["fileNotifications"] = &devices.MessagingEndpointProperties{
-				LockDurationAsIso8601: utils.String(state.LockDuration),
-				MaxDeliveryCount:      utils.Int32(int32(state.MaxDeliveryCount)),
-				TTLAsIso8601:          utils.String(state.DefaultTTL),
+				LockDurationAsIso8601: pointer.To(state.LockDuration),
+				MaxDeliveryCount:      pointer.To(int32(state.MaxDeliveryCount)),
+				TTLAsIso8601:          pointer.To(state.DefaultTTL),
 			}
 
 			storageEndpointProperties["$default"] = &devices.StorageEndpointProperties{
 				AuthenticationType: devices.AuthenticationType(state.AuthenticationType),
-				ConnectionString:   utils.String(state.ConnectionString),
-				ContainerName:      utils.String(state.ContainerName),
-				SasTTLAsIso8601:    utils.String(state.SasTTL),
+				ConnectionString:   pointer.To(state.ConnectionString),
+				ContainerName:      pointer.To(state.ContainerName),
+				SasTTLAsIso8601:    pointer.To(state.SasTTL),
 			}
 
 			if state.IdentityId != "" {
@@ -186,7 +185,7 @@ func (r IotHubFileUploadResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("`identity_id` can only be specified when `authentication_type` is `identityBased`")
 				}
 				storageEndpointProperties["$default"].Identity = &devices.ManagedIdentity{
-					UserAssignedIdentity: utils.String(state.IdentityId),
+					UserAssignedIdentity: pointer.To(state.IdentityId),
 				}
 			}
 
@@ -194,7 +193,7 @@ func (r IotHubFileUploadResource) Create() sdk.ResourceFunc {
 				iotHub.Properties = &devices.IotHubProperties{}
 			}
 
-			iotHub.Properties.EnableFileUploadNotifications = utils.Bool(state.NotificationsEnabled)
+			iotHub.Properties.EnableFileUploadNotifications = pointer.To(state.NotificationsEnabled)
 			iotHub.Properties.MessagingEndpoints = messagingEndpointProperties
 			iotHub.Properties.StorageEndpoints = storageEndpointProperties
 
@@ -258,7 +257,7 @@ func (r IotHubFileUploadResource) Read() sdk.ResourceFunc {
 						state.LockDuration = *v
 					}
 					if v := messagingEndpoint.MaxDeliveryCount; v != nil {
-						state.MaxDeliveryCount = int(*v)
+						state.MaxDeliveryCount = int64(*v)
 					}
 				}
 
@@ -336,19 +335,19 @@ func (r IotHubFileUploadResource) Update() sdk.ResourceFunc {
 			storageEndpoint := existing.Properties.StorageEndpoints["$default"]
 
 			if metadata.ResourceData.HasChange("notifications_enabled") {
-				existing.Properties.EnableFileUploadNotifications = utils.Bool(state.NotificationsEnabled)
+				existing.Properties.EnableFileUploadNotifications = pointer.To(state.NotificationsEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("default_ttl") {
-				messagingEndpoint.TTLAsIso8601 = utils.String(state.DefaultTTL)
+				messagingEndpoint.TTLAsIso8601 = pointer.To(state.DefaultTTL)
 			}
 
 			if metadata.ResourceData.HasChange("lock_duration") {
-				messagingEndpoint.LockDurationAsIso8601 = utils.String(state.LockDuration)
+				messagingEndpoint.LockDurationAsIso8601 = pointer.To(state.LockDuration)
 			}
 
 			if metadata.ResourceData.HasChange("max_delivery_count") {
-				messagingEndpoint.MaxDeliveryCount = utils.Int32(int32(state.MaxDeliveryCount))
+				messagingEndpoint.MaxDeliveryCount = pointer.To(int32(state.MaxDeliveryCount))
 			}
 
 			if metadata.ResourceData.HasChange("authentication_type") {
@@ -356,11 +355,11 @@ func (r IotHubFileUploadResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {
-				storageEndpoint.ConnectionString = utils.String(state.ConnectionString)
+				storageEndpoint.ConnectionString = pointer.To(state.ConnectionString)
 			}
 
 			if metadata.ResourceData.HasChange("container_name") {
-				storageEndpoint.ContainerName = utils.String(state.ContainerName)
+				storageEndpoint.ContainerName = pointer.To(state.ContainerName)
 			}
 
 			if metadata.ResourceData.HasChange("identity_id") {
@@ -369,7 +368,7 @@ func (r IotHubFileUploadResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("`identity_id` can only be specified when `authentication_type` is `identityBased`")
 					}
 					storageEndpoint.Identity = &devices.ManagedIdentity{
-						UserAssignedIdentity: utils.String(state.IdentityId),
+						UserAssignedIdentity: pointer.To(state.IdentityId),
 					}
 				} else {
 					storageEndpoint.Identity = nil
@@ -377,7 +376,7 @@ func (r IotHubFileUploadResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("sas_ttl") {
-				storageEndpoint.SasTTLAsIso8601 = utils.String(state.SasTTL)
+				storageEndpoint.SasTTLAsIso8601 = pointer.To(state.SasTTL)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing, "")

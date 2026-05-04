@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_test
@@ -49,6 +49,8 @@ func (a SoftwareUpdateConfigurationResource) Exists(ctx context.Context, client 
 }
 
 func TestAccSoftwareUpdateConfiguration_linuxBasic(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -63,7 +65,26 @@ func TestAccSoftwareUpdateConfiguration_linuxBasic(t *testing.T) {
 	})
 }
 
+func TestAccSoftwareUpdateConfiguration_occurrence(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+
+	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
+	r := newSoftwareUpdateConfigurationResource()
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.monthOccurrence(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always returns null - https://github.com/Azure/azure-rest-api-specs/issues/24436
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+	})
+}
+
 func TestAccSoftwareUpdateConfiguration_linuxComplete(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -79,6 +100,8 @@ func TestAccSoftwareUpdateConfiguration_linuxComplete(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_linuxUpdate(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -110,6 +133,8 @@ func TestAccSoftwareUpdateConfiguration_linuxUpdate(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_CompleteUpdate(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -141,6 +166,8 @@ func TestAccSoftwareUpdateConfiguration_CompleteUpdate(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_withTask(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -156,6 +183,8 @@ func TestAccSoftwareUpdateConfiguration_withTask(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_defaultTimeZone(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -179,6 +208,8 @@ func TestAccSoftwareUpdateConfiguration_defaultTimeZone(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_update(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -202,6 +233,8 @@ func TestAccSoftwareUpdateConfiguration_update(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_windowsBasic(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -217,6 +250,8 @@ func TestAccSoftwareUpdateConfiguration_windowsBasic(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_windowsComplete(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -232,6 +267,8 @@ func TestAccSoftwareUpdateConfiguration_windowsComplete(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_windowsUpdate(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -271,10 +308,10 @@ resource "azurerm_automation_software_update_configuration" "test" {
   name                  = "acctest-suc-%[2]d"
 
   linux {
-    classification_included = "Security"
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "IfRequired"
+    classifications_included = ["Security"]
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "IfRequired"
   }
 
   duration            = "PT1H1M1S"
@@ -307,12 +344,14 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
 }
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
 func (a SoftwareUpdateConfigurationResource) linuxBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
 
 %s
 
@@ -336,13 +375,62 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
 }
 `, a.template(data), data.RandomInteger)
 }
 
+func (a SoftwareUpdateConfigurationResource) monthOccurrence(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_software_update_configuration" "test" {
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-suc-%[2]d"
+
+  linux {
+    classifications_included = ["Critical", "Security"]
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "RebootOnly"
+  }
+
+  duration            = "PT1H1M1S"
+  virtual_machine_ids = []
+
+  target {
+    azure_query {
+      scope     = [azurerm_resource_group.test.id]
+      locations = [azurerm_resource_group.test.location]
+    }
+
+    non_azure_query {
+      function_alias = "savedSearch1"
+      workspace_id   = azurerm_log_analytics_workspace.test.id
+    }
+  }
+
+  schedule {
+    description = "foo-schedule"
+    start_time  = "%[3]s"
+    expiry_time = "%[4]s"
+    is_enabled  = true
+    interval    = 1
+    frequency   = "Month"
+    time_zone   = "Etc/UTC"
+    monthly_occurrence {
+      occurrence = -1
+      day        = "Tuesday"
+    }
+  }
+
+  depends_on = [azurerm_log_analytics_linked_service.test]
+}
+`, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
+}
+
 func (a SoftwareUpdateConfigurationResource) linuxComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
 
 %s
 
@@ -389,6 +477,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
 }
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
@@ -422,10 +511,10 @@ resource "azurerm_automation_software_update_configuration" "test" {
   name                  = "acctest-suc-%[2]d"
 
   linux {
-    classification_included = "Security"
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "IfRequired"
+    classifications_included = ["Security"]
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "IfRequired"
   }
 
   duration            = "PT1H1M1S"
@@ -473,12 +562,14 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
 }
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
 func (a SoftwareUpdateConfigurationResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
 
 %s
 
@@ -489,10 +580,10 @@ resource "azurerm_automation_software_update_configuration" "test" {
   name                  = "acctest-suc-%[2]d"
 
   linux {
-    classification_included = "Security"
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "Always"
+    classifications_included = ["Security"]
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "Always"
   }
 
   duration            = "PT2H2M2S"
@@ -527,6 +618,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
 }
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
@@ -555,13 +647,13 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
 }
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
 func (a SoftwareUpdateConfigurationResource) windowsComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
 
 %s
 
@@ -611,6 +703,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
 }
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -9,19 +9,19 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ExpressRoutePortResource struct{}
 
 const ARMTestExpressRoutePortAdminState = "ARM_TEST_EXPRESS_ROUTE_PORT_ADMIN_STATE"
 
-func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
+func TestAccExpressRoutePort_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
@@ -52,7 +52,7 @@ func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRoutePort_adminState(t *testing.T) {
+func TestAccExpressRoutePort_adminState(t *testing.T) {
 	if _, ok := os.LookupEnv(ARMTestExpressRoutePortAdminState); !ok {
 		t.Skipf("Enabling admin state will cause high cost, please set environment variable %q if you want to test it.", ARMTestExpressRoutePortAdminState)
 	}
@@ -70,7 +70,7 @@ func TestAccAzureRMExpressRoutePort_adminState(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRoutePort_requiresImport(t *testing.T) {
+func TestAccExpressRoutePort_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
@@ -85,7 +85,7 @@ func TestAccAzureRMExpressRoutePort_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRoutePort_userAssignedIdentity(t *testing.T) {
+func TestAccExpressRoutePort_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
@@ -94,13 +94,33 @@ func TestAccAzureRMExpressRoutePort_userAssignedIdentity(t *testing.T) {
 			Config: r.userAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+			),
+		},
+		{
+			Config: r.userAssignedIdentityWithTags(data, "tag1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("tag1"),
+			),
+		},
+		{
+			Config: r.userAssignedIdentityWithTags(data, "tag2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("tag2"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMExpressRoutePort_linkCipher(t *testing.T) {
+func TestAccExpressRoutePort_linkCipher(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
@@ -115,22 +135,45 @@ func TestAccAzureRMExpressRoutePort_linkCipher(t *testing.T) {
 	})
 }
 
-func (r ExpressRoutePortResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Network.ExpressRoutePortsClient
+func TestAccExpressRoutePort_identityRemoval(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
+	r := ExpressRoutePortResource{}
 
-	id, err := parse.ExpressRoutePortID(state.ID)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linkCipher(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("link1.0.macsec_cipher").HasValue("GcmAesXpn256"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r ExpressRoutePortResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	client := clients.Network.ExpressRoutePorts
+
+	id, err := expressrouteports.ParseExpressRoutePortID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving Express Route Port %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ExpressRoutePortResource) basic(data acceptance.TestData) string {
@@ -139,7 +182,7 @@ func (r ExpressRoutePortResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_express_route_port" "test" {
-  name                = "acctestERP-%d"
+  name                = "acctestERP-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "Airtel-Chennai2-CLS"
@@ -150,7 +193,7 @@ resource "azurerm_express_route_port" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomIntOfLength(8))
 }
 
 func (r ExpressRoutePortResource) adminState(data acceptance.TestData) string {
@@ -203,7 +246,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "CDC-Canberra"
+  peering_location    = "Airtel-Chennai2-CLS"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   identity {
@@ -270,7 +313,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "CDC-Canberra2"
+  peering_location    = "Airtel-Chennai2-CLS"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   identity {
@@ -278,7 +321,7 @@ resource "azurerm_express_route_port" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
   link1 {
-    macsec_cipher                 = "GcmAes256"
+    macsec_cipher                 = "GcmAesXpn256"
     macsec_ckn_keyvault_secret_id = azurerm_key_vault_secret.ckn.id
     macsec_cak_keyvault_secret_id = azurerm_key_vault_secret.cak.id
     macsec_sci_enabled            = true
@@ -290,6 +333,45 @@ resource "azurerm_express_route_port" "test" {
   }
 }
 `, template, data.RandomIntOfLength(8))
+}
+
+func (r ExpressRoutePortResource) userAssignedIdentityWithTags(data acceptance.TestData, tagValue string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestUAI-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_express_route_port" "test" {
+  name                = "acctestERP-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  peering_location    = "Airtel-Chennai2-CLS"
+  bandwidth_in_gbps   = 10
+  encapsulation       = "Dot1Q"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  link1 {
+    admin_enabled = false
+  }
+
+  link2 {
+    admin_enabled = false
+  }
+
+  tags = {
+    environment = "%[3]s"
+  }
+}
+`, template, data.RandomIntOfLength(8), tagValue)
 }
 
 func (r ExpressRoutePortResource) template(data acceptance.TestData) string {

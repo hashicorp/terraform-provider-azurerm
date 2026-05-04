@@ -8,7 +8,9 @@ description: |-
 
 # azurerm_automation_software_update_configuration
 
-Manages an Automation Software Update Configuraion.
+Manages an Automation Software Update Configuration.
+
+!> **Note:** The `azurerm_automation_software_update_configuration` resource has been deprecated because the Azure Automation Update Management was retired on 2024-08-31 and has been shutdown on 2025-02-28. This resource will be removed in v5.0 of the AzureRM Provider. Please migrate to Azure Update Manager, and use the `azurerm_maintenance_configuration` resource combined with the appropriate assignment resources instead. See https://techcommunity.microsoft.com/blog/azuregovernanceandmanagementblog/log-analytics-agent-based-azure-management-services-shut-down-starting-28-februa/4381853 for more information.
 
 ## Example Usage
 
@@ -52,13 +54,12 @@ CONTENT
 resource "azurerm_automation_software_update_configuration" "example" {
   name                  = "example"
   automation_account_id = azurerm_automation_account.example.id
-  operating_system      = "Linux"
 
   linux {
-    classification_included = "Security"
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "IfRequired"
+    classifications_included = "Security"
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "IfRequired"
   }
 
   pre_task {
@@ -88,7 +89,7 @@ The following arguments are supported:
 
 * `windows` - (Optional) A `windows` block as defined below.
 
-~> **NOTE:** One of `linux` or `windows` must be specified.
+~> **Note:** One of `linux` or `windows` must be specified.
 
 * `virtual_machine_ids` - (Optional) Specifies a list of Azure Resource IDs of azure virtual machines.
 
@@ -106,7 +107,7 @@ The following arguments are supported:
 
 A `linux` block supports the following:
 
-* `classifications_included` - (Optional) Specifies the list of update classifications included in the Software Update Configuration. Possible values are `Unclassified`, `Critical`, `Security` and `Other`.
+* `classifications_included` - (Required) Specifies the list of update classifications included in the Software Update Configuration. Possible values are `Unclassified`, `Critical`, `Security` and `Other`.
 
 * `excluded_packages` - (Optional) Specifies a list of packages to excluded from the Software Update Configuration.
 
@@ -118,7 +119,7 @@ A `linux` block supports the following:
 
 A `windows` block supports the following:
 
-* `classifications_included` - (Optional) Specifies the list of update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
+* `classifications_included` - (Required) Specifies the list of update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
 * `excluded_knowledge_base_numbers` - (Optional) Specifies a list of knowledge base numbers excluded.
 
@@ -192,7 +193,11 @@ A `schedule` block supports the following:
 
 * `start_time` - (Optional) Start time of the schedule. Must be at least five minutes in the future. Defaults to seven minutes in the future from the time the resource is created.
 
+* `start_time_offset_minutes` - (Optional) The time offset in minutes for the start time.
+
 * `expiry_time` - (Optional) The end time of the schedule.
+
+* `expiry_time_offset_minutes` - (Optional) The time offset in minutes for the expiry time.
 
 * `time_zone` - (Optional) The timezone of the start time. Defaults to `Etc/UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
 
@@ -202,13 +207,15 @@ A `schedule` block supports the following:
 
 * `monthly_occurrence` - (Optional) List of `monthly_occurrence` blocks as defined below to specifies occurrences of days within a month. Only valid when frequency is `Month`. The `monthly_occurrence` block supports fields as defined below.
 
+* `next_run_offset_minutes` - (Optional) The time offset in minutes for the next run time.
+
 ---
 
 The `monthly_occurrence` block supports the following:
 
 * `day` - (Required) Day of the occurrence. Must be one of `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, `Sunday`.
 
-* `occurrence` - (Required) Occurrence of the week within the month. Must be between `1` and `5`. `-1` for last week within the month.
+* `occurrence` - (Required) Occurrence of the week within the month. Must be between `1` and `4`. `-1` for last week within the month.
 
 ## Attributes Reference
 
@@ -218,11 +225,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `error_code` - The Error code when failed.
 
-* `error_meesage` - The Error message indicating why the operation failed.
+* `error_message` - The Error message indicating why the operation failed.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation.
@@ -236,3 +243,9 @@ Automations Software Update Configuration can be imported using the `resource id
 ```shell
 terraform import azurerm_automation_software_update_configuration.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/softwareUpdateConfigurations/suc1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Automation` - 2019-06-01

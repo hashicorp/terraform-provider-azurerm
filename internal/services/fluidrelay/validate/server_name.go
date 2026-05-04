@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -10,15 +10,15 @@ import (
 
 var serverNameReg = regexp.MustCompile(`^[-0-9a-zA-Z]{1,50}$`)
 
-func FluidRelayServerName(input interface{}, key string) (warnings []string, errors []error) {
+func FluidRelayServerName(input interface{}, key string) (warnings []string, errs []error) {
 	v, ok := input.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		errs = append(errs, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 	// Name should contain only alphanumeric characters and hyphens, up to 50 characters long.
 	if !serverNameReg.MatchString(v) {
-		errors = append(errors, fmt.Errorf("Name should contain only alphanumeric characters and hyphens, up to 50 characters long."))
+		errs = append(errs, fmt.Errorf("%s should contain only alphanumeric characters and hyphens, up to 50 characters long", key))
 	}
 	return
 }

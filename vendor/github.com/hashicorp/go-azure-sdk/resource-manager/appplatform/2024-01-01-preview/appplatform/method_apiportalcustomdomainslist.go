@@ -23,6 +23,18 @@ type ApiPortalCustomDomainsListCompleteResult struct {
 	Items              []ApiPortalCustomDomainResource
 }
 
+type ApiPortalCustomDomainsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ApiPortalCustomDomainsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ApiPortalCustomDomainsList ...
 func (c AppPlatformClient) ApiPortalCustomDomainsList(ctx context.Context, id ApiPortalId) (result ApiPortalCustomDomainsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppPlatformClient) ApiPortalCustomDomainsList(ctx context.Context, id Ap
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ApiPortalCustomDomainsListCustomPager{},
 		Path:       fmt.Sprintf("%s/domains", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c AppPlatformClient) ApiPortalCustomDomainsListCompleteMatchingPredicate(c
 
 	resp, err := c.ApiPortalCustomDomainsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

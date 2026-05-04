@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&AgreementId{})
+}
 
 var _ resourceids.ResourceId = &AgreementId{}
 
@@ -39,7 +44,7 @@ func ParseAgreementID(input string) (*AgreementId, error) {
 	}
 
 	id := AgreementId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseAgreementIDInsensitively(input string) (*AgreementId, error) {
 	}
 
 	id := AgreementId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id AgreementId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticIntegrationAccounts", "integrationAccounts", "integrationAccounts"),
-		resourceids.UserSpecifiedSegment("integrationAccountName", "integrationAccountValue"),
+		resourceids.UserSpecifiedSegment("integrationAccountName", "integrationAccountName"),
 		resourceids.StaticSegment("staticAgreements", "agreements", "agreements"),
-		resourceids.UserSpecifiedSegment("agreementName", "agreementValue"),
+		resourceids.UserSpecifiedSegment("agreementName", "agreementName"),
 	}
 }
 

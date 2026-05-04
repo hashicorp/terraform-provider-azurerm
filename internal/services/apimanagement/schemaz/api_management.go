@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package schemaz
@@ -465,7 +465,7 @@ func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[
 }
 
 func convert2Json(rawVal interface{}) (string, error) {
-	value := ""
+	var value string
 	if val, ok := rawVal.(string); ok {
 		value = val
 	} else {

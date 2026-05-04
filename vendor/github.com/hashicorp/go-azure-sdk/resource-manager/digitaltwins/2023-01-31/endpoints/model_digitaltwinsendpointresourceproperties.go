@@ -10,18 +10,41 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DigitalTwinsEndpointResourceProperties interface {
+	DigitalTwinsEndpointResourceProperties() BaseDigitalTwinsEndpointResourcePropertiesImpl
 }
 
-// RawDigitalTwinsEndpointResourcePropertiesImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ DigitalTwinsEndpointResourceProperties = BaseDigitalTwinsEndpointResourcePropertiesImpl{}
+
+type BaseDigitalTwinsEndpointResourcePropertiesImpl struct {
+	AuthenticationType *AuthenticationType        `json:"authenticationType,omitempty"`
+	CreatedTime        *string                    `json:"createdTime,omitempty"`
+	DeadLetterSecret   *string                    `json:"deadLetterSecret,omitempty"`
+	DeadLetterUri      *string                    `json:"deadLetterUri,omitempty"`
+	EndpointType       EndpointType               `json:"endpointType"`
+	Identity           *ManagedIdentityReference  `json:"identity,omitempty"`
+	ProvisioningState  *EndpointProvisioningState `json:"provisioningState,omitempty"`
+}
+
+func (s BaseDigitalTwinsEndpointResourcePropertiesImpl) DigitalTwinsEndpointResourceProperties() BaseDigitalTwinsEndpointResourcePropertiesImpl {
+	return s
+}
+
+var _ DigitalTwinsEndpointResourceProperties = RawDigitalTwinsEndpointResourcePropertiesImpl{}
+
+// RawDigitalTwinsEndpointResourcePropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawDigitalTwinsEndpointResourcePropertiesImpl struct {
-	Type   string
-	Values map[string]interface{}
+	digitalTwinsEndpointResourceProperties BaseDigitalTwinsEndpointResourcePropertiesImpl
+	Type                                   string
+	Values                                 map[string]interface{}
 }
 
-func unmarshalDigitalTwinsEndpointResourcePropertiesImplementation(input []byte) (DigitalTwinsEndpointResourceProperties, error) {
+func (s RawDigitalTwinsEndpointResourcePropertiesImpl) DigitalTwinsEndpointResourceProperties() BaseDigitalTwinsEndpointResourcePropertiesImpl {
+	return s.digitalTwinsEndpointResourceProperties
+}
+
+func UnmarshalDigitalTwinsEndpointResourcePropertiesImplementation(input []byte) (DigitalTwinsEndpointResourceProperties, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +54,9 @@ func unmarshalDigitalTwinsEndpointResourcePropertiesImplementation(input []byte)
 		return nil, fmt.Errorf("unmarshaling DigitalTwinsEndpointResourceProperties into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["endpointType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["endpointType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "EventGrid") {
@@ -60,10 +83,15 @@ func unmarshalDigitalTwinsEndpointResourcePropertiesImplementation(input []byte)
 		return out, nil
 	}
 
-	out := RawDigitalTwinsEndpointResourcePropertiesImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseDigitalTwinsEndpointResourcePropertiesImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseDigitalTwinsEndpointResourcePropertiesImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawDigitalTwinsEndpointResourcePropertiesImpl{
+		digitalTwinsEndpointResourceProperties: parent,
+		Type:                                   value,
+		Values:                                 temp,
+	}, nil
 
 }

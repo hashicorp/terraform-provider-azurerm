@@ -320,7 +320,7 @@ The deprecated field `cmk_enabled` will be removed since it no longer exists in 
 
 ---
 
--> **NOTE:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 3.0 of the AzureRM Provider is released.
+-> **Note:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 3.0 of the AzureRM Provider is released.
 
 ### Resource: `azurerm_api_management_custom_domain`
 
@@ -1471,3 +1471,328 @@ The deprecated field `radius_server` will be removed in favour of the `radius` p
 The deprecated field `data_disk.disk_iops_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_iops_read_write` property.
 
 The deprecated field `data_disk.disk_mbps_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_mbps_read_write` property.
+
+
+## Case Sensitivity Changes
+
+  3.0 and above of the provider has moved towards requiring the constant casing match the Azure API specifications casing to avoid issues within Terraform Core which requires that the planned values matches the result of the applied values. This is required since the Azure API and SDKs sometimes case these values differently and terraform requires them to match.
+
+### Resource: `azurerm_analysis_services_server`
+
+The `type` property is now case-sensitive.
+
+### Resource: `azurerm_analysis_services_server`
+
+The  `runbook_type` property is now case-sensitive.
+
+### Resource: `azurerm_automation_runbook`
+
+The  `frequency` property is now case-sensitive.
+
+### Resource: `azurerm_automation_schedule`
+
+The  `action` property is now case-sensitive.
+
+### Resource: `azurerm_cdn_endpoint`
+
+The  `sku` property is now case-sensitive.
+
+### Resource: `azurerm_cdn_profile`
+
+The  `os_type` property is now case-sensitive.
+
+### Resource: `azurerm_image`
+
+The  `os_type` property is now case-sensitive.
+
+### Resource: `azurerm_managed_disk`
+
+The  `create_option` property is now case-sensitive.
+
+### Resource: `azurerm_snapshot`
+
+The  `caching` property is now case-sensitive.
+
+### Resource: `azurerm_virtual_machine_data_disk_attachment`
+
+The  `license_type` property is now case-sensitive.
+
+### Resource: `azurerm_virtual_machine`
+
+The  `license_type` property is now case-sensitive.
+
+### Resource: `azurerm_virtual_machine_scale_set`
+
+The  `ip_address_type` property is now case-sensitive.
+
+### Resource: `azurerm_container_group`
+
+The  `sku` property is now case-sensitive.
+
+### Resource: `azurerm_container_registry`
+
+The  `load_balancer_sku` property is now case-sensitive.
+
+### Resource: `azurerm_kubernetes_cluster`
+
+The  `offer_type` property is now case-sensitive.
+
+### Resource: `azurerm_cosmosdb_account`
+
+The  `tier` property is now case-sensitive.
+
+### Resource: `azurerm_data_lake_analytics_account`
+
+The  `tier` property is now case-sensitive.
+
+### Resource: `azurerm_data_lake_store`
+
+The  `tag` property is now case-sensitive.
+
+### Resource: `azurerm_dns_caa_record`
+
+The  `sku` property is now case-sensitive.
+
+### Resource: `azurerm_eventhub_namespace`
+
+The  `encoding` property is now case-sensitive.
+
+### Resource: `azurerm_eventhub`
+
+The  `protocol` property is now case-sensitive.
+
+### Resource: `azurerm_firewall_policy`
+
+The  `vm_size` property is now case-sensitive.
+
+### Resource: `azurerm_iotcentral_application_resource`
+
+The  `sku` property is now case-sensitive.
+
+### Resource: `azurerm_iotcentral_application`
+
+The  `encoding` property is now case-sensitive.
+
+### Resource: `azurerm_iothub_endpoint_storage_container`
+
+The  `encoding` property is now case-sensitive.
+
+### Resource: `azurerm_iothub`
+
+The  `key_type` property is now case-sensitive.
+
+### Resource: `azurerm_key_vault_certificate`
+
+The  `sku` property is now case-sensitive.
+
+### Resource: `azurerm_lb`
+
+The  `protocol` property is now case-sensitive.
+
+### Resource: `azurerm_lb`
+
+The  `event_types` property is now case-sensitive.
+
+### Resource: `azurerm_log_analytics_datasource_windows_event`
+
+The  `secondary_shared_key` property is now case-sensitive.
+
+### Resource: `azurerm_log_analytics_workspace`
+
+The  `frequency` property is now case-sensitive.
+
+### Resource: `azurerm_logic_app_integration_account_batch_configuration`
+
+The  `type` property is now case-sensitive.
+
+### Resource: `azurerm_logic_app_standard`
+
+The  `billing_cycle` property is now case-sensitive.
+
+### Resource: `azurerm_logz_monitor`
+
+The  `sku_name` property is now case-sensitive.
+
+### Resource: `azurerm_machine_learning_workspace`
+
+The  `storage_authentication_type` property is now case-sensitive.
+
+### Resource: `azurerm_media_services_account`
+
+The  `statistic` property is now case-sensitive.
+
+### Resource: `azurerm_monitor_autoscale_setting`
+
+The  `sku_name` property is now case-sensitive.
+
+### Resource: `azurerm_mssql_database`
+
+The  `name` property is now case-sensitive.
+
+### Resource: `azurerm_mssql_elasticpool`
+
+The  `state` property is now case-sensitive.
+
+### Resource: `azurerm_mssql_server_security_alert_policy`
+
+The  `ssl_enforcement` property is now case-sensitive.
+
+### Resource: `azurerm_mysql_server`
+
+The  `protocol` property is now case-sensitive.
+
+### Resource: `azurerm_application_gateway`
+
+The  `tier` property is now case-sensitive.
+
+### Resource: `azurerm_express_route_circuit`
+
+The  `private_ip_address_allocation` property is now case-sensitive.
+
+### Resource: `azurerm_network_interface`
+
+The  `protocol` property is now case-sensitive.
+
+### Resource: `azurerm_network_security_group`
+
+The  `protocol` property is now case-sensitive.
+
+### Resource: `azurerm_network_security_rule`
+
+The  `ip_version` property is now case-sensitive.
+
+### Resource: `azurerm_public_ip_prefix`
+
+The  `ip_version` property is now case-sensitive.
+
+### Resource: `azurerm_public_ip`
+
+The  `next_hop_type` property is now case-sensitive.
+
+### Resource: `azurerm_route`
+
+The  `next_hop_type` property is now case-sensitive.
+
+### Resource: `azurerm_route_table`
+
+The  `type` property is now case-sensitive.
+
+### Resource: `azurerm_virtual_network_gateway_connection`
+
+The  `type` property is now case-sensitive.
+
+### Resource: `azurerm_virtual_network_gateway`
+
+The  `namespace_type` property is now case-sensitive.
+
+### Resource: `azurerm_notification_hub_namespace`
+
+The  `policy_type` property is now case-sensitive.
+
+### Resource: `azurerm_policy_definition`
+
+The  `version` property is now case-sensitive.
+
+### Resource: `azurerm_postgresql_server`
+
+The  `weeks` property is now case-sensitive.
+
+### Resource: `azurerm_backup_policy_file_share`
+
+The  `frequency` property is now case-sensitive.
+
+### Resource: `azurerm_backup_policy_vm`
+
+The  `sku` property is now case-sensitive.
+
+### Resource: `azurerm_recovery_services_vault`
+
+The  `target_disk_type` property is now case-sensitive.
+
+### Resource: `azurerm_site_recovery_replicated_vm`
+
+The  `sku_name` property is now case-sensitive.
+
+### Resource: `azurerm_redis_cache`
+
+The  `deployment_mode` property is now case-sensitive.
+
+### Resource: `azurerm_template_deployment`
+
+The  `type` property is now case-sensitive.
+
+### Resource: `azurerm_security_center_automation`
+
+The  `sku` property is now case-sensitive.
+
+### Resource: `azurerm_servicebus_namespace`
+
+The  `filter_type` property is now case-sensitive.
+
+### Resource: `azurerm_servicebus_subscription_rule`
+
+The  `status` property is now case-sensitive.
+
+### Resource: `azurerm_servicebus_topic`
+
+The  `create_mode` property is now case-sensitive.
+
+### Resource: `azurerm_sql_database`
+
+The  `license_type` property is now case-sensitive.
+
+### Resource: `azurerm_sql_managed_instance`
+
+The  `disabled_alerts` property is now case-sensitive.
+
+### Resource: `azurerm_sql_server`
+
+The  `account_kind` property is now case-sensitive.
+
+### Resource: `azurerm_storage_account`
+
+The  `policy_state` property is now case-sensitive.
+
+### Resource: `azurerm_synapse_sql_pool_security_alert_policy`
+
+The  `policy_state` property is now case-sensitive.
+
+### Resource: `azurerm_synapse_workspace_security_alert_policy`
+
+The  `type` property is now case-sensitive.
+
+### Resource: `azurerm_traffic_manager_endpoint`
+
+The  `profile_status` property is now case-sensitive.
+
+### Resource: `azurerm_traffic_manager_profile`
+
+The  `type` property is now case-sensitive.
+
+### Resource: `azurerm_traffic_manager_profile`
+
+The  `product_type` property is now case-sensitive.
+
+### Resource: `azurerm_app_service_certificate_order`
+
+The  `kind` property is now case-sensitive.
+
+### Resource: `azurerm_app_service_plan`
+
+The  `type` property is now case-sensitive.
+
+### Resource: `azurerm_app_service`
+
+The  `type` property is now case-sensitive.
+
+### Resource: `azurerm_app_service_slot`
+
+The  `dotnet_framework_version` property is now case-sensitive.
+
+### Resource: `azurerm_app_service_slot`
+
+The  `type` property is now case-sensitive.
+
+### Resource: `azurerm_function_app`
+
+The  `type` property is now case-sensitive.

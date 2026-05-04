@@ -15,7 +15,7 @@ type DigitalTwinsInstanceClient struct {
 }
 
 func NewDigitalTwinsInstanceClientWithBaseURI(sdkApi sdkEnv.Api) (*DigitalTwinsInstanceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "digitaltwinsinstance", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "digitaltwinsinstance", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DigitalTwinsInstanceClient: %+v", err)
 	}

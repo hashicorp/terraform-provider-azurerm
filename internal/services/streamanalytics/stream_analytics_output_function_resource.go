@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -15,11 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type OutputFunctionResource struct {
-}
+type OutputFunctionResource struct{}
 
 var (
 	_ sdk.ResourceWithCustomImporter = OutputFunctionResource{}
@@ -33,8 +32,8 @@ type OutputFunctionResourceModel struct {
 	FunctionApp        string `tfschema:"function_app"`
 	FunctionName       string `tfschema:"function_name"`
 	ApiKey             string `tfschema:"api_key"`
-	BatchMaxInBytes    int    `tfschema:"batch_max_in_bytes"`
-	BatchMaxCount      int    `tfschema:"batch_max_count"`
+	BatchMaxInBytes    int64  `tfschema:"batch_max_in_bytes"`
+	BatchMaxCount      int64  `tfschema:"batch_max_count"`
 }
 
 func (r OutputFunctionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -128,15 +127,15 @@ func (r OutputFunctionResource) Create() sdk.ResourceFunc {
 			}
 
 			props := outputs.Output{
-				Name: utils.String(model.Name),
+				Name: pointer.To(model.Name),
 				Properties: &outputs.OutputProperties{
 					Datasource: &outputs.AzureFunctionOutputDataSource{
 						Properties: &outputs.AzureFunctionOutputDataSourceProperties{
-							FunctionAppName: utils.String(model.FunctionApp),
-							FunctionName:    utils.String(model.FunctionName),
-							ApiKey:          utils.String(model.ApiKey),
-							MaxBatchSize:    utils.Float(float64(model.BatchMaxInBytes)),
-							MaxBatchCount:   utils.Float(float64(model.BatchMaxCount)),
+							FunctionAppName: pointer.To(model.FunctionApp),
+							FunctionName:    pointer.To(model.FunctionName),
+							ApiKey:          pointer.To(model.ApiKey),
+							MaxBatchSize:    pointer.To(float64(model.BatchMaxInBytes)),
+							MaxBatchCount:   pointer.To(float64(model.BatchMaxCount)),
 						},
 					},
 				},
@@ -189,31 +188,11 @@ func (r OutputFunctionResource) Read() sdk.ResourceFunc {
 							ResourceGroup:      id.ResourceGroupName,
 							StreamAnalyticsJob: id.StreamingJobName,
 							ApiKey:             metadata.ResourceData.Get("api_key").(string),
+							FunctionApp:        pointer.From(output.Properties.FunctionAppName),
+							FunctionName:       pointer.From(output.Properties.FunctionName),
+							BatchMaxInBytes:    int64(pointer.From(output.Properties.MaxBatchSize)),
+							BatchMaxCount:      int64(pointer.From(output.Properties.MaxBatchCount)),
 						}
-
-						functionApp := ""
-						if v := output.Properties.FunctionAppName; v != nil {
-							functionApp = *v
-						}
-						state.FunctionApp = functionApp
-
-						functionName := ""
-						if v := output.Properties.FunctionName; v != nil {
-							functionName = *v
-						}
-						state.FunctionName = functionName
-
-						batchMaxInBytes := 0
-						if v := output.Properties.MaxBatchSize; v != nil {
-							batchMaxInBytes = int(*v)
-						}
-						state.BatchMaxInBytes = batchMaxInBytes
-
-						batchMaxCount := 0
-						if v := output.Properties.MaxBatchCount; v != nil {
-							batchMaxCount = int(*v)
-						}
-						state.BatchMaxCount = batchMaxCount
 
 						return metadata.Encode(&state)
 					}
@@ -240,15 +219,15 @@ func (r OutputFunctionResource) Update() sdk.ResourceFunc {
 			}
 
 			props := outputs.Output{
-				Name: utils.String(state.Name),
+				Name: pointer.To(state.Name),
 				Properties: &outputs.OutputProperties{
 					Datasource: &outputs.AzureFunctionOutputDataSource{
 						Properties: &outputs.AzureFunctionOutputDataSourceProperties{
-							FunctionAppName: utils.String(state.FunctionApp),
-							FunctionName:    utils.String(state.FunctionName),
-							ApiKey:          utils.String(state.ApiKey),
-							MaxBatchSize:    utils.Float(float64(state.BatchMaxInBytes)),
-							MaxBatchCount:   utils.Float(float64(state.BatchMaxCount)),
+							FunctionAppName: pointer.To(state.FunctionApp),
+							FunctionName:    pointer.To(state.FunctionName),
+							ApiKey:          pointer.To(state.ApiKey),
+							MaxBatchSize:    pointer.To(float64(state.BatchMaxInBytes)),
+							MaxBatchCount:   pointer.To(float64(state.BatchMaxCount)),
 						},
 					},
 				},

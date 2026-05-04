@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud_test
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,7 +99,8 @@ func TestAccSpringCloudGatewayRouteConfig_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(), {
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -116,11 +118,11 @@ func (r SpringCloudGatewayRouteConfigResource) Exists(ctx context.Context, clien
 	resp, err := client.AppPlatform.GatewayRouteConfigClient.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SpringCloudGatewayRouteConfigResource) template(data acceptance.TestData) string {
@@ -163,6 +165,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
   name                    = "acctest-agrc-%d"
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway.test.id
   spring_cloud_app_id     = azurerm_spring_cloud_app.test.id
+  protocol                = "HTTPS"
 }
 `, template, data.RandomInteger)
 }
@@ -176,6 +179,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "import" {
   name                    = azurerm_spring_cloud_gateway_route_config.test.name
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway_route_config.test.spring_cloud_gateway_id
   spring_cloud_app_id     = azurerm_spring_cloud_gateway_route_config.test.spring_cloud_app_id
+  protocol                = "HTTPS"
 }
 `, config)
 }
@@ -220,6 +224,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
   name                    = "acctest-agrc-%d"
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway.test.id
   spring_cloud_app_id     = azurerm_spring_cloud_app.test.id
+  protocol                = "HTTPS"
   route {
     description            = "first route"
     filters                = ["StripPrefix=2", "RateLimit=1,1s"]

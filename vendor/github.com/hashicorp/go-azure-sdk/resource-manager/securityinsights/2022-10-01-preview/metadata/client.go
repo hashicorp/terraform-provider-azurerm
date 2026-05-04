@@ -15,7 +15,7 @@ type MetadataClient struct {
 }
 
 func NewMetadataClientWithBaseURI(sdkApi sdkEnv.Api) (*MetadataClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "metadata", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "metadata", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating MetadataClient: %+v", err)
 	}

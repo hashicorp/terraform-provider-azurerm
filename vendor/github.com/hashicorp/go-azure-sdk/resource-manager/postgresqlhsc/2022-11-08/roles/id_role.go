@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&RoleId{})
+}
 
 var _ resourceids.ResourceId = &RoleId{}
 
@@ -39,7 +44,7 @@ func ParseRoleID(input string) (*RoleId, error) {
 	}
 
 	id := RoleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseRoleIDInsensitively(input string) (*RoleId, error) {
 	}
 
 	id := RoleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id RoleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforPostgreSQL", "Microsoft.DBforPostgreSQL", "Microsoft.DBforPostgreSQL"),
 		resourceids.StaticSegment("staticServerGroupsv2", "serverGroupsv2", "serverGroupsv2"),
-		resourceids.UserSpecifiedSegment("serverGroupsv2Name", "serverGroupsv2Value"),
+		resourceids.UserSpecifiedSegment("serverGroupsv2Name", "serverGroupsv2Name"),
 		resourceids.StaticSegment("staticRoles", "roles", "roles"),
-		resourceids.UserSpecifiedSegment("roleName", "roleValue"),
+		resourceids.UserSpecifiedSegment("roleName", "roleName"),
 	}
 }
 

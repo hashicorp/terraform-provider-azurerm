@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -49,6 +48,7 @@ type ScheduledQueryRulesAlertV2Model struct {
 type ScheduledQueryRulesAlertV2ActionsModel struct {
 	ActionGroups     []string          `tfschema:"action_groups"`
 	CustomProperties map[string]string `tfschema:"custom_properties"`
+	EmailSubject     string            `tfschema:"email_subject"`
 }
 
 type ScheduledQueryRulesAlertV2CriteriaModel struct {
@@ -107,7 +107,6 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
-
 				Schema: map[string]*pluginsdk.Schema{
 					"query": {
 						Type:         pluginsdk.TypeString,
@@ -217,8 +216,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 		"evaluation_frequency": {
 			Type: pluginsdk.TypeString,
 			// this field is required, missing this field will get an error from service
-			Optional: !features.FourPointOhBeta(),
-			Required: features.FourPointOhBeta(),
+			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"PT1M",
 				"PT5M",
@@ -296,6 +294,11 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
+					},
+					"email_subject": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
@@ -431,11 +434,6 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			ExpanededIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(model.Identity)
-			if err != nil {
-				return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
-			}
-
 			kind := scheduledqueryrules.KindLogAlert
 			properties := &scheduledqueryrules.ScheduledQueryRuleResource{
 				Kind:     &kind,
@@ -449,8 +447,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 					SkipQueryValidation:                   &model.SkipQueryValidation,
 					TargetResourceTypes:                   &model.TargetResourceTypes,
 				},
-				Identity: ExpanededIdentity,
-				Tags:     &model.Tags,
+				Tags: &model.Tags,
 			}
 
 			properties.Properties.Actions = expandScheduledQueryRulesAlertV2ActionsModel(model.Actions)
@@ -467,6 +464,14 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 
 			if model.EvaluationFrequency != "" {
 				properties.Properties.EvaluationFrequency = &model.EvaluationFrequency
+			}
+
+			if len(model.Identity) != 0 {
+				ExpandedIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
+				}
+				properties.Identity = ExpandedIdentity
 			}
 
 			if model.MuteActionsDuration != "" {
@@ -596,9 +601,13 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				model.Identity, err = identity.ExpandSystemOrUserAssignedMapFromModel(resourceModel.Identity)
-				if err != nil {
-					return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
+				if len(resourceModel.Identity) != 0 {
+					model.Identity, err = identity.ExpandSystemOrUserAssignedMapFromModel(resourceModel.Identity)
+					if err != nil {
+						return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
+					}
+				} else {
+					model.Identity = nil
 				}
 			}
 
@@ -760,12 +769,22 @@ func expandScheduledQueryRulesAlertV2ActionsModel(inputList []ScheduledQueryRule
 		CustomProperties: &input.CustomProperties,
 	}
 
+	if input.EmailSubject != "" {
+		m := map[string]string{
+			"Email.Subject": input.EmailSubject,
+		}
+		output.ActionProperties = &m
+	} else {
+		m := map[string]string{}
+		output.ActionProperties = &m
+	}
+
 	return &output
 }
 
 func expandScheduledQueryRulesAlertV2CriteriaModel(inputList []ScheduledQueryRulesAlertV2CriteriaModel) *scheduledqueryrules.ScheduledQueryRuleCriteria {
 	output := scheduledqueryrules.ScheduledQueryRuleCriteria{}
-	var outputList []scheduledqueryrules.Condition
+	outputList := make([]scheduledqueryrules.Condition, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		condition := scheduledqueryrules.Condition{
@@ -796,7 +815,7 @@ func expandScheduledQueryRulesAlertV2CriteriaModel(inputList []ScheduledQueryRul
 }
 
 func expandScheduledQueryRulesAlertV2DimensionModel(inputList []ScheduledQueryRulesAlertV2DimensionModel) *[]scheduledqueryrules.Dimension {
-	var outputList []scheduledqueryrules.Dimension
+	outputList := make([]scheduledqueryrules.Dimension, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := scheduledqueryrules.Dimension{
@@ -841,21 +860,22 @@ func flattenScheduledQueryRulesAlertV2ActionsModel(input *scheduledqueryrules.Ac
 		output.CustomProperties = *input.CustomProperties
 	}
 
+	if input.ActionProperties != nil {
+		if s, ok := (*input.ActionProperties)["Email.Subject"]; ok {
+			output.EmailSubject = s
+		}
+	}
+
 	return append(outputList, output)
 }
 
 func flattenScheduledQueryRulesAlertV2CriteriaModel(input *scheduledqueryrules.ScheduledQueryRuleCriteria) []ScheduledQueryRulesAlertV2CriteriaModel {
-	var outputList []ScheduledQueryRulesAlertV2CriteriaModel
-	if input == nil {
-		return outputList
+	if input == nil || input.AllOf == nil {
+		return []ScheduledQueryRulesAlertV2CriteriaModel{}
 	}
 
-	inputList := input.AllOf
-	if inputList == nil {
-		return outputList
-	}
-
-	for _, v := range *inputList {
+	outputList := make([]ScheduledQueryRulesAlertV2CriteriaModel, 0, len(*input.AllOf))
+	for _, v := range *input.AllOf {
 		output := ScheduledQueryRulesAlertV2CriteriaModel{}
 
 		output.Dimensions = flattenScheduledQueryRulesAlertV2DimensionModel(v.Dimensions)
@@ -892,11 +912,11 @@ func flattenScheduledQueryRulesAlertV2CriteriaModel(input *scheduledqueryrules.S
 }
 
 func flattenScheduledQueryRulesAlertV2DimensionModel(inputList *[]scheduledqueryrules.Dimension) []ScheduledQueryRulesAlertV2DimensionModel {
-	var outputList []ScheduledQueryRulesAlertV2DimensionModel
 	if inputList == nil {
-		return outputList
+		return []ScheduledQueryRulesAlertV2DimensionModel{}
 	}
 
+	outputList := make([]ScheduledQueryRulesAlertV2DimensionModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := ScheduledQueryRulesAlertV2DimensionModel{
 			Name:     input.Name,

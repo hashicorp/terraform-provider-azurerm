@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&BindingId{})
+}
 
 var _ resourceids.ResourceId = &BindingId{}
 
@@ -41,7 +46,7 @@ func ParseBindingID(input string) (*BindingId, error) {
 	}
 
 	id := BindingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +63,7 @@ func ParseBindingIDInsensitively(input string) (*BindingId, error) {
 	}
 
 	id := BindingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -122,11 +127,11 @@ func (id BindingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "springName"),
 		resourceids.StaticSegment("staticApps", "apps", "apps"),
-		resourceids.UserSpecifiedSegment("appName", "appValue"),
+		resourceids.UserSpecifiedSegment("appName", "appName"),
 		resourceids.StaticSegment("staticBindings", "bindings", "bindings"),
-		resourceids.UserSpecifiedSegment("bindingName", "bindingValue"),
+		resourceids.UserSpecifiedSegment("bindingName", "bindingName"),
 	}
 }
 

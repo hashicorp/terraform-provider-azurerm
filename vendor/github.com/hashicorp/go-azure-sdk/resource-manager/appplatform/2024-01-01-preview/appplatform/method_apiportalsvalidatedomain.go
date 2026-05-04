@@ -50,7 +50,6 @@ func (c AppPlatformClient) ApiPortalsValidateDomain(ctx context.Context, id ApiP
 
 	var model CustomDomainValidateResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

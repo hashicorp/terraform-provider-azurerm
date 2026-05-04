@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&CassandraClusterId{})
+}
 
 var _ resourceids.ResourceId = &CassandraClusterId{}
 
@@ -37,7 +42,7 @@ func ParseCassandraClusterID(input string) (*CassandraClusterId, error) {
 	}
 
 	id := CassandraClusterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseCassandraClusterIDInsensitively(input string) (*CassandraClusterId, er
 	}
 
 	id := CassandraClusterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id CassandraClusterId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticCassandraClusters", "cassandraClusters", "cassandraClusters"),
-		resourceids.UserSpecifiedSegment("cassandraClusterName", "cassandraClusterValue"),
+		resourceids.UserSpecifiedSegment("cassandraClusterName", "cassandraClusterName"),
 	}
 }
 

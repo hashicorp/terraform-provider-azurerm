@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package commonschema
@@ -15,6 +15,14 @@ func ResourceIDReferenceOptional(id resourceids.ResourceId) *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		Optional:     true,
+		ValidateFunc: validationFunctionForResourceID(id),
+	}
+}
+
+// ResourceIDReferenceElem returns the schema for a Resource ID Reference which is compatible with the Elem of lists and sets.
+func ResourceIDReferenceElem(id resourceids.ResourceId) *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
 		ValidateFunc: validationFunctionForResourceID(id),
 	}
 }
@@ -50,7 +58,7 @@ func ResourceIDReferenceRequiredForceNew(id resourceids.ResourceId) *schema.Sche
 	}
 }
 
-func validationFunctionForResourceID(id resourceids.ResourceId) schema.SchemaValidateFunc {
+func validationFunctionForResourceID(id resourceids.ResourceId) schema.SchemaValidateFunc { //nolint:staticcheck
 	return func(input interface{}, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
 		if !ok {

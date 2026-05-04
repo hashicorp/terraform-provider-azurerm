@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -43,7 +43,7 @@ func tryFixTimeouts(rt string, lines []string, diffs []TimeoutDiffItem) []string
 		// no such timeout block, add to the end of lines
 		addSuf("## Timeouts")
 		addSuf("")
-		addSuf("The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:")
+		addSuf("The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:")
 		addSuf("")
 		diffs = diffs[1:]
 	}
@@ -94,7 +94,11 @@ func tryFixTimeouts(rt string, lines []string, diffs []TimeoutDiffItem) []string
 func (f *Fixer) TryFix() (err error) {
 	// read file as bytes
 	if len(f.Diff) == 0 {
-		return
+		return err
+	}
+	if d, ok := f.Diff[0].(diffWithMessage); ok {
+		log.Printf("%s: %s", f.ResourceType, d.msg)
+		return err
 	}
 	content, err := os.ReadFile(f.MDFile)
 	if err != nil {
@@ -143,7 +147,7 @@ func (f *Fixer) WriteBack() (err error) {
 		log.Printf("%s no content to write back, skip", f.MDFile)
 		return
 	}
-	fd, err := os.OpenFile(f.MDFile, os.O_TRUNC|os.O_RDWR, 066)
+	fd, err := os.OpenFile(f.MDFile, os.O_TRUNC|os.O_RDWR, 0o66)
 	if err != nil {
 		log.Printf("open %s: %v", f.MDFile, err)
 		return err

@@ -127,7 +127,7 @@ $ export ARM_SUBSCRIPTION_ID="20000000-0000-0000-0000-000000000000"
 > $env:ARM_SUBSCRIPTION_ID = "20000000-0000-0000-0000-000000000000"
 ```
 
-The following Terraform and Provider blocks can be specified - where `3.0.0` is the version of the Azure Provider that you'd like to use:
+The following Terraform and Provider blocks can be specified - where `4.1.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
@@ -136,7 +136,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -155,7 +155,7 @@ At this point running either `terraform plan` or `terraform apply` should allow 
 
 It's also possible to configure these variables either directly, or from variables, in your provider block, like so:
 
-!> **Caution** We recommend not defining these variables in-line since they could easily be checked into Source Control.
+!> **Note:** We recommend not defining these variables in-line since they could easily be checked into Source Control.
 
 *Reading the certificate bundle from the filesystem*
 ```hcl
@@ -168,7 +168,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -196,7 +196,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.43.0"
+      version = "=4.1.0"
     }
   }
 }

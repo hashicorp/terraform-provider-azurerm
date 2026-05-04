@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datashare
@@ -75,8 +75,7 @@ func dataSourceDataShareDatasetKustoClusterRead(d *pluginsdk.ResourceData, meta 
 	d.Set("share_id", shareId.ID())
 
 	if model := resp.Model; model != nil {
-		m := *model
-		if ds, ok := m.(dataset.KustoClusterDataSet); ok {
+		if ds, ok := model.(dataset.KustoClusterDataSet); ok {
 			props := ds.Properties
 			// TODO parse kusto id
 			d.Set("kusto_cluster_id", props.KustoClusterResourceId)

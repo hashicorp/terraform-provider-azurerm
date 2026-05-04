@@ -39,6 +39,7 @@ func (o ListByClusterOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByClusterOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,6 +51,18 @@ func (o ListByClusterOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByClusterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByClusterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByCluster ...
 func (c OffersClient) ListByCluster(ctx context.Context, id ClusterId, options ListByClusterOperationOptions) (result ListByClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +71,9 @@ func (c OffersClient) ListByCluster(ctx context.Context, id ClusterId, options L
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/offers", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByClusterCustomPager{},
+		Path:          fmt.Sprintf("%s/offers", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +114,7 @@ func (c OffersClient) ListByClusterCompleteMatchingPredicate(ctx context.Context
 
 	resp, err := c.ListByCluster(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -45,7 +45,6 @@ func (c WebTestsAPIsClient) WebTestsGet(ctx context.Context, id WebTestId) (resu
 
 	var model WebTest
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -23,6 +23,18 @@ type ListByServerCompleteResult struct {
 	Items              []VirtualNetworkRule
 }
 
+type ListByServerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByServer ...
 func (c VirtualNetworkRulesClient) ListByServer(ctx context.Context, id ServerId) (result ListByServerOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualNetworkRulesClient) ListByServer(ctx context.Context, id ServerId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByServerCustomPager{},
 		Path:       fmt.Sprintf("%s/virtualNetworkRules", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c VirtualNetworkRulesClient) ListByServerCompleteMatchingPredicate(ctx con
 
 	resp, err := c.ListByServer(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

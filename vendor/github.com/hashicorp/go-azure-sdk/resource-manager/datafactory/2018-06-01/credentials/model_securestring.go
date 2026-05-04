@@ -14,6 +14,14 @@ type SecureString struct {
 	Value string `json:"value"`
 
 	// Fields inherited from SecretBase
+
+	Type string `json:"type"`
+}
+
+func (s SecureString) SecretBase() BaseSecretBaseImpl {
+	return BaseSecretBaseImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = SecureString{}
@@ -27,9 +35,10 @@ func (s SecureString) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling SecureString: %+v", err)
 	}
+
 	decoded["type"] = "SecureString"
 
 	encoded, err = json.Marshal(decoded)

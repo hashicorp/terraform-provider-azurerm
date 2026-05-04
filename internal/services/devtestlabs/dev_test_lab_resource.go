@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
@@ -12,18 +12,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/labs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDevTestLab() *pluginsdk.Resource {
@@ -63,17 +61,7 @@ func resourceDevTestLab() *pluginsdk.Resource {
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"storage_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(labs.StorageTypePremium),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(labs.StorageTypeStandard),
-					string(labs.StorageTypePremium),
-				}, false),
-			},
-
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"artifacts_storage_account_id": {
 				Type:     pluginsdk.TypeString,
@@ -107,19 +95,6 @@ func resourceDevTestLab() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["storage_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(labs.StorageTypePremium),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(labs.StorageTypeStandard),
-				string(labs.StorageTypePremium),
-			}, false),
-			Deprecated: "`storage_type` is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0.",
-		}
-	}
-
 	return resource
 }
 
@@ -146,18 +121,11 @@ func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 
 	parameters := labs.Lab{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
-	}
-
-	if !features.FourPointOhBeta() {
-		storageType := labs.StorageType(d.Get("storage_type").(string))
-		parameters.Properties = &labs.LabProperties{
-			LabStorageType: &storageType,
-		}
 	}
 
 	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
@@ -195,31 +163,28 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := read.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
+		if loc := model.Location; loc != nil {
+			d.Set("location", location.Normalize(*loc))
 		}
 
-		if props := model.Properties; props != nil {
-			if !features.FourPointOhBeta() {
-				d.Set("storage_type", string(pointer.From(props.LabStorageType)))
-			}
-			// Computed fields
-			d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
-			d.Set("default_storage_account_id", props.DefaultStorageAccount)
-			d.Set("default_premium_storage_account_id", props.DefaultPremiumStorageAccount)
+		props := model.Properties
+		// Computed fields
+		d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
+		d.Set("default_storage_account_id", props.DefaultStorageAccount)
+		d.Set("default_premium_storage_account_id", props.DefaultPremiumStorageAccount)
 
-			kvId := ""
-			if props.VaultName != nil {
-				id, err := commonids.ParseKeyVaultIDInsensitively(*props.VaultName)
-				if err != nil {
-					return fmt.Errorf("parsing %q: %+v", *props.VaultName, err)
-				}
-				kvId = id.ID()
+		kvId := ""
+		if props.VaultName != nil {
+			id, err := commonids.ParseKeyVaultIDInsensitively(*props.VaultName)
+			if err != nil {
+				return fmt.Errorf("parsing %q: %+v", *props.VaultName, err)
 			}
-			d.Set("key_vault_id", kvId)
-			d.Set("premium_data_disk_storage_account_id", props.PremiumDataDiskStorageAccount)
-			d.Set("unique_identifier", props.UniqueIdentifier)
+			kvId = id.ID()
 		}
+		d.Set("key_vault_id", kvId)
+		d.Set("premium_data_disk_storage_account_id", props.PremiumDataDiskStorageAccount)
+		d.Set("unique_identifier", props.UniqueIdentifier)
+
 		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
 			return err
 		}

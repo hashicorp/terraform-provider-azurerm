@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -727,7 +727,6 @@ func (AccountV3ToV4) Schema() map[string]*pluginsdk.Schema {
 
 func (AccountV3ToV4) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-
 		if _, ok := rawState["cross_tenant_replication_enabled"]; !ok {
 			rawState["cross_tenant_replication_enabled"] = true
 		}

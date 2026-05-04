@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics_test
@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/savedsearches"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsSavedSearchResource struct{}
@@ -93,7 +93,7 @@ func (t LogAnalyticsSavedSearchResource) Exists(ctx context.Context, clients *cl
 		return nil, fmt.Errorf("readingLog Analytics Linked Service Saved Search (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (LogAnalyticsSavedSearchResource) basic(data acceptance.TestData) string {
@@ -120,7 +120,7 @@ resource "azurerm_log_analytics_saved_search" "test" {
 
   category     = "Saved Search Test Category"
   display_name = "Create or Update Saved Search Test"
-  query        = "Heartbeat | summarize Count() by Computer | take a"
+  query        = "Heartbeat | summarize Count() by Computer | take 1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -164,10 +164,10 @@ resource "azurerm_log_analytics_saved_search" "test" {
 
   category     = "Saved Search Test Category"
   display_name = "Create or Update Saved Search Test"
-  query        = "Heartbeat | summarize Count() by Computer | take a"
+  query        = "Heartbeat | summarize Count() by Computer | take 1"
 
   function_alias      = "heartbeat_func"
-  function_parameters = ["a:int=1"]
+  function_parameters = ["a:int=1", "b:int=2", "c:int=3"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -196,7 +196,7 @@ resource "azurerm_log_analytics_saved_search" "test" {
 
   category     = "Saved Search Test Category"
   display_name = "Create or Update Saved Search Test"
-  query        = "Heartbeat | summarize Count() by Computer | take a"
+  query        = "Heartbeat | summarize Count() by Computer | take 1"
 
   tags = {
     "Environment" = "Test"

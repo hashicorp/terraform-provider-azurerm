@@ -15,7 +15,7 @@ type DedicatedHsmsClient struct {
 }
 
 func NewDedicatedHsmsClientWithBaseURI(sdkApi sdkEnv.Api) (*DedicatedHsmsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dedicatedhsms", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dedicatedhsms", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DedicatedHsmsClient: %+v", err)
 	}

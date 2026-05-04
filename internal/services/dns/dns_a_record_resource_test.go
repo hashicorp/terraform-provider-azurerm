@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type TestAccDnsARecordResource struct{}
@@ -97,7 +97,7 @@ func TestAccDnsARecord_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsARecord_withAlias(t *testing.T) {
+func TestAccDnsARecord_withAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
 	r := TestAccDnsARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
@@ -122,7 +122,7 @@ func TestAccAzureRMDnsARecord_withAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsARecord_RecordsToAlias(t *testing.T) {
+func TestAccDnsARecord_RecordsToAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
 	r := TestAccDnsARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
@@ -147,7 +147,7 @@ func TestAccAzureRMDnsARecord_RecordsToAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsARecord_AliasToRecords(t *testing.T) {
+func TestAccDnsARecord_AliasToRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
 	r := TestAccDnsARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
@@ -183,7 +183,7 @@ func (TestAccDnsARecordResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (TestAccDnsARecordResource) basic(data acceptance.TestData) string {

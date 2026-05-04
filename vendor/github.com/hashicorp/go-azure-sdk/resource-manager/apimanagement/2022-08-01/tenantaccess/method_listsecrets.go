@@ -46,7 +46,6 @@ func (c TenantAccessClient) ListSecrets(ctx context.Context, id AccessId) (resul
 
 	var model AccessInformationSecretsContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

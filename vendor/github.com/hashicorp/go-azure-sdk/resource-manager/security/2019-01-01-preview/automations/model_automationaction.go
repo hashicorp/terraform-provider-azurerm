@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AutomationAction interface {
+	AutomationAction() BaseAutomationActionImpl
 }
 
-// RawAutomationActionImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ AutomationAction = BaseAutomationActionImpl{}
+
+type BaseAutomationActionImpl struct {
+	ActionType ActionType `json:"actionType"`
+}
+
+func (s BaseAutomationActionImpl) AutomationAction() BaseAutomationActionImpl {
+	return s
+}
+
+var _ AutomationAction = RawAutomationActionImpl{}
+
+// RawAutomationActionImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawAutomationActionImpl struct {
-	Type   string
-	Values map[string]interface{}
+	automationAction BaseAutomationActionImpl
+	Type             string
+	Values           map[string]interface{}
 }
 
-func unmarshalAutomationActionImplementation(input []byte) (AutomationAction, error) {
+func (s RawAutomationActionImpl) AutomationAction() BaseAutomationActionImpl {
+	return s.automationAction
+}
+
+func UnmarshalAutomationActionImplementation(input []byte) (AutomationAction, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalAutomationActionImplementation(input []byte) (AutomationAction, er
 		return nil, fmt.Errorf("unmarshaling AutomationAction into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["actionType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["actionType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "EventHub") {
@@ -60,10 +77,15 @@ func unmarshalAutomationActionImplementation(input []byte) (AutomationAction, er
 		return out, nil
 	}
 
-	out := RawAutomationActionImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseAutomationActionImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseAutomationActionImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawAutomationActionImpl{
+		automationAction: parent,
+		Type:             value,
+		Values:           temp,
+	}, nil
 
 }

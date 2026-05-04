@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontDoorRuleSetResource struct{}
@@ -61,21 +61,18 @@ func TestAccCdnFrontDoorRuleSet_complete(t *testing.T) {
 }
 
 func (r CdnFrontDoorRuleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorRuleSetID(state.ID)
+	client := clients.Cdn.FrontDoorRuleSetsClient
+
+	id, err := rulesets.ParseRuleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := clients.Cdn.FrontDoorRuleSetsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
+	if _, err = client.Get(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CdnFrontDoorRuleSetResource) basic(data acceptance.TestData) string {

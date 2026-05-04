@@ -14,6 +14,14 @@ type CSharpFunctionBinding struct {
 	Properties *CSharpFunctionBindingProperties `json:"properties,omitempty"`
 
 	// Fields inherited from FunctionBinding
+
+	Type string `json:"type"`
+}
+
+func (s CSharpFunctionBinding) FunctionBinding() BaseFunctionBindingImpl {
+	return BaseFunctionBindingImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = CSharpFunctionBinding{}
@@ -27,9 +35,10 @@ func (s CSharpFunctionBinding) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling CSharpFunctionBinding: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.StreamAnalytics/CLRUdf"
 
 	encoded, err = json.Marshal(decoded)

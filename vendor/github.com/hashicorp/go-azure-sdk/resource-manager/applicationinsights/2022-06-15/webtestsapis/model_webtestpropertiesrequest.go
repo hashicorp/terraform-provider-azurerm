@@ -9,5 +9,5 @@ type WebTestPropertiesRequest struct {
 	Headers                *[]HeaderField `json:"Headers,omitempty"`
 	ParseDependentRequests *bool          `json:"ParseDependentRequests,omitempty"`
 	RequestBody            *string        `json:"RequestBody,omitempty"`
-	RequestUrl             *string        `json:"RequestUrl,omitempty"`
+	RequestURL             *string        `json:"RequestUrl,omitempty"`
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hdinsight
@@ -110,6 +110,10 @@ func dataSourceHDInsightSparkCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+			"cluster_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -151,6 +155,7 @@ func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
+			d.Set("cluster_id", props.ClusterId)
 			d.Set("cluster_version", props.ClusterVersion)
 			d.Set("tier", string(pointer.From(props.Tier)))
 			d.Set("tls_min_version", props.MinSupportedTlsVersion)

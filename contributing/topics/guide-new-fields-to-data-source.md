@@ -16,7 +16,7 @@ The process is similar to [extending an existing Resource](guide-new-fields-to-r
 
 Building on the example from [adding a new data source](guide-new-data-source.md) the new property will need to be added into the `Attributes` list which contains a list of schema fields that are Computed only.
 
-The location of the new property within this list is determined alphabetically. Taking the hypothetical property `public_network_access_enabled` as an example this would then end up looking like this in `Attributes`.
+The location of the new property within this list is determined based on the order found in [adding a new data source](guide-new-data-source.md#step-3-scaffold-an-emptynew-data-source). Taking the hypothetical property `public_network_access_enabled` as an example this would then end up looking like this in `Attributes`.
 
 ```go
 func (ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schema {
@@ -44,10 +44,16 @@ func (ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schema 
 
 ```go
 publicNetworkAccess := true
-if v := props.WorkspaceProperties.PublicNetworkAccess; v != nil {
+if v := props.PublicNetworkAccess; v != nil {
 	publicNetworkAccess = *v
 }
 d.Set("public_network_access_enabled", publicNetworkAccess)
+```
+
+* For simple types we can use the helper function `pointer.From` to condense the nil check.
+
+```go
+d.Set("a_simple_string_property", pointer.From(props.AStringPointer))
 ```
 
 ## Tests

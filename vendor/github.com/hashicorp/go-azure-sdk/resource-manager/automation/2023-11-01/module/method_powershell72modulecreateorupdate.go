@@ -50,7 +50,6 @@ func (c ModuleClient) PowerShell72ModuleCreateOrUpdate(ctx context.Context, id P
 
 	var model Module
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

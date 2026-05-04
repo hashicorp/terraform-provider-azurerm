@@ -15,7 +15,7 @@ type LinkedStorageAccountsClient struct {
 }
 
 func NewLinkedStorageAccountsClientWithBaseURI(sdkApi sdkEnv.Api) (*LinkedStorageAccountsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "linkedstorageaccounts", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "linkedstorageaccounts", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LinkedStorageAccountsClient: %+v", err)
 	}

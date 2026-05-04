@@ -15,7 +15,7 @@ type DeploymentScriptsClient struct {
 }
 
 func NewDeploymentScriptsClientWithBaseURI(sdkApi sdkEnv.Api) (*DeploymentScriptsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "deploymentscripts", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "deploymentscripts", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DeploymentScriptsClient: %+v", err)
 	}

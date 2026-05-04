@@ -34,6 +34,7 @@ func (o GetAtTenantScopeOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetAtTenantScopeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c ProvidersClient) GetAtTenantScope(ctx context.Context, id ProviderId, op
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c ProvidersClient) GetAtTenantScope(ctx context.Context, id ProviderId, op
 
 	var model Provider
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

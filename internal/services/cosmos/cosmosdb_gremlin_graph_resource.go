@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -6,18 +6,18 @@ package cosmos
 import (
 	"context"
 	"fmt"
-	"log"
+	"math"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -33,7 +33,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 		Delete: resourceCosmosDbGremlinGraphDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.GremlinGraphID(id)
+			_, err := cosmosdb.ParseGraphID(id)
 			return err
 		}),
 
@@ -77,7 +77,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				ValidateFunc: validation.All(
-					validation.IntBetween(-1, 2147483647),
+					validation.IntBetween(-1, math.MaxInt32),
 					validation.IntNotInSlice([]int{0}),
 				),
 			},
@@ -85,7 +85,6 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			"default_ttl": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				Computed: true,
 			},
 
 			"throughput": {
@@ -189,7 +188,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			// `analytical_storage_ttl` can't be disabled once it's enabled
 			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ interface{}) bool {
-				return (old.(int) == -1 || (old.(int) >= 1 && old.(int) <= 2147483647)) && new.(int) == 0
+				return (old.(int) == -1 || (old.(int) >= 1 && old.(int) <= math.MaxInt32)) && new.(int) == 0
 			}),
 		),
 	}
@@ -226,7 +225,7 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.Properties.Resource.AnalyticalStorageTtl = utils.Int64(int64(v.(int)))
+		db.Properties.Resource.AnalyticalStorageTtl = pointer.To(int64(v.(int)))
 	}
 
 	if partitionkeypaths != "" {
@@ -236,7 +235,7 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 			Kind:  &partitionKindHash,
 		}
 		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
-			db.Properties.Resource.PartitionKey.Version = utils.Int64(int64(partitionKeyVersion.(int)))
+			db.Properties.Resource.PartitionKey.Version = pointer.To(int64(partitionKeyVersion.(int)))
 		}
 	}
 
@@ -248,7 +247,7 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 
 	if defaultTTL, hasDefaultTTL := d.GetOk("default_ttl"); hasDefaultTTL {
 		if defaultTTL != 0 {
-			db.Properties.Resource.DefaultTtl = utils.Int64(int64(defaultTTL.(int)))
+			db.Properties.Resource.DefaultTtl = pointer.To(int64(defaultTTL.(int)))
 		}
 	}
 
@@ -284,7 +283,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
 	if err != nil {
-		return fmt.Errorf("updating Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
+		return fmt.Errorf("checking `autoscale_settings` and `throughput` for %s: %w", id, err)
 	}
 
 	partitionkeypaths := d.Get("partition_key_path").(string)
@@ -307,7 +306,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
-			db.Properties.Resource.PartitionKey.Version = utils.Int64(int64(partitionKeyVersion.(int)))
+			db.Properties.Resource.PartitionKey.Version = pointer.To(int64(partitionKeyVersion.(int)))
 		}
 	}
 
@@ -318,11 +317,11 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.Properties.Resource.AnalyticalStorageTtl = utils.Int64(int64(v.(int)))
+		db.Properties.Resource.AnalyticalStorageTtl = pointer.To(int64(v.(int)))
 	}
 
 	if defaultTTL, hasDefaultTTL := d.GetOk("default_ttl"); hasDefaultTTL {
-		db.Properties.Resource.DefaultTtl = utils.Int64(int64(defaultTTL.(int)))
+		db.Properties.Resource.DefaultTtl = pointer.To(int64(defaultTTL.(int)))
 	}
 
 	err = client.GremlinResourcesCreateUpdateGremlinGraphThenPoll(ctx, *id, db)
@@ -331,13 +330,9 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if common.HasThroughputChange(d) {
-		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
-		err = client.GremlinResourcesUpdateGremlinGraphThroughputThenPoll(ctx, *id, *throughputParameters)
-		if err != nil {
-			return fmt.Errorf("setting Throughput for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v - "+
-				"If the graph has not been created with an initial throughput, you cannot configure it later", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
+		if err := client.GremlinResourcesUpdateGremlinGraphThroughputThenPoll(ctx, *id, common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)); err != nil {
+			return fmt.Errorf("setting Throughput for %s: %+v - If the graph has not been created with an initial throughput, you cannot configure it later", id, err)
 		}
-
 	}
 
 	return resourceCosmosDbGremlinGraphRead(d, meta)
@@ -345,7 +340,6 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 
 func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
-	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -357,12 +351,11 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 	resp, err := client.GremlinResourcesGetGremlinGraph(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] Error reading %q - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.GraphName)
@@ -375,11 +368,10 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 			if props := graphProperties.Resource; props != nil {
 				if pk := props.PartitionKey; pk != nil {
 					if paths := pk.Paths; paths != nil {
-						if len(*paths) > 1 {
-							return fmt.Errorf("reading PartitionKey Paths, more than 1 returned")
-						} else if len(*paths) == 1 {
-							d.Set("partition_key_path", (*paths)[0])
+						if l := len(*paths); l > 1 {
+							return fmt.Errorf("retrieving `partition_key_path`, expected at most 1 path, got %d paths", l)
 						}
+						d.Set("partition_key_path", (*paths)[0])
 					}
 
 					if version := pk.Version; version != nil {
@@ -415,19 +407,18 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 	}
-	accResp, err := accountClient.Get(ctx, id.ResourceGroupName, id.DatabaseAccountName)
+
+	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)
 	if err != nil {
-		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
-	}
-	if accResp.ID == nil || *accResp.ID == "" {
-		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroupName)
+		return fmt.Errorf("retrieving %s: %+v", databaseAccountID, err)
 	}
 
-	if !isServerlessCapacityMode(accResp) {
+	if !isServerlessCapacityMode(accResp.Model) {
 		throughputResp, err := client.GremlinResourcesGetGremlinGraphThroughput(ctx, *id)
 		if err != nil {
 			if !response.WasNotFound(throughputResp.HttpResponse) {
-				return fmt.Errorf("reading Throughput on Gremlin Graph %q (Account: %q, Database: %q) ID: %v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
+				return fmt.Errorf("retrieving Throughput for %s: %v", id, err)
 			} else {
 				d.Set("throughput", nil)
 				d.Set("autoscale_settings", nil)
@@ -441,6 +432,7 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 
 func resourceCosmosDbGremlinGraphDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -451,7 +443,7 @@ func resourceCosmosDbGremlinGraphDelete(d *pluginsdk.ResourceData, meta interfac
 
 	err = client.GremlinResourcesDeleteGremlinGraphThenPoll(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("deleting Cosmos Gremlin Graph %q (Account: %q): %+v", id.GremlinDatabaseName, id.GraphName, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
@@ -477,7 +469,7 @@ func expandAzureRmCosmosDbGremlinGraphIndexingPolicy(d *pluginsdk.ResourceData) 
 	policy.SpatialIndexes = common.ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]interface{}))
 
 	if automatic, ok := input["automatic"].(bool); ok {
-		policy.Automatic = utils.Bool(automatic)
+		policy.Automatic = pointer.To(automatic)
 	}
 
 	return policy
@@ -490,7 +482,7 @@ func expandAzureRmCosmosDbGremlinGraphIncludedPath(input map[string]interface{})
 	for i, pathConfig := range includedPath {
 		attrs := pathConfig.(string)
 		path := cosmosdb.IncludedPath{
-			Path: utils.String(attrs),
+			Path: pointer.To(attrs),
 		}
 		paths[i] = path
 	}
@@ -505,7 +497,7 @@ func expandAzureRmCosmosDbGremlinGraphExcludedPath(input map[string]interface{})
 	for i, pathConfig := range excludedPath {
 		attrs := pathConfig.(string)
 		path := cosmosdb.ExcludedPath{
-			Path: utils.String(attrs),
+			Path: pointer.To(attrs),
 		}
 		paths[i] = path
 	}

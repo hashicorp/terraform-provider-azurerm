@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&TrafficManagerProfileId{})
+}
 
 var _ resourceids.ResourceId = &TrafficManagerProfileId{}
 
@@ -37,7 +42,7 @@ func ParseTrafficManagerProfileID(input string) (*TrafficManagerProfileId, error
 	}
 
 	id := TrafficManagerProfileId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseTrafficManagerProfileIDInsensitively(input string) (*TrafficManagerPro
 	}
 
 	id := TrafficManagerProfileId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id TrafficManagerProfileId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticTrafficManagerProfiles", "trafficManagerProfiles", "trafficManagerProfiles"),
-		resourceids.UserSpecifiedSegment("trafficManagerProfileName", "trafficManagerProfileValue"),
+		resourceids.UserSpecifiedSegment("trafficManagerProfileName", "trafficManagerProfileName"),
 	}
 }
 

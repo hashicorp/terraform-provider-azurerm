@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/elasticpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -104,6 +104,11 @@ func dataSourceMsSqlElasticpool() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"high_availability_replica_count": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -159,6 +164,7 @@ func dataSourceMsSqlElasticpoolRead(d *pluginsdk.ResourceData, meta interface{})
 				enclaveType = string(elasticpools.AlwaysEncryptedEnclaveTypeVBS)
 			}
 			d.Set("enclave_type", enclaveType)
+			d.Set("high_availability_replica_count", props.HighAvailabilityReplicaCount)
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)

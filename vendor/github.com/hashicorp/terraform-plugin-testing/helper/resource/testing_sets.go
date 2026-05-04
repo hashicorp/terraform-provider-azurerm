@@ -57,6 +57,46 @@ const (
 // If the values map is not granular enough, it is possible to match an element
 // you were not intending to in the set. Provide the most complete mapping of
 // attributes possible to be sure the unique element exists.
+//
+// An experimental interface exists to potentially replace the
+// TestCheckTypeSetElemNestedAttrs functionality in the future and feedback
+// would be appreciated. This example performs the same check as
+// TestCheckTypeSetElemNestedAttrs with that experimental interface, by using
+// [statecheck.ExpectKnownValue] in combination with [knownvalue.SetPartial]:
+//
+//	package example_test
+//
+//	import (
+//		"testing"
+//
+//		"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+//		"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+//		"github.com/hashicorp/terraform-plugin-testing/statecheck"
+//		"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+//	)
+//
+//	func TestExpectKnownValue_CheckState_SetPartial(t *testing.T) {
+//		t.Parallel()
+//
+//		resource.Test(t, resource.TestCase{
+//			// Provider definition omitted.
+//			Steps: []resource.TestStep{
+//				{
+//					// Example resource containing a computed set attribute named "computed_attribute"
+//					Config: `resource "test_resource" "one" {}`,
+//					ConfigStateChecks: []statecheck.StateCheck{
+//						statecheck.ExpectKnownValue(
+//							"test_resource.one",
+//							tfjsonpath.New("computed_attribute"),
+//							knownvalue.SetPartial([]knownvalue.Check{
+//								knownvalue.StringExact("value2"),
+//							}),
+//						),
+//					},
+//				},
+//			},
+//		})
+//	}
 func TestCheckTypeSetElemNestedAttrs(name, attr string, values map[string]string) TestCheckFunc {
 	return func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)
@@ -129,6 +169,56 @@ func TestCheckTypeSetElemNestedAttrs(name, attr string, values map[string]string
 // If the values map is not granular enough, it is possible to match an element
 // you were not intending to in the set. Provide the most complete mapping of
 // attributes possible to be sure the unique element exists.
+//
+// If the values map is not granular enough, it is possible to match an element
+// you were not intending to in the set. Provide the most complete mapping of
+// attributes possible to be sure the unique element exists.
+//
+// An experimental interface exists to potentially replace the
+// TestMatchTypeSetElemNestedAttrs functionality in the future and feedback
+// would be appreciated. This example performs the same check as
+// TestMatchTypeSetElemNestedAttrs with that experimental interface, by using
+// [statecheck.ExpectKnownValue] in combination with [knownvalue.SetExact],
+// with a nested [knownvalue.StringRegexp]:
+//
+//	package example_test
+//
+//	import (
+//		"testing"
+//
+//		"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+//		"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+//		"github.com/hashicorp/terraform-plugin-testing/statecheck"
+//		"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+//	)
+//
+//	func TestExpectKnownValue_CheckState_SetNestedBlock_Custom(t *testing.T) {
+//		t.Parallel()
+//
+//		resource.Test(t, resource.TestCase{
+//			// Provider definition omitted.
+//			Steps: []resource.TestStep{
+//				{
+//					// Example resource containing a set nested block name "block" which contains a computed string attribute named "computed_attribute"
+//					Config: `resource "test_resource" "one" {}`,
+//					ConfigStateChecks: []statecheck.StateCheck{
+//						statecheck.ExpectKnownValue(
+//							"test_resource.one",
+//							tfjsonpath.New("block"),
+//							knownvalue.SetExact([]knownvalue.Check{
+//								knownvalue.MapExact(map[string]knownvalue.Check{
+//									"computed_attribute": knownvalue.StringRegexp(regexp.MustCompile("str")),
+//								}),
+//								knownvalue.MapExact(map[string]knownvalue.Check{
+//									"computed_attribute": knownvalue.StringRegexp(regexp.MustCompile("rts")),
+//								}),
+//							}),
+//						),
+//					},
+//				},
+//			},
+//		})
+//	}
 func TestMatchTypeSetElemNestedAttrs(name, attr string, values map[string]*regexp.Regexp) TestCheckFunc {
 	return func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)
@@ -200,6 +290,47 @@ func TestMatchTypeSetElemNestedAttrs(name, attr string, values map[string]*regex
 //   - Boolean: "false" or "true".
 //   - Float/Integer: Stringified number, such as "1.2" or "123".
 //   - String: No conversion necessary.
+//
+// An experimental interface exists to potentially replace the
+// TestCheckTypeSetElemAttr functionality in the future and feedback
+// would be appreciated. This example performs the same check as
+// TestCheckTypeSetElemAttr with that experimental interface, by using
+// [statecheck.ExpectKnownValue] in combination with [knownvalue.SetExact]:
+//
+//	package example_test
+//
+//	import (
+//		"testing"
+//
+//		"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+//		"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+//		"github.com/hashicorp/terraform-plugin-testing/statecheck"
+//		"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+//	)
+//
+//	func TestExpectKnownValue_CheckState_Set(t *testing.T) {
+//		t.Parallel()
+//
+//		resource.Test(t, resource.TestCase{
+//			// Provider definition omitted.
+//			Steps: []resource.TestStep{
+//				{
+//					// Example resource containing a computed set attribute named "computed_attribute"
+//					Config: `resource "test_resource" "one" {}`,
+//					ConfigStateChecks: []statecheck.StateCheck{
+//						statecheck.ExpectKnownValue(
+//							"test_resource.one",
+//							tfjsonpath.New("computed_attribute"),
+//							knownvalue.SetExact([]knownvalue.Check{
+//								knownvalue.StringExact("value2"),
+//								knownvalue.StringExact("value1"),
+//							}),
+//						),
+//					},
+//				},
+//			},
+//		})
+//	}
 func TestCheckTypeSetElemAttr(name, attr, value string) TestCheckFunc {
 	return func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)

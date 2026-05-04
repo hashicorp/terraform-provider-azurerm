@@ -15,7 +15,7 @@ type RunAsAccountsClient struct {
 }
 
 func NewRunAsAccountsClientWithBaseURI(sdkApi sdkEnv.Api) (*RunAsAccountsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "runasaccounts", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "runasaccounts", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RunAsAccountsClient: %+v", err)
 	}

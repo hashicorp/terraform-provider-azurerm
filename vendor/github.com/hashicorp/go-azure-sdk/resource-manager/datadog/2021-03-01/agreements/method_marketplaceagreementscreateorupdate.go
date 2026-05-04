@@ -51,7 +51,6 @@ func (c AgreementsClient) MarketplaceAgreementsCreateOrUpdate(ctx context.Contex
 
 	var model DatadogAgreementResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

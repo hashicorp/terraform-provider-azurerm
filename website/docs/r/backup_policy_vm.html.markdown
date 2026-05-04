@@ -61,7 +61,7 @@ resource "azurerm_backup_policy_vm" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -73,13 +73,17 @@ The following arguments are supported:
 
 * `backup` - (Required) Configures the Policy backup frequency, times & days as documented in the `backup` block below.
 
+* `consistency_type` - (Optional) The consistency type for the backup policy. The only possible value is `OnlyCrashConsistent`.
+
+~> **Note:** `consistency_type` can only be specified when `policy_type` is `V2`.
+
 * `policy_type` - (Optional) Type of the Backup Policy. Possible values are `V1` and `V2` where `V2` stands for the Enhanced Policy. Defaults to `V1`. Changing this forces a new resource to be created.
 
 * `timezone` - (Optional) Specifies the timezone. [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Defaults to `UTC`
 
 * `instant_restore_retention_days` - (Optional) Specifies the instant restore retention range in days. Possible values are between `1` and `5` when `policy_type` is `V1`, and `1` to `30` when `policy_type` is `V2`.
 
-~> **NOTE:** `instant_restore_retention_days` **must** be set to `5` if the backup frequency is set to `Weekly`.
+~> **Note:** `instant_restore_retention_days` **must** be set to `5` if the backup frequency is set to `Weekly`.
 
 * `instant_restore_resource_group` - (Optional) Specifies the instant restore resource group name as documented in the `instant_restore_resource_group` block below.
 
@@ -90,6 +94,8 @@ The following arguments are supported:
 * `retention_monthly` - (Optional) Configures the policy monthly retention as documented in the `retention_monthly` block below.
 
 * `retention_yearly` - (Optional) Configures the policy yearly retention as documented in the `retention_yearly` block below.
+
+* `tiering_policy` - (Optional) A `tiering_policy` block as defined below.
 
 ---
 
@@ -103,7 +109,7 @@ The `backup` block supports:
 
 * `hour_duration` - (Optional) Duration of the backup window in hours. Possible values are between `4` and `24` This is used when `frequency` is `Hourly`.
 
-~> **NOTE:** `hour_duration` must be multiplier of `hour_interval`
+~> **Note:** `hour_duration` must be multiplier of `hour_interval`
 
 * `weekdays` - (Optional) The days of the week to perform backups on. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`. This is used when `frequency` is `Weekly`.
 
@@ -144,7 +150,7 @@ The `retention_monthly` block supports:
 
 * `include_last_days` - (Optional) Including the last day of the month, default to `false`.
 
--> **NOTE:**: Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
+-> **Note:** Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
 ---
 
@@ -162,9 +168,23 @@ The `retention_yearly` block supports:
 
 * `include_last_days` - (Optional) Including the last day of the month, default to `false`.
 
--> **NOTE:**: Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
+-> **Note:** Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
 ---
+
+A `tiering_policy` block supports the following:
+
+* `archived_restore_point` - (Required) An `archived_restore_point` block as defined below.
+
+---
+
+An `archived_restore_point` block supports the following:
+
+* `mode` - (Required) The tiering mode to control automatic tiering of recovery points. Possible values are `TierAfter` and `TierRecommended`.
+
+* `duration` - (Optional) The number of days/weeks/months/years to retain backups in current tier before tiering.
+
+* `duration_type` - (Optional) The retention duration type. Possible values are `Days`, `Weeks`, `Months` and `Years`.
 
 ## Attributes Reference
 
@@ -174,11 +194,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the VM Backup Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the VM Backup Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the VM Backup Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the VM Backup Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the VM Backup Policy.
 
 ## Import

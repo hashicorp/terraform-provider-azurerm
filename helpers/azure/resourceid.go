@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azure
@@ -28,7 +28,7 @@ type ResourceID struct {
 func ParseAzureResourceID(id string) (*ResourceID, error) {
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot parse Azure ID: %s", err)
+		return nil, fmt.Errorf("cannot parse Azure ID: %s", err)
 	}
 
 	path := idURL.Path
@@ -40,7 +40,7 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 
 	// We should have an even number of key-value pairs.
 	if len(components)%2 != 0 {
-		return nil, fmt.Errorf("The number of path segments is not divisible by 2 in %q", path)
+		return nil, fmt.Errorf("the number of path segments is not divisible by 2 in %q", path)
 	}
 
 	var subscriptionID string
@@ -54,7 +54,7 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 
 		// Check key/value for empty strings.
 		if key == "" || value == "" {
-			return nil, fmt.Errorf("Key/Value cannot be empty strings. Key: '%s', Value: '%s'", key, value)
+			return nil, fmt.Errorf("key/value cannot be empty strings. Key: '%s', Value: '%s'", key, value)
 		}
 
 		switch {
@@ -78,7 +78,7 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 	if subscriptionID != "" {
 		idObj.SubscriptionID = subscriptionID
 	} else {
-		return nil, fmt.Errorf("No subscription ID found in: %q", path)
+		return nil, fmt.Errorf("no subscription ID found in: %q", path)
 	}
 
 	if resourceGroup, ok := componentMap["resourceGroups"]; ok {
@@ -113,7 +113,7 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 func ParseAzureResourceIDWithoutSubscription(id string) (*ResourceID, error) {
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot parse Azure ID: %s", err)
+		return nil, fmt.Errorf("cannot parse Azure ID: %s", err)
 	}
 
 	path := idURL.Path
@@ -125,7 +125,7 @@ func ParseAzureResourceIDWithoutSubscription(id string) (*ResourceID, error) {
 
 	// We should have an even number of key-value pairs.
 	if len(components)%2 != 0 {
-		return nil, fmt.Errorf("The number of path segments is not divisible by 2 in %q", path)
+		return nil, fmt.Errorf("the number of path segments is not divisible by 2 in %q", path)
 	}
 
 	componentMap := make(map[string]string, len(components)/2)
@@ -135,7 +135,7 @@ func ParseAzureResourceIDWithoutSubscription(id string) (*ResourceID, error) {
 
 		// Check key/value for empty strings.
 		if key == "" || value == "" {
-			return nil, fmt.Errorf("Key/Value cannot be empty strings. Key: '%s', Value: '%s'", key, value)
+			return nil, fmt.Errorf("key/value cannot be empty strings. Key: '%s', Value: '%s'", key, value)
 		}
 		componentMap[key] = value
 	}
@@ -159,7 +159,7 @@ func ParseAzureResourceIDWithoutSubscription(id string) (*ResourceID, error) {
 func (id *ResourceID) PopSegment(name string) (string, error) {
 	val, ok := id.Path[name]
 	if !ok {
-		return "", fmt.Errorf("ID was missing the `%s` element", name)
+		return "", fmt.Errorf("the ID was missing the `%s` element", name)
 	}
 
 	delete(id.Path, name)
@@ -172,5 +172,5 @@ func (id *ResourceID) ValidateNoEmptySegments(sourceId string) error {
 		return nil
 	}
 
-	return fmt.Errorf("ID contained more segments than required: %q, %v", sourceId, id.Path)
+	return fmt.Errorf("the ID contained more segments than required: %q, %v", sourceId, id.Path)
 }

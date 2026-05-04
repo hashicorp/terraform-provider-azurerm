@@ -116,6 +116,7 @@ type Environment struct {
 	PowerBiService                                    Api
 	Purview                                           Api
 	RightsManagement                                  Api
+	Search                                            Api
 	SecurityInsights                                  Api
 	ServiceBus                                        Api
 	ServiceDeploy                                     Api
@@ -160,9 +161,10 @@ func NewApiEndpoint(name, endpoint string, appId *string) *ApiEndpoint {
 	}
 }
 
-func (e *ApiEndpoint) withResourceIdentifier(identifier string) *ApiEndpoint {
-	e.resourceIdentifier = pointer.To(identifier)
-	return e
+func (e *ApiEndpoint) WithResourceIdentifier(identifier string) Api {
+	newApi := *e
+	newApi.resourceIdentifier = pointer.To(identifier)
+	return &newApi
 }
 
 func (e *ApiEndpoint) Available() bool {

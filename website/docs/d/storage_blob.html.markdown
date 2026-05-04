@@ -20,7 +20,7 @@ data "azurerm_storage_blob" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -44,10 +44,12 @@ The following arguments are supported:
 
 * `content_md5` - The MD5 sum of the blob contents.
 
+* `encryption_scope` - The encryption scope for this blob.
+
 * `metadata` - A map of custom blob metadata.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Blob.

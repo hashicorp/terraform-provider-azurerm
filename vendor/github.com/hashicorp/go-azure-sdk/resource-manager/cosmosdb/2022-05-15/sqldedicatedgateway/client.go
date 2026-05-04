@@ -15,7 +15,7 @@ type SqlDedicatedGatewayClient struct {
 }
 
 func NewSqlDedicatedGatewayClientWithBaseURI(sdkApi sdkEnv.Api) (*SqlDedicatedGatewayClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sqldedicatedgateway", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sqldedicatedgateway", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SqlDedicatedGatewayClient: %+v", err)
 	}

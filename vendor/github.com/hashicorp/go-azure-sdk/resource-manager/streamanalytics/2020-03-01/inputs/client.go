@@ -15,7 +15,7 @@ type InputsClient struct {
 }
 
 func NewInputsClientWithBaseURI(sdkApi sdkEnv.Api) (*InputsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "inputs", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "inputs", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating InputsClient: %+v", err)
 	}

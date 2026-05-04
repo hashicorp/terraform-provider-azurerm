@@ -43,6 +43,7 @@ func (o WorkbooksListByResourceGroupOperationOptions) ToHeaders() *client.Header
 
 func (o WorkbooksListByResourceGroupOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -63,6 +64,18 @@ func (o WorkbooksListByResourceGroupOperationOptions) ToQuery() *client.QueryPar
 	return &out
 }
 
+type WorkbooksListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WorkbooksListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // WorkbooksListByResourceGroup ...
 func (c WorkbooksAPIsClient) WorkbooksListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options WorkbooksListByResourceGroupOperationOptions) (result WorkbooksListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -71,8 +84,9 @@ func (c WorkbooksAPIsClient) WorkbooksListByResourceGroup(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Insights/workbooks", id.ID()),
 		OptionsObject: options,
+		Pager:         &WorkbooksListByResourceGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Insights/workbooks", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -113,6 +127,7 @@ func (c WorkbooksAPIsClient) WorkbooksListByResourceGroupCompleteMatchingPredica
 
 	resp, err := c.WorkbooksListByResourceGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

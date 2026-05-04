@@ -24,6 +24,18 @@ type ApmsListCompleteResult struct {
 	Items              []ApmResource
 }
 
+type ApmsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ApmsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ApmsList ...
 func (c AppPlatformClient) ApmsList(ctx context.Context, id commonids.SpringCloudServiceId) (result ApmsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) ApmsList(ctx context.Context, id commonids.SpringClou
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ApmsListCustomPager{},
 		Path:       fmt.Sprintf("%s/apms", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c AppPlatformClient) ApmsListCompleteMatchingPredicate(ctx context.Context
 
 	resp, err := c.ApmsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

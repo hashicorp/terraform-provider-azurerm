@@ -37,10 +37,10 @@ resource "azurerm_kubernetes_cluster" "example" {
   dns_prefix          = "example-aks"
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 1
-    vm_size                = "Standard_DS2_v2"
-    enable_host_encryption = true
+    name                    = "default"
+    node_count              = 1
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
   }
 
   identity {
@@ -110,7 +110,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Alert Management Prometheus Rule Group should exist. Changing this forces a new resource to be created.
 
-* `rule` - (Required) A `rule` block as defined below.
+* `rule` - (Required) One or more `rule` blocks as defined below.
 
 * `scopes` - (Required) Specifies the resource ID of the Azure Monitor Workspace.
 
@@ -175,7 +175,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Alert Management Prometheus Rule Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Alert Management Prometheus Rule Group.
@@ -189,3 +189,9 @@ Alert Management Prometheus Rule Group can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_monitor_alert_prometheus_rule_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AlertsManagement/prometheusRuleGroups/ruleGroup1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AlertsManagement` - 2023-03-01

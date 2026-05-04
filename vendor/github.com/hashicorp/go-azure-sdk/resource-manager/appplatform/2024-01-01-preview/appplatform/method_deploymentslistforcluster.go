@@ -41,6 +41,7 @@ func (o DeploymentsListForClusterOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeploymentsListForClusterOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -55,6 +56,18 @@ func (o DeploymentsListForClusterOperationOptions) ToQuery() *client.QueryParams
 	return &out
 }
 
+type DeploymentsListForClusterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DeploymentsListForClusterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DeploymentsListForCluster ...
 func (c AppPlatformClient) DeploymentsListForCluster(ctx context.Context, id commonids.SpringCloudServiceId, options DeploymentsListForClusterOperationOptions) (result DeploymentsListForClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +76,9 @@ func (c AppPlatformClient) DeploymentsListForCluster(ctx context.Context, id com
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/deployments", id.ID()),
 		OptionsObject: options,
+		Pager:         &DeploymentsListForClusterCustomPager{},
+		Path:          fmt.Sprintf("%s/deployments", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -105,6 +119,7 @@ func (c AppPlatformClient) DeploymentsListForClusterCompleteMatchingPredicate(ct
 
 	resp, err := c.DeploymentsListForCluster(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

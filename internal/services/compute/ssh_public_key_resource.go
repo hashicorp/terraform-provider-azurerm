@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -9,18 +9,18 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublickeys"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSshPublicKey() *pluginsdk.Resource {
@@ -90,7 +90,7 @@ func resourceSshPublicKeyCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	payload := sshpublickeys.SshPublicKeyResource{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &sshpublickeys.SshPublicKeyResourceProperties{
-			PublicKey: utils.String(d.Get("public_key").(string)),
+			PublicKey: pointer.To(d.Get("public_key").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -153,15 +153,14 @@ func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	_, err = client.Get(ctx, *id)
-	if err != nil {
+	if _, err = client.Get(ctx, *id); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	payload := sshpublickeys.SshPublicKeyUpdateResource{}
 	if d.HasChange("public_key") {
 		payload.Properties = &sshpublickeys.SshPublicKeyResourceProperties{
-			PublicKey: utils.String(d.Get("public_key").(string)),
+			PublicKey: pointer.To(d.Get("public_key").(string)),
 		}
 	}
 	if d.HasChange("tags") {

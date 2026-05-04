@@ -4,7 +4,7 @@ package managedapis
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ApiResourceProperties struct {
-	ApiDefinitionUrl     *string                         `json:"apiDefinitionUrl,omitempty"`
+	ApiDefinitionURL     *string                         `json:"apiDefinitionUrl,omitempty"`
 	ApiDefinitions       *ApiResourceDefinitions         `json:"apiDefinitions,omitempty"`
 	BackendService       *ApiResourceBackendService      `json:"backendService,omitempty"`
 	Capabilities         *[]string                       `json:"capabilities,omitempty"`
@@ -13,6 +13,6 @@ type ApiResourceProperties struct {
 	Metadata             *ApiResourceMetadata            `json:"metadata,omitempty"`
 	Name                 *string                         `json:"name,omitempty"`
 	Policies             *ApiResourcePolicies            `json:"policies,omitempty"`
-	RuntimeUrls          *[]string                       `json:"runtimeUrls,omitempty"`
+	RuntimeURLs          *[]string                       `json:"runtimeUrls,omitempty"`
 	Swagger              *interface{}                    `json:"swagger,omitempty"`
 }

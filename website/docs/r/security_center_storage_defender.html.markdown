@@ -32,7 +32,7 @@ resource "azurerm_security_center_storage_defender" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -44,6 +44,8 @@ The following arguments are supported:
 
 * `malware_scanning_on_upload_cap_gb_per_month` - (Optional) The max GB to be scanned per Month. Must be `-1` or above `0`. Omit this property or set to `-1` if no capping is needed. Defaults to `-1`.
 
+* `scan_results_event_grid_topic_id` - (Optional) The Event Grid Topic where every scan result will be sent to. When you set an Event Grid custom topic, you must set `override_subscription_settings_enabled` to `true` to override the subscription-level settings.
+
 * `sensitive_data_discovery_enabled` - (Optional) Whether Sensitive Data Discovery should be enabled. Defaults to `false`.
  
 ## Attributes Reference
@@ -54,11 +56,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Defender for Storage.
-* `update` - (Defaults to 30 minutes) Used when updating the Defender for Storage.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Defender for Storage.
+* `update` - (Defaults to 30 minutes) Used when updating the Defender for Storage.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Defender for Storage.
 
 ## Import
@@ -68,3 +70,9 @@ The setting can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_security_center_storage_defender.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Storage/storageAccounts/storageacc
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Security` - 2025-06-01

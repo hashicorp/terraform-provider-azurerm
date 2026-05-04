@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -9,9 +9,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/bastionhosts"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/bastionhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -69,6 +70,11 @@ func dataSourceBastionHost() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"private_only_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"scale_units": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -89,6 +95,11 @@ func dataSourceBastionHost() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"session_recording_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"dns_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -99,12 +110,14 @@ func dataSourceBastionHost() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"tags": commonschema.TagsDataSource(),
+
+			"zones": commonschema.ZonesMultipleComputed(),
 		},
 	}
 }
 
 func dataSourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.BastionHosts
+	client := meta.(*clients.Client).Network.BastionHostsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,8 +132,8 @@ func dataSourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
+		if loc := model.Location; loc != nil {
+			d.Set("location", location.Normalize(*loc))
 		}
 
 		skuName := ""
@@ -128,6 +141,7 @@ func dataSourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			skuName = string(*sku.Name)
 		}
 		d.Set("sku", skuName)
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		if props := model.Properties; props != nil {
 			d.Set("dns_name", props.DnsName)
@@ -136,6 +150,8 @@ func dataSourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("ip_connect_enabled", props.EnableIPConnect)
 			d.Set("shareable_link_enabled", props.EnableShareableLink)
 			d.Set("tunneling_enabled", props.EnableTunneling)
+			d.Set("session_recording_enabled", props.EnableSessionRecording)
+			d.Set("private_only_enabled", props.EnablePrivateOnlyBastion)
 
 			copyPasteEnabled := true
 			if props.DisableCopyPaste != nil {

@@ -14,9 +14,20 @@ type BlobDataSet struct {
 	Properties BlobProperties `json:"properties"`
 
 	// Fields inherited from DataSet
-	Id   *string `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
-	Type *string `json:"type,omitempty"`
+
+	Id   *string     `json:"id,omitempty"`
+	Kind DataSetKind `json:"kind"`
+	Name *string     `json:"name,omitempty"`
+	Type *string     `json:"type,omitempty"`
+}
+
+func (s BlobDataSet) DataSet() BaseDataSetImpl {
+	return BaseDataSetImpl{
+		Id:   s.Id,
+		Kind: s.Kind,
+		Name: s.Name,
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = BlobDataSet{}
@@ -30,9 +41,10 @@ func (s BlobDataSet) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling BlobDataSet: %+v", err)
 	}
+
 	decoded["kind"] = "Blob"
 
 	encoded, err = json.Marshal(decoded)

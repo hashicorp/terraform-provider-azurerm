@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagemover_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/jobdefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/jobdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageMoverJobDefinitionTestResource struct{}
@@ -92,11 +92,11 @@ func (r StorageMoverJobDefinitionTestResource) Exists(ctx context.Context, clien
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r StorageMoverJobDefinitionTestResource) template(data acceptance.TestData) string {
@@ -108,8 +108,8 @@ func (r StorageMoverJobDefinitionTestResource) template(data acceptance.TestData
 resource "azurerm_storage_mover_agent" "test" {
   name                     = "acctest-sa-%[2]d"
   storage_mover_id         = azurerm_storage_mover.test.id
-  arc_virtual_machine_id   = data.azurerm_hybrid_compute_machine.test.id
-  arc_virtual_machine_uuid = data.azurerm_hybrid_compute_machine.test.vm_uuid
+  arc_virtual_machine_id   = data.azurerm_arc_machine.test.id
+  arc_virtual_machine_uuid = data.azurerm_arc_machine.test.vm_uuid
   depends_on = [
     azurerm_linux_virtual_machine.test
   ]
@@ -147,7 +147,7 @@ resource "azurerm_storage_mover_project" "test" {
   name             = "acctest-sp-%[2]d"
   storage_mover_id = azurerm_storage_mover.test.id
 }
-`, StorageMoverAgentTestResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, StorageMoverAgentResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageMoverJobDefinitionTestResource) basic(data acceptance.TestData) string {
@@ -230,18 +230,11 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_storage_mover_agent" "test2" {
-  name                     = "acctest-sa2-%[2]d"
-  storage_mover_id         = azurerm_storage_mover.test.id
-  arc_virtual_machine_id   = data.azurerm_hybrid_compute_machine.test.id
-  arc_virtual_machine_uuid = data.azurerm_hybrid_compute_machine.test.vm_uuid
-}
-
 resource "azurerm_storage_mover_job_definition" "test" {
   name                     = "acctest-sjd-%[2]d"
   storage_mover_project_id = azurerm_storage_mover_project.test.id
-  agent_name               = azurerm_storage_mover_agent.test2.name
-  copy_mode                = "Mirror"
+  agent_name               = azurerm_storage_mover_agent.test.name
+  copy_mode                = "Additive"
   source_name              = azurerm_storage_mover_source_endpoint.test.name
   source_sub_path          = "/"
   target_name              = azurerm_storage_mover_target_endpoint.test.name

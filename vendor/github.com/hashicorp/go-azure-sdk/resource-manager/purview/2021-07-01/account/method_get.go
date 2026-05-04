@@ -45,7 +45,6 @@ func (c AccountClient) Get(ctx context.Context, id AccountId) (result GetOperati
 
 	var model Account
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

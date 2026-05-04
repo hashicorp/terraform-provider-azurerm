@@ -49,7 +49,6 @@ func (c AccountClient) Update(ctx context.Context, id AccountId, input AccountUp
 
 	var model Account
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

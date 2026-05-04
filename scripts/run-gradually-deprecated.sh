@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 
@@ -9,7 +9,7 @@ function runGraduallyDeprecatedFunctions {
   IFS=$'\n' read -r -d '' -a flist < <(git diff --diff-filter=AMRC origin/main --name-only --merge-base)
 
   for f in "${flist[@]}"; do
-    # require resources to be imported is now hard-coded on - but only checking for additions
+    # require resources to be imported is now hard-coded on - but only checking for additions
     grep -H -n "features\.ShouldResourcesBeImported" "$f" && {
         echo "The Feature Flag for 'ShouldResourcesBeImported' will be deprecated in the future"
         echo "and shouldn't be used in new resources - please remove new usages of the"
@@ -21,7 +21,7 @@ function runGraduallyDeprecatedFunctions {
         exit 1
     }
 
-    # using Resource ID Formatters/Parsers
+    # using Resource ID Formatters/Parsers
     grep -H -n "d\.SetId(\\*" "$f" && {
         echo "Due to the Azure API returning the Resource ID's inconsistently - Terraform"
         echo "now manages it's own Resource ID's, all new resources should use a generated"
@@ -75,15 +75,22 @@ function runGraduallyDeprecatedFunctions {
       }
     fi
 
-    # avoid false positives
-    isThisScript=$(echo "$f" | grep "run-gradually-deprecated")
-    if [ "$isThisScript" == "" ];
+    # exceptions to avoid false positives and legacy resources should have their original behaviour preserved
+    exceptions=("run-gradually-deprecated" "/legacy/" "network/ip_group_cidr_resource.go" "network/network_security_group_resource.go" "internal/provider" "vendor/" "internal/acceptance/testing.go")
+    toSkip=false
+    for e in "${exceptions[@]}"; do
+      isThisException=$(echo "$f" | grep "$e")
+      if [ "$isThisException" != "" ] ; then
+        toSkip=true
+      fi
+    done
+    if [ "$toSkip" = false ];
     then
       # check for d.Get inside Delete
       deleteFuncName=$(grep -o "Delete: .*," "$f" -m1 | grep -o " .*Delete"| tr -d " ")
       if [ "$deleteFuncName" != "" ];
       then
-        deleteMethod=$(cat -n $f | sed -n -e "/func $deleteFuncName.*$/,/[[:digit:]]*\treturn nil/{ /func $deleteFuncName$/d; /[[:digit:]]*\treturn nil/d; p; }")
+        deleteMethod=$(cat -n "$f" | sed -n -e "/func $deleteFuncName.*$/,/[[:digit:]]*\treturn nil/{ /func $deleteFuncName$/d; /[[:digit:]]*\treturn nil/d; p; }")
         foundGet=$(echo "$deleteMethod" | grep "d\.Get(.*)" -m1)
         if [ "$foundGet" != "" ];
         then
@@ -94,7 +101,7 @@ function runGraduallyDeprecatedFunctions {
       else
         # check for Get in typed resource
         deleteFuncName=" Delete() sdk.ResourceFunc "
-        deleteMethod=$(cat -n $f | sed -n -e "/$deleteFuncName.*$/,/[[:digit:]]*\t\t\treturn nil/{ /$deleteFuncName.*$/d; /[[:digit:]]*\t\t\treturn nil/d; p; }")
+        deleteMethod=$(cat -n "$f" | sed -n -e "/$deleteFuncName.*$/,/[[:digit:]]*\t\t\treturn nil/{ /$deleteFuncName.*$/d; /[[:digit:]]*\t\t\treturn nil/d; p; }")
         foundGet=$(echo "$deleteMethod" | grep "metadata.ResourceData.Get" -m1)
         if [ "$foundGet" != "" ];
         then
@@ -104,10 +111,29 @@ function runGraduallyDeprecatedFunctions {
           fi
         fi
 
-        # require Azure SDK clients are created with the resource manager endpoint specified
+        # require Azure SDK clients are created with the resource manager endpoint specified
         grep -H -n "Client(o.SubscriptionId)" "$f" && {
             echo "The Azure SDK (track1 & kermit) clients should be created with the function NewFoosClientWithBaseURI() "
             echo "that has the resource manager endpoint explicitly specified. These can be found in:"
+            echo "* $f"
+            exit 1
+        }
+
+        # Resource IDs shouldn't be compared by using a.ID() == b.ID() - but instead use the resourceids.Match method
+        grep -H -n ".ID() ==" "$f" && {
+            echo "Resource IDs should not be compared by using a.ID() == b.ID(), but instead use 'resourceids.Match(a, b)"
+            echo "which can be found in the Go package 'github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids'."
+            echo "These can be found in:"
+            echo "* $f"
+            exit 1
+        }
+
+        # The case-aware comparisons feature flag is problematic until the rollout is completed
+        grep -H -n "\.TreatUserSpecifiedSegmentsAsCaseInsensitive =" "$f" && {
+            echo "The case-aware comparisons feature is not ready for usage and should not be configured/exposed at this time."
+            echo "There's a substantial number of dependencies required for this to not cause more problems then it solves"
+            echo "and as such this is not supported in any form at this point-in-time."
+            echo "Please remove the assignment to 'features.TreatUserSpecifiedSegmentsAsCaseInsensitive', which can be found in:"
             echo "* $f"
             exit 1
         }
@@ -116,7 +142,7 @@ function runGraduallyDeprecatedFunctions {
         ## Instead a User Assigned Identity should be created as a part of the Test Configuration with as
         ## minimal permissions as possible - which can then be cleaned up as a part of the test.
 
-        # Ensure the Test Configuration doesn't use the Client ID
+        # Ensure the Test Configuration doesn't use the Client ID
         grep -H -n "os.Getenv(\"ARM_CLIENT_ID\")" "$f" && {
             echo "A usage of 'os.Getenv('ARM_CLIENT_ID') has been detected in:"
             echo "* $f"
@@ -127,7 +153,7 @@ function runGraduallyDeprecatedFunctions {
             exit 1
         }
 
-        # Ensure the Test Configuration doesn't use the Client Secret
+        # Ensure the Test Configuration doesn't use the Client Secret
         grep -H -n "os.Getenv(\"ARM_CLIENT_SECRET\")" "$f" && {
             echo "A usage of 'os.Getenv('ARM_CLIENT_SECRET') has been detected in:"
             echo "* $f"
@@ -138,7 +164,7 @@ function runGraduallyDeprecatedFunctions {
             exit 1
         }
 
-        # Ensure the Test Configuration doesn't use the Client Secret
+        # Ensure the Test Configuration doesn't use the Client Secret
         grep -H -n "os.Getenv(\"ARM_CLIENT_SECRET_ALT\")" "$f" && {
             echo "A usage of 'os.Getenv('ARM_CLIENT_SECRET_ALT') has been detected in:"
             echo "* $f"

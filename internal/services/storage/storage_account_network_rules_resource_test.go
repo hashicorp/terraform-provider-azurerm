@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageAccountNetworkRulesResource struct{}
@@ -113,7 +115,7 @@ func TestAccStorageAccountNetworkRules_privateLinkAccess(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccountNetworkRules_SynapseAccess(t *testing.T) {
+func TestAccStorageAccountNetworkRules_synapseAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
 
@@ -186,30 +188,29 @@ func (r StorageAccountNetworkRulesResource) Exists(ctx context.Context, client *
 		return nil, err
 	}
 
-	resp, err := client.Storage.AccountsClient.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
+	resp, err := client.Storage.ResourceManager.StorageAccounts.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.AccountProperties == nil {
-		return utils.Bool(false), nil
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if acls := props.NetworkAcls; acls != nil {
+				hasIPRules := acls.IPRules != nil && len(*acls.IPRules) > 0
+				usesNonDefaultAction := acls.DefaultAction != storageaccounts.DefaultActionAllow
+				usesNonDefaultBypass := acls.Bypass != nil && *acls.Bypass != storageaccounts.BypassAzureServices
+				hasVirtualNetworkRules := acls.VirtualNetworkRules != nil && len(*acls.VirtualNetworkRules) > 0
+				if hasIPRules || usesNonDefaultAction || usesNonDefaultBypass || hasVirtualNetworkRules {
+					return pointer.To(true), nil
+				}
+			}
+		}
 	}
 
-	rule := resp.AccountProperties.NetworkRuleSet
-	if rule == nil {
-		return utils.Bool(false), nil
-	}
-
-	if (rule.IPRules != nil && len(*rule.IPRules) != 0) ||
-		(rule.VirtualNetworkRules != nil && len(*rule.VirtualNetworkRules) != 0) ||
-		rule.Bypass != "AzureServices" || rule.DefaultAction != "Allow" {
-		return utils.Bool(true), nil
-	}
-
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r StorageAccountNetworkRulesResource) basic(data acceptance.TestData) string {
@@ -391,10 +392,8 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_account_network_rules" "test" {
   storage_account_id = azurerm_storage_account.test.id
 
-  default_action             = "Deny"
-  bypass                     = ["None"]
-  ip_rules                   = []
-  virtual_network_subnet_ids = []
+  default_action = "Deny"
+  bypass         = ["None"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

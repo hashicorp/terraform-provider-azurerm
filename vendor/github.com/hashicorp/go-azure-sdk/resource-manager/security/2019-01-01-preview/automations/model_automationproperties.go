@@ -19,10 +19,14 @@ type AutomationProperties struct {
 var _ json.Unmarshaler = &AutomationProperties{}
 
 func (s *AutomationProperties) UnmarshalJSON(bytes []byte) error {
-	type alias AutomationProperties
-	var decoded alias
+	var decoded struct {
+		Description *string             `json:"description,omitempty"`
+		IsEnabled   *bool               `json:"isEnabled,omitempty"`
+		Scopes      *[]AutomationScope  `json:"scopes,omitempty"`
+		Sources     *[]AutomationSource `json:"sources,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into AutomationProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Description = decoded.Description
@@ -43,7 +47,7 @@ func (s *AutomationProperties) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]AutomationAction, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalAutomationActionImplementation(val)
+			impl, err := UnmarshalAutomationActionImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'Actions' for 'AutomationProperties': %+v", i, err)
 			}
@@ -51,5 +55,6 @@ func (s *AutomationProperties) UnmarshalJSON(bytes []byte) error {
 		}
 		s.Actions = &output
 	}
+
 	return nil
 }

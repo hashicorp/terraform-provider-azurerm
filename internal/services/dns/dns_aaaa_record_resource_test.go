@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DnsAAAARecordResource struct{}
@@ -97,7 +97,7 @@ func TestAccDnsAAAARecord_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsAAAARecord_withAlias(t *testing.T) {
+func TestAccDnsAAAARecord_withAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 	r := DnsAAAARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
@@ -122,7 +122,7 @@ func TestAccAzureRMDnsAAAARecord_withAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsAAAARecord_RecordsToAlias(t *testing.T) {
+func TestAccDnsAAAARecord_RecordsToAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 	r := DnsAAAARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
@@ -149,7 +149,7 @@ func TestAccAzureRMDnsAAAARecord_RecordsToAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsAaaaRecord_AliasToRecords(t *testing.T) {
+func TestAccDnsAaaaRecord_AliasToRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 	r := DnsAAAARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
@@ -174,7 +174,7 @@ func TestAccAzureRMDnsAaaaRecord_AliasToRecords(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsAAAARecord_uncompressed(t *testing.T) {
+func TestAccDnsAAAARecord_uncompressed(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 	r := DnsAAAARecordResource{}
 
@@ -208,7 +208,7 @@ func (DnsAAAARecordResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (DnsAAAARecordResource) basic(data acceptance.TestData) string {

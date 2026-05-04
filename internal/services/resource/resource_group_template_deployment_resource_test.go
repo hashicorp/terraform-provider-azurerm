@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ResourceGroupTemplateDeploymentResource struct{}
@@ -291,6 +291,29 @@ func TestAccResourceGroupTemplateDeployment_nestedResources(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroupTemplateDeployment_outputReference(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noOutputReference(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// set some tags
+			Config: r.outputReference(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccResourceGroupTemplateDeployment_nestedTemplate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
@@ -312,12 +335,12 @@ func (t ResourceGroupTemplateDeploymentResource) Exists(ctx context.Context, cli
 		return nil, err
 	}
 
-	resp, err := clients.Resource.DeploymentsClient.Get(ctx, id.ResourceGroup, id.DeploymentName)
+	resp, err := clients.Resource.LegacyDeploymentsClient.Get(ctx, id.ResourceGroup, id.DeploymentName)
 	if err != nil {
 		return nil, fmt.Errorf("reading Management Lock (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (ResourceGroupTemplateDeploymentResource) emptyConfig(data acceptance.TestData, deploymentMode string) string {
@@ -1070,4 +1093,136 @@ resource "azurerm_resource_group_template_deployment" "test" {
 TEMPLATE
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ResourceGroupTemplateDeploymentResource) noOutputReference(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = %[2]q
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Incremental"
+
+  parameters_content = jsonencode({
+    "logic-app-name" = {
+      value = "logic-app-name"
+    }
+  })
+
+  template_content = <<TEMPLATE
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logic-app-name": {
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('logic-app-name')]",
+            "location": "westeurope",
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://pluginsdk.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "triggers": {},
+                    "actions": {}
+                },
+                "parameters": {}
+            }
+        }
+    ]
+}
+TEMPLATE
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (ResourceGroupTemplateDeploymentResource) outputReference(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = %[2]q
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Incremental"
+
+  parameters_content = jsonencode({
+    "logic-app-name" = {
+      value = "logic-app-name"
+    }
+  })
+
+  template_content = <<TEMPLATE
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logic-app-name": {
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [],
+    "outputs": {
+        "resourceName": {
+            "type": "String",
+            "value": "acctest-2-%[1]d"
+        }
+    }
+}
+TEMPLATE
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = jsondecode(azurerm_resource_group_template_deployment.test.output_content).resourceName.value
+  location = %[2]q
+}
+
+
+
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

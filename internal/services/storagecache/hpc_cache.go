@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagecache
@@ -34,7 +34,7 @@ func CacheDeleteAccessPolicyByName(policies []caches.NfsAccessPolicy, name strin
 }
 
 func CacheInsertOrUpdateAccessPolicy(policies []caches.NfsAccessPolicy, policy caches.NfsAccessPolicy) ([]caches.NfsAccessPolicy, error) {
-	var newPolicies []caches.NfsAccessPolicy
+	newPolicies := make([]caches.NfsAccessPolicy, 0, len(policies))
 
 	isNew := true
 	for _, existPolicy := range policies {

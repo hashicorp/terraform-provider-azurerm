@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/netappaccounts"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -189,7 +189,7 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	accountParameters := netappaccounts.NetAppAccount{
-		Location:   azure.NormalizeLocation(d.Get("location").(string)),
+		Location:   location.Normalize(d.Get("location").(string)),
 		Properties: &netappaccounts.AccountProperties{},
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -208,7 +208,6 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		anfAccountIdentity, ok := anfAccountIdentityRaw.([]interface{})
 
 		if ok && len(anfAccountIdentity) > 0 {
-
 			anfAccountIdentityExpanded, err := identity.ExpandLegacySystemAndUserAssignedMap(anfAccountIdentity)
 			if err != nil {
 				return err
@@ -240,26 +239,22 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	shouldUpdate := false
 	update := netappaccounts.NetAppAccountPatch{
 		Properties: &netappaccounts.AccountProperties{},
 	}
 
 	if d.HasChange("active_directory") {
-		shouldUpdate = true
 		activeDirectoriesRaw := d.Get("active_directory").([]interface{})
 		activeDirectories := expandNetAppActiveDirectories(activeDirectoriesRaw)
 		update.Properties.ActiveDirectories = activeDirectories
 	}
 
 	if d.HasChange("tags") {
-		shouldUpdate = true
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
 	if d.HasChange("identity") {
-		shouldUpdate = true
 		anfAccountIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
@@ -268,10 +263,8 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		update.Identity = anfAccountIdentity
 	}
 
-	if shouldUpdate {
-		if err = client.AccountsUpdateThenPoll(ctx, *id, update); err != nil {
-			return fmt.Errorf("updating %s: %+v", id.ID(), err)
-		}
+	if err = client.AccountsUpdateThenPoll(ctx, *id, update); err != nil {
+		return fmt.Errorf("updating %s: %+v", id.ID(), err)
 	}
 
 	return resourceNetAppAccountRead(d, meta)
@@ -301,7 +294,7 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		if model.Identity != nil {
 			anfAccountIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
@@ -328,7 +321,9 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -365,20 +360,20 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 		dns := strings.Join(*utils.ExpandStringSlice(v["dns_servers"].([]interface{})), ",")
 
 		result := netappaccounts.ActiveDirectory{
-			Dns:                        utils.String(dns),
-			Domain:                     utils.String(v["domain"].(string)),
-			OrganizationalUnit:         utils.String(v["organizational_unit"].(string)),
-			Password:                   utils.String(v["password"].(string)),
-			SmbServerName:              utils.String(v["smb_server_name"].(string)),
-			Username:                   utils.String(v["username"].(string)),
-			Site:                       utils.String(v["site_name"].(string)),
-			AdName:                     utils.String(v["kerberos_ad_name"].(string)),
-			KdcIP:                      utils.String(v["kerberos_kdc_ip"].(string)),
-			AesEncryption:              utils.Bool(v["aes_encryption_enabled"].(bool)),
-			AllowLocalNfsUsersWithLdap: utils.Bool(v["local_nfs_users_with_ldap_allowed"].(bool)),
-			LdapOverTLS:                utils.Bool(v["ldap_over_tls_enabled"].(bool)),
-			ServerRootCACertificate:    utils.String(v["server_root_ca_certificate"].(string)),
-			LdapSigning:                utils.Bool(v["ldap_signing_enabled"].(bool)),
+			Dns:                        pointer.To(dns),
+			Domain:                     pointer.To(v["domain"].(string)),
+			OrganizationalUnit:         pointer.To(v["organizational_unit"].(string)),
+			Password:                   pointer.To(v["password"].(string)),
+			SmbServerName:              pointer.To(v["smb_server_name"].(string)),
+			Username:                   pointer.To(v["username"].(string)),
+			Site:                       pointer.To(v["site_name"].(string)),
+			AdName:                     pointer.To(v["kerberos_ad_name"].(string)),
+			KdcIP:                      pointer.To(v["kerberos_kdc_ip"].(string)),
+			AesEncryption:              pointer.To(v["aes_encryption_enabled"].(bool)),
+			AllowLocalNfsUsersWithLdap: pointer.To(v["local_nfs_users_with_ldap_allowed"].(bool)),
+			LdapOverTLS:                pointer.To(v["ldap_over_tls_enabled"].(bool)),
+			ServerRootCACertificate:    pointer.To(v["server_root_ca_certificate"].(string)),
+			LdapSigning:                pointer.To(v["ldap_signing_enabled"].(bool)),
 		}
 
 		results = append(results, result)

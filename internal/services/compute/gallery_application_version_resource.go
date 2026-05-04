@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,15 +20,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name gallery_application_version -properties "name" -service-package-name compute -compare-values "subscription_id:gallery_application_id,resource_group_name:gallery_application_id,gallery_name:gallery_application_id,application_name:gallery_application_id"
 
 type GalleryApplicationVersionResource struct{}
 
 var (
 	_ sdk.ResourceWithUpdate        = GalleryApplicationVersionResource{}
 	_ sdk.ResourceWithCustomizeDiff = GalleryApplicationVersionResource{}
+	_ sdk.ResourceWithIdentity      = GalleryApplicationVersionResource{}
 )
+
+func (r GalleryApplicationVersionResource) Identity() resourceids.ResourceId {
+	return &galleryapplicationversions.ApplicationVersionId{}
+}
 
 type GalleryApplicationVersionModel struct {
 	Name                 string            `tfschema:"name"`
@@ -57,7 +64,7 @@ type ManageAction struct {
 
 type TargetRegion struct {
 	Name                 string `tfschema:"name"`
-	RegionalReplicaCount int    `tfschema:"regional_replica_count"`
+	RegionalReplicaCount int64  `tfschema:"regional_replica_count"`
 	ExcludeFromLatest    bool   `tfschema:"exclude_from_latest"`
 	StorageAccountType   string `tfschema:"storage_account_type"`
 }
@@ -246,8 +253,8 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(state.Location),
 				Properties: &galleryapplicationversions.GalleryApplicationVersionProperties{
 					PublishingProfile: galleryapplicationversions.GalleryApplicationVersionPublishingProfile{
-						EnableHealthCheck: utils.Bool(state.EnableHealthCheck),
-						ExcludeFromLatest: utils.Bool(state.ExcludeFromLatest),
+						EnableHealthCheck: pointer.To(state.EnableHealthCheck),
+						ExcludeFromLatest: pointer.To(state.ExcludeFromLatest),
 						ManageActions:     expandGalleryApplicationVersionManageAction(state.ManageAction),
 						Source:            expandGalleryApplicationVersionSource(state.Source),
 						TargetRegions:     expandGalleryApplicationVersionTargetRegion(state.TargetRegion),
@@ -285,7 +292,7 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 		Timeout: 30 * time.Minute,
 	}
@@ -353,6 +360,10 @@ func (r GalleryApplicationVersionResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
 			return metadata.Encode(state)
 		},
 		Timeout: 5 * time.Minute,
@@ -382,7 +393,7 @@ func (r GalleryApplicationVersionResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("enable_health_check") {
-					payload.Properties.PublishingProfile.EnableHealthCheck = utils.Bool(state.EnableHealthCheck)
+					payload.Properties.PublishingProfile.EnableHealthCheck = pointer.To(state.EnableHealthCheck)
 				}
 
 				if metadata.ResourceData.HasChange("end_of_life_date") {
@@ -391,7 +402,7 @@ func (r GalleryApplicationVersionResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("exclude_from_latest") {
-					payload.Properties.PublishingProfile.ExcludeFromLatest = utils.Bool(state.ExcludeFromLatest)
+					payload.Properties.PublishingProfile.ExcludeFromLatest = pointer.To(state.ExcludeFromLatest)
 				}
 
 				if metadata.ResourceData.HasChange("manage_actions") {
@@ -492,7 +503,7 @@ func expandGalleryApplicationVersionManageAction(input []ManageAction) *gallerya
 	return &galleryapplicationversions.UserArtifactManage{
 		Install: v.Install,
 		Remove:  v.Remove,
-		Update:  utils.String(v.Update),
+		Update:  pointer.To(v.Update),
 	}
 }
 
@@ -502,16 +513,15 @@ func flattenGalleryApplicationVersionManageAction(input *galleryapplicationversi
 	}
 
 	output := make([]ManageAction, 0)
-	if input != nil {
-		obj := ManageAction{
-			Install: input.Install,
-			Remove:  input.Remove,
-		}
-		if input.Update != nil {
-			obj.Update = *input.Update
-		}
-		output = append(output, obj)
+
+	obj := ManageAction{
+		Install: input.Install,
+		Remove:  input.Remove,
 	}
+	if input.Update != nil {
+		obj.Update = *input.Update
+	}
+	output = append(output, obj)
 
 	return output
 }
@@ -523,7 +533,7 @@ func expandGalleryApplicationVersionSource(input []Source) galleryapplicationver
 	v := input[0]
 	return galleryapplicationversions.UserArtifactSource{
 		MediaLink:                v.MediaLink,
-		DefaultConfigurationLink: utils.String(v.DefaultConfigurationLink),
+		DefaultConfigurationLink: pointer.To(v.DefaultConfigurationLink),
 	}
 }
 
@@ -544,7 +554,7 @@ func expandGalleryApplicationVersionTargetRegion(input []TargetRegion) *[]galler
 	for _, item := range input {
 		targetRegion := galleryapplicationversions.TargetRegion{
 			Name:                 location.Normalize(item.Name),
-			RegionalReplicaCount: pointer.To(int64(item.RegionalReplicaCount)),
+			RegionalReplicaCount: pointer.To(item.RegionalReplicaCount),
 			StorageAccountType:   pointer.To(galleryapplicationversions.StorageAccountType(item.StorageAccountType)),
 		}
 
@@ -572,7 +582,7 @@ func flattenGalleryApplicationVersionTargetRegion(input *[]galleryapplicationver
 		}
 
 		if item.RegionalReplicaCount != nil {
-			obj.RegionalReplicaCount = int(*item.RegionalReplicaCount)
+			obj.RegionalReplicaCount = *item.RegionalReplicaCount
 		}
 
 		if item.StorageAccountType != nil {

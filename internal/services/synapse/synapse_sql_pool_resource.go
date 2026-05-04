@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -11,10 +11,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	mssqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -32,7 +33,7 @@ const (
 )
 
 func resourceSynapseSqlPool() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSynapseSqlPoolCreate,
 		Read:   resourceSynapseSqlPoolRead,
 		Update: resourceSynapseSqlPoolUpdate,
@@ -95,6 +96,16 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"storage_account_type": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(synapse.StorageAccountTypeLRS),
+					string(synapse.StorageAccountTypeGRS),
+				}, false),
+			},
+
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -108,8 +119,9 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 			},
 
 			"collation": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C The default of this is configurable by the user, so this should remain
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: mssqlValidate.DatabaseCollation(),
@@ -167,39 +179,11 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(synapseSqlPoolCustomizeDiff),
 	}
-
-	if !features.FourPointOhBeta() {
-		// NOTE: In v3.0 providers this will be an Optional field with a 'Default'
-		// of 'GRS' to match existing v3.0 behavior, the 'ForceNew' logic will be
-		// applied in the CustomizeDiff function...
-		resource.Schema["storage_account_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Default:  string(synapse.StorageAccountTypeGRS),
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(synapse.StorageAccountTypeLRS),
-				string(synapse.StorageAccountTypeGRS),
-			}, false),
-		}
-	} else {
-		resource.Schema["storage_account_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(synapse.StorageAccountTypeLRS),
-				string(synapse.StorageAccountTypeGRS),
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
@@ -253,18 +237,18 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	sqlPoolInfo := synapse.SQLPool{
 		Location: workspace.Location,
 		SQLPoolResourceProperties: &synapse.SQLPoolResourceProperties{
-			CreateMode:         synapse.CreateMode(*utils.String(mode)),
+			CreateMode:         synapse.CreateMode(*pointer.To(mode)),
 			StorageAccountType: storageAccountType,
 		},
 		Sku: &synapse.Sku{
-			Name: utils.String(d.Get("sku_name").(string)),
+			Name: pointer.To(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	switch mode {
 	case DefaultCreateMode:
-		sqlPoolInfo.SQLPoolResourceProperties.Collation = utils.String(d.Get("collation").(string))
+		sqlPoolInfo.Collation = pointer.To(d.Get("collation").(string))
 	case RecoveryCreateMode:
 		recoveryDatabaseId := constructSourceDatabaseId(d.Get("recovery_database_id").(string))
 
@@ -272,7 +256,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`recovery_database_id` must be set when `create_mode` is %q", RecoveryCreateMode)
 		}
 
-		sqlPoolInfo.SQLPoolResourceProperties.RecoverableDatabaseID = utils.String(recoveryDatabaseId)
+		sqlPoolInfo.RecoverableDatabaseID = pointer.To(recoveryDatabaseId)
 	case PointInTimeRestoreCreateMode:
 		restore := d.Get("restore").([]interface{})
 		if len(restore) == 0 || restore[0] == nil {
@@ -287,8 +271,8 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("parsing time format: %+v", parseErr)
 		}
 
-		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = &date.Time{Time: vTime}
-		sqlPoolInfo.SQLPoolResourceProperties.SourceDatabaseID = utils.String(sourceDatabaseId)
+		sqlPoolInfo.RestorePointInTime = &date.Time{Time: vTime}
+		sqlPoolInfo.SourceDatabaseID = pointer.To(sourceDatabaseId)
 	}
 
 	future, err := sqlClient.Create(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, sqlPoolInfo)
@@ -379,7 +363,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChanges("sku_name", "tags") {
 		sqlPoolInfo := synapse.SQLPoolPatchInfo{
 			Sku: &synapse.Sku{
-				Name: utils.String(d.Get("sku_name").(string)),
+				Name: pointer.To(d.Get("sku_name").(string)),
 			},
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
@@ -507,11 +491,11 @@ func synapseSqlPoolScaleStateRefreshFunc(ctx context.Context, client *synapse.SQ
 			return resp, "failed", err
 		}
 
-		if resp.SQLPoolResourceProperties == nil || resp.SQLPoolResourceProperties.Status == nil {
+		if resp.SQLPoolResourceProperties == nil || resp.Status == nil {
 			return resp, "failed", nil
 		}
 
-		return resp, *resp.SQLPoolResourceProperties.Status, nil
+		return resp, *resp.Status, nil
 	}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -45,7 +45,17 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
+			"auto_scaling_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"eviction_policy": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"gpu_driver": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -83,6 +93,11 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				},
 			},
 
+			"node_public_ip_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"node_public_ip_prefix_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -94,6 +109,11 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"node_image_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"orchestrator_version": {
@@ -149,26 +169,6 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 		},
 	}
 
-	if features.FourPointOhBeta() {
-		dataSource.Schema["auto_scaling_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-		dataSource.Schema["node_public_ip_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-	} else {
-		dataSource.Schema["enable_auto_scaling"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-		dataSource.Schema["enable_node_public_ip"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-	}
-
 	return dataSource
 }
 
@@ -210,19 +210,20 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		props := model.Properties
 		d.Set("zones", zones.FlattenUntyped(props.AvailabilityZones))
 
-		if features.FourPointOhBeta() {
-			d.Set("auto_scaling_enabled", props.EnableAutoScaling)
-			d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
-		} else {
-			d.Set("enable_auto_scaling", props.EnableAutoScaling)
-			d.Set("enable_node_public_ip", props.EnableNodePublicIP)
-		}
+		d.Set("auto_scaling_enabled", props.EnableAutoScaling)
+		d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
 
 		evictionPolicy := ""
 		if props.ScaleSetEvictionPolicy != nil && *props.ScaleSetEvictionPolicy != "" {
 			evictionPolicy = string(*props.ScaleSetEvictionPolicy)
 		}
 		d.Set("eviction_policy", evictionPolicy)
+
+		gpuDriver := ""
+		if props.GpuProfile != nil {
+			gpuDriver = string(pointer.From(props.GpuProfile.Driver))
+		}
+		d.Set("gpu_driver", gpuDriver)
 
 		maxCount := 0
 		if props.MaxCount != nil {
@@ -263,6 +264,8 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
+
+		d.Set("node_image_version", props.NodeImageVersion)
 
 		d.Set("orchestrator_version", props.OrchestratorVersion)
 		osDiskSizeGB := 0

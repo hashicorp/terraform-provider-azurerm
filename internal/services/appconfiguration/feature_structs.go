@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -36,7 +37,7 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 		}
 		nameRaw, ok := filterRaw["name"]
 		if !ok {
-			return fmt.Errorf("missing name ...")
+			return errors.New("missing name")
 		}
 
 		name := nameRaw.(string)
@@ -85,7 +86,19 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 			}
 
 		default:
-			return fmt.Errorf("unknown type %q", name)
+			{
+				var out CustomFilter
+				mpc := mapstructure.DecoderConfig{TagName: "json", Result: &out}
+				mpd, err := mapstructure.NewDecoder(&mpc)
+				if err != nil {
+					return err
+				}
+				err = mpd.Decode(filterRaw)
+				if err != nil {
+					return err
+				}
+				filtersOut = append(filtersOut, out)
+			}
 		}
 	}
 
@@ -107,8 +120,8 @@ type PercentageFeatureFilter struct {
 }
 
 type TargetingGroupParameter struct {
-	Name              string `json:"Name" tfschema:"name"`
-	RolloutPercentage int    `json:"RolloutPercentage" tfschema:"rollout_percentage"`
+	Name              string `json:"Name"              tfschema:"name"`
+	RolloutPercentage int64  `json:"RolloutPercentage" tfschema:"rollout_percentage"`
 }
 
 type TargetingFilterParameters struct {
@@ -116,9 +129,14 @@ type TargetingFilterParameters struct {
 }
 
 type TargetingFilterAudience struct {
-	DefaultRolloutPercentage int                       `json:"DefaultRolloutPercentage" tfschema:"default_rollout_percentage"`
-	Users                    []string                  `json:"Users" tfschema:"users"`
-	Groups                   []TargetingGroupParameter `json:"Groups" tfschema:"groups"`
+	DefaultRolloutPercentage int64                     `json:"DefaultRolloutPercentage" tfschema:"default_rollout_percentage"`
+	Users                    []string                  `json:"Users"                    tfschema:"users"`
+	Groups                   []TargetingGroupParameter `json:"Groups"                   tfschema:"groups"`
+}
+
+type CustomFilter struct {
+	Name       string            `json:"name"       tfschema:"name"`
+	Parameters map[string]string `json:"parameters" tfschema:"parameters"`
 }
 
 type TargetingFeatureFilter struct {
@@ -128,7 +146,7 @@ type TargetingFeatureFilter struct {
 
 type TimewindowFilterParameters struct {
 	Start string `json:"Start" tfschema:"start"`
-	End   string `json:"End" tfschema:"end"`
+	End   string `json:"End"   tfschema:"end"`
 }
 
 type TimewindowFeatureFilter struct {

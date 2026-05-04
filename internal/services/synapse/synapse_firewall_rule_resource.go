@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
@@ -94,8 +95,8 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	parameters := synapse.IPFirewallRuleInfo{
 		IPFirewallRuleProperties: &synapse.IPFirewallRuleProperties{
-			StartIPAddress: utils.String(d.Get("start_ip_address").(string)),
-			EndIPAddress:   utils.String(d.Get("end_ip_address").(string)),
+			StartIPAddress: pointer.To(d.Get("start_ip_address").(string)),
+			EndIPAddress:   pointer.To(d.Get("end_ip_address").(string)),
 		},
 	}
 

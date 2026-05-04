@@ -28,7 +28,7 @@ output "hostname" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Redis cache
 
@@ -67,6 +67,8 @@ output "hostname" {
 * `primary_connection_string` - The primary connection string of the Redis Instance.
 
 * `secondary_connection_string` - The secondary connection string of the Redis Instance.
+
+* `access_keys_authentication_enabled` - Specifies if access key authentication is enabled.
 
 * `redis_configuration` - A `redis_configuration` block as defined below.
 
@@ -108,12 +110,18 @@ A `redis_configuration` block exports the following:
 
 * `rdb_storage_connection_string` - The Connection String to the Storage Account. Only supported for Premium SKUs.
 
-~> **Note:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) e.g.:
+~> **Note:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037).
 
 * `storage_account_subscription_id` - The ID of the Subscription containing the Storage Account.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Cache` - 2024-11-01

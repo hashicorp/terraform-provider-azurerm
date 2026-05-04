@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -7,9 +7,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -97,7 +99,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				StateFunc: utils.NormalizeJson,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			// Computed
 			"output_content": {
@@ -107,11 +109,36 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				// parsing the JSON using `jsondecode` allows the users to interact with/map objects as required
 			},
 		},
+
+		// this is needed to fix https://github.com/hashicorp/terraform-provider-azurerm/issues/12828
+		// On a change to `template_content` or `parameters_content`, we'll set `output_content` to empty
+		// The adverse effect of this is that any change to `template_content` will also cause any resource referencing `output_content` to update
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if d.HasChange("template_content") {
+				o, n := d.GetChange("template_content")
+
+				// the json has to be normalized and then compared against to see if a change has occurred
+				if !strings.EqualFold(o.(string), utils.NormalizeJson(n)) {
+					return d.SetNewComputed("output_content")
+				}
+			}
+
+			if d.HasChange("parameters_content") {
+				o, n := d.GetChange("parameters_content")
+
+				// the json has to be normalized and then compared against to see if a change has occurred
+				if !strings.EqualFold(o.(string), utils.NormalizeJson(n)) {
+					return d.SetNewComputed("output_content")
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
 func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,7 +173,7 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 
 	if templateSpecVersionID, ok := d.GetOk("template_spec_version_id"); ok {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(templateSpecVersionID.(string)),
+			ID: pointer.To(templateSpecVersionID.(string)),
 		}
 	}
 
@@ -180,7 +207,7 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 }
 
 func resourceGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -240,7 +267,7 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, me
 
 	if d.HasChange("template_spec_version_id") {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(d.Get("template_spec_version_id").(string)),
+			ID: pointer.To(d.Get("template_spec_version_id").(string)),
 		}
 
 		if d.Get("template_spec_version_id").(string) != "" {
@@ -273,7 +300,7 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, me
 }
 
 func resourceGroupTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -337,7 +364,7 @@ func resourceGroupTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta
 }
 
 func resourceGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

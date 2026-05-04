@@ -45,6 +45,10 @@ provider "azurerm" {
       purge_soft_delete_on_destroy = true
     }
 
+    databricks_workspace {
+      force_delete = false
+    }
+
     key_vault {
       purge_soft_delete_on_destroy    = true
       recover_soft_deleted_key_vaults = true
@@ -54,16 +58,39 @@ provider "azurerm" {
       permanently_delete_on_destroy = true
     }
 
+    machine_learning {
+      purge_soft_deleted_workspace_on_destroy = true
+    }
+
     managed_disk {
       expand_without_downtime = true
+    }
+
+    netapp {
+      delete_backups_on_backup_vault_destroy = false
+      prevent_volume_destruction             = true
     }
 
     postgresql_flexible_server {
       restart_server_on_configuration_value_change = true
     }
 
+    recovery_service {
+      vm_backup_stop_protection_and_retain_data_on_destroy    = true
+      vm_backup_suspend_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy             = true
+    }
+
+    recovery_services_vault {
+      recover_soft_deleted_backup_protected_vm = true
+    }
+
     resource_group {
       prevent_deletion_if_contains_resources = true
+    }
+
+    storage {
+      data_plane_available = false
     }
 
     subscription {
@@ -75,9 +102,10 @@ provider "azurerm" {
     }
 
     virtual_machine {
-      delete_os_disk_on_deletion     = true
-      graceful_shutdown              = false
-      skip_shutdown_and_force_delete = false
+      detach_implicit_data_disk_on_deletion = false
+      delete_os_disk_on_deletion            = true
+      graceful_shutdown                     = false
+      skip_shutdown_and_force_delete        = false
     }
 
     virtual_machine_scale_set {
@@ -101,13 +129,29 @@ The `features` block supports the following:
 
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
+* `databricks_workspace` - (Optional) A `databricks_workspace` block as defined below.
+
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
 
+* `machine_learning` - (Optional) A `machine_learning` block as defined below.
+
 * `managed_disk` - (Optional) A `managed_disk` block as defined below.
 
+* `netapp` - (Optional) A `netapp` block as defined below.
+
+* `postgresql_flexible_server` - (Optional) A `postgresql_flexible_server` block as defined below.
+
+* `recovery_service` - (Optional) A `recovery_service` block as defined below.
+
+* `recovery_services_vault` - (Optional) A `recovery_services_vault` block as defined below.
+
 * `resource_group` - (Optional) A `resource_group` block as defined below.
+
+* `storage` - (Optional) A `storage` block as defined below.
+
+* `subscription` - (Optional) A `subscription` block as defined below.
 
 * `template_deployment` - (Optional) A `template_deployment` block as defined below.
 
@@ -145,6 +189,12 @@ The `cognitive_account` block supports the following:
 
 ---
 
+The `databricks_workspace` block supports the following:
+
+* `force_delete` - (Optional) Should the managed resource group that contains the Unity Catalog data be forcibly deleted when the `azurerm_databricks_workspace` is destroyed? Defaults to `false`.
+
+---
+
 The `key_vault` block supports the following:
 
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
@@ -159,13 +209,17 @@ The `key_vault` block supports the following:
 
 * `purge_soft_deleted_hardware_security_modules_on_destroy` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
+* `purge_soft_deleted_hardware_security_module_keys_on_destroy` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module_key` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
 * `recover_soft_deleted_certificates` - (Optional) Should the `azurerm_key_vault_certificate` resource recover a Soft-Deleted Certificate? Defaults to `true`.
 
 * `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault` resource recover a Soft-Deleted Key Vault? Defaults to `true`.
 
 * `recover_soft_deleted_keys` - (Optional) Should the `azurerm_key_vault_key` resource recover a Soft-Deleted Key? Defaults to `true`.
 
-* `recover_soft_deleted_secrets` - (Optional) Should the `azurerm_key_vault_secret` resource recover a Soft-Deleted Secret? Defaults to `true`.
+* `recover_soft_deleted_secrets` - (Optional) Should the `azurerm_key_vault_secret` resource recover a Soft-Deleted Secret? Defaults to `true`
+
+* `recover_soft_deleted_hardware_security_module_keys` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module_key` resource recover a Soft-Deleted Key? Defaults to `true`.
 
 ~> **Note:** When recovering soft-deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
 
@@ -173,9 +227,13 @@ The `key_vault` block supports the following:
 
 The `log_analytics_workspace` block supports the following:
 
-* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
 
--> **Note:** This will be defaulted to `false` in the next major version of the Azure Provider (4.0).
+---
+
+The `machine_learning` block supports the following:
+
+* `purge_soft_deleted_workspace_on_destroy` - (Optional) Should the `azurerm_machine_learning_workspace` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
 
 ---
 
@@ -187,15 +245,46 @@ The `managed_disk` block supports the following:
 
 ---
 
+The `netapp` block supports the following:
+
+* `delete_backups_on_backup_vault_destroy` - (Optional) Should backups be deleted when an `azurerm_netapp_backup_vault` is being deleted? Defaults to `false`.
+* `prevent_volume_destruction` - (Optional) Should an `azurerm_netapp_volume` be protected against deletion (intentionally or unintentionally)? Defaults to `true`.
+
+---
+
 The `postgresql_flexible_server` block supports the following:
 
 * `restart_server_on_configuration_value_change` - (Optional) Should the `postgresql_flexible_server` restart after static server parameter change or removal? Defaults to `true`.
 
 ---
 
+The `recovery_service` block supports the following:
+
+* `vm_backup_stop_protection_and_retain_data_on_destroy` - (Optional) Should we retain the data and stop protection instead of destroying the backup protected vm? Defaults to `false`.
+
+* `vm_backup_suspend_protection_and_retain_data_on_destroy` - (Optional) Should we retain the data and suspend protection instead of destroying the backup protected vm? Defaults to `false`.
+
+* `purge_protected_items_from_vault_on_destroy` - (Optional) Should we purge all protected items when destroying the vault. Defaults to `false`.
+
+---
+
+The `recovery_services_vault` block supports the following:
+
+* `recover_soft_deleted_backup_protected_vm` - (Optional) Should the `azurerm_backup_protected_vm` resource recover a Soft-Deleted protected VM? Defaults to `false`.
+
+---
+
 The `resource_group` block supports the following:
 
 * `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `true`.
+
+---
+
+The `storage` block supports the following:
+
+* `data_plane_available` - Should the `azurerm_storage_account` resource use data plane APIs? Defaults to `true`.
+
+-> **Note:** This feature flag is intended for use with `azurerm_storage_account` resources that will not use the `queue_properties` and `static_website` blocks. Setting this to `false` will bypass availability checks.
 
 ---
 
@@ -213,17 +302,17 @@ The `template_deployment` block supports the following:
 
 The `virtual_machine` block supports the following:
 
+* `detach_implicit_data_disk_on_deletion` - (Optional) Should we detach the `azurerm_virtual_machine_implicit_data_disk_from_source` from the virtual machine instead of destroying it? Defaults to `false`.
+
 * `delete_os_disk_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
 
 ~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has its own flags for managing this within the resource.
 
 * `graceful_shutdown` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` request a graceful shutdown when the Virtual Machine is destroyed? Defaults to `false`.
 
-~> **Note:** When using a graceful shutdown, Azure gives the Virtual Machine a 5 minutes window in which to complete the shutdown process, at which point the machine will be force powered off - [more information can be found in this blog post](https://azure.microsoft.com/en-us/blog/linux-and-graceful-shutdowns-2/).
+!> **Note:** Due to a breaking API change `graceful_shutdown` is no longer effective and has been deprecated. This feature will be removed from v5.0 of the AzureRM provider.
 
 * `skip_shutdown_and_force_delete` - Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` skip the shutdown command and `Force Delete`, this provides the ability to forcefully and immediately delete the VM and detach all sub-resources associated with the virtual machine. This allows those freed resources to be reattached to another VM instance or deleted. Defaults to `false`.
-
-~> **Note:** Support for Force Delete is in an opt-in Preview.
 
 ---
 

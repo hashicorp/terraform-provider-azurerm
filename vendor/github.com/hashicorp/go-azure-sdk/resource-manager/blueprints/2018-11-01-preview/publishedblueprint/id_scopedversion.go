@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ScopedVersionId{})
+}
 
 var _ resourceids.ResourceId = &ScopedVersionId{}
 
@@ -37,7 +42,7 @@ func ParseScopedVersionID(input string) (*ScopedVersionId, error) {
 	}
 
 	id := ScopedVersionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseScopedVersionIDInsensitively(input string) (*ScopedVersionId, error) {
 	}
 
 	id := ScopedVersionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -107,9 +112,9 @@ func (id ScopedVersionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftBlueprint", "Microsoft.Blueprint", "Microsoft.Blueprint"),
 		resourceids.StaticSegment("staticBlueprints", "blueprints", "blueprints"),
-		resourceids.UserSpecifiedSegment("blueprintName", "blueprintValue"),
+		resourceids.UserSpecifiedSegment("blueprintName", "blueprintName"),
 		resourceids.StaticSegment("staticVersions", "versions", "versions"),
-		resourceids.UserSpecifiedSegment("versionId", "versionIdValue"),
+		resourceids.UserSpecifiedSegment("versionId", "versionId"),
 	}
 }
 

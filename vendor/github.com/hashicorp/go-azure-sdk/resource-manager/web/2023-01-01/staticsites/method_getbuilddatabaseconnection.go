@@ -45,7 +45,6 @@ func (c StaticSitesClient) GetBuildDatabaseConnection(ctx context.Context, id Bu
 
 	var model DatabaseConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

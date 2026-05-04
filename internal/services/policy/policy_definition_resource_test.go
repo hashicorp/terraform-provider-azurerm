@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy_test
@@ -9,6 +9,9 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -139,6 +142,40 @@ func TestAccAzureRMPolicyDefinition_modeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicyDefinition_removeParameter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	r := PolicyDefinitionResource{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.additionalParameter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r PolicyDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	definitionsClient := client.Policy.DefinitionsClient
 	id, err := parse.PolicyDefinitionID(state.ID)
@@ -157,12 +194,12 @@ func (r PolicyDefinitionResource) Exists(ctx context.Context, client *clients.Cl
 	}
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Policy Definition %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.DefinitionProperties != nil), nil
+	return pointer.To(resp.DefinitionProperties != nil), nil
 }
 
 func (r PolicyDefinitionResource) basic(data acceptance.TestData) string {
@@ -441,4 +478,76 @@ POLICY_RULE
 PARAMETERS
 }
 `, data.RandomInteger, mode, data.RandomInteger)
+}
+
+func (r PolicyDefinitionResource) additionalParameter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+
+  policy_rule = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+       "effect": "AuditIfNotExists",
+        "details": {
+          "type": "Microsoft.Insights/diagnosticSettings",
+          "existenceCondition": {
+            "allOf": [
+            {
+              "field": "Microsoft.Insights/diagnosticSettings/logs[*].retentionPolicy.enabled",
+              "equals": "true"
+            },
+            {
+              "field": "Microsoft.Insights/diagnosticSettings/logs[*].retentionPolicy.days",
+              "equals": "[parameters('requiredRetentionDays')]"
+            }
+          ]
+        }
+      }
+    }
+  }
+POLICY_RULE
+
+  parameters = <<PARAMETERS
+	{
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    },
+    "requiredRetentionDays": {
+        "type": "Integer",
+        "defaultValue": 365,
+        "allowedValues": [
+          0,
+          30,
+          90,
+          180,
+          365
+        ],
+        "metadata": {
+          "displayName": "Required retention (days)",
+          "description": "The required diagnostic logs retention in days"
+      }
+    }
+  }
+PARAMETERS
+}
+`, data.RandomInteger, data.RandomInteger)
 }

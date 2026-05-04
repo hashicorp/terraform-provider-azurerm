@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managementgroup
@@ -8,13 +8,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceManagementGroup() *pluginsdk.Resource {
@@ -39,6 +41,11 @@ func dataSourceManagementGroup() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ExactlyOneOf: []string{"name", "display_name"},
+			},
+
+			"tenant_scoped_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"parent_management_group_id": {
@@ -75,6 +82,7 @@ func dataSourceManagementGroup() *pluginsdk.Resource {
 
 func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
+	accountClient := meta.(*clients.Client)
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -94,10 +102,14 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 	recurse := true
-	resp, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
+	resp, err := client.Get(ctx, commonids.NewManagementGroupID(groupName), managementgroups.GetOperationOptions{
+		CacheControl: &managementGroupCacheControl,
+		Expand:       pointer.To(managementgroups.ExpandChildren),
+		Recurse:      &recurse,
+	})
 	if err != nil {
-		if utils.ResponseWasForbidden(resp.Response) {
-			return fmt.Errorf("Management Group %q was not found", groupName)
+		if response.WasForbidden(resp.HttpResponse) {
+			return fmt.Errorf("the Management Group %q was not found", groupName)
 		}
 
 		return fmt.Errorf("reading Management Group %q: %+v", groupName, err)
@@ -107,68 +119,75 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.SetId(id.ID())
 	d.Set("name", groupName)
 
-	if props := resp.Properties; props != nil {
-		d.Set("display_name", props.DisplayName)
+	tenantID := accountClient.Account.TenantId
+	tenantScopedID := parse.NewTenantScopedManagementGroupID(tenantID, id.Name)
+	d.Set("tenant_scoped_id", tenantScopedID.TenantScopedID())
 
-		subscriptionIds := []interface{}{}
-		mgmtgroupIds := []interface{}{}
-		if err := flattenManagementGroupDataSourceChildren(&subscriptionIds, &mgmtgroupIds, props.Children, false); err != nil {
-			return fmt.Errorf("flattening direct children resources: %+v", err)
-		}
-		if err := d.Set("subscription_ids", subscriptionIds); err != nil {
-			return fmt.Errorf("setting `subscription_ids`: %v", err)
-		}
-		if err := d.Set("management_group_ids", mgmtgroupIds); err != nil {
-			return fmt.Errorf("setting `management_group_ids`: %v", err)
-		}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("display_name", props.DisplayName)
 
-		subscriptionIds = []interface{}{}
-		mgmtgroupIds = []interface{}{}
-		if err := flattenManagementGroupDataSourceChildren(&subscriptionIds, &mgmtgroupIds, props.Children, true); err != nil {
-			return fmt.Errorf("flattening all children resources: %+v", err)
-		}
-		if err := d.Set("all_subscription_ids", subscriptionIds); err != nil {
-			return fmt.Errorf("setting `all_subscription_ids`: %v", err)
-		}
-		if err := d.Set("all_management_group_ids", mgmtgroupIds); err != nil {
-			return fmt.Errorf("setting `all_management_group_ids`: %v", err)
-		}
+			subscriptionIds := []interface{}{}
+			mgmtgroupIds := []interface{}{}
+			if err := flattenManagementGroupDataSourceChildren(&subscriptionIds, &mgmtgroupIds, props.Children, false); err != nil {
+				return fmt.Errorf("flattening direct children resources: %+v", err)
+			}
+			if err := d.Set("subscription_ids", subscriptionIds); err != nil {
+				return fmt.Errorf("setting `subscription_ids`: %v", err)
+			}
+			if err := d.Set("management_group_ids", mgmtgroupIds); err != nil {
+				return fmt.Errorf("setting `management_group_ids`: %v", err)
+			}
 
-		parentId := ""
-		if details := props.Details; details != nil {
-			if parent := details.Parent; parent != nil {
-				if pid := parent.ID; pid != nil {
-					parentId = *pid
+			subscriptionIds = []interface{}{}
+			mgmtgroupIds = []interface{}{}
+			if err := flattenManagementGroupDataSourceChildren(&subscriptionIds, &mgmtgroupIds, props.Children, true); err != nil {
+				return fmt.Errorf("flattening all children resources: %+v", err)
+			}
+			if err := d.Set("all_subscription_ids", subscriptionIds); err != nil {
+				return fmt.Errorf("setting `all_subscription_ids`: %v", err)
+			}
+			if err := d.Set("all_management_group_ids", mgmtgroupIds); err != nil {
+				return fmt.Errorf("setting `all_management_group_ids`: %v", err)
+			}
+
+			parentId := ""
+			if details := props.Details; details != nil {
+				if parent := details.Parent; parent != nil {
+					if pid := parent.Id; pid != nil {
+						parentId = *pid
+					}
 				}
 			}
+			d.Set("parent_management_group_id", parentId)
 		}
-		d.Set("parent_management_group_id", parentId)
 	}
 
 	return nil
 }
 
-func getManagementGroupNameByDisplayName(ctx context.Context, client *managementgroups.Client, displayName string) (string, error) {
-	iterator, err := client.ListComplete(ctx, managementGroupCacheControl, "")
+func getManagementGroupNameByDisplayName(ctx context.Context, client *managementgroups.ManagementGroupsClient, displayName string) (string, error) {
+	iterator, err := client.ListComplete(ctx, managementgroups.ListOperationOptions{
+		CacheControl: &managementGroupCacheControl,
+	})
 	if err != nil {
 		return "", fmt.Errorf("listing Management Groups: %+v", err)
 	}
 
 	var results []string
-	for iterator.NotDone() {
-		group := iterator.Value()
-		if group.DisplayName != nil && *group.DisplayName == displayName && group.Name != nil && *group.Name != "" {
-			results = append(results, *group.Name)
+	for _, item := range iterator.Items {
+		if item.Properties == nil {
+			continue
 		}
 
-		if err := iterator.NextWithContext(ctx); err != nil {
-			return "", fmt.Errorf("listing Management Groups: %+v", err)
+		if item.Properties.DisplayName != nil && *item.Properties.DisplayName == displayName && item.Name != nil && *item.Name != "" {
+			results = append(results, *item.Name)
 		}
 	}
 
 	// we found none
 	if len(results) == 0 {
-		return "", fmt.Errorf("Management Group (Display Name %q) was not found", displayName)
+		return "", fmt.Errorf("the Management Group (Display Name %q) was not found", displayName)
 	}
 
 	// we found more than one
@@ -179,28 +198,28 @@ func getManagementGroupNameByDisplayName(ctx context.Context, client *management
 	return results[0], nil
 }
 
-func flattenManagementGroupDataSourceChildren(subscriptionIds, mgmtgroupIds *[]interface{}, input *[]managementgroups.ChildInfo, recursive bool) error {
+func flattenManagementGroupDataSourceChildren(subscriptionIds, mgmtgroupIds *[]interface{}, input *[]managementgroups.ManagementGroupChildInfo, recursive bool) error {
 	if input == nil {
 		return nil
 	}
 
 	for _, child := range *input {
-		if child.ID == nil {
+		if child.Id == nil || child.Type == nil {
 			continue
 		}
-		switch child.Type {
-		case managementgroups.Type1MicrosoftManagementmanagementGroups:
-			id, err := parse.ManagementGroupID(*child.ID)
+		switch *child.Type {
+		case managementgroups.ManagementGroupChildTypeMicrosoftPointManagementManagementGroups:
+			id, err := commonids.ParseManagementGroupID(*child.Id)
 			if err != nil {
-				return fmt.Errorf("Unable to parse child Management Group ID %+v", err)
+				return fmt.Errorf("unable to parse child Management Group ID %+v", err)
 			}
 			*mgmtgroupIds = append(*mgmtgroupIds, id.ID())
-		case managementgroups.Type1Subscriptions:
-			id, err := parseManagementGroupSubscriptionID(*child.ID)
+		case managementgroups.ManagementGroupChildTypeSubscriptions:
+			id, err := commonids.ParseSubscriptionID(*child.Id)
 			if err != nil {
-				return fmt.Errorf("Unable to parse child Subscription ID %+v", err)
+				return fmt.Errorf("unable to parse child Subscription ID %+v", err)
 			}
-			*subscriptionIds = append(*subscriptionIds, id.subscriptionId)
+			*subscriptionIds = append(*subscriptionIds, id.SubscriptionId)
 		default:
 			continue
 		}

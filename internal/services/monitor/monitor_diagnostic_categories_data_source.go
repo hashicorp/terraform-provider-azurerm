@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettingscategories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -53,16 +52,6 @@ func dataSourceMonitorDiagnosticCategories() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["logs"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
-			Elem:       &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Set:        pluginsdk.HashString,
-			Computed:   true,
-			Deprecated: "`logs` will be removed in favour of the property `log_category_types` in version 4.0 of the AzureRM Provider.",
-		}
 	}
 
 	return resource
@@ -114,7 +103,7 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 				case diagnosticsettingscategories.CategoryTypeMetrics:
 					metrics = append(metrics, *v.Name)
 				default:
-					return fmt.Errorf("Unsupported category type %q", string(*category.CategoryType))
+					return fmt.Errorf("unsupported category type %q", string(*category.CategoryType))
 				}
 			}
 		}
@@ -122,12 +111,6 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 
 	if err := d.Set("log_category_types", logs); err != nil {
 		return fmt.Errorf("setting `log_category_types`: %+v", err)
-	}
-
-	if !features.FourPointOhBeta() {
-		if err := d.Set("logs", logs); err != nil {
-			return fmt.Errorf("setting `log`: %+v", err)
-		}
 	}
 
 	if err := d.Set("metrics", metrics); err != nil {

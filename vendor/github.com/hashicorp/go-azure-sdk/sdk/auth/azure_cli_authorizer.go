@@ -27,11 +27,20 @@ type AzureCliAuthorizerOptions struct {
 	// used for Resource Manager when auxiliary tenants are needed.
 	// e.g. https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/authenticate-multi-tenant
 	AuxTenantIds []string
+
+	// SubscriptionIdHint is the subscription to target when selecting an account with which to obtain an access token
+	// Used to hint to Azure CLI which of its signed-in accounts it should select, based on apparent access to the subscription.
+	SubscriptionIdHint string
+
+	// ForceAuthAtTenant skips the use of --subscription when authorising. This allows the CLI authorizer to obtain a tenant level token.
+	// Use with caution. It is recommended to limit the token scope to a Subscription unless multiple subscriptions in the same tenant
+	// need to be accessed.
+	ForceAuthAtTenant bool
 }
 
 // NewAzureCliAuthorizer returns an Authorizer which authenticates using the Azure CLI.
 func NewAzureCliAuthorizer(ctx context.Context, options AzureCliAuthorizerOptions) (Authorizer, error) {
-	conf, err := newAzureCliConfig(options.Api, options.TenantId, options.AuxTenantIds)
+	conf, err := newAzureCliConfig(options)
 	if err != nil {
 		return nil, err
 	}
@@ -47,6 +56,9 @@ type AzureCliAuthorizer struct {
 
 	// DefaultSubscriptionID is the default subscription, when detected
 	DefaultSubscriptionID string
+
+	// SubscriptionIDHint is a user-provided subscription ID used to hint to Azure CLI which account to select
+	SubscriptionIDHint string
 
 	conf *azureCliConfig
 }
@@ -65,9 +77,38 @@ func (a *AzureCliAuthorizer) Token(_ context.Context, _ *http.Request) (*oauth2.
 	}
 	azArgs = append(azArgs, "--scope", *scope)
 
+	accountType, err := azurecli.GetAccountType()
+	if err != nil {
+		return nil, fmt.Errorf("determining account type: %+v", err)
+	}
+
+	accountName, err := azurecli.GetAccountName()
+	if err != nil {
+		return nil, fmt.Errorf("determining account name: %+v", err)
+	}
+
+	tenantIdRequired := true
+
 	// Try to detect if we're running in Cloud Shell
-	if cloudShell := os.Getenv("AZUREPS_HOST_ENVIRONMENT"); !strings.HasPrefix(cloudShell, "cloud-shell/") {
-		// Seemingly not, so we'll append the tenant ID to the az args
+	if cloudShell := os.Getenv("AZUREPS_HOST_ENVIRONMENT"); strings.HasPrefix(cloudShell, "cloud-shell/") {
+		tenantIdRequired = false
+	}
+
+	// Try to detect whether authenticated principal is a managed identity
+	if accountType != nil && accountName != nil && *accountType == "servicePrincipal" && (*accountName == "systemAssignedIdentity" || *accountName == "userAssignedIdentity") {
+		tenantIdRequired = false
+	}
+
+	// Prefer to specify subscription ID if provided, this hints to Azure CLI which account to use in the event
+	// that multiple accounts are signed in, and each account has access to a subset of all subscriptions.
+	if a.SubscriptionIDHint != "" && !a.conf.ForceTenantAuth {
+		azArgs = append(azArgs, "--subscription", a.conf.SubscriptionIDHint)
+
+		// Cannot specify both `--subscription` and `--tenant`
+		tenantIdRequired = false
+	}
+
+	if tenantIdRequired {
 		azArgs = append(azArgs, "--tenant", a.conf.TenantID)
 	}
 
@@ -139,20 +180,27 @@ type azureCliConfig struct {
 	// TenantID is the required tenant ID for the primary token
 	TenantID string
 
+	// ForceTenantAuth enforces token acquisition at the Tenant, rather than the specified subscription.
+	ForceTenantAuth bool
+
 	// AuxiliaryTenantIDs is an optional list of tenant IDs for which to obtain additional tokens
 	AuxiliaryTenantIDs []string
 
 	// DefaultSubscriptionID is the optional default subscription ID
 	DefaultSubscriptionID string
+
+	// SubscriptionIDHint is the subscription being targeted when obtaining a token, used to hint to Azure CLI which account to use
+	SubscriptionIDHint string
 }
 
 // newAzureCliConfig validates the supplied tenant ID and returns a new azureCliConfig.
-func newAzureCliConfig(api environments.Api, tenantId string, auxiliaryTenantIds []string) (*azureCliConfig, error) {
+func newAzureCliConfig(options AzureCliAuthorizerOptions) (*azureCliConfig, error) {
 	// check az-cli version, ensure that MSAL is supported
 	if err := azurecli.CheckAzVersion(); err != nil {
 		return nil, err
 	}
 
+	var tenantId = options.TenantId
 	// obtain default tenant ID if no tenant ID was provided
 	if strings.TrimSpace(tenantId) == "" {
 		if defaultTenantId, err := azurecli.GetDefaultTenantID(); err != nil {
@@ -179,20 +227,45 @@ func newAzureCliConfig(api environments.Api, tenantId string, auxiliaryTenantIds
 		subscriptionId = *defaultSubscriptionId
 	}
 
+	// validate subscriptionIdHint, if applicable (currently only for Resource Manager)
+	if environments.ApiIsKnownPublished(options.Api, "AzureResourceManager") && !options.ForceAuthAtTenant {
+		if options.SubscriptionIdHint != "" {
+			if availableSubscriptionIds, err := azurecli.ListAvailableSubscriptionIDs(); err != nil {
+				return nil, err
+			} else if availableSubscriptionIds == nil {
+				return nil, fmt.Errorf("no available subscription IDs returned by Azure CLI")
+			} else {
+				found := false
+				for _, subId := range *availableSubscriptionIds {
+					if strings.EqualFold(subId, options.SubscriptionIdHint) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return nil, fmt.Errorf("the provided subscription ID %q is not known by Azure CLI", options.SubscriptionIdHint)
+				}
+			}
+		}
+	}
+
 	return &azureCliConfig{
-		Api:                   api,
+		Api:                   options.Api,
 		TenantID:              tenantId,
-		AuxiliaryTenantIDs:    auxiliaryTenantIds,
+		AuxiliaryTenantIDs:    options.AuxTenantIds,
 		DefaultSubscriptionID: subscriptionId,
+		SubscriptionIDHint:    strings.ToLower(options.SubscriptionIdHint),
+		ForceTenantAuth:       options.ForceAuthAtTenant,
 	}, nil
 }
 
 // TokenSource provides a source for obtaining access tokens using AzureCliAuthorizer.
-func (c *azureCliConfig) TokenSource(ctx context.Context) (Authorizer, error) {
+func (c *azureCliConfig) TokenSource(_ context.Context) (Authorizer, error) {
 	// Cache access tokens internally to avoid unnecessary `az` invocations
 	return NewCachedAuthorizer(&AzureCliAuthorizer{
 		TenantID:              c.TenantID,
 		DefaultSubscriptionID: c.DefaultSubscriptionID,
+		SubscriptionIDHint:    c.SubscriptionIDHint,
 		conf:                  c,
 	})
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IntegrationRuntimeManagedSsisResource struct{}
@@ -29,7 +29,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("managed-integration-runtime"),
-				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("node_size").HasValue("Standard_D8_v3"),
 			),
 		},
@@ -252,8 +252,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
@@ -279,14 +279,14 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%[1]d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[1]d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
@@ -310,15 +310,15 @@ resource "azurerm_public_ip" "test2" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%[3]s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "setup-files"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
@@ -329,8 +329,8 @@ resource "azurerm_storage_share" "test" {
 }
 
 data "azurerm_storage_account_blob_container_sas" "test" {
-  connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-  container_name    = "${azurerm_storage_container.test.name}"
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  container_name    = azurerm_storage_container.test.name
   https_only        = true
 
   start  = "2017-03-21"
@@ -346,10 +346,10 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   }
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql%[1]d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "ssis_catalog_admin"
   administrator_login_password = "my-s3cret-p4ssword!"
@@ -357,8 +357,8 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_linked_custom_service" "test" {
@@ -405,13 +405,13 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   license_type                     = "LicenseIncluded"
 
   vnet_integration {
-    vnet_id     = "${azurerm_virtual_network.test.id}"
-    subnet_name = "${azurerm_subnet.test.name}"
+    vnet_id     = azurerm_virtual_network.test.id
+    subnet_name = azurerm_subnet.test.name
     public_ips  = [azurerm_public_ip.test1.id, azurerm_public_ip.test2.id]
   }
 
   catalog_info {
-    server_endpoint        = "${azurerm_sql_server.test.fully_qualified_domain_name}"
+    server_endpoint        = azurerm_mssql_server.test.fully_qualified_domain_name
     administrator_login    = "ssis_catalog_admin"
     administrator_password = "my-s3cret-p4ssword!"
     pricing_tier           = "%[4]s"
@@ -420,7 +420,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 
   custom_setup_script {
     blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}/${azurerm_storage_container.test.name}"
-    sas_token          = "${data.azurerm_storage_account_blob_container_sas.test.sas}"
+    sas_token          = data.azurerm_storage_account_blob_container_sas.test.sas
   }
 
   express_custom_setup {
@@ -475,21 +475,21 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%[1]d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[1]d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
@@ -501,7 +501,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   node_size = "Standard_D8_v3"
 
   vnet_integration {
-    subnet_id = "${azurerm_subnet.test.id}"
+    subnet_id = azurerm_subnet.test.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -521,7 +521,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctkv%[3]s"
+  name                = "acctest%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -544,14 +544,14 @@ resource "azurerm_key_vault_secret" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%[1]d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[1]d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
@@ -575,15 +575,15 @@ resource "azurerm_public_ip" "test2" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%[3]s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "setup-files"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
@@ -594,8 +594,8 @@ resource "azurerm_storage_share" "test" {
 }
 
 data "azurerm_storage_account_blob_container_sas" "test" {
-  connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-  container_name    = "${azurerm_storage_container.test.name}"
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  container_name    = azurerm_storage_container.test.name
   https_only        = true
 
   start  = "2017-03-21"
@@ -611,10 +611,10 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   }
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql%[1]d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "ssis_catalog_admin"
   administrator_login_password = "my-s3cret-p4ssword!"
@@ -622,8 +622,8 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_linked_custom_service" "test" {
@@ -676,13 +676,13 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   license_type                     = "LicenseIncluded"
 
   vnet_integration {
-    vnet_id     = "${azurerm_virtual_network.test.id}"
-    subnet_name = "${azurerm_subnet.test.name}"
+    vnet_id     = azurerm_virtual_network.test.id
+    subnet_name = azurerm_subnet.test.name
     public_ips  = [azurerm_public_ip.test1.id, azurerm_public_ip.test2.id]
   }
 
   catalog_info {
-    server_endpoint        = "${azurerm_sql_server.test.fully_qualified_domain_name}"
+    server_endpoint        = azurerm_mssql_server.test.fully_qualified_domain_name
     administrator_login    = "ssis_catalog_admin"
     administrator_password = "my-s3cret-p4ssword!"
     pricing_tier           = "Basic"
@@ -691,7 +691,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 
   custom_setup_script {
     blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}/${azurerm_storage_container.test.name}"
-    sas_token          = "${data.azurerm_storage_account_blob_container_sas.test.sas}"
+    sas_token          = data.azurerm_storage_account_blob_container_sas.test.sas
   }
 
   express_custom_setup {
@@ -752,6 +752,8 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "test" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-df-%d"
   location = "%s"
@@ -767,21 +769,18 @@ resource "azurerm_data_factory" "test" {
   }
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "ssis_catalog_admin"
   administrator_login_password = "my-s3cret-p4ssword!"
-}
 
-resource "azurerm_sql_active_directory_administrator" "test" {
-  server_name         = azurerm_sql_server.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  login               = azurerm_data_factory.test.name
-  tenant_id           = azurerm_data_factory.test.identity.0.tenant_id
-  object_id           = azurerm_data_factory.test.identity.0.principal_id
+  azuread_administrator {
+    login_username = "AzureAD Admin"
+    object_id      = data.azurerm_client_config.test.object_id
+  }
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
@@ -791,11 +790,11 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   node_size       = "Standard_D8_v3"
 
   catalog_info {
-    server_endpoint = azurerm_sql_server.test.fully_qualified_domain_name
+    server_endpoint = azurerm_mssql_server.test.fully_qualified_domain_name
     pricing_tier    = "Basic"
   }
 
-  depends_on = [azurerm_sql_active_directory_administrator.test]
+  depends_on = [azurerm_mssql_server.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -814,21 +813,21 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%[1]d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[1]d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
@@ -884,8 +883,8 @@ resource "azurerm_mssql_elasticpool" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
@@ -895,10 +894,10 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   node_size       = "Standard_D8_v3"
 
   catalog_info {
-    server_endpoint        = "${azurerm_mssql_server.test.fully_qualified_domain_name}"
+    server_endpoint        = azurerm_mssql_server.test.fully_qualified_domain_name
     administrator_login    = "ssis_catalog_admin"
     administrator_password = "my-s3cret-p4ssword!"
-    elastic_pool_name      = "${azurerm_mssql_elasticpool.test.name}"
+    elastic_pool_name      = azurerm_mssql_elasticpool.test.name
     dual_standby_pair_name = "dual_name"
   }
 }
@@ -910,6 +909,8 @@ func (IntegrationRuntimeManagedSsisResource) userAssignedManagedCredentials(data
 provider "azurerm" {
   features {}
 }
+
+data "azurerm_client_config" "test" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-df-%d"
@@ -939,21 +940,18 @@ resource "azurerm_data_factory_credential_user_managed_identity" "test" {
   identity_id     = azurerm_user_assigned_identity.test.id
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "ssis_catalog_admin"
   administrator_login_password = "my-s3cret-p4ssword!"
-}
 
-resource "azurerm_sql_active_directory_administrator" "test" {
-  server_name         = azurerm_sql_server.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  login               = azurerm_data_factory.test.name
-  tenant_id           = azurerm_user_assigned_identity.test.tenant_id
-  object_id           = azurerm_user_assigned_identity.test.principal_id
+  azuread_administrator {
+    login_username = "AzureAD Admin"
+    object_id      = data.azurerm_client_config.test.object_id
+  }
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
@@ -964,11 +962,11 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   credential_name = azurerm_data_factory_credential_user_managed_identity.test.name
 
   catalog_info {
-    server_endpoint = azurerm_sql_server.test.fully_qualified_domain_name
+    server_endpoint = azurerm_mssql_server.test.fully_qualified_domain_name
     pricing_tier    = "Basic"
   }
 
-  depends_on = [azurerm_sql_active_directory_administrator.test]
+  depends_on = [azurerm_mssql_server.test]
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -991,7 +989,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name            = "acctestir%[2]d"
+  name            = "managed-integration-runtime"
   data_factory_id = azurerm_data_factory.test.id
   location        = azurerm_resource_group.test.location
   node_size       = "Standard_D8_v3"
@@ -1011,15 +1009,15 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 }
 
 func (t IntegrationRuntimeManagedSsisResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IntegrationRuntimeID(state.ID)
+	id, err := integrationruntimes.ParseIntegrationRuntimeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataFactory.IntegrationRuntimesClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+	resp, err := clients.DataFactory.IntegrationRuntimesClient.Get(ctx, *id, integrationruntimes.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }

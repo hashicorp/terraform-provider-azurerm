@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_test
@@ -84,7 +84,7 @@ func (t PowerShell72ModuleResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	resp, err := clients.Automation.Module.PowerShell72ModuleGet(ctx, *id)
+	resp, err := clients.Automation.ModuleClientV2023.PowerShell72ModuleGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -205,6 +205,10 @@ resource "azurerm_automation_powershell72_module" "test" {
       algorithm = "SHA256"
       value     = "5277774C7D6FC0E60986519D2D16C7100B9948B2D0B62091ED7B489A252F0F6D"
     }
+  }
+
+  tags = {
+    Env = "ACC"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

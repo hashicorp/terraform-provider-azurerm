@@ -6,7 +6,7 @@ package actiongroupsapis
 type AzureFunctionReceiver struct {
 	FunctionAppResourceId string `json:"functionAppResourceId"`
 	FunctionName          string `json:"functionName"`
-	HTTPTriggerUrl        string `json:"httpTriggerUrl"`
+	HTTPTriggerURL        string `json:"httpTriggerUrl"`
 	Name                  string `json:"name"`
 	UseCommonAlertSchema  *bool  `json:"useCommonAlertSchema,omitempty"`
 }

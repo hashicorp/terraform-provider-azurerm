@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&TagValueId{})
+}
 
 var _ resourceids.ResourceId = &TagValueId{}
 
@@ -37,7 +42,7 @@ func ParseTagValueID(input string) (*TagValueId, error) {
 	}
 
 	id := TagValueId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseTagValueIDInsensitively(input string) (*TagValueId, error) {
 	}
 
 	id := TagValueId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,9 +111,9 @@ func (id TagValueId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
 		resourceids.StaticSegment("staticTagNames", "tagNames", "tagNames"),
-		resourceids.UserSpecifiedSegment("tagName", "tagValue"),
+		resourceids.UserSpecifiedSegment("tagName", "tagName"),
 		resourceids.StaticSegment("staticTagValues", "tagValues", "tagValues"),
-		resourceids.UserSpecifiedSegment("tagValueName", "tagValueValue"),
+		resourceids.UserSpecifiedSegment("tagValueName", "tagValueName"),
 	}
 }
 

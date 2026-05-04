@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -27,7 +27,6 @@ func TestSpringCloudBuildPackBindingID(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudBuildPackBindingId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -168,7 +167,6 @@ func TestSpringCloudBuildPackBindingIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudBuildPackBindingId
 	}{
-
 		{
 			// empty
 			Input: "",

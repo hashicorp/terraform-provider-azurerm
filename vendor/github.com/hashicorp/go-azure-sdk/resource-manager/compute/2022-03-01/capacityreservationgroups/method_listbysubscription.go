@@ -40,6 +40,7 @@ func (o ListBySubscriptionOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListBySubscriptionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -51,6 +52,18 @@ func (o ListBySubscriptionOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBySubscription ...
 func (c CapacityReservationGroupsClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId, options ListBySubscriptionOperationOptions) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +72,9 @@ func (c CapacityReservationGroupsClient) ListBySubscription(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Compute/capacityReservationGroups", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListBySubscriptionCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Compute/capacityReservationGroups", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -101,6 +115,7 @@ func (c CapacityReservationGroupsClient) ListBySubscriptionCompleteMatchingPredi
 
 	resp, err := c.ListBySubscription(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

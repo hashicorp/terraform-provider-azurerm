@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ResourceProviderId{})
+}
 
 var _ resourceids.ResourceId = &ResourceProviderId{}
 
@@ -37,7 +42,7 @@ func ParseResourceProviderID(input string) (*ResourceProviderId, error) {
 	}
 
 	id := ResourceProviderId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseResourceProviderIDInsensitively(input string) (*ResourceProviderId, er
 	}
 
 	id := ResourceProviderId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id ResourceProviderId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCustomProviders", "Microsoft.CustomProviders", "Microsoft.CustomProviders"),
 		resourceids.StaticSegment("staticResourceProviders", "resourceProviders", "resourceProviders"),
-		resourceids.UserSpecifiedSegment("resourceProviderName", "resourceProviderValue"),
+		resourceids.UserSpecifiedSegment("resourceProviderName", "resourceProviderName"),
 	}
 }
 

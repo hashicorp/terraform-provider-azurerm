@@ -24,6 +24,18 @@ type ListByShareCompleteResult struct {
 	Items              []SynchronizationSetting
 }
 
+type ListByShareCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByShareCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByShare ...
 func (c SynchronizationSettingClient) ListByShare(ctx context.Context, id ShareId) (result ListByShareOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c SynchronizationSettingClient) ListByShare(ctx context.Context, id ShareI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByShareCustomPager{},
 		Path:       fmt.Sprintf("%s/synchronizationSettings", id.ID()),
 	}
 
@@ -60,7 +73,7 @@ func (c SynchronizationSettingClient) ListByShare(ctx context.Context, id ShareI
 	temp := make([]SynchronizationSetting, 0)
 	if values.Values != nil {
 		for i, v := range *values.Values {
-			val, err := unmarshalSynchronizationSettingImplementation(v)
+			val, err := UnmarshalSynchronizationSettingImplementation(v)
 			if err != nil {
 				err = fmt.Errorf("unmarshalling item %d for SynchronizationSetting (%q): %+v", i, v, err)
 				return result, err
@@ -84,6 +97,7 @@ func (c SynchronizationSettingClient) ListByShareCompleteMatchingPredicate(ctx c
 
 	resp, err := c.ListByShare(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

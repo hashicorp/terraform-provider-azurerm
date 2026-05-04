@@ -15,7 +15,7 @@ type TimeSeriesDatabaseConnectionsClient struct {
 }
 
 func NewTimeSeriesDatabaseConnectionsClientWithBaseURI(sdkApi sdkEnv.Api) (*TimeSeriesDatabaseConnectionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "timeseriesdatabaseconnections", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "timeseriesdatabaseconnections", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TimeSeriesDatabaseConnectionsClient: %+v", err)
 	}

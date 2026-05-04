@@ -46,7 +46,6 @@ func (c UpdateSummariesClient) Get(ctx context.Context, id ClusterId) (result Ge
 
 	var model UpdateSummaries
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -51,6 +51,10 @@ type InstanceDiff struct {
 	// meant to be used for additional data a resource may want to pass through.
 	// The value here must only contain Go primitives and collections.
 	Meta map[string]interface{}
+
+	// Identity is the identity data used to track resource identity
+	// starting in Terraform 1.12+
+	Identity map[string]string
 }
 
 func (d *InstanceDiff) Lock()   { d.mu.Lock() }
@@ -183,7 +187,7 @@ func (d *InstanceDiff) applyBlockDiff(path []string, attrs map[string]string, sc
 
 		// check each set candidate to see if it was removed.
 		// we need to do this, because when entire sets are removed, they may
-		// have the wrong key, and ony show diffs going to ""
+		// have the wrong key, and only show diffs going to ""
 		if block.Nesting == configschema.NestingSet {
 			for k := range candidateKeys {
 				indexPrefix := strings.Join(append(path, n, k), ".") + "."
@@ -359,7 +363,7 @@ func (d *InstanceDiff) applySingleAttrDiff(path []string, attrs map[string]strin
 		return result, nil
 	}
 
-	// check for missmatched diff values
+	// check for mismatched diff values
 	if exists &&
 		old != diff.Old &&
 		old != hcl2shim.UnknownVariableValue &&
@@ -663,7 +667,8 @@ func (d *InstanceDiff) Empty() bool {
 	return !d.Destroy &&
 		!d.DestroyTainted &&
 		!d.DestroyDeposed &&
-		len(d.Attributes) == 0
+		len(d.Attributes) == 0 &&
+		len(d.Identity) == 0
 }
 
 // Equal compares two diffs for exact equality.
@@ -892,7 +897,7 @@ func (d *InstanceDiff) Same(d2 *InstanceDiff) (bool, string) {
 				continue
 			}
 
-			// If the last diff was a computed value then the absense of
+			// If the last diff was a computed value then the absence of
 			// that value is allowed since it may mean the value ended up
 			// being the same.
 			if diffOld.NewComputed {

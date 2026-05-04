@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&BuildPackBindingId{})
+}
 
 var _ resourceids.ResourceId = &BuildPackBindingId{}
 
@@ -43,7 +48,7 @@ func ParseBuildPackBindingID(input string) (*BuildPackBindingId, error) {
 	}
 
 	id := BuildPackBindingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -60,7 +65,7 @@ func ParseBuildPackBindingIDInsensitively(input string) (*BuildPackBindingId, er
 	}
 
 	id := BuildPackBindingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -128,13 +133,13 @@ func (id BuildPackBindingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "springName"),
 		resourceids.StaticSegment("staticBuildServices", "buildServices", "buildServices"),
-		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceValue"),
+		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceName"),
 		resourceids.StaticSegment("staticBuilders", "builders", "builders"),
-		resourceids.UserSpecifiedSegment("builderName", "builderValue"),
+		resourceids.UserSpecifiedSegment("builderName", "builderName"),
 		resourceids.StaticSegment("staticBuildPackBindings", "buildPackBindings", "buildPackBindings"),
-		resourceids.UserSpecifiedSegment("buildPackBindingName", "buildPackBindingValue"),
+		resourceids.UserSpecifiedSegment("buildPackBindingName", "buildPackBindingName"),
 	}
 }
 

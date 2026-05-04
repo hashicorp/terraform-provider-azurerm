@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections` Documentation
 
-The `hybridconnections` SDK allows for interaction with the Azure Resource Manager Service `relay` (API Version `2021-11-01`).
+The `hybridconnections` SDK allows for interaction with Azure Resource Manager `relay` (API Version `2021-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := hybridconnections.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "hybridConnectionValue")
+id := hybridconnections.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "hybridConnectionName")
 
 payload := hybridconnections.HybridConnection{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hybridconnections.NewHybridConnectionAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "hybridConnectionValue", "authorizationRuleValue")
+id := hybridconnections.NewHybridConnectionAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "hybridConnectionName", "authorizationRuleName")
 
 payload := hybridconnections.AuthorizationRule{
 	// ...
@@ -66,7 +66,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hybridconnections.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "hybridConnectionValue")
+id := hybridconnections.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "hybridConnectionName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -82,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hybridconnections.NewHybridConnectionAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "hybridConnectionValue", "authorizationRuleValue")
+id := hybridconnections.NewHybridConnectionAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "hybridConnectionName", "authorizationRuleName")
 
 read, err := client.DeleteAuthorizationRule(ctx, id)
 if err != nil {
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hybridconnections.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "hybridConnectionValue")
+id := hybridconnections.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "hybridConnectionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -114,7 +114,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hybridconnections.NewHybridConnectionAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "hybridConnectionValue", "authorizationRuleValue")
+id := hybridconnections.NewHybridConnectionAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "hybridConnectionName", "authorizationRuleName")
 
 read, err := client.GetAuthorizationRule(ctx, id)
 if err != nil {
@@ -130,7 +130,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hybridconnections.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "hybridConnectionValue")
+id := hybridconnections.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "hybridConnectionName")
 
 // alternatively `client.ListAuthorizationRules(ctx, id)` can be used to do batched pagination
 items, err := client.ListAuthorizationRulesComplete(ctx, id)
@@ -147,7 +147,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := hybridconnections.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := hybridconnections.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 // alternatively `client.ListByNamespace(ctx, id)` can be used to do batched pagination
 items, err := client.ListByNamespaceComplete(ctx, id)
@@ -164,7 +164,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := hybridconnections.NewHybridConnectionAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "hybridConnectionValue", "authorizationRuleValue")
+id := hybridconnections.NewHybridConnectionAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "hybridConnectionName", "authorizationRuleName")
 
 read, err := client.ListKeys(ctx, id)
 if err != nil {
@@ -180,7 +180,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hybridconnections.NewHybridConnectionAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "hybridConnectionValue", "authorizationRuleValue")
+id := hybridconnections.NewHybridConnectionAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "hybridConnectionName", "authorizationRuleName")
 
 payload := hybridconnections.RegenerateAccessKeyParameters{
 	// ...

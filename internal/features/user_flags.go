@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package features
@@ -8,25 +8,38 @@ type UserFeatures struct {
 	AppConfiguration         AppConfigurationFeatures
 	ApplicationInsights      ApplicationInsightFeatures
 	CognitiveAccount         CognitiveAccountFeatures
+	EnhancedValidation       EnhancedValidationFeatures
 	VirtualMachine           VirtualMachineFeatures
 	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
 	KeyVault                 KeyVaultFeatures
 	TemplateDeployment       TemplateDeploymentFeatures
 	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
 	ResourceGroup            ResourceGroupFeatures
+	RecoveryServicesVault    RecoveryServicesVault
 	ManagedDisk              ManagedDiskFeatures
+	Storage                  StorageFeatures
 	Subscription             SubscriptionFeatures
 	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
+	MachineLearning          MachineLearningFeatures
+	RecoveryService          RecoveryServiceFeatures
+	NetApp                   NetAppFeatures
+	DatabricksWorkspace      DatabricksWorkspaceFeatures
 }
 
 type CognitiveAccountFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
 }
 
+type EnhancedValidationFeatures struct {
+	Locations         bool
+	ResourceProviders bool
+}
+
 type VirtualMachineFeatures struct {
-	DeleteOSDiskOnDeletion     bool
-	GracefulShutdown           bool
-	SkipShutdownAndForceDelete bool
+	DetachImplicitDataDiskOnDeletion bool
+	DeleteOSDiskOnDeletion           bool
+	GracefulShutdown                 bool // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
+	SkipShutdownAndForceDelete       bool
 }
 
 type VirtualMachineScaleSetFeatures struct {
@@ -42,10 +55,12 @@ type KeyVaultFeatures struct {
 	PurgeSoftDeletedCertsOnDestroy   bool
 	PurgeSoftDeletedSecretsOnDestroy bool
 	PurgeSoftDeletedHSMsOnDestroy    bool
+	PurgeSoftDeletedHSMKeysOnDestroy bool
 	RecoverSoftDeletedKeyVaults      bool
 	RecoverSoftDeletedKeys           bool
 	RecoverSoftDeletedCerts          bool
 	RecoverSoftDeletedSecrets        bool
+	RecoverSoftDeletedHSMKeys        bool
 }
 
 type TemplateDeploymentFeatures struct {
@@ -78,10 +93,37 @@ type AppConfigurationFeatures struct {
 	RecoverSoftDeleted       bool
 }
 
+type StorageFeatures struct {
+	DataPlaneAvailable bool
+}
+
 type SubscriptionFeatures struct {
 	PreventCancellationOnDestroy bool
 }
 
+type RecoveryServicesVault struct {
+	RecoverSoftDeletedBackupProtectedVM bool
+}
+
 type PostgresqlFlexibleServerFeatures struct {
 	RestartServerOnConfigurationValueChange bool
+}
+
+type MachineLearningFeatures struct {
+	PurgeSoftDeletedWorkspaceOnDestroy bool
+}
+
+type RecoveryServiceFeatures struct {
+	VMBackupStopProtectionAndRetainDataOnDestroy    bool
+	VMBackupSuspendProtectionAndRetainDataOnDestroy bool
+	PurgeProtectedItemsFromVaultOnDestroy           bool
+}
+
+type NetAppFeatures struct {
+	DeleteBackupsOnBackupVaultDestroy bool
+	PreventVolumeDestruction          bool
+}
+
+type DatabricksWorkspaceFeatures struct {
+	ForceDelete bool
 }

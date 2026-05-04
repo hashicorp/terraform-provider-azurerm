@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
-// Copyright (c) HashiCorp Inc. All rights reserved.
+// Copyright IBM Corp. 2021, 2025 All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ListBySubscriptionOperationResponse struct {
@@ -24,6 +24,18 @@ type ListBySubscriptionCompleteResult struct {
 	Items              []Tenant
 }
 
+type ListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBySubscription ...
 func (c TenantsClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c TenantsClient) ListBySubscription(ctx context.Context, id commonids.Subs
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.AzureActiveDirectory/b2cDirectories", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c TenantsClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.C
 
 	resp, err := c.ListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

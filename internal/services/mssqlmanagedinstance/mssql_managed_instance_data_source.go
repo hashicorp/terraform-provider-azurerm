@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance
@@ -8,18 +8,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlManagedInstanceDataSourceModel struct {
@@ -30,6 +28,7 @@ type MsSqlManagedInstanceDataSourceModel struct {
 	DnsZonePartnerId          string                              `tfschema:"dns_zone_partner_id"`
 	Fqdn                      string                              `tfschema:"fqdn"`
 	Identity                  []identity.SystemOrUserAssignedList `tfschema:"identity"`
+	GeneralPurposeV2Enabled   bool                                `tfschema:"general_purpose_v2_enabled"`
 	LicenseType               string                              `tfschema:"license_type"`
 	Location                  string                              `tfschema:"location"`
 	MinimumTlsVersion         string                              `tfschema:"minimum_tls_version"`
@@ -39,11 +38,11 @@ type MsSqlManagedInstanceDataSourceModel struct {
 	ResourceGroupName         string                              `tfschema:"resource_group_name"`
 	SkuName                   string                              `tfschema:"sku_name"`
 	StorageAccountType        string                              `tfschema:"storage_account_type"`
-	StorageSizeInGb           int                                 `tfschema:"storage_size_in_gb"`
+	StorageSizeInGb           int64                               `tfschema:"storage_size_in_gb"`
 	SubnetId                  string                              `tfschema:"subnet_id"`
 	Tags                      map[string]string                   `tfschema:"tags"`
 	TimezoneId                string                              `tfschema:"timezone_id"`
-	VCores                    int                                 `tfschema:"vcores"`
+	VCores                    int64                               `tfschema:"vcores"`
 }
 
 var _ sdk.DataSource = MsSqlManagedInstanceDataSource{}
@@ -104,6 +103,11 @@ func (d MsSqlManagedInstanceDataSource) Attributes() map[string]*pluginsdk.Schem
 
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
+		"general_purpose_v2_enabled": {
+			Type:     schema.TypeBool,
+			Computed: true,
+		},
+
 		"license_type": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -146,7 +150,7 @@ func (d MsSqlManagedInstanceDataSource) Attributes() map[string]*pluginsdk.Schem
 			Computed: true,
 		},
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 
 		"timezone_id": {
 			Type:     schema.TypeString,
@@ -172,65 +176,51 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := parse.NewManagedInstanceID(subscriptionId, state.ResourceGroupName, state.Name)
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+			id := commonids.NewSqlManagedInstanceID(subscriptionId, state.ResourceGroupName, state.Name)
+			resp, err := client.Get(ctx, id, managedinstances.GetOperationOptions{})
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s model was nil", id)
+			}
+
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s properties was nil", id)
+			}
+
 			model := MsSqlManagedInstanceDataSourceModel{
-				Name:              id.Name,
-				Location:          location.NormalizeNilable(resp.Location),
-				ResourceGroupName: id.ResourceGroup,
-				Identity:          d.flattenIdentity(resp.Identity),
-				Tags:              tags.ToTypedObject(resp.Tags),
+				Name:              id.ManagedInstanceName,
+				Location:          resp.Model.Location,
+				ResourceGroupName: id.ResourceGroupName,
+				Identity:          d.flattenIdentity(resp.Model.Identity),
+				Tags:              pointer.From(resp.Model.Tags),
 			}
 
-			if sku := resp.Sku; sku != nil && sku.Name != nil {
-				model.SkuName = *sku.Name
+			if sku := resp.Model.Sku; sku != nil {
+				model.SkuName = sku.Name
 			}
 
-			if props := resp.ManagedInstanceProperties; props != nil {
-				model.LicenseType = string(props.LicenseType)
-				model.ProxyOverride = string(props.ProxyOverride)
-				model.StorageAccountType = string(props.StorageAccountType)
-
-				if props.AdministratorLogin != nil {
-					model.AdministratorLogin = *props.AdministratorLogin
-				}
-				if props.Collation != nil {
-					model.Collation = *props.Collation
-				}
-				if props.DNSZone != nil {
-					model.DnsZone = *props.DNSZone
-				}
-				if props.KeyID != nil {
-					model.CustomerManagedKeyId = *props.KeyID
-				}
-				if props.FullyQualifiedDomainName != nil {
-					model.Fqdn = *props.FullyQualifiedDomainName
-				}
-				if props.MinimalTLSVersion != nil {
-					model.MinimumTlsVersion = *props.MinimalTLSVersion
-				}
-				if props.PublicDataEndpointEnabled != nil {
-					model.PublicDataEndpointEnabled = *props.PublicDataEndpointEnabled
-				}
-				if props.StorageSizeInGB != nil {
-					model.StorageSizeInGb = int(*props.StorageSizeInGB)
-				}
-				if props.SubnetID != nil {
-					model.SubnetId = *props.SubnetID
-				}
-				if props.TimezoneID != nil {
-					model.TimezoneId = *props.TimezoneID
-				}
-				if props.VCores != nil {
-					model.VCores = int(*props.VCores)
-				}
+			if props := resp.Model.Properties; props != nil {
+				model.LicenseType = string(pointer.From(props.LicenseType))
+				model.ProxyOverride = string(pointer.From(props.ProxyOverride))
+				model.StorageAccountType = backupStorageRedundancyToStorageAccType(pointer.From(props.RequestedBackupStorageRedundancy))
+				model.AdministratorLogin = pointer.From(props.AdministratorLogin)
+				model.Collation = pointer.From(props.Collation)
+				model.DnsZone = pointer.From(props.DnsZone)
+				model.CustomerManagedKeyId = pointer.From(props.KeyId)
+				model.Fqdn = pointer.From(props.FullyQualifiedDomainName)
+				model.MinimumTlsVersion = pointer.From(props.MinimalTlsVersion)
+				model.PublicDataEndpointEnabled = pointer.From(props.PublicDataEndpointEnabled)
+				model.StorageSizeInGb = pointer.From(props.StorageSizeInGB)
+				model.SubnetId = pointer.From(props.SubnetId)
+				model.TimezoneId = pointer.From(props.TimezoneId)
+				model.VCores = pointer.From(props.VCores)
+				model.GeneralPurposeV2Enabled = pointer.From(props.IsGeneralPurposeV2)
 			}
 
 			metadata.SetID(id)
@@ -239,23 +229,13 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *sql.ResourceIdentity) []identity.SystemOrUserAssignedList {
+func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) []identity.SystemOrUserAssignedList {
 	if input == nil {
 		return nil
 	}
 
-	principalId := ""
-	if input.PrincipalID != nil {
-		principalId = input.PrincipalID.String()
-	}
-
-	tenantId := ""
-	if input.TenantID != nil {
-		tenantId = input.TenantID.String()
-	}
-
-	var identityIds = make([]string, 0)
-	for k := range input.UserAssignedIdentities {
+	identityIds := make([]string, 0)
+	for k := range input.IdentityIds {
 		parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(k)
 		if err != nil {
 			continue
@@ -264,9 +244,9 @@ func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *sql.ResourceIdent
 	}
 
 	return []identity.SystemOrUserAssignedList{{
-		Type:        identity.Type(input.Type),
-		PrincipalId: principalId,
-		TenantId:    tenantId,
+		Type:        input.Type,
+		PrincipalId: input.PrincipalId,
+		TenantId:    input.TenantId,
 		IdentityIds: identityIds,
 	}}
 }

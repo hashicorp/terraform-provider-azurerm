@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DevTestVirtualNetworkResource struct{}
@@ -138,7 +138,7 @@ func (DevTestVirtualNetworkResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (DevTestVirtualNetworkResource) basic(data acceptance.TestData) string {
@@ -203,6 +203,16 @@ resource "azurerm_dev_test_virtual_network" "test" {
   subnet {
     use_public_ip_address           = "Deny"
     use_in_virtual_machine_creation = "Allow"
+    shared_public_ip_address {
+      allowed_ports {
+        backend_port       = 22
+        transport_protocol = "Tcp"
+      }
+      allowed_ports {
+        backend_port       = 80
+        transport_protocol = "Tcp"
+      }
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

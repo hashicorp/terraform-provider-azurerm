@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hdinsight_test
@@ -75,7 +75,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestSubnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = [cidrsubnet(azurerm_virtual_network.test.address_space.0, 8, 0)]
+  address_prefixes     = ["10.10.1.0/24"]
 }
 
 resource "azurerm_network_security_group" "test" {

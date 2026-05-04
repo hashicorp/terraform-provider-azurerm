@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package shim
@@ -6,7 +6,7 @@ package shim
 import (
 	"context"
 
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 type StorageContainerWrapper interface {
@@ -19,8 +19,10 @@ type StorageContainerWrapper interface {
 }
 
 type StorageContainerProperties struct {
-	AccessLevel           containers.AccessLevel
-	MetaData              map[string]string
-	HasImmutabilityPolicy bool
-	HasLegalHold          bool
+	AccessLevel                     containers.AccessLevel
+	DefaultEncryptionScope          string
+	EncryptionScopeOverrideDisabled bool
+	MetaData                        map[string]string
+	HasImmutabilityPolicy           bool
+	HasLegalHold                    bool
 }

@@ -3,7 +3,7 @@ package azuresdkhacks
 import (
 	"encoding/json"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaultcertificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-04-01/vaultcertificates"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.

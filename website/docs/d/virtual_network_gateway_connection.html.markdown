@@ -23,7 +23,7 @@ output "virtual_network_gateway_connection_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Virtual Network Gateway Connection.
 * `resource_group_name` - Specifies the name of the resource group the Virtual Network Gateway Connection is located in.
@@ -71,6 +71,9 @@ output "virtual_network_gateway_connection_id" {
     For details about see [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-howto-aws-bgp).
 
 * `express_route_gateway_bypass` - If `true`, data packets will bypass ExpressRoute Gateway for data forwarding. This is only valid for ExpressRoute connections.
+
+* `private_link_fast_path_enabled` - If `true`, data packets will bypass the Express Route gateway when accessing private-links.
+   This is only valid for ExpressRoute connections, on the conditions described in [the relevant section in the Azure documentation](https://learn.microsoft.com/en-us/azure/expressroute/expressroute-howto-linkvnet-arm#fastpath-virtual-network-peering-user-defined-routes-udrs-and-private-link-support-for-expressroute-direct-connections)
 
 * `use_policy_based_traffic_selectors` - If `true`, policy-based traffic
     selectors are enabled for this connection. Enabling policy-based traffic
@@ -127,6 +130,12 @@ The `traffic_selector_policy` block supports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway Connection.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

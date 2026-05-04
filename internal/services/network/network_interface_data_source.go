@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -149,14 +149,12 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 				Set:      pluginsdk.HashString,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_accelerated_networking": {
+			"accelerated_networking_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_ip_forwarding": {
+			"ip_forwarding_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -189,7 +187,7 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("Error: %s was not found", id)
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -204,8 +202,8 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
-	if location := model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := model.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 
 	if props := model.Properties; props != nil {
@@ -267,8 +265,8 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 
 		d.Set("applied_dns_servers", appliedDNSServers)
 		d.Set("dns_servers", dnsServers)
-		d.Set("enable_ip_forwarding", props.EnableIPForwarding)
-		d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
+		d.Set("ip_forwarding_enabled", props.EnableIPForwarding)
+		d.Set("accelerated_networking_enabled", props.EnableAcceleratedNetworking)
 	}
 
 	return tags.FlattenAndSet(d, model.Tags)

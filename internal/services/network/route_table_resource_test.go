@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routetables"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RouteTableResource struct{}
@@ -27,7 +27,6 @@ func TestAccRouteTable_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
 			),
 		},
@@ -44,7 +43,6 @@ func TestAccRouteTable_basicNilNextHopIPAddress(t *testing.T) {
 			Config: r.nilNextHopIPAddess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
 		},
@@ -61,7 +59,6 @@ func TestAccRouteTable_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
 			),
 		},
@@ -81,8 +78,6 @@ func TestAccRouteTable_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("true"),
-				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -98,7 +93,6 @@ func TestAccRouteTable_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
 			),
 		},
@@ -106,7 +100,6 @@ func TestAccRouteTable_update(t *testing.T) {
 			Config: r.basicAppliance(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
 		},
@@ -114,7 +107,6 @@ func TestAccRouteTable_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("true"),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
 		},
@@ -233,7 +225,7 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 	})
 }
 
-func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := routetables.ParseRouteTableID(state.ID)
 	if err != nil {
 		return nil, err
@@ -244,7 +236,7 @@ func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client,
 		return nil, fmt.Errorf("reading Route Table (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (RouteTableResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -257,7 +249,7 @@ func (RouteTableResource) Destroy(ctx context.Context, client *clients.Client, s
 		return nil, fmt.Errorf("deleting Route Table %q: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (RouteTableResource) basic(data acceptance.TestData) string {
@@ -365,7 +357,7 @@ resource "azurerm_route_table" "test" {
     next_hop_type  = "VnetLocal"
   }
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

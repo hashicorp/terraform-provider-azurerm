@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StreamAnalyticsOutputSqlResource struct{}
@@ -130,11 +130,11 @@ func (r StreamAnalyticsOutputSqlResource) Exists(ctx context.Context, client *cl
 	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StreamAnalyticsOutputSqlResource) basic(data acceptance.TestData) string {
@@ -147,10 +147,10 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
-  server   = azurerm_sql_server.test.fully_qualified_domain_name
-  user     = azurerm_sql_server.test.administrator_login
-  password = azurerm_sql_server.test.administrator_login_password
-  database = azurerm_sql_database.test.name
+  server   = azurerm_mssql_server.test.fully_qualified_domain_name
+  user     = azurerm_mssql_server.test.administrator_login
+  password = azurerm_mssql_server.test.administrator_login_password
+  database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
 }
 `, template, data.RandomInteger)
@@ -162,15 +162,17 @@ func (r StreamAnalyticsOutputSqlResource) updated(data acceptance.TestData) stri
 %s
 
 resource "azurerm_stream_analytics_output_mssql" "test" {
-  name                      = "acctestoutput-updated-%d"
+  name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
-  server   = azurerm_sql_server.test.fully_qualified_domain_name
-  user     = azurerm_sql_server.test.administrator_login
-  password = azurerm_sql_server.test.administrator_login_password
-  database = azurerm_sql_database.test.name
+  server   = azurerm_mssql_server.test.fully_qualified_domain_name
+  user     = azurerm_mssql_server.test.administrator_login
+  password = azurerm_mssql_server.test.administrator_login_password
+  database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
+
+  max_batch_count = 1000
 }
 `, template, data.RandomInteger)
 }
@@ -185,10 +187,10 @@ resource "azurerm_stream_analytics_output_mssql" "import" {
   stream_analytics_job_name = azurerm_stream_analytics_output_mssql.test.stream_analytics_job_name
   resource_group_name       = azurerm_stream_analytics_output_mssql.test.resource_group_name
 
-  server   = azurerm_sql_server.test.fully_qualified_domain_name
-  user     = azurerm_sql_server.test.administrator_login
-  password = azurerm_sql_server.test.administrator_login_password
-  database = azurerm_sql_database.test.name
+  server   = azurerm_mssql_server.test.fully_qualified_domain_name
+  user     = azurerm_mssql_server.test.administrator_login
+  password = azurerm_mssql_server.test.administrator_login_password
+  database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
 }
 `, template)
@@ -204,10 +206,10 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
-  server   = azurerm_sql_server.test.fully_qualified_domain_name
-  user     = azurerm_sql_server.test.administrator_login
-  password = azurerm_sql_server.test.administrator_login_password
-  database = azurerm_sql_database.test.name
+  server   = azurerm_mssql_server.test.fully_qualified_domain_name
+  user     = azurerm_mssql_server.test.administrator_login
+  password = azurerm_mssql_server.test.administrator_login_password
+  database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
 
   max_batch_count  = %f
@@ -227,8 +229,8 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
   authentication_mode       = "Msi"
 
-  server   = azurerm_sql_server.test.fully_qualified_domain_name
-  database = azurerm_sql_database.test.name
+  server   = azurerm_mssql_server.test.fully_qualified_domain_name
+  database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
 }
 `, template, data.RandomInteger)
@@ -245,24 +247,18 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_sql_server" "test" {
-  name                         = "acctestserver-%s"
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%s"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
-  administrator_login          = "acctestadmin"
-  administrator_login_password = "t2RX8A76GrnE4EKC"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
 }
 
-resource "azurerm_sql_database" "test" {
-  name                             = "acctestdb"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_sql_server.test.name
-  requested_service_objective_name = "S0"
-  collation                        = "SQL_LATIN1_GENERAL_CP1_CI_AS"
-  max_size_bytes                   = "268435456000"
-  create_mode                      = "Default"
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%s"
+  server_id = azurerm_mssql_server.test.id
 }
 
 resource "azurerm_stream_analytics_job" "test" {
@@ -284,5 +280,5 @@ resource "azurerm_stream_analytics_job" "test" {
 QUERY
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }

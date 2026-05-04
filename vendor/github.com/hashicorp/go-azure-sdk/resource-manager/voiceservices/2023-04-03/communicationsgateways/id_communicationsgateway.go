@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&CommunicationsGatewayId{})
+}
 
 var _ resourceids.ResourceId = &CommunicationsGatewayId{}
 
@@ -37,7 +42,7 @@ func ParseCommunicationsGatewayID(input string) (*CommunicationsGatewayId, error
 	}
 
 	id := CommunicationsGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseCommunicationsGatewayIDInsensitively(input string) (*CommunicationsGat
 	}
 
 	id := CommunicationsGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id CommunicationsGatewayId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftVoiceServices", "Microsoft.VoiceServices", "Microsoft.VoiceServices"),
 		resourceids.StaticSegment("staticCommunicationsGateways", "communicationsGateways", "communicationsGateways"),
-		resourceids.UserSpecifiedSegment("communicationsGatewayName", "communicationsGatewayValue"),
+		resourceids.UserSpecifiedSegment("communicationsGatewayName", "communicationsGatewayName"),
 	}
 }
 

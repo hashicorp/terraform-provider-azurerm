@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/automationrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2024-09-01/automationrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -89,6 +89,32 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 				return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 			},
 			ValidateFunc: validation.StringIsJSON,
+		},
+
+		"action_incident_task": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"order": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+
+					"title": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"description": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
 		},
 
 		"action_incident": {
@@ -169,7 +195,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 
 					"tenant_id": {
 						Type: pluginsdk.TypeString,
-						// We'll use the current tenant id if this property is absent.
+						// NOTE: O+C We'll use the current tenant id if this property is absent.
 						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validation.IsUUID,
@@ -179,42 +205,6 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 			AtLeastOneOf: []string{"action_incident", "action_playbook"},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		schema["condition"] = &pluginsdk.Schema{
-			Deprecated: "This is deprecated in favor of `condition_json`",
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"property": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(automationrules.PossibleValuesForAutomationRulePropertyConditionSupportedProperty(), false),
-					},
-
-					"operator": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(automationrules.PossibleValuesForAutomationRulePropertyConditionSupportedOperator(), false),
-					},
-
-					"values": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-				},
-			},
-			ConflictsWith: []string{"condition_json"},
-		}
-		schema["condition_json"].Computed = true
-		schema["condition_json"].ConflictsWith = []string{"condition"}
-	}
-
 	return &pluginsdk.Resource{
 		Create: resourceSentinelAutomationRuleCreateOrUpdate,
 		Read:   resourceSentinelAutomationRuleRead,
@@ -280,29 +270,23 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 				IsEnabled:    d.Get("enabled").(bool),
 				TriggersOn:   automationrules.TriggersOn(d.Get("triggers_on").(string)),
 				TriggersWhen: automationrules.TriggersWhen(d.Get("triggers_when").(string)),
-				Conditions:   expandAutomationRuleConditions(d.Get("condition").([]interface{})),
 			},
 			Actions: actions,
 		},
 	}
 
-	if v, ok := d.GetOk("condition_json"); ok {
-		conditions, err := expandAutomationRuleConditionsFromJSON(v.(string))
-		if err != nil {
-			return fmt.Errorf("expanding `condition_json`: %v", err)
-		}
-		params.Properties.TriggeringLogic.Conditions = conditions
-	} else if !features.FourPointOhBeta() {
-		params.Properties.TriggeringLogic.Conditions = expandAutomationRuleConditions(d.Get("condition").([]interface{}))
+	conditions, err := expandAutomationRuleConditionsFromJSON(d.Get("condition_json").(string))
+	if err != nil {
+		return fmt.Errorf("expanding `condition_json`: %v", err)
 	}
+	params.Properties.TriggeringLogic.Conditions = conditions
 
 	if expiration := d.Get("expiration").(string); expiration != "" {
 		t, _ := time.Parse(time.RFC3339, expiration)
 		params.Properties.TriggeringLogic.SetExpirationTimeUtcAsTime(t)
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id, params)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -345,25 +329,22 @@ func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("triggers_when", string(tl.TriggersWhen))
 		d.Set("expiration", tl.ExpirationTimeUtc)
 
-		if !features.FourPointOhBeta() {
-			if err := d.Set("condition", flattenAutomationRuleConditions(tl.Conditions)); err != nil {
-				return fmt.Errorf("setting `condition`: %v", err)
-			}
-		}
-
 		conditionJSON, err := flattenAutomationRuleConditionsToJSON(tl.Conditions)
 		if err != nil {
 			return fmt.Errorf("flattening `condition_json`: %v", err)
 		}
 		d.Set("condition_json", conditionJSON)
 
-		actionIncident, actionPlaybook := flattenAutomationRuleActions(prop.Actions)
+		actionIncident, actionPlaybook, actionIncidentTask := flattenAutomationRuleActions(prop.Actions)
 
 		if err := d.Set("action_incident", actionIncident); err != nil {
 			return fmt.Errorf("setting `action_incident`: %v", err)
 		}
 		if err := d.Set("action_playbook", actionPlaybook); err != nil {
 			return fmt.Errorf("setting `action_playbook`: %v", err)
+		}
+		if err := d.Set("action_incident_task", actionIncidentTask); err != nil {
+			return fmt.Errorf("setting `action_incident_task`: %v", err)
 		}
 	}
 
@@ -380,71 +361,11 @@ func resourceSentinelAutomationRuleDelete(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	_, err = client.Delete(ctx, *id)
-	if err != nil {
+	if _, err = client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
-}
-
-func expandAutomationRuleConditions(input []interface{}) *[]automationrules.AutomationRuleCondition {
-	if len(input) == 0 {
-		return nil
-	}
-
-	out := make([]automationrules.AutomationRuleCondition, 0, len(input))
-	for _, b := range input {
-		b := b.(map[string]interface{})
-
-		propertyName := automationrules.AutomationRulePropertyConditionSupportedProperty(b["property"].(string))
-		operator := automationrules.AutomationRulePropertyConditionSupportedOperator(b["operator"].(string))
-		out = append(out, &automationrules.PropertyConditionProperties{
-			ConditionProperties: &automationrules.AutomationRulePropertyValuesCondition{
-				PropertyName:   &propertyName,
-				Operator:       &operator,
-				PropertyValues: utils.ExpandStringSlice(b["values"].([]interface{})),
-			},
-		})
-	}
-	return &out
-}
-
-func flattenAutomationRuleConditions(conditions *[]automationrules.AutomationRuleCondition) interface{} {
-	if conditions == nil {
-		return nil
-	}
-
-	out := make([]interface{}, 0, len(*conditions))
-	for _, condition := range *conditions {
-		// "condition" only applies to the Property condition
-		condition, ok := condition.(automationrules.PropertyConditionProperties)
-		if !ok {
-			continue
-		}
-
-		var (
-			property string
-			operator string
-			values   []interface{}
-		)
-		if p := condition.ConditionProperties; p != nil {
-			if p.PropertyName != nil {
-				property = string(*p.PropertyName)
-			}
-			if p.Operator != nil {
-				operator = string(*p.Operator)
-			}
-			values = utils.FlattenStringSlice(p.PropertyValues)
-		}
-
-		out = append(out, map[string]interface{}{
-			"property": property,
-			"operator": operator,
-			"values":   values,
-		})
-	}
-	return out
 }
 
 func expandAutomationRuleConditionsFromJSON(input string) (*[]automationrules.AutomationRuleCondition, error) {
@@ -460,7 +381,7 @@ func expandAutomationRuleConditionsFromJSON(input string) (*[]automationrules.Au
 }
 
 func flattenAutomationRuleConditionsToJSON(input *[]automationrules.AutomationRuleCondition) (string, error) {
-	if input == nil {
+	if input == nil || len(*input) == 0 {
 		return "", nil
 	}
 	result, err := json.Marshal(input)
@@ -474,19 +395,23 @@ func expandAutomationRuleActions(d *pluginsdk.ResourceData, defaultTenantId stri
 	}
 	actionPlaybook := expandAutomationRuleActionPlaybook(d.Get("action_playbook").([]interface{}), defaultTenantId)
 
-	if len(actionIncident)+len(actionPlaybook) == 0 {
+	actionIncidentTask := expandAutomationRuleActionIncidentTask(d.Get("action_incident_task").([]interface{}))
+
+	if len(actionIncident)+len(actionPlaybook)+len(actionIncidentTask) == 0 {
 		return nil, nil
 	}
 
 	out := make([]automationrules.AutomationRuleAction, 0, len(actionIncident)+len(actionPlaybook))
 	out = append(out, actionIncident...)
 	out = append(out, actionPlaybook...)
+	out = append(out, actionIncidentTask...)
 	return out, nil
 }
 
-func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) (actionIncident []interface{}, actionPlaybook []interface{}) {
+func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) (actionIncident []interface{}, actionPlaybook []interface{}, actionIncidentTask []interface{}) {
 	actionIncident = make([]interface{}, 0)
 	actionPlaybook = make([]interface{}, 0)
+	actionIncidentTask = make([]interface{}, 0)
 
 	for _, action := range input {
 		switch action := action.(type) {
@@ -494,6 +419,8 @@ func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) 
 			actionIncident = append(actionIncident, flattenAutomationRuleActionIncident(action))
 		case automationrules.AutomationRuleRunPlaybookAction:
 			actionPlaybook = append(actionPlaybook, flattenAutomationRuleActionPlaybook(action))
+		case automationrules.AutomationRuleAddIncidentTaskAction:
+			actionIncidentTask = append(actionIncidentTask, flattenAutomationRuleACtionIncidentTask(action))
 		}
 	}
 
@@ -544,7 +471,7 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 		var ownerPtr *automationrules.IncidentOwnerInfo
 		if ownerIdStr := b["owner_id"].(string); ownerIdStr != "" {
 			ownerPtr = &automationrules.IncidentOwnerInfo{
-				ObjectId: utils.String(ownerIdStr),
+				ObjectId: pointer.To(ownerIdStr),
 			}
 		}
 
@@ -644,7 +571,7 @@ func expandAutomationRuleActionPlaybook(input []interface{}, defaultTenantId str
 		out = append(out, automationrules.AutomationRuleRunPlaybookAction{
 			Order: int64(b["order"].(int)),
 			ActionConfiguration: &automationrules.PlaybookActionProperties{
-				LogicAppResourceId: utils.String(b["logic_app_id"].(string)),
+				LogicAppResourceId: b["logic_app_id"].(string),
 				TenantId:           &tid,
 			},
 		})
@@ -659,9 +586,7 @@ func flattenAutomationRuleActionPlaybook(input automationrules.AutomationRuleRun
 	)
 
 	if cfg := input.ActionConfiguration; cfg != nil {
-		if cfg.LogicAppResourceId != nil {
-			logicAppId = *cfg.LogicAppResourceId
-		}
+		logicAppId = cfg.LogicAppResourceId
 
 		if cfg.TenantId != nil {
 			tenantId = *cfg.TenantId
@@ -672,5 +597,40 @@ func flattenAutomationRuleActionPlaybook(input automationrules.AutomationRuleRun
 		"order":        input.Order,
 		"logic_app_id": logicAppId,
 		"tenant_id":    tenantId,
+	}
+}
+
+func expandAutomationRuleActionIncidentTask(input []interface{}) []automationrules.AutomationRuleAction {
+	output := make([]automationrules.AutomationRuleAction, 0, len(input))
+
+	for _, task := range input {
+		task := task.(map[string]interface{})
+		output = append(output, automationrules.AutomationRuleAddIncidentTaskAction{
+			Order: int64(task["order"].(int)),
+			ActionConfiguration: &automationrules.AddIncidentTaskActionProperties{
+				Title:       task["title"].(string),
+				Description: pointer.To(task["description"].(string)),
+			},
+		})
+	}
+
+	return output
+}
+
+func flattenAutomationRuleACtionIncidentTask(input automationrules.AutomationRuleAddIncidentTaskAction) map[string]interface{} {
+	var (
+		title       string
+		description string
+	)
+
+	if cfg := input.ActionConfiguration; cfg != nil {
+		title = cfg.Title
+		description = pointer.From(cfg.Description)
+	}
+
+	return map[string]interface{}{
+		"order":       input.Order,
+		"title":       title,
+		"description": description,
 	}
 }

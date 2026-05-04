@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ExecutionId{})
+}
 
 var _ resourceids.ResourceId = &ExecutionId{}
 
@@ -39,7 +44,7 @@ func ParseExecutionID(input string) (*ExecutionId, error) {
 	}
 
 	id := ExecutionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseExecutionIDInsensitively(input string) (*ExecutionId, error) {
 	}
 
 	id := ExecutionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id ExecutionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftChaos", "Microsoft.Chaos", "Microsoft.Chaos"),
 		resourceids.StaticSegment("staticExperiments", "experiments", "experiments"),
-		resourceids.UserSpecifiedSegment("experimentName", "experimentValue"),
+		resourceids.UserSpecifiedSegment("experimentName", "experimentName"),
 		resourceids.StaticSegment("staticExecutions", "executions", "executions"),
-		resourceids.UserSpecifiedSegment("executionId", "executionIdValue"),
+		resourceids.UserSpecifiedSegment("executionId", "executionId"),
 	}
 }
 

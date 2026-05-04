@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/arcsettings` Documentation
 
-The `arcsettings` SDK allows for interaction with the Azure Resource Manager Service `azurestackhci` (API Version `2024-01-01`).
+The `arcsettings` SDK allows for interaction with Azure Resource Manager `azurestackhci` (API Version `2024-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue")
+id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName")
 
 payload := arcsettings.ArcSetting{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue")
+id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName")
 
 if err := client.ArcSettingsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -57,7 +57,7 @@ if err := client.ArcSettingsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue")
+id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName")
 
 read, err := client.ArcSettingsGet(ctx, id)
 if err != nil {
@@ -73,7 +73,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := arcsettings.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := arcsettings.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 // alternatively `client.ArcSettingsListByCluster(ctx, id)` can be used to do batched pagination
 items, err := client.ArcSettingsListByClusterComplete(ctx, id)
@@ -90,7 +90,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue")
+id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName")
 
 payload := arcsettings.ArcSettingsPatch{
 	// ...
@@ -111,7 +111,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue")
+id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName")
 
 read, err := client.ConsentAndInstallDefaultExtensions(ctx, id)
 if err != nil {
@@ -127,7 +127,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue")
+id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName")
 
 if err := client.CreateIdentityThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -139,7 +139,7 @@ if err := client.CreateIdentityThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue")
+id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName")
 
 read, err := client.GeneratePassword(ctx, id)
 if err != nil {
@@ -155,7 +155,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue")
+id := arcsettings.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName")
 
 if err := client.InitializeDisableProcessThenPoll(ctx, id); err != nil {
 	// handle the error

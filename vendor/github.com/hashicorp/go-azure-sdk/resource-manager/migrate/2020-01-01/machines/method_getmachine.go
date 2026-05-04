@@ -46,7 +46,6 @@ func (c MachinesClient) GetMachine(ctx context.Context, id commonids.VMwareSiteM
 
 	var model VMwareMachine
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

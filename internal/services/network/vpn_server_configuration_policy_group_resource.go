@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -10,21 +10,20 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVPNServerConfigurationPolicyGroupCreateUpdate,
+		Create: resourceVPNServerConfigurationPolicyGroupCreate,
 		Read:   resourceVPNServerConfigurationPolicyGroupRead,
-		Update: resourceVPNServerConfigurationPolicyGroupCreateUpdate,
+		Update: resourceVPNServerConfigurationPolicyGroupUpdate,
 		Delete: resourceVPNServerConfigurationPolicyGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -101,10 +100,10 @@ func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceVPNServerConfigurationPolicyGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationPolicyGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.VirtualWANs
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	vpnServerConfigurationId, err := virtualwans.ParseVpnServerConfigurationID(d.Get("vpn_server_configuration_id").(string))
@@ -117,28 +116,26 @@ func resourceVPNServerConfigurationPolicyGroupCreateUpdate(d *pluginsdk.Resource
 
 	id := virtualwans.NewConfigurationPolicyGroupID(subscriptionId, vpnServerConfigurationId.ResourceGroupName, vpnServerConfigurationId.VpnServerConfigurationName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.ConfigurationPolicyGroupsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.ConfigurationPolicyGroupsGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_vpn_server_configuration_policy_group", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_vpn_server_configuration_policy_group", id.ID())
 	}
 
 	payload := virtualwans.VpnServerConfigurationPolicyGroup{
 		Properties: &virtualwans.VpnServerConfigurationPolicyGroupProperties{
-			IsDefault:     utils.Bool(d.Get("is_default").(bool)),
+			IsDefault:     pointer.To(d.Get("is_default").(bool)),
 			PolicyMembers: expandVPNServerConfigurationPolicyGroupPolicyMembers(d.Get("policy").(*pluginsdk.Set).List()),
 			Priority:      pointer.To(int64(d.Get("priority").(int))),
 		},
 	}
 
 	if err := client.ConfigurationPolicyGroupsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -184,6 +181,52 @@ func resourceVPNServerConfigurationPolicyGroupRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
+func resourceVPNServerConfigurationPolicyGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := virtualwans.ParseConfigurationPolicyGroupID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	vpnServerConfigurationId := virtualwans.NewVpnServerConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.VpnServerConfigurationName)
+
+	locks.ByID(vpnServerConfigurationId.ID())
+	defer locks.UnlockByID(vpnServerConfigurationId.ID())
+
+	existing, err := client.ConfigurationPolicyGroupsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("policy") {
+		payload.Properties.PolicyMembers = expandVPNServerConfigurationPolicyGroupPolicyMembers(d.Get("policy").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("priority") {
+		payload.Properties.Priority = pointer.To(int64(d.Get("priority").(int)))
+	}
+
+	if err := client.ConfigurationPolicyGroupsCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceVPNServerConfigurationPolicyGroupRead(d, meta)
+}
+
 func resourceVPNServerConfigurationPolicyGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -213,9 +256,9 @@ func expandVPNServerConfigurationPolicyGroupPolicyMembers(input []interface{}) *
 		v := item.(map[string]interface{})
 
 		results = append(results, virtualwans.VpnServerConfigurationPolicyGroupMember{
-			Name:           utils.String(v["name"].(string)),
+			Name:           pointer.To(v["name"].(string)),
 			AttributeType:  pointer.To(virtualwans.VpnPolicyMemberAttributeType(v["type"].(string))),
-			AttributeValue: utils.String(v["value"].(string)),
+			AttributeValue: pointer.To(v["value"].(string)),
 		})
 	}
 

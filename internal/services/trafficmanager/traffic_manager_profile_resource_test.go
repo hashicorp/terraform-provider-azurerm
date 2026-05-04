@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager_test
@@ -6,21 +6,22 @@ package trafficmanager_test
 import (
 	"context"
 	"fmt"
+	"math"
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type TrafficManagerProfileResource struct{}
 
-func TestAccAzureRMTrafficManagerProfile_basic(t *testing.T) {
+func TestAccTrafficManagerProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -37,7 +38,7 @@ func TestAccAzureRMTrafficManagerProfile_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_complete(t *testing.T) {
+func TestAccTrafficManagerProfile_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -52,7 +53,7 @@ func TestAccAzureRMTrafficManagerProfile_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_update(t *testing.T) {
+func TestAccTrafficManagerProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -74,7 +75,7 @@ func TestAccAzureRMTrafficManagerProfile_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_updateEnsureDoNotEraseEndpoints(t *testing.T) {
+func TestAccTrafficManagerProfile_updateEnsureDoNotEraseEndpoints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -96,7 +97,7 @@ func TestAccAzureRMTrafficManagerProfile_updateEnsureDoNotEraseEndpoints(t *test
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_requiresImport(t *testing.T) {
+func TestAccTrafficManagerProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -112,7 +113,7 @@ func TestAccAzureRMTrafficManagerProfile_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_cycleMethod(t *testing.T) {
+func TestAccTrafficManagerProfile_cycleMethod(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -174,7 +175,7 @@ func TestAccAzureRMTrafficManagerProfile_cycleMethod(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettingsError(t *testing.T) {
+func TestAccTrafficManagerProfile_fastEndpointFailoverSettingsError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -186,7 +187,7 @@ func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettingsError(t *te
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_fastMaxReturnSettingError(t *testing.T) {
+func TestAccTrafficManagerProfile_fastMaxReturnSettingError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -198,7 +199,7 @@ func TestAccAzureRMTrafficManagerProfile_fastMaxReturnSettingError(t *testing.T)
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_trafficView(t *testing.T) {
+func TestAccTrafficManagerProfile_trafficView(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -218,10 +219,19 @@ func TestAccAzureRMTrafficManagerProfile_trafficView(t *testing.T) {
 				check.That(data.ResourceName).Key("traffic_view_enabled").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withTrafficView(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("traffic_view_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_updateTTL(t *testing.T) {
+func TestAccTrafficManagerProfile_updateTTL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -234,7 +244,7 @@ func TestAccAzureRMTrafficManagerProfile_updateTTL(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withTTL(data, "Geographic", 2147483647),
+			Config: r.withTTL(data, "Geographic", math.MaxInt32),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -252,12 +262,12 @@ func (r TrafficManagerProfileResource) Exists(ctx context.Context, client *clien
 	resp, err := client.TrafficManager.ProfilesClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r TrafficManagerProfileResource) template(data acceptance.TestData) string {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/filesystems"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/filesystems"
 )
 
 type StorageDataLakeGen2FileSystemResource struct{}
@@ -78,6 +78,21 @@ func TestAccStorageDataLakeGen2FileSystem_UpdateDefaultACL(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withExecuteACLForSPN(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageDataLakeGen2FileSystem_encryptionScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
+	r := StorageDataLakeGen2FileSystemResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryptionScope(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -153,7 +168,7 @@ func (r StorageDataLakeGen2FileSystemResource) Exists(ctx context.Context, clien
 		return nil, err
 	}
 
-	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Queue %q: %+v", id.AccountId, id.FileSystemName, err)
 	}
@@ -169,12 +184,12 @@ func (r StorageDataLakeGen2FileSystemResource) Exists(ctx context.Context, clien
 	resp, err := filesystemsClient.GetProperties(ctx, id.FileSystemName)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving File System %q (Account %q): %+v", id.FileSystemName, id.AccountId.AccountName, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StorageDataLakeGen2FileSystemResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -183,7 +198,7 @@ func (r StorageDataLakeGen2FileSystemResource) Destroy(ctx context.Context, clie
 		return nil, err
 	}
 
-	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Queue %q: %+v", id.AccountId, id.FileSystemName, err)
 	}
@@ -200,7 +215,7 @@ func (r StorageDataLakeGen2FileSystemResource) Destroy(ctx context.Context, clie
 		return nil, fmt.Errorf("deleting File System %q (Account %q): %+v", id.FileSystemName, id.AccountId.AccountName, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StorageDataLakeGen2FileSystemResource) basic(data acceptance.TestData) string {
@@ -225,6 +240,26 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "import" {
   storage_account_id = azurerm_storage_data_lake_gen2_filesystem.test.storage_account_id
 }
 `, template)
+}
+
+func (r StorageDataLakeGen2FileSystemResource) encryptionScope(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestEScontainer%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.Storage"
+}
+
+resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
+  name               = "acctest-%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+
+  default_encryption_scope = azurerm_storage_encryption_scope.test.name
+}
+`, template, data.RandomInteger)
 }
 
 func (r StorageDataLakeGen2FileSystemResource) properties(data acceptance.TestData, value string) string {
@@ -323,7 +358,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
@@ -378,7 +413,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
@@ -402,7 +437,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "test" {

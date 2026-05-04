@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&AvailabilitySetId{})
+}
 
 var _ resourceids.ResourceId = &AvailabilitySetId{}
 
@@ -37,7 +42,7 @@ func ParseAvailabilitySetID(input string) (*AvailabilitySetId, error) {
 	}
 
 	id := AvailabilitySetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseAvailabilitySetIDInsensitively(input string) (*AvailabilitySetId, erro
 	}
 
 	id := AvailabilitySetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id AvailabilitySetId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftScVmm", "Microsoft.ScVmm", "Microsoft.ScVmm"),
 		resourceids.StaticSegment("staticAvailabilitySets", "availabilitySets", "availabilitySets"),
-		resourceids.UserSpecifiedSegment("availabilitySetName", "availabilitySetValue"),
+		resourceids.UserSpecifiedSegment("availabilitySetName", "availabilitySetName"),
 	}
 }
 

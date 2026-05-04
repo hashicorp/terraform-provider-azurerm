@@ -26,8 +26,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
-  resource_group_name          = azurerm_resource_group.example.name
-  workspace_name               = azurerm_log_analytics_workspace.example.name
+  workspace_id                 = azurerm_log_analytics_workspace.example.id
   customer_managed_key_enabled = false
 }
 ```
@@ -36,9 +35,7 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
 
 The following arguments are supported:
 
-* `resource_group_name` - (Optional) Specifies the name of the Resource Group where the Security Insights Sentinel Onboarding States should exist. Changing this forces the Log Analytics Workspace off the board and onboard again.
-
-* `workspace_name` - (Optional) Specifies the Workspace Name. Changing this forces the Log Analytics Workspace off the board and onboard again. Changing this forces a new resource to be created.
+* `workspace_id` - (Required) Specifies the Workspace Id. Changing this forces the Log Analytics Workspace off the board and onboard again. Changing this forces a new resource to be created.
 
 * `customer_managed_key_enabled` - (Optional) Specifies if the Workspace is using Customer managed key. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -52,11 +49,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Security Insights Sentinel Onboarding States.
 
-
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Security Insights Sentinel Onboarding States.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Security Insights Sentinel Onboarding States.
@@ -69,3 +64,9 @@ Security Insights Sentinel Onboarding States can be imported using the `resource
 ```shell
 terraform import azurerm_sentinel_log_analytics_workspace_onboarding.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/onboardingStates/defaults
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2022-11-01

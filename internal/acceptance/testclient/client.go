@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package testclient
@@ -16,15 +16,20 @@ import (
 )
 
 var (
-	_client    *clients.Client
+	_clients   = make(map[string]*clients.Client)
 	clientLock = &sync.Mutex{}
 )
 
 func Build() (*clients.Client, error) {
+	return BuildWithTestName(CurrentTestName())
+}
+
+func BuildWithTestName(testName string) (*clients.Client, error) {
 	clientLock.Lock()
 	defer clientLock.Unlock()
 
-	if _client == nil {
+	c, ok := _clients[testName]
+	if !ok {
 		var (
 			ctx = context.TODO()
 
@@ -40,7 +45,7 @@ func Build() (*clients.Client, error) {
 		}
 
 		if metadataHost != "" {
-			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost)); err != nil {
 				return nil, fmt.Errorf("building test client: %+v", err)
 			}
 		} else if env, err = environments.FromName(envName); err != nil {
@@ -65,12 +70,12 @@ func Build() (*clients.Client, error) {
 		}
 
 		clientBuilder := clients.ClientBuilder{
-			AuthConfig:               &authConfig,
-			SkipProviderRegistration: true,
-			TerraformVersion:         os.Getenv("TERRAFORM_CORE_VERSION"),
-			Features:                 features.Default(),
-			StorageUseAzureAD:        false,
-			SubscriptionID:           os.Getenv("ARM_SUBSCRIPTION_ID"),
+			AuthConfig:        &authConfig,
+			TerraformVersion:  os.Getenv("TERRAFORM_CORE_VERSION"),
+			Features:          features.Default(),
+			StorageUseAzureAD: false,
+			SubscriptionID:    os.Getenv("ARM_SUBSCRIPTION_ID"),
+			TestName:          testName,
 		}
 
 		client, err := clients.Build(ctx, clientBuilder)
@@ -78,8 +83,9 @@ func Build() (*clients.Client, error) {
 			return nil, fmt.Errorf("building test client: %+v", err)
 		}
 
-		_client = client
+		c = client
+		_clients[testName] = c
 	}
 
-	return _client, nil
+	return c, nil
 }

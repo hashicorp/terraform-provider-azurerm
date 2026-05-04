@@ -40,6 +40,7 @@ func (o CreateOrReplaceOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrReplaceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -58,8 +59,8 @@ func (c OutputsClient) CreateOrReplace(ctx context.Context, id OutputId, input O
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -83,7 +84,6 @@ func (c OutputsClient) CreateOrReplace(ctx context.Context, id OutputId, input O
 
 	var model Output
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

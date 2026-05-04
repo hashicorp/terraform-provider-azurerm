@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration` Documentation
 
-The `softwareupdateconfiguration` SDK allows for interaction with the Azure Resource Manager Service `automation` (API Version `2019-06-01`).
+The `softwareupdateconfiguration` SDK allows for interaction with Azure Resource Manager `automation` (API Version `2019-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := softwareupdateconfiguration.NewSoftwareUpdateConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "softwareUpdateConfigurationValue")
+id := softwareupdateconfiguration.NewSoftwareUpdateConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "softwareUpdateConfigurationName")
 
 payload := softwareupdateconfiguration.SoftwareUpdateConfiguration{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := softwareupdateconfiguration.NewSoftwareUpdateConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "softwareUpdateConfigurationValue")
+id := softwareupdateconfiguration.NewSoftwareUpdateConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "softwareUpdateConfigurationName")
 
 read, err := client.Delete(ctx, id, softwareupdateconfiguration.DefaultDeleteOperationOptions())
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := softwareupdateconfiguration.NewSoftwareUpdateConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "softwareUpdateConfigurationValue")
+id := softwareupdateconfiguration.NewSoftwareUpdateConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "softwareUpdateConfigurationName")
 
 read, err := client.GetByName(ctx, id, softwareupdateconfiguration.DefaultGetByNameOperationOptions())
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := softwareupdateconfiguration.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue")
+id := softwareupdateconfiguration.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName")
 
 read, err := client.List(ctx, id, softwareupdateconfiguration.DefaultListOperationOptions())
 if err != nil {

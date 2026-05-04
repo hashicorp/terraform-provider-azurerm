@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web_test
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppServiceSourceControlResource struct{}
+type AppServiceSourceControlTokenResource struct{}
 
 func TestAccAppServiceSourceControlToken(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_token", "test")
-	r := AppServiceSourceControlResource{}
+	r := AppServiceSourceControlTokenResource{}
 	token := strings.ToLower(acceptance.RandString(41))
 	tokenSecret := strings.ToLower(acceptance.RandString(41))
 
@@ -37,16 +38,16 @@ func TestAccAppServiceSourceControlToken(t *testing.T) {
 	})
 }
 
-func (r AppServiceSourceControlResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r AppServiceSourceControlTokenResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	resp, err := client.Web.BaseClient.GetSourceControl(ctx, state.ID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.SourceControlProperties != nil && resp.SourceControlProperties.Token != nil && *resp.SourceControlProperties.Token != ""), nil
+	return pointer.To(resp.SourceControlProperties != nil && resp.Token != nil && *resp.Token != ""), nil
 }
 
 func testAccAppServiceSourceControlToken(token, tokenSecret string) string {

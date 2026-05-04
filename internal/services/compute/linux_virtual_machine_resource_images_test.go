@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -135,6 +135,10 @@ locals {
   vm_name           = "acctestsourcevm-%[1]d"
   admin_username    = "testadmin%[1]d"
   admin_password    = "Password1234!%[1]d"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {

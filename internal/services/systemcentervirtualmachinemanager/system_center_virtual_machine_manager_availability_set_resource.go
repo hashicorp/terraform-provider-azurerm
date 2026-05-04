@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager
@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SystemCenterVirtualMachineManagerAvailabilitySetModel struct {
@@ -30,8 +29,10 @@ type SystemCenterVirtualMachineManagerAvailabilitySetModel struct {
 	Tags                                      map[string]string `tfschema:"tags"`
 }
 
-var _ sdk.Resource = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
-var _ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
+var (
+	_ sdk.Resource           = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
+	_ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
+)
 
 type SystemCenterVirtualMachineManagerAvailabilitySetResource struct{}
 
@@ -104,12 +105,12 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Create() sdk.R
 			parameters := availabilitysets.AvailabilitySet{
 				Location: location.Normalize(model.Location),
 				ExtendedLocation: availabilitysets.ExtendedLocation{
-					Type: utils.String("customLocation"),
-					Name: utils.String(model.CustomLocationId),
+					Type: pointer.To("customLocation"),
+					Name: pointer.To(model.CustomLocationId),
 				},
-				Properties: availabilitysets.AvailabilitySetProperties{
-					AvailabilitySetName: utils.String(id.AvailabilitySetName),
-					VMmServerId:         utils.String(scvmmServerId.ID()),
+				Properties: &availabilitysets.AvailabilitySetProperties{
+					AvailabilitySetName: pointer.To(id.AvailabilitySetName),
+					VMmServerId:         pointer.To(scvmmServerId.ID()),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -179,7 +180,7 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Update() sdk.R
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := availabilitysets.ResourcePatch{}
+			parameters := availabilitysets.AvailabilitySetTagsUpdate{}
 
 			if metadata.ResourceData.HasChange("tags") {
 				parameters.Tags = pointer.To(model.Tags)
@@ -205,7 +206,9 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Delete() sdk.R
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id, availabilitysets.DeleteOperationOptions{Force: pointer.To(availabilitysets.ForceTrue)}); err != nil {
+			opts := availabilitysets.DefaultDeleteOperationOptions()
+			opts.Force = pointer.To(availabilitysets.ForceDeleteTrue)
+			if err := client.DeleteThenPoll(ctx, *id, opts); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

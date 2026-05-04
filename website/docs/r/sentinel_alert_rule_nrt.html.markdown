@@ -57,6 +57,8 @@ The following arguments are supported:
 
 * `display_name` - (Required) The friendly name of this Sentinel NRT Alert Rule.
 
+* `event_grouping` - (Required) A `event_grouping` block as defined below.
+
 * `severity` - (Required) The alert severity of this Sentinel NRT Alert Rule. Possible values are `High`, `Medium`, `Low` and `Informational`.
 
 * `query` - (Required) The query of this Sentinel NRT Alert Rule.
@@ -77,13 +79,9 @@ The following arguments are supported:
 
 * `entity_mapping` - (Optional) A list of `entity_mapping` blocks as defined below.
 
-* `event_grouping` - (Optional) A `event_grouping` block as defined below.
-
--> **NOTE:** `event_grouping` will be required in the next major version of the AzureRM Provider.
-
 * `sentinel_entity_mapping` - (Optional) A list of `sentinel_entity_mapping` blocks as defined below.
 
--> **NOTE:** `entity_mapping` and `sentinel_entity_mapping` together can't exceed 5.
+-> **Note:** `entity_mapping` and `sentinel_entity_mapping` together can't exceed 5.
 
 * `incident` - (Optional) A `incident` block as defined below.
 
@@ -113,7 +111,7 @@ An `alert_details_override` block supports the following:
 
 A `dynamic_property` block supports the following:
 
-* `name` - (Required) The name of the dynamic property. Possible Values are `AlertLink`, `ConfidenceLevel`, `ConfidenceScore`, `ExtendedLinks`, `ProductComponentName`, `ProductName`, `ProviderName`, `RemediationSteps` and `Techniques`.
+* `name` - (Required) The name of the dynamic property. Possible values are `AlertLink`, `ConfidenceLevel`, `ConfidenceScore`, `ExtendedLinks`, `ProductComponentName`, `ProductName`, `ProviderName`, `RemediationSteps`, `SubTechniques` and `Techniques`.
 
 * `value` - (Required) The value of the dynamic property. Pssible Values are `Caller`, `dcount_ResourceId` and `EventSubmissionTimestamp`.
 
@@ -179,7 +177,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Sentinel NRT Alert Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Sentinel NRT Alert Rule.
@@ -193,3 +191,9 @@ Sentinel NRT Alert Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_sentinel_alert_rule_nrt.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/alertRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2023-12-01-preview

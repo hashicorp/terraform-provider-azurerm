@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -592,7 +592,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, offer, sku)
+`, r.templateWithOutProvider(data), data.RandomInteger, offer, sku)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) imagesRollingUpdate(data acceptance.TestData, offer, sku string) string {

@@ -45,7 +45,6 @@ func (c ActionGroupsAPIsClient) ActionGroupsGetTestNotificationsAtActionGroupRes
 
 	var model TestNotificationDetailsResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

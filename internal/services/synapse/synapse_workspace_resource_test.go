@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse_test
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,8 +99,8 @@ func TestAccSynapseWorkspace_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+			ExpectNonEmptyPlan: true, // removing workspace AAD admin also removes the SQL AAD admin and visa versa so it needs to be recreated
 		},
-		data.ImportStep("sql_administrator_login_password"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -118,14 +119,16 @@ func TestAccSynapseWorkspace_azdo(t *testing.T) {
 			Config: r.azureDevOps(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.account_name").HasValue("myorg"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.project_name").HasValue("myproj"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.repository_name").HasValue("myrepo"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.branch_name").HasValue("dev"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.root_folder").HasValue("/"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.tenant_id").IsEmpty(),
 			),
 		},
+		data.ImportStep("sql_administrator_login_password"),
+		{
+			Config: r.repoConfigRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
 	})
 }
 
@@ -138,14 +141,9 @@ func TestAccSynapseWorkspace_azdoTenant(t *testing.T) {
 			Config: r.azureDevOpsTenant(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.account_name").HasValue("myorg"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.project_name").HasValue("myproj"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.repository_name").HasValue("myrepo"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.branch_name").HasValue("dev"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.root_folder").HasValue("/"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.tenant_id").Exists(),
 			),
 		},
+		data.ImportStep("sql_administrator_login_password"),
 	})
 }
 
@@ -158,13 +156,16 @@ func TestAccSynapseWorkspace_github(t *testing.T) {
 			Config: r.github(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("github_repo.0.account_name").HasValue("myuser"),
-				check.That(data.ResourceName).Key("github_repo.0.git_url").HasValue("https://github.mydomain.com"),
-				check.That(data.ResourceName).Key("github_repo.0.repository_name").HasValue("myrepo"),
-				check.That(data.ResourceName).Key("github_repo.0.branch_name").HasValue("dev"),
-				check.That(data.ResourceName).Key("github_repo.0.root_folder").HasValue("/"),
 			),
 		},
+		data.ImportStep("sql_administrator_login_password"),
+		{
+			Config: r.repoConfigRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
 	})
 }
 
@@ -240,12 +241,12 @@ func (r SynapseWorkspaceResource) Exists(ctx context.Context, client *clients.Cl
 	resp, err := client.Synapse.WorkspaceClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SynapseWorkspaceResource) basic(data acceptance.TestData) string {
@@ -353,7 +354,7 @@ resource "azurerm_synapse_workspace" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomString, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomString, data.Locations.Ternary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) withAadAdmin(data acceptance.TestData) string {
@@ -378,11 +379,6 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR4!"
   sql_identity_control_enabled         = true
-  aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
 
   identity {
     type         = "SystemAssigned, UserAssigned"
@@ -392,6 +388,13 @@ resource "azurerm_synapse_workspace" "test" {
   tags = {
     ENV = "Test2"
   }
+}
+
+resource "azurerm_synapse_workspace_aad_admin" "test" {
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  login                = "AzureAD Admin"
+  object_id            = data.azurerm_client_config.current.object_id
+  tenant_id            = data.azurerm_client_config.current.tenant_id
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -419,12 +422,6 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login_password     = "H@Sh1CoR4!"
   sql_identity_control_enabled         = true
 
-  sql_aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
-
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -433,6 +430,13 @@ resource "azurerm_synapse_workspace" "test" {
   tags = {
     ENV = "Test2"
   }
+}
+
+resource "azurerm_synapse_workspace_sql_aad_admin" "test" {
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  login                = "AzureAD Admin"
+  object_id            = data.azurerm_client_config.current.object_id
+  tenant_id            = data.azurerm_client_config.current.tenant_id
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -459,17 +463,6 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR4!"
   sql_identity_control_enabled         = true
-  aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
-
-  sql_aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
 
   identity {
     type         = "SystemAssigned, UserAssigned"
@@ -479,6 +472,20 @@ resource "azurerm_synapse_workspace" "test" {
   tags = {
     ENV = "Test2"
   }
+}
+
+resource "azurerm_synapse_workspace_aad_admin" "test" {
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  login                = "AzureAD Admin"
+  object_id            = data.azurerm_client_config.current.object_id
+  tenant_id            = data.azurerm_client_config.current.tenant_id
+}
+
+resource "azurerm_synapse_workspace_sql_aad_admin" "test" {
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  login                = "AzureAD Admin"
+  object_id            = data.azurerm_client_config.current.object_id
+  tenant_id            = data.azurerm_client_config.current.tenant_id
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -504,6 +511,26 @@ resource "azurerm_synapse_workspace" "test" {
     root_folder     = "/"
     last_commit_id  = "1592393b38543d51feb12714cbd39501d697610c"
   }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r SynapseWorkspaceResource) repoConfigRemoved(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR3!"
 
   identity {
     type = "SystemAssigned"
@@ -580,12 +607,13 @@ func (r SynapseWorkspaceResource) customerManagedKey(data acceptance.TestData) s
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acckv%d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctest%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -627,7 +655,7 @@ resource "azurerm_synapse_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomString, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) azureAdOnlyAuthentication(data acceptance.TestData) string {
@@ -700,18 +728,19 @@ func (r SynapseWorkspaceResource) cmkWithAADAdmin(data acceptance.TestData) stri
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestuaid%[2]d"
+  name                = "acctestuaid%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acckv%[2]d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctest%[2]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -748,7 +777,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%[2]d"
+  name                                 = "acctestsw%[2]s"
   resource_group_name                  = azurerm_resource_group.test.name
   location                             = azurerm_resource_group.test.location
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
@@ -761,16 +790,10 @@ resource "azurerm_synapse_workspace" "test" {
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
-  aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
-
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomString)
 }

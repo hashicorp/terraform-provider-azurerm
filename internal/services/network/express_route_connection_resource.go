@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -7,19 +7,24 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutegateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressrouteconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceExpressRouteConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceExpressRouteConnectionCreate,
 		Read:   resourceExpressRouteConnectionRead,
 		Update: resourceExpressRouteConnectionUpdate,
@@ -33,7 +38,7 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ExpressRouteConnectionID(id)
+			_, err := expressrouteconnections.ParseExpressRouteConnectionID(id)
 			return err
 		}),
 
@@ -49,14 +54,14 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ExpressRouteCircuitPeeringID,
+				ValidateFunc: commonids.ValidateExpressRouteCircuitPeeringID,
 			},
 
 			"express_route_gateway_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ExpressRouteGatewayID,
+				ValidateFunc: expressroutegateways.ValidateExpressRouteGatewayID,
 			},
 
 			"authorization_key": {
@@ -65,10 +70,10 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_internet_security": {
+			"internet_security_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"express_route_gateway_bypass_enabled": {
@@ -87,20 +92,20 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 						"inbound_route_map_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteMapID,
+							ValidateFunc: virtualwans.ValidateRouteMapID,
 						},
 
 						"outbound_route_map_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteMapID,
+							ValidateFunc: virtualwans.ValidateRouteMapID,
 						},
 
 						"associated_route_table_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.HubRouteTableID,
+							ValidateFunc: virtualwans.ValidateHubRouteTableID,
 							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table"},
 						},
 
@@ -128,7 +133,7 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: validate.HubRouteTableID,
+											ValidateFunc: virtualwans.ValidateHubRouteTableID,
 										},
 										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},
@@ -148,55 +153,80 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["private_link_fast_path_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Deprecated: "'private_link_fast_path_enabled' has been deprecated as it is no longer supported by the resource and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		resource.Schema["internet_security_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"enable_internet_security"},
+		}
+
+		resource.Schema["enable_internet_security"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"internet_security_enabled"},
+			Deprecated:    "the `enable_internet_security` property has been deprecated in favour of the `internet_security_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return resource
 }
 
 func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
+	client := meta.(*clients.Client).Network.ExpressRouteConnections
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	expressRouteGatewayId, err := parse.ExpressRouteGatewayID(d.Get("express_route_gateway_id").(string))
+	expressRouteGatewayId, err := expressroutegateways.ParseExpressRouteGatewayID(d.Get("express_route_gateway_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewExpressRouteConnectionID(expressRouteGatewayId.SubscriptionId, expressRouteGatewayId.ResourceGroup, expressRouteGatewayId.Name, d.Get("name").(string))
+	id := expressrouteconnections.NewExpressRouteConnectionID(expressRouteGatewayId.SubscriptionId, expressRouteGatewayId.ResourceGroupName, expressRouteGatewayId.ExpressRouteGatewayName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_express_route_connection", id.ID())
 	}
 
-	parameters := network.ExpressRouteConnection{
-		Name: utils.String(id.Name),
-		ExpressRouteConnectionProperties: &network.ExpressRouteConnectionProperties{
-			ExpressRouteCircuitPeering: &network.ExpressRouteCircuitPeeringID{
-				ID: utils.String(d.Get("express_route_circuit_peering_id").(string)),
+	enableInternetSecurity := d.Get("internet_security_enabled").(bool)
+	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_internet_security"].IsNull() {
+		enableInternetSecurity = d.Get("enable_internet_security").(bool)
+	}
+
+	parameters := expressrouteconnections.ExpressRouteConnection{
+		Name: id.ExpressRouteConnectionName,
+		Properties: &expressrouteconnections.ExpressRouteConnectionProperties{
+			ExpressRouteCircuitPeering: expressrouteconnections.ExpressRouteCircuitPeeringId{
+				Id: pointer.To(d.Get("express_route_circuit_peering_id").(string)),
 			},
-			EnableInternetSecurity:    utils.Bool(d.Get("enable_internet_security").(bool)),
+			EnableInternetSecurity:    pointer.To(enableInternetSecurity),
 			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
-			RoutingWeight:             utils.Int32(int32(d.Get("routing_weight").(int))),
-			ExpressRouteGatewayBypass: utils.Bool(d.Get("express_route_gateway_bypass_enabled").(bool)),
+			RoutingWeight:             pointer.To(int64(d.Get("routing_weight").(int))),
+			ExpressRouteGatewayBypass: pointer.To(d.Get("express_route_gateway_bypass_enabled").(bool)),
 		},
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
-		parameters.ExpressRouteConnectionProperties.AuthorizationKey = utils.String(v.(string))
+		parameters.Properties.AuthorizationKey = pointer.To(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -205,52 +235,58 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
+	client := meta.(*clients.Client).Network.ExpressRouteConnections
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ExpressRouteConnectionID(d.Id())
+	id, err := expressrouteconnections.ParseExpressRouteConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("express_route_gateway_id", parse.NewExpressRouteGatewayID(id.SubscriptionId, id.ResourceGroup, id.ExpressRouteGatewayName).ID())
+	d.Set("name", id.ExpressRouteConnectionName)
+	d.Set("express_route_gateway_id", expressroutegateways.NewExpressRouteGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ExpressRouteGatewayName).ID())
 
-	if props := resp.ExpressRouteConnectionProperties; props != nil {
-		d.Set("routing_weight", props.RoutingWeight)
-		d.Set("authorization_key", props.AuthorizationKey)
-		d.Set("enable_internet_security", props.EnableInternetSecurity)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("routing_weight", props.RoutingWeight)
+			d.Set("authorization_key", props.AuthorizationKey)
 
-		if props.ExpressRouteGatewayBypass != nil {
-			d.Set("express_route_gateway_bypass_enabled", props.ExpressRouteGatewayBypass)
-		}
+			d.Set("internet_security_enabled", props.EnableInternetSecurity)
+			if !features.FivePointOh() {
+				d.Set("enable_internet_security", props.EnableInternetSecurity)
+			}
 
-		circuitPeeringID := ""
-		if v := props.ExpressRouteCircuitPeering; v != nil {
-			circuitPeeringID = *v.ID
-		}
-		peeringId, err := parse.ExpressRouteCircuitPeeringIDInsensitively(circuitPeeringID)
-		if err != nil {
-			return err
-		}
-		d.Set("express_route_circuit_peering_id", peeringId.ID())
+			if props.ExpressRouteGatewayBypass != nil {
+				d.Set("express_route_gateway_bypass_enabled", props.ExpressRouteGatewayBypass)
+			}
 
-		routing, err := flattenExpressRouteConnectionRouting(props.RoutingConfiguration)
-		if err != nil {
-			return err
-		}
-		if err := d.Set("routing", routing); err != nil {
-			return fmt.Errorf("setting `routing`: %+v", err)
+			circuitPeeringID := ""
+			if v := props.ExpressRouteCircuitPeering.Id; v != nil {
+				circuitPeeringID = *v
+			}
+			peeringId, err := commonids.ParseExpressRouteCircuitPeeringIDInsensitively(circuitPeeringID)
+			if err != nil {
+				return err
+			}
+			d.Set("express_route_circuit_peering_id", peeringId.ID())
+
+			routing, err := flattenExpressRouteConnectionRouting(props.RoutingConfiguration)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("routing", routing); err != nil {
+				return fmt.Errorf("setting `routing`: %+v", err)
+			}
 		}
 	}
 
@@ -258,89 +294,91 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
+	client := meta.(*clients.Client).Network.ExpressRouteConnections
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ExpressRouteConnectionID(d.Id())
+	id, err := expressrouteconnections.ParseExpressRouteConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	parameters := network.ExpressRouteConnection{
-		Name: utils.String(id.Name),
-		ExpressRouteConnectionProperties: &network.ExpressRouteConnectionProperties{
-			ExpressRouteCircuitPeering: &network.ExpressRouteCircuitPeeringID{
-				ID: utils.String(d.Get("express_route_circuit_peering_id").(string)),
+	enableInternetSecurity := false
+	if !features.FivePointOh() && d.HasChanges("enable_internet_security", "internet_security_enabled") {
+		if d.HasChange("enable_internet_security") && !d.GetRawConfig().AsValueMap()["enable_internet_security"].IsNull() {
+			enableInternetSecurity = d.Get("enable_internet_security").(bool)
+		}
+		if d.HasChange("internet_security_enabled") && !d.GetRawConfig().AsValueMap()["internet_security_enabled"].IsNull() {
+			enableInternetSecurity = d.Get("internet_security_enabled").(bool)
+		}
+	} else if d.HasChange("internet_security_enabled") {
+		enableInternetSecurity = d.Get("internet_security_enabled").(bool)
+	}
+
+	parameters := expressrouteconnections.ExpressRouteConnection{
+		Name: id.ExpressRouteConnectionName,
+		Properties: &expressrouteconnections.ExpressRouteConnectionProperties{
+			ExpressRouteCircuitPeering: expressrouteconnections.ExpressRouteCircuitPeeringId{
+				Id: pointer.To(d.Get("express_route_circuit_peering_id").(string)),
 			},
-			EnableInternetSecurity:    utils.Bool(d.Get("enable_internet_security").(bool)),
+			EnableInternetSecurity:    pointer.To(enableInternetSecurity),
 			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
-			RoutingWeight:             utils.Int32(int32(d.Get("routing_weight").(int))),
-			ExpressRouteGatewayBypass: utils.Bool(d.Get("express_route_gateway_bypass_enabled").(bool)),
+			RoutingWeight:             pointer.To(int64(d.Get("routing_weight").(int))),
+			ExpressRouteGatewayBypass: pointer.To(d.Get("express_route_gateway_bypass_enabled").(bool)),
 		},
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
-		parameters.ExpressRouteConnectionProperties.AuthorizationKey = utils.String(v.(string))
+		parameters.Properties.AuthorizationKey = pointer.To(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	return resourceExpressRouteConnectionRead(d, meta)
 }
 
 func resourceExpressRouteConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
+	client := meta.(*clients.Client).Network.ExpressRouteConnections
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ExpressRouteConnectionID(d.Id())
+	id, err := expressrouteconnections.ParseExpressRouteConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandExpressRouteConnectionRouting(input []interface{}) *network.RoutingConfiguration {
+func expandExpressRouteConnectionRouting(input []interface{}) *expressrouteconnections.RoutingConfiguration {
 	if len(input) == 0 || input[0] == nil {
-		return &network.RoutingConfiguration{}
+		return &expressrouteconnections.RoutingConfiguration{}
 	}
 
 	v := input[0].(map[string]interface{})
-	result := network.RoutingConfiguration{}
+	result := expressrouteconnections.RoutingConfiguration{}
 
 	if associatedRouteTableId := v["associated_route_table_id"].(string); associatedRouteTableId != "" {
-		result.AssociatedRouteTable = &network.SubResource{
-			ID: utils.String(associatedRouteTableId),
+		result.AssociatedRouteTable = &expressrouteconnections.SubResource{
+			Id: pointer.To(associatedRouteTableId),
 		}
 	}
 
 	if inboundRouteMapId := v["inbound_route_map_id"].(string); inboundRouteMapId != "" {
-		result.InboundRouteMap = &network.SubResource{
-			ID: utils.String(inboundRouteMapId),
+		result.InboundRouteMap = &expressrouteconnections.SubResource{
+			Id: pointer.To(inboundRouteMapId),
 		}
 	}
 
 	if outboundRouteMapId := v["outbound_route_map_id"].(string); outboundRouteMapId != "" {
-		result.OutboundRouteMap = &network.SubResource{
-			ID: utils.String(outboundRouteMapId),
+		result.OutboundRouteMap = &expressrouteconnections.SubResource{
+			Id: pointer.To(outboundRouteMapId),
 		}
 	}
 
@@ -351,36 +389,48 @@ func expandExpressRouteConnectionRouting(input []interface{}) *network.RoutingCo
 	return &result
 }
 
-func expandExpressRouteConnectionPropagatedRouteTable(input []interface{}) *network.PropagatedRouteTable {
+func expandExpressRouteConnectionPropagatedRouteTable(input []interface{}) *expressrouteconnections.PropagatedRouteTable {
 	if len(input) == 0 || input[0] == nil {
-		return &network.PropagatedRouteTable{}
+		return &expressrouteconnections.PropagatedRouteTable{}
 	}
 
 	v := input[0].(map[string]interface{})
 
-	result := network.PropagatedRouteTable{}
+	result := expressrouteconnections.PropagatedRouteTable{}
 
 	if labels := v["labels"].(*pluginsdk.Set).List(); len(labels) != 0 {
 		result.Labels = utils.ExpandStringSlice(labels)
 	}
 
 	if routeTableIds := v["route_table_ids"].([]interface{}); len(routeTableIds) != 0 {
-		result.Ids = expandIDsToSubResources(routeTableIds)
+		result.Ids = expandExpressRouteIDsToSubResources(routeTableIds)
 	}
 
 	return &result
 }
 
-func flattenExpressRouteConnectionRouting(input *network.RoutingConfiguration) ([]interface{}, error) {
+func expandExpressRouteIDsToSubResources(input []interface{}) *[]expressrouteconnections.SubResource {
+	ids := make([]expressrouteconnections.SubResource, 0)
+
+	for _, v := range input {
+		ids = append(ids, expressrouteconnections.SubResource{
+			Id: pointer.To(v.(string)),
+		})
+	}
+
+	return &ids
+}
+
+func flattenExpressRouteConnectionRouting(input *expressrouteconnections.RoutingConfiguration) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
 
 	associatedRouteTableId := ""
-	if input.AssociatedRouteTable != nil && input.AssociatedRouteTable.ID != nil {
-		associatedRouteTableId = *input.AssociatedRouteTable.ID
+	if input.AssociatedRouteTable != nil && input.AssociatedRouteTable.Id != nil {
+		associatedRouteTableId = *input.AssociatedRouteTable.Id
 	}
-	routeTableId, err := parse.HubRouteTableIDInsensitively(associatedRouteTableId)
+	routeTableId, err := virtualwans.ParseHubRouteTableIDInsensitively(associatedRouteTableId)
 	if err != nil {
 		return nil, err
 	}
@@ -390,18 +440,18 @@ func flattenExpressRouteConnectionRouting(input *network.RoutingConfiguration) (
 		"propagated_route_table":    flattenExpressRouteConnectionPropagatedRouteTable(input.PropagatedRouteTables),
 	}
 
-	if input.InboundRouteMap != nil && input.InboundRouteMap.ID != nil {
-		result["inbound_route_map_id"] = input.InboundRouteMap.ID
+	if input.InboundRouteMap != nil && input.InboundRouteMap.Id != nil {
+		result["inbound_route_map_id"] = input.InboundRouteMap.Id
 	}
 
-	if input.OutboundRouteMap != nil && input.OutboundRouteMap.ID != nil {
-		result["outbound_route_map_id"] = input.OutboundRouteMap.ID
+	if input.OutboundRouteMap != nil && input.OutboundRouteMap.Id != nil {
+		result["outbound_route_map_id"] = input.OutboundRouteMap.Id
 	}
 
 	return []interface{}{result}, nil
 }
 
-func flattenExpressRouteConnectionPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
+func flattenExpressRouteConnectionPropagatedRouteTable(input *expressrouteconnections.PropagatedRouteTable) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -413,7 +463,7 @@ func flattenExpressRouteConnectionPropagatedRouteTable(input *network.Propagated
 
 	routeTableIds := make([]interface{}, 0)
 	if input.Ids != nil {
-		routeTableIds = flattenSubResourcesToIDs(input.Ids)
+		routeTableIds = flattenExpressRouteSubResourcesToIDs(input.Ids)
 	}
 
 	return []interface{}{
@@ -422,4 +472,21 @@ func flattenExpressRouteConnectionPropagatedRouteTable(input *network.Propagated
 			"route_table_ids": routeTableIds,
 		},
 	}
+}
+
+func flattenExpressRouteSubResourcesToIDs(input *[]expressrouteconnections.SubResource) []interface{} {
+	ids := make([]interface{}, 0)
+	if input == nil {
+		return ids
+	}
+
+	for _, v := range *input {
+		if v.Id == nil {
+			continue
+		}
+
+		ids = append(ids, *v.Id)
+	}
+
+	return ids
 }

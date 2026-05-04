@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automanage
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/migration"
@@ -29,8 +30,8 @@ type AntimalwareConfiguration struct {
 	RealTimeProtectionEnabled bool                    `tfschema:"real_time_protection_enabled"`
 	ScheduledScanEnabled      bool                    `tfschema:"scheduled_scan_enabled"`
 	ScanType                  string                  `tfschema:"scheduled_scan_type"`
-	ScanDay                   int                     `tfschema:"scheduled_scan_day"`
-	ScanTimeInMinutes         int                     `tfschema:"scheduled_scan_time_in_minutes"`
+	ScanDay                   int64                   `tfschema:"scheduled_scan_day"`
+	ScanTimeInMinutes         int64                   `tfschema:"scheduled_scan_time_in_minutes"`
 }
 
 type AntimalwareExclusions struct {
@@ -42,7 +43,7 @@ type AntimalwareExclusions struct {
 type BackupConfiguration struct {
 	PolicyName                    string                         `tfschema:"policy_name"`
 	TimeZone                      string                         `tfschema:"time_zone"`
-	InstantRpRetentionRangeInDays int                            `tfschema:"instant_rp_retention_range_in_days"`
+	InstantRpRetentionRangeInDays int64                          `tfschema:"instant_rp_retention_range_in_days"`
 	SchedulePolicy                []SchedulePolicyConfiguration  `tfschema:"schedule_policy"`
 	RetentionPolicy               []RetentionPolicyConfiguration `tfschema:"retention_policy"`
 }
@@ -77,7 +78,7 @@ type RetentionPolicyConfiguration struct {
 }
 
 type RetentionDurationConfiguration struct {
-	Count        int    `tfschema:"count"`
+	Count        int64  `tfschema:"count"`
 	DurationType string `tfschema:"duration_type"`
 }
 
@@ -88,10 +89,19 @@ type SchedulePolicyConfiguration struct {
 	SchedulePolicyType   string   `tfschema:"schedule_policy_type"`
 }
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automanage_configuration -service-package-name automanage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 type AutoManageConfigurationResource struct{}
 
-var _ sdk.ResourceWithUpdate = AutoManageConfigurationResource{}
-var _ sdk.ResourceWithStateMigration = AutoManageConfigurationResource{}
+var (
+	_ sdk.ResourceWithUpdate         = AutoManageConfigurationResource{}
+	_ sdk.ResourceWithStateMigration = AutoManageConfigurationResource{}
+	_ sdk.ResourceWithIdentity       = AutoManageConfigurationResource{}
+)
+
+func (r AutoManageConfigurationResource) Identity() resourceids.ResourceId {
+	return &configurationprofiles.ConfigurationProfileId{}
+}
 
 func (r AutoManageConfigurationResource) ResourceType() string {
 	return "azurerm_automanage_configuration"
@@ -495,6 +505,9 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -596,6 +609,9 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -629,11 +645,12 @@ func (r AutoManageConfigurationResource) StateUpgraders() sdk.StateUpgradeData {
 		},
 	}
 }
+
 func expandConfigurationProfile(model ConfigurationModel) *interface{} {
 	// building configuration profile in json format
 	jsonConfig := make(map[string]interface{})
 
-	if model.Antimalware != nil && len(model.Antimalware) > 0 {
+	if len(model.Antimalware) > 0 {
 		antimalwareConfig := model.Antimalware[0]
 		jsonConfig["Antimalware/Enable"] = true
 		jsonConfig["Antimalware/EnableRealTimeProtection"] = antimalwareConfig.RealTimeProtectionEnabled
@@ -641,20 +658,20 @@ func expandConfigurationProfile(model ConfigurationModel) *interface{} {
 		jsonConfig["Antimalware/ScanType"] = antimalwareConfig.ScanType
 		jsonConfig["Antimalware/ScanDay"] = antimalwareConfig.ScanDay
 		jsonConfig["Antimalware/ScanTimeInMinutes"] = antimalwareConfig.ScanTimeInMinutes
-		if antimalwareConfig.Exclusions != nil && len(antimalwareConfig.Exclusions) > 0 {
+		if len(antimalwareConfig.Exclusions) > 0 {
 			jsonConfig["Antimalware/Exclusions/Extensions"] = antimalwareConfig.Exclusions[0].Extensions
 			jsonConfig["Antimalware/Exclusions/Paths"] = antimalwareConfig.Exclusions[0].Paths
 			jsonConfig["Antimalware/Exclusions/Processes"] = antimalwareConfig.Exclusions[0].Processes
 		}
 	}
 
-	if model.AzureSecurityBaseline != nil && len(model.AzureSecurityBaseline) > 0 {
+	if len(model.AzureSecurityBaseline) > 0 {
 		azureSecurityBaselineConfig := model.AzureSecurityBaseline[0]
 		jsonConfig["AzureSecurityBaseline/Enable"] = true
 		jsonConfig["AzureSecurityBaseline/AssignmentType"] = azureSecurityBaselineConfig.AssignmentType
 	}
 
-	if model.Backup != nil && len(model.Backup) > 0 {
+	if len(model.Backup) > 0 {
 		backupConfig := model.Backup[0]
 		jsonConfig["Backup/Enable"] = true
 		if backupConfig.PolicyName != "" {
@@ -662,40 +679,40 @@ func expandConfigurationProfile(model ConfigurationModel) *interface{} {
 		}
 		jsonConfig["Backup/TimeZone"] = backupConfig.TimeZone
 		jsonConfig["Backup/InstantRpRetentionRangeInDays"] = backupConfig.InstantRpRetentionRangeInDays
-		if backupConfig.SchedulePolicy != nil && len(backupConfig.SchedulePolicy) > 0 {
+		if len(backupConfig.SchedulePolicy) > 0 {
 			schedulePolicyConfig := backupConfig.SchedulePolicy[0]
 			jsonConfig["Backup/SchedulePolicy/ScheduleRunFrequency"] = schedulePolicyConfig.ScheduleRunFrequency
-			if schedulePolicyConfig.ScheduleRunTimes != nil && len(schedulePolicyConfig.ScheduleRunTimes) > 0 {
+			if len(schedulePolicyConfig.ScheduleRunTimes) > 0 {
 				jsonConfig["Backup/SchedulePolicy/ScheduleRunTimes"] = schedulePolicyConfig.ScheduleRunTimes
 			}
-			if schedulePolicyConfig.ScheduleRunDays != nil && len(schedulePolicyConfig.ScheduleRunDays) > 0 {
+			if len(schedulePolicyConfig.ScheduleRunDays) > 0 {
 				jsonConfig["Backup/SchedulePolicy/ScheduleRunDays"] = schedulePolicyConfig.ScheduleRunDays
 			}
 			jsonConfig["Backup/SchedulePolicy/SchedulePolicyType"] = schedulePolicyConfig.SchedulePolicyType
 		}
 
-		if backupConfig.RetentionPolicy != nil && len(backupConfig.RetentionPolicy) > 0 {
+		if len(backupConfig.RetentionPolicy) > 0 {
 			retentionPolicyConfig := backupConfig.RetentionPolicy[0]
 			jsonConfig["Backup/RetentionPolicy/RetentionPolicyType"] = retentionPolicyConfig.RetentionPolicyType
-			if retentionPolicyConfig.DailySchedule != nil && len(retentionPolicyConfig.DailySchedule) > 0 {
+			if len(retentionPolicyConfig.DailySchedule) > 0 {
 				dailyScheduleConfig := retentionPolicyConfig.DailySchedule[0]
-				if dailyScheduleConfig.RetentionTimes != nil && len(dailyScheduleConfig.RetentionTimes) > 0 {
+				if len(dailyScheduleConfig.RetentionTimes) > 0 {
 					jsonConfig["Backup/RetentionPolicy/DailySchedule/RetentionTimes"] = dailyScheduleConfig.RetentionTimes
 				}
 
-				if dailyScheduleConfig.RetentionDuration != nil && len(dailyScheduleConfig.RetentionDuration) > 0 {
+				if len(dailyScheduleConfig.RetentionDuration) > 0 {
 					jsonConfig["Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count"] = dailyScheduleConfig.RetentionDuration[0].Count
 					jsonConfig["Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType"] = dailyScheduleConfig.RetentionDuration[0].DurationType
 				}
 			}
 
-			if retentionPolicyConfig.WeeklySchedule != nil && len(retentionPolicyConfig.WeeklySchedule) > 0 {
+			if len(retentionPolicyConfig.WeeklySchedule) > 0 {
 				weeklyScheduleConfig := retentionPolicyConfig.WeeklySchedule[0]
-				if weeklyScheduleConfig.RetentionTimes != nil && len(weeklyScheduleConfig.RetentionTimes) > 0 {
+				if len(weeklyScheduleConfig.RetentionTimes) > 0 {
 					jsonConfig["Backup/RetentionPolicy/WeeklySchedule/RetentionTimes"] = weeklyScheduleConfig.RetentionTimes
 				}
 
-				if weeklyScheduleConfig.RetentionDuration != nil && len(weeklyScheduleConfig.RetentionDuration) > 0 {
+				if len(weeklyScheduleConfig.RetentionDuration) > 0 {
 					jsonConfig["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count"] = weeklyScheduleConfig.RetentionDuration[0].Count
 					jsonConfig["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType"] = weeklyScheduleConfig.RetentionDuration[0].DurationType
 				}
@@ -752,11 +769,11 @@ func flattenAntiMalwareConfig(configMap map[string]interface{}) []AntimalwareCon
 	}
 
 	if val, ok := configMap["Antimalware/ScanDay"]; ok {
-		antimalware[0].ScanDay = int(val.(float64))
+		antimalware[0].ScanDay = int64(val.(float64))
 	}
 
 	if val, ok := configMap["Antimalware/ScanTimeInMinutes"]; ok {
-		antimalware[0].ScanTimeInMinutes = int(val.(float64))
+		antimalware[0].ScanTimeInMinutes = int64(val.(float64))
 	}
 
 	exclusions := AntimalwareExclusions{}
@@ -816,7 +833,7 @@ func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration
 	}
 
 	if val, ok := configMap["Backup/InstantRpRetentionRangeInDays"]; ok {
-		backup[0].InstantRpRetentionRangeInDays = int(val.(float64))
+		backup[0].InstantRpRetentionRangeInDays = int64(val.(float64))
 	}
 
 	schedulePolicy := SchedulePolicyConfiguration{}
@@ -863,7 +880,7 @@ func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration
 	retentionDuration := RetentionDurationConfiguration{}
 	retentionDurationChanged := false
 	if val, ok := configMap["Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count"]; ok {
-		retentionDuration.Count = int(val.(float64))
+		retentionDuration.Count = int64(val.(float64))
 		retentionDurationChanged = true
 	}
 
@@ -892,7 +909,7 @@ func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration
 	weeklyRetentionDuration := RetentionDurationConfiguration{}
 	weeklyRetentionDurationChanged := false
 	if val, ok := configMap["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count"]; ok {
-		weeklyRetentionDuration.Count = int(val.(float64))
+		weeklyRetentionDuration.Count = int64(val.(float64))
 		weeklyRetentionDurationChanged = true
 	}
 
