@@ -21,7 +21,7 @@ type RunbookProperties struct {
 	LogVerbose         *bool                        `json:"logVerbose,omitempty"`
 	OutputTypes        *[]string                    `json:"outputTypes,omitempty"`
 	Parameters         *map[string]RunbookParameter `json:"parameters,omitempty"`
-	ProvisioningState  *RunbookProvisioningState    `json:"provisioningState,omitempty"`
+	ProvisioningState  *ProvisioningState           `json:"provisioningState,omitempty"`
 	PublishContentLink *ContentLink                 `json:"publishContentLink,omitempty"`
 	RunbookType        *RunbookTypeEnum             `json:"runbookType,omitempty"`
 	RuntimeEnvironment *string                      `json:"runtimeEnvironment,omitempty"`

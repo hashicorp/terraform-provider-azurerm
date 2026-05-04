@@ -10,8 +10,8 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	batchaccount "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccounts"
-	pool "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
@@ -261,8 +261,7 @@ func (r BatchJobResource) addJob(ctx context.Context, client *batchDataplane.Job
 	deadline, _ := ctx.Deadline()
 	now := time.Now()
 	timeout := deadline.Sub(now)
-	_, err := client.Add(ctx, job, pointer.To(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now})
-	if err != nil {
+	if _, err := client.Add(ctx, job, pointer.To(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
 	return nil

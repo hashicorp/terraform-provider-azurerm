@@ -8,12 +8,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -49,7 +48,7 @@ func resourceCognitiveAccountCustomerManagedKey() *pluginsdk.Resource {
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			},
 
 			"identity_client_id": {
@@ -95,14 +94,14 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 		},
 	}
 
-	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
+	keyId, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return err
 	}
 	props.Properties.Encryption.KeyVaultProperties = &cognitiveservicesaccounts.KeyVaultProperties{
 		KeyName:     pointer.To(keyId.Name),
 		KeyVersion:  pointer.To(keyId.Version),
-		KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
+		KeyVaultUri: pointer.To(keyId.KeyVaultBaseURL),
 	}
 
 	if identityClientId := d.Get("identity_client_id").(string); identityClientId != "" {
@@ -156,7 +155,7 @@ func resourceCognitiveAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, m
 
 	d.Set("cognitive_account_id", id.ID())
 	if props := resp.Model.Properties.Encryption.KeyVaultProperties; props != nil {
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, keyVaultParse.NestedItemTypeKey, *props.KeyName, *props.KeyVersion)
+		keyVaultKeyId, err := keyvault.NewNestedItemID(pointer.From(props.KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From(props.KeyName), pointer.From(props.KeyVersion))
 		if err != nil {
 			return fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 		}

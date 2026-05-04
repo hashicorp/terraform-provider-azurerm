@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	sharedKeyWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -227,6 +227,17 @@ func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.Res
 		if strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumStandard)) ||
 			strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumPremium)) {
 			return fmt.Errorf("creation of log analytics workspaces with `Standard` or `Premium` SKUs is no longer supported by Azure - see https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers")
+		}
+	}
+
+	// if local_authentication_enabled/local_authentication_enabled is not defined in config, check if local_authentication_enabled is set to the default value of true, and if not, set it to retain the default
+	if !features.FivePointOh() && d.GetRawConfig().AsValueMap()["local_authentication_disabled"].IsNull() && d.GetRawConfig().AsValueMap()["local_authentication_enabled"].IsNull() {
+		_, n := d.GetChange("local_authentication_enabled")
+		if !n.(bool) {
+			err := d.SetNew("local_authentication_enabled", true)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

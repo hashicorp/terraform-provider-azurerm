@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/jobdefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/jobdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -147,7 +147,7 @@ resource "azurerm_storage_mover_project" "test" {
   name             = "acctest-sp-%[2]d"
   storage_mover_id = azurerm_storage_mover.test.id
 }
-`, StorageMoverAgentTestResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, StorageMoverAgentResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageMoverJobDefinitionTestResource) basic(data acceptance.TestData) string {

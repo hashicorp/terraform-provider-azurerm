@@ -545,8 +545,7 @@ func (ApplicationInsightsStandardWebTestResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			_, err = client.WebTestsDelete(ctx, *id)
-			if err != nil {
+			if _, err = client.WebTestsDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

@@ -16,10 +16,18 @@ func TestAccRouteServerBgpConnection_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_server_bgp_connection", "test")
 	r := RouteServerBgpConnectionResource{}
 
+	checkedFields := map[string]struct{}{
+		"name":                {},
+		"hub_name":            {},
+		"resource_group_name": {},
+		"subscription_id":     {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_route_server_bgp_connection.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_route_server_bgp_connection.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_route_server_bgp_connection.test", tfjsonpath.New("hub_name"), tfjsonpath.New("route_server_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_route_server_bgp_connection.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("route_server_id")),

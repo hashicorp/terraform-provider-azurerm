@@ -16,10 +16,18 @@ func TestAccDedicatedHost_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
 	r := DedicatedHostResource{}
 
+	checkedFields := map[string]struct{}{
+		"name":                {},
+		"host_group_name":     {},
+		"resource_group_name": {},
+		"subscription_id":     {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_dedicated_host.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dedicated_host.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dedicated_host.test", tfjsonpath.New("host_group_name"), tfjsonpath.New("dedicated_host_group_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dedicated_host.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("dedicated_host_group_id")),

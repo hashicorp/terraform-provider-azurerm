@@ -6,6 +6,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -65,6 +66,34 @@ func TestAccApiManagementCustomDomain_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementCustomDomain_updateCertificateFourPointOh(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this test is no longer functional in 5.x")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_api_management_custom_domain", "test")
+	r := ApiManagementCustomDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateCertificateFourPointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gateway.0.key_vault_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("acctestcert-2-%s", data.RandomString))),
+				check.That(data.ResourceName).Key("gateway.1.key_vault_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("acctestcert-2-%s", data.RandomString))),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiManagementCustomDomain_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_custom_domain", "test")
 	r := ApiManagementCustomDomainResource{}
@@ -74,6 +103,16 @@ func TestAccApiManagementCustomDomain_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateCertificate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				// Ensure the property contains the expected certificate value
+				check.That(data.ResourceName).Key("gateway.0.key_vault_certificate_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("acctestcert-2-%s", data.RandomString))),
+				check.That(data.ResourceName).Key("gateway.1.key_vault_certificate_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("acctestcert-2-%s", data.RandomString))),
 			),
 		},
 		data.ImportStep(),
@@ -120,6 +159,11 @@ resource "azurerm_api_management_custom_domain" "test" {
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
 
+  gateway {
+    host_name    = "api.example2.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+
   developer_portal {
     host_name    = "portal.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
@@ -139,12 +183,175 @@ resource "azurerm_api_management_custom_domain" "test" {
     key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 
+  gateway {
+    host_name                = "api.example2.com"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
+  }
+
   developer_portal {
     host_name                = "portal.example.com"
     key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
 `, r.template(data, true))
+}
+
+func (r ApiManagementCustomDomainResource) updateCertificateFourPointOh(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_key_vault_certificate" "test2" {
+  name         = "acctestcert-2-%[2]s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=api.example.com"
+      validity_in_months = 12
+
+      subject_alternative_names {
+        dns_names = [
+          "api.example.com",
+          "api.example2.com",
+          "portal.example.com",
+        ]
+      }
+    }
+  }
+}
+
+resource "azurerm_api_management_custom_domain" "test" {
+  api_management_id = azurerm_api_management.test.id
+
+  gateway {
+    host_name    = "api.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test2.secret_id
+  }
+
+  gateway {
+    host_name    = "api.example2.com"
+    key_vault_id = azurerm_key_vault_certificate.test2.secret_id
+  }
+
+  developer_portal {
+    host_name    = "portal.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test2.secret_id
+  }
+}
+`, r.template(data, true), data.RandomString)
+}
+
+func (r ApiManagementCustomDomainResource) updateCertificate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_key_vault_certificate" "test2" {
+  name         = "acctestcert-2-%[2]s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=api.example.com"
+      validity_in_months = 12
+
+      subject_alternative_names {
+        dns_names = [
+          "api.example.com",
+          "api.example2.com",
+          "portal.example.com",
+        ]
+      }
+    }
+  }
+}
+
+resource "azurerm_api_management_custom_domain" "test" {
+  api_management_id = azurerm_api_management.test.id
+
+  gateway {
+    host_name                = "api.example.com"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test2.secret_id
+  }
+
+  gateway {
+    host_name                = "api.example2.com"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test2.secret_id
+  }
+
+  developer_portal {
+    host_name                = "portal.example.com"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test2.secret_id
+  }
+}
+`, r.template(data, true), data.RandomString)
 }
 
 func (r ApiManagementCustomDomainResource) proxyOnly(data acceptance.TestData) string {
@@ -328,6 +535,7 @@ resource "azurerm_key_vault_certificate" "test" {
       subject_alternative_names {
         dns_names = [
           "api.example.com",
+          "api.example2.com",
           "portal.example.com",
         ]
       }

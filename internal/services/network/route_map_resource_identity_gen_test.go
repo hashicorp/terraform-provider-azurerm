@@ -16,10 +16,18 @@ func TestAccRouteMap_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_map", "test")
 	r := RouteMapResource{}
 
+	checkedFields := map[string]struct{}{
+		"name":                {},
+		"resource_group_name": {},
+		"subscription_id":     {},
+		"virtual_hub_name":    {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "ident"),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_route_map.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_route_map.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_route_map.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("virtual_hub_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_route_map.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("virtual_hub_id")),

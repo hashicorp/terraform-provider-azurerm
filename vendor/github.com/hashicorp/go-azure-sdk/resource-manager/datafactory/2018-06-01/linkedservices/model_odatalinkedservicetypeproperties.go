@@ -11,7 +11,7 @@ import (
 type ODataLinkedServiceTypeProperties struct {
 	AadResourceId                        *interface{}                            `json:"aadResourceId,omitempty"`
 	AadServicePrincipalCredentialType    *ODataAadServicePrincipalCredentialType `json:"aadServicePrincipalCredentialType,omitempty"`
-	AuthHeaders                          *map[string]string                      `json:"authHeaders,omitempty"`
+	AuthHeaders                          *interface{}                            `json:"authHeaders,omitempty"`
 	AuthenticationType                   *ODataAuthenticationType                `json:"authenticationType,omitempty"`
 	AzureCloudType                       *interface{}                            `json:"azureCloudType,omitempty"`
 	EncryptedCredential                  *string                                 `json:"encryptedCredential,omitempty"`
@@ -31,7 +31,7 @@ func (s *ODataLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AadResourceId                     *interface{}                            `json:"aadResourceId,omitempty"`
 		AadServicePrincipalCredentialType *ODataAadServicePrincipalCredentialType `json:"aadServicePrincipalCredentialType,omitempty"`
-		AuthHeaders                       *map[string]string                      `json:"authHeaders,omitempty"`
+		AuthHeaders                       *interface{}                            `json:"authHeaders,omitempty"`
 		AuthenticationType                *ODataAuthenticationType                `json:"authenticationType,omitempty"`
 		AzureCloudType                    *interface{}                            `json:"azureCloudType,omitempty"`
 		EncryptedCredential               *string                                 `json:"encryptedCredential,omitempty"`

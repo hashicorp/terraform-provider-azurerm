@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -191,6 +191,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 							string(agentpools.OSSKUAzureLinuxThree),
 							string(agentpools.OSSKUUbuntu),
 							string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
+							string(agentpools.OSSKUUbuntuTwoFourZeroFour),
 							string(agentpools.OSSKUWindowsTwoZeroOneNine),
 							string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 						}, false),
@@ -286,7 +287,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 }
 
 func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -348,8 +349,7 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 					Optional: true,
 				},
 
-				// TODO 5.0: change this to `container_log_max_files`
-				"container_log_max_line": {
+				"container_log_max_files": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(2),
@@ -362,6 +362,8 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	return s
 }
 
 func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
@@ -708,27 +710,28 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	agentpool := agentpools.AgentPool{
 		Name: &defaultCluster.Name,
 		Properties: &agentpools.ManagedClusterAgentPoolProfileProperties{
-			Count:                     defaultCluster.Count,
-			VMSize:                    defaultCluster.VMSize,
-			OsDiskSizeGB:              defaultCluster.OsDiskSizeGB,
-			VnetSubnetID:              defaultCluster.VnetSubnetID,
-			MaxPods:                   defaultCluster.MaxPods,
-			MaxCount:                  defaultCluster.MaxCount,
-			MinCount:                  defaultCluster.MinCount,
-			EnableAutoScaling:         defaultCluster.EnableAutoScaling,
-			EnableEncryptionAtHost:    defaultCluster.EnableEncryptionAtHost,
-			EnableFIPS:                defaultCluster.EnableFIPS,
-			EnableUltraSSD:            defaultCluster.EnableUltraSSD,
-			OrchestratorVersion:       defaultCluster.OrchestratorVersion,
-			ProximityPlacementGroupID: defaultCluster.ProximityPlacementGroupID,
-			AvailabilityZones:         defaultCluster.AvailabilityZones,
-			EnableNodePublicIP:        defaultCluster.EnableNodePublicIP,
-			NodePublicIPPrefixID:      defaultCluster.NodePublicIPPrefixID,
-			SpotMaxPrice:              defaultCluster.SpotMaxPrice,
-			NodeLabels:                defaultCluster.NodeLabels,
-			NodeTaints:                defaultCluster.NodeTaints,
-			PodSubnetID:               defaultCluster.PodSubnetID,
-			Tags:                      defaultCluster.Tags,
+			CapacityReservationGroupID: defaultCluster.CapacityReservationGroupID,
+			Count:                      defaultCluster.Count,
+			VMSize:                     defaultCluster.VMSize,
+			OsDiskSizeGB:               defaultCluster.OsDiskSizeGB,
+			VnetSubnetID:               defaultCluster.VnetSubnetID,
+			MaxPods:                    defaultCluster.MaxPods,
+			MaxCount:                   defaultCluster.MaxCount,
+			MinCount:                   defaultCluster.MinCount,
+			EnableAutoScaling:          defaultCluster.EnableAutoScaling,
+			EnableEncryptionAtHost:     defaultCluster.EnableEncryptionAtHost,
+			EnableFIPS:                 defaultCluster.EnableFIPS,
+			EnableUltraSSD:             defaultCluster.EnableUltraSSD,
+			OrchestratorVersion:        defaultCluster.OrchestratorVersion,
+			ProximityPlacementGroupID:  defaultCluster.ProximityPlacementGroupID,
+			AvailabilityZones:          defaultCluster.AvailabilityZones,
+			EnableNodePublicIP:         defaultCluster.EnableNodePublicIP,
+			NodePublicIPPrefixID:       defaultCluster.NodePublicIPPrefixID,
+			SpotMaxPrice:               defaultCluster.SpotMaxPrice,
+			NodeLabels:                 defaultCluster.NodeLabels,
+			NodeTaints:                 defaultCluster.NodeTaints,
+			PodSubnetID:                defaultCluster.PodSubnetID,
+			Tags:                       defaultCluster.Tags,
 		},
 	}
 
@@ -1075,8 +1078,13 @@ func expandClusterNodePoolKubeletConfig(input []interface{}) *managedclusters.Ku
 	if v := raw["container_log_max_size_mb"].(int); v != 0 {
 		result.ContainerLogMaxSizeMB = pointer.To(int64(v))
 	}
-	if v := raw["container_log_max_line"].(int); v != 0 {
+	if v := raw["container_log_max_files"].(int); v != 0 {
 		result.ContainerLogMaxFiles = pointer.To(int64(v))
+	}
+	if !features.FivePointOh() {
+		if v := raw["container_log_max_line"].(int); v != 0 {
+			result.ContainerLogMaxFiles = pointer.To(int64(v))
+		}
 	}
 	if v := raw["pod_max_pid"].(int); v != 0 {
 		result.PodMaxPids = pointer.To(int64(v))
@@ -1476,7 +1484,7 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 
 	var cpuManagerPolicy, cpuCfsQuotaPeriod, topologyManagerPolicy string
 	var cpuCfsQuotaEnabled bool
-	var imageGcHighThreshold, imageGcLowThreshold, containerLogMaxSizeMB, containerLogMaxLines, podMaxPids int
+	var imageGcHighThreshold, imageGcLowThreshold, containerLogMaxSizeMB, containerLogMaxFiles, podMaxPids int
 
 	if input.CpuManagerPolicy != nil {
 		cpuManagerPolicy = *input.CpuManagerPolicy
@@ -1500,13 +1508,13 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 		containerLogMaxSizeMB = int(*input.ContainerLogMaxSizeMB)
 	}
 	if input.ContainerLogMaxFiles != nil {
-		containerLogMaxLines = int(*input.ContainerLogMaxFiles)
+		containerLogMaxFiles = int(*input.ContainerLogMaxFiles)
 	}
 	if input.PodMaxPids != nil {
 		podMaxPids = int(*input.PodMaxPids)
 	}
 
-	return []interface{}{
+	result := []interface{}{
 		map[string]interface{}{
 			"cpu_manager_policy":        cpuManagerPolicy,
 			"cpu_cfs_quota_enabled":     cpuCfsQuotaEnabled,
@@ -1516,10 +1524,16 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 			"topology_manager_policy":   topologyManagerPolicy,
 			"allowed_unsafe_sysctls":    utils.FlattenStringSlice(input.AllowedUnsafeSysctls),
 			"container_log_max_size_mb": containerLogMaxSizeMB,
-			"container_log_max_line":    containerLogMaxLines,
+			"container_log_max_files":   containerLogMaxFiles,
 			"pod_max_pid":               podMaxPids,
 		},
 	}
+
+	if !features.FivePointOh() {
+		result[0].(map[string]interface{})["container_log_max_line"] = containerLogMaxFiles
+	}
+
+	return result
 }
 
 func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{} {
@@ -1529,7 +1543,7 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 
 	var cpuManagerPolicy, cpuCfsQuotaPeriod, topologyManagerPolicy string
 	var cpuCfsQuotaEnabled bool
-	var imageGcHighThreshold, imageGcLowThreshold, containerLogMaxSizeMB, containerLogMaxLines, podMaxPids int
+	var imageGcHighThreshold, imageGcLowThreshold, containerLogMaxSizeMB, containerLogMaxFiles, podMaxPids int
 
 	if input.CpuManagerPolicy != nil {
 		cpuManagerPolicy = *input.CpuManagerPolicy
@@ -1553,13 +1567,13 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 		containerLogMaxSizeMB = int(*input.ContainerLogMaxSizeMB)
 	}
 	if input.ContainerLogMaxFiles != nil {
-		containerLogMaxLines = int(*input.ContainerLogMaxFiles)
+		containerLogMaxFiles = int(*input.ContainerLogMaxFiles)
 	}
 	if input.PodMaxPids != nil {
 		podMaxPids = int(*input.PodMaxPids)
 	}
 
-	return []interface{}{
+	result := []interface{}{
 		map[string]interface{}{
 			"cpu_manager_policy":        cpuManagerPolicy,
 			"cpu_cfs_quota_enabled":     cpuCfsQuotaEnabled,
@@ -1569,10 +1583,16 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 			"topology_manager_policy":   topologyManagerPolicy,
 			"allowed_unsafe_sysctls":    utils.FlattenStringSlice(input.AllowedUnsafeSysctls),
 			"container_log_max_size_mb": containerLogMaxSizeMB,
-			"container_log_max_line":    containerLogMaxLines,
+			"container_log_max_files":   containerLogMaxFiles,
 			"pod_max_pid":               podMaxPids,
 		},
 	}
+
+	if !features.FivePointOh() {
+		result[0].(map[string]interface{})["container_log_max_line"] = containerLogMaxFiles
+	}
+
+	return result
 }
 
 func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) ([]interface{}, error) {
