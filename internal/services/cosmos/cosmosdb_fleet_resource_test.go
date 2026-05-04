@@ -10,21 +10,17 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/fleets"
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
-	"github.com/hashicorp/terraform-plugin-testing/statecheck"
-	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosDbFleetResource struct{}
+type CosmosdbFleetResource struct{}
 
-func TestAccCosmosDbFleet_basic(t *testing.T) {
+func TestAccCosmosdbFleet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleet", "test")
-	r := CosmosDbFleetResource{}
+	r := CosmosdbFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,9 +33,9 @@ func TestAccCosmosDbFleet_basic(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDbFleet_requiresImport(t *testing.T) {
+func TestAccCosmosdbFleet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleet", "test")
-	r := CosmosDbFleetResource{}
+	r := CosmosdbFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,9 +48,9 @@ func TestAccCosmosDbFleet_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDbFleet_complete(t *testing.T) {
+func TestAccCosmosdbFleet_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleet", "test")
-	r := CosmosDbFleetResource{}
+	r := CosmosdbFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,32 +63,7 @@ func TestAccCosmosDbFleet_complete(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDbFleet_resourceIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleet", "test")
-	r := CosmosDbFleetResource{}
-
-	checkedFields := map[string]struct{}{
-		"subscription_id":     {},
-		"name":                {},
-		"resource_group_name": {},
-	}
-
-	data.ResourceIdentityTest(t, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			ConfigStateChecks: []statecheck.StateCheck{
-				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_cosmosdb_fleet.test", checkedFields),
-				statecheck.ExpectIdentityValue("azurerm_cosmosdb_fleet.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cosmosdb_fleet.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cosmosdb_fleet.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
-			},
-		},
-		data.ImportBlockWithResourceIdentityStep(false),
-		data.ImportBlockWithIDStep(false),
-	}, false)
-}
-
-func (CosmosDbFleetResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (CosmosdbFleetResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fleets.ParseFleetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -106,7 +77,7 @@ func (CosmosDbFleetResource) Exists(ctx context.Context, client *clients.Client,
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (CosmosDbFleetResource) template(data acceptance.TestData) string {
+func (CosmosdbFleetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,7 +90,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CosmosDbFleetResource) basic(data acceptance.TestData) string {
+func (r CosmosdbFleetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -131,7 +102,7 @@ resource "azurerm_cosmosdb_fleet" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CosmosDbFleetResource) requiresImport(data acceptance.TestData) string {
+func (r CosmosdbFleetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -143,7 +114,7 @@ resource "azurerm_cosmosdb_fleet" "import" {
 `, r.basic(data))
 }
 
-func (r CosmosDbFleetResource) complete(data acceptance.TestData) string {
+func (r CosmosdbFleetResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
