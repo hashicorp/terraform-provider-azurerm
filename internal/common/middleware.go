@@ -55,8 +55,11 @@ func responseLoggerMiddleware(providerName string) client.ResponseMiddleware {
 			log.Printf("[DEBUG] %s Response for %s: \n%s\n", providerName, request.URL, dump)
 		} else {
 			var bs bytes.Buffer
-			response.Header.Write(&bs)
-			log.Printf("[DEBUG] %s Response dump failed for %s: %s\nResponse Headers: %s", providerName, request.URL, err2, bs.String())
+			if err := response.Header.Write(&bs); err != nil {
+				log.Printf("[DEBUG] %s Response dump failed for %s: %s (header write also failed: %s)", providerName, request.URL, err2, err)
+			} else {
+				log.Printf("[DEBUG] %s Response dump failed for %s: %s\nResponse Headers: %s", providerName, request.URL, err2, bs.String())
+			}
 		}
 		return response, nil
 	}
