@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package computefleet
 
 import (
@@ -286,9 +289,9 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"location": commonschema.Location(),
-
 		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
 
 		"virtual_machine_profile": {
 			Type:     pluginsdk.TypeList,
@@ -467,60 +470,24 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						ForceNew: true,
 						Default:  false,
+						AtLeastOneOf: []string{
+							"additional_capabilities.0.hibernation_enabled",
+							"additional_capabilities.0.ultra_ssd_enabled",
+						},
 					},
 					"ultra_ssd_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						ForceNew: true,
 						Default:  false,
+						AtLeastOneOf: []string{
+							"additional_capabilities.0.hibernation_enabled",
+							"additional_capabilities.0.ultra_ssd_enabled",
+						},
 					},
 				},
 			},
 		},
-
-		"plan": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						ForceNew: true,
-						Required: true,
-					},
-
-					"product": {
-						Type:     pluginsdk.TypeString,
-						ForceNew: true,
-						Required: true,
-					},
-
-					"publisher": {
-						Type:     pluginsdk.TypeString,
-						ForceNew: true,
-						Required: true,
-					},
-
-					"promotion_code": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-		},
-
-		"platform_fault_domain_count": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  1,
-			ForceNew: true,
-		},
-
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 		"compute_api_version": {
 			Type:     pluginsdk.TypeString,
@@ -565,6 +532,51 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"plan": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						ForceNew:     true,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"product": {
+						Type:         pluginsdk.TypeString,
+						ForceNew:     true,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"publisher": {
+						Type:         pluginsdk.TypeString,
+						ForceNew:     true,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"promotion_code": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
+		"platform_fault_domain_count": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Default:  1,
+			ForceNew: true,
 		},
 
 		"spot_capacity": {
@@ -619,6 +631,8 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -657,11 +671,11 @@ func (r ComputeFleetResource) Create() sdk.ResourceFunc {
 
 			properties := fleets.Fleet{
 				Location: location.Normalize(model.Location),
-				Plan:     expandPlanModel(model.Plan),
+				Plan:     r.expandPlanModel(model.Plan),
 				Properties: &fleets.FleetProperties{
-					RegularPriorityProfile: expandOnDemandCapacityModel(model.OnDemandCapacity),
-					SpotPriorityProfile:    expandSpotCapacityModel(model.SpotCapacity),
-					VMSizesProfile:         pointer.From(expandVMSizeProfileModel(model.VMSizesProfile, metadata)),
+					RegularPriorityProfile: r.expandOnDemandCapacityModel(model.OnDemandCapacity),
+					SpotPriorityProfile:    r.expandSpotCapacityModel(model.SpotCapacity),
+					VMSizesProfile:         pointer.From(r.expandVMSizeProfileModel(model.VMSizesProfile, metadata)),
 				},
 			}
 
@@ -680,14 +694,14 @@ func (r ComputeFleetResource) Create() sdk.ResourceFunc {
 			properties.Identity = expandedIdentity
 
 			computeProfile := fleets.ComputeProfile{
-				AdditionalVirtualMachineCapabilities: expandAdditionalCapabilities(model.AdditionalCapabilities),
+				AdditionalVirtualMachineCapabilities: r.expandAdditionalCapabilities(model.AdditionalCapabilities),
 				PlatformFaultDomainCount:             pointer.To(model.PlatformFaultDomainCount),
 			}
 			if model.ComputeApiVersion != "" {
 				computeProfile.ComputeApiVersion = pointer.To(model.ComputeApiVersion)
 			}
 
-			baseVirtualMachineProfileValue, err := expandVirtualMachineProfileModel(model.VirtualMachineProfile, &model, metadata.ResourceData)
+			baseVirtualMachineProfileValue, err := r.expandVirtualMachineProfileModel(model.VirtualMachineProfile, &model, metadata.ResourceData)
 			if err != nil {
 				return err
 			}
@@ -756,19 +770,19 @@ func (r ComputeFleetResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("plan") {
-				properties.Plan = expandPlanModel(model.Plan)
+				properties.Plan = r.expandPlanModel(model.Plan)
 			}
 
 			if metadata.ResourceData.HasChange("on_demand_capacity") {
-				properties.Properties.RegularPriorityProfile = expandOnDemandCapacityModel(model.OnDemandCapacity)
+				properties.Properties.RegularPriorityProfile = r.expandOnDemandCapacityModel(model.OnDemandCapacity)
 			}
 
 			if metadata.ResourceData.HasChange("spot_capacity") {
-				properties.Properties.SpotPriorityProfile = expandSpotCapacityModel(model.SpotCapacity)
+				properties.Properties.SpotPriorityProfile = r.expandSpotCapacityModel(model.SpotCapacity)
 			}
 
 			if metadata.ResourceData.HasChange("vm_sizes_profile") {
-				properties.Properties.VMSizesProfile = pointer.From(expandVMSizeProfileModel(model.VMSizesProfile, metadata))
+				properties.Properties.VMSizesProfile = pointer.From(r.expandVMSizeProfileModel(model.VMSizesProfile, metadata))
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -820,12 +834,12 @@ func (r ComputeFleetResource) Read() sdk.ResourceFunc {
 					state.Identity = pointer.From(v)
 				}
 
-				state.Plan = flattenPlanModel(model.Plan)
+				state.Plan = r.flattenPlanModel(model.Plan)
 
 				if props := model.Properties; props != nil {
-					state.AdditionalCapabilities = flattenAdditionalCapabilities(props.ComputeProfile.AdditionalVirtualMachineCapabilities)
+					state.AdditionalCapabilities = r.flattenAdditionalCapabilities(props.ComputeProfile.AdditionalVirtualMachineCapabilities)
 
-					baseVirtualMachineProfileValue, err := flattenVirtualMachineProfileModel(&props.ComputeProfile.BaseVirtualMachineProfile, metadata)
+					baseVirtualMachineProfileValue, err := r.flattenVirtualMachineProfileModel(&props.ComputeProfile.BaseVirtualMachineProfile, metadata)
 					if err != nil {
 						return err
 					}
@@ -833,10 +847,10 @@ func (r ComputeFleetResource) Read() sdk.ResourceFunc {
 
 					state.ComputeApiVersion = pointer.From(props.ComputeProfile.ComputeApiVersion)
 					state.PlatformFaultDomainCount = pointer.From(props.ComputeProfile.PlatformFaultDomainCount)
-					state.OnDemandCapacity = flattenOnDemandCapacityModel(props.RegularPriorityProfile)
-					state.SpotCapacity = flattenSpotCapacityModel(props.SpotPriorityProfile)
+					state.OnDemandCapacity = r.flattenOnDemandCapacityModel(props.RegularPriorityProfile)
+					state.SpotCapacity = r.flattenSpotCapacityModel(props.SpotPriorityProfile)
 					state.UniqueId = pointer.From(props.UniqueId)
-					state.VMSizesProfile = flattenVMSizeProfileModel(&props.VMSizesProfile)
+					state.VMSizesProfile = r.flattenVMSizeProfileModel(&props.VMSizesProfile)
 				}
 				state.Tags = pointer.From(model.Tags)
 				state.Zones = pointer.From(model.Zones)
@@ -1037,7 +1051,7 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func expandPlanModel(inputList []PlanModel) *fleets.Plan {
+func (r ComputeFleetResource) expandPlanModel(inputList []PlanModel) *fleets.Plan {
 	if len(inputList) == 0 {
 		return nil
 	}
@@ -1056,13 +1070,13 @@ func expandPlanModel(inputList []PlanModel) *fleets.Plan {
 	return &output
 }
 
-func expandOnDemandCapacityModel(inputList []OnDemandCapacityModel) *fleets.RegularPriorityProfile {
+func (r ComputeFleetResource) expandOnDemandCapacityModel(inputList []OnDemandCapacityModel) *fleets.RegularPriorityProfile {
 	if len(inputList) == 0 {
 		return nil
 	}
 	input := &inputList[0]
 	output := fleets.RegularPriorityProfile{
-		AllocationStrategy: pointer.To(fleets.RegularPriorityAllocationStrategy(input.AllocationStrategy)),
+		AllocationStrategy: pointer.ToEnum[fleets.RegularPriorityAllocationStrategy](input.AllocationStrategy),
 		Capacity:           pointer.To(input.TargetCapacity),
 		MinCapacity:        pointer.To(input.MinimumStartingCapacity),
 	}
@@ -1070,16 +1084,16 @@ func expandOnDemandCapacityModel(inputList []OnDemandCapacityModel) *fleets.Regu
 	return &output
 }
 
-func expandSpotCapacityModel(inputList []SpotCapacityModel) *fleets.SpotPriorityProfile {
+func (r ComputeFleetResource) expandSpotCapacityModel(inputList []SpotCapacityModel) *fleets.SpotPriorityProfile {
 	if len(inputList) == 0 {
 		return nil
 	}
 
 	input := &inputList[0]
 	output := fleets.SpotPriorityProfile{
-		AllocationStrategy: pointer.To(fleets.SpotAllocationStrategy(input.AllocationStrategy)),
+		AllocationStrategy: pointer.ToEnum[fleets.SpotAllocationStrategy](input.AllocationStrategy),
 		Capacity:           pointer.To(input.TargetCapacity),
-		EvictionPolicy:     pointer.To(fleets.EvictionPolicy(input.EvictionPolicy)),
+		EvictionPolicy:     pointer.ToEnum[fleets.EvictionPolicy](input.EvictionPolicy),
 		Maintain:           pointer.To(input.MaintainCapacityEnabled),
 		MinCapacity:        pointer.To(input.MinimumCapacity),
 	}
@@ -1090,7 +1104,7 @@ func expandSpotCapacityModel(inputList []SpotCapacityModel) *fleets.SpotPriority
 	return &output
 }
 
-func expandVMSizeProfileModel(inputList []VMSizeProfileModel, metadata sdk.ResourceMetaData) *[]fleets.VMSizeProfile {
+func (r ComputeFleetResource) expandVMSizeProfileModel(inputList []VMSizeProfileModel, metadata sdk.ResourceMetaData) *[]fleets.VMSizeProfile {
 	if len(inputList) == 0 {
 		return nil
 	}
@@ -1109,7 +1123,7 @@ func expandVMSizeProfileModel(inputList []VMSizeProfileModel, metadata sdk.Resou
 	return &outputList
 }
 
-func expandAdditionalCapabilities(inputList []AdditionalCapabilitiesModel) *fleets.AdditionalCapabilities {
+func (r ComputeFleetResource) expandAdditionalCapabilities(inputList []AdditionalCapabilitiesModel) *fleets.AdditionalCapabilities {
 	if len(inputList) == 0 {
 		return nil
 	}
@@ -1122,7 +1136,7 @@ func expandAdditionalCapabilities(inputList []AdditionalCapabilitiesModel) *flee
 	return &capabilities
 }
 
-func flattenPlanModel(input *fleets.Plan) []PlanModel {
+func (r ComputeFleetResource) flattenPlanModel(input *fleets.Plan) []PlanModel {
 	outputList := make([]PlanModel, 0)
 	if input == nil {
 		return outputList
@@ -1137,7 +1151,7 @@ func flattenPlanModel(input *fleets.Plan) []PlanModel {
 	return append(outputList, output)
 }
 
-func flattenAdditionalCapabilities(input *fleets.AdditionalCapabilities) []AdditionalCapabilitiesModel {
+func (r ComputeFleetResource) flattenAdditionalCapabilities(input *fleets.AdditionalCapabilities) []AdditionalCapabilitiesModel {
 	outputList := make([]AdditionalCapabilitiesModel, 0)
 	if input == nil {
 		return outputList
@@ -1150,7 +1164,7 @@ func flattenAdditionalCapabilities(input *fleets.AdditionalCapabilities) []Addit
 	return append(outputList, output)
 }
 
-func flattenOnDemandCapacityModel(input *fleets.RegularPriorityProfile) []OnDemandCapacityModel {
+func (r ComputeFleetResource) flattenOnDemandCapacityModel(input *fleets.RegularPriorityProfile) []OnDemandCapacityModel {
 	outputList := make([]OnDemandCapacityModel, 0)
 	if input == nil {
 		return outputList
@@ -1165,7 +1179,7 @@ func flattenOnDemandCapacityModel(input *fleets.RegularPriorityProfile) []OnDema
 	return append(outputList, output)
 }
 
-func flattenSpotCapacityModel(input *fleets.SpotPriorityProfile) []SpotCapacityModel {
+func (r ComputeFleetResource) flattenSpotCapacityModel(input *fleets.SpotPriorityProfile) []SpotCapacityModel {
 	outputList := make([]SpotCapacityModel, 0)
 	if input == nil {
 		return outputList
@@ -1189,7 +1203,7 @@ func flattenSpotCapacityModel(input *fleets.SpotPriorityProfile) []SpotCapacityM
 	return append(outputList, output)
 }
 
-func flattenVMSizeProfileModel(inputList *[]fleets.VMSizeProfile) []VMSizeProfileModel {
+func (r ComputeFleetResource) flattenVMSizeProfileModel(inputList *[]fleets.VMSizeProfile) []VMSizeProfileModel {
 	outputList := make([]VMSizeProfileModel, 0)
 	if inputList == nil {
 		return outputList
