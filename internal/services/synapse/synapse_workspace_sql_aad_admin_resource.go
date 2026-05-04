@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -78,10 +79,10 @@ func resourceSynapseWorkspaceSqlAADAdminCreateUpdate(d *pluginsdk.ResourceData, 
 
 	aadAdmin := &synapse.WorkspaceAadAdminInfo{
 		AadAdminProperties: &synapse.AadAdminProperties{
-			TenantID:          utils.String(d.Get("tenant_id").(string)),
-			Login:             utils.String(d.Get("login").(string)),
-			AdministratorType: utils.String("ActiveDirectory"),
-			Sid:               utils.String(d.Get("object_id").(string)),
+			TenantID:          pointer.To(d.Get("tenant_id").(string)),
+			Login:             pointer.To(d.Get("login").(string)),
+			AdministratorType: pointer.To("ActiveDirectory"),
+			Sid:               pointer.To(d.Get("object_id").(string)),
 		},
 	}
 

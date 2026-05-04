@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -17,17 +17,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	providerfeatures "github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func AzureProvider() *schema.Provider {
-	return azureProvider(false)
+	return azureProvider(false, "")
 }
 
 func TestAzureProvider() *schema.Provider {
-	return azureProvider(true)
+	return azureProvider(true, "")
+}
+
+// AzureProviderWithTestName returns provider for a specific test name when testing under go-vcr where context-awareness
+// is required.
+func AzureProviderWithTestName(testName string) *schema.Provider {
+	return azureProvider(false, testName)
 }
 
 func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
@@ -79,7 +86,7 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 	}
 }
 
-func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
+func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provider {
 	dataSources := make(map[string]*schema.Resource)
 	resources := make(map[string]*schema.Resource)
 
@@ -339,7 +346,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"resource_provider_registrations": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone),
 				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
 				ValidateFunc: validation.StringInSlice([]string{
 					resourceproviders.ProviderRegistrationsCore,
@@ -375,13 +382,39 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
 				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
 			},
+
+			"enhanced_validation": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"locations": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", providerfeatures.EnhancedValidationLocationsEnabled()),
+							Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
+						},
+						"resource_providers": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", providerfeatures.EnhancedValidationResourceProvidersEnabled()),
+							Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
+						},
+					},
+				},
+			},
 		},
 
 		DataSourcesMap: dataSources,
 		ResourcesMap:   resources,
 	}
 
-	p.ConfigureContextFunc = providerConfigure(p)
+	p.ConfigureContextFunc = providerConfigure(p, testName)
+
+	if !providerfeatures.FivePointOh() {
+		p.Schema["resource_provider_registrations"].DefaultFunc = schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
+	}
 
 	return p
 }
@@ -389,7 +422,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 // providerConfigure is used to configure the cloud environment and authentication.
 // To configure behavioral aspects of the provider, use the buildClient function instead.
 // This separation allows us to robustly test different authentication scenarios.
-func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
+func providerConfigure(p *schema.Provider, testName string) schema.ConfigureContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		subscriptionId := d.Get("subscription_id").(string)
 		if subscriptionId == "" {
@@ -494,13 +527,13 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			EnableAuthenticationUsingADOPipelineOIDC:   enableOidc,
 		}
 
-		return buildClient(ctx, p, d, authConfig)
+		return buildClient(ctx, p, d, authConfig, testName)
 	}
 }
 
 // buildClient is used to configure behavioral aspects of the provider. To configure the
 // cloud environment and authentication-related settings, use the providerConfigure function.
-func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials) (*clients.Client, diag.Diagnostics) {
+func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials, testName string) (*clients.Client, diag.Diagnostics) {
 	providerRegistrations := d.Get("resource_provider_registrations").(string)
 
 	// TODO: Remove in v5.0
@@ -522,17 +555,46 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	}
 	requiredResourceProviders.Merge(additionalProvidersToRegister)
 
+	features := expandFeatures(d.Get("features").([]interface{}))
+	// In 4.x, validate that the legacy and specific enhanced validation env vars don't conflict
+	if !providerfeatures.FivePointOh() {
+		if err := providerfeatures.ValidateEnhancedValidationEnvVars(); err != nil {
+			return nil, diag.FromErr(err)
+		}
+	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` provider block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
+	}
+
+	// Read enhanced_validation block
+	enhancedValidationLocations := providerfeatures.EnhancedValidationLocationsEnabled()
+	enhancedValidationResourceProviders := providerfeatures.EnhancedValidationResourceProvidersEnabled()
+	if raw, ok := d.GetOk("enhanced_validation"); ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			evRaw := items[0].(map[string]interface{})
+			if v, ok := evRaw["locations"]; ok {
+				enhancedValidationLocations = v.(bool)
+			}
+			if v, ok := evRaw["resource_providers"]; ok {
+				enhancedValidationResourceProviders = v.(bool)
+			}
+		}
+	}
+	features.EnhancedValidation.Locations = enhancedValidationLocations
+	features.EnhancedValidation.ResourceProviders = enhancedValidationResourceProviders
+
 	clientBuilder := clients.ClientBuilder{
 		AuthConfig:                  authConfig,
 		DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
 		DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
-		Features:                    expandFeatures(d.Get("features").([]interface{})),
+		Features:                    features,
 		MetadataHost:                d.Get("metadata_host").(string),
 		PartnerID:                   d.Get("partner_id").(string),
 		RegisteredResourceProviders: requiredResourceProviders,
 		StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
 		SubscriptionID:              d.Get("subscription_id").(string),
 		TerraformVersion:            p.TerraformVersion,
+		TestName:                    testName,
 
 		// this field is intentionally not exposed in the provider block, since it's only used for
 		// platform level tracing
@@ -557,8 +619,11 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
-		return nil, diag.FromErr(err)
+	// Skip this if we're running VCR, it creates too much noise in the cassette
+	if os.Getenv("TC_TEST_VIA_VCR") == "" {
+		if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
+			return nil, diag.FromErr(err)
+		}
 	}
 
 	return client, nil

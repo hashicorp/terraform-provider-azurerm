@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loadbalancer
@@ -359,20 +359,19 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 
 func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *loadbalancers.LoadBalancer, loadBalancerId loadbalancers.LoadBalancerId) (*loadbalancers.InboundNatRule, error) {
 	properties := loadbalancers.InboundNatRulePropertiesFormat{
-		Protocol:    pointer.To(loadbalancers.TransportProtocol(d.Get("protocol").(string))),
-		BackendPort: pointer.To(int64(d.Get("backend_port").(int))),
-	}
-
-	if v, ok := d.GetOk("tcp_reset_enabled"); ok {
-		properties.EnableTcpReset = pointer.To(v.(bool))
+		Protocol:         pointer.To(loadbalancers.TransportProtocol(d.Get("protocol").(string))),
+		BackendPort:      pointer.To(int64(d.Get("backend_port").(int))),
+		EnableFloatingIP: pointer.To(d.Get("floating_ip_enabled").(bool)),
+		EnableTcpReset:   pointer.To(d.Get("tcp_reset_enabled").(bool)),
 	}
 
 	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_floating_ip"); ok {
-			properties.EnableFloatingIP = pointer.To(v.(bool))
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_floating_ip") {
+			properties.EnableFloatingIP = pointer.To(d.Get("enable_floating_ip").(bool))
 		}
-		if v, ok := d.GetOk("enable_tcp_reset"); ok {
-			properties.EnableTcpReset = pointer.To(v.(bool))
+
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_tcp_reset") {
+			properties.EnableTcpReset = pointer.To(d.Get("enable_tcp_reset").(bool))
 		}
 	}
 
@@ -396,15 +395,6 @@ func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *loadbalance
 		} else {
 			properties.FrontendPortRangeStart = pointer.To(int64(d.Get("frontend_port_start").(int)))
 			properties.FrontendPortRangeEnd = pointer.To(int64(d.Get("frontend_port_end").(int)))
-		}
-	}
-
-	if v, ok := d.GetOk("floating_ip_enabled"); ok {
-		properties.EnableFloatingIP = pointer.To(v.(bool))
-	}
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_floating_ip"); ok {
-			properties.EnableFloatingIP = pointer.To(v.(bool))
 		}
 	}
 

@@ -1,0 +1,11 @@
+# Warning! Preview API usage is risky and can cause poor azurerm user experience.
+# Please ensure all the consequences are fully understood before adding an exception:
+# https://github.com/hashicorp/terraform-provider-azurerm/tree/main/contributing/topics/guide-api-version.md
+
+# Entries have to be sorted alphabetically by module, service, version.
+# Example:
+# - module: github.com/hashicorp/go-azure-sdk/resource-manager
+#   service: compute
+#   version: 2021-06-01-preview
+#   stableVersionTargetDate: 2026-01-01
+#   responsibleIndividual: github.com/gerrytan

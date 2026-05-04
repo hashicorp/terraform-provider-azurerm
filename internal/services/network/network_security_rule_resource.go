@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -11,11 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/securityrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/securityrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -139,8 +140,11 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				MaxItems:     10,
 				Optional:     true,
 				ExactlyOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
-				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:          pluginsdk.HashString,
+				Elem: &pluginsdk.Schema{
+					Type:             pluginsdk.TypeString,
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+				Set: pluginsdk.HashStringInsensitively,
 			},
 
 			// lintignore:S018
@@ -149,8 +153,11 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				MaxItems:     10,
 				Optional:     true,
 				ExactlyOneOf: []string{"destination_address_prefix", "destination_address_prefixes", "destination_application_security_group_ids"},
-				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:          pluginsdk.HashString,
+				Elem: &pluginsdk.Schema{
+					Type:             pluginsdk.TypeString,
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+				Set: pluginsdk.HashStringInsensitively,
 			},
 
 			"access": {
@@ -285,6 +292,9 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceNetworkSecurityRuleRead(d, meta)
 }
@@ -438,7 +448,10 @@ func resourceNetworkSecurityRuleRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
+	return resourceNetworkSecurityRuleFlatten(d, id, resp.Model)
+}
 
+func resourceNetworkSecurityRuleFlatten(d *pluginsdk.ResourceData, id *securityrules.SecurityRuleId, model *securityrules.SecurityRule) error {
 	d.Set("name", id.SecurityRuleName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("network_security_group_name", id.NetworkSecurityGroupName)
@@ -450,7 +463,7 @@ func resourceNetworkSecurityRuleRead(d *pluginsdk.ResourceData, meta interface{}
 		protocolMap[strings.ToLower(protocol)] = securityrules.SecurityRuleProtocol(protocol)
 	}
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("description", props.Description)
 			d.Set("protocol", string(protocolMap[strings.ToLower(string(props.Protocol))]))

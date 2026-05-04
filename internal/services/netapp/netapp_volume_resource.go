@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -16,11 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/poolchange"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -136,7 +133,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
-				ForceNew: true,
 				Optional: true,
 				Computed: true,
 				MaxItems: 2,
@@ -370,6 +366,21 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				},
 			},
 
+			"data_protection_advanced_ransomware": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"protection_enabled": {
+							Type:        pluginsdk.TypeBool,
+							Required:    true,
+							Description: "Enable or disable the Advanced Ransomware Protection feature.",
+						},
+					},
+				},
+			},
+
 			"azure_vmware_data_store_enabled": {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
@@ -511,6 +522,57 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}
 			}
 
+			// Validate NFSv3 to NFSv4.1 protocol conversion restrictions
+			if d.HasChange("protocols") {
+				old, new := d.GetChange("protocols")
+				oldProtocols := old.(*pluginsdk.Set).List()
+				newProtocols := new.(*pluginsdk.Set).List()
+
+				// Convert to string slices for validation
+				oldProtocolsStr := make([]string, len(oldProtocols))
+				newProtocolsStr := make([]string, len(newProtocols))
+
+				for i, v := range oldProtocols {
+					oldProtocolsStr[i] = v.(string)
+				}
+				for i, v := range newProtocols {
+					newProtocolsStr[i] = v.(string)
+				}
+
+				kerberosEnabled := d.Get("kerberos_enabled").(bool)
+				dataReplication := d.Get("data_protection_replication").([]interface{})
+
+				// Get the new export policy rules configuration to validate against new protocols
+				// Always use the new configuration when protocols are changing to ensure validation against intended state
+				exportPolicyRules := d.Get("export_policy_rule").([]interface{})
+
+				validationErrors := netAppValidate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
+				for _, err := range validationErrors {
+					return err
+				}
+			}
+
+			// Validate cross-zone-region replication requirements
+			// According to Azure documentation, for cross-zone replication, both source and destination volumes must have zones
+			dataReplicationRaw := d.Get("data_protection_replication").([]interface{})
+			if len(dataReplicationRaw) > 0 && dataReplicationRaw[0] != nil {
+				// This is a destination volume with data_protection_replication configured
+				dataReplication := dataReplicationRaw[0].(map[string]interface{})
+				remoteVolumeLocation := dataReplication["remote_volume_location"].(string)
+				currentLocation := d.Get("location").(string)
+
+				// Check if this is cross-zone replication (same region)
+				if strings.EqualFold(location.Normalize(remoteVolumeLocation), location.Normalize(currentLocation)) {
+					// Cross-zone replication: both source and destination must have zones assigned
+					zone := d.Get("zone").(string)
+					if zone == "" {
+						return fmt.Errorf("when configuring cross-zone replication (data_protection_replication with same region), the destination volume must have a `zone` assigned")
+					}
+					// Note: We cannot validate the source volume's zone here since we don't have access to it during plan/diff
+					// The documentation states the source must also have a zone, which users must ensure separately
+				}
+			}
+
 			return nil
 		},
 	}
@@ -572,7 +634,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 
 	zones := &[]string{}
 	if v, ok := d.GetOk("zone"); ok {
@@ -629,12 +691,15 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	dataProtectionBackupPolicyRaw := d.Get("data_protection_backup_policy").([]interface{})
 	dataProtectionBackupPolicy := expandNetAppVolumeDataProtectionBackupPolicy(dataProtectionBackupPolicyRaw)
 
+	dataProtectionARPRaw := d.Get("data_protection_advanced_ransomware").([]interface{})
+	dataProtectionARP := expandNetAppVolumeDataProtectionAdvancedRansomwareProtection(dataProtectionARPRaw)
+
 	authorizeReplication := false
 	volumeType := ""
 	endpointType := ""
-	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
-		if dataProtectionReplication.Replication.EndpointType != nil {
-			endpointType = string(*dataProtectionReplication.Replication.EndpointType)
+	if dataProtectionReplication != nil {
+		if dataProtectionReplication.EndpointType != nil {
+			endpointType = string(*dataProtectionReplication.EndpointType)
 		}
 		if strings.EqualFold(endpointType, "dst") {
 			authorizeReplication = true
@@ -643,15 +708,15 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// Validate applicability of backup policies
-	if dataProtectionReplication != nil && dataProtectionReplication.Backup != nil {
+	if dataProtectionBackupPolicy != nil {
 		// Validate that backup policies are not being enforced in a data protection replication destination volume
-		if strings.EqualFold(volumeType, "dst") && dataProtectionReplication.Backup.PolicyEnforced == pointer.To(true) {
+		if strings.EqualFold(volumeType, "dst") && dataProtectionBackupPolicy.PolicyEnforced == pointer.To(true) {
 			return fmt.Errorf("backup policy cannot be enforced on a data protection destination volume, NetApp Volume %q (Resource Group %q)", id.VolumeName, id.ResourceGroupName)
 		}
 	}
 
 	// Validating that snapshot policies are not being created in a data protection replication volume
-	if dataProtectionSnapshotPolicy.Snapshot != nil && volumeType != "" {
+	if dataProtectionSnapshotPolicy != nil && volumeType != "" {
 		return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, NetApp Volume %q (Resource Group %q)", id.VolumeName, id.ResourceGroupName)
 	}
 
@@ -740,9 +805,10 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			VolumeType:                pointer.To(volumeType),
 			SnapshotId:                pointer.To(snapshotID),
 			DataProtection: &volumes.VolumePropertiesDataProtection{
-				Replication: dataProtectionReplication.Replication,
-				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
-				Backup:      dataProtectionBackupPolicy.Backup,
+				Replication:          dataProtectionReplication,
+				Snapshot:             dataProtectionSnapshotPolicy,
+				Backup:               dataProtectionBackupPolicy,
+				RansomwareProtection: dataProtectionARP,
 			},
 			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: pointer.To(snapshotDirectoryVisible),
@@ -792,22 +858,28 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	// If this is a data replication secondary volume, authorize replication on primary volume
 	if authorizeReplication {
-		replicationClient := meta.(*clients.Client).NetApp.VolumeReplicationClient
-		replVolID, err := volumesreplication.ParseVolumeID(pointer.From(dataProtectionReplication.Replication.RemoteVolumeResourceId))
+		replVolID, err := volumes.ParseVolumeID(pointer.From(dataProtectionReplication.RemoteVolumeResourceId))
 		if err != nil {
 			return err
 		}
 
-		if err = replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, *replVolID, volumesreplication.AuthorizeRequest{
+		if err = client.AuthorizeReplicationThenPoll(ctx, *replVolID, volumes.AuthorizeRequest{
 			RemoteVolumeResourceId: pointer.To(id.ID()),
 		},
 		); err != nil {
 			return fmt.Errorf("cannot authorize volume replication: %v", err)
 		}
 
-		// Wait for volume replication authorization to complete
-		log.Printf("[DEBUG] Waiting for replication authorization on %s to complete", id)
-		if err := waitForReplAuthorization(ctx, replicationClient, *replVolID); err != nil {
+		// Wait for volume replication authorization to complete on the destination volume
+		// Note: We check the destination (current volume being created), not the source
+		// This is important for one-to-many replication where checking the source would fail
+		destinationReplID, err := volumes.ParseVolumeID(id.ID())
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[DEBUG] Waiting for replication authorization on destination volume %s to complete", id)
+		if err := waitForReplAuthorization(ctx, client, *destinationReplID); err != nil {
 			return err
 		}
 	}
@@ -819,7 +891,6 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
-	poolChangeClient := meta.(*clients.Client).NetApp.PoolChangeClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -848,8 +919,19 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("export_policy_rule") {
 		exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
-		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw)
+		var protocolOverride []string
+		// Only override export policy protocols if we're also changing volume protocols
+		if d.HasChange("protocols") {
+			protocols := d.Get("protocols").(*pluginsdk.Set).List()
+			protocolOverride = *utils.ExpandStringSlice(protocols)
+		}
+		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw, protocolOverride)
 		update.Properties.ExportPolicy = exportPolicyRule
+	}
+
+	if d.HasChange("protocols") {
+		protocols := d.Get("protocols").(*pluginsdk.Set).List()
+		update.Properties.ProtocolTypes = utils.ExpandStringSlice(protocols)
 	}
 
 	if d.HasChange("data_protection_snapshot_policy") {
@@ -857,7 +939,7 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
 		dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
 
-		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && strings.EqualFold(string(*dataProtectionReplication.Replication.EndpointType), "dst") {
+		if dataProtectionReplication != nil && dataProtectionReplication.EndpointType != nil && strings.EqualFold(string(*dataProtectionReplication.EndpointType), "dst") {
 			return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", id)
 		}
 
@@ -865,7 +947,7 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
 
 		update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
-		update.Properties.DataProtection.Snapshot = dataProtectionSnapshotPolicy.Snapshot
+		update.Properties.DataProtection.Snapshot = dataProtectionSnapshotPolicy
 	}
 
 	if d.HasChange("data_protection_backup_policy") {
@@ -873,7 +955,7 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
 		dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
 
-		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && strings.EqualFold(string(*dataProtectionReplication.Replication.EndpointType), "dst") {
+		if dataProtectionReplication != nil && dataProtectionReplication.EndpointType != nil && strings.EqualFold(string(*dataProtectionReplication.EndpointType), "dst") {
 			return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", id)
 		}
 
@@ -883,7 +965,17 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		if update.Properties.DataProtection == nil {
 			update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
 		}
-		update.Properties.DataProtection.Backup = dataProtectionBackupPolicy.Backup
+		update.Properties.DataProtection.Backup = dataProtectionBackupPolicy
+	}
+
+	if d.HasChange("data_protection_advanced_ransomware") {
+		dataProtectionARPRaw := d.Get("data_protection_advanced_ransomware").([]interface{})
+		dataProtectionARP := expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(dataProtectionARPRaw)
+
+		if update.Properties.DataProtection == nil {
+			update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
+		}
+		update.Properties.DataProtection.RansomwareProtection = dataProtectionARP
 	}
 
 	if d.HasChange("throughput_in_mibps") {
@@ -947,14 +1039,14 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	if d.HasChanges("service_level", "pool_name") {
 		poolName := d.Get("pool_name").(string)
 		poolId := volumes.NewCapacityPoolID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, poolName)
-		volumeId, err := poolchange.ParseVolumeID(id.ID())
+		volumeId, err := volumes.ParseVolumeID(id.ID())
 		if err != nil {
 			return err
 		}
-		poolChangeInput := poolchange.PoolChangeRequest{
+		poolChangeInput := volumes.PoolChangeRequest{
 			NewPoolResourceId: poolId.ID(),
 		}
-		if _, err = poolChangeClient.VolumesPoolChange(ctx, *volumeId, poolChangeInput); err != nil {
+		if _, err = client.PoolChange(ctx, *volumeId, poolChangeInput); err != nil {
 			return fmt.Errorf("updating `service_level` for %s: %+v", id, err)
 		}
 
@@ -997,7 +1089,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("pool_name", id.CapacityPoolName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		zone := ""
 		if model.Zones != nil {
@@ -1071,8 +1163,13 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if err := d.Set("data_protection_backup_policy", flattenNetAppVolumeDataProtectionBackupPolicy(props.DataProtection)); err != nil {
 			return fmt.Errorf("setting `data_protection_backup_policy`: %+v", err)
 		}
+		if err := d.Set("data_protection_advanced_ransomware", flattenNetAppVolumeDataProtectionAdvancedRansomwareProtection(props.DataProtection)); err != nil {
+			return fmt.Errorf("setting `data_protection_advanced_ransomware`: %+v", err)
+		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1102,25 +1199,24 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		// Handling Replication before volume deletion
 		if netApp.Model.Properties.DataProtection.Replication != nil {
 			dataProtectionReplication := netApp.Model.Properties.DataProtection
-			replicaVolumeId, err := volumesreplication.ParseVolumeID(id.ID())
+			replicaVolumeId, err := volumes.ParseVolumeID(id.ID())
 			if err != nil {
 				return err
 			}
 			if dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && !(strings.EqualFold(string(*dataProtectionReplication.Replication.EndpointType), "dst")) {
 				// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
-				replicaVolumeId, err = volumesreplication.ParseVolumeID(pointer.From(dataProtectionReplication.Replication.RemoteVolumeResourceId))
+				replicaVolumeId, err = volumes.ParseVolumeID(pointer.From(dataProtectionReplication.Replication.RemoteVolumeResourceId))
 				if err != nil {
 					return err
 				}
 			}
 
-			replicationClient := meta.(*clients.Client).NetApp.VolumeReplicationClient
 			// Checking replication status before deletion, it needs to be broken before proceeding with deletion
-			if res, err := replicationClient.VolumesReplicationStatus(ctx, *replicaVolumeId); err == nil {
+			if res, err := client.ReplicationStatus(ctx, *replicaVolumeId); err == nil {
 				// Wait for replication state = "mirrored"
 				if model := res.Model; model != nil {
 					if model.MirrorState != nil && strings.ToLower(string(*model.MirrorState)) == "uninitialized" {
-						if err := waitForReplMirrorState(ctx, replicationClient, *replicaVolumeId, "mirrored"); err != nil {
+						if err := waitForReplMirrorState(ctx, client, *replicaVolumeId, "mirrored"); err != nil {
 							return fmt.Errorf("waiting for replica %s to become 'mirrored': %+v", *replicaVolumeId, err)
 						}
 					}
@@ -1129,7 +1225,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 				// Breaking replication
 				// Can't use VolumesBreakReplicationThenPoll because from time to time the LRO SDK fails,
 				// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-				if _, err = replicationClient.VolumesBreakReplication(ctx, *replicaVolumeId, volumesreplication.BreakReplicationRequest{
+				if _, err = client.BreakReplication(ctx, *replicaVolumeId, volumes.BreakReplicationRequest{
 					ForceBreakReplication: pointer.To(true),
 				}); err != nil {
 					return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
@@ -1137,17 +1233,17 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 				// Waiting for replication be in broken state
 				log.Printf("[DEBUG] Waiting for the replication of %s to be in broken state", *replicaVolumeId)
-				if err := waitForReplMirrorState(ctx, replicationClient, *replicaVolumeId, "broken"); err != nil {
+				if err := waitForReplMirrorState(ctx, client, *replicaVolumeId, "broken"); err != nil {
 					return fmt.Errorf("waiting for the breaking of replication for %s: %+v", *replicaVolumeId, err)
 				}
 			}
 
 			// Deleting replication and waiting for it to fully complete the operation
-			if _, err = replicationClient.VolumesDeleteReplication(ctx, *replicaVolumeId); err != nil {
+			if _, err = client.DeleteReplication(ctx, *replicaVolumeId); err != nil {
 				return fmt.Errorf("deleting replicate %s: %+v", *replicaVolumeId, err)
 			}
 
-			if err := waitForReplicationDeletion(ctx, replicationClient, *replicaVolumeId); err != nil {
+			if err := waitForReplicationDeletion(ctx, client, *replicaVolumeId); err != nil {
 				return fmt.Errorf("waiting for the replica %s to be deleted: %+v", *replicaVolumeId, err)
 			}
 		}
@@ -1158,9 +1254,8 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 			if dataProtectionBackup.Backup != nil {
 				// Checking if initial backup is in progress
-				volumeIdFromBackupClient := backups.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
-				backupClient := meta.(*clients.Client).NetApp.BackupClient
-				if err = waitForBackupRelationshipStateForDeletion(ctx, backupClient, volumeIdFromBackupClient); err != nil {
+				volumeIdFromBackupClient := volumes.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
+				if err = waitForBackupRelationshipStateForDeletion(ctx, client, volumeIdFromBackupClient); err != nil {
 					return fmt.Errorf("waiting for of %s: %+v", *id, err)
 				}
 
@@ -1185,7 +1280,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 				}
 
 				// Checking again if backup is in progress
-				if err = waitForBackupRelationshipStateForDeletion(ctx, backupClient, volumeIdFromBackupClient); err != nil {
+				if err = waitForBackupRelationshipStateForDeletion(ctx, client, volumeIdFromBackupClient); err != nil {
 					return fmt.Errorf("waiting for of %s: %+v", *id, err)
 				}
 
@@ -1310,7 +1405,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 	}
 }
 
-func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.VolumePatchPropertiesExportPolicy {
+func expandNetAppVolumeExportPolicyRulePatch(input []interface{}, overrideProtocols []string) *volumes.VolumePatchPropertiesExportPolicy {
 	results := make([]volumes.ExportPolicyRule, 0)
 	for _, item := range input {
 		if item != nil {
@@ -1321,25 +1416,24 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 			nfsv3Enabled := false
 			nfsv41Enabled := false
 			cifsEnabled := false
-			if vpe := v["protocol"]; vpe != nil {
-				protocolsEnabled := vpe.([]interface{})
-				if len(protocolsEnabled) != 0 {
-					for _, protocol := range protocolsEnabled {
-						if protocol != nil {
-							switch strings.ToLower(protocol.(string)) {
-							case "cifs":
-								cifsEnabled = true
-							case "nfsv3":
-								nfsv3Enabled = true
-							case "nfsv4.1":
-								nfsv41Enabled = true
-							}
-						}
+
+			// If overrideProtocols is provided (during protocol conversion), use those protocols
+			// instead of reading from the export policy rule configuration
+			if len(overrideProtocols) > 0 {
+				for _, protocol := range overrideProtocols {
+					switch strings.ToLower(protocol) {
+					case "cifs":
+						cifsEnabled = true
+					case "nfsv3":
+						nfsv3Enabled = true
+					case "nfsv4.1":
+						nfsv41Enabled = true
 					}
 				}
-			}
-			if !features.FivePointOh() {
-				if vpe := v["protocols_enabled"]; vpe != nil {
+			} else {
+				// Use existing logic when no protocol override is provided
+				// This handles both FivePointOh() v5 and !FivePointOh() v4 cases
+				if vpe := v["protocol"]; vpe != nil {
 					protocolsEnabled := vpe.([]interface{})
 					if len(protocolsEnabled) != 0 {
 						for _, protocol := range protocolsEnabled {
@@ -1351,6 +1445,25 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 									nfsv3Enabled = true
 								case "nfsv4.1":
 									nfsv41Enabled = true
+								}
+							}
+						}
+					}
+				}
+				if !features.FivePointOh() {
+					if vpe := v["protocols_enabled"]; vpe != nil {
+						protocolsEnabled := vpe.([]interface{})
+						if len(protocolsEnabled) != 0 {
+							for _, protocol := range protocolsEnabled {
+								if protocol != nil {
+									switch strings.ToLower(protocol.(string)) {
+									case "cifs":
+										cifsEnabled = true
+									case "nfsv3":
+										nfsv3Enabled = true
+									case "nfsv4.1":
+										nfsv41Enabled = true
+									}
 								}
 							}
 						}
@@ -1511,6 +1624,30 @@ func flattenNetAppVolumeDataProtectionBackupPolicy(input *volumes.VolumeProperti
 			"backup_policy_id": backupPolicyID,
 			"policy_enabled":   policyEnforced,
 			"backup_vault_id":  backupVaultID,
+		},
+	}
+}
+
+func flattenNetAppVolumeDataProtectionAdvancedRansomwareProtection(input *volumes.VolumePropertiesDataProtection) []interface{} {
+	if input == nil || input.RansomwareProtection == nil {
+		return []interface{}{}
+	}
+
+	desiredState := ""
+	if input.RansomwareProtection.DesiredRansomwareProtectionState != nil {
+		desiredState = string(pointer.From(input.RansomwareProtection.DesiredRansomwareProtectionState))
+	}
+
+	// Only return the block if a desired state has been set
+	if desiredState == "" {
+		return []interface{}{}
+	}
+
+	protectionEnabled := strings.EqualFold(desiredState, string(volumes.DesiredRansomwareProtectionStateEnabled))
+
+	return []interface{}{
+		map[string]interface{}{
+			"protection_enabled": protectionEnabled,
 		},
 	}
 }

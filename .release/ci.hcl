@@ -12,7 +12,7 @@ project "terraform-provider-azurerm" {
   team = "_UNUSED_"
 
   slack {
-    notification_channel = "C7T8GB62H" // #tech-azure
+    notification_channel = "C09KX8BCGA2" // #tech-azure
   }
 
   github {

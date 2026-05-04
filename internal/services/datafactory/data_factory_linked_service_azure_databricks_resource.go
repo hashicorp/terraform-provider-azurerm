@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -9,10 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,7 +25,7 @@ import (
 )
 
 func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDataFactoryLinkedServiceDatabricksCreateUpdate,
 		Read:   resourceDataFactoryLinkedServiceDatabricksRead,
 		Update: resourceDataFactoryLinkedServiceDatabricksCreateUpdate,
@@ -57,12 +59,11 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 			},
 
 			// Authentication types
-			"msi_work_space_resource_id": {
-				// TODO: rename this to `msi_workspace_id` in v4.0
+			"msi_workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
-				ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password"},
+				ExactlyOneOf: []string{"access_token", "msi_workspace_id", "key_vault_password"},
 			},
 
 			"access_token": {
@@ -70,7 +71,7 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password"},
+				ExactlyOneOf: []string{"access_token", "msi_workspace_id", "key_vault_password"},
 			},
 
 			"key_vault_password": {
@@ -79,21 +80,20 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						// TODO use LinkedServiceDataSetName and NestedItemName validate here and in other linked service resources
 						"linked_service_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validate.LinkedServiceDatasetName,
 						},
 
 						"secret_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validate.LinkedServiceDatasetName,
 						},
 					},
 				},
-				ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password"},
+				ExactlyOneOf: []string{"access_token", "msi_workspace_id", "key_vault_password"},
 			},
 
 			"description": {
@@ -253,6 +253,30 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["access_token"].ExactlyOneOf = []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"}
+		resource.Schema["key_vault_password"].ExactlyOneOf = []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"}
+
+		resource.Schema["msi_workspace_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
+			ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"},
+		}
+
+		resource.Schema["msi_work_space_resource_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
+			ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"},
+			Deprecated:   "The `msi_work_space_resource_id` property is deprecated in favour of the `msi_workspace_id` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return resource
 }
 
 func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -284,7 +308,12 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	var databricksProperties *datafactory.AzureDatabricksLinkedServiceTypeProperties
 
 	// Check if the MSI authentication block is set
-	msiAuth := d.Get("msi_work_space_resource_id").(string)
+	msiAuth := d.Get("msi_workspace_id")
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("msi_work_space_resource_id"); ok {
+			msiAuth = v.(string)
+		}
+	}
 	accessTokenAuth := d.Get("access_token").(string)
 	accessTokenKeyVaultAuth := d.Get("key_vault_password").([]interface{})
 
@@ -299,7 +328,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 		// Assign the access token in the properties block
 		databricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
 			AccessToken: &datafactory.SecureString{
-				Value: utils.String(accessTokenAuth),
+				Value: pointer.To(accessTokenAuth),
 				Type:  datafactory.TypeSecureString,
 			},
 		}
@@ -390,7 +419,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	databricksLinkedService := &datafactory.AzureDatabricksLinkedService{
-		Description: utils.String(d.Get("description").(string)),
+		Description: pointer.To(d.Get("description").(string)),
 		AzureDatabricksLinkedServiceTypeProperties: databricksProperties,
 		Type: datafactory.TypeBasicLinkedServiceTypeAzureDatabricks,
 	}
@@ -460,7 +489,10 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 		d.Set("adb_domain", props.Domain)
 
 		if props.Authentication != nil && props.Authentication == "MSI" {
-			d.Set("msi_work_space_resource_id", props.WorkspaceResourceID)
+			if !features.FivePointOh() {
+				d.Set("msi_work_space_resource_id", props.WorkspaceResourceID)
+			}
+			d.Set("msi_workspace_id", props.WorkspaceResourceID)
 		} else if accessToken := props.AccessToken; accessToken != nil {
 			// We only process AzureKeyVaultSecreReference because a string based access token is masked with asterisks in the GET response
 			// so we can't set it

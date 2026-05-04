@@ -87,6 +87,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {
       key  = "value"
       key2 = "value2"
     }
+    email_subject = "Email Header"
   }
 
   identity {
@@ -163,6 +164,8 @@ An `action` block supports the following:
 * `action_groups` - (Optional) List of Action Group resource IDs to invoke when the alert fires.
 
 * `custom_properties` - (Optional) Specifies the properties of an alert payload.
+
+* `email_subject` - (Optional) Custom subject override for all email ids in Azure action group.
 
 ---
 
@@ -244,7 +247,7 @@ A `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Monitor Scheduled Query Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Monitor Scheduled Query Rule.

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dynatrace
@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -99,6 +98,7 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							"MONTHLY",
 							"WEEKLY",
+							"YEARLY",
 						}, false),
 					},
 
@@ -134,16 +134,10 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"country": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
 					"email": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.EmailAddress,
+						ValidateFunc: validation.IsEmailAddress,
 					},
 
 					"first_name": {
@@ -160,7 +154,13 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"phone_number": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"country": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},

@@ -361,36 +361,37 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 		if step.Query {
 			logging.HelperResourceTrace(ctx, "TestStep is Query mode")
 
-			queryConfigRequest := teststep.ConfigurationRequest{
-				Raw: &step.Config,
-			}
-			err := wd.SetQuery(ctx, teststep.Configuration(queryConfigRequest), step.ConfigVariables)
-			if err != nil {
-				t.Fatalf("Step %d/%d error setting query: %s", stepNumber, len(c.Steps), err)
+			err := testStepNewQuery(ctx, t, wd, step, providers)
+
+			if step.ExpectError != nil {
+				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
+				if err == nil {
+					logging.HelperResourceError(ctx, "Error running query: expected an error but got none")
+					t.Fatalf("Step %d/%d error running query: expected an error but got none", stepNumber, len(c.Steps))
+				}
+				if !step.ExpectError.MatchString(err.Error()) {
+					logging.HelperResourceError(ctx, fmt.Sprintf("Error running query: expected an error with pattern (%s)", step.ExpectError.String()),
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running query, expected an error with pattern (%s), no match on: %s", stepNumber, len(c.Steps), step.ExpectError.String(), err)
+				}
+			} else {
+				if err != nil && c.ErrorCheck != nil {
+					logging.HelperResourceDebug(ctx, "Calling TestCase ErrorCheck")
+					err = c.ErrorCheck(err)
+					logging.HelperResourceDebug(ctx, "Called TestCase ErrorCheck")
+				}
+				if err != nil {
+					logging.HelperResourceError(ctx, "Error running query",
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running query checks: %s", stepNumber, len(c.Steps), err)
+				}
 			}
 
-			err = runProviderCommand(ctx, t, wd, providers, func() error {
-				return wd.Init(ctx)
-			})
-			if err != nil {
-				t.Fatalf("Step %d/%d error running init: %s", stepNumber, len(c.Steps), err)
-			}
-
-			var queryOut any
-			err = runProviderCommand(ctx, t, wd, providers, func() error {
-				var err error
-				queryOut, err = wd.Query(ctx)
-				return err
-			})
-			if err != nil {
-				fmt.Printf("Step %d/%d Query Output:\n%s\n", stepNumber, len(c.Steps), queryOut)
-				t.Fatalf("Step %d/%d error running query: %s", stepNumber, len(c.Steps), err)
-			}
-
-			fmt.Printf("Step %d/%d Query Output:\n%s\n", stepNumber, len(c.Steps), queryOut)
+			logging.HelperResourceDebug(ctx, "Finished TestStep")
 
 			continue
-
 		}
 
 		if cfg != nil {

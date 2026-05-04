@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedapplications
@@ -298,7 +298,9 @@ func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta in
 			d.Set("package_file_uri", v.(string))
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

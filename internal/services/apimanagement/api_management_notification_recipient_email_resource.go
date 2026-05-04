@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -170,8 +170,7 @@ func (r ApiManagementNotificationRecipientEmailResource) Delete() sdk.ResourceFu
 				return err
 			}
 
-			_, err = client.Delete(ctx, *id)
-			if err != nil {
+			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

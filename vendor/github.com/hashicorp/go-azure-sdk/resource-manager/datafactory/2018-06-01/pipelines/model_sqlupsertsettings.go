@@ -5,6 +5,6 @@ package pipelines
 
 type SqlUpsertSettings struct {
 	InterimSchemaName *interface{} `json:"interimSchemaName,omitempty"`
-	Keys              *[]string    `json:"keys,omitempty"`
-	UseTempDB         *bool        `json:"useTempDB,omitempty"`
+	Keys              *interface{} `json:"keys,omitempty"`
+	UseTempDB         *interface{} `json:"useTempDB,omitempty"`
 }
