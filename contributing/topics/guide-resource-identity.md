@@ -4,8 +4,6 @@ This guide covers adding Resource Identity to a new or existing resource. For mo
 
 > The provider's Resource Identity generator does not yet support all identity types. `commonids.CompositeResourceID` and any custom resource IDs (i.e. not one provided by `commonids` or `go-azure-sdk/resource-manager`) are not supported.
 
-> **Caution:** Do not implement Resource Identity for resources with numbers in their ID segment names (e.g., `ServerGroupsv2Name`) until the `strcase.ToSnake()` issue is resolved. The current implementation splits on number boundaries, converting `ServerGroupsv2Name` to `server_groupsv_2_name` instead of the expected `server_groupsv2_name`. This causes test failures and incorrect identity schema field names.
-
 ## Adding Resource Identity
 
 ### Typed Resources
@@ -229,8 +227,6 @@ To go through these in order:
 - `-properties`: This flag specifies the 1:1 relationship between the Resource Schema and the Resource Identity Schema fields (i.e name, resource_group_name, etc), this would be specified as `name,resource_group_name`. If the schema property name does not match the Resource Identity schema name these should be mapped accordingly. This would be specified as `{id_field_name}:{schema_field_name}`, e.g. `api_management_id:api_management_name`.
 
 - `-compare-values`: This flag allows for comparing values that are exposed in the resource schema through another resource ID. This comes up when we use a parent resource ID in the schema but the Resource Identity Schema uses the individual parts of that parent ID. This would be specified as `{id_field_name}:{schema_field_id_name}`, e.g. `subscription_id:virtual_network_id,virtual_network_name:virtual_network_id`.
-
-> **Note:** The identity schema field names are generated using `strcase.ToSnake()` which splits on number boundaries. For example, `ServerGroupsv2Name` becomes `server_groupsv_2_name` (not `server_groupsv2_name`). This affects how you reference identity fields in `-properties` and `-compare-values` arguments.
 
 Please reference the [Resource Identity Test Generator](../../internal/tools/generator-tests/generators/resource_identity.go) for additional options that are used less frequently.
 
