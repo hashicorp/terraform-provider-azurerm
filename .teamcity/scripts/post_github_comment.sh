@@ -76,9 +76,26 @@ PASS_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="PASS") print}' | wc -l |
 FAIL_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="FAIL") print}' | wc -l | tr -d ' ')
 TOTAL=$((PASS_COUNT + FAIL_COUNT))
 
+# Fetch PR author if there are failures
+PREFIX=""
+if [ "$FAIL_COUNT" -gt 0 ]; then
+  PR_AUTHOR=$(curl -s \
+    -H "Authorization: Bearer %env.GIT_PAT%" \
+    -H "Accept: application/vnd.github+json" \
+    https://api.github.com/repos/%env.GITHUB_REPO%/pulls/"${PR_NUMBER}" \
+    | jq -r '.user.login')
+
+  if [ -z "$PR_AUTHOR" ] || [ "$PR_AUTHOR" = "null" ]; then
+    echo "Warning: Could not fetch PR author"
+  else
+    PREFIX="@${PR_AUTHOR} - One or more tests failed in this PR. Please review the failures.
+
+"
+  fi
+fi
 
 # Build GitHub comment
-COMMENT="Build: [$BUILD_ID](%teamcity.serverUrl%/viewLog.html?buildId=$BUILD_ID)
+COMMENT="${PREFIX}Build: [$BUILD_ID](%teamcity.serverUrl%/viewLog.html?buildId=$BUILD_ID)
 PR: #$PR_NUMBER
 
 **Total:** $TOTAL
