@@ -9,12 +9,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_coordinator_configuration -properties "name" -compare-values "subscription_id:cluster_id,resource_group_name:cluster_id,server_groups_v2_name:cluster_id" -test-params "on"
 
 type CosmosDbPostgreSQLCoordinatorConfigurationModel struct {
 	Name      string `tfschema:"name"`
@@ -24,7 +27,10 @@ type CosmosDbPostgreSQLCoordinatorConfigurationModel struct {
 
 type CosmosDbPostgreSQLCoordinatorConfigurationResource struct{}
 
-var _ sdk.ResourceWithUpdate = CosmosDbPostgreSQLCoordinatorConfigurationResource{}
+var (
+	_ sdk.ResourceWithIdentity = CosmosDbPostgreSQLCoordinatorConfigurationResource{}
+	_ sdk.ResourceWithUpdate   = CosmosDbPostgreSQLCoordinatorConfigurationResource{}
+)
 
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_coordinator_configuration"
@@ -36,6 +42,10 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ModelObject() interf
 
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return configurations.ValidateCoordinatorConfigurationID
+}
+
+func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Identity() resourceids.ResourceId {
+	return new(configurations.CoordinatorConfigurationId)
 }
 
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -96,7 +106,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Create() sdk.Resourc
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -166,6 +176,10 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Read() sdk.ResourceF
 				if props := model.Properties; props != nil {
 					state.Value = props.Value
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

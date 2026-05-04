@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 )
 
 var (
@@ -148,6 +148,9 @@ func (c Client) RemoveAccountFromCache(accountId commonids.StorageAccountId) {
 	cacheAccountsLock.Unlock()
 }
 
+// FindAccount - Lists all the storage accounts in a subscription to find by name rather than ID.
+// This function must only be used for Resource Importing when the data to call `GetAccount()` directly is not otherwise
+// available.
 func (c Client) FindAccount(ctx context.Context, subscriptionIdRaw, accountName string) (*AccountDetails, error) {
 	cacheAccountsLock.Lock()
 	defer cacheAccountsLock.Unlock()
