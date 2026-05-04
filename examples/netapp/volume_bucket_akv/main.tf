@@ -13,16 +13,7 @@ provider "azurerm" {
   }
 }
 
-provider "azuread" {}
-
 data "azurerm_client_config" "current" {}
-
-# Azure NetApp Files first-party application. The Object REST API service uses
-# this identity when reading the server certificate and writing generated bucket
-# credentials to Key Vault.
-data "azuread_service_principal" "anf" {
-  client_id = "2b6fb936-77b9-4775-b03e-37edae8ab84b"
-}
 
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
@@ -56,10 +47,17 @@ resource "azurerm_subnet" "example" {
   }
 }
 
+# A system-assigned managed identity is enabled on the NetApp account so it
+# can read the bucket server certificate from Key Vault and write the
+# generated bucket credentials to Key Vault.
 resource "azurerm_netapp_account" "example" {
   name                = "${var.prefix}-netapp-account"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_netapp_pool" "example" {
@@ -136,12 +134,12 @@ resource "azurerm_key_vault_access_policy" "deployer_certificate" {
   ]
 }
 
-# Permissions required by the Azure NetApp Files service principal on the
-# certificate vault (per the Object REST API documentation).
+# Permissions required by the NetApp account's system-assigned managed
+# identity on the certificate vault (per the Object REST API documentation).
 resource "azurerm_key_vault_access_policy" "anf_certificate" {
   key_vault_id = azurerm_key_vault.certificate.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azuread_service_principal.anf.object_id
+  object_id    = azurerm_netapp_account.example.identity[0].principal_id
 
   certificate_permissions = [
     "Get",
@@ -164,12 +162,12 @@ resource "azurerm_key_vault_access_policy" "anf_certificate" {
   ]
 }
 
-# Permissions required by the Azure NetApp Files service principal on the
-# credentials vault.
+# Permissions required by the NetApp account's system-assigned managed
+# identity on the credentials vault.
 resource "azurerm_key_vault_access_policy" "anf_credentials" {
   key_vault_id = azurerm_key_vault.credentials.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azuread_service_principal.anf.object_id
+  object_id    = azurerm_netapp_account.example.identity[0].principal_id
 
   secret_permissions = [
     "Get",

@@ -12,7 +12,7 @@ az feature register --namespace Microsoft.NetApp --name ANFEnableObjectRESTAPI
 
 ### What this example provisions
 
-The example uses two separate Key Vaults (per the Azure NetApp Files recommendation): one read-mostly vault for the certificate and one write vault for the credentials. The Azure NetApp Files first-party service principal (`2b6fb936-77b9-4775-b03e-37edae8ab84b`) is granted the documented certificate / secret permissions on the corresponding vault via `azurerm_key_vault_access_policy`.
+The example uses two separate Key Vaults (per the Azure NetApp Files recommendation): one read-mostly vault for the certificate and one write vault for the credentials. The NetApp account is given a system-assigned managed identity, and `azurerm_key_vault_access_policy` blocks grant that identity the documented certificate / secret permissions on the corresponding vault.
 
 The bucket server certificate is created here as a self-signed certificate solely for example purposes - replace it with an imported CA-signed certificate for production. Its Subject Alternative Name must match the `server_fqdn` value passed to the bucket.
 
