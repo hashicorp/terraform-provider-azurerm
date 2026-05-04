@@ -1,3 +1,27 @@
+## 4.71.0 (April 30, 2026)
+
+FEATURES:
+
+* **New Data Source**: `azurerm_cdn_frontdoor_security_policy` ([#31957](https://github.com/hashicorp/terraform-provider-azurerm/issues/31957))
+
+ENHANCEMENTS:
+
+* dependencies: `storage` - update API version to `2025-08-01` ([#32218](https://github.com/hashicorp/terraform-provider-azurerm/issues/32218))
+* `azurerm_bot_channel_directline_speech` - the `cognitive_service_access_key` and `cognitive_service_location` properties are now optional ([#30243](https://github.com/hashicorp/terraform-provider-azurerm/issues/30243))
+* `azurerm_eventhub` - add support for `storage_authentication_type` and  `storage_authentication_id` properties in the `capture_description.destination` block ([#31265](https://github.com/hashicorp/terraform-provider-azurerm/issues/31265))
+* `azurerm_kubernetes_cluster` - the `container_log_max_lines` property has been renamed to `container_log_max_files` ([#31721](https://github.com/hashicorp/terraform-provider-azurerm/issues/31721))
+* `azurerm_kubernetes_cluster_node_pool` - the `container_log_max_lines` property has been renamed to `container_log_max_files` ([#31721](https://github.com/hashicorp/terraform-provider-azurerm/issues/31721))
+* `azurerm_storage_account` - add support for the `Smart` value to `access_tier` ([#32218](https://github.com/hashicorp/terraform-provider-azurerm/issues/32218))
+* `azurerm_storage_account` - add support for the `All` value to `allowed_copy_scope` ([#32218](https://github.com/hashicorp/terraform-provider-azurerm/issues/32218))
+* List Resource: `azurerm_storage_account` - skip resource data retrieval when `include_resource` is `false` ([#31898](https://github.com/hashicorp/terraform-provider-azurerm/issues/31898))
+
+BUG FIXES:
+
+* `azurerm_mssql_managed_database` - skip retrieval of `long_term_retention_policy` when the database is in a stopped state ([#32246](https://github.com/hashicorp/terraform-provider-azurerm/issues/32246))
+* `azurerm_mssql_managed_database` - fix an issue that caused 400 errors when users did not specify `long_term_retention_policy.yearly_retention` ([#32246](https://github.com/hashicorp/terraform-provider-azurerm/issues/32246))
+* `azurerm_mssql_server` - fix resource update to conform with enforcement of "AD Auth Only" policy ([#31901](https://github.com/hashicorp/terraform-provider-azurerm/issues/31901))
+* `azurerm_network_security_rule` and `azurerm_network_security_group` - add case-insensitive handling for application security group IDs  ([#30913](https://github.com/hashicorp/terraform-provider-azurerm/issues/30913))
+
 ## 4.70.0 (April 23, 2026)
 
 FEATURES:
