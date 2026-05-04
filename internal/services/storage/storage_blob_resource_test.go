@@ -13,8 +13,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,7 +27,10 @@ import (
 
 type StorageBlobResource struct{}
 
-func TestAccStorageBlob_disappears(t *testing.T) {
+func TestAccStorageBlob_disappearsDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -36,7 +42,43 @@ func TestAccStorageBlob_disappears(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_disappears(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.blockEmpty,
+			TestResource: r,
+		}),
+	})
+}
+
+func TestAccStorageBlob_appendEmptyDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appendEmptyDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_appendEmpty(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -51,7 +93,28 @@ func TestAccStorageBlob_appendEmpty(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_appendEmptyMetaDataDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appendEmptyMetaDataDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_appendEmptyMetaData(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -66,7 +129,28 @@ func TestAccStorageBlob_appendEmptyMetaData(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_blockEmptyDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockEmptyDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_blockEmpty(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -81,7 +165,28 @@ func TestAccStorageBlob_blockEmpty(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_blockEmptyAzureADAuthDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockEmptyAzureADAuthDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_blockEmptyAzureADAuth(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -96,7 +201,28 @@ func TestAccStorageBlob_blockEmptyAzureADAuth(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_blockEmptyMetaDataDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockEmptyMetaDataDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_blockEmptyMetaData(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -111,7 +237,43 @@ func TestAccStorageBlob_blockEmptyMetaData(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_blockEmptyAccessTierDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockEmptyAccessTierDeprecated(data, blobs.Cool),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("access_tier").HasValue("Cool"),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+		{
+			Config: r.blockEmptyAccessTierDeprecated(data, blobs.Hot),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("access_tier").HasValue("Hot"),
+			),
+		},
+		{
+			Config: r.blockEmptyAccessTierDeprecated(data, blobs.Cool),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("access_tier").HasValue("Cool"),
+			),
+		},
+	})
+}
+
 func TestAccStorageBlob_blockEmptyAccessTier(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -141,7 +303,30 @@ func TestAccStorageBlob_blockEmptyAccessTier(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_blockFromInlineContentDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+	content := "Wubba Lubba Dub Dubs"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockFromInlineContentDeprecated(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.blobMatchesContentDeprecated(blobs.BlockBlob, []byte(content))),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+	})
+}
+
 func TestAccStorageBlob_blockFromInlineContent(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 	content := "Wubba Lubba Dub Dubs"
@@ -158,7 +343,30 @@ func TestAccStorageBlob_blockFromInlineContent(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_blockFromInlineContentWithContentTypeDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+	content := `{"hello":"world"}`
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockFromInlineContentWithContentTypeDeprecated(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.blobMatchesContentDeprecated(blobs.BlockBlob, []byte(content))),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+	})
+}
+
 func TestAccStorageBlob_blockFromInlineContentWithContentType(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 	content := `{"hello":"world"}`
@@ -175,7 +383,28 @@ func TestAccStorageBlob_blockFromInlineContentWithContentType(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_blockFromPublicBlobDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockFromPublicBlobDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_uri", "type"),
+	})
+}
+
 func TestAccStorageBlob_blockFromPublicBlob(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -190,7 +419,28 @@ func TestAccStorageBlob_blockFromPublicBlob(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_blockFromPublicFileDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockFromPublicFileDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_uri", "type"),
+	})
+}
+
 func TestAccStorageBlob_blockFromPublicFile(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -205,7 +455,28 @@ func TestAccStorageBlob_blockFromPublicFile(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_blockFromExistingBlobDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockFromExistingBlobDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_uri", "type"),
+	})
+}
+
 func TestAccStorageBlob_blockFromExistingBlob(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -220,7 +491,37 @@ func TestAccStorageBlob_blockFromExistingBlob(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_blockFromLocalFileDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	sourceBlob, err := os.CreateTemp("", "")
+	if err != nil {
+		t.Fatalf("Failed to create local source blob file")
+	}
+
+	if err := populateTempFile(sourceBlob); err != nil {
+		t.Fatalf("Error populating temp file: %s", err)
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockFromLocalBlobDeprecated(data, sourceBlob.Name()),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.blobMatchesFileDeprecated(blobs.BlockBlob, sourceBlob.Name())),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source", "type"),
+	})
+}
+
 func TestAccStorageBlob_blockFromLocalFile(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	sourceBlob, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
@@ -244,7 +545,38 @@ func TestAccStorageBlob_blockFromLocalFile(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_blockFromLocalFileWithContentMd5Deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	sourceBlob, err := os.CreateTemp("", "")
+	if err != nil {
+		t.Fatalf("Failed to create local source blob file")
+	}
+
+	if err := populateTempFile(sourceBlob); err != nil {
+		t.Fatalf("Error populating temp file: %s", err)
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.contentMd5ForLocalFileDeprecated(data, sourceBlob.Name()),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("example.vhd"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "source", sourceBlob.Name()),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source", "type"),
+	})
+}
+
 func TestAccStorageBlob_blockFromLocalFileWithContentMd5(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	sourceBlob, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
@@ -269,7 +601,35 @@ func TestAccStorageBlob_blockFromLocalFileWithContentMd5(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_cacheControlDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cacheControlDeprecated(data, "no-cache"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+		{
+			Config: r.cacheControlDeprecated(data, "max-age=3600"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_cacheControl(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -291,7 +651,35 @@ func TestAccStorageBlob_cacheControl(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_contentTypeDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.contentTypeDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+		{
+			Config: r.contentTypeUpdatedDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_contentType(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -313,7 +701,28 @@ func TestAccStorageBlob_contentType(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_contentTypePremiumDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.contentTypePremiumDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_contentTypePremium(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -328,7 +737,29 @@ func TestAccStorageBlob_contentTypePremium(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_encryptionScopeDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+	content := "Wubba Lubba Dub Dubs"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryptionScopeDeprecated(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+	})
+}
+
 func TestAccStorageBlob_encryptionScope(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 	content := "Wubba Lubba Dub Dubs"
@@ -344,7 +775,50 @@ func TestAccStorageBlob_encryptionScope(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_encryptionScopeUpdateDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+	content := "Wubba Lubba Dub Dubs"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryptionScopeDeprecated(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+		{
+			Config: r.encryptionScopeUpdateMetadataDeprecated(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+		{
+			Config: r.encryptionScopeUpdatePropertiesDeprecated(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+		{
+			Config: r.encryptionScopeUpdateAccessTierDeprecated(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+	})
+}
+
 func TestAccStorageBlob_encryptionScopeUpdate(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 	content := "Wubba Lubba Dub Dubs"
@@ -381,7 +855,28 @@ func TestAccStorageBlob_encryptionScopeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_pageEmptyDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pageEmptyDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_pageEmpty(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -396,7 +891,28 @@ func TestAccStorageBlob_pageEmpty(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_pageEmptyPremiumDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pageEmptyPremiumDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_pageEmptyPremium(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -411,7 +927,28 @@ func TestAccStorageBlob_pageEmptyPremium(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_pageEmptyMetaDataDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pageEmptyMetaDataDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_pageEmptyMetaData(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -426,7 +963,28 @@ func TestAccStorageBlob_pageEmptyMetaData(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_pageFromExistingBlobDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pageFromExistingBlobDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type", "source_uri"),
+	})
+}
+
 func TestAccStorageBlob_pageFromExistingBlob(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -441,7 +999,37 @@ func TestAccStorageBlob_pageFromExistingBlob(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_pageFromLocalFileDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	sourceBlob, err := os.CreateTemp("", "")
+	if err != nil {
+		t.Fatalf("Failed to create local source blob file")
+	}
+
+	if err := populateTempFile(sourceBlob); err != nil {
+		t.Fatalf("Error populating temp file: %s", err)
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pageFromLocalBlobDeprecated(data, sourceBlob.Name()),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.blobMatchesFileDeprecated(blobs.PageBlob, sourceBlob.Name())),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type", "source"),
+	})
+}
+
 func TestAccStorageBlob_pageFromLocalFile(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	sourceBlob, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
@@ -465,7 +1053,32 @@ func TestAccStorageBlob_pageFromLocalFile(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_pageFromInlineContentDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pageFromInlineContentDeprecated(data, 512),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+		{
+			Config:      r.pageFromInlineContentDeprecated(data, 511),
+			ExpectError: regexp.MustCompile(`"source" must be aligned to 512-byte boundary for "type" set to "Page"`),
+		},
+	})
+}
+
 func TestAccStorageBlob_pageFromInlineContent(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -484,7 +1097,28 @@ func TestAccStorageBlob_pageFromInlineContent(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_requiresImportDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockFromPublicBlobDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccStorageBlob_requiresImport(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -499,7 +1133,35 @@ func TestAccStorageBlob_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_updateDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.updateDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+		{
+			Config: r.updateUpdatedDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
 func TestAccStorageBlob_update(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -521,7 +1183,28 @@ func TestAccStorageBlob_update(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_archiveDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.archiveDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type", "source_content"),
+	})
+}
+
 func TestAccStorageBlob_archive(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
 
@@ -599,7 +1282,7 @@ func (r StorageBlobResource) blobMatchesFile(kind blobs.BlobType, filePath strin
 	return r.blobMatchesContent(kind, expectedContents)
 }
 
-func (r StorageBlobResource) blobMatchesContent(kind blobs.BlobType, expectedContents []byte) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+func (r StorageBlobResource) blobMatchesContentDeprecated(kind blobs.BlobType, expectedContents []byte) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		if _, ok := ctx.Deadline(); !ok {
 			var cancel context.CancelFunc
@@ -657,8 +1340,71 @@ func (r StorageBlobResource) blobMatchesContent(kind blobs.BlobType, expectedCon
 	}
 }
 
-func (r StorageBlobResource) appendEmpty(data acceptance.TestData) string {
-	template := r.template(data, "private")
+func (r StorageBlobResource) blobMatchesContent(kind blobs.BlobType, expectedContents []byte) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithDeadline(ctx, time.Now().Add(10*time.Minute))
+			defer cancel()
+		}
+
+		name := state.Attributes["name"]
+		containerIdStr := state.Attributes["storage_container_id"]
+		containerId, err := commonids.ParseStorageContainerID(containerIdStr)
+		if err != nil {
+			return fmt.Errorf("parsing container ID %q: %v", containerIdStr, err)
+		}
+		containerName := containerId.ContainerName
+		accountName := containerId.StorageAccountName
+
+		account, err := clients.Storage.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+		if err != nil {
+			return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("unable to locate Storage Account %q!", accountName)
+		}
+
+		client, err := clients.Storage.BlobsDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
+		if err != nil {
+			return fmt.Errorf("building Blobs Client: %s", err)
+		}
+
+		// first check the type
+		getPropsInput := blobs.GetPropertiesInput{}
+		props, err := client.GetProperties(ctx, containerName, name, getPropsInput)
+		if err != nil {
+			return fmt.Errorf("retrieving Properties for Blob %q (Container %q): %s", name, containerName, err)
+		}
+
+		if props.BlobType != kind {
+			return fmt.Errorf("bad: blob type %q does not match expected type %q", props.BlobType, kind)
+		}
+
+		// then compare the content itself
+		getInput := blobs.GetInput{}
+		actualProps, err := client.Get(ctx, containerName, name, getInput)
+		if err != nil {
+			return fmt.Errorf("retrieving Blob %q (Container %q): %s", name, containerName, err)
+		}
+
+		actualContents := actualProps.Contents
+
+		if actualContents == nil {
+			return fmt.Errorf("bad: Storage Blob %q (storage container: %q) returned nil contents", name, containerName)
+		}
+
+		// retrieved blob content may have arbitrary newline appended
+		if strings.TrimSpace(string(*actualContents)) != strings.TrimSpace(string(expectedContents)) {
+			return fmt.Errorf("bad: Storage Blob %q (storage container: %q) does not match contents", name, containerName)
+		}
+
+		return nil
+	}
+}
+
+func (r StorageBlobResource) appendEmptyDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -675,8 +1421,25 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func (r StorageBlobResource) appendEmptyMetaData(data acceptance.TestData) string {
+func (r StorageBlobResource) appendEmpty(data acceptance.TestData) string {
 	template := r.template(data, "private")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Append"
+}
+`, template)
+}
+
+func (r StorageBlobResource) appendEmptyMetaDataDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -697,11 +1460,68 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
+func (r StorageBlobResource) appendEmptyMetaData(data acceptance.TestData) string {
+	template := r.template(data, "private")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Append"
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, template)
+}
+
+func (r StorageBlobResource) blockEmptyDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+}
+`, template)
+}
+
 func (r StorageBlobResource) blockEmpty(data acceptance.TestData) string {
 	template := r.template(data, "private")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
+}
+
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+}
+`, template)
+}
+
+func (r StorageBlobResource) blockEmptyAzureADAuthDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+  storage_use_azuread = true
 }
 
 %s
@@ -727,15 +1547,14 @@ provider "azurerm" {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
+  storage_container_id = azurerm_storage_container.test.id
   type                   = "Block"
 }
 `, template)
 }
 
-func (r StorageBlobResource) blockEmptyMetaData(data acceptance.TestData) string {
-	template := r.template(data, "private")
+func (r StorageBlobResource) blockEmptyMetaDataDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -756,8 +1575,29 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func (r StorageBlobResource) blockEmptyAccessTier(data acceptance.TestData, accessTier blobs.AccessTier) string {
-	template := r.templateBlockBlobStorage(data, "private")
+func (r StorageBlobResource) blockEmptyMetaData(data acceptance.TestData) string {
+	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, template)
+}
+
+func (r StorageBlobResource) blockEmptyAccessTierDeprecated(data acceptance.TestData, accessTier blobs.AccessTier) string {
+	template := r.templateBlockBlobStorageDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -775,8 +1615,26 @@ resource "azurerm_storage_blob" "test" {
 `, template, string(accessTier))
 }
 
-func (r StorageBlobResource) blockFromInlineContent(data acceptance.TestData, content string) string {
-	template := r.template(data, "blob")
+func (r StorageBlobResource) blockEmptyAccessTier(data acceptance.TestData, accessTier blobs.AccessTier) string {
+	template := r.templateBlockBlobStorage(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  access_tier            = "%s"
+}
+`, template, string(accessTier))
+}
+
+func (r StorageBlobResource) blockFromInlineContentDeprecated(data acceptance.TestData, content string) string {
+	template := r.templateDeprecated(data, "blob")
 	return fmt.Sprintf(`
 %s
 
@@ -796,8 +1654,28 @@ EOT
 `, template, content)
 }
 
-func (r StorageBlobResource) blockFromInlineContentWithContentType(data acceptance.TestData, content string) string {
+func (r StorageBlobResource) blockFromInlineContent(data acceptance.TestData, content string) string {
 	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  source_content         = <<EOT
+%s
+EOT
+}
+`, template, content)
+}
+
+func (r StorageBlobResource) blockFromInlineContentWithContentTypeDeprecated(data acceptance.TestData, content string) string {
+	template := r.templateDeprecated(data, "blob")
 	return fmt.Sprintf(`
 %s
 
@@ -818,8 +1696,29 @@ EOT
 `, template, content)
 }
 
-func (r StorageBlobResource) blockFromPublicBlob(data acceptance.TestData) string {
+func (r StorageBlobResource) blockFromInlineContentWithContentType(data acceptance.TestData, content string) string {
 	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "blob.json"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  content_type           = "application/json"
+  source_content         = <<EOT
+%s
+EOT
+}
+`, template, content)
+}
+
+func (r StorageBlobResource) blockFromPublicBlobDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "blob")
 	return fmt.Sprintf(`
 %s
 
@@ -853,8 +1752,40 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func (r StorageBlobResource) blockFromPublicFile(data acceptance.TestData) string {
-	template := r.template(data, "private")
+func (r StorageBlobResource) blockFromPublicBlob(data acceptance.TestData) string {
+	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "source" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  source_uri             = "http://old-releases.ubuntu.com/releases/bionic/ubuntu-18.04-desktop-amd64.iso"
+  content_type           = "application/x-iso9660-image"
+}
+
+resource "azurerm_storage_container" "second" {
+  name                  = "second"
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "copied.vhd"
+  storage_container_id = azurerm_storage_container.second.id
+  type                   = "Block"
+  source_uri             = azurerm_storage_blob.source.id
+  content_type           = azurerm_storage_blob.source.content_type
+}
+`, template)
+}
+
+func (r StorageBlobResource) blockFromPublicFileDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -873,8 +1804,27 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func (r StorageBlobResource) blockFromExistingBlob(data acceptance.TestData) string {
+func (r StorageBlobResource) blockFromPublicFile(data acceptance.TestData) string {
 	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  source_uri             = "http://old-releases.ubuntu.com/releases/bionic/ubuntu-18.04-desktop-amd64.iso"
+  content_type           = "application/x-iso9660-image"
+}
+`, template)
+}
+
+func (r StorageBlobResource) blockFromExistingBlobDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -902,8 +1852,35 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func (r StorageBlobResource) blockFromLocalBlob(data acceptance.TestData, fileName string) string {
+func (r StorageBlobResource) blockFromExistingBlob(data acceptance.TestData) string {
 	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "source" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  source_uri             = "http://old-releases.ubuntu.com/releases/bionic/ubuntu-18.04-desktop-amd64.iso"
+  content_type           = "application/x-iso9660-image"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "copied.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  source_uri             = azurerm_storage_blob.source.id
+  content_type           = azurerm_storage_blob.source.content_type
+}
+`, template)
+}
+
+func (r StorageBlobResource) blockFromLocalBlobDeprecated(data acceptance.TestData, fileName string) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -921,8 +1898,26 @@ resource "azurerm_storage_blob" "test" {
 `, template, fileName)
 }
 
-func (r StorageBlobResource) contentMd5ForLocalFile(data acceptance.TestData, fileName string) string {
-	template := r.template(data, "blob")
+func (r StorageBlobResource) blockFromLocalBlob(data acceptance.TestData, fileName string) string {
+	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  source                 = "%s"
+}
+`, template, fileName)
+}
+
+func (r StorageBlobResource) contentMd5ForLocalFileDeprecated(data acceptance.TestData, fileName string) string {
+	template := r.templateDeprecated(data, "blob")
 	return fmt.Sprintf(`
 %s
 
@@ -941,8 +1936,66 @@ resource "azurerm_storage_blob" "test" {
 `, template, fileName, fileName)
 }
 
+func (r StorageBlobResource) contentMd5ForLocalFile(data acceptance.TestData, fileName string) string {
+	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  source                 = "%s"
+  content_md5            = "${filemd5("%s")}"
+}
+`, template, fileName, fileName)
+}
+
+func (r StorageBlobResource) contentTypeDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.ext"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Page"
+  size                   = 5120
+  content_type           = "image/png"
+}
+`, template)
+}
+
 func (r StorageBlobResource) contentType(data acceptance.TestData) string {
 	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.ext"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Page"
+  size                   = 5120
+  content_type           = "image/png"
+}
+`, template)
+}
+
+func (r StorageBlobResource) contentTypePremiumDeprecated(data acceptance.TestData) string {
+	template := r.templatePremiumDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -972,8 +2025,7 @@ provider "azurerm" {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.ext"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
+  storage_container_id = azurerm_storage_container.test.id
   type                   = "Page"
   size                   = 5120
   content_type           = "image/png"
@@ -981,8 +2033,8 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func (r StorageBlobResource) contentTypeUpdated(data acceptance.TestData) string {
-	template := r.template(data, "private")
+func (r StorageBlobResource) contentTypeUpdatedDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -1001,8 +2053,27 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func (r StorageBlobResource) encryptionScope(data acceptance.TestData, content string) string {
-	template := r.template(data, "blob")
+func (r StorageBlobResource) contentTypeUpdated(data acceptance.TestData) string {
+	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.ext"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Page"
+  size                   = 5120
+  content_type           = "image/gif"
+}
+`, template)
+}
+
+func (r StorageBlobResource) encryptionScopeDeprecated(data acceptance.TestData, content string) string {
+	template := r.templateDeprecated(data, "blob")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1029,8 +2100,35 @@ EOT
 `, template, data.RandomInteger, content)
 }
 
-func (r StorageBlobResource) encryptionScopeUpdateMetadata(data acceptance.TestData, content string) string {
+func (r StorageBlobResource) encryptionScope(data acceptance.TestData, content string) string {
 	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestEScontainer%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.Storage"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  encryption_scope       = azurerm_storage_encryption_scope.test.name
+  source_content         = <<EOT
+%[3]s
+EOT
+}
+`, template, data.RandomInteger, content)
+}
+
+func (r StorageBlobResource) encryptionScopeUpdateMetadataDeprecated(data acceptance.TestData, content string) string {
+	template := r.templateDeprecated(data, "blob")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1061,8 +2159,39 @@ EOT
 `, template, data.RandomInteger, content)
 }
 
-func (r StorageBlobResource) encryptionScopeUpdateProperties(data acceptance.TestData, content string) string {
+func (r StorageBlobResource) encryptionScopeUpdateMetadata(data acceptance.TestData, content string) string {
 	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestEScontainer%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.Storage"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  encryption_scope       = azurerm_storage_encryption_scope.test.name
+  source_content         = <<EOT
+%[3]s
+EOT
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, template, data.RandomInteger, content)
+}
+
+func (r StorageBlobResource) encryptionScopeUpdatePropertiesDeprecated(data acceptance.TestData, content string) string {
+	template := r.templateDeprecated(data, "blob")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1095,8 +2224,41 @@ EOT
 `, template, data.RandomInteger, content)
 }
 
-func (r StorageBlobResource) encryptionScopeUpdateAccessTier(data acceptance.TestData, content string) string {
+func (r StorageBlobResource) encryptionScopeUpdateProperties(data acceptance.TestData, content string) string {
 	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestEScontainer%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.Storage"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  encryption_scope       = azurerm_storage_encryption_scope.test.name
+  source_content         = <<EOT
+%[3]s
+EOT
+
+  metadata = {
+    hello = "world"
+  }
+
+  content_type = "text/plain"
+}
+`, template, data.RandomInteger, content)
+}
+
+func (r StorageBlobResource) encryptionScopeUpdateAccessTierDeprecated(data acceptance.TestData, content string) string {
+	template := r.templateDeprecated(data, "blob")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1130,8 +2292,79 @@ EOT
 `, template, data.RandomInteger, content)
 }
 
+func (r StorageBlobResource) encryptionScopeUpdateAccessTier(data acceptance.TestData, content string) string {
+	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestEScontainer%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.Storage"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  encryption_scope       = azurerm_storage_encryption_scope.test.name
+  source_content         = <<EOT
+%[3]s
+EOT
+
+  metadata = {
+    hello = "world"
+  }
+
+  content_type = "text/plain"
+  access_tier  = "Hot"
+}
+`, template, data.RandomInteger, content)
+}
+
+func (r StorageBlobResource) pageEmptyDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Page"
+  size                   = 5120
+}
+`, template)
+}
+
 func (r StorageBlobResource) pageEmpty(data acceptance.TestData) string {
 	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Page"
+  size                   = 5120
+}
+`, template)
+}
+
+func (r StorageBlobResource) pageEmptyPremiumDeprecated(data acceptance.TestData) string {
+	template := r.templatePremiumDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -1160,16 +2393,15 @@ provider "azurerm" {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
+  storage_container_id = azurerm_storage_container.test.id
   type                   = "Page"
   size                   = 5120
 }
 `, template)
 }
 
-func (r StorageBlobResource) pageEmptyMetaData(data acceptance.TestData) string {
-	template := r.template(data, "private")
+func (r StorageBlobResource) pageEmptyMetaDataDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -1191,8 +2423,30 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func (r StorageBlobResource) pageFromExistingBlob(data acceptance.TestData) string {
+func (r StorageBlobResource) pageEmptyMetaData(data acceptance.TestData) string {
 	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Page"
+  size                   = 5120
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, template)
+}
+
+func (r StorageBlobResource) pageFromExistingBlobDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -1220,8 +2474,35 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func (r StorageBlobResource) pageFromLocalBlob(data acceptance.TestData, fileName string) string {
+func (r StorageBlobResource) pageFromExistingBlob(data acceptance.TestData) string {
 	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "source" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Page"
+  size                   = 5120
+  content_type           = "application/x-iso9660-image"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "copied.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Page"
+  source_uri             = azurerm_storage_blob.source.id
+  content_type           = azurerm_storage_blob.source.content_type
+}
+`, template)
+}
+
+func (r StorageBlobResource) pageFromLocalBlobDeprecated(data acceptance.TestData, fileName string) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -1239,8 +2520,26 @@ resource "azurerm_storage_blob" "test" {
 `, template, fileName)
 }
 
-func (r StorageBlobResource) pageFromInlineContent(data acceptance.TestData, length int) string {
+func (r StorageBlobResource) pageFromLocalBlob(data acceptance.TestData, fileName string) string {
 	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Page"
+  source                 = "%s"
+}
+`, template, fileName)
+}
+
+func (r StorageBlobResource) pageFromInlineContentDeprecated(data acceptance.TestData, length int) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -1258,8 +2557,26 @@ resource "azurerm_storage_blob" "test" {
 `, template, length)
 }
 
-func (r StorageBlobResource) requiresImport(data acceptance.TestData) string {
-	template := r.blockFromPublicBlob(data)
+func (r StorageBlobResource) pageFromInlineContent(data acceptance.TestData, length int) string {
+	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Page"
+  source_content         = join("", [for i in range(0, %d) : "a"])
+}
+`, template, length)
+}
+
+func (r StorageBlobResource) requiresImportDeprecated(data acceptance.TestData) string {
+	template := r.blockFromPublicBlobDeprecated(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1273,8 +2590,22 @@ resource "azurerm_storage_blob" "import" {
 `, template)
 }
 
-func (r StorageBlobResource) update(data acceptance.TestData) string {
-	template := r.template(data, "private")
+func (r StorageBlobResource) requiresImport(data acceptance.TestData) string {
+	template := r.blockFromPublicBlob(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "import" {
+  name                   = azurerm_storage_blob.test.name
+  storage_container_name = azurerm_storage_blob.test.storage_container_name
+  type                   = azurerm_storage_blob.test.type
+  size                   = azurerm_storage_blob.test.size
+}
+`, template)
+}
+
+func (r StorageBlobResource) updateDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -1296,8 +2627,30 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func (r StorageBlobResource) updateUpdated(data acceptance.TestData) string {
+func (r StorageBlobResource) update(data acceptance.TestData) string {
 	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  size                   = 5120
+  content_type           = "vnd/panda+pops"
+  metadata = {
+    hello = "world"
+  }
+}
+`, template)
+}
+
+func (r StorageBlobResource) updateUpdatedDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -1320,8 +2673,31 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func (r StorageBlobResource) cacheControl(data acceptance.TestData, cacheControl string) string {
+func (r StorageBlobResource) updateUpdated(data acceptance.TestData) string {
 	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Block"
+  size                   = 5120
+  content_type           = "vnd/mountain-mover-3000"
+  metadata = {
+    hello = "world"
+    panda = "pops"
+  }
+}
+`, template)
+}
+
+func (r StorageBlobResource) cacheControlDeprecated(data acceptance.TestData, cacheControlDeprecated string) string {
+	template := r.templateDeprecated(data, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -1341,6 +2717,50 @@ resource "azurerm_storage_blob" "test" {
 `, template, cacheControl)
 }
 
+func (r StorageBlobResource) cacheControl(data acceptance.TestData, cacheControl string) string {
+	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.ext"
+  storage_container_id = azurerm_storage_container.test.id
+  type                   = "Page"
+  size                   = 5120
+  content_type           = "image/png"
+  cache_control          = "%s"
+}
+`, template, cacheControl)
+}
+
+func (r StorageBlobResource) templateDeprecated(data acceptance.TestData, accessLevel string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestacc%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
+}
+
 func (r StorageBlobResource) template(data acceptance.TestData, accessLevel string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -1352,6 +2772,30 @@ resource "azurerm_storage_account" "test" {
   name                            = "acctestacc%s"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  container_access_type = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
+}
+
+func (r StorageBlobResource) templateBlockBlobStorageDeprecated(data acceptance.TestData, accessLevel string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestacc%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_kind                    = "StorageV2"
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
   allow_nested_items_to_be_public = true
@@ -1384,6 +2828,29 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
+  container_access_type = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
+}
+
+func (r StorageBlobResource) templatePremiumDeprecated(data acceptance.TestData, accessLevel string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestacc%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Premium"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "%s"
 }
@@ -1408,10 +2875,29 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
+}
+
+func (r StorageBlobResource) archiveDeprecated(data acceptance.TestData) string {
+	template := r.templateDeprecated(data, "private")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source_content         = "Wubba Lubba Dub Dub"
+  access_tier            = "Archive"
+}
+`, template)
 }
 
 func (r StorageBlobResource) archive(data acceptance.TestData) string {
@@ -1425,8 +2911,7 @@ provider "azurerm" {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "rick.morty"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
+  storage_container_id = azurerm_storage_container.test.id
   type                   = "Block"
   source_content         = "Wubba Lubba Dub Dub"
   access_tier            = "Archive"

@@ -359,7 +359,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	rmId, err := tables.ParseTableID(d.Id())
+	rmId, err := parse.StorageTableResourceManagerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -367,7 +367,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 	tableName := rmId.TableName
 	accountName := rmId.StorageAccountName
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
+	account, err := storageClient.GetAccount(ctx, commonids.NewStorageAccountID(rmId.SubscriptionId, rmId.ResourceGroup, rmId.StorageAccountName))
 	if err != nil {
 		return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", accountName, tableName, err)
 	}
@@ -404,7 +404,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", tableName)
-	d.Set("storage_account_id", commonids.NewStorageAccountID(rmId.SubscriptionId, rmId.ResourceGroupName, rmId.StorageAccountName).ID())
+	d.Set("storage_account_id", commonids.NewStorageAccountID(rmId.SubscriptionId, rmId.ResourceGroup, rmId.StorageAccountName).ID())
 
 	if !features.FivePointOh() {
 		d.Set("storage_account_name", "")
@@ -430,9 +430,20 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 			return err
 		}
 
-		account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", id.AccountId.AccountName, id.TableName, err)
+		var account *client.AccountDetails
+		if meta.(*clients.Client).Storage.StorageUseAzureAD {
+			// Note: The Resource Group Name is intentionally left empty here because it is not known
+			// in this 4.x legacy fallback path. This is safe because when Azure AD authentication is used,
+			// the downstream Data Plane client builder entirely bypasses fetching Storage Account access keys
+			// via the Management Plane (which is the only operation that requires the Resource Group Name).
+			account = &client.AccountDetails{
+				StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", id.AccountId.AccountName),
+			}
+		} else {
+			account, err = storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", id.AccountId.AccountName, id.TableName, err)
+			}
 		}
 		if account == nil {
 			return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
@@ -453,14 +464,21 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return nil
 	}
 
-	rmId, err := tables.ParseTableID(d.Id())
+	rmId, err := parse.StorageTableResourceManagerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, rmId.StorageAccountName)
-	if err != nil {
-		return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", rmId.StorageAccountName, rmId.TableName, err)
+	var account *client.AccountDetails
+	if meta.(*clients.Client).Storage.StorageUseAzureAD {
+		account = &client.AccountDetails{
+			StorageAccountId: commonids.NewStorageAccountID(rmId.SubscriptionId, rmId.ResourceGroup, rmId.StorageAccountName),
+		}
+	} else {
+		account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(rmId.SubscriptionId, rmId.ResourceGroup, rmId.StorageAccountName))
+		if err != nil {
+			return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", rmId.StorageAccountName, rmId.TableName, err)
+		}
 	}
 	if account == nil {
 		return fmt.Errorf("locating Storage Account %q", rmId.StorageAccountName)
