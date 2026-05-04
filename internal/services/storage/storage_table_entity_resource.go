@@ -94,7 +94,6 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 
 	var tableName string
 	var accountName string
-	var storageTableIdFmt string
 	var account *client.AccountDetails
 	var err error
 
@@ -110,7 +109,6 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 			if err != nil {
 				return err
 			}
-			storageTableIdFmt = storageTableId.ID()
 			tableName = storageTableId.TableName
 			accountName = storageTableId.StorageAccountName
 			storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
@@ -124,7 +122,6 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 			if err != nil {
 				return err
 			}
-			storageTableIdFmt = storageTableId.ID()
 			tableName = storageTableId.TableName
 			accountName = storageTableId.AccountId.AccountName
 			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
@@ -137,7 +134,6 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 		if err != nil {
 			return err
 		}
-		storageTableIdFmt = storageTableId.ID()
 		tableName = storageTableId.TableName
 		accountName = storageTableId.StorageAccountName
 		storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
@@ -151,9 +147,14 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("the parent Storage Account %s was not found", accountName)
 	}
 
-	accountId, err := accounts.ParseAccountID(storageTableIdFmt, storageClient.StorageDomainSuffix)
+	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)
 	if err != nil {
-		return fmt.Errorf("parsing Account ID: %s", err)
+		return fmt.Errorf("retrieving the table data plane endpoint: %v", err)
+	}
+
+	accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing Account ID: %v", err)
 	}
 
 	id := entities.NewEntityID(*accountId, tableName, partitionKey, rowKey)

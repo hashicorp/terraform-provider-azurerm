@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	storageclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
@@ -551,12 +552,20 @@ func (r StorageBlobResource) Exists(ctx context.Context, client *clients.Client,
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
-	if err != nil {
-		return nil, err
-	}
-	if account == nil {
-		return nil, fmt.Errorf("unable to locate Account %q for Blob %q (Container %q)", id.AccountId.AccountName, id.BlobName, id.ContainerName)
+	var account *storageclient.AccountDetails
+	if client.Storage.StorageUseAzureAD {
+		account = &storageclient.AccountDetails{
+			StorageAccountId: commonids.NewStorageAccountID(client.Account.SubscriptionId, "", id.AccountId.AccountName),
+		}
+	} else {
+		var err error
+		account, err = client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
+		if err != nil {
+			return nil, err
+		}
+		if account == nil {
+			return nil, fmt.Errorf("unable to locate Account %q for Blob %q (Container %q)", id.AccountId.AccountName, id.BlobName, id.ContainerName)
+		}
 	}
 	blobsClient, err := client.Storage.BlobsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
@@ -1286,7 +1295,7 @@ resource "azurerm_storage_blob" "test" {
   size                   = 5120
   content_type           = "image/png"
 }
-`, r.templatePremium(data, "private"))
+`, r.templatePremium(data))
 	}
 	return fmt.Sprintf(`
 	%s
@@ -1302,7 +1311,7 @@ resource "azurerm_storage_blob" "test" {
   size                 = 5120
   content_type         = "image/png"
 }
-`, r.templatePremium(data, "private"))
+`, r.templatePremium(data))
 }
 
 func (r StorageBlobResource) contentTypeUpdated(data acceptance.TestData) string {
@@ -1633,7 +1642,7 @@ resource "azurerm_storage_blob" "test" {
   type                   = "Page"
   size                   = 5120
 }
-`, r.templatePremium(data, "private"))
+`, r.templatePremium(data))
 	}
 	return fmt.Sprintf(`
 	%s
@@ -1648,7 +1657,7 @@ resource "azurerm_storage_blob" "test" {
   type                 = "Page"
   size                 = 5120
 }
-`, r.templatePremium(data, "private"))
+`, r.templatePremium(data))
 }
 
 func (r StorageBlobResource) pageEmptyMetaData(data acceptance.TestData) string {
@@ -2060,7 +2069,7 @@ resource "azurerm_storage_container" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
 }
 
-func (r StorageBlobResource) templatePremium(data acceptance.TestData, accessLevel string) string {
+func (r StorageBlobResource) templatePremium(data acceptance.TestData) string {
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -2080,9 +2089,9 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_container" "test" {
   name                  = "test"
   storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "%s"
+  container_access_type = "private"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -2102,9 +2111,9 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_container" "test" {
   name                  = "test"
   storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "%s"
+  container_access_type = "private"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageBlobResource) archive(data acceptance.TestData) string {

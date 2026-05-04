@@ -157,4 +157,3 @@ data "azurerm_storage_blob" "test" {
 }
 `, config)
 }
-

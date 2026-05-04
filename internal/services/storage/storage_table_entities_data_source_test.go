@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -41,7 +43,8 @@ func TestAccDataSourceStorageTableEntities_withSelector(t *testing.T) {
 }
 
 func (d StorageTableEntitiesDataSource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -103,7 +106,71 @@ resource "azurerm_storage_table_entity" "testselector" {
     testselector = "testselectorval"
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+		`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "tableentitydstest-%s"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "acctesttedsc%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  allow_nested_items_to_be_public = false
+}
+
+resource "azurerm_storage_table" "test" {
+  name               = "tabletesttedsc%s"
+  storage_account_id = azurerm_storage_account.test.id
+}
+
+resource "azurerm_storage_table_entity" "test" {
+  storage_table_id = azurerm_storage_table.test.id
+
+  partition_key = "testpartition"
+  row_key       = "testrow"
+
+  entity = {
+    testkey1 = "testval11"
+    testkey2 = "testval12"
+  }
+}
+
+resource "azurerm_storage_table_entity" "test2" {
+  storage_table_id = azurerm_storage_table.test.id
+
+  partition_key = "testpartition"
+  row_key       = "testrow2"
+
+  entity = {
+    testkey1 = "testval21"
+    testkey2 = "testval22"
+  }
+}
+
+resource "azurerm_storage_table_entity" "testselector" {
+  storage_table_id = azurerm_storage_table.test.id
+
+  partition_key = "testselectorpartition"
+  row_key       = "testrow"
+
+  entity = {
+    testkey1     = "testval31"
+    testkey2     = "testval32"
+    testselector = "testselectorval"
+  }
+}
+	`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (d StorageTableEntitiesDataSource) basicWithDataSource(data acceptance.TestData) string {
