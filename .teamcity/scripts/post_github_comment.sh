@@ -25,6 +25,14 @@ detailed=false
 
 BUILD_ID="%teamcity.build.id%"
 
+github_api_request() {
+  local endpoint="$1"
+  curl -s \
+    -H "Authorization: Bearer %env.GIT_PAT%" \
+    -H "Accept: application/vnd.github+json" \
+    "https://api.github.com/repos/%env.GITHUB_REPO%${endpoint}"
+}
+
 TEST_RESULTS=$(file="results.txt"
 
 awk '
@@ -69,8 +77,6 @@ awk '
 ' "$file"
 )
 
-
-
 # Parse results to get counts
 PASS_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="PASS") print}' | wc -l | tr -d ' ')
 FAIL_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="FAIL") print}' | wc -l | tr -d ' ')
@@ -91,11 +97,8 @@ BUILD_SECONDS=$((BUILD_DURATION % 60))
 # Fetch PR author if there are failures
 PREFIX=""
 if [ "$FAIL_COUNT" -gt 0 ]; then
-  PR_AUTHOR=$(curl -s \
-    -H "Authorization: Bearer %env.GIT_PAT%" \
-    -H "Accept: application/vnd.github+json" \
-    https://api.github.com/repos/%env.GITHUB_REPO%/pulls/"${PR_NUMBER}" \
-    | jq -r '.user.login')
+  PR_AUTHOR=$(github_api_request "/pulls/${PR_NUMBER}" \
+  | jq -r '.user.login')
 
   if [ -z "$PR_AUTHOR" ] || [ "$PR_AUTHOR" = "null" ]; then
     echo "Warning: Could not fetch PR author"
@@ -162,10 +165,44 @@ COMMENT+="</table>
 </details>
 "
 
-echo "Posting comment to GitHub..."
+# Add a unique identifier to track comments from this script
+COMMENT_IDENTIFIER="<!-- teamcity-test-results -->"
+COMMENT="${COMMENT_IDENTIFIER}
+${COMMENT}"
 
-curl -s \
--H "Authorization: Bearer %env.GIT_PAT%" \
--H "Accept: application/vnd.github+json" \
-https://api.github.com/repos/%env.GITHUB_REPO%/issues/"${PR_NUMBER}"/comments \
+echo "Minimizing previous comments from this run..."
+# Fetch existing comments on the PR
+echo "Fetching existing comments..."
+COMMENT_IDS=$(github_api_request "/issues/${PR_NUMBER}/comments" \
+  | jq -r '.[] | select(.body | type == "string" and (contains("<!-- teamcity-test-results -->") or startswith("/test"))) | .node_id' 2>&1 | grep -v "^jq:")
+
+
+# Minimize each previous comment using GitHub's GraphQL API
+if [ -n "$COMMENT_IDS" ]; then
+  echo "Found previous comments to minimize"
+  while IFS= read -r COMMENT_NODE_ID; do
+    if [ -n "$COMMENT_NODE_ID" ]; then
+      echo "Minimizing comment: $COMMENT_NODE_ID"
+      RESPONSE=$(curl -s -X POST \
+        -H "Authorization: bearer $GIT_PAT" \
+        -H "Content-Type: application/json" \
+        https://api.github.com/graphql \
+        -d "{\"query\": \"mutation { minimizeComment(input: {subjectId: \\\"$COMMENT_NODE_ID\\\", classifier: OUTDATED}) { minimizedComment { isMinimized } } }\"}")
+
+      # Check if minimization was successful
+      if echo "$RESPONSE" | jq -e '.data.minimizeComment.minimizedComment.isMinimized' > /dev/null 2>&1; then
+        echo "Successfully minimized comment: $COMMENT_NODE_ID"
+      else
+        echo "Warning: Failed to minimize comment: $COMMENT_NODE_ID"
+        echo "Response: $RESPONSE"
+      fi
+    fi
+  done <<< "$COMMENT_IDS"
+else
+  echo "No previous comments found to minimize"
+fi
+
+echo "Posting new comment to GitHub..."
+
+github_api_request "/issues/"${PR_NUMBER}"/comments \
 -d "{\"body\": $(jq -Rs . <<< "$COMMENT")}"
