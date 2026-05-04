@@ -845,7 +845,11 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("sku", string(pointer.From(props.Sku.Name)))
 		}
 
-		if err := d.Set("ip_configuration", flattenVirtualNetworkGatewayIPConfigurations(props.IPConfigurations)); err != nil {
+		ipConfigurations, err := flattenVirtualNetworkGatewayIPConfigurations(props.IPConfigurations)
+		if err != nil {
+			return fmt.Errorf("flattening `ip_configuration`: %+v", err)
+		}
+		if err := d.Set("ip_configuration", ipConfigurations); err != nil {
 			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
@@ -1497,7 +1501,7 @@ func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]virtualnetworkgate
 	return output, nil
 }
 
-func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgateways.VirtualNetworkGatewayIPConfiguration) []interface{} {
+func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgateways.VirtualNetworkGatewayIPConfiguration) ([]interface{}, error) {
 	flat := make([]interface{}, 0)
 
 	if ipConfigs != nil {
@@ -1518,7 +1522,11 @@ func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgat
 
 			if pip := props.PublicIPAddress; pip != nil {
 				if id := pip.Id; id != nil {
-					v["public_ip_address_id"] = *id
+					publicIPAddressId, err := commonids.ParsePublicIPAddressID(*id)
+					if err != nil {
+						return nil, err
+					}
+					v["public_ip_address_id"] = publicIPAddressId.ID()
 				}
 			}
 
@@ -1526,7 +1534,7 @@ func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgat
 		}
 	}
 
-	return flat
+	return flat, nil
 }
 
 func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.VpnClientConfiguration) ([]interface{}, error) {
