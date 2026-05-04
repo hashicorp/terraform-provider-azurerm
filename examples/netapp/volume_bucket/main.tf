@@ -70,6 +70,34 @@ resource "azurerm_netapp_volume" "example" {
   protocols           = ["NFSv3"]
 }
 
+# The first bucket created on a set of volumes sharing the same backing IP
+# must supply a server FQDN and a server certificate (base64-encoded PEM
+# containing both certificate and private key). This example generates a
+# self-signed certificate purely for demonstration - replace it with a
+# CA-signed certificate in production.
+resource "tls_private_key" "bucket" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+resource "tls_self_signed_cert" "bucket" {
+  private_key_pem = tls_private_key.bucket.private_key_pem
+
+  subject {
+    common_name = var.server_fqdn
+  }
+
+  dns_names = [var.server_fqdn]
+
+  validity_period_hours = 8760 # 1 year
+
+  allowed_uses = [
+    "key_encipherment",
+    "digital_signature",
+    "server_auth",
+  ]
+}
+
 resource "azurerm_netapp_volume_bucket" "example" {
   name      = "${var.prefix}-bucket"
   volume_id = azurerm_netapp_volume.example.id
@@ -80,6 +108,14 @@ resource "azurerm_netapp_volume_bucket" "example" {
       group_id = 1000
       user_id  = 1000
     }
+  }
+
+  server {
+    fqdn = var.server_fqdn
+
+    # certificate_pem must be the base64-encoded concatenation of the PEM
+    # certificate and the PEM private key.
+    certificate_pem = base64encode("${tls_self_signed_cert.bucket.cert_pem}${tls_private_key.bucket.private_key_pem}")
   }
 }
 
