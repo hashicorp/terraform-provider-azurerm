@@ -43,7 +43,6 @@ type CosmosDbFleetspaceModel struct {
 
 func (CosmosDbFleetspaceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		// Should be unique for `azurerm_cosmosdb_fleetspace` under same `azurerm_cosmosdb_fleet`, should `azurerm_cosmosdb_fleetspace` be merged with `azurerm_cosmosdb_fleet`?
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
