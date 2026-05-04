@@ -743,7 +743,6 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			generalPurposeV2Changed := metadata.ResourceData.HasChange("general_purpose_v2_enabled")
-			storageIOpsChanged := metadata.ResourceData.HasChange("storage_iops")
 			skuNameChanged := metadata.ResourceData.HasChange("sku_name")
 
 			effectiveIsGeneralPurposeV2 := expandMsSqlManagedInstanceGeneralPurposeV2Enabled(state.GeneralPurposeV2Enabled, state.SkuName)
@@ -752,11 +751,11 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				props.IsGeneralPurposeV2 = effectiveIsGeneralPurposeV2
 			}
 
-			if generalPurposeV2Changed || storageIOpsChanged || skuNameChanged {
-				props.StorageIOps = nil
-				if pointer.From(effectiveIsGeneralPurposeV2) {
-					props.StorageIOps = pointer.To(state.StorageIOps)
-				}
+			props.StorageIOps = nil
+
+			// when the MI is not GPv2, the storageIOps is not returned and will be 0 in state. That's not a valid value for the service.
+			if metadata.ResourceData.HasChange("storage_iops") && state.StorageIOps != 0 {
+				props.StorageIOps = pointer.To(state.StorageIOps)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
