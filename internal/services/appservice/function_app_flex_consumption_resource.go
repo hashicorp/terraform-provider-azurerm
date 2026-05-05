@@ -583,8 +583,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			backendSaConStr, backendStorageUseMsi := expandBackendStorage(backendStorage, storageDomainSuffix)
 
-			deploymentSaConStrName := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
-			deploymentStorage, deploymentSaConStr := expandDeploymentStorage(functionAppFlexConsumption.DeploymentStorage, deploymentSaConStrName, storageDomainSuffix)
+			deploymentStorage, deploymentSaConStr := expandDeploymentStorage(functionAppFlexConsumption.DeploymentStorage, DeploymentStorageConnStr, storageDomainSuffix)
 
 			if !features.FivePointOh() && deploymentStorage == nil {
 				deploymentStorage = &webapps.FunctionsDeploymentStorage{
@@ -597,7 +596,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				endpoint, _ := url.Parse(functionAppFlexConsumption.StorageContainerEndpoint)
 				deploymentStorageName := strings.Split(endpoint.Host, ".")[0]
 				if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
-					deploymentStorage.Authentication.StorageAccountConnectionStringName = pointer.To(deploymentSaConStrName)
+					deploymentStorage.Authentication.StorageAccountConnectionStringName = pointer.To(DeploymentStorageConnStr)
 					if functionAppFlexConsumption.StorageAccessKey == "" {
 						return fmt.Errorf("the storage account access key must be specified when using the storage key based access")
 					}
@@ -656,7 +655,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				ScaleAndConcurrency: &scaleAndConcurrencyConfig,
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, backendStorageUseMsi, backendSaConStr, deploymentSaConStrName, deploymentSaConStr)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, backendStorageUseMsi, backendSaConStr, DeploymentStorageConnStr, deploymentSaConStr)
 			if err != nil {
 				return fmt.Errorf("expanding `site_config` for %s: %+v", id, err)
 			}
@@ -1071,8 +1070,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 					model.Properties.FunctionAppConfig.Deployment.Storage.Type = &containerType
 				}
 				if metadata.ResourceData.HasChange("storage_access_key") {
-					deploymentStorageKey = state.StorageAccessKey
-					deploymentStorageKey = fmt.Sprintf(StorageStringFmt, deploymentStorageName, deploymentStorageKey, *storageDomainSuffix)
+					deploymentStorageKey = fmt.Sprintf(helpers.StorageStringFmt, deploymentStorageName, state.StorageAccessKey, *storageDomainSuffix)
 					state.AppSettings[deploymentSaConStrName] = deploymentStorageKey
 				}
 				if metadata.ResourceData.HasChange("storage_authentication_type") {

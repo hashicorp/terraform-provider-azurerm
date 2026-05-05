@@ -2063,7 +2063,13 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	return expanded, nil
 }
 
-func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageUsesMSI bool, backendStorageString string, deploymentStorageStringName, deploymentStorageStringValue string) (*webapps.SiteConfig, error) {
+func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFlexConsumption,
+	existing *webapps.SiteConfig,
+	metadata sdk.ResourceMetaData,
+	storageUsesMSI bool,
+	backendStorageString string,
+	deploymentStorageStringName, deploymentStorageStringValue string,
+) (*webapps.SiteConfig, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
