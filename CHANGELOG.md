@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 * `azurerm_subnet` - add support for the `Microsoft.MessagingConnectors/connectors` value in the `delegation.service_delegation.name` property [GH-32305]
+* `azurerm_virtual_network` - add support for the `Microsoft.MessagingConnectors/connectors` value in the `subnet.delegation.service_delegation.name` property [GH-32305]
 * `azurerm_data_factory_linked_service_data_lake_storage_gen2` - set schema fields `service_principal_key` and `storage_account_key` as sensitive [GH-32284]
 * `azurerm_machine_learning_compute_cluster` - set schema field `ssh.0.admin_password` as sensitive [GH-32293]
 * `cosmos` - migrate all resources and data sources to `go-azure-sdk` [GH-32066]
