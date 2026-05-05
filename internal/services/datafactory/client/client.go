@@ -27,7 +27,7 @@ type Client struct {
 	IntegrationRuntimeDisableInteractiveQueryClient *integrationruntimedisableinteractivequery.IntegrationRuntimeDisableInteractiveQueryClient
 	IntegrationRuntimeEnableInteractiveQueryClient  *integrationruntimeenableinteractivequery.IntegrationRuntimeEnableInteractiveQueryClient
 	IntegrationRuntimesClient                       *integrationruntimes.IntegrationRuntimesClient
-	LinkedServicesClient      *linkedservices.LinkedServicesClient
+	LinkedServicesClient                            *linkedservices.LinkedServicesClient
 	ManagedPrivateEndpoints                         *managedprivateendpoints.ManagedPrivateEndpointsClient
 	ManagedVirtualNetworks                          *managedvirtualnetworks.ManagedVirtualNetworksClient
 	PipelinesClient                                 *pipelines.PipelinesClient
@@ -116,7 +116,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		IntegrationRuntimeDisableInteractiveQueryClient: integrationRuntimeDisableInteractiveQueryClient,
 		IntegrationRuntimeEnableInteractiveQueryClient:  integrationRuntimeEnableInteractiveQueryClient,
 		IntegrationRuntimesClient:                       integrationRuntimesClient,
-		LinkedServicesClient:      linkedServicesClient,
+		LinkedServicesClient:                            linkedServicesClient,
 		ManagedPrivateEndpoints:                         managedPrivateEndpointsClient,
 		ManagedVirtualNetworks:                          managedVirtualNetworksClient,
 		PipelinesClient:                                 PipelinesClient,
