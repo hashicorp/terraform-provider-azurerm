@@ -61,7 +61,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   name                     = "example-customDomain"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
   dns_zone_id              = azurerm_dns_zone.example.id
-  host_name                = "contoso.fabrikam.com"
+  host_name                = join(".", ["contoso", azurerm_dns_zone.example.name])
 
   tls {
     certificate_type    = "ManagedCertificate"
@@ -92,43 +92,41 @@ resource "azurerm_cdn_frontdoor_security_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Front Door Security Policy. Possible values must not be an empty string. Changing this forces a new Front Door Security Policy to be created.
+* `name` - (Required) The name which should be used for this Front Door Security Policy. Changing this forces a new resource to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The Front Door Profile Resource Id that is linked to this Front Door Security Policy. Changing this forces a new Front Door Security Policy to be created.
+* `cdn_frontdoor_profile_id` - (Required) The Front Door Profile Resource Id that is linked to this Front Door Security Policy. Changing this forces a new resource to be created.
 
-* `security_policies` - (Required) An `security_policies` block as defined below. Changing this forces a new Front Door Security Policy to be created.
+* `security_policies` - (Required) A `security_policies` block as defined below.
 
 ---
 
 A `security_policies` block supports the following:
 
-* `firewall` - (Required) An `firewall` block as defined below. Changing this forces a new Front Door Security Policy to be created.
+* `firewall` - (Required) A `firewall` block as defined below.
 
 ---
 
 A `firewall` block supports the following:
 
-* `cdn_frontdoor_firewall_policy_id` - (Required) The Resource Id of the Front Door Firewall Policy that should be linked to this Front Door Security Policy. Changing this forces a new Front Door Security Policy to be created.
+* `association` - (Required) An `association` block as defined below.
 
-* `association` - (Required) An `association` block as defined below. Changing this forces a new Front Door Security Policy to be created.
+* `cdn_frontdoor_firewall_policy_id` - (Required) The Resource Id of the Front Door Firewall Policy that should be linked to this Front Door Security Policy. Changing this forces a new resource to be created.
 
 ---
 
 An `association` block supports the following:
 
-* `domain` - (Required) One or more `domain` blocks as defined below. Changing this forces a new Front Door Security Policy to be created.
+* `domain` - (Required) One or more `domain` blocks as defined below.
 
-* `patterns_to_match` - (Required) The list of paths to match for this firewall policy. Possible value includes `/*`. Changing this forces a new Front Door Security Policy to be created.
+~> **Note:** The number of `domain` blocks that may be included in the configuration varies depending on the `sku_name` field of the linked Front Door Profile. The `Standard_AzureFrontDoor` sku may contain up to 100 `domain` blocks and a `Premium_AzureFrontDoor` sku may contain up to 500 `domain` blocks.
+
+* `patterns_to_match` - (Required) The list of paths to match for this firewall policy. The only possible value is `/*`. Changing this forces a new resource to be created.
 
 ---
 
 A `domain` block supports the following:
 
-~> **Note:** The number of `domain` blocks that maybe included in the configuration file varies depending on the `sku_name` field of the linked Front Door Profile. The `Standard_AzureFrontDoor` sku may contain up to 100 `domain` blocks and a `Premium_AzureFrontDoor` sku may contain up to 500 `domain` blocks.
-
-* `cdn_frontdoor_domain_id` - (Required) The Resource Id of the **Front Door Custom Domain** or **Front Door Endpoint** that should be bound to this Front Door Security Policy. Changing this forces a new Front Door Security Policy to be created.
-
-* `active` - (Computed) Is the Front Door Custom Domain/Endpoint activated?
+* `cdn_frontdoor_domain_id` - (Required) The Resource Id of the **Front Door Custom Domain** or **Front Door Endpoint** that should be bound to this Front Door Security Policy.
 
 ---
 
@@ -138,18 +136,52 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Front Door Security Policy.
 
+* `security_policies` - A `security_policies` block as defined below.
+
+---
+
+A `security_policies` block exports the following:
+
+* `firewall` - A `firewall` block as defined below.
+
+---
+
+A `firewall` block exports the following:
+
+* `association` - An `association` block as defined below.
+
+---
+
+An `association` block exports the following:
+
+* `domain` - A `domain` block as defined below.
+
+---
+
+A `domain` block exports the following:
+
+* `active` - Whether the Front Door Custom Domain or Front Door Endpoint is active.
+
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Security Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Security Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Security Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Security Policy.
 
 ## Import
 
-Front Door Security Policies can be imported using the `resource id`, e.g.
+A Front Door Security Policy can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_security_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/policy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2024-02-01

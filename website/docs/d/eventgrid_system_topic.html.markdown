@@ -3,13 +3,13 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventgrid_system_topic"
 description: |-
-  Gets information about an existing EventGrid System Topic
+  Gets information about an existing Event Grid System Topic
 
 ---
 
 # Data Source: azurerm_eventgrid_system_topic
 
-Use this data source to access information about an existing EventGrid System Topic
+Use this data source to access information about an existing Event Grid System Topic
 
 ## Example Usage
 
@@ -20,25 +20,27 @@ data "azurerm_eventgrid_system_topic" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-* `name` - The name of the EventGrid System Topic resource.
+* `name` - (Required) The name of the Event Grid System Topic resource.
 
-* `resource_group_name` - The name of the resource group in which the EventGrid System Topic exists.
+* `resource_group_name` - (Required) The name of the resource group in which the Event Grid System Topic exists.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The EventGrid System Topic ID.
+* `id` - The Event Grid System Topic ID.
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Event Grid System Topic.
 
-* `metric_arm_resource_id` - The Metric ARM Resource ID of the Event Grid System Topic.
+* `metric_resource_id` - The Metric Resource ID of the Event Grid System Topic.
 
-* `source_arm_resource_id` - The ID of the Event Grid System Topic ARM Source.
+-> **Note:** This is **not** an Azure RM ID ("/subscription/..."), but rather an Azure-internal identifier for this metric in the form of a GUID. For consumption in Azure Monitor resources, generally the system topic's Azure RM ID is used.
+
+* `source_resource_id` - The ID of the Event Grid System Topic ARM Source.
 
 * `topic_type` - The Topic Type of the Event Grid System Topic.
 
@@ -60,12 +62,12 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the EventGrid System Topic.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Event Grid System Topic.
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.EventGrid`: 2022-06-15
+* `Microsoft.EventGrid` - 2025-02-15

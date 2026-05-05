@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package batch
@@ -8,16 +8,19 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/application"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name batch_application -service-package-name batch -properties "name,resource_group_name,batch_account_name:account_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
 
 func resourceBatchApplication() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -33,10 +36,7 @@ func resourceBatchApplication() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := application.ParseApplicationID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&application.ApplicationId{}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -73,6 +73,10 @@ func resourceBatchApplication() *pluginsdk.Resource {
 				ValidateFunc: validate.ApplicationDisplayName,
 			},
 		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&application.ApplicationId{}),
+		},
 	}
 }
 
@@ -100,9 +104,9 @@ func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	parameters := application.Application{
 		Properties: &application.ApplicationProperties{
-			AllowUpdates:   utils.Bool(allowUpdates),
-			DefaultVersion: utils.String(defaultVersion),
-			DisplayName:    utils.String(displayName),
+			AllowUpdates:   pointer.To(allowUpdates),
+			DefaultVersion: pointer.To(defaultVersion),
+			DisplayName:    pointer.To(displayName),
 		},
 	}
 
@@ -111,6 +115,9 @@ func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceBatchApplicationRead(d, meta)
 }
@@ -147,7 +154,7 @@ func resourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceBatchApplicationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -166,9 +173,9 @@ func resourceBatchApplicationUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	parameters := application.Application{
 		Properties: &application.ApplicationProperties{
-			AllowUpdates:   utils.Bool(allowUpdates),
-			DefaultVersion: utils.String(defaultVersion),
-			DisplayName:    utils.String(displayName),
+			AllowUpdates:   pointer.To(allowUpdates),
+			DefaultVersion: pointer.To(defaultVersion),
+			DisplayName:    pointer.To(displayName),
 		},
 	}
 

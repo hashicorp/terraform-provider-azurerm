@@ -17,7 +17,7 @@ import (
 
 // ApplyResourceChangeRequest returns the *fwserver.ApplyResourceChangeRequest
 // equivalent of a *tfprotov5.ApplyResourceChangeRequest.
-func ApplyResourceChangeRequest(ctx context.Context, proto5 *tfprotov5.ApplyResourceChangeRequest, resource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.ApplyResourceChangeRequest, diag.Diagnostics) {
+func ApplyResourceChangeRequest(ctx context.Context, proto5 *tfprotov5.ApplyResourceChangeRequest, resource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema, resourceBehavior resource.ResourceBehavior, identitySchema fwschema.Schema) (*fwserver.ApplyResourceChangeRequest, diag.Diagnostics) {
 	if proto5 == nil {
 		return nil, nil
 	}
@@ -39,8 +39,10 @@ func ApplyResourceChangeRequest(ctx context.Context, proto5 *tfprotov5.ApplyReso
 	}
 
 	fw := &fwserver.ApplyResourceChangeRequest{
-		ResourceSchema: resourceSchema,
-		Resource:       resource,
+		ResourceSchema:   resourceSchema,
+		ResourceBehavior: resourceBehavior,
+		IdentitySchema:   identitySchema,
+		Resource:         resource,
 	}
 
 	config, configDiags := Config(ctx, proto5.Config, resourceSchema)
@@ -54,6 +56,12 @@ func ApplyResourceChangeRequest(ctx context.Context, proto5 *tfprotov5.ApplyReso
 	diags.Append(plannedStateDiags...)
 
 	fw.PlannedState = plannedState
+
+	plannedIdentity, plannedIdentityDiags := ResourceIdentity(ctx, proto5.PlannedIdentity, identitySchema)
+
+	diags.Append(plannedIdentityDiags...)
+
+	fw.PlannedIdentity = plannedIdentity
 
 	priorState, priorStateDiags := State(ctx, proto5.PriorState, resourceSchema)
 

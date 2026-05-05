@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -76,18 +76,21 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						ForceNew: true,
 						Computed: true,
 					},
 
 					"private_ip_allocation_method": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						ForceNew:     true,
 						Default:      string(inboundendpoints.IPAllocationMethodDynamic),
 						ValidateFunc: validation.StringInSlice(inboundendpoints.PossibleValuesForIPAllocationMethod(), false),
 					},

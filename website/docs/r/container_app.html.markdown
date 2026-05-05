@@ -114,6 +114,10 @@ A `template` block supports the following:
 
 * `min_replicas` - (Optional) The minimum number of replicas for this container.
 
+* `cooldown_period_in_seconds` - (Optional) The number of seconds to wait before scaling down the number of instances again. Defaults to `300`.
+
+* `polling_interval_in_seconds` - (Optional) The interval in seconds used for polling KEDA. Defaults to `30`.
+
 * `azure_queue_scale_rule` - (Optional) One or more `azure_queue_scale_rule` blocks as defined below.
 
 * `custom_scale_rule` - (Optional) One or more `custom_scale_rule` blocks as defined below.
@@ -124,7 +128,7 @@ A `template` block supports the following:
 
 * `revision_suffix` - (Optional) The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
 
-* `termination_grace_period_seconds` - (Optional)   The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+* `termination_grace_period_seconds` - (Optional) The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `volume` - (Optional) A `volume` block as detailed below.
 
@@ -151,6 +155,8 @@ A `custom_scale_rule` block supports the following:
 * `metadata` - (Required) - A map of string key-value pairs to configure the Custom Scale Rule.
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
+
+* `ìdentity_id`- (Optional) Resource ID for the System or User Assigned Managed identity to use when executing the scale rule.
 
 ---
 
@@ -188,9 +194,9 @@ A `volume` block supports the following:
 
 * `storage_name` - (Optional) The name of the `AzureFile` storage.
 
-* `storage_type` - (Optional) The type of storage volume. Possible values are `AzureFile`, `EmptyDir` and `Secret`. Defaults to `EmptyDir`.
+* `storage_type` - (Optional) The type of storage volume. Possible values are `AzureFile`, `EmptyDir`, `NfsAzureFile` and `Secret`. Defaults to `EmptyDir`.
 
-* `mount_options` - Mount options used while mounting the AzureFile. Must be a comma-separated string e.g. `dir_mode=0751,file_mode=0751`.
+* `mount_options` - (Optional) Mount options used while mounting the AzureFile. Must be a comma-separated string e.g. `dir_mode=0751,file_mode=0751`.
 
 ---
 
@@ -200,9 +206,9 @@ An `init_container` block supports:
 
 * `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - (Optional) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. When there's a workload profile specified, there's no such constraint.
+* `cpu` - (Optional) The amount of vCPU to allocate to the container.
 
-~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
 * `env` - (Optional) One or more `env` blocks as detailed below.
 
@@ -212,9 +218,9 @@ An `init_container` block supports:
 
 * `image` - (Required) The image to use to create the container.
 
-* `memory` - (Optional) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`. When there's a workload profile specified, there's no such constraint.
+* `memory` - (Optional) The amount of memory to allocate to the container.
 
-~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
 * `name` - (Required) The name of the container
 
@@ -228,9 +234,9 @@ A `container` block supports the following:
 
 * `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. When there's a workload profile specified, there's no such constraint.
+* `cpu` - (Required) The amount of vCPU to allocate to the container.
 
-~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
 * `env` - (Optional) One or more `env` blocks as detailed below.
 
@@ -242,9 +248,9 @@ A `container` block supports the following:
 
 * `liveness_probe` - (Optional) A `liveness_probe` block as detailed below.
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`. When there's a workload profile specified, there's no such constraint.
+* `memory` - (Required) The amount of memory to allocate to the container.
 
-~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
 * `name` - (Required) The name of the container
 
@@ -258,7 +264,7 @@ A `container` block supports the following:
 
 A `liveness_probe` block supports the following:
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -300,7 +306,7 @@ An `env` block supports the following:
 
 A `readiness_probe` block supports the following:
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `48`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -332,7 +338,7 @@ A `header` block supports the following:
 
 A `startup_probe` block supports the following:
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `240`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -367,6 +373,7 @@ A `volume_mounts` block supports the following:
 * `path` - (Required) The path in the container at which to mount this volume.
 
 * `sub_path` - (Optional) The sub path of the volume to be mounted in the container.
+
 ---
 
 An `identity` block supports the following:
@@ -380,6 +387,8 @@ An `identity` block supports the following:
 An `ingress` block supports the following:
 
 * `allow_insecure_connections` - (Optional) Should this ingress allow insecure connections?
+
+* `cors` - (Optional) A `cors` block as defined below.
 
 * `fqdn` - The FQDN of the ingress.
 
@@ -400,6 +409,22 @@ An `ingress` block supports the following:
 ~> **Note:** if `transport` is set to `tcp`, `exposed_port` and `target_port` should be set at the same time.
 
 * `client_certificate_mode` - (Optional) The client certificate mode for the Ingress. Possible values are `require`, `accept`, and `ignore`.
+
+---
+
+A `cors` block supports the following:
+
+* `allowed_origins` - (Required) Specifies the list of origins that are allowed to make cross-origin calls.
+
+* `allow_credentials_enabled` - (Optional) Whether user credentials are allowed in the cross-origin request is enabled. Defaults to `false`.
+
+* `allowed_headers` - (Optional) Specifies the list of request headers that are permitted in the actual request.
+
+* `allowed_methods` - (Optional) Specifies the list of HTTP methods are allowed when accessing the resource in a cross-origin request.
+
+* `exposed_headers` - (Optional) Specifies the list of headers exposed to the browser in the response to a cross-origin request.
+
+* `max_age_in_seconds` - (Optional) Specifies the number of seconds that the browser can cache the results of a preflight request.
 
 ---
 
@@ -495,7 +520,7 @@ A `custom_domain` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App.
@@ -514,4 +539,4 @@ terraform import azurerm_container_app.example "/subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.App`: 2025-01-01
+* `Microsoft.App` - 2025-07-01

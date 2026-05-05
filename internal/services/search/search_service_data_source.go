@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package search
@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/adminkeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/querykeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -39,6 +39,11 @@ func dataSourceSearchService() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"customer_managed_key_encryption_compliance_status": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -76,8 +81,9 @@ func dataSourceSearchService() *pluginsdk.Resource {
 						},
 
 						"key": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -119,6 +125,7 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			partitionCount := 1
 			replicaCount := 1
 			publicNetworkAccess := true
+			endpoint := ""
 
 			if props.EncryptionWithCmk != nil {
 				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
@@ -136,9 +143,14 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 				publicNetworkAccess = strings.EqualFold(string(pointer.From(props.PublicNetworkAccess)), string(services.PublicNetworkAccessEnabled))
 			}
 
+			if props.Endpoint != nil {
+				endpoint = pointer.From(props.Endpoint)
+			}
+
 			d.Set("partition_count", partitionCount)
 			d.Set("replica_count", replicaCount)
 			d.Set("public_network_access_enabled", publicNetworkAccess)
+			d.Set("endpoint", endpoint)
 		}
 
 		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)

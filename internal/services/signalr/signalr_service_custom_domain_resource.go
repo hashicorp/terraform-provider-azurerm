@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomDomainSignalrServiceModel struct {
@@ -109,7 +109,7 @@ func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 				Properties: signalr.CustomDomainProperties{
 					DomainName: customDomainSignalrServiceModel.DomainName,
 					CustomCertificate: signalr.ResourceReference{
-						Id: utils.String(customDomainSignalrServiceModel.SignalrCustomCertificateId),
+						Id: pointer.To(customDomainSignalrServiceModel.SignalrCustomCertificateId),
 					},
 				},
 			}

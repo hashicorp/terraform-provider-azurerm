@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -47,7 +47,7 @@ func dataSourceSynapseWorkspace() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }

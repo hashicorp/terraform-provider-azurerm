@@ -21,32 +21,32 @@ func testStepNewRefreshState(ctx context.Context, t testing.T, wd *plugintest.Wo
 
 	var err error
 	// Explicitly ensure prior state exists before refresh.
-	err = runProviderCommand(ctx, t, func() error {
-		_, err = getState(ctx, t, wd)
+	err = runProviderCommand(ctx, t, wd, providers, func() error {
+		_, _, err = getState(ctx, t, wd)
 		if err != nil {
 			return err
 		}
 		return nil
-	}, wd, providers)
+	})
 	if err != nil {
 		t.Fatalf("Error getting state: %s", err)
 	}
 
-	err = runProviderCommand(ctx, t, func() error {
+	err = runProviderCommand(ctx, t, wd, providers, func() error {
 		return wd.Refresh(ctx)
-	}, wd, providers)
+	})
 	if err != nil {
 		return err
 	}
 
 	var refreshState *terraform.State
-	err = runProviderCommand(ctx, t, func() error {
-		refreshState, err = getState(ctx, t, wd)
+	err = runProviderCommand(ctx, t, wd, providers, func() error {
+		_, refreshState, err = getState(ctx, t, wd)
 		if err != nil {
 			return err
 		}
 		return nil
-	}, wd, providers)
+	})
 	if err != nil {
 		t.Fatalf("Error getting state: %s", err)
 	}
@@ -63,19 +63,19 @@ func testStepNewRefreshState(ctx context.Context, t testing.T, wd *plugintest.Wo
 	}
 
 	// do a plan
-	err = runProviderCommand(ctx, t, func() error {
+	err = runProviderCommand(ctx, t, wd, providers, func() error {
 		return wd.CreatePlan(ctx)
-	}, wd, providers)
+	})
 	if err != nil {
 		return fmt.Errorf("Error running post-refresh plan: %w", err)
 	}
 
 	var plan *tfjson.Plan
-	err = runProviderCommand(ctx, t, func() error {
+	err = runProviderCommand(ctx, t, wd, providers, func() error {
 		var err error
 		plan, err = wd.SavedPlan(ctx)
 		return err
-	}, wd, providers)
+	})
 	if err != nil {
 		return fmt.Errorf("Error retrieving post-refresh plan: %w", err)
 	}
@@ -90,11 +90,11 @@ func testStepNewRefreshState(ctx context.Context, t testing.T, wd *plugintest.Wo
 
 	if !planIsEmpty(plan, wd.GetHelper().TerraformVersion()) && !step.ExpectNonEmptyPlan {
 		var stdout string
-		err = runProviderCommand(ctx, t, func() error {
+		err = runProviderCommand(ctx, t, wd, providers, func() error {
 			var err error
 			stdout, err = wd.SavedPlanRawStdout(ctx)
 			return err
-		}, wd, providers)
+		})
 		if err != nil {
 			return fmt.Errorf("Error retrieving formatted plan output: %w", err)
 		}

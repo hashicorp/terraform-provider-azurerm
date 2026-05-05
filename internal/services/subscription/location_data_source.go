@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package subscription
@@ -94,7 +94,7 @@ func (r LocationDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			if resp.Model.Value == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: model value was nil", id)
 			}
 
@@ -105,7 +105,7 @@ func (r LocationDataSource) Read() sdk.ResourceFunc {
 
 			normalizedLocation := location.Normalize(model.Location)
 
-			locationValue, err := getLocation(normalizedLocation, resp.Model.Value)
+			locationValue, err := getLocation(normalizedLocation, resp.Model)
 			if err != nil {
 				return err
 			}

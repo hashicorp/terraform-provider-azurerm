@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package commonschema
@@ -35,6 +35,17 @@ func Tags() *schema.Schema {
 		Type:         schema.TypeMap,
 		Optional:     true,
 		ValidateFunc: tags.Validate,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
+	}
+}
+
+func TagsWithMaximumElements(m int) *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeMap,
+		Optional:     true,
+		ValidateFunc: tags.ValidateWithMaximumElements(m),
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 		},

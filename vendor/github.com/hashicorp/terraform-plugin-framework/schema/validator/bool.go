@@ -35,6 +35,11 @@ type BoolRequest struct {
 
 	// ConfigValue contains the value of the attribute for validation from the configuration.
 	ConfigValue types.Bool
+
+	// ClientCapabilities defines optionally supported protocol features for
+	// schema validation RPCs, such as forward-compatible Terraform
+	// behavior changes.
+	ClientCapabilities ValidateSchemaClientCapabilities
 }
 
 // BoolResponse is a response to a BoolRequest.

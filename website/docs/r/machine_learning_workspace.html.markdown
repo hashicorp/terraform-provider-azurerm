@@ -338,7 +338,7 @@ resource "azurerm_machine_learning_workspace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -390,6 +390,10 @@ The following arguments are supported:
 
 * `serverless_compute` - (Optional) A `serverless_compute` block as defined below.
 
+* `service_side_encryption_enabled` - (Optional) Whether to enable service-side encryption with customer-managed keys (CMK). Default to `false`. Changing this forces a new resource to be created.
+
+!> **Note:** Setting `service_side_encryption_enabled` requires the `encryption` block to be set. When you use service-side encryption, Azure charges will continue to accrue during the soft delete retention period.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -418,7 +422,9 @@ An `encryption` block supports the following:
 
 An `managed_network` block supports the following:
 
-* `isolation_mode` - (Optional) The isolation mode of the Machine Learning Workspace. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`
+* `isolation_mode` - (Optional) The isolation mode of the Machine Learning Workspace. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`.
+
+* `provision_on_creation_enabled` - (Optional) Set to trigger the provisioning of the managed VNet with the default options when creating a Machine Learning Workspace with the managed VNet enabled. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
@@ -442,7 +448,6 @@ An `feature_store` block supports the following:
 
 ~> **Note:** `feature_store` must be set when`kind` is `FeatureStore`
 
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -463,7 +468,7 @@ An `identity` block exports the following:
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Workspace.
@@ -482,4 +487,4 @@ terraform import azurerm_machine_learning_workspace.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MachineLearningServices`: 2024-04-01
+* `Microsoft.MachineLearningServices` - 2025-06-01

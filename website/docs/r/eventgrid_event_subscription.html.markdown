@@ -47,7 +47,7 @@ resource "azurerm_eventgrid_event_subscription" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -233,7 +233,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventGrid Event Subscription.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventGrid Event Subscription.
@@ -252,4 +252,4 @@ terraform import azurerm_eventgrid_event_subscription.eventSubscription1 /subscr
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.EventGrid`: 2022-06-15
+* `Microsoft.EventGrid` - 2025-02-15

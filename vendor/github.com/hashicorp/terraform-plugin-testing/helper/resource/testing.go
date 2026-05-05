@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-testing/querycheck"
+
 	"github.com/mitchellh/go-testing-interface"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -454,6 +456,37 @@ type ExternalProvider struct {
 	Source            string // the provider source
 }
 
+type ImportStateKind byte
+
+const (
+	// ImportCommandWithID tests import by using the ID string with the `terraform import` command
+	ImportCommandWithID ImportStateKind = iota
+
+	// ImportBlockWithID tests import by using the ID string in an import configuration block with the `terraform plan` command
+	ImportBlockWithID
+
+	// ImportBlockWithResourceIdentity imports the state using an import block with a resource identity
+	ImportBlockWithResourceIdentity
+)
+
+// plannable reports whether this kind indicates the use of plannable import blocks
+func (kind ImportStateKind) plannable() bool {
+	return kind == ImportBlockWithID || kind == ImportBlockWithResourceIdentity
+}
+
+// resourceIdentity reports whether this kind indicates the use of resource identity in import blocks
+func (kind ImportStateKind) resourceIdentity() bool {
+	return kind == ImportBlockWithResourceIdentity
+}
+
+func (kind ImportStateKind) String() string {
+	return map[ImportStateKind]string{
+		ImportCommandWithID:             "ImportCommandWithID",
+		ImportBlockWithID:               "ImportBlockWithID",
+		ImportBlockWithResourceIdentity: "ImportBlockWithResourceIdentity",
+	}[kind]
+}
+
 // TestStep is a single apply sequence of a test, done within the
 // context of a state.
 //
@@ -545,6 +578,16 @@ type TestStep struct {
 	// otherwise an error will be returned.
 	ConfigFile config.TestStepConfigFunc
 
+	// ImportStateConfigExact indicates that the test framework should use the exact
+	// content of the Config, ConfigFile, or ConfigDirectory inputs and should
+	// not modify it at test run time.
+	//
+	// The default is false. At test run time, the test framework will generate
+	// specific kinds of configuration, such as import blocks, and append them
+	// to the given Config, ConfigFile, or ConfigDirectory inputs. Using this
+	// default improves test readability and removes duplication of setup.
+	ImportStateConfigExact bool
+
 	// ConfigVariables is a map defining variables for use in conjunction
 	// with Terraform configuration. If this map is populated then it
 	// will be used to assemble an *.auto.tfvars.json which will be
@@ -599,6 +642,10 @@ type TestStep struct {
 	// Custom state checks can be created by implementing the [statecheck.StateCheck] interface, or by using a StateCheck implementation from the provided [statecheck] package.
 	ConfigStateChecks []statecheck.StateCheck
 
+	// QueryResultChecks allow assertions to be made against a collection of found resources that were returned by a query using a query check.
+	// Custom query checks can be created by implementing the [querycheck.QueryResultCheck] interface, or by using a QueryResultCheck implementation from the provided [querycheck] package.
+	QueryResultChecks []querycheck.QueryResultCheck
+
 	// PlanOnly can be set to only run `plan` with this configuration, and not
 	// actually apply it. This is useful for ensuring config changes result in
 	// no-op plans
@@ -624,6 +671,10 @@ type TestStep struct {
 	// SkipFunc is called after PreConfig but before applying the Config.
 	SkipFunc func() (bool, error)
 
+	// PostApplyFunc is called after the Config is applied and after all plan/apply checks are run.
+	// This can be used to perform assertions against API values that are not stored in Terraform state.
+	PostApplyFunc func()
+
 	//---------------------------------------------------------------
 	// ImportState testing
 	//---------------------------------------------------------------
@@ -632,6 +683,13 @@ type TestStep struct {
 	// by importing the resource with ResourceName (must be set) and the
 	// ID of that resource.
 	ImportState bool
+
+	// ImportStateKind controls the method of import that is used in combination with the other import-related fields on the TestStep struct.
+	//
+	//   - By default, ImportCommandWithID is used, which tests import by using the ID string with the `terraform import` command. This was the original behavior prior to introducing the ImportStateKind field.
+	//   - ImportBlockWithID tests import by using the ID string in an import configuration block with the `terraform plan` command.
+	//   - ImportBlockWithResourceIdentity imports the state using an import configuration block with a resource identity.
+	ImportStateKind ImportStateKind
 
 	// ImportStateId is the ID to perform an ImportState operation with.
 	// This is optional. If it isn't set, then the resource ID is automatically
@@ -665,6 +723,13 @@ type TestStep struct {
 	// import, which the testing framework will skip to prevent the need for
 	// Terraform version specific logic in provider testing.
 	ImportStateCheck ImportStateCheckFunc
+
+	// ImportPlanChecks allows assertions to be made against the plan file at different points of a plannable import test using a plan check.
+	// Custom plan checks can be created by implementing the [PlanCheck] interface, or by using a PlanCheck implementation from the provided [plancheck] package
+	//
+	// [PlanCheck]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing/plancheck#PlanCheck
+	// [plancheck]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing/plancheck
+	ImportPlanChecks ImportPlanChecks
 
 	// ImportStateVerify, if true, will also check that the state values
 	// that are finally put into the state after import match for all the
@@ -780,6 +845,9 @@ type TestStep struct {
 	// for performing import testing where the prior TestStep configuration
 	// contained a provider outside the one under test.
 	ExternalProviders map[string]ExternalProvider
+
+	// If true, the test step will run the query command
+	Query bool
 }
 
 // ConfigPlanChecks defines the different points in a Config TestStep when plan checks can be run.
@@ -795,6 +863,13 @@ type ConfigPlanChecks struct {
 	// PostApplyPostRefresh runs all plan checks in the slice. This occurs after the apply and refresh of a Config test are run.
 	// All errors by plan checks in this slice are aggregated, reported, and will result in a test failure.
 	PostApplyPostRefresh []plancheck.PlanCheck
+}
+
+// ImportPlanChecks defines the different points in an Import TestStep when plan checks can be run.
+type ImportPlanChecks struct {
+	// PreApply runs all plan checks in the slice. This occurs after the plan of an Import test is computed. This slice cannot be populated
+	// with TestStep.PlanOnly, as there is no PreApply plan run with that flag set. All errors by plan checks in this slice are aggregated, reported, and will result in a test failure.
+	PreApply []plancheck.PlanCheck
 }
 
 // RefreshPlanChecks defines the different points in a Refresh TestStep when plan checks can be run.
@@ -823,11 +898,6 @@ func ParallelTest(t testing.T, c TestCase) {
 // Tests are not run unless an environmental variable "TF_ACC" is
 // set to some non-empty value. This is to avoid test cases surprising
 // a user by creating real resources.
-//
-// Tests will fail unless the verbose flag (`go test -v`, or explicitly
-// the "-test.v" flag) is set. Because some acceptance tests take quite
-// long, we require the verbose flag so users are able to see progress
-// output.
 //
 // Use the ParallelTest() function to automatically set (*testing.T).Parallel()
 // to enable testing concurrency. Use the UnitTest() function to automatically
@@ -916,11 +986,7 @@ func Test(t testing.T, c TestCase) {
 	// This is done after creating the helper because a working directory is required
 	// to retrieve the Terraform version.
 	if c.TerraformVersionChecks != nil {
-		logging.HelperResourceDebug(ctx, "Calling TestCase Terraform version checks")
-
 		runTFVersionChecks(ctx, t, helper.TerraformVersion(), c.TerraformVersionChecks)
-
-		logging.HelperResourceDebug(ctx, "Called TestCase Terraform version checks")
 	}
 
 	runNewTest(ctx, t, c, helper)
@@ -940,17 +1006,17 @@ func UnitTest(t testing.T, c TestCase) {
 	Test(t, c)
 }
 
-func testResource(c TestStep, state *terraform.State) (*terraform.ResourceState, error) {
+func testResource(name string, state *terraform.State) (*terraform.ResourceState, error) {
 	for _, m := range state.Modules {
 		if len(m.Resources) > 0 {
-			if v, ok := m.Resources[c.ResourceName]; ok {
+			if v, ok := m.Resources[name]; ok {
 				return v, nil
 			}
 		}
 	}
 
 	return nil, fmt.Errorf(
-		"Resource specified by ResourceName couldn't be found: %s", c.ResourceName)
+		"Resource specified by ResourceName couldn't be found: %s", name)
 }
 
 // ComposeTestCheckFunc lets you compose multiple TestCheckFuncs into

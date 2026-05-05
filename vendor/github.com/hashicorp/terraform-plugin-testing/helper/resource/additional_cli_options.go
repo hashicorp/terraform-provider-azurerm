@@ -23,4 +23,7 @@ type ApplyOptions struct {
 type PlanOptions struct {
 	// AllowDeferral will pass the experimental `-allow-deferral` flag to the plan command.
 	AllowDeferral bool
+
+	// NoRefresh will pass the `-refresh=false` flag to the plan command.
+	NoRefresh bool
 }

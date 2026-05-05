@@ -1,9 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
 
 import (
+	"regexp"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
@@ -31,7 +33,9 @@ func (r ManagementGroupAssignmentResource) Arguments() map[string]*pluginsdk.Sch
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotWhiteSpace,
-				validation.StringDoesNotContainAny("/"),
+				validation.StringDoesNotContainAny("#<>%&:\\?/"),
+				validation.StringLenBetween(1, 24),
+				validation.StringMatch(regexp.MustCompile("[^ .]$"), "The name cannot end with a period or space."),
 			),
 		},
 	}

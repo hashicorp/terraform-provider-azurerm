@@ -31,13 +31,13 @@ resource "azurerm_data_factory_integration_runtime_azure" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Managed Integration Runtime. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Use `AutoResolve` to create an auto-resolve integration runtime. Changing this forces a new resource to be created.
 
@@ -53,11 +53,15 @@ The following arguments are supported:
 
 * `virtual_network_enabled` - (Optional) Is Integration Runtime compute provisioned within Managed Virtual Network? Changing this forces a new resource to be created.
 
----
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Data Factory Integration Runtime.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Integration Runtime Azure.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Integration Runtime Azure.
@@ -69,5 +73,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Data Factory Azure Integration Runtimes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_integration_runtime_azure.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/integrationruntimes/example
+terraform import azurerm_data_factory_integration_runtime_azure.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/integrationRuntimes/example
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataFactory` - 2018-06-01
