@@ -7,8 +7,9 @@ import (
 	"fmt"
 
 	dataplane7_4 "github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
 	vaults20230701 "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
 	resources20151101 "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2015-11-01/resources"
 	dataplaneClient "github.com/hashicorp/go-azure-sdk/sdk/client/dataplane"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -23,6 +24,7 @@ type Client struct {
 	//
 	// As such this separation on our side is intentional to avoid code reuse given these differences.
 	VaultsClient *vaults.VaultsClient
+	DeletedVaultsClient *deletedvaults.DeletedVaultsClient
 
 	ManagementClient        *dataplane.BaseClient // TODO: we should rename this DataPlaneClient in time
 	DataPlaneKeyVaultClient *dataplane7_4.Client
@@ -54,9 +56,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(resources20151101Client.Client, o.Authorizers.ResourceManager)
 
-	// These clients use `Azure/azure-sdk-for-go` and/or `Azure/go-autorest`
-	vaultsClient := vaults.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&vaultsClient.Client, o.ResourceManagerAuthorizer)
+	vaultsClient, err := vaults.NewVaultsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Vaults client: %+v", err)
+	}
+	o.Configure(vaultsClient.Client, o.Authorizers.ResourceManager)
+
+	deletedVaultsClient, err := deletedvaults.NewDeletedVaultsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DeletedVaults client: %+v", err)
+	}
+	o.Configure(deletedVaultsClient.Client, o.Authorizers.ResourceManager)
+
 	managementClient := dataplane.New()
 	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
 
@@ -69,7 +80,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		ManagementClient: &managementClient,
-		VaultsClient:     &vaultsClient,
+		VaultsClient:     vaultsClient,
+		DeletedVaultsClient: deletedVaultsClient,
 
 		DataPlaneKeyVaultClient: dataplaneKeyvaultClient,
 
