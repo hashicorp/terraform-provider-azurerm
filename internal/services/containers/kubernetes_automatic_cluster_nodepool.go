@@ -142,39 +142,12 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					ValidateFunc: validate.KubernetesAgentPoolName,
 				},
 
-				"temporary_name_for_rotation": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validate.KubernetesAgentPoolName,
-				},
-
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-					Default:  string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
-					}, false),
-				},
-
-				"vm_size": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
 				"capacity_reservation_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 				},
-
-				"kubelet_config": schemaAutomaticNodePoolKubeletConfig(),
-
-				"linux_os_config": schemaAutomaticNodePoolLinuxOSConfig(),
 
 				"fips_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -202,6 +175,21 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
 				},
 
+				"host_encryption_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"host_group_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: computeValidate.HostGroupID,
+				},
+
+				"kubelet_config": schemaAutomaticNodePoolKubeletConfig(),
+
 				"kubelet_disk_type": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
@@ -211,14 +199,13 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 						string(managedclusters.KubeletDiskTypeTemporary),
 					}, false),
 				},
+				"linux_os_config": schemaAutomaticNodePoolLinuxOSConfig(),
 
 				"max_pods": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					Computed: true,
 				},
-
-				"node_network_profile": schemaAutomaticNodePoolNetworkProfile(),
 
 				"node_count": {
 					Type:         pluginsdk.TypeInt,
@@ -236,6 +223,14 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					},
 				},
 
+				"node_network_profile": schemaAutomaticNodePoolNetworkProfile(),
+
+				"node_public_ip_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
 				"node_public_ip_prefix_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -244,7 +239,18 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					RequiredWith: []string{"default_node_pool.0.node_public_ip_enabled"},
 				},
 
-				"tags": commonschema.Tags(),
+				"only_critical_addons_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
+
+				"orchestrator_version": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 
 				"os_disk_size_gb": {
 					Type:         pluginsdk.TypeInt,
@@ -267,25 +273,6 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"ultra_ssd_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Default:  false,
-					Optional: true,
-				},
-
-				"vnet_subnet_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: commonids.ValidateSubnetID,
-				},
-
-				"orchestrator_version": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
 				"pod_subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -299,26 +286,50 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 				},
 
-				"only_critical_addons_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
-
 				"snapshot_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: snapshots.ValidateSnapshotID,
 				},
 
-				"host_group_id": {
+				"tags": commonschema.Tags(),
+
+				"temporary_name_for_rotation": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: computeValidate.HostGroupID,
+					ValidateFunc: validate.KubernetesAgentPoolName,
+				},
+
+				"type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					Default:  string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
+					}, false),
+				},
+
+				"ultra_ssd_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Default:  false,
+					Optional: true,
 				},
 
 				"upgrade_settings": upgradeSettingsSchemaAutomaticClusterDefaultNodePool(),
+
+				"vm_size": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"vnet_subnet_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: commonids.ValidateSubnetID,
+				},
 
 				"workload_runtime": {
 					Type:     pluginsdk.TypeString,
@@ -327,18 +338,6 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(managedclusters.WorkloadRuntimeOCIContainer),
 					}, false),
-				},
-
-				"node_public_ip_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-
-				"host_encryption_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
 				},
 			},
 		},

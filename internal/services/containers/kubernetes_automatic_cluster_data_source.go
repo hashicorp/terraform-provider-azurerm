@@ -238,6 +238,7 @@ func (KubernetesAutomaticClusterDataSource) Arguments() map[string]*pluginsdk.Sc
 func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
+
 		"aci_connector_linux": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -375,12 +376,25 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 			},
 		},
 
+		"api_server_authorized_ip_ranges": {
+			Type:     pluginsdk.TypeSet,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
 		"azure_policy_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 
 		"current_kubernetes_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"disk_encryption_set_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -404,6 +418,8 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 		"ingress_application_gateway": {
 			Type:     pluginsdk.TypeList,
@@ -454,6 +470,23 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 			},
 		},
 
+		"key_management_service": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key_vault_key_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"key_vault_network_access": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
 		"key_vault_secrets_provider": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -489,108 +522,6 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 					},
 				},
 			},
-		},
-
-		"api_server_authorized_ip_ranges": {
-			Type:     pluginsdk.TypeSet,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"disk_encryption_set_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"microsoft_defender": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"log_analytics_workspace_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
-		"oms_agent": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"log_analytics_workspace_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"msi_auth_for_monitoring_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-					"oms_agent_identity": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"client_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"object_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"user_assigned_identity_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"open_service_mesh_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"private_cluster_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"private_fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
-
-		"key_management_service": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"key_vault_key_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"key_vault_network_access": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
-		"kubernetes_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
 		},
 
 		"kube_admin_config": {
@@ -706,6 +637,11 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 			},
 		},
 
+		"kubernetes_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"linux_profile": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -732,12 +668,12 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 			},
 		},
 
-		"windows_profile": {
+		"microsoft_defender": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"admin_username": {
+					"log_analytics_workspace_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -808,47 +744,61 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 			Computed: true,
 		},
 
-		"role_based_access_control_enabled": {
+		"oms_agent": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"log_analytics_workspace_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"msi_auth_for_monitoring_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+					"oms_agent_identity": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"open_service_mesh_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 
-		"service_principal": {
-			Type:     pluginsdk.TypeList,
+		"private_cluster_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"client_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
 		},
 
-		"storage_profile": {
-			Type:     pluginsdk.TypeList,
+		"private_fqdn": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"blob_driver_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-					"disk_driver_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-					"file_driver_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-					"snapshot_controller_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-				},
-			},
+		},
+
+		"role_based_access_control_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
 		},
 
 		"service_mesh_profile": {
@@ -907,7 +857,58 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 			},
 		},
 
+		"service_principal": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"client_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"storage_profile": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"blob_driver_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+					"disk_driver_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+					"file_driver_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+					"snapshot_controller_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+				},
+			},
+		},
+
 		"tags": commonschema.TagsDataSource(),
+
+		"windows_profile": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"admin_username": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 	}
 }
 
