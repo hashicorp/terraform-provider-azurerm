@@ -1,9 +1,8 @@
 #!/bin/bash
 
 POST_GITHUB_COMMENT="%POST_GITHUB_COMMENT%"
-POST_GITHUB_COMMENT_DETAILED="%POST_GITHUB_COMMENT_DETAILED%"
 
-if [ "$POST_GITHUB_COMMENT" != "true" ] && [ "$POST_GITHUB_COMMENT_DETAILED" != "true" ]; then
+if [ "$POST_GITHUB_COMMENT" != "true" ]; then
   echo "GitHub commenting disabled — skipping."
   exit 0
 fi
@@ -19,12 +18,6 @@ fi
 
 TRACKING_ID="%TRACKING_ID%"
 echo "Tracking ID: $TRACKING_ID"
-
-detailed=false
-#if [ "$POST_GITHUB_COMMENT_DETAILED" = "true" ]; then
-#  echo "Detailed GitHub commenting enabled."
-#  detailed=true
-#fi
 
 BUILD_ID="%teamcity.build.id%"
 
@@ -80,40 +73,20 @@ awk '
 ' "$file"
 )
 
-# Parse results to get counts
 PASS_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="PASS") print}' | wc -l | tr -d ' ')
 FAIL_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="FAIL") print}' | wc -l | tr -d ' ')
 TOTAL=$((PASS_COUNT + FAIL_COUNT))
 
-# Calculate build duration from start time to now
-# BUILD_START_TIME should is set in the first build step: $(date +%s)
+# BUILD_START_TIME is set in the first build step: $(date +%s)
 BUILD_START_TIME="%env.BUILD_START_TIME%"
 CURRENT_TIME_S=$(date +%s)
 BUILD_DURATION=$((CURRENT_TIME_S - BUILD_START_TIME))
 
-# Convert to hours, minutes and seconds for better readability
 BUILD_HOURS=$((BUILD_DURATION / 3600))
 BUILD_MINUTES=$(((BUILD_DURATION % 3600) / 60))
 BUILD_SECONDS=$((BUILD_DURATION % 60))
 
-
-# Fetch PR author if there are failures
-PREFIX=""
-if [ "$FAIL_COUNT" -gt 0 ]; then
-  PR_AUTHOR=$(github_api_request "/pulls/${PR_NUMBER}" \
-  | jq -r '.user.login')
-
-  if [ -z "$PR_AUTHOR" ] || [ "$PR_AUTHOR" = "null" ]; then
-    echo "Warning: Could not fetch PR author"
-  else
-    PREFIX="@${PR_AUTHOR} - One or more tests failed in this PR. Please review the failures.
-
-"
-  fi
-fi
-
-# Build GitHub comment
-COMMENT="${PREFIX}Build: [$BUILD_ID](%teamcity.serverUrl%/viewLog.html?buildId=$BUILD_ID)
+COMMENT="Build: [$BUILD_ID](%teamcity.serverUrl%/viewLog.html?buildId=$BUILD_ID)
 PR: #$PR_NUMBER
 
 **Total:** $TOTAL
@@ -149,15 +122,7 @@ record != "" {
     if (status == "PASS") {
         print "<tr><td>✅ PASS</td><td>" test_name "</td><td>" duration "s</td></tr>"
     } else if (status == "FAIL") {
-        if (detailed == "true") {
-            # Escape HTML special chars
-            gsub(/&/, "\\&", output)
-            gsub(/</, "\\<", output)
-            gsub(/>/, "\\>", output)
-            print "<tr><td>❌ FAIL</td><td>" test_name "<br/><details><summary>Error Details</summary><pre><code>" output "</code></pre></details></td><td>" duration "s</td></tr>"
-        } else {
-            print "<tr><td>❌ FAIL</td><td>" test_name "</td><td>" duration "s</td></tr>"
-        }
+        print "<tr><td>❌ FAIL</td><td>" test_name "</td><td>" duration "s</td></tr>"
     }
 }
 ')
@@ -167,6 +132,20 @@ COMMENT+="$TABLE_ROWS"
 COMMENT+="</table>
 </details>
 "
+
+# Fetch PR author if there are failures
+AUTHOR_MESSAGE=""
+if [ "$FAIL_COUNT" -gt 0 ]; then
+  PR_AUTHOR=$(github_api_request "/pulls/${PR_NUMBER}" \
+  | jq -r '.user.login')
+
+  if [ -z "$PR_AUTHOR" ] || [ "$PR_AUTHOR" = "null" ]; then
+    echo "Warning: Could not fetch PR author"
+  else
+    AUTHOR_MESSAGE="@${PR_AUTHOR} - One or more tests failed in this PR. Please review the failures.
+    "
+  fi
+fi
 
 # Add a unique identifier to track comments from this script
 # Include tracking ID (hidden in HTML comment) to prevent minimizing current run's comments
@@ -179,10 +158,9 @@ fi
 
 COMMENT="${COMMENT_IDENTIFIER}
 ${TRACKING_COMMENT}
+${AUTHOR_MESSAGE}
 ${COMMENT}"
 
-echo "Minimizing previous comments from this run..."
-# Fetch existing comments on the PR
 echo "Fetching existing comments..."
 COMMENTS_JSON=$(github_api_request "/issues/${PR_NUMBER}/comments")
 
@@ -195,8 +173,6 @@ COMMENT_IDS=$(echo "$COMMENTS_JSON" | jq -r --arg tracking_id "$TRACKING_ID" '
   .node_id
 ' 2>&1 | grep -v "^jq:")
 
-
-# Minimize each previous comment using GitHub's GraphQL API
 if [ -n "$COMMENT_IDS" ]; then
   echo "Found previous comments to minimize"
   while IFS= read -r COMMENT_NODE_ID; do
