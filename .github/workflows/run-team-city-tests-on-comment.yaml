@@ -92,13 +92,31 @@ jobs:
         run: |
           go install github.com/katbyte/tctest@latest
 
+      - name: Get PR commit SHA
+        id: get-pr-sha
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            const sha = pr.data.head.sha;
+            core.setOutput('sha', sha);
+            core.info(`PR head SHA: ${sha}`);
+            return sha;
+
       - name: Run tctest
+        id: run-tctest
         run: |
           PR_NUMBER=${{ github.event.issue.number }}
           COMMENT_BODY="${{ github.event.comment.body }}"
+          PR_SHA="${{ steps.get-pr-sha.outputs.sha }}"
           echo "Running tctest for PR #${PR_NUMBER}"
-          tctest pr ${PR_NUMBER} --properties "POST_GITHUB_COMMENT=true"
-
+          echo "PR commit SHA: ${PR_SHA}"
+          tctest pr ${PR_NUMBER} -c --properties "TRACKING_ID=${PR_SHA}"
       - name: Comment on success
         if: success()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0

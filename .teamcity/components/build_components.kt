@@ -123,6 +123,7 @@ fun ParametrizedWithType.TerraformAcceptanceTestParameters(parallelism : Int, pr
     text("TIMEOUT", "%d".format(timeout))
     text("POST_GITHUB_COMMENT", "false")
     text("POST_GITHUB_COMMENT_DETAILED", "false")
+    text("TRACKING_ID", "0", "Tracking ID for comment management (typically PR commit SHA)")
 }
 
 fun ParametrizedWithType.ReadOnlySettings() {

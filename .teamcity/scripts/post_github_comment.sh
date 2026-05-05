@@ -17,6 +17,9 @@ else
   exit 0
 fi
 
+TRACKING_ID="%TRACKING_ID%"
+echo "Tracking ID: $TRACKING_ID"
+
 detailed=false
 #if [ "$POST_GITHUB_COMMENT_DETAILED" = "true" ]; then
 #  echo "Detailed GitHub commenting enabled."
@@ -166,15 +169,31 @@ COMMENT+="</table>
 "
 
 # Add a unique identifier to track comments from this script
+# Include tracking ID (hidden in HTML comment) to prevent minimizing current run's comments
 COMMENT_IDENTIFIER="<!-- teamcity-test-results -->"
+
+TRACKING_COMMENT=""
+if [ "$TRACKING_ID" != "0" ]; then
+  TRACKING_COMMENT="<!-- tracking-id:${TRACKING_ID} -->"
+fi
+
 COMMENT="${COMMENT_IDENTIFIER}
+${TRACKING_COMMENT}
 ${COMMENT}"
 
 echo "Minimizing previous comments from this run..."
 # Fetch existing comments on the PR
 echo "Fetching existing comments..."
-COMMENT_IDS=$(github_api_request "/issues/${PR_NUMBER}/comments" \
-  | jq -r '.[] | select(.body | type == "string" and (contains("<!-- teamcity-test-results -->") or startswith("/test"))) | .node_id' 2>&1 | grep -v "^jq:")
+COMMENTS_JSON=$(github_api_request "/issues/${PR_NUMBER}/comments")
+
+# Filter comments that should be minimized (teamcity-test-results or /test comments)
+# but exclude those with the current tracking ID
+COMMENT_IDS=$(echo "$COMMENTS_JSON" | jq -r --arg tracking_id "$TRACKING_ID" '
+  .[] |
+  select(.body | type == "string" and (contains("<!-- teamcity-test-results -->") or startswith("/test"))) |
+  select(.body | contains("tracking-id:" + $tracking_id) | not) |
+  .node_id
+' 2>&1 | grep -v "^jq:")
 
 
 # Minimize each previous comment using GitHub's GraphQL API
