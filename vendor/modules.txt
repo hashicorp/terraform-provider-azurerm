@@ -1408,8 +1408,10 @@ github.com/hashicorp/terraform-plugin-framework-timeouts/internal/validators
 github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts
 # github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 ## explicit; go 1.24.0
+github.com/hashicorp/terraform-plugin-framework-validators/float64validator
 github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag
 github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatorfuncerr
+github.com/hashicorp/terraform-plugin-framework-validators/int64validator
 github.com/hashicorp/terraform-plugin-framework-validators/internal/schemavalidator
 github.com/hashicorp/terraform-plugin-framework-validators/listvalidator
 github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator

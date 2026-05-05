@@ -9,14 +9,19 @@ import (
 	responsehelper "github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+var _ action.ActionWithValidateConfig = &WebAppSetSlotDistributionAction{}
 
 type WebAppSetSlotDistributionAction struct {
 	sdk.ActionMetadata
@@ -42,8 +47,6 @@ type WebAppSetSlotDistributionActionRuleModel struct {
 	MaxReroutePercentage      types.Float64 `tfsdk:"max_reroute_percentage"`
 	ChangeDecisionCallbackUrl types.String  `tfsdk:"change_decision_callback_url"`
 }
-
-var _ sdk.Action = &WebAppSetSlotDistributionAction{}
 
 func (*WebAppSetSlotDistributionAction) Schema(ctx context.Context, _ action.SchemaRequest, response *action.SchemaResponse) {
 	response.Schema = schema.Schema{
@@ -87,10 +90,16 @@ func webAppSetSlotDistributionActionRuleSchema(ctx context.Context) schema.Block
 				"change_step": schema.Float64Attribute{
 					Optional:    true,
 					Description: "In auto ramp up scenario this is the step to add/remove from ReroutePercentage.",
+					Validators: []validator.Float64{
+						float64validator.AlsoRequires(path.MatchRelative().AtParent().AtName("change_interval_minutes")),
+					},
 				},
 				"change_interval_minutes": schema.Int64Attribute{
 					Optional:    true,
 					Description: "Specifies interval in minutes to reevaluate ReroutePercentage.",
+					Validators: []validator.Int64{
+						int64validator.AlsoRequires(path.MatchRelative().AtParent().AtName("change_step")),
+					},
 				},
 				"min_reroute_percentage": schema.Float64Attribute{
 					Optional:    true,
@@ -117,6 +126,46 @@ func webAppSetSlotDistributionActionRuleSchema(ctx context.Context) schema.Block
 
 func (a *WebAppSetSlotDistributionAction) Metadata(_ context.Context, _ action.MetadataRequest, response *action.MetadataResponse) {
 	response.TypeName = "azurerm_web_app_set_slot_distribution"
+}
+
+func (*WebAppSetSlotDistributionAction) ValidateConfig(ctx context.Context, req action.ValidateConfigRequest, resp *action.ValidateConfigResponse) {
+	var data WebAppSetSlotDistributionActionModel
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	rules, d := data.SlotRule.ToSlice(ctx)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	// Checking two different validations by looping through all rules:
+	// 1. duplicate slot hostnames
+	// 2. sum of percentage > 100
+	foundHostnameDupe := false
+	uniqueHostnameMap := make(map[string]bool)
+	totalRulePercentage := float64(0)
+	for _, rule := range rules {
+		totalRulePercentage += rule.ReroutePercentage.ValueFloat64()
+
+		if !foundHostnameDupe && !uniqueHostnameMap[rule.Hostname.ValueString()] {
+			uniqueHostnameMap[rule.Hostname.ValueString()] = true
+		} else {
+			foundHostnameDupe = true
+		}
+	}
+
+	if foundHostnameDupe {
+		resp.Diagnostics.AddAttributeError(path.Root("slot_rule").AtName("hostname"), "Multiple slot rules have the same target hostname", "The target `hostname` value of each slot rule must be unique across all provided rules.")
+	}
+
+	if totalRulePercentage > 100 {
+		resp.Diagnostics.AddAttributeError(path.Root("slot_rule").AtName("reroute_percentage"), "Total Reroute Percentage greater than 100%", "The total percentage of all slot rules should not be greater than 100%.")
+	}
 }
 
 func (a *WebAppSetSlotDistributionAction) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
