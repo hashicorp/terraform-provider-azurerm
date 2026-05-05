@@ -611,7 +611,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - updating the policy for publishing credentials resets the `Use32BitWorkerProcess` property
-			// the default value has been forced to false for app services by platform due to security hardening, we need to explicitly set the property as the deafult value in provider is true.
+			// the default value has been forced to false for app services by platform due to security hardening, we need to explicitly set the property as the default value in provider is true.
 			sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
 				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
 					Allow: functionApp.PublishingDeployBasicAuthEnabled,
