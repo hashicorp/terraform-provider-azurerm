@@ -21,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_mover_nfs_file_share_target_endpoint -service-package-name storagemover -properties "name" -compare-values "subscription_id:storage_mover_id,resource_group_name:storage_mover_id,storage_mover_name:storage_mover_id"
+
 type StorageMoverNfsFileShareTargetEndpointModel struct {
 	Name             string `tfschema:"name"`
 	StorageMoverId   string `tfschema:"storage_mover_id"`
