@@ -204,5 +204,9 @@ fi
 
 echo "Posting new comment to GitHub..."
 
-github_api_request "/issues/"${PR_NUMBER}"/comments \
--d "{\"body\": $(jq -Rs . <<< "$COMMENT")}"
+curl -s -X POST \
+  -H "Authorization: Bearer %env.GIT_PAT%" \
+  -H "Accept: application/vnd.github+json" \
+  -H "Content-Type: application/json" \
+  "https://api.github.com/repos/%env.GITHUB_REPO%/issues/${PR_NUMBER}/comments" \
+  -d "{\"body\": $(jq -Rs . <<< "$COMMENT")}"
