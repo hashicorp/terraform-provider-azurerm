@@ -475,55 +475,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 
 		"default_node_pool": SchemaDefaultAutomaticClusterNodePoolTyped(),
 
-		"dns_prefix": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
-			ValidateFunc: containerValidate.KubernetesDNSPrefix,
-		},
-
-		"dns_prefix_private_cluster": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
-		},
-
-		"kubernetes_version": {
-			Type:     pluginsdk.TypeString,
+		"ai_toolchain_operator_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			// NOTE: O+C - Azure may update the version automatically based on upgrade policies
-			Computed:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"node_resource_group": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
-		},
-
-		"disk_encryption_set_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: computeValidate.DiskEncryptionSetID,
-		},
-
-		"tags": commonschema.Tags(),
-
-		"node_os_upgrade_channel": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(managedclusters.NodeOSUpgradeChannelNodeImage),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedclusters.NodeOSUpgradeChannelNodeImage),
-				string(managedclusters.NodeOSUpgradeChannelNone),
-				string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
-				string(managedclusters.NodeOSUpgradeChannelUnmanaged),
-			}, false),
+			Default:  false,
 		},
 
 		"cost_analysis_enabled": {
@@ -543,11 +498,62 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
+		"disk_encryption_set_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: computeValidate.DiskEncryptionSetID,
+		},
+
+		"dns_prefix": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
+			ValidateFunc: containerValidate.KubernetesDNSPrefix,
+		},
+
+		"dns_prefix_private_cluster": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
+		},
+
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+
 		"image_cleaner_interval_hours": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      168,
 			ValidateFunc: validation.IntBetween(168, 2160),
+		},
+
+		"kubernetes_version": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C - Azure may update the version automatically based on upgrade policies
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"node_os_upgrade_channel": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(managedclusters.NodeOSUpgradeChannelNodeImage),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedclusters.NodeOSUpgradeChannelNodeImage),
+				string(managedclusters.NodeOSUpgradeChannelNone),
+				string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
+				string(managedclusters.NodeOSUpgradeChannelUnmanaged),
+			}, false),
+		},
+
+		"node_resource_group": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
 		},
 
 		"private_cluster_enabled": {
@@ -593,94 +599,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			}, false),
 		},
 
-		"ai_toolchain_operator_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
-
-		"kubelet_identity": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"client_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-						ForceNew: true,
-						RequiredWith: []string{
-							"kubelet_identity.0.object_id",
-							"kubelet_identity.0.user_assigned_identity_id",
-							"identity.0.identity_ids",
-						},
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"object_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-						ForceNew: true,
-						RequiredWith: []string{
-							"kubelet_identity.0.client_id",
-							"kubelet_identity.0.user_assigned_identity_id",
-							"identity.0.identity_ids",
-						},
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"user_assigned_identity_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-						ForceNew: true,
-						RequiredWith: []string{
-							"kubelet_identity.0.client_id",
-							"kubelet_identity.0.object_id",
-							"identity.0.identity_ids",
-						},
-						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-					},
-				},
-			},
-		},
-
-		"azure_active_directory_role_based_access_control": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"tenant_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
-						AtLeastOneOf: []string{
-							"azure_active_directory_role_based_access_control.0.tenant_id",
-							"azure_active_directory_role_based_access_control.0.admin_group_object_ids",
-						},
-					},
-					"admin_group_object_ids": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.IsUUID,
-						},
-						AtLeastOneOf: []string{
-							"azure_active_directory_role_based_access_control.0.tenant_id",
-							"azure_active_directory_role_based_access_control.0.admin_group_object_ids",
-						},
-					},
-				},
-			},
-		},
+		"tags": commonschema.Tags(),
 
 		"api_server_access_profile": {
 			Type:     pluginsdk.TypeList,
@@ -708,352 +627,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							"api_server_access_profile.0.subnet_id",
 						},
 						ValidateFunc: commonids.ValidateSubnetID,
-					},
-				},
-			},
-		},
-
-		"http_proxy_config": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"http_proxy": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-					},
-					"https_proxy": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-					},
-					"no_proxy": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
-						},
-					},
-					"trusted_ca": {
-						Type:      pluginsdk.TypeString,
-						Optional:  true,
-						Sensitive: true,
-					},
-				},
-			},
-		},
-
-		"network_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"dns_service_ip": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ForceNew:     true,
-						ValidateFunc: validate.IPv4Address,
-					},
-					"pod_cidr": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ForceNew:     true,
-						ValidateFunc: validate.CIDR,
-					},
-					"pod_cidrs": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-					"service_cidr": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ForceNew:     true,
-						ValidateFunc: validate.CIDR,
-					},
-					"service_cidrs": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-					"load_balancer_sku": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(managedclusters.LoadBalancerSkuStandard),
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.LoadBalancerSkuBasic),
-							string(managedclusters.LoadBalancerSkuStandard),
-						}, false),
-					},
-					"outbound_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(managedclusters.OutboundTypeManagedNATGateway),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.OutboundTypeLoadBalancer),
-							string(managedclusters.OutboundTypeUserDefinedRouting),
-							string(managedclusters.OutboundTypeManagedNATGateway),
-							string(managedclusters.OutboundTypeUserAssignedNATGateway),
-							string(managedclusters.OutboundTypeNone),
-						}, false),
-					},
-					"load_balancer_profile": {
-						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
-						ForceNew: true,
-						Optional: true,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"outbound_ports_allocated": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      0,
-									ValidateFunc: validation.IntBetween(0, 64000),
-								},
-								"idle_timeout_in_minutes": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      30,
-									ValidateFunc: validation.IntBetween(4, 100),
-								},
-								"managed_outbound_ip_count": {
-									Type:          pluginsdk.TypeInt,
-									Optional:      true,
-									Computed:      true,
-									ValidateFunc:  validation.IntBetween(1, 100),
-									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
-								},
-								"managed_outbound_ipv6_count": {
-									Type:          pluginsdk.TypeInt,
-									Optional:      true,
-									Computed:      true,
-									ValidateFunc:  validation.IntBetween(1, 100),
-									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
-								},
-								"outbound_ip_prefix_ids": {
-									Type:          pluginsdk.TypeSet,
-									Optional:      true,
-									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: azure.ValidateResourceID,
-									},
-								},
-								"outbound_ip_address_ids": {
-									Type:          pluginsdk.TypeSet,
-									Optional:      true,
-									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: azure.ValidateResourceID,
-									},
-								},
-								"effective_outbound_ips": {
-									Type:     pluginsdk.TypeSet,
-									Computed: true,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-									},
-								},
-								"backend_pool_type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(managedclusters.BackendPoolTypeNodeIPConfiguration),
-									ValidateFunc: validation.StringInSlice([]string{
-										string(managedclusters.BackendPoolTypeNodeIPConfiguration),
-										string(managedclusters.BackendPoolTypeNodeIP),
-									}, false),
-								},
-							},
-						},
-					},
-					"nat_gateway_profile": {
-						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
-						ForceNew: true,
-						Optional: true,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"idle_timeout_in_minutes": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      4,
-									ValidateFunc: validation.IntBetween(4, 120),
-								},
-								"managed_outbound_ip_count": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Computed:     true,
-									ValidateFunc: validation.IntBetween(1, 100),
-								},
-								"effective_outbound_ips": {
-									Type:     pluginsdk.TypeSet,
-									Computed: true,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-									},
-								},
-							},
-						},
-					},
-					"ip_versions": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.IPFamilyIPvFour),
-								string(managedclusters.IPFamilyIPvSix),
-							}, false),
-						},
-					},
-					"advanced_networking": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"observability_enabled": {
-									Type:         pluginsdk.TypeBool,
-									Optional:     true,
-									Default:      false,
-									AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
-								},
-								"security_enabled": {
-									Type:         pluginsdk.TypeBool,
-									Optional:     true,
-									Default:      false,
-									AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"linux_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"admin_username": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: containerValidate.KubernetesAdminUserName,
-					},
-					"ssh_key": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"key_data": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"windows_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"admin_username": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-					},
-					"admin_password": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						Sensitive:    true,
-						ValidateFunc: validation.StringLenBetween(8, 123),
-					},
-					"license": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.LicenseTypeWindowsServer),
-						}, false),
-					},
-					"gmsa": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"gmsa_profile_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  true,
-								},
-								"dns_server": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-								},
-								"root_domain": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"bootstrap_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"artifact_source": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForArtifactSource(), false),
-						Default:      managedclusters.ArtifactSourceDirect,
-					},
-					"container_registry_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: registries.ValidateRegistryID,
 					},
 				},
 			},
@@ -1185,26 +758,89 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"monitor_metrics": {
+		"azure_active_directory_role_based_access_control": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			Computed: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"monitor_metrics_enabled": {
-						Type:     pluginsdk.TypeBool,
+					"tenant_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+						AtLeastOneOf: []string{
+							"azure_active_directory_role_based_access_control.0.tenant_id",
+							"azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+						},
+					},
+					"admin_group_object_ids": {
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Default:  true,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.IsUUID,
+						},
+						AtLeastOneOf: []string{
+							"azure_active_directory_role_based_access_control.0.tenant_id",
+							"azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+						},
 					},
-					"annotations_allowed": {
+				},
+			},
+		},
+
+		"bootstrap_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"artifact_source": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForArtifactSource(), false),
+						Default:      managedclusters.ArtifactSourceDirect,
 					},
-					"labels_allowed": {
+					"container_registry_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: registries.ValidateRegistryID,
+					},
+				},
+			},
+		},
+
+		"http_proxy_config": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"http_proxy": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					},
+					"https_proxy": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					},
+					"no_proxy": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+					},
+					"trusted_ca": {
+						Type:      pluginsdk.TypeString,
+						Optional:  true,
+						Sensitive: true,
 					},
 				},
 			},
@@ -1231,67 +867,76 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"microsoft_defender": {
+		"kubelet_identity": {
 			Type:     pluginsdk.TypeList,
+			Computed: true,
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"log_analytics_workspace_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: workspaces.ValidateWorkspaceID,
+					"client_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ForceNew: true,
+						RequiredWith: []string{
+							"kubelet_identity.0.object_id",
+							"kubelet_identity.0.user_assigned_identity_id",
+							"identity.0.identity_ids",
+						},
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"object_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ForceNew: true,
+						RequiredWith: []string{
+							"kubelet_identity.0.client_id",
+							"kubelet_identity.0.user_assigned_identity_id",
+							"identity.0.identity_ids",
+						},
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"user_assigned_identity_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ForceNew: true,
+						RequiredWith: []string{
+							"kubelet_identity.0.client_id",
+							"kubelet_identity.0.object_id",
+							"identity.0.identity_ids",
+						},
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 				},
 			},
 		},
 
-		"web_app_routing": {
+		"linux_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"dns_zone_ids": {
+					"admin_username": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: containerValidate.KubernetesAdminUserName,
+					},
+					"ssh_key": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.Any(
-								dnsValidate.ValidateDnsZoneID,
-								privatezones.ValidatePrivateDnsZoneID,
-								validation.StringIsEmpty,
-							),
-						},
-					},
-					"default_nginx_controller": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  managedclusters.NginxIngressControllerTypeAnnotationControlled,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.NginxIngressControllerTypeAnnotationControlled),
-							string(managedclusters.NginxIngressControllerTypeInternal),
-							string(managedclusters.NginxIngressControllerTypeExternal),
-							string(managedclusters.NginxIngressControllerTypeNone),
-						}, false),
-					},
-					"web_app_routing_identity": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"client_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"object_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"user_assigned_identity_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+								"key_data": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
 						},
@@ -1518,6 +1163,256 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
+		"microsoft_defender": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"log_analytics_workspace_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: workspaces.ValidateWorkspaceID,
+					},
+				},
+			},
+		},
+
+		"monitor_metrics": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"monitor_metrics_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+					"annotations_allowed": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"labels_allowed": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
+		"network_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"dns_service_ip": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.IPv4Address,
+					},
+					"pod_cidr": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.CIDR,
+					},
+					"pod_cidrs": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+					"service_cidr": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.CIDR,
+					},
+					"service_cidrs": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+					"load_balancer_sku": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(managedclusters.LoadBalancerSkuStandard),
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.LoadBalancerSkuBasic),
+							string(managedclusters.LoadBalancerSkuStandard),
+						}, false),
+					},
+					"outbound_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(managedclusters.OutboundTypeManagedNATGateway),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.OutboundTypeLoadBalancer),
+							string(managedclusters.OutboundTypeUserDefinedRouting),
+							string(managedclusters.OutboundTypeManagedNATGateway),
+							string(managedclusters.OutboundTypeUserAssignedNATGateway),
+							string(managedclusters.OutboundTypeNone),
+						}, false),
+					},
+					"load_balancer_profile": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						ForceNew: true,
+						Optional: true,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"outbound_ports_allocated": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									Default:      0,
+									ValidateFunc: validation.IntBetween(0, 64000),
+								},
+								"idle_timeout_in_minutes": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									Default:      30,
+									ValidateFunc: validation.IntBetween(4, 100),
+								},
+								"managed_outbound_ip_count": {
+									Type:          pluginsdk.TypeInt,
+									Optional:      true,
+									Computed:      true,
+									ValidateFunc:  validation.IntBetween(1, 100),
+									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+								},
+								"managed_outbound_ipv6_count": {
+									Type:          pluginsdk.TypeInt,
+									Optional:      true,
+									Computed:      true,
+									ValidateFunc:  validation.IntBetween(1, 100),
+									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+								},
+								"outbound_ip_prefix_ids": {
+									Type:          pluginsdk.TypeSet,
+									Optional:      true,
+									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: azure.ValidateResourceID,
+									},
+								},
+								"outbound_ip_address_ids": {
+									Type:          pluginsdk.TypeSet,
+									Optional:      true,
+									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: azure.ValidateResourceID,
+									},
+								},
+								"effective_outbound_ips": {
+									Type:     pluginsdk.TypeSet,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"backend_pool_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  string(managedclusters.BackendPoolTypeNodeIPConfiguration),
+									ValidateFunc: validation.StringInSlice([]string{
+										string(managedclusters.BackendPoolTypeNodeIPConfiguration),
+										string(managedclusters.BackendPoolTypeNodeIP),
+									}, false),
+								},
+							},
+						},
+					},
+					"nat_gateway_profile": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						ForceNew: true,
+						Optional: true,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"idle_timeout_in_minutes": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									Default:      4,
+									ValidateFunc: validation.IntBetween(4, 120),
+								},
+								"managed_outbound_ip_count": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									Computed:     true,
+									ValidateFunc: validation.IntBetween(1, 100),
+								},
+								"effective_outbound_ips": {
+									Type:     pluginsdk.TypeSet,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+							},
+						},
+					},
+					"ip_versions": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						ForceNew: true,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(managedclusters.IPFamilyIPvFour),
+								string(managedclusters.IPFamilyIPvSix),
+							}, false),
+						},
+					},
+					"advanced_networking": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"observability_enabled": {
+									Type:         pluginsdk.TypeBool,
+									Optional:     true,
+									Default:      false,
+									AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
+								},
+								"security_enabled": {
+									Type:         pluginsdk.TypeBool,
+									Optional:     true,
+									Default:      false,
+									AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
 		"service_mesh_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -1632,6 +1527,111 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 				},
 			},
 		},
+
+		"web_app_routing": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"dns_zone_ids": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.Any(
+								dnsValidate.ValidateDnsZoneID,
+								privatezones.ValidatePrivateDnsZoneID,
+								validation.StringIsEmpty,
+							),
+						},
+					},
+					"default_nginx_controller": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  managedclusters.NginxIngressControllerTypeAnnotationControlled,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.NginxIngressControllerTypeAnnotationControlled),
+							string(managedclusters.NginxIngressControllerTypeInternal),
+							string(managedclusters.NginxIngressControllerTypeExternal),
+							string(managedclusters.NginxIngressControllerTypeNone),
+						}, false),
+					},
+					"web_app_routing_identity": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"windows_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"admin_username": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+					},
+					"admin_password": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringLenBetween(8, 123),
+					},
+					"license": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.LicenseTypeWindowsServer),
+						}, false),
+					},
+					"gmsa": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"gmsa_profile_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  true,
+								},
+								"dns_server": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+								"root_domain": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for k, v := range schemaKubernetesAutomaticClusterAddOnsTyped() {
@@ -1643,32 +1643,12 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 
 func (r KubernetesAutomaticClusterResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"current_kubernetes_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"node_resource_group_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"oidc_issuer_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"private_fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"portal_fqdn": {
+		"fqdn": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -1768,6 +1748,26 @@ func (r KubernetesAutomaticClusterResource) Attributes() map[string]*pluginsdk.S
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
 			Sensitive: true,
+		},
+
+		"node_resource_group_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"oidc_issuer_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"portal_fqdn": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"private_fqdn": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }

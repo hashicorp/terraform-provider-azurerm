@@ -75,11 +75,6 @@ type OMSAgentIdentityModel struct {
 
 func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"open_service_mesh_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
 		"aci_connector_linux": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -131,44 +126,6 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
-		},
-		"oms_agent": {
-			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"log_analytics_workspace_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: workspaces.ValidateWorkspaceID,
-					},
-					"msi_auth_for_monitoring_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-					"oms_agent_identity": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"client_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"object_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"user_assigned_identity_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-				},
-			},
 		},
 		"ingress_application_gateway": {
 			Type:     pluginsdk.TypeList,
@@ -285,6 +242,49 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 					},
 				},
 			},
+		},
+		"oms_agent": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"log_analytics_workspace_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: workspaces.ValidateWorkspaceID,
+					},
+					"msi_auth_for_monitoring_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+					"oms_agent_identity": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"open_service_mesh_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 	}
 }
