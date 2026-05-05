@@ -375,6 +375,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"pod_ip_allocation_mode": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			RequiredWith: []string{"pod_subnet_id"},
 			Default:      string(agentpools.PodIPAllocationModeDynamicIndividual),
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForPodIPAllocationMode(), false),
