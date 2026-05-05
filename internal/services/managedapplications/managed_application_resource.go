@@ -5,6 +5,7 @@ package managedapplications
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -49,8 +50,21 @@ func resourceManagedApplication() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(resourceManagedApplicationCustomizeDiff),
+		),
+
 		Schema: resourceManagedApplicationSchema(),
 	}
+}
+
+func resourceManagedApplicationCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error {
+	oldVal, newVal := diff.GetChange("identity.#")
+	if oldVal.(int) == 1 && newVal.(int) == 0 {
+		return diff.ForceNew("identity")
+	}
+
+	return nil
 }
 
 func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {

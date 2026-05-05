@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `plan` - (Optional) One `plan` block as defined below. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below. Removing this block forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
