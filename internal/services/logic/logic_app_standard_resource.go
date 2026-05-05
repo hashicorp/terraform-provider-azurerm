@@ -1340,21 +1340,23 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 		}
 	}
 
-	if forceDisableContentShare {
-		delete(eMap, contentShareAppSettingName)
-		delete(eMap, contentFileConnStringAppSettingName)
-	} else if metadata.ResourceData.HasChange("content_share_force_disabled") {
-		// Toggling from true to false — re-add content share settings
-		accountName := metadata.ResourceData.Get("storage_account_name").(string)
-		accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
-		suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
-
-		eMap[contentFileConnStringAppSettingName] = fmt.Sprintf(storageConnectionStringFmt, accountName, accountAccessKey, *suffix)
-		if n := metadata.ResourceData.Get("storage_account_share_name").(string); n != "" {
-			eMap[contentShareAppSettingName] = n
+	if metadata.ResourceData.HasChange("content_share_force_disabled") {
+		if forceDisableContentShare {
+			delete(eMap, contentShareAppSettingName)
+			delete(eMap, contentFileConnStringAppSettingName)
 		} else {
-			name := metadata.ResourceData.Get("name").(string)
-			eMap[contentShareAppSettingName] = strings.ToLower(name) + "-content"
+			// Toggling from true to false — re-add content share settings
+			accountName := metadata.ResourceData.Get("storage_account_name").(string)
+			accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
+			suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
+
+			eMap[contentFileConnStringAppSettingName] = fmt.Sprintf(storageConnectionStringFmt, accountName, accountAccessKey, *suffix)
+			if n := metadata.ResourceData.Get("storage_account_share_name").(string); n != "" {
+				eMap[contentShareAppSettingName] = n
+			} else {
+				name := metadata.ResourceData.Get("name").(string)
+				eMap[contentShareAppSettingName] = strings.ToLower(name) + "-content"
+			}
 		}
 	}
 
