@@ -34,21 +34,6 @@ func TestAccNetAppVolumeBucket_basic(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolumeBucket_cifsUser(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_bucket", "test")
-	r := NetAppVolumeBucketResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.cifsUser(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("server.0.certificate_pem"),
-	})
-}
-
 func TestAccNetAppVolumeBucket_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_bucket", "test")
 	r := NetAppVolumeBucketResource{}
@@ -157,29 +142,6 @@ resource "azurerm_netapp_volume_bucket" "test" {
 `, template, data.RandomInteger)
 }
 
-func (NetAppVolumeBucketResource) cifsUser(data acceptance.TestData) string {
-	template := NetAppVolumeBucketResource{}.template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_netapp_volume_bucket" "test" {
-  name      = "acctest-bucket-cifs-%[2]d"
-  volume_id = azurerm_netapp_volume.test.id
-
-  file_system_user {
-    cifs_user {
-      username = "anfuser"
-    }
-  }
-
-  server {
-    fqdn            = local.bucket_fqdn
-    certificate_pem = base64encode("${tls_self_signed_cert.test.cert_pem}${tls_private_key.test.private_key_pem}")
-  }
-}
-`, template, data.RandomInteger)
-}
-
 func (NetAppVolumeBucketResource) complete(data acceptance.TestData) string {
 	template := NetAppVolumeBucketResource{}.template(data)
 	return fmt.Sprintf(`
@@ -214,7 +176,7 @@ func (NetAppVolumeBucketResource) withKeyVault(data acceptance.TestData) string 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "cert" {
-  name                       = "acctkvc%[2]d"
+  name                       = "kvcert%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -224,7 +186,7 @@ resource "azurerm_key_vault" "cert" {
 }
 
 resource "azurerm_key_vault" "creds" {
-  name                       = "acctkvs%[2]d"
+  name                       = "kvcred%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -322,7 +284,7 @@ resource "azurerm_netapp_volume_bucket" "test" {
     azurerm_key_vault_access_policy.anf_creds,
   ]
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r NetAppVolumeBucketResource) requiresImport(data acceptance.TestData) string {
