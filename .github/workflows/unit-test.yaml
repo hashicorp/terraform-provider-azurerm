@@ -83,8 +83,8 @@ jobs:
   comment-on-fail:
     needs: test
     if: ${{ failure() }}
-    uses: ./.github/workflows/comment-failure.yaml
+    uses: ./.github/workflows/comment-ci-failure.yaml
   comment-outdated-on-pass:
     needs: test
     if: ${{ success() }}
-    uses: ./.github/workflows/comment-cleanup.yaml
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml

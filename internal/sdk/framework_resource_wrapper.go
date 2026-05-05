@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type FrameworkResourceWrapper struct {
@@ -266,8 +267,8 @@ func (r *FrameworkResourceWrapper) setIdentity(ctx context.Context, state *tfsdk
 		segments := id.Segments()
 		numSegments := len(segments)
 		for idx, segment := range segments {
-			if segmentTypeSupported(segment.Type) {
-				name := segmentName(segment, idType, numSegments, idx)
+			if pluginsdk.SegmentTypeSupported(segment.Type) {
+				name := pluginsdk.SegmentName(segment, idType, numSegments, idx)
 
 				field, ok := parsed.Parsed[segment.Name]
 				if !ok {

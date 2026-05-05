@@ -92,8 +92,8 @@ jobs:
   comment-on-fail:
     needs: provider-tests
     if: ${{ failure() }}
-    uses: ./.github/workflows/comment-failure.yaml
+    uses: ./.github/workflows/comment-ci-failure.yaml
   comment-outdated-on-pass:
     needs: provider-tests
     if: ${{ success() }}
-    uses: ./.github/workflows/comment-cleanup.yaml
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
