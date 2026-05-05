@@ -522,6 +522,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_mysql_flexible_server`
 
+* The deprecated `customer_managed_key.managed_hsm_key_id` property has been removed in favour of the `customer_managed_key.key_vault_key_id` property.
 * The deprecated `public_network_access_enabled` property has been removed in favour of the `public_network_access` property.
 
 ### `azurerm_netapp_volume`
