@@ -37,7 +37,7 @@ func TestAccWindowsVirtualMachine_authPasswordWriteOnly(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password_wo_version"),
+		data.ImportStep("admin_password", "admin_password_wo_version"),
 	})
 }
 

@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -55,6 +56,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(45 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(resourceWindowsVirtualMachineCustomizeDiff),
+		),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -544,6 +549,34 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 	}
 
 	return resource
+}
+
+func resourceWindowsVirtualMachineCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error {
+	rawConfig := diff.GetRawConfig().AsValueMap()
+	adminUsername, ok := rawConfig["admin_username"]
+	if !ok || adminUsername.IsNull() || !adminUsername.IsKnown() {
+		return nil
+	}
+
+	if osManagedDiskId, ok := rawConfig["os_managed_disk_id"]; ok && (!osManagedDiskId.IsNull() || !osManagedDiskId.IsKnown()) {
+		return nil
+	}
+
+	adminPasswordSet := false
+	if adminPassword, ok := rawConfig["admin_password"]; ok && !adminPassword.IsNull() {
+		adminPasswordSet = true
+	}
+
+	adminPasswordWOVersionSet := false
+	if adminPasswordWOVersion, ok := rawConfig["admin_password_wo_version"]; ok && !adminPasswordWOVersion.IsNull() {
+		adminPasswordWOVersionSet = true
+	}
+
+	if !adminPasswordSet && !adminPasswordWOVersionSet {
+		return fmt.Errorf("one of `admin_password` or `admin_password_wo_version` must be specified when `admin_username` is specified")
+	}
+
+	return nil
 }
 
 func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
