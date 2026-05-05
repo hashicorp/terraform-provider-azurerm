@@ -4,6 +4,8 @@
 package datafactory
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -26,7 +28,7 @@ import (
 )
 
 func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryIntegrationRuntimeAzureCreate,
 		Read:   resourceDataFactoryIntegrationRuntimeAzureRead,
 		Update: resourceDataFactoryIntegrationRuntimeAzureUpdate,
@@ -128,9 +130,17 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 		},
-	}
 
-	return resource
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			if d.Get("interactive_authoring_time_to_live_in_minutes").(int) > 0 {
+				if !d.Get("virtual_network_enabled").(bool) {
+					return errors.New("when `interactive_authoring_time_to_live_in_minutes` is set, `virtual_network_enabled` must be set to `true`")
+				}
+			}
+
+			return nil
+		},
+	}
 }
 
 func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -284,8 +294,7 @@ func resourceDataFactoryIntegrationRuntimeAzureUpdate(d *pluginsdk.ResourceData,
 
 	if d.HasChange("interactive_authoring_time_to_live_in_minutes") {
 		poller := pollers.NewPoller(custompollers.NewDataFactoryIntegrationRuntimeStatusPoller(client, *id), time.Second*5, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		err := poller.PollUntilDone(ctx)
-		if err != nil {
+		if err := poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("waiting for state change of %s: %+v", id, err)
 		}
 
@@ -352,10 +361,31 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, m
 			}
 		}
 
-		// This is currently non-functional, the API doesn't return the InteractiveQuery properties
+		// @sreallymatt: This is currently non-functional, the API doesn't return the InteractiveQuery properties
 		// See: https://github.com/Azure/azure-rest-api-specs/issues/39594
-		if iqProps := runTime.TypeProperties.InteractiveQuery; iqProps != nil {
-			d.Set("interactive_authoring_time_to_live_in_minutes", iqProps.AutoTerminationMinutes)
+		// Can be uncommented and the additional `GetStatus` request below removed once this issue is resolved.
+		//if iqProps := runTime.TypeProperties.InteractiveQuery; iqProps != nil {
+		//	d.Set("interactive_authoring_time_to_live_in_minutes", iqProps.AutoTerminationMinutes)
+		//}
+	}
+
+	status, err := client.GetStatus(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving status for %s: %+v", id, err)
+	}
+
+	if model := status.Model; model != nil {
+		rt, ok := model.Properties.(integrationruntimes.ManagedIntegrationRuntimeStatus)
+		if !ok {
+			return fmt.Errorf("asserting `IntegrationRuntimeStatus` as `ManagedIntegrationRuntimeStatus` for %s", *id)
+		}
+
+		if iq := rt.TypeProperties.InteractiveQuery; iq != nil {
+			d.Set("interactive_authoring_time_to_live_in_minutes", iq.AutoTerminationMinutes)
+			// The API doesn't reset the TTL value when interactive authoring is disabled. If disabled, reset TTL.
+			if pointer.From(iq.Status) == integrationruntimes.InteractiveCapabilityStatusDisabled {
+				d.Set("interactive_authoring_time_to_live_in_minutes", nil)
+			}
 		}
 	}
 
