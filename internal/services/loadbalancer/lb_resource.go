@@ -5,6 +5,7 @@ package loadbalancer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -31,6 +32,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+const loadBalancerBasicSkuCreateDeprecationMessage = "creation of new `Basic` SKU load balancers is no longer permitted following its retirement. For more information, see https://learn.microsoft.com/azure/load-balancer/load-balancer-basic-upgrade-guidance"
 
 func resourceArmLoadBalancer() *pluginsdk.Resource {
 	r := &pluginsdk.Resource{
@@ -214,6 +217,14 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				sku := d.Get("sku").(string)
+				if strings.EqualFold(sku, string(loadbalancers.LoadBalancerSkuNameBasic)) && d.HasChanges("name", "resource_group_name", "location", "edge_zone", "sku", "sku_tier", "frontend_ip_configuration") {
+					return errors.New(loadBalancerBasicSkuCreateDeprecationMessage)
+				}
+
+				return nil
+			}),
 			pluginsdk.ForceNewIf("frontend_ip_configuration", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
 				old, new := d.GetChange("frontend_ip_configuration")
 				switch {
@@ -243,7 +254,6 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			}),
 		),
 	}
-
 	if !features.FivePointOh() {
 		r.Schema["subnet_id"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,

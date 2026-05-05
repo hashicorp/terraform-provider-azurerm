@@ -6,6 +6,7 @@ package loadbalancer_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -61,6 +62,18 @@ func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancer_basicSkuDeprecated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.basicSkuDeprecated(data),
+			ExpectError: regexp.MustCompile("creation of new `Basic` SKU load balancers is no longer permitted"),
+		},
 	})
 }
 
@@ -347,6 +360,26 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (r LoadBalancer) basicSkuDeprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lb-%d"
+  location = "%s"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func (r LoadBalancer) updatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -543,7 +576,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Basic"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                          = "Internal"
@@ -584,7 +617,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Basic"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                          = "Internal"

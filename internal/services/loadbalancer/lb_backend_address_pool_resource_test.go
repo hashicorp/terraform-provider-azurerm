@@ -19,15 +19,13 @@ import (
 
 type LoadBalancerBackendAddressPool struct{}
 
-// Basic and Standard use different API's for reasons, so we need to test both flows
-
-func TestAccBackendAddressPoolBasicSkuBasic(t *testing.T) {
+func TestAccBackendAddressPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicSkuBasic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -66,30 +64,30 @@ func TestAccBackendAddressPoolSynchronousModeAutomatic(t *testing.T) {
 	})
 }
 
-func TestAccBackendAddressPoolBasicSkuDisappears(t *testing.T) {
+func TestAccBackendAddressPool_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       r.basicSkuBasic,
+			Config:       r.basic,
 			TestResource: r,
 		}),
 	})
 }
 
-func TestAccBackendAddressPoolBasicSkuRequiresImport(t *testing.T) {
+func TestAccBackendAddressPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicSkuBasic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.basicSkuRequiresImport),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -99,21 +97,21 @@ func TestAccBackendAddressPoolStandardSkuBasic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standardSkuBasic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.standardSkuBasicUpdate(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.standardSkuBasic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -128,7 +126,7 @@ func TestAccBackendAddressPoolStandardSkuDisappears(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       r.standardSkuBasic,
+			Config:       r.basic,
 			TestResource: r,
 		}),
 	})
@@ -140,12 +138,12 @@ func TestAccBackendAddressPoolStandardSkuRequiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standardSkuBasic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.standardSkuRequiresImport),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -266,8 +264,8 @@ func (r LoadBalancerBackendAddressPool) Destroy(ctx context.Context, client *cli
 	return pointer.To(true), nil
 }
 
-func (r LoadBalancerBackendAddressPool) basicSkuBasic(data acceptance.TestData) string {
-	template := r.template(data, "Basic")
+func (r LoadBalancerBackendAddressPool) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -282,8 +280,8 @@ resource "azurerm_lb_backend_address_pool" "test" {
 `, template)
 }
 
-func (r LoadBalancerBackendAddressPool) basicSkuRequiresImport(data acceptance.TestData) string {
-	template := r.basicSkuBasic(data)
+func (r LoadBalancerBackendAddressPool) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -294,24 +292,8 @@ resource "azurerm_lb_backend_address_pool" "import" {
 `, template)
 }
 
-func (r LoadBalancerBackendAddressPool) standardSkuBasic(data acceptance.TestData) string {
-	template := r.template(data, "Standard")
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_lb_backend_address_pool" "test" {
-  name            = "pool"
-  loadbalancer_id = azurerm_lb.test.id
-}
-`, template)
-}
-
-func (r LoadBalancerBackendAddressPool) standardSkuBasicUpdate(data acceptance.TestData) string {
-	template := r.template(data, "Standard")
+func (r LoadBalancerBackendAddressPool) update(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -327,24 +309,11 @@ resource "azurerm_lb_backend_address_pool" "test" {
 `, template)
 }
 
-func (r LoadBalancerBackendAddressPool) standardSkuRequiresImport(data acceptance.TestData) string {
-	template := r.standardSkuBasic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_lb_backend_address_pool" "import" {
-  name            = azurerm_lb_backend_address_pool.test.name
-  loadbalancer_id = azurerm_lb_backend_address_pool.test.loadbalancer_id
-}
-`, template)
-}
-
-func (LoadBalancerBackendAddressPool) template(data acceptance.TestData, sku string) string {
+func (LoadBalancerBackendAddressPool) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
   number   = %d
   location = %q
-  sku      = %q
 }
 
 resource "azurerm_resource_group" "test" {
@@ -364,21 +333,21 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = local.sku
+	sku                 = "Standard"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-${local.number}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = local.sku
+	sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "feip"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, sku)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LoadBalancerBackendAddressPool) gatewaySkuBasic(data acceptance.TestData) string {

@@ -40,7 +40,7 @@ func TestAccDataSourceBackendAddressPool_gatewayComplete(t *testing.T) {
 }
 
 func (r LoadBalancerBackendAddressPool) dataSourceBasic(data acceptance.TestData) string {
-	resource := r.basicSkuBasic(data)
+	resource := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
