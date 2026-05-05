@@ -36,19 +36,19 @@ The following attributes are exported:
 
 * `id` - The ID of the Kubernetes Managed Cluster.
 
-* `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the primaries.
-
 * `aci_connector_linux` - An `aci_connector_linux` block as documented below.
+
+* `agent_pool_profile` - An `agent_pool_profile` block as documented below.
+
+* `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the primaries.
 
 * `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as documented below.
 
 * `azure_policy_enabled` - Is Azure Policy enabled on this managed Kubernetes Cluster?
 
-* `bootstrap_profile` - A `bootstrap_profile` block as documented below.
-
-* `agent_pool_profile` - An `agent_pool_profile` block as documented below.
-
 * `current_kubernetes_version` - Contains the current version of Kubernetes running on the Cluster.
+
+* `disk_encryption_set_id` - The ID of the Disk Encryption Set used for the Nodes and Volumes.
 
 * `dns_prefix` - The DNS Prefix of the managed Kubernetes cluster.
 
@@ -58,15 +58,13 @@ The following attributes are exported:
 
 * `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
 
+* `identity` - An `identity` block as documented below.
+
 * `ingress_application_gateway` - An `ingress_application_gateway` block as documented below.
 
 * `key_management_service` - A `key_management_service` block as documented below.
 
 * `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as documented below.
-
-* `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located
-
--> **Note:** At this time Private Link is in Public Preview.
 
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts are not disabled.
 
@@ -76,13 +74,21 @@ The following attributes are exported:
 
 * `kube_config_raw` - Base64 encoded Kubernetes configuration.
 
+* `kubelet_identity` - A `kubelet_identity` block as documented below.
+
 * `kubernetes_version` - The version of Kubernetes used on the managed Kubernetes Cluster.
 
-* `private_cluster_enabled` - If the cluster has the Kubernetes API only exposed on internal IP addresses.
+* `linux_profile` - A `linux_profile` block as documented below.
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
 * `microsoft_defender` - A `microsoft_defender` block as defined below.
+
+* `network_profile` - A `network_profile` block as documented below.
+
+* `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
+
+* `node_resource_group_id` - The ID of the Resource Group containing the resources for this Managed Kubernetes Cluster.
 
 * `oidc_issuer_enabled` - Whether or not the OIDC feature is enabled or disabled.
 
@@ -92,29 +98,23 @@ The following attributes are exported:
 
 * `open_service_mesh_enabled` - Is Open Service Mesh enabled for this managed Kubernetes Cluster?
 
-* `disk_encryption_set_id` - The ID of the Disk Encryption Set used for the Nodes and Volumes.
+* `private_cluster_enabled` - If the cluster has the Kubernetes API only exposed on internal IP addresses.
 
-* `linux_profile` - A `linux_profile` block as documented below.
+* `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located
 
-* `windows_profile` - A `windows_profile` block as documented below.
-
-* `network_profile` - A `network_profile` block as documented below.
-
-* `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
-
-* `node_resource_group_id` - The ID of the Resource Group containing the resources for this Managed Kubernetes Cluster.
+-> **Note:** At this time Private Link is in Public Preview.
 
 * `role_based_access_control_enabled` - Is Role Based Access Control enabled for this managed Kubernetes Cluster?
+
+* `service_mesh_profile` - A `service_mesh_profile` block as documented below.
 
 * `service_principal` - A `service_principal` block as documented below.
 
 * `storage_profile` - A `storage_profile` block as documented below.
 
-* `identity` - An `identity` block as documented below.
-
-* `kubelet_identity` - A `kubelet_identity` block as documented below.
-
 * `tags` - A mapping of tags assigned to this resource.
+
+* `windows_profile` - A `windows_profile` block as documented below.
 
 ---
 
@@ -126,25 +126,27 @@ An `aci_connector_linux` block exports the following:
 
 An `agent_pool_profile` block exports the following:
 
-* `type` - The type of the Agent Pool.
+* `auto_scaling_enabled` - If the auto-scaler is enabled.
 
 * `count` - The number of Agents (VMs) in the Pool.
 
+* `max_count` - Maximum number of nodes for auto-scaling.
+
 * `max_pods` - The maximum number of pods that can run on each agent.
 
-* `auto_scaling_enabled` - If the auto-scaler is enabled.
-
-* `node_public_ip_enabled` - If the Public IPs for the nodes in this Agent Pool are enabled.
-
-* `host_group_id` - The ID of a Dedicated Host Group that this Node Pool should be run on. Changing this forces a new resource to be created.
-
-* `min_count` - Minimum number of nodes for auto-scaling
-
-* `max_count` - Maximum number of nodes for auto-scaling
+* `min_count` - Minimum number of nodes for auto-scaling.
 
 * `name` - The name assigned to this pool of agents.
 
+* `node_labels` - A map of Kubernetes labels applied to each node in this Node Pool.
+
+* `node_public_ip_enabled` - If the Public IPs for the nodes in this Agent Pool are enabled.
+
 * `node_public_ip_prefix_id` - Resource ID for the Public IP Addresses Prefix for the nodes in this Agent Pool.
+
+* `node_taints` - A list of Kubernetes taints applied to each node in this Node Pool.
+
+* `orchestrator_version` - Kubernetes version used for the Agents.
 
 * `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
 
@@ -152,7 +154,7 @@ An `agent_pool_profile` block exports the following:
 
 * `tags` - A mapping of tags to assign to the resource.
 
-* `orchestrator_version` - Kubernetes version used for the Agents.
+* `type` - The type of the Agent Pool.
 
 * `upgrade_settings` - A `upgrade_settings` block as documented below.
 
@@ -166,19 +168,11 @@ An `agent_pool_profile` block exports the following:
 
 An `azure_active_directory_role_based_access_control` block exports the following:
 
-* `tenant_id` - The Tenant ID used for Azure Active Directory Application.
-
 * `admin_group_object_ids` - A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
 
 * `azure_rbac_enabled` - Is Role Based Access Control based on Azure AD enabled?
 
----
-
-A `bootstrap_profile` block exports the following:
-
-* `artifact_source` - The source from which artifacts are pulled during bootstrap.
-
-* `container_registry_id` - The ID of the Azure Container Registry used for caching artifacts during bootstrap.
+* `tenant_id` - The Tenant ID used for Azure Active Directory Application.
 
 ---
 
@@ -263,17 +257,15 @@ A `windows_profile` block exports the following:
 
 A `network_profile` block exports the following:
 
+* `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
+
 * `docker_bridge_cidr` - IP address (in CIDR notation) used as the Docker bridge IP address on nodes.
 
-* `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
+* `load_balancer_sku` - The SKU of the Load Balancer used for this Kubernetes Cluster.
 
 * `network_plugin` - Network plugin used such as `azure` or `kubenet`.
 
-* `network_policy` - Network policy to be used with Azure CNI. e.g. `calico` or `azure`
-
-* `network_mode` - Network mode to be used with Azure CNI. e.g. `bridge` or `transparent`
-
-* `outbound_type` - The outbound (egress) routing method which is used for cluster egress traffic.
+* `network_policy` - Network policy to be used with Azure CNI. e.g. `calico` or `azure`.
 
 * `pod_cidr` - The CIDR used for pod IP addresses.
 
@@ -307,11 +299,13 @@ An `ingress_application_gateway` block supports the following:
 
 * `gateway_id` - The ID of the Application Gateway integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when gateway_id is specified when configuring the `ingress_application_gateway` addon.
 
+* `gateway_name` - The name of the Application Gateway integrated with the ingress controller of this Kubernetes Cluster.
+
+* `ingress_application_gateway_identity` - An `ingress_application_gateway_identity` block as defined below.
+
 * `subnet_cidr` - The subnet CIDR used to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_cidr` is specified when configuring the `ingress_application_gateway` addon.
 
 * `subnet_id` - The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_id` is specified when configuring the `ingress_application_gateway` addon.
-
-* `ingress_application_gateway_identity` - An `ingress_application_gateway_identity` block as defined below.
 
 ---
 
