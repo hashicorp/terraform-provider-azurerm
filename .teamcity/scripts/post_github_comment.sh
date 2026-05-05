@@ -203,7 +203,7 @@ if [ -n "$COMMENT_IDS" ]; then
     if [ -n "$COMMENT_NODE_ID" ]; then
       echo "Minimizing comment: $COMMENT_NODE_ID"
       RESPONSE=$(curl -s -X POST \
-        -H "Authorization: bearer $GIT_PAT" \
+        -H "Authorization: bearer %env.GIT_PAT%" \
         -H "Content-Type: application/json" \
         https://api.github.com/graphql \
         -d "{\"query\": \"mutation { minimizeComment(input: {subjectId: \\\"$COMMENT_NODE_ID\\\", classifier: OUTDATED}) { minimizedComment { isMinimized } } }\"}")
