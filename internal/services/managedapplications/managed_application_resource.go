@@ -514,8 +514,13 @@ func flattenManagedApplicationIdentity(input *applications.Identity) ([]interfac
 	var config *identity.SystemAndUserAssignedMap
 
 	if input != nil {
+		identityType := identity.TypeNone
+		if input.Type != nil {
+			identityType = identity.Type(*input.Type)
+		}
+
 		config = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(*input.Type),
+			Type:        identityType,
 			IdentityIds: nil,
 		}
 
