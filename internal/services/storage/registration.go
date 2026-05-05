@@ -90,6 +90,7 @@ func (r Registration) Resources() []sdk.Resource {
 		AccountQueuePropertiesResource{},
 		AccountStaticWebsiteResource{},
 		LocalUserResource{},
+		StorageActionsTaskAssignmentResource{},
 		StorageContainerImmutabilityPolicyResource{},
 		SyncServerEndpointResource{},
 	}
