@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package rule
@@ -44,4 +44,6 @@ var Registration = map[string]Rule{
 	S001{}.ID(): S001{}, // API Section
 	S002{}.ID(): S002{}, // Timeouts Section
 	S003{}.ID(): S003{}, // Title Section Heading
+	S004{}.ID(): S004{}, // Arguments Section Heading
+	S005{}.ID(): S005{}, // Attributes Section Heading
 }

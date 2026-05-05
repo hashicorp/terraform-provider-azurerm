@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto
@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
@@ -23,14 +23,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKustoEventHubDataConnectionCreateUpdate,
+		Create: resourceKustoEventHubDataConnectionCreate,
 		Read:   resourceKustoEventHubDataConnectionRead,
-		Update: resourceKustoEventHubDataConnectionCreateUpdate,
+		Update: resourceKustoEventHubDataConnectionUpdate,
 		Delete: resourceKustoEventHubDataConnectionDelete,
 
 		SchemaVersion: 1,
@@ -144,34 +143,39 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 				Default:      string(dataconnections.DatabaseRoutingSingle),
 				ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForDatabaseRouting(), false),
 			},
+
+			"retrieval_start_date": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IsRFC3339Time,
+			},
 		},
 	}
 }
 
-func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Event Hub Data Connection creation.")
 
 	id := dataconnections.NewDataConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	resp, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_kusto_eventhub_data_connection", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_kusto_eventhub_data_connection", id.ID())
+	}
+
+	location := location.Normalize(d.Get("location").(string))
 
 	eventHubDataConnectionProperties := expandKustoEventHubDataConnectionProperties(d)
 
@@ -186,9 +190,9 @@ func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, 
 		dataConnection1.Properties.DatabaseRouting = &dbRouting
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, dataConnection1)
+	err = client.CreateOrUpdateThenPoll(ctx, id, dataConnection1)
 	if err != nil {
-		return fmt.Errorf("creating or updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -222,8 +226,8 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 
 	if resp.Model != nil {
 		if dataConnection, ok := resp.Model.(dataconnections.EventHubDataConnection); ok {
-			if location := dataConnection.Location; location != nil {
-				d.Set("location", azure.NormalizeLocation(*location))
+			if loc := dataConnection.Location; loc != nil {
+				d.Set("location", location.Normalize(*loc))
 			}
 
 			if props := dataConnection.Properties; props != nil {
@@ -235,6 +239,7 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
 				d.Set("compression", string(pointer.From(props.Compression)))
 				d.Set("event_system_properties", props.EventSystemProperties)
+				d.Set("retrieval_start_date", pointer.From(props.RetrievalStartDate))
 
 				identityId := ""
 				if props.ManagedIdentityResourceId != nil {
@@ -257,6 +262,55 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	return nil
+}
+
+func resourceKustoEventHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Kusto.DataConnectionsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := dataconnections.ParseDataConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return err
+	}
+
+	model := existing.Model
+	if model == nil {
+		return fmt.Errorf("retrieving existing %s: model was empty", id)
+	}
+
+	eventHubDataConnection, ok := model.(dataconnections.EventHubDataConnection)
+	if !ok {
+		return fmt.Errorf("the Data Connection %s is not an EventHub Data Connection", id)
+	}
+
+	props := eventHubDataConnection.Properties
+	if props == nil {
+		return fmt.Errorf("retrieving existing %s: properties were empty", id)
+	}
+
+	props.ProvisioningState = nil // clear read-only field
+
+	if d.HasChange("retrieval_start_date") {
+		props.RetrievalStartDate = pointer.To(d.Get("retrieval_start_date").(string))
+	}
+
+	dataConnection := dataconnections.EventHubDataConnection{
+		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
+		Properties: props,
+	}
+
+	err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceKustoEventHubDataConnectionRead(d, meta)
 }
 
 func resourceKustoEventHubDataConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -289,11 +343,11 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *dat
 	}
 
 	if tableName, ok := d.GetOk("table_name"); ok {
-		eventHubConnectionProperties.TableName = utils.String(tableName.(string))
+		eventHubConnectionProperties.TableName = pointer.To(tableName.(string))
 	}
 
 	if mappingRuleName, ok := d.GetOk("mapping_rule_name"); ok {
-		eventHubConnectionProperties.MappingRuleName = utils.String(mappingRuleName.(string))
+		eventHubConnectionProperties.MappingRuleName = pointer.To(mappingRuleName.(string))
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
@@ -315,7 +369,11 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *dat
 	}
 
 	if identityId, ok := d.GetOk("identity_id"); ok {
-		eventHubConnectionProperties.ManagedIdentityResourceId = utils.String(identityId.(string))
+		eventHubConnectionProperties.ManagedIdentityResourceId = pointer.To(identityId.(string))
+	}
+
+	if retrievalStartDate, ok := d.GetOk("retrieval_start_date"); ok {
+		eventHubConnectionProperties.RetrievalStartDate = pointer.To(retrievalStartDate.(string))
 	}
 
 	return eventHubConnectionProperties

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -15,12 +15,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privatelinkservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatelinkservices"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,7 +32,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_link_service -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourcePrivateLinkService() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create:   resourcePrivateLinkServiceCreate,
 		Read:     resourcePrivateLinkServiceRead,
 		Update:   resourcePrivateLinkServiceUpdate,
@@ -78,10 +79,10 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_proxy_protocol": {
+			"proxy_protocol_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"visibility_subscription_ids": {
@@ -115,7 +116,6 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: networkValidate.PrivateLinkName,
 						},
 						"private_ip_address": {
@@ -141,7 +141,6 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"primary": {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 					},
 				},
@@ -175,6 +174,25 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 			return nil
 		}),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["proxy_protocol_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"enable_proxy_protocol"},
+		}
+
+		resource.Schema["enable_proxy_protocol"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"proxy_protocol_enabled"},
+			Deprecated:    "the `enable_proxy_protocol` property has been deprecated in favour of the `proxy_protocol_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return resource
 }
 
 func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -195,13 +213,18 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		return tf.ImportAsExistsError("azurerm_private_link_service", id.ID())
 	}
 
+	enableProxyProtocol := d.Get("proxy_protocol_enabled").(bool)
+	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_proxy_protocol"].IsNull() {
+		enableProxyProtocol = d.Get("enable_proxy_protocol").(bool)
+	}
+
 	parameters := privatelinkservices.PrivateLinkService{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &privatelinkservices.PrivateLinkServiceProperties{
 			AutoApproval: &privatelinkservices.ResourceSet{
 				Subscriptions: utils.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
 			},
-			EnableProxyProtocol: pointer.To(d.Get("enable_proxy_protocol").(bool)),
+			EnableProxyProtocol: pointer.To(enableProxyProtocol),
 			Visibility: &privatelinkservices.ResourceSet{
 				Subscriptions: utils.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
 			},
@@ -237,6 +260,9 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourcePrivateLinkServiceRead(d, meta)
 }
@@ -271,8 +297,17 @@ func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if d.HasChange("enable_proxy_protocol") {
-		payload.Properties.EnableProxyProtocol = pointer.To(d.Get("enable_proxy_protocol").(bool))
+	if !features.FivePointOh() && d.HasChanges("enable_proxy_protocol", "proxy_protocol_enabled") {
+		enableProxyProtocol := false
+		if d.HasChange("enable_proxy_protocol") && !d.GetRawConfig().AsValueMap()["enable_proxy_protocol"].IsNull() {
+			enableProxyProtocol = d.Get("enable_proxy_protocol").(bool)
+		}
+		if d.HasChange("proxy_protocol_enabled") && !d.GetRawConfig().AsValueMap()["proxy_protocol_enabled"].IsNull() {
+			enableProxyProtocol = d.Get("proxy_protocol_enabled").(bool)
+		}
+		payload.Properties.EnableProxyProtocol = pointer.To(enableProxyProtocol)
+	} else if d.HasChange("proxy_protocol_enabled") {
+		payload.Properties.EnableProxyProtocol = pointer.To(d.Get("proxy_protocol_enabled").(bool))
 	}
 
 	if d.HasChange("visibility_subscription_ids") {
@@ -349,7 +384,12 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
 			d.Set("alias", props.Alias)
-			d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+
+			d.Set("proxy_protocol_enabled", props.EnableProxyProtocol)
+			if !features.FivePointOh() {
+				d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+			}
+
 			d.Set("destination_ip_address", pointer.From(props.DestinationIPAddress))
 
 			var autoApprovalSub []interface{}
@@ -561,14 +601,14 @@ func validatePrivateLinkNatIpConfiguration(d *pluginsdk.ResourceDiff) error {
 		if d.HasChange(p) {
 			o, n := d.GetChange(p)
 			if o != "" && n == "" {
-				return fmt.Errorf("for Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
+				return fmt.Errorf("for Private Link Service %q (Resource Group %q) nat_ip_configuration %q `private_ip_address` once assigned cannot be removed", name, resourceGroup, in)
 			}
 		}
 
 		if isPrimary && d.HasChange(s) {
 			o, _ := d.GetChange(s)
 			if o != "" {
-				return fmt.Errorf("for Private Link Service %q (Resource Group %q) nat_ip_configuration %q primary subnet_id once assigned can not be changed", name, resourceGroup, in)
+				return fmt.Errorf("for Private Link Service %q (Resource Group %q) nat_ip_configuration %q `subnet_id` once assigned cannot be changed", name, resourceGroup, in)
 			}
 		}
 	}

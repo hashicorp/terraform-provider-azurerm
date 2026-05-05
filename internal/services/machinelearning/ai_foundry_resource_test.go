@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning_test
@@ -160,6 +160,9 @@ func (r AIFoundry) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -227,6 +230,9 @@ func (r AIFoundry) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false

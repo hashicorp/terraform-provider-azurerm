@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package util
@@ -11,5 +11,6 @@ var (
 	FormatCode = color.New(color.FgMagenta).Sprint
 	Blue       = color.New(color.FgBlue).Sprint
 	IssueLine  = color.New(color.FgYellow).Sprint
+	WarnLine   = color.New(color.FgCyan).Sprint
 	FixedCode  = color.New(color.FgGreen).Sprint
 )

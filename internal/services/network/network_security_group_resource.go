@@ -1,10 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
 
 import (
+	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecuritygroups"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -21,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -65,6 +68,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
+				Set:        hashNetworkSecurityRule,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -142,15 +146,21 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"destination_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Elem: &pluginsdk.Schema{
+								Type:             pluginsdk.TypeString,
+								DiffSuppressFunc: suppress.CaseDifference,
+							},
+							Set: pluginsdk.HashStringInsensitively,
 						},
 
 						"source_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Elem: &pluginsdk.Schema{
+								Type:             pluginsdk.TypeString,
+								DiffSuppressFunc: suppress.CaseDifference,
+							},
+							Set: pluginsdk.HashStringInsensitively,
 						},
 
 						"access": {
@@ -228,6 +238,9 @@ func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceNetworkSecurityGroupRead(d, meta)
 }
@@ -300,18 +313,26 @@ func resourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	if err := resourceNetworkSecurityGroupFlatten(d, id, resp.Model); err != nil {
+		return fmt.Errorf("flattening %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceNetworkSecurityGroupFlatten(d *pluginsdk.ResourceData, id *networksecuritygroups.NetworkSecurityGroupId, nsg *networksecuritygroups.NetworkSecurityGroup) error {
 	d.Set("name", id.NetworkSecurityGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-		if props := model.Properties; props != nil {
+	if nsg != nil {
+		d.Set("location", location.NormalizeNilable(nsg.Location))
+		if props := nsg.Properties; props != nil {
 			flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
 			if err := d.Set("security_rule", flattenedRules); err != nil {
 				return fmt.Errorf("setting `security_rule`: %+v", err)
 			}
 		}
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		if err := tags.FlattenAndSet(d, nsg.Tags); err != nil {
 			return err
 		}
 	}
@@ -535,4 +556,52 @@ func validateSecurityRule(sgRule map[string]interface{}) error {
 	}
 
 	return err.ErrorOrNil()
+}
+
+// hashNetworkSecurityRule implements a hash function for the `security_rule` property,
+// mainly to normalize the casing for `source_application_security_group_ids` and `destination_application_security_group_ids`.
+func hashNetworkSecurityRule(input any) int {
+	var buf bytes.Buffer
+	if m, ok := input.(map[string]any); ok {
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(m["description"].(string))
+		buf.WriteString(m["protocol"].(string))
+
+		buf.WriteString(m["source_port_range"].(string))
+		if set := m["source_port_ranges"].(*pluginsdk.Set); set != nil {
+			buf.WriteString(set.GoString())
+		}
+
+		buf.WriteString(m["destination_port_range"].(string))
+		if set := m["destination_port_ranges"].(*pluginsdk.Set); set != nil {
+			buf.WriteString(set.GoString())
+		}
+
+		buf.WriteString(m["source_address_prefix"].(string))
+		if set := m["source_address_prefixes"].(*pluginsdk.Set); set != nil {
+			buf.WriteString(set.GoString())
+		}
+
+		buf.WriteString(m["destination_address_prefix"].(string))
+		if set := m["destination_address_prefixes"].(*pluginsdk.Set); set != nil {
+			buf.WriteString(set.GoString())
+		}
+
+		if set := m["source_application_security_group_ids"].(*pluginsdk.Set); set != nil {
+			for _, elem := range set.List() {
+				buf.WriteString(strings.ToLower(elem.(string)))
+			}
+		}
+
+		if set := m["destination_application_security_group_ids"].(*pluginsdk.Set); set != nil {
+			for _, elem := range set.List() {
+				buf.WriteString(strings.ToLower(elem.(string)))
+			}
+		}
+
+		buf.WriteString(m["access"].(string))
+		buf.WriteString(m["direction"].(string))
+		buf.WriteString(strconv.Itoa(m["priority"].(int)))
+	}
+	return pluginsdk.HashString(buf.String())
 }

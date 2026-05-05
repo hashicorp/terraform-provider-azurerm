@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -122,7 +122,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 						"email": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.EmailAddress,
+							ValidateFunc: validation.IsEmailAddress,
 						},
 						"name": {
 							Type:         pluginsdk.TypeString,

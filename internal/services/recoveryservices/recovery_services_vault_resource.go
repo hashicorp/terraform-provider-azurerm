@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
@@ -25,16 +26,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationvaultsetting"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceRecoveryServicesVault() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceRecoveryServicesVaultCreate,
 		Read:   resourceRecoveryServicesVaultRead,
 		Update: resourceRecoveryServicesVaultUpdate,
@@ -74,7 +74,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 						"key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						},
 						"infrastructure_encryption_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -142,12 +142,6 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"soft_delete_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
 			"monitoring": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -185,6 +179,19 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["soft_delete_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    true,
+			Deprecated: "`soft_delete_enabled` has been deprecated and will be removed in v5.0 of the AzureRM Provider. Soft delete is always enabled by default as part of Azure's secure by default policy (https://learn.microsoft.com/en-us/azure/backup/secure-by-default)",
+		}
+
+		resource.Schema["encryption"].Elem.(*pluginsdk.Resource).Schema["key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	}
+
+	return resource
 }
 
 func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -249,7 +256,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if vaults.SkuName(sku) == vaults.SkuNameRSZero {
-		vault.Sku.Tier = utils.String("Standard")
+		vault.Sku.Tier = pointer.To("Standard")
 	}
 
 	if _, ok := d.GetOk("encryption"); ok {
@@ -300,53 +307,73 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
 	}
-	// an update on the vault will reset the vault config to default, so we handle it at last.
-	enhancedSecurityState := backupresourcevaultconfigs.EnhancedSecurityStateEnabled
-	cfg := backupresourcevaultconfigs.BackupResourceVaultConfigResource{
-		Properties: &backupresourcevaultconfigs.BackupResourceVaultConfig{
-			EnhancedSecurityState: &enhancedSecurityState, // always enabled
-		},
-	}
 
-	var StateRefreshPendingStrings []string
-	var StateRefreshTargetStrings []string
-	if sd := d.Get("soft_delete_enabled").(bool); sd {
-		state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
-		cfg.Properties.SoftDeleteFeatureState = &state
-		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
-		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
-	} else {
-		state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
-		cfg.Properties.SoftDeleteFeatureState = &state
-		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
-		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
-	}
+	if !features.FivePointOh() {
+		defaultcfg, err := cfgsClient.Get(ctx, cfgId)
+		if err != nil {
+			return fmt.Errorf("retrieving backup config for %s: %+v", id.String(), err)
+		}
 
-	_, err = cfgsClient.Update(ctx, cfgId, cfg)
-	if err != nil {
-		return err
-	}
+		currentSoftDeleteState := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+		if defaultcfg.Model != nil && defaultcfg.Model.Properties != nil && defaultcfg.Model.Properties.SoftDeleteFeatureState != nil {
+			currentSoftDeleteState = *defaultcfg.Model.Properties.SoftDeleteFeatureState
+		}
 
-	// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   StateRefreshPendingStrings,
-		Target:                    StateRefreshTargetStrings,
-		MinTimeout:                30 * time.Second,
-		ContinuousTargetOccurence: 3,
-		Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, cfgId),
-	}
+		// Only non-AlwaysOn allows update, otherwise, API will throw `BMSUserErrorSoftDeleteStateAlwaysOn` error
+		if currentSoftDeleteState == backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
+			if !d.Get("soft_delete_enabled").(bool) {
+				return fmt.Errorf("soft delete is set to AlwaysON for %s due to Azure's secure-by-default policy. `soft_delete_enabled` cannot be set to `false`. For more information, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default", id.String())
+			}
+		} else {
+			// an update on the vault will reset the vault config to default, so we handle it at last.
+			enhancedSecurityState := backupresourcevaultconfigs.EnhancedSecurityStateEnabled
+			cfg := backupresourcevaultconfigs.BackupResourceVaultConfigResource{
+				Properties: &backupresourcevaultconfigs.BackupResourceVaultConfig{
+					EnhancedSecurityState: &enhancedSecurityState, // always enabled
+				},
+			}
 
-	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
+			var StateRefreshPendingStrings []string
+			var StateRefreshTargetStrings []string
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
+			if sd := d.Get("soft_delete_enabled").(bool); sd {
+				state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+				cfg.Properties.SoftDeleteFeatureState = &state
+				StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+				StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+			} else {
+				state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
+				cfg.Properties.SoftDeleteFeatureState = &state
+				StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+				StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+			}
+
+			if _, err = cfgsClient.Update(ctx, cfgId, cfg); err != nil {
+				return err
+			}
+
+			// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   StateRefreshPendingStrings,
+				Target:                    StateRefreshTargetStrings,
+				MinTimeout:                30 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, cfgId),
+			}
+
+			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
+
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
+			}
+		}
 	}
 
 	if d.Get("classic_vmware_replication_enabled").(bool) {
 		settingsId := replicationvaultsetting.NewReplicationVaultSettingID(id.SubscriptionId, id.ResourceGroupName, id.VaultName, "default")
 		settingsInput := replicationvaultsetting.VaultSettingCreationInput{
 			Properties: replicationvaultsetting.VaultSettingCreationInputProperties{
-				VMwareToAzureProviderType: utils.String("Vmware"),
+				VMwareToAzureProviderType: pointer.To("Vmware"),
 			},
 		}
 		if err := settingsClient.CreateThenPoll(ctx, settingsId, settingsInput); err != nil {
@@ -438,7 +465,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if vaults.SkuName(sku) == vaults.SkuNameRSZero {
-			vault.Sku.Tier = utils.String("Standard")
+			vault.Sku.Tier = pointer.To("Standard")
 		}
 
 		err = client.CreateOrUpdateThenPoll(ctx, id, vault)
@@ -519,40 +546,59 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.
-	var StateRefreshPendingStrings []string
-	var StateRefreshTargetStrings []string
-	if sd := d.Get("soft_delete_enabled").(bool); sd {
-		state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
-		cfg.Properties.SoftDeleteFeatureState = &state
-		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
-		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
-	} else {
-		state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
-		cfg.Properties.SoftDeleteFeatureState = &state
-		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
-		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
-	}
+	if !features.FivePointOh() {
+		defaultcfg, err := cfgsClient.Get(ctx, cfgId)
+		if err != nil {
+			return fmt.Errorf("retrieving backup config for %s: %+v", id.String(), err)
+		}
 
-	_, err = cfgsClient.Update(ctx, cfgId, cfg)
-	if err != nil {
-		return err
-	}
+		currentSoftDeleteState := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+		if defaultcfg.Model != nil && defaultcfg.Model.Properties != nil && defaultcfg.Model.Properties.SoftDeleteFeatureState != nil {
+			currentSoftDeleteState = *defaultcfg.Model.Properties.SoftDeleteFeatureState
+		}
 
-	// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
-	// tracked by https://github.com/Azure/azure-rest-api-specs/issues/21548
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   StateRefreshPendingStrings,
-		Target:                    StateRefreshTargetStrings,
-		MinTimeout:                30 * time.Second,
-		ContinuousTargetOccurence: 3,
-		Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, cfgId),
-	}
+		// Only non-AlwaysOn allows update, otherwise, API will throw `BMSUserErrorSoftDeleteStateAlwaysOn` error
+		if currentSoftDeleteState == backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
+			if !d.Get("soft_delete_enabled").(bool) {
+				return fmt.Errorf("soft delete is set to AlwaysON for %s due to Azure's secure-by-default policy. `soft_delete_enabled` cannot be set to `false`. For more information, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default", id.String())
+			}
+		} else {
+			// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.
+			var StateRefreshPendingStrings []string
+			var StateRefreshTargetStrings []string
 
-	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+			if sd := d.Get("soft_delete_enabled").(bool); sd {
+				state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+				cfg.Properties.SoftDeleteFeatureState = &state
+				StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+				StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+			} else {
+				state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
+				cfg.Properties.SoftDeleteFeatureState = &state
+				StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+				StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+			}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
+			if _, err = cfgsClient.Update(ctx, cfgId, cfg); err != nil {
+				return err
+			}
+
+			// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
+			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/21548
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   StateRefreshPendingStrings,
+				Target:                    StateRefreshTargetStrings,
+				MinTimeout:                30 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, cfgId),
+			}
+
+			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
+			}
+		}
 	}
 
 	d.SetId(id.ID())
@@ -621,12 +667,14 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("retrieving %s: %+v", cfgId, err)
 		}
 
-		softDeleteEnabled := false
-		if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
-			softDeleteEnabled = *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+		if !features.FivePointOh() {
+			softDeleteEnabled := true
+			if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
+				state := *cfg.Model.Properties.SoftDeleteFeatureState
+				softDeleteEnabled = state == backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON || state == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+			}
+			d.Set("soft_delete_enabled", softDeleteEnabled)
 		}
-
-		d.Set("soft_delete_enabled", softDeleteEnabled)
 
 		flattenIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
@@ -655,7 +703,9 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		}
 		d.Set("classic_vmware_replication_enabled", classicVmwareReplicationEnabled)
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -759,10 +809,10 @@ func expandEncryption(d *pluginsdk.ResourceData) (*vaults.VaultPropertiesEncrypt
 	}
 	encryption := &vaults.VaultPropertiesEncryption{
 		KeyVaultProperties: &vaults.CmkKeyVaultProperties{
-			KeyUri: utils.String(keyUri),
+			KeyUri: pointer.To(keyUri),
 		},
 		KekIdentity: &vaults.CmkKekIdentity{
-			UseSystemAssignedIdentity: utils.Bool(encryptionMap["use_system_assigned_identity"].(bool)),
+			UseSystemAssignedIdentity: pointer.To(encryptionMap["use_system_assigned_identity"].(bool)),
 		},
 		InfrastructureEncryption: &infraEncryptionState,
 	}
@@ -770,7 +820,7 @@ func expandEncryption(d *pluginsdk.ResourceData) (*vaults.VaultPropertiesEncrypt
 		if *encryption.KekIdentity.UseSystemAssignedIdentity {
 			return nil, errors.New("`use_system_assigned_identity` must be disabled when `user_assigned_identity_id` is set")
 		}
-		encryption.KekIdentity.UserAssignedIdentity = utils.String(v)
+		encryption.KekIdentity.UserAssignedIdentity = pointer.To(v)
 	}
 	return encryption, nil
 }

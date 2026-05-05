@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -51,7 +51,7 @@ func main() {
 	}
 
 	if brandName == nil || *brandName == "" {
-		quitWithError("The friendly/brannd name of the Data Source/Resource must be specified via `-brand`")
+		quitWithError("The friendly/brand name of the Data Source/Resource must be specified via `-brand`")
 		return
 	}
 
@@ -297,7 +297,7 @@ func (gen documentationGenerator) argumentsBlock() string {
 			}
 
 			if field.ForceNew {
-				value += fmt.Sprintf(" Changing this forces a new %s to be created.", gen.brandName)
+				value += " Changing this forces a new resource to be created."
 			}
 			fields += fmt.Sprintf("* `%s` - (%s) %s\n\n", fieldName, status, value)
 		}
@@ -472,7 +472,7 @@ func (gen documentationGenerator) timeoutsBlock() string {
 	}
 	timeouts := *gen.resource.Timeouts
 
-	timeoutsBlurb := "The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:"
+	timeoutsBlurb := "The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:"
 
 	timeoutToFriendlyText := func(duration time.Duration) string {
 		hours := int(math.Floor(duration.Hours()))

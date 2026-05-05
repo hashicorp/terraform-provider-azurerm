@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -1142,7 +1142,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 				}
 				osManagedDiskId := ""
 				if profile.OsDisk != nil && profile.OsDisk.ManagedDisk != nil && profile.OsDisk.ManagedDisk.Id != nil {
-					osDiskId, err := commonids.ParseManagedDiskID(*profile.OsDisk.ManagedDisk.Id)
+					osDiskId, err := commonids.ParseManagedDiskIDInsensitively(*profile.OsDisk.ManagedDisk.Id)
 					if err != nil {
 						return err
 					}
@@ -1204,7 +1204,9 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 			isWindows := false
 			setConnectionInformation(d, connectionInfo, isWindows)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1883,7 +1885,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if managedDiskId != "" {
-			diskId, err := commonids.ParseManagedDiskID(managedDiskId)
+			diskId, err := commonids.ParseManagedDiskIDInsensitively(managedDiskId)
 			if err != nil {
 				return err
 			}

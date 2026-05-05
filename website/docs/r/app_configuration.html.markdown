@@ -143,7 +143,7 @@ resource "azurerm_app_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -153,9 +153,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `data_plane_proxy_authentication_mode` - The data plane proxy authentication mode. Possible values are `Local` and `Pass-through`. Defaults to `Local`.
+* `data_plane_proxy_authentication_mode` - (Optional) The data plane proxy authentication mode. Possible values are `Local` and `Pass-through`. Defaults to `Local`.
 
-* `data_plane_proxy_private_link_delegation_enabled` - Whether data plane proxy private link delegation is enabled. Defaults to `false`.
+* `data_plane_proxy_private_link_delegation_enabled` - (Optional) Whether data plane proxy private link delegation is enabled. Defaults to `false`.
 
 ~> **Note:** `data_plane_proxy_private_link_delegation_enabled` cannot be set to `true` when `data_plane_proxy_authentication_mode` is set to `Local`.
 
@@ -291,7 +291,7 @@ A `secondary_write_key` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the App Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration.

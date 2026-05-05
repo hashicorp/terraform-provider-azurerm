@@ -968,15 +968,7 @@ func (s *GRPCProviderServer) ReadResource(ctx context.Context, req *tfprotov5.Re
 			return resp, nil
 		}
 
-		isFullyNull := true
-		for _, v := range newIdentityVal.AsValueMap() {
-			if !v.IsNull() {
-				isFullyNull = false
-				break
-			}
-		}
-
-		if isFullyNull {
+		if isCtyObjectNullOrEmpty(newIdentityVal) {
 			resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, fmt.Errorf(
 				"Missing Resource Identity After Read: The Terraform provider unexpectedly returned no resource identity after having no errors in the resource read. "+
 					"This is always a problem with the provider and should be reported to the provider developer",
@@ -985,7 +977,7 @@ func (s *GRPCProviderServer) ReadResource(ctx context.Context, req *tfprotov5.Re
 		}
 
 		// If we're refreshing the resource state (excluding a recently imported resource), validate that the new identity isn't changing
-		if !res.ResourceBehavior.MutableIdentity && !readFollowingImport && !currentIdentityVal.IsNull() && !currentIdentityVal.RawEquals(newIdentityVal) {
+		if !res.ResourceBehavior.MutableIdentity && !readFollowingImport && !isCtyObjectNullOrEmpty(currentIdentityVal) && !currentIdentityVal.RawEquals(newIdentityVal) {
 			resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, fmt.Errorf("Unexpected Identity Change: %s", "During the read operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
 				"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
 				fmt.Sprintf("Current Identity: %s\n\n", currentIdentityVal.GoString())+
@@ -1327,7 +1319,7 @@ func (s *GRPCProviderServer) PlanResourceChange(ctx context.Context, req *tfprot
 		}
 
 		// If we're updating or deleting and we already have an identity stored, validate that the planned identity isn't changing
-		if !res.ResourceBehavior.MutableIdentity && !create && !priorIdentityVal.IsNull() && !priorIdentityVal.RawEquals(plannedIdentityVal) {
+		if !res.ResourceBehavior.MutableIdentity && !create && !isCtyObjectNullOrEmpty(priorIdentityVal) && !priorIdentityVal.RawEquals(plannedIdentityVal) {
 			resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, fmt.Errorf(
 				"Unexpected Identity Change: During the planning operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+
 					"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
@@ -1567,15 +1559,7 @@ func (s *GRPCProviderServer) ApplyResourceChange(ctx context.Context, req *tfpro
 			return resp, nil
 		}
 
-		isFullyNull := true
-		for _, v := range newIdentityVal.AsValueMap() {
-			if !v.IsNull() {
-				isFullyNull = false
-				break
-			}
-		}
-
-		if isFullyNull {
+		if isCtyObjectNullOrEmpty(newIdentityVal) {
 			op := "Create"
 			if !create {
 				op = "Update"
@@ -1589,7 +1573,7 @@ func (s *GRPCProviderServer) ApplyResourceChange(ctx context.Context, req *tfpro
 			return resp, nil
 		}
 
-		if !res.ResourceBehavior.MutableIdentity && !create && !plannedIdentityVal.IsNull() && !plannedIdentityVal.RawEquals(newIdentityVal) {
+		if !res.ResourceBehavior.MutableIdentity && !create && !isCtyObjectNullOrEmpty(plannedIdentityVal) && !plannedIdentityVal.RawEquals(newIdentityVal) {
 			resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, fmt.Errorf(
 				"Unexpected Identity Change: During the update operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+
 					"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
@@ -2493,4 +2477,19 @@ func (s *GRPCProviderServer) upgradeJSONIdentity(ctx context.Context, version in
 	}
 
 	return m, nil
+}
+
+// isCtyObjectNullOrEmpty is a helper function that checks if a given cty object is null or if all it's immediate children are null (empty)
+func isCtyObjectNullOrEmpty(val cty.Value) bool {
+	if val.IsNull() {
+		return true
+	}
+
+	for _, v := range val.AsValueMap() {
+		if !v.IsNull() {
+			return false
+		}
+	}
+
+	return true
 }

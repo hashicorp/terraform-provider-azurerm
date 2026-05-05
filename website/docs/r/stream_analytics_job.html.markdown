@@ -44,7 +44,7 @@ QUERY
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -92,13 +92,15 @@ The following arguments are supported:
 
 ~> **Note:** This block should be added to `ignore_changes` if the Stream Analytics' Job Storage Account is being managed by the `azurerm_stream_analytics_job_storage_account` resource.
 
+---
+
 A `job_storage_account` block supports the following:
 
-* `authentication_mode` - (Optional) The authentication mode of the storage account. The only supported value is `ConnectionString`. Defaults to `ConnectionString`.
+* `authentication_mode` - (Optional) The authentication mode of the storage account. Possible values are `ConnectionString` and `Msi`. Defaults to `ConnectionString`.
 
 * `account_name` - (Required) The name of the Azure storage account.
 
-* `account_key` - (Required) The account key for the Azure storage account.
+* `account_key` - (Optional) The account key for the Azure storage account.
 
 ---
 
@@ -132,7 +134,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Job.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Job.

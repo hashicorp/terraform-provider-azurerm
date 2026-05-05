@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -13,23 +13,22 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/dscconfiguration"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/dscconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAutomationDscConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationDscConfigurationCreateUpdate,
+		Create: resourceAutomationDscConfigurationCreate,
 		Read:   resourceAutomationDscConfigurationRead,
-		Update: resourceAutomationDscConfigurationCreateUpdate,
+		Update: resourceAutomationDscConfigurationUpdate,
 		Delete: resourceAutomationDscConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -93,52 +92,119 @@ func resourceAutomationDscConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfiguration
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Configuration creation.")
 
 	id := dscconfiguration.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_dsc_configuration", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	contentEmbedded := d.Get("content_embedded").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	logVerbose := d.Get("log_verbose").(bool)
-	description := d.Get("description").(string)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_automation_dsc_configuration", id.ID())
+	}
 
 	parameters := dscconfiguration.DscConfigurationCreateOrUpdateParameters{
 		Properties: dscconfiguration.DscConfigurationCreateOrUpdateProperties{
-			LogVerbose:  utils.Bool(logVerbose),
-			Description: utils.String(description),
+			LogVerbose:  pointer.To(d.Get("log_verbose").(bool)),
+			Description: pointer.To(d.Get("description").(string)),
 			Source: dscconfiguration.ContentSource{
 				Type:  pointer.To(dscconfiguration.ContentSourceTypeEmbeddedContent),
-				Value: utils.String(contentEmbedded),
+				Value: pointer.To(d.Get("content_embedded").(string)),
 			},
 		},
-		Location: utils.String(location),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:     pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{}))),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return err
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAutomationDscConfigurationRead(d, meta)
+}
+
+func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.DscConfiguration
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Configuration update.")
+
+	id, err := dscconfiguration.ParseConfigurationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: model was nil", *id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: properties was nil", *id)
+	}
+
+	content, err := client.GetContent(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving content for %s: %+v", *id, err)
+	}
+
+	if content.Model == nil {
+		return fmt.Errorf("retrieving content for %s: response was nil", *id)
+	}
+
+	// NOTE: We use CreateOrUpdate (PUT) rather than Update (PATCH) here because the
+	// PATCH API re-parses the DSC configuration source content and resets the description
+	// field, causing updates to description to be silently lost.
+	parameters := dscconfiguration.DscConfigurationCreateOrUpdateParameters{
+		Properties: dscconfiguration.DscConfigurationCreateOrUpdateProperties{
+			LogVerbose:  existing.Model.Properties.LogVerbose,
+			Description: existing.Model.Properties.Description,
+			// The GET response does not contain source, so we must set it based on the retrieved content to prevent 400s
+			Source: dscconfiguration.ContentSource{
+				Type:  pointer.To(dscconfiguration.ContentSourceTypeEmbeddedContent),
+				Value: pointer.To(string(*content.Model)),
+			},
+		},
+		Location: pointer.To(existing.Model.Location),
+		Tags:     existing.Model.Tags,
+	}
+
+	if d.HasChange("content_embedded") {
+		parameters.Properties.Source.Value = pointer.To(d.Get("content_embedded").(string))
+	}
+
+	if d.HasChange("log_verbose") {
+		parameters.Properties.LogVerbose = pointer.To(d.Get("log_verbose").(bool))
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("tags") {
+		parameters.Tags = pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{})))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceAutomationDscConfigurationRead(d, meta)
 }
@@ -168,9 +234,7 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("automation_account_name", id.AutomationAccountName)
 
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
-		}
+		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			d.Set("log_verbose", props.LogVerbose)

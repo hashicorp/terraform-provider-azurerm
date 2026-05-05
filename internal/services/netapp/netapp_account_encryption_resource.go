@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -12,13 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/netappaccounts"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -69,7 +68,7 @@ func (r NetAppAccountEncryptionResource) Arguments() map[string]*pluginsdk.Schem
 		"encryption_key": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			Description:  "The versionless encryption key url.",
 		},
 
@@ -318,7 +317,7 @@ func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVau
 		return &encryptionProperty, nil
 	}
 
-	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedKeyID(input)
+	keyId, err := keyvault.ParseNestedItemID(input, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return nil, fmt.Errorf("parsing `key_vault_key_id` %q: %+v", input, err)
 	}
@@ -330,13 +329,13 @@ func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVau
 		keyVaultResourceID = model.CrossTenantKeyVaultResourceID
 	} else {
 		// Same-tenant scenario: lookup the key vault ID
-		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionID, keyId.KeyVaultBaseUrl)
+		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionID, keyId.KeyVaultBaseURL)
 		if err != nil {
-			return nil, fmt.Errorf("retrieving the resource id the key vault at url %q: %s", keyId.KeyVaultBaseUrl, err)
+			return nil, fmt.Errorf("retrieving the resource id the key vault at url %q: %s", keyId.KeyVaultBaseURL, err)
 		}
 
 		if keyVaultID == nil {
-			return nil, fmt.Errorf("keyVaultID is nil for key vault url %q", keyId.KeyVaultBaseUrl)
+			return nil, fmt.Errorf("keyVaultID is nil for key vault url %q", keyId.KeyVaultBaseURL)
 		}
 
 		keyVaultResourceID = pointer.From(keyVaultID)
@@ -358,7 +357,7 @@ func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVau
 		KeySource: pointer.To(netappaccounts.KeySourceMicrosoftPointKeyVault),
 		KeyVaultProperties: &netappaccounts.KeyVaultProperties{
 			KeyName:            keyId.Name,
-			KeyVaultUri:        keyId.KeyVaultBaseUrl,
+			KeyVaultUri:        keyId.KeyVaultBaseURL,
 			KeyVaultResourceId: pointer.To(keyVaultResourceID),
 		},
 	}
@@ -367,11 +366,12 @@ func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVau
 }
 
 func flattenEncryption(encryptionProperties *netappaccounts.AccountEncryption) (string, string, error) {
-	if encryptionProperties == nil || *encryptionProperties.KeySource == netappaccounts.KeySourceMicrosoftPointNetApp {
+	if encryptionProperties == nil || pointer.From(encryptionProperties.KeySource) == netappaccounts.KeySourceMicrosoftPointNetApp || encryptionProperties.KeyVaultProperties == nil {
 		return "", "", nil
 	}
+	props := encryptionProperties.KeyVaultProperties
 
-	keyVaultKeyId, err := keyVaultParse.NewNestedItemID(encryptionProperties.KeyVaultProperties.KeyVaultUri, keyVaultParse.NestedItemTypeKey, encryptionProperties.KeyVaultProperties.KeyName, "")
+	keyVaultKeyId, err := keyvault.NewNestedItemID(props.KeyVaultUri, keyvault.NestedItemTypeKey, props.KeyName, "")
 	if err != nil {
 		return "", "", fmt.Errorf("parsing key vault key id: %+v", err)
 	}

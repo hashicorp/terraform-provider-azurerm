@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -17,19 +17,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/operation"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/replications"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/replications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -153,7 +151,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						},
 					},
 				},
@@ -278,7 +276,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			var geoReplicationLocations []string
 			for _, v := range geoReplications {
 				v := v.(map[string]interface{})
-				geoReplicationLocations = append(geoReplicationLocations, azure.NormalizeLocation(v["location"]))
+				geoReplicationLocations = append(geoReplicationLocations, location.Normalize(v["location"].(string)))
 			}
 			location := location.Normalize(d.Get("location").(string))
 			for _, loc := range geoReplicationLocations {
@@ -346,6 +344,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		r.Schema["encryption"].Computed = true
+		r.Schema["encryption"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 	}
 
 	return r
@@ -353,7 +352,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 
 func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
-	operationClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Operation
+	registriesClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -375,11 +374,11 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	sId := commonids.NewSubscriptionID(subscriptionId)
-	availabilityRequest := operation.RegistryNameCheckRequest{
+	availabilityRequest := registries.RegistryNameCheckRequest{
 		Name: id.RegistryName,
 		Type: "Microsoft.ContainerRegistry/registries",
 	}
-	resp, err := operationClient.RegistriesCheckNameAvailability(ctx, sId, availabilityRequest)
+	resp, err := registriesClient.CheckNameAvailability(ctx, sId, availabilityRequest)
 	if err != nil {
 		return fmt.Errorf("checking if the name %q was available: %+v", id.RegistryName, err)
 	}
@@ -1005,7 +1004,7 @@ func expandReplications(p []interface{}) []replications.Replication {
 	}
 	for _, v := range p {
 		value := v.(map[string]interface{})
-		location := azure.NormalizeLocation(value["location"])
+		location := location.Normalize(value["location"].(string))
 		tags := tags.Expand(value["tags"].(map[string]interface{}))
 		zoneRedundancy := replications.ZoneRedundancyDisabled
 		if value["zone_redundancy_enabled"].(bool) {

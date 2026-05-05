@@ -89,7 +89,7 @@ resource "azurerm_linux_virtual_machine" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -214,7 +214,7 @@ The following arguments are supported:
 
 * `os_image_notification` - (Optional) A `os_image_notification` block as defined below.
 
-* `os_managed_disk_id` - (Optional) The ID of an existing Managed Disk to use as the OS Disk for this Linux Virtual Machine. 
+* `os_managed_disk_id` - (Optional) The ID of an existing Managed Disk to use as the OS Disk for this Linux Virtual Machine. Changing this forces a new resource to be created.
 
 ~> **Note:** When specifying an existing Managed Disk it is not currently possible to subsequently manage the Operating System Profile properties: `admin_username`, `admin_password`, `bypass_platform_safety_checks_on_user_schedule_enabled`, `computer_name`, `custom_data`, `provision_vm_agent`, `patch_mode`, `patch_assessment_mode`, or `reboot_setting`.
 
@@ -428,7 +428,7 @@ An `os_disk` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 45 minutes) Used when creating the Linux Virtual Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Linux Virtual Machine.

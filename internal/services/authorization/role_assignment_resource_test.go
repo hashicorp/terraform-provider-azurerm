@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization_test
@@ -273,6 +273,20 @@ func TestAccRoleAssignment_resourceGroupScoped(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resourceGroupScoped(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+	})
+}
+
+func TestAccRoleAssignment_applicationGroupScoped(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	r := RoleAssignmentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.applicationGroupScoped(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -672,6 +686,48 @@ resource "azurerm_role_assignment" "test" {
   scope                = azurerm_resource_group.test.id
   role_definition_name = "Reader"
   principal_id         = data.azurerm_client_config.test.object_id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (RoleAssignmentResource) applicationGroupScoped(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vdesktop-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_desktop_host_pool" "test" {
+  name                = "acctestHP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  type                = "Pooled"
+  load_balancer_type  = "BreadthFirst"
+}
+
+resource "azurerm_virtual_desktop_application_group" "test" {
+  name                         = "acctestAG-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  type                         = "Desktop"
+  default_desktop_display_name = "Acceptance Test"
+  host_pool_id                 = azurerm_virtual_desktop_host_pool.test.id
+
+  depends_on = [azurerm_virtual_desktop_host_pool.test]
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_virtual_desktop_application_group.test.id
+  role_definition_name = "Desktop Virtualization User"
+  principal_id         = data.azurerm_client_config.test.object_id
+
+  depends_on = [azurerm_virtual_desktop_application_group.test]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
