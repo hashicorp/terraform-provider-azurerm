@@ -126,19 +126,10 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 										},
 									},
 
-									"creation_time": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"last_n_days": {
-													Type:         pluginsdk.TypeInt,
-													Required:     true,
-													ValidateFunc: validation.IntBetween(1, 36500),
-												},
-											},
-										},
+									"created_within_days": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 36500),
 									},
 
 									"include_blob_versions": {
@@ -323,11 +314,17 @@ func expandBlobInventoryPolicyFilter(input []interface{}, objectType string) (*b
 		return nil, nil
 	}
 	v := input[0].(map[string]interface{})
+	creationTime := (*blobinventorypolicies.BlobInventoryCreationTime)(nil)
+	if v["created_within_days"].(int) > 0 {
+		creationTime = &blobinventorypolicies.BlobInventoryCreationTime{
+			LastNDays: pointer.To(int64(v["created_within_days"].(int))),
+		}
+	}
 	policyFilter := &blobinventorypolicies.BlobInventoryPolicyFilter{
 		PrefixMatch:         utils.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
 		ExcludePrefix:       utils.ExpandStringSlice(v["exclude_prefixes"].(*pluginsdk.Set).List()),
 		BlobTypes:           utils.ExpandStringSlice(v["blob_types"].(*pluginsdk.Set).List()),
-		CreationTime:        expandBlobInventoryPolicyCreationTime(v["creation_time"].([]interface{})),
+		CreationTime:        creationTime,
 		IncludeBlobVersions: pointer.To(v["include_blob_versions"].(bool)),
 		IncludeDeleted:      pointer.To(v["include_deleted"].(bool)),
 		IncludeSnapshots:    pointer.To(v["include_snapshots"].(bool)),
@@ -344,17 +341,6 @@ func expandBlobInventoryPolicyFilter(input []interface{}, objectType string) (*b
 	}
 
 	return policyFilter, nil
-}
-
-func expandBlobInventoryPolicyCreationTime(input []interface{}) *blobinventorypolicies.BlobInventoryCreationTime {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-	return &blobinventorypolicies.BlobInventoryCreationTime{
-		LastNDays: pointer.To(int64(v["last_n_days"].(int))),
-	}
 }
 
 func flattenBlobInventoryPolicyRules(input []blobinventorypolicies.BlobInventoryPolicyRule) []interface{} {
@@ -386,6 +372,10 @@ func flattenBlobInventoryPolicyFilter(input *blobinventorypolicies.BlobInventory
 		return make([]interface{}, 0)
 	}
 
+	var lastNDays interface{}
+	if input.CreationTime != nil {
+		lastNDays = int(pointer.From(input.CreationTime.LastNDays))
+	}
 	var includeBlobVersions bool
 	if input.IncludeBlobVersions != nil {
 		includeBlobVersions = *input.IncludeBlobVersions
@@ -401,24 +391,12 @@ func flattenBlobInventoryPolicyFilter(input *blobinventorypolicies.BlobInventory
 	return []interface{}{
 		map[string]interface{}{
 			"blob_types":            utils.FlattenStringSlice(input.BlobTypes),
+			"created_within_days":   lastNDays,
 			"include_blob_versions": includeBlobVersions,
 			"include_deleted":       includeDeleted,
 			"include_snapshots":     includeSnapshots,
 			"prefix_match":          utils.FlattenStringSlice(input.PrefixMatch),
 			"exclude_prefixes":      utils.FlattenStringSlice(input.ExcludePrefix),
-			"creation_time":         flattenBlobInventoryPolicyCreationTime(input.CreationTime),
-		},
-	}
-}
-
-func flattenBlobInventoryPolicyCreationTime(input *blobinventorypolicies.BlobInventoryCreationTime) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"last_n_days": pointer.From(input.LastNDays),
 		},
 	}
 }
