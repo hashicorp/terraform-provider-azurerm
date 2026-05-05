@@ -235,6 +235,7 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 	if !features.FivePointOh() {
 		args["vnet_application_traffic_enabled"].Computed = true
 		args["vnet_application_traffic_enabled"].Default = nil
+		args["vnet_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
 	}
 
 	return args
@@ -492,26 +493,22 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if !webAppSlot.PublishingDeployBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err := client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: webAppSlot.PublishingDeployBasicAuthEnabled,
+				},
+			}
+			if _, err := client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
+				return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
 			}
 
-			if !webAppSlot.PublishingFTPBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err := client.UpdateFtpAllowedSlot(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: webAppSlot.PublishingFTPBasicAuthEnabled,
+				},
+			}
+			if _, err := client.UpdateFtpAllowedSlot(ctx, id, sitePolicyFtp); err != nil {
+				return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 			}
 
 			return nil
@@ -653,7 +650,10 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					if props.OutboundVnetRouting != nil {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
-						siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.AllTraffic)
+						state.VnetApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+					}
+					if !features.FivePointOh() {
+						siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 					}
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -842,8 +842,8 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
-			if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-				model.Properties.OutboundVnetRouting.AllTraffic = &sc.VnetRouteAllEnabled
+			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+				model.Properties.OutboundVnetRouting.ApplicationTraffic = &sc.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {

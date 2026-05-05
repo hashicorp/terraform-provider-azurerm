@@ -309,6 +309,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 		args["vnet_application_traffic_enabled"].Computed = true
 		args["vnet_application_traffic_enabled"].Default = nil
+		args["vnet_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
 	}
 
 	return args
@@ -614,26 +615,22 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
 			}
 
-			if !functionAppSlot.PublishingDeployBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err = client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: functionAppSlot.PublishingDeployBasicAuthEnabled,
+				},
+			}
+			if _, err = client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
+				return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
 			}
 
-			if !functionAppSlot.PublishingFTPBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err = client.UpdateFtpAllowedSlot(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: functionAppSlot.PublishingFTPBasicAuthEnabled,
+				},
+			}
+			if _, err = client.UpdateFtpAllowedSlot(ctx, id, sitePolicyFtp); err != nil {
+				return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 			}
 
 			if err = client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {

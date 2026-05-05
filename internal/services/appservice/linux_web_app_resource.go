@@ -229,6 +229,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 	if !features.FivePointOh() {
 		args["vnet_application_traffic_enabled"].Computed = true
 		args["vnet_application_traffic_enabled"].Default = nil
+		args["vnet_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
 	}
 
 	return args
@@ -524,26 +525,22 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if !webApp.PublishingDeployBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: webApp.PublishingDeployBasicAuthEnabled,
+				},
+			}
+			if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
+				return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
 			}
 
-			if !webApp.PublishingFTPBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err := client.UpdateFtpAllowed(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: webApp.PublishingFTPBasicAuthEnabled,
+				},
+			}
+			if _, err := client.UpdateFtpAllowed(ctx, id, sitePolicyFtp); err != nil {
+				return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 			}
 
 			return nil

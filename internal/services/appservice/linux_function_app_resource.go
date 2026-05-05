@@ -341,6 +341,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		args["vnet_application_traffic_enabled"].Computed = true
 		args["vnet_application_traffic_enabled"].Default = nil
+		args["vnet_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
 	}
 
 	return args
@@ -610,26 +611,23 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - updating the policy for publishing credentials resets the `Use32BitWorkerProcess` property
-			if !functionApp.PublishingDeployBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
-				}
+			// the default value has been forced to false for app services by platform due to security hardening, we need to explicitly set the property as the deafult value in provider is true.
+			sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: functionApp.PublishingDeployBasicAuthEnabled,
+				},
+			}
+			if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
+				return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
 			}
 
-			if !functionApp.PublishingFTPBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err := client.UpdateFtpAllowed(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: functionApp.PublishingFTPBasicAuthEnabled,
+				},
+			}
+			if _, err := client.UpdateFtpAllowed(ctx, id, sitePolicyFtp); err != nil {
+				return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {

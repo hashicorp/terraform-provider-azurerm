@@ -258,13 +258,6 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 
 				"virtual_application": virtualApplicationsSchema(),
 
-				"vnet_route_all_enabled": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
-				},
-
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -289,13 +282,21 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 			"VS2019",
 			"VS2022",
 		}, false)
+
+		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
 	}
 
 	return s
 }
 
 func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -451,14 +452,19 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
-
-				"vnet_route_all_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return s
 }
 
 func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*webapps.SiteConfig, error) {
@@ -826,7 +832,6 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 		s.HandlerMapping = flattenHandlerMapping(appSiteConfig.HandlerMappings)
 		s.VirtualApplications = flattenVirtualApplications(appSiteConfig.VirtualApplications, s.AlwaysOn)
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
-		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
 		s.IpRestrictionDefaultAction = string(pointer.From(appSiteConfig.IPSecurityRestrictionsDefaultAction))
 		s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteConfig.ScmIPSecurityRestrictionsDefaultAction))
 	}

@@ -243,13 +243,6 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				"vnet_route_all_enabled": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
-				},
-
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -269,6 +262,14 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 			"VS2019",
 			"VS2022",
 		}, false)
+
+		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"vnet_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
 	}
 
 	return s
@@ -310,7 +311,7 @@ type SiteConfigWindowsWebAppSlot struct {
 	Cors                          []CorsSetting             `tfschema:"cors"`
 	DetailedErrorLogging          bool                      `tfschema:"detailed_error_logging_enabled"`
 	WindowsFxVersion              string                    `tfschema:"windows_fx_version"`
-	VnetRouteAllEnabled           bool                      `tfschema:"vnet_route_all_enabled"`
+	VnetRouteAllEnabled           bool                      `tfschema:"vnet_route_all_enabled,removedInNextMajorVersion"`
 }
 
 func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
@@ -504,13 +505,6 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 
 				"virtual_application": virtualApplicationsSchema(),
 
-				"vnet_route_all_enabled": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
-				},
-
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -530,6 +524,14 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 			"VS2019",
 			"VS2022",
 		}, false)
+
+		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
 	}
 
 	return s
@@ -869,7 +871,6 @@ func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteConfi
 	s.Use32BitWorker = pointer.From(appSiteSlotConfig.Use32BitWorkerProcess)
 	s.UseManagedIdentityACR = pointer.From(appSiteSlotConfig.AcrUseManagedIdentityCreds)
 	s.WebSockets = pointer.From(appSiteSlotConfig.WebSocketsEnabled)
-	s.VnetRouteAllEnabled = pointer.From(appSiteSlotConfig.VnetRouteAllEnabled)
 	s.IpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction))
 	s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction))
 
@@ -1293,7 +1294,6 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 	s.HandlerMapping = flattenHandlerMapping(appSiteSlotConfig.HandlerMappings)
 	s.VirtualApplications = flattenVirtualApplications(appSiteSlotConfig.VirtualApplications, s.AlwaysOn)
 	s.WebSockets = pointer.From(appSiteSlotConfig.WebSocketsEnabled)
-	s.VnetRouteAllEnabled = pointer.From(appSiteSlotConfig.VnetRouteAllEnabled)
 	s.IpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction))
 	s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction))
 

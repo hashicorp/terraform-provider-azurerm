@@ -337,10 +337,11 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 		}, false)
 
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
-			Deprecated:  "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+			Type:          pluginsdk.TypeBool,
+			Computed:      true,
+			Optional:      true,
+			ConflictsWith: []string{"vnet_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
 		}
 	}
 
@@ -809,11 +810,11 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 
 	if !features.FivePointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Computed:    true,
-			Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
-			Deprecated:  "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"vnet_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
 		}
 	}
 
@@ -1115,11 +1116,11 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 		}, false)
 
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Computed:    true,
-			Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
-			Deprecated:  "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"vnet_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
 		}
 	}
 
@@ -2062,10 +2063,6 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.PreWarmedInstanceCount = pointer.To(linuxSiteConfig.PreWarmedInstanceCount)
 	}
 
-	if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = pointer.To(linuxSiteConfig.VnetRouteAllEnabled)
-	}
-
 	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
 		expanded.MinimumElasticInstanceCount = pointer.To(linuxSiteConfig.ElasticInstanceMinimum)
 	}
@@ -2193,10 +2190,6 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
 		expanded.RemoteDebuggingVersion = pointer.To(FlexConsumptionSiteConfig.RemoteDebuggingVersion)
-	}
-
-	if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = pointer.To(FlexConsumptionSiteConfig.VnetRouteAllEnabled)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
@@ -2460,10 +2453,6 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		expanded.PreWarmedInstanceCount = pointer.To(windowsSiteConfig.PreWarmedInstanceCount)
 	}
 
-	if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = pointer.To(windowsSiteConfig.VnetRouteAllEnabled)
-	}
-
 	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
 		expanded.MinimumElasticInstanceCount = pointer.To(windowsSiteConfig.ElasticInstanceMinimum)
 	}
@@ -2510,7 +2499,6 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *webapps.SiteConfig
 		UseManagedIdentityACR:         pointer.From(functionAppSiteConfig.AcrUseManagedIdentityCreds),
 		RemoteDebugging:               pointer.From(functionAppSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSiteConfig.RemoteDebuggingVersion)),
-		VnetRouteAllEnabled:           pointer.From(functionAppSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if v := functionAppSiteConfig.ApiDefinition; v != nil && v.Url != nil {
@@ -2626,7 +2614,6 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 		ScmUseMainIpRestriction:       pointer.From(functionAppSiteConfig.ScmIPSecurityRestrictionsUseMain),
 		RemoteDebugging:               pointer.From(functionAppSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSiteConfig.RemoteDebuggingVersion)),
-		VnetRouteAllEnabled:           pointer.From(functionAppSiteConfig.VnetRouteAllEnabled),
 		IpRestrictionDefaultAction:    string(pointer.From(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction)),
 		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
 	}

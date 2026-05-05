@@ -333,6 +333,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 	if !features.FivePointOh() {
 		s["vnet_application_traffic_enabled"].Computed = true
 		s["vnet_application_traffic_enabled"].Default = nil
+		s["vnet_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
 	}
 
 	return s
