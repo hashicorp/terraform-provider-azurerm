@@ -364,9 +364,9 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, m
 		// @sreallymatt: This is currently non-functional, the API doesn't return the InteractiveQuery properties
 		// See: https://github.com/Azure/azure-rest-api-specs/issues/39594
 		// Can be uncommented and the additional `GetStatus` request below removed once this issue is resolved.
-		//if iqProps := runTime.TypeProperties.InteractiveQuery; iqProps != nil {
+		// if iqProps := runTime.TypeProperties.InteractiveQuery; iqProps != nil {
 		//	d.Set("interactive_authoring_time_to_live_in_minutes", iqProps.AutoTerminationMinutes)
-		//}
+		// }
 	}
 
 	status, err := client.GetStatus(ctx, *id)
