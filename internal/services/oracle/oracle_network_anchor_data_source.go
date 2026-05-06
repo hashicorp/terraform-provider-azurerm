@@ -68,31 +68,35 @@ func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
-		"resource_anchor_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"virtual_network_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 		"cidr_block": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"oci_vcn_id": {
+		"dns_forwarding_endpoint_ip_address": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"oci_vcn_dns_label": {
+		"dns_forwarding_endpoint_nsg_rule_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"dns_forwarding_rule_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"dns_listening_endpoint_allowed_cidrs": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"dns_listening_endpoint_ip_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"dns_listening_endpoint_nsg_rule_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"oci_backup_cidr_block": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -100,7 +104,11 @@ func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"oci_backup_cidr_block": {
+		"oci_vcn_dns_label": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"oci_vcn_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -116,32 +124,25 @@ func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
-		"dns_forwarding_rule_url": {
+		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"dns_forwarding_endpoint_ip_address": {
+		"resource_anchor_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"dns_listening_endpoint_allowed_cidrs": {
+		"subnet_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"dns_listening_endpoint_nsg_rule_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"dns_listening_endpoint_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"dns_forwarding_endpoint_nsg_rule_url": {
+		"virtual_network_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"zones": commonschema.ZonesMultipleComputed(),
-		"tags":  commonschema.TagsDataSource(),
+
+		"tags": commonschema.TagsDataSource(),
 	}
 }
 
