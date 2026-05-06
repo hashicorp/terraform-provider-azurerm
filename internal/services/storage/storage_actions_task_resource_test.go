@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package storageactions_test
+package storage_test
 
 import (
 	"context"
@@ -222,7 +222,7 @@ func (r StorageActionsTaskResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	client := clients.StorageActions.StorageTasksClient
+	client := clients.Storage.StorageTasksClient
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

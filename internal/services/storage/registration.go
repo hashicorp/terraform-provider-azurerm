@@ -91,6 +91,7 @@ func (r Registration) Resources() []sdk.Resource {
 		AccountStaticWebsiteResource{},
 		LocalUserResource{},
 		StorageActionsTaskAssignmentResource{},
+		StorageActionsTaskResource{},
 		StorageContainerImmutabilityPolicyResource{},
 		SyncServerEndpointResource{},
 	}
