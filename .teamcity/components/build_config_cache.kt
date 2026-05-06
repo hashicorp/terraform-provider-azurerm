@@ -64,7 +64,6 @@ class buildCacheConfiguration(environment: String, vcsRootId: String) {
 
             params {
                 GoCache()
-                BuildStartTime()
                 ReadOnlySettings()
             }
         }

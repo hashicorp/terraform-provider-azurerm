@@ -30,10 +30,17 @@ fun BuildFeatures.BuildCacheFeature() {
         })
 }
 
+fun BuildSteps.SetBuildStartTime() {
+    step(ScriptBuildStep {
+        name = "Set Build Start Time"
+        scriptContent = File("scripts/set_build_start_time.sh").readText()
+    })
+}
+
 fun BuildSteps.ConfigureGoEnv() {
     step(ScriptBuildStep {
         name = "Configure Go Version"
-        scriptContent = File("scripts/configure_go_version.sh").readText()
+        scriptContent = "goenv install -s \$(goenv local) && goenv rehash"
     })
 }
 
