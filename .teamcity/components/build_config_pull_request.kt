@@ -43,6 +43,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
                 TerraformCoreBinaryTesting()
                 ReadOnlySettings()
                 GoCache()
+                BuildStartTime()
 
                 text("SERVICES", "portal")
             }
