@@ -134,7 +134,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 					996,
 					997,
 					998,
-					999 
+					999,
 				}),
 			},
 

@@ -150,6 +150,28 @@ func TestAccCdnFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorFirewallPolicy_customBlockResponseStatusCodes(t *testing.T) {
+	statusCodes := []int{200, 403, 405, 406, 429, 990, 991, 992, 993, 994, 995, 996, 997, 998, 999}
+
+	for _, code := range statusCodes {
+		code := code
+		t.Run(fmt.Sprintf("StatusCode%d", code), func(t *testing.T) {
+			data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+			r := CdnFrontDoorFirewallPolicyResource{}
+			data.ResourceTest(t, r, []acceptance.TestStep{
+				{
+					Config: r.customBlockResponseStatusCode(data, code),
+					Check: acceptance.ComposeTestCheckFunc(
+						check.That(data.ResourceName).ExistsInAzure(r),
+						check.That(data.ResourceName).Key("custom_block_response_status_code").HasValue(fmt.Sprintf("%d", code)),
+					),
+				},
+				data.ImportStep(),
+			})
+		})
+	}
+}
+
 func TestAccCdnFrontDoorFirewallPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontDoorFirewallPolicyResource{}
@@ -2232,3 +2254,34 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 }
 `, r.template(data), data.RandomInteger)
 }
+
+func (r CdnFrontDoorFirewallPolicyResource) customBlockResponseStatusCode(data acceptance.TestData, statusCode int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  custom_block_response_status_code = %d
+
+  custom_rule {
+    name     = "Rule1"
+    enabled  = true
+    priority = 1
+    type     = "MatchRule"
+    action   = "Block"
+
+    match_condition {
+      match_variable     = "RemoteAddr"
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24"]
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, statusCode)
+}
+
