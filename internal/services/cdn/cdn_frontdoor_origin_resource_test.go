@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -378,9 +380,13 @@ resource "azurerm_private_link_service" "test" {
 //nolint:unused
 func (r CdnFrontDoorOriginResource) templatePrivateLinkWebApp(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+		
 
-%s
+
+
+		%s
 
 resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[2]d"
@@ -452,7 +458,86 @@ resource "azurerm_linux_web_app" "test" {
 
   site_config {}
 }
-`, template, data.RandomInteger, data.RandomString)
+		`, template, data.RandomInteger, data.RandomString)
+	}
+	return fmt.Sprintf(`
+	
+
+
+
+	%s
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "P1v3"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "testaccsc%[3]s"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_share" "test" {
+  name               = "test"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
+}
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+
+  resource_types {
+    service   = false
+    container = false
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+
+  start  = "2021-04-01"
+  expiry = "2024-03-30"
+
+  permissions {
+    read    = false
+    write   = true
+    delete  = false
+    list    = false
+    add     = false
+    create  = false
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+	`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r CdnFrontDoorOriginResource) basic(data acceptance.TestData) string {
