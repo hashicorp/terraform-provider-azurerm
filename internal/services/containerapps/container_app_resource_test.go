@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
@@ -2810,8 +2812,9 @@ func (ContainerAppResource) templateMultipleWorkloadProfiles(data acceptance.Tes
 }
 
 func (ContainerAppResource) templateWithVnet(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+		%s
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -2847,12 +2850,52 @@ resource "azurerm_container_app_environment_storage" "test" {
   share_name                   = azurerm_storage_share.test.name
   access_mode                  = "ReadWrite"
 }
-`, ContainerAppEnvironmentResource{}.completeWithoutWorkloadProfile(data), data.RandomInteger, data.RandomString)
+		`, ContainerAppEnvironmentResource{}.completeWithoutWorkloadProfile(data), data.RandomInteger, data.RandomString)
+	}
+	return fmt.Sprintf(`
+	%s
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Basic"
+  admin_enabled       = true
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+resource "azurerm_storage_share" "test" {
+  name               = "testshare%[3]s"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
+}
+
+resource "azurerm_container_app_environment_storage" "test" {
+  name                         = "testacc-caes-%[2]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  account_name                 = azurerm_storage_account.test.name
+  access_key                   = azurerm_storage_account.test.primary_access_key
+  share_name                   = azurerm_storage_share.test.name
+  access_mode                  = "ReadWrite"
+}
+	`, ContainerAppEnvironmentResource{}.completeWithoutWorkloadProfile(data), data.RandomInteger, data.RandomString)
 }
 
 func (ContainerAppResource) templatePlusExtras(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+		%s
 
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%[2]d"
@@ -2876,7 +2919,34 @@ resource "azurerm_container_app_environment_storage" "test" {
   share_name                   = azurerm_storage_share.test.name
   access_mode                  = "ReadWrite"
 }
-`, ContainerAppEnvironmentDaprComponentResource{}.complete(data), data.RandomInteger, data.RandomString)
+		`, ContainerAppEnvironmentDaprComponentResource{}.complete(data), data.RandomInteger, data.RandomString)
+	}
+	return fmt.Sprintf(`
+	%s
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Basic"
+  admin_enabled       = true
+}
+
+resource "azurerm_storage_share" "test" {
+  name               = "testshare%[3]s"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
+}
+
+resource "azurerm_container_app_environment_storage" "test" {
+  name                         = "testacc-caes-%[2]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  account_name                 = azurerm_storage_account.test.name
+  access_key                   = azurerm_storage_account.test.primary_access_key
+  share_name                   = azurerm_storage_share.test.name
+  access_mode                  = "ReadWrite"
+}
+	`, ContainerAppEnvironmentDaprComponentResource{}.complete(data), data.RandomInteger, data.RandomString)
 }
 
 func (r ContainerAppResource) ingressTrafficValidation(data acceptance.TestData, trafficBlock string) string {

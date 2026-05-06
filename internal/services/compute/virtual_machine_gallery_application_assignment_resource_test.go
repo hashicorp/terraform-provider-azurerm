@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
@@ -169,8 +171,9 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "test" {
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+		%[1]s
 
 resource "azurerm_storage_account" "test" {
   name                     = "accteststr%[3]s"
@@ -261,5 +264,98 @@ resource "azurerm_linux_virtual_machine" "test" {
     ]
   }
 }
-`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomString)
+		`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomString)
+	}
+	return fmt.Sprintf(`
+	%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accteststr%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                 = "script"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 512
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_gallery_application" "test" {
+  name              = "acctest-app-%[2]d"
+  gallery_id        = azurerm_shared_image_gallery.test.id
+  location          = azurerm_shared_image_gallery.test.location
+  supported_os_type = "Linux"
+}
+
+resource "azurerm_gallery_application_version" "test" {
+  name                   = "0.0.1"
+  gallery_application_id = azurerm_gallery_application.test.id
+  location               = azurerm_gallery_application.test.location
+
+  source {
+    media_link = azurerm_storage_blob.test.id
+  }
+
+  manage_action {
+    install = "[install command]"
+    remove  = "[remove command]"
+  }
+
+  target_region {
+    name                   = azurerm_gallery_application.test.location
+    regional_replica_count = 1
+    storage_account_type   = "Premium_LRS"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      gallery_application, tags, identity
+    ]
+  }
+}
+	`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomString)
 }

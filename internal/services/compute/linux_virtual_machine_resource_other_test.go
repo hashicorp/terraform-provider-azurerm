@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -1743,8 +1745,9 @@ resource "azurerm_linux_virtual_machine" "test" {
 }
 
 func (r LinuxVirtualMachineResource) otherGalleryApplicationTemplate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+		%[1]s
 
 resource "azurerm_storage_account" "test" {
   name                     = "accteststr%[2]s"
@@ -1840,7 +1843,104 @@ resource "azurerm_gallery_application_version" "test2" {
     storage_account_type   = "Premium_LRS"
   }
 }
-`, r.template(data), data.RandomString, data.RandomInteger)
+		`, r.template(data), data.RandomString, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+	%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accteststr%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                 = "script"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 512
+}
+
+resource "azurerm_storage_blob" "test2" {
+  name                 = "script2"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 512
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[3]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_gallery_application" "test" {
+  name              = "acctest-app-%[3]d"
+  gallery_id        = azurerm_shared_image_gallery.test.id
+  location          = azurerm_shared_image_gallery.test.location
+  supported_os_type = "Linux"
+}
+
+resource "azurerm_gallery_application_version" "test" {
+  name                   = "0.0.1"
+  gallery_application_id = azurerm_gallery_application.test.id
+  location               = azurerm_gallery_application.test.location
+
+  source {
+    media_link                 = azurerm_storage_blob.test.id
+    default_configuration_link = azurerm_storage_blob.test.id
+  }
+
+  manage_action {
+    install = "echo install"
+    remove  = "echo remove"
+  }
+
+  target_region {
+    name                   = azurerm_gallery_application.test.location
+    regional_replica_count = 1
+    storage_account_type   = "Premium_LRS"
+  }
+}
+
+resource "azurerm_gallery_application" "test2" {
+  name              = "acctest-app2-%[3]d"
+  gallery_id        = azurerm_shared_image_gallery.test.id
+  location          = azurerm_shared_image_gallery.test.location
+  supported_os_type = "Linux"
+}
+
+
+resource "azurerm_gallery_application_version" "test2" {
+  name                   = "0.0.1"
+  gallery_application_id = azurerm_gallery_application.test2.id
+  location               = azurerm_gallery_application.test2.location
+
+  source {
+    media_link                 = azurerm_storage_blob.test.id
+    default_configuration_link = azurerm_storage_blob.test.id
+  }
+
+  manage_action {
+    install = "echo install"
+    remove  = "echo remove"
+  }
+
+  target_region {
+    name                   = azurerm_gallery_application.test2.location
+    regional_replica_count = 1
+    storage_account_type   = "Premium_LRS"
+  }
+}
+	`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineResource) otherUserData(data acceptance.TestData, userData string) string {

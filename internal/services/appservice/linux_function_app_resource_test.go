@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -2455,12 +2457,13 @@ resource "azurerm_linux_function_app" "test" {
 }
 
 func (r LinuxFunctionAppResource) appSettingsCustomContentShareWithVnetEnabled(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+		%s
 
 resource "azurerm_storage_share" "test" {
   name                 = "test"
@@ -2485,7 +2488,39 @@ resource "azurerm_linux_function_app" "test" {
 
   site_config {}
 }
-`, r.template(data, planSku), data.RandomInteger)
+		`, r.template(data, planSku), data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+	%s
+
+resource "azurerm_storage_share" "test" {
+  name               = "test"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    WEBSITE_CONTENTOVERVNET                  = 1
+    WEBSITE_CONTENTSHARE                     = azurerm_storage_share.test.name
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = azurerm_storage_account.test.primary_connection_string
+  }
+
+  site_config {}
+}
+	`, r.template(data, planSku), data.RandomInteger)
 }
 
 func (r LinuxFunctionAppResource) stickySettings(data acceptance.TestData) string {
@@ -4487,8 +4522,9 @@ resource "azurerm_service_plan" "update" {
 }
 
 func (r LinuxFunctionAppResource) storageContainerTemplate(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
-%s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+		%s
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
@@ -4529,7 +4565,51 @@ data "azurerm_storage_account_sas" "test" {
     filter  = false
   }
 }
-`, r.template(data, planSku))
+		`, r.template(data, planSku))
+	}
+	return fmt.Sprintf(`
+	%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+
+  resource_types {
+    service   = false
+    container = false
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+
+  start  = "2021-04-01"
+  expiry = "2024-03-30"
+
+  permissions {
+    read    = false
+    write   = true
+    delete  = false
+    list    = false
+    add     = false
+    create  = false
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+	`, r.template(data, planSku))
 }
 
 func (r LinuxFunctionAppResource) storageWithVnetIntegrationTemplate(data acceptance.TestData, planSku string) string {
@@ -5002,8 +5082,9 @@ resource "azurerm_linux_function_app" "test" {
 }
 
 func (r LinuxFunctionAppResource) templateWithStorageAccountExtras(data acceptance.TestData, planSKU string) string {
-	return fmt.Sprintf(`
-%s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+		%s
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acct-%d"
@@ -5064,7 +5145,71 @@ data "azurerm_storage_account_sas" "test" {
     filter  = false
   }
 }
-`, r.template(data, planSKU), data.RandomInteger)
+		`, r.template(data, planSKU), data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+	%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_share" "test" {
+  name               = "test"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
+}
+
+resource "azurerm_storage_container" "test2" {
+  name                  = "test2"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_share" "test2" {
+  name               = "test2"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
+}
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+  resource_types {
+    service   = false
+    container = false
+    object    = true
+  }
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+  start  = "2021-04-01"
+  expiry = "2024-03-30"
+  permissions {
+    read    = false
+    write   = true
+    delete  = false
+    list    = false
+    add     = false
+    create  = false
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+	`, r.template(data, planSKU), data.RandomInteger)
 }
 
 func (r LinuxFunctionAppResource) tlsCipherSuiteConfigured(data acceptance.TestData, planSku string, tlsCipherSuiteValue string) string {
