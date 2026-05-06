@@ -130,15 +130,10 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"upgrade_preference": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(appserviceenvironments.UpgradePreferenceNone),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(appserviceenvironments.UpgradePreferenceEarly),
-				string(appserviceenvironments.UpgradePreferenceLate),
-				string(appserviceenvironments.UpgradePreferenceManual),
-				string(appserviceenvironments.UpgradePreferenceNone),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(appserviceenvironments.UpgradePreferenceNone),
+			ValidateFunc: validation.StringInSlice(appserviceenvironments.PossibleValuesForUpgradePreference(), false),
 		},
 
 		"remote_debugging_enabled": {
