@@ -26,11 +26,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -647,12 +649,81 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		},
 	}
 
+	diskTypeTargets := siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(d)
+
 	err = client.UpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("updating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
+	if len(diskTypeTargets) > 0 {
+		diskTypePoller := custompollers.NewSiteRecoveryReplicatedVMDiskTypePoller(client, id, diskTypeTargets)
+		poller := pollers.NewPoller(diskTypePoller, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err = poller.PollUntilDone(ctx); err != nil {
+			if latestState := diskTypePoller.LatestState(); latestState != "" {
+				return fmt.Errorf("waiting for managed disk type updates for replicated vm %s (vault %s): %s: %+v", name, vaultName, latestState, err)
+			}
+
+			return fmt.Errorf("waiting for managed disk type updates for replicated vm %s (vault %s): %+v", name, vaultName, err)
+		}
+	}
+
 	return resourceSiteRecoveryReplicatedItemRead(d, meta)
+}
+
+func siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(d *pluginsdk.ResourceData) []custompollers.SiteRecoveryReplicatedVMDiskTypeTarget {
+	if !d.HasChange("managed_disk") {
+		return nil
+	}
+
+	oldRaw, newRaw := d.GetChange("managed_disk")
+	oldDisks, ok := oldRaw.(*pluginsdk.Set)
+	if !ok || oldDisks == nil {
+		return nil
+	}
+
+	newDisks, ok := newRaw.(*pluginsdk.Set)
+	if !ok || newDisks == nil {
+		return nil
+	}
+
+	oldByDiskId := make(map[string]map[string]interface{}, oldDisks.Len())
+	for _, raw := range oldDisks.List() {
+		disk := raw.(map[string]interface{})
+		oldByDiskId[siteRecoveryReplicatedVMManagedDiskID(disk)] = disk
+	}
+
+	targets := make([]custompollers.SiteRecoveryReplicatedVMDiskTypeTarget, 0)
+	for _, raw := range newDisks.List() {
+		disk := raw.(map[string]interface{})
+		oldDisk, ok := oldByDiskId[siteRecoveryReplicatedVMManagedDiskID(disk)]
+		if !ok {
+			continue
+		}
+
+		targetDiskType := disk["target_disk_type"].(string)
+		targetReplicaDiskType := disk["target_replica_disk_type"].(string)
+		if targetDiskType == oldDisk["target_disk_type"].(string) && targetReplicaDiskType == oldDisk["target_replica_disk_type"].(string) {
+			continue
+		}
+
+		targets = append(targets, custompollers.SiteRecoveryReplicatedVMDiskTypeTarget{
+			DiskId:                disk["disk_id"].(string),
+			TargetDiskType:        targetDiskType,
+			TargetReplicaDiskType: targetReplicaDiskType,
+		})
+	}
+
+	return targets
+}
+
+func siteRecoveryReplicatedVMManagedDiskID(disk map[string]interface{}) string {
+	diskId := disk["disk_id"].(string)
+	if parsed, err := commonids.ParseManagedDiskIDInsensitively(diskId); err == nil {
+		return strings.ToLower(parsed.ID())
+	}
+
+	return strings.ToLower(diskId)
 }
 
 func findNicId(state *replicationprotecteditems.ReplicationProtectedItem, sourceNicId string) *string {

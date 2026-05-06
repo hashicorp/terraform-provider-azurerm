@@ -1676,6 +1676,7 @@ resource "azurerm_recovery_services_vault" "test" {
   name                = "acctest-vault-%[1]d"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
+  sku                 = "Standard"
 }
 resource "azurerm_site_recovery_fabric" "test1" {
   resource_group_name = azurerm_resource_group.test2.name
@@ -2546,7 +2547,7 @@ func (r SiteRecoveryReplicatedVmResource) updateDiskType(data acceptance.TestDat
 %s
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -2579,7 +2580,7 @@ func (r SiteRecoveryReplicatedVmResource) updateDiskTypeUpdated(data acceptance.
 %s
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
