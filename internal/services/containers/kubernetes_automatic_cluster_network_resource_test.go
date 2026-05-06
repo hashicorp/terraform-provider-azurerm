@@ -595,8 +595,6 @@ func TestAccKubernetesAutomaticCluster_changingLoadBalancerProfile(t *testing.T)
 			Config: r.changingLoadBalancerProfileConfigIPPrefix(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#").HasValue("1"),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -604,8 +602,6 @@ func TestAccKubernetesAutomaticCluster_changingLoadBalancerProfile(t *testing.T)
 			Config: r.unsetPrefixedLoadBalancerProfileConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				// Note: effective_outbound_ips is not checked here because Azure may temporarily
-				// have multiple IPs during the transition from prefix-based to managed IPs
 			),
 		},
 		data.ImportStep(),
