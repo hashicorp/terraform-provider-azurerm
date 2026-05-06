@@ -70,7 +70,7 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
+		"identity": commonschema.SystemAssignedIdentityComputed(),
 
 		"sku": {
 			Type:     pluginsdk.TypeString,

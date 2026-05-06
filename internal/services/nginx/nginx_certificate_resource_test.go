@@ -215,13 +215,6 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acct-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-
 resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -230,8 +223,7 @@ resource "azurerm_nginx_deployment" "test" {
   location            = azurerm_resource_group.test.location
 
   identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
+    type = "SystemAssigned"
   }
 
   frontend_public {
@@ -253,7 +245,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = azurerm_user_assigned_identity.test.principal_id
+    object_id = azurerm_nginx_deployment.test.identity[0].principal_id
 
     key_permissions = [
       "Get",

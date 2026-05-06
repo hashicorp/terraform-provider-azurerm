@@ -86,10 +86,6 @@
   version: 2021-11-01-preview
 
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
-  service: nginx
-  version: 2024-11-01-preview
-
-- module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: operationsmanagement
   version: 2015-11-01-preview
 

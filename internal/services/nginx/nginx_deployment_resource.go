@@ -150,7 +150,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedIdentityOptional(),
 
 		"location": commonschema.Location(),
 
