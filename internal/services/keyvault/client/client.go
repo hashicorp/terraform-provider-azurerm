@@ -8,8 +8,8 @@ import (
 
 	dataplane7_4 "github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4"
 	vaults20230701 "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	resources20151101 "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2015-11-01/resources"
 	dataplaneClient "github.com/hashicorp/go-azure-sdk/sdk/client/dataplane"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -23,7 +23,7 @@ type Client struct {
 	// services.
 	//
 	// As such this separation on our side is intentional to avoid code reuse given these differences.
-	VaultsClient *vaults.VaultsClient
+	VaultsClient        *vaults.VaultsClient
 	DeletedVaultsClient *deletedvaults.DeletedVaultsClient
 
 	ManagementClient        *dataplane.BaseClient // TODO: we should rename this DataPlaneClient in time
@@ -79,8 +79,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	return &Client{
-		ManagementClient: &managementClient,
-		VaultsClient:     vaultsClient,
+		ManagementClient:    &managementClient,
+		VaultsClient:        vaultsClient,
 		DeletedVaultsClient: deletedVaultsClient,
 
 		DataPlaneKeyVaultClient: dataplaneKeyvaultClient,
