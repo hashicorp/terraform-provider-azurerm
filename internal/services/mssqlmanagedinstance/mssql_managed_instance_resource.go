@@ -469,6 +469,13 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewSqlManagedInstanceID(subscriptionId, model.ResourceGroupName, model.Name)
 
+			subnetId, err := commonids.ParseSubnetIDInsensitively(model.SubnetId)
+			if err != nil {
+				return fmt.Errorf("parsing `subnet_id`: %+v", err)
+			}
+			locks.ByID(subnetId.ID())
+			defer locks.UnlockByID(subnetId.ID())
+
 			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id, managedinstances.GetOperationOptions{})
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
