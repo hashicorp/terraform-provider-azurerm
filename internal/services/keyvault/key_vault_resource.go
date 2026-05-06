@@ -139,7 +139,6 @@ func resourceKeyVault() *pluginsdk.Resource {
 			"rbac_authorization_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
 			},
 
 			"network_acls": {
@@ -358,14 +357,10 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Tags: tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("rbac_authorization_enabled"); ok {
-		parameters.Properties.EnableRbacAuthorization = pointer.To(v.(bool))
-	}
+	parameters.Properties.EnableRbacAuthorization = pointer.To(d.Get("rbac_authorization_enabled").(bool))
 
 	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_rbac_authorization"); ok {
-			parameters.Properties.EnableRbacAuthorization = pointer.To(v.(bool))
-		}
+		parameters.Properties.EnableRbacAuthorization = pointer.To(d.Get("enable_rbac_authorization").(bool))
 	}
 
 	if isPublic {
