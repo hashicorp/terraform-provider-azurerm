@@ -97,9 +97,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-	count                = 2
+  count = 2
 
-	name                = "acctestservicebusnamespace${count.index}-%[1]d"
+  name                = "acctestservicebusnamespace${count.index}-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
