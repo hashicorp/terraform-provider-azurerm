@@ -68,7 +68,6 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "example" {
   enabled_ecpu_count                 = 4
   hostname                           = "host"
   node_count                         = 2
-  shape                              = "EXADBXS"
   ssh_public_keys                    = [file("~/.ssh/id_rsa.pub")]
   subnet_id                          = azurerm_subnet.example.id
   total_ecpu_count                   = 8
@@ -103,8 +102,6 @@ The following arguments are supported:
 
 * `node_count` - (Required) The number of nodes in the Exadata VM cluster on Exascale Infrastructure. Possible values range between `2` and `10`.
 
-* `shape` - (Required) The shape of the Exadata VM cluster on Exascale Infrastructure resource.Possible values is `EXADBXS`.  Changing this forces a new resource to be created.
-
 * `ssh_public_keys` - (Required) The public key portion of one or more key pairs used for SSH access to the Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created.
 
 * `subnet_id` - (Required) The ID of the subnet associated with the Exadata VM Cluster. This subnet must belong to the specified virtual_network_id. Changing this value forces a new Exadata VM Cluster to be created.
@@ -132,6 +129,8 @@ The following arguments are supported:
 * `inbound_network_security_group_rule` - (Optional) A `inbound_network_security_group_rule` block as defined below. Changing this forces a new Exadata VM Cluster to be created.
 
 * `private_zone_ocid` - (Optional) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the private zone in which you want DNS records to be created. Changing this forces a new Exadata VM Cluster to be created.
+
+* `shape` - (Optional) The shape of the Exadata VM cluster on Exascale Infrastructure resource.Possible values is `EXADBXS`.  Defaults to `EXADBXS`. Changing this forces a new resource to be created.
 
 * `single_client_access_name_listener_port_tcp` - (Optional) The TCP Single Client Access Name (SCAN) port. Possible values range between `1024` and `8999`. Defaults to `1521`. Changing this forces a new Exadata VM Cluster to be created.
 

@@ -111,7 +111,6 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   grid_image_ocid                    = local.grid_image_ocid
   hostname                           = "host"
   node_count                         = 2
-  shape                              = "EXADBXS"
   ssh_public_keys                    = [local.ssh_public_key]
   subnet_id                          = azurerm_subnet.virtual_network_subnet.id
   total_ecpu_count                   = 32
@@ -189,7 +188,6 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   grid_image_ocid                    = local.grid_image_ocid
   hostname                           = "host"
   node_count                         = 8
-  shape                              = "EXADBXS"
   ssh_public_keys                    = [local.ssh_public_key]
   subnet_id                          = azurerm_subnet.virtual_network_subnet.id
   total_ecpu_count                   = 32
@@ -239,7 +237,7 @@ provider "azurerm" {
 locals {
   zones           = ["1"]
   ssh_public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
-  grid_image_ocid = "ocid1.dbpatch.oc1.ca-toronto-1.an2g6ljrt5t4sqqawwxguqicmwm2qpwadhv6lnlfba5yzhmmfw6rzrbec2iq"
+  grid_image_ocid = "ocid1.dbpatch.oc1.uk-london-1.anwgiljrt5t4sqqaeemieqn7htiuxmhlllbb4dqybnufcmkpswrrew2redcq"
 }
 
 data "azurerm_client_config" "current" {}
