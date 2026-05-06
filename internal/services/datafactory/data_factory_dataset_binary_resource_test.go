@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -155,7 +157,8 @@ func (t DatasetBinaryResource) Exists(ctx context.Context, clients *clients.Clie
 }
 
 func (DatasetBinaryResource) blob(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -201,11 +204,60 @@ resource "azurerm_data_factory_dataset_binary" "test" {
     container = azurerm_storage_container.test.name
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestdf%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "content"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = azurerm_storage_account.test.primary_connection_string
+}
+
+resource "azurerm_data_factory_dataset_binary" "test" {
+  name                = "acctestds%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
+
+  azure_blob_storage_location {
+    container = azurerm_storage_container.test.name
+  }
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (DatasetBinaryResource) blob_with_filepath(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -253,7 +305,57 @@ resource "azurerm_data_factory_dataset_binary" "test" {
     filename  = "foo.txt"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestdf%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "content"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = azurerm_storage_account.test.primary_connection_string
+}
+
+resource "azurerm_data_factory_dataset_binary" "test" {
+  name                = "acctestds%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
+
+  azure_blob_storage_location {
+    container = azurerm_storage_container.test.name
+    path      = "foo/bar/"
+    filename  = "foo.txt"
+  }
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (DatasetBinaryResource) http(data acceptance.TestData) string {
@@ -401,7 +503,8 @@ resource "azurerm_data_factory_dataset_binary" "test" {
 }
 
 func (DatasetBinaryResource) blobDynamicContainer(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -448,7 +551,56 @@ resource "azurerm_data_factory_dataset_binary" "test" {
     dynamic_container_enabled = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestdf%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "content"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = azurerm_storage_account.test.primary_connection_string
+}
+
+resource "azurerm_data_factory_dataset_binary" "test" {
+  name                = "acctestds%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
+
+  azure_blob_storage_location {
+    container                 = azurerm_storage_container.test.name
+    dynamic_container_enabled = true
+  }
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (DatasetBinaryResource) compression(data acceptance.TestData) string {

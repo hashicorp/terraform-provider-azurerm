@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -351,7 +353,8 @@ JSON
 }
 
 func (CustomDatasetResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -386,10 +389,52 @@ resource "azurerm_data_factory_linked_custom_service" "test" {
   data_factory_id      = azurerm_data_factory.test.id
   type                 = "AzureBlobStorage"
   type_properties_json = <<JSON
-{
-  "connectionString": "${azurerm_storage_account.test.primary_connection_string}"
+		{
+		  "connectionString": "${azurerm_storage_account.test.primary_connection_string}"
+		}
+		JSON
 }
-JSON
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestdf%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "content"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_custom_service" "test" {
+  name                 = "acctestls%d"
+  data_factory_id      = azurerm_data_factory.test.id
+  type                 = "AzureBlobStorage"
+  type_properties_json = <<JSON
+	{
+	  "connectionString": "${azurerm_storage_account.test.primary_connection_string}"
+	}
+	JSON
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
