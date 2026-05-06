@@ -71,7 +71,7 @@ func (r WebPubSubSocketIOListResource) List(ctx context.Context, request list.Li
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			id, err := webpubsub.ParseWebPubSubID(pointer.From(item.Id))
+			id, err := webpubsub.ParseWebPubSubIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Web PubSub Socket.IO ID", err)
 				return
