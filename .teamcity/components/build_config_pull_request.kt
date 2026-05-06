@@ -21,7 +21,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
             steps {
                 var packageName = "\"%SERVICES%\""
 
-                SetBuildStartTime()
+                // SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
                 RunAcceptanceTestsForPullRequest(packageName)
