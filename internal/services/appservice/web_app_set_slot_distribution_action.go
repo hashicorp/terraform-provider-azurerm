@@ -121,9 +121,12 @@ func (*webAppSetSlotDistributionAction) ValidateConfig(ctx context.Context, req 
 	}
 
 	// Checking two different validations by looping through all rules:
-	// 1. duplicate slot hostnames
-	// 2. sum of percentage > 100
+	// 1. duplicate slot rule names
+	// 2. duplicate slot hostnames
+	// 3. sum of percentage > 100
 	foundHostnameDupe := false
+	foundRulenameDupe := false
+	uniqueRulenameMap := make(map[string]bool)
 	uniqueHostnameMap := make(map[string]bool)
 	totalRulePercentage := float64(0)
 	for _, rule := range rules {
@@ -140,10 +143,22 @@ func (*webAppSetSlotDistributionAction) ValidateConfig(ctx context.Context, req 
 				foundHostnameDupe = true
 			}
 		}
+
+		if !foundRulenameDupe && !rule.RuleName.IsUnknown() {
+			if !uniqueRulenameMap[rule.RuleName.ValueString()] {
+				uniqueRulenameMap[rule.RuleName.ValueString()] = true
+			} else {
+				foundRulenameDupe = true
+			}
+		}
 	}
 
 	if foundHostnameDupe {
 		resp.Diagnostics.AddAttributeError(path.Root("slot_rule").AtName("hostname"), "Multiple slot rules have the same target hostname", "The target `hostname` value of each slot rule must be unique across all provided rules.")
+	}
+
+	if foundRulenameDupe {
+		resp.Diagnostics.AddAttributeError(path.Root("slot_rule").AtName("rule_name"), "Multiple slot rules have the same name", "The `rule_name` value of each slot rule must be unique across all provided rules.")
 	}
 
 	if totalRulePercentage > 100 {
