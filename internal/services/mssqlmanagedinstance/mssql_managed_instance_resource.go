@@ -5,6 +5,7 @@ package mssqlmanagedinstance
 
 import (
 	"context"
+	"error"
 	"fmt"
 	"log"
 	"regexp"
@@ -431,7 +432,7 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 			// validate `storage_iops` rules when the argument is known to be explicitly configured.
 			if storageIOps, ok := rawConfig["storage_iops"]; ok && storageIOps.IsKnown() && !storageIOps.IsNull() {
 				if !rd.Get("general_purpose_v2_enabled").(bool) {
-					return fmt.Errorf("`storage_iops` can only be set when `general_purpose_v2_enabled` is `true`")
+					return errors.New("`storage_iops` can only be set when `general_purpose_v2_enabled` is `true`")
 				}
 
 				if sku := rd.Get("sku_name").(string); strings.HasPrefix(sku, "BC_") {
@@ -909,7 +910,7 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 			pollerType := custompollers.NewManagedInstanceSubnetNetworkIntentPolicyPoller(metadata.Client.Network.Subnets, *subnetId)
 			poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for SQL Managed Instance network intent policy cleanup on subnet %s: %+v", subnetId.ID(), err)
+				return fmt.Errorf("[WARN] waiting for SQL Managed Instance network intent policy cleanup on subnet %s: %+v", subnetId.ID(), err)
 			}
 
 			return nil
