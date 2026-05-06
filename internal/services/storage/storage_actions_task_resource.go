@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package storageactions
+package storage
 
 import (
 	"context"
@@ -184,7 +184,7 @@ func (r StorageActionsTaskResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.StorageActions.StorageTasksClient
+			client := metadata.Client.Storage.StorageTasksClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := storagetasks.NewStorageTaskID(subscriptionId, model.ResourceGroupName, model.Name)
@@ -231,7 +231,7 @@ func (r StorageActionsTaskResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.StorageActions.StorageTasksClient
+			client := metadata.Client.Storage.StorageTasksClient
 
 			// parse the existing Resource ID from the State
 			id, err := storagetasks.ParseStorageTaskID(metadata.ResourceData.Id())
@@ -295,7 +295,7 @@ func (StorageActionsTaskResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.StorageActions.StorageTasksClient
+			client := metadata.Client.Storage.StorageTasksClient
 
 			id, err := storagetasks.ParseStorageTaskID(metadata.ResourceData.Id())
 			if err != nil {
@@ -344,7 +344,7 @@ func (r StorageActionsTaskResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.StorageActions.StorageTasksClient
+			client := metadata.Client.Storage.StorageTasksClient
 
 			id, err := storagetasks.ParseStorageTaskID(metadata.ResourceData.Id())
 			if err != nil {
