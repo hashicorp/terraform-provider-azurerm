@@ -4,6 +4,7 @@
 package dns
 
 import (
+	"net/http"
 	"fmt"
 	"time"
 
@@ -144,6 +145,21 @@ func resourceDnsCNameRecordCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"NotFound"},
+		Target:                    []string{"Found"},
+		Refresh: pluginsdk.ResourceCreateRefreshFunc(func() (*http.Response, error) {
+			resp, err := client.Get(ctx, id)
+			return resp.HttpResponse, err
+		}),
+		MinTimeout:                5 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
