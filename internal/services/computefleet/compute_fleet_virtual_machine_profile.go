@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -92,10 +93,12 @@ func extensionSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^[^_\W][\w-._]{0,79}(?<![-.])$`),
+						"`name` can be up to 80 characters long. It must begin with a word character, and it must end with a word character or with `_`. `name` may contain word characters or `.`, `-`, `_`."),
 				},
 
 				"publisher": {
@@ -205,10 +208,12 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^[^_\W][\w-._]{0,79}(?<![-.])$`),
+						"`name` can be up to 80 characters long. It must begin with a word character, and it must end with a word character or with `_`. `name` may contain word characters or `.`, `-`, `_`."),
 				},
 
 				"ip_configuration": ipConfigurationSchema(),
@@ -253,6 +258,7 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					ForceNew: true,
+					MaxItems: 9,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.IsIPAddress,
@@ -287,10 +293,12 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^[^_\W][\w-._]{0,79}(?<![-.])$`),
+						"`name` can be up to 80 characters long. It must begin with a word character, and it must end with a word character or with `_`. `name` may contain word characters or `.`, `-`, `_`."),
 				},
 
 				"subnet_id": {
@@ -357,10 +365,12 @@ func publicIPAddressSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^[^_\W][\w-._]{0,70}$`),
+						"`name` can be up to 71 characters long. It must begin with a word character. `name` may contain word characters or `.`, `-`, `_`."),
 				},
 
 				"delete_option": {
@@ -390,7 +400,7 @@ func publicIPAddressSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(4, 32),
+					ValidateFunc: validation.IntBetween(4, 30),
 				},
 
 				"public_ip_prefix_id": {
@@ -432,11 +442,14 @@ func osProfileSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"custom_data_base64": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					Sensitive:    true,
-					ValidateFunc: validation.StringIsBase64,
+					Type:      pluginsdk.TypeString,
+					Optional:  true,
+					ForceNew:  true,
+					Sensitive: true,
+					ValidateFunc: validation.All(
+						validation.StringIsBase64,
+						validation.StringLenBetween(1, 87380),
+					),
 				},
 
 				"linux_configuration": {
@@ -448,10 +461,14 @@ func osProfileSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"admin_username": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ForceNew:     true,
-								ValidateFunc: computeValidate.LinuxAdminUsername,
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								ForceNew: true,
+								ValidateFunc: validation.All(
+									computeValidate.LinuxAdminUsername,
+									// Validation according to Azure portal. Behavior of Azure REST API is different.
+									validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_][-a-zA-Z0-9_]*$`), "`admin_username` must only contain letters, numbers, hyphens, and underscores and may not start with a hyphen or number."),
+								),
 							},
 
 							"admin_password": {
@@ -467,8 +484,9 @@ func osProfileSchema() *pluginsdk.Schema {
 								Optional: true,
 								ForceNew: true,
 								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.StringIsNotEmpty,
+									Type:             pluginsdk.TypeString,
+									ValidateFunc:     computeValidate.SSHKey,
+									DiffSuppressFunc: suppress.SSHKey,
 								},
 							},
 
@@ -564,10 +582,13 @@ func osProfileSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"admin_username": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ForceNew:     true,
-								ValidateFunc: computeValidate.WindowsAdminUsername,
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								ForceNew: true,
+								ValidateFunc: validation.All(
+									computeValidate.WindowsAdminUsername,
+									validation.StringDoesNotContainAny("\\/\"[]:|<>+=;,?*@&"),
+								),
 							},
 
 							"admin_password": {
@@ -691,7 +712,7 @@ func osProfileSchema() *pluginsdk.Schema {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ForceNew:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
+								ValidateFunc: computeValidate.VirtualMachineTimeZone(),
 							},
 
 							"vm_agent_platform_updates_enabled": {

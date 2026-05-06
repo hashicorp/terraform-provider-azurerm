@@ -283,8 +283,9 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
+			// From Azure REST API, `name` can be up to 80 characters long. It must begin with a word character, and it must end with a word character or with '_'. The name may contain word characters or '.', '-', '_'. Instead, the validation is implemented according to Azure portal behavior
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9.-]{0,62}[a-zA-Z0-9]$"),
+				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9.-]{0,62}[a-zA-Z0-9]$|^[a-zA-Z0-9]$"),
 				"The fleet name can only start or end with a number or a letter, and can contain only letters, numbers, periods (.), hyphens (-), up to 64 characters",
 			),
 		},
@@ -418,10 +419,13 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 					"source_image_reference": storageProfileSourceImageReferenceSchema(),
 
 					"user_data_base64": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsBase64,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						ValidateFunc: validation.All(
+							validation.StringIsBase64,
+							validation.StringLenBetween(1, 349528),
+						),
 					},
 
 					"vtpm_enabled": {
@@ -498,7 +502,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^\d{4}-\d{2}-\d{2}(-preview)?$`),
-				"`network_api_version` must be in the format `YYYY-MM-DD` with an optional `-preview` suffix",
+				"`compute_api_version` must be in the format `YYYY-MM-DD` with an optional `-preview` suffix",
 			),
 		},
 
@@ -573,10 +577,11 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"platform_fault_domain_count": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  1,
-			ForceNew: true,
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      1,
+			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(1, 2),
 		},
 
 		"spot_capacity": {
