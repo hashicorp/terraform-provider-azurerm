@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/buckets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -25,7 +26,12 @@ type NetAppVolumeBucketResource struct{}
 var (
 	_ sdk.Resource                  = NetAppVolumeBucketResource{}
 	_ sdk.ResourceWithCustomizeDiff = NetAppVolumeBucketResource{}
+	_ sdk.ResourceWithIdentity      = NetAppVolumeBucketResource{}
 )
+
+func (r NetAppVolumeBucketResource) Identity() resourceids.ResourceId {
+	return &buckets.BucketId{}
+}
 
 func (r NetAppVolumeBucketResource) ModelObject() interface{} {
 	return &netAppModels.NetAppVolumeBucketModel{}
@@ -208,7 +214,7 @@ func (r NetAppVolumeBucketResource) CustomizeDiff() sdk.ResourceFunc {
 			rd := metadata.ResourceDiff
 
 			// We need to enforce that at least one of nfs_user or cifs_user is set,
-			// since the API rejects an empty file_system_user block 
+			// since the API rejects an empty file_system_user block
 			fileSystemUser := rd.Get("file_system_user").([]interface{})
 			if len(fileSystemUser) > 0 && fileSystemUser[0] != nil {
 				fsu := fileSystemUser[0].(map[string]interface{})
@@ -294,42 +300,50 @@ func (r NetAppVolumeBucketResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			volumeID := volumes.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
-
-			model := netAppModels.NetAppVolumeBucketModel{
-				Name:     id.BucketName,
-				VolumeID: volumeID.ID(),
-			}
-
-			if resp.Model != nil && resp.Model.Properties != nil {
-				props := resp.Model.Properties
-
-				model.Path = pointer.From(props.Path)
-				model.Permissions = string(pointer.From(props.Permissions))
-				model.Status = string(pointer.From(props.Status))
-
-				model.FileSystemUser = flattenNetAppBucketFileSystemUser(props.FileSystemUser)
-				model.KeyVault = flattenNetAppBucketAkvDetails(props.AkvDetails)
-				model.Server = flattenNetAppBucketServer(props.Server)
-
-				if props.Server != nil {
-					model.ServerIPAddress = pointer.From(props.Server.IPAddress)
-					model.ServerCertificateCommonName = pointer.From(props.Server.CertificateCommonName)
-					model.ServerCertificateExpiryDate = pointer.From(props.Server.CertificateExpiryDate)
-				}
-			}
-
-			// certificate_pem is never returned by the API; preserve from config/state.
-			if v, ok := metadata.ResourceData.GetOk("server.0.certificate_pem"); ok {
-				if len(model.Server) == 0 {
-					model.Server = []netAppModels.NetAppVolumeBucketServer{{}}
-				}
-				model.Server[0].CertificatePem = v.(string)
-			}
-
-			return metadata.Encode(&model)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r NetAppVolumeBucketResource) flatten(metadata sdk.ResourceMetaData, id *buckets.BucketId, bucket *buckets.Bucket) error {
+	volumeID := volumes.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
+
+	model := netAppModels.NetAppVolumeBucketModel{
+		Name:     id.BucketName,
+		VolumeID: volumeID.ID(),
+	}
+
+	if bucket != nil && bucket.Properties != nil {
+		props := bucket.Properties
+
+		model.Path = pointer.From(props.Path)
+		model.Permissions = string(pointer.From(props.Permissions))
+		model.Status = string(pointer.From(props.Status))
+
+		model.FileSystemUser = flattenNetAppBucketFileSystemUser(props.FileSystemUser)
+		model.KeyVault = flattenNetAppBucketAkvDetails(props.AkvDetails)
+		model.Server = flattenNetAppBucketServer(props.Server)
+
+		if props.Server != nil {
+			model.ServerIPAddress = pointer.From(props.Server.IPAddress)
+			model.ServerCertificateCommonName = pointer.From(props.Server.CertificateCommonName)
+			model.ServerCertificateExpiryDate = pointer.From(props.Server.CertificateExpiryDate)
+		}
+	}
+
+	// certificate_pem is never returned by the API; preserve from config/state.
+	if v, ok := metadata.ResourceData.GetOk("server.0.certificate_pem"); ok {
+		if len(model.Server) == 0 {
+			model.Server = []netAppModels.NetAppVolumeBucketServer{{}}
+		}
+		model.Server[0].CertificatePem = v.(string)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&model)
 }
 
 func (r NetAppVolumeBucketResource) Update() sdk.ResourceFunc {
