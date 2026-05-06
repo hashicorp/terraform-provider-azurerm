@@ -742,12 +742,9 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				props.HybridSecondaryUsage = pointer.To(managedinstances.HybridSecondaryUsage(state.HybridSecondaryUsage))
 			}
 
-			generalPurposeV2Changed := metadata.ResourceData.HasChange("general_purpose_v2_enabled")
-			skuNameChanged := metadata.ResourceData.HasChange("sku_name")
-
 			effectiveIsGeneralPurposeV2 := expandMsSqlManagedInstanceGeneralPurposeV2Enabled(state.GeneralPurposeV2Enabled, state.SkuName)
 
-			if generalPurposeV2Changed || skuNameChanged {
+			if metadata.ResourceData.HasChange("general_purpose_v2_enabled") || metadata.ResourceData.HasChange("sku_name") {
 				props.IsGeneralPurposeV2 = effectiveIsGeneralPurposeV2
 			}
 
