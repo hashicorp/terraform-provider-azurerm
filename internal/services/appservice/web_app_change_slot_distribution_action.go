@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
-	responsehelper "github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
@@ -200,16 +199,6 @@ func (a *WebAppSetSlotDistributionAction) Invoke(ctx context.Context, request ac
 	appId, err := commonids.ParseWebAppID(model.AppServiceId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(response, "id parsing error", err)
-		return
-	}
-
-	app, err := client.Get(ctx, *appId)
-	if err != nil {
-		if responsehelper.WasNotFound(app.HttpResponse) {
-			sdk.SetResponseErrorDiagnostic(response, fmt.Sprintf("web app '%s' not found", model.AppServiceId), err)
-			return
-		}
-		sdk.SetResponseErrorDiagnostic(response, fmt.Sprintf("error retrieving web app '%s'", model.AppServiceId), err)
 		return
 	}
 
