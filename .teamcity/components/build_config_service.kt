@@ -19,6 +19,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
             }
 
             steps {
+                SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
                 RunAcceptanceTests(packageName)
