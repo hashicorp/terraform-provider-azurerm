@@ -128,9 +128,8 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Required: true,
 									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										// confirmed with the service team that current possible value only support `OperationalStore`.
-										// However, considering that `VaultStore` might be supported in the future, it would be exposed for user specification.
 										string(basebackuppolicyresources.DataStoreTypesOperationalStore),
+										string(basebackuppolicyresources.DataStoreTypesVaultStore),
 									}, false),
 								},
 
@@ -232,9 +231,8 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Required: true,
 									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										// confirmed with the service team that currently only `OperationalStore` is supported.
-										// However, since `VaultStore` is in public preview and will be supported in the future, it is open to user specification.
 										string(basebackuppolicyresources.DataStoreTypesOperationalStore),
+										string(basebackuppolicyresources.DataStoreTypesVaultStore),
 									}, false),
 								},
 
