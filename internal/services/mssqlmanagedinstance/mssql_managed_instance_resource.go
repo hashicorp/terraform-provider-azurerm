@@ -447,7 +447,7 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 			// Zone redundancy is not available for Next-gen General Purpose instances.
 			// https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redundancy#next-gen-general-purpose-service-tier
 			if rd.Get("zone_redundant_enabled").(bool) && rd.Get("general_purpose_v2_enabled").(bool) {
-				return fmt.Errorf("`zone_redundant_enabled` cannot be set to `true` when `general_purpose_v2_enabled` is `true`")
+				return errors.New("`zone_redundant_enabled` cannot be set to `true` when `general_purpose_v2_enabled` is `true`")
 			}
 
 			return nil
