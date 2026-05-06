@@ -6,7 +6,6 @@ package subscription
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,53 +13,53 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	resourcesSubscription "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.DataSource = ManagementCheckSubscriptionZonePeersDataSource{}
+var _ sdk.DataSource = SubscriptionZonePeersDataSource{}
 
-type ManagementCheckSubscriptionZonePeersDataSource struct{}
+type SubscriptionZonePeersDataSource struct{}
 
-type ManagementCheckSubscriptionZonePeersDataSourceModel struct {
-	Location              string                                            `tfschema:"location"`
-	PeerSubscriptionID    string                                            `tfschema:"peer_subscription_id"`
-	SubscriptionID        string                                            `tfschema:"subscription_id"`
-	AvailabilityZonePeers []ManagementCheckSubscriptionZonePeerMappingModel `tfschema:"availability_zone_peers"`
+type SubscriptionZonePeersDataSourceModel struct {
+	Location              string                             `tfschema:"location"`
+	PeerSubscriptionID    string                             `tfschema:"peer_subscription_id"`
+	SubscriptionID        string                             `tfschema:"subscription_id"`
+	AvailabilityZonePeers []SubscriptionZonePeerMappingModel `tfschema:"availability_zone_peers"`
 }
 
-type ManagementCheckSubscriptionZonePeerMappingModel struct {
-	AvailabilityZone string                                              `tfschema:"availability_zone"`
-	Peers            []ManagementCheckSubscriptionZonePeerPeerEntryModel `tfschema:"peers"`
+type SubscriptionZonePeerMappingModel struct {
+	AvailabilityZone string                               `tfschema:"availability_zone"`
+	Peers            []SubscriptionZonePeerPeerEntryModel `tfschema:"peers"`
 }
 
-type ManagementCheckSubscriptionZonePeerPeerEntryModel struct {
+type SubscriptionZonePeerPeerEntryModel struct {
 	SubscriptionID   string `tfschema:"subscription_id"`
 	AvailabilityZone string `tfschema:"availability_zone"`
 }
 
-func (d ManagementCheckSubscriptionZonePeersDataSource) ResourceType() string {
-	return "azurerm_management_check_subscription_zone_peers"
+func (d SubscriptionZonePeersDataSource) ResourceType() string {
+	return "azurerm_subscription_zone_peers"
 }
 
-func (d ManagementCheckSubscriptionZonePeersDataSource) ModelObject() interface{} {
-	return &ManagementCheckSubscriptionZonePeersDataSourceModel{}
+func (d SubscriptionZonePeersDataSource) ModelObject() interface{} {
+	return &SubscriptionZonePeersDataSourceModel{}
 }
 
-func (d ManagementCheckSubscriptionZonePeersDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (d SubscriptionZonePeersDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationWithoutForceNew(),
 
 		"peer_subscription_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.Any(validation.IsUUID, commonids.ValidateSubscriptionID),
+			ValidateFunc: validation.IsUUID,
 		},
 	}
 }
 
-func (d ManagementCheckSubscriptionZonePeersDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (d SubscriptionZonePeersDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"subscription_id": {
 			Type:     pluginsdk.TypeString,
@@ -97,28 +96,22 @@ func (d ManagementCheckSubscriptionZonePeersDataSource) Attributes() map[string]
 	}
 }
 
-func (d ManagementCheckSubscriptionZonePeersDataSource) Read() sdk.ResourceFunc {
+func (d SubscriptionZonePeersDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Subscription.SubscriptionsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model ManagementCheckSubscriptionZonePeersDataSourceModel
+			var model SubscriptionZonePeersDataSourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 			normalizedLocation := location.Normalize(model.Location)
 
-			peerGuid, err := normalizePeerSubscriptionID(model.PeerSubscriptionID)
-			if err != nil {
-				return err
-			}
-
-			subscriptionIds := []string{fmt.Sprintf("subscriptions/%s", peerGuid)}
 			req := resourcesSubscription.CheckZonePeersRequest{
 				Location:        &normalizedLocation,
-				SubscriptionIds: &subscriptionIds,
+				SubscriptionIds: &[]string{fmt.Sprintf("subscriptions/%s", model.PeerSubscriptionID)},
 			}
 
 			id := commonids.NewSubscriptionID(subscriptionId)
@@ -131,43 +124,28 @@ func (d ManagementCheckSubscriptionZonePeersDataSource) Read() sdk.ResourceFunc 
 				return fmt.Errorf("retrieving zone peers for %s: model was nil", id)
 			}
 
-			state := ManagementCheckSubscriptionZonePeersDataSourceModel{
+			state := SubscriptionZonePeersDataSourceModel{
 				Location:              normalizedLocation,
 				PeerSubscriptionID:    model.PeerSubscriptionID,
 				SubscriptionID:        pointer.From(resp.Model.SubscriptionId),
 				AvailabilityZonePeers: flattenAvailabilityZonePeers(resp.Model.AvailabilityZonePeers),
 			}
 
-			metadata.ResourceData.SetId(fmt.Sprintf("%s/checkZonePeers/%s/%s", id.ID(), normalizedLocation, peerGuid))
+			metadata.ResourceData.SetId(id.ID())
 
 			return metadata.Encode(&state)
 		},
 	}
 }
 
-func normalizePeerSubscriptionID(input string) (string, error) {
-	s := strings.TrimSpace(input)
-
-	if parsed, err := commonids.ParseSubscriptionIDInsensitively(s); err == nil {
-		return strings.ToLower(parsed.SubscriptionId), nil
-	}
-
-	s = strings.ToLower(s)
-	if s == "" {
-		return "", fmt.Errorf("`peer_subscription_id` is empty")
-	}
-
-	return s, nil
-}
-
-func flattenAvailabilityZonePeers(input *[]resourcesSubscription.AvailabilityZonePeers) []ManagementCheckSubscriptionZonePeerMappingModel {
-	results := make([]ManagementCheckSubscriptionZonePeerMappingModel, 0)
+func flattenAvailabilityZonePeers(input *[]resourcesSubscription.AvailabilityZonePeers) []SubscriptionZonePeerMappingModel {
+	results := make([]SubscriptionZonePeerMappingModel, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		mapping := ManagementCheckSubscriptionZonePeerMappingModel{
+		mapping := SubscriptionZonePeerMappingModel{
 			AvailabilityZone: pointer.From(item.AvailabilityZone),
 			Peers:            flattenPeers(item.Peers),
 		}
@@ -177,14 +155,14 @@ func flattenAvailabilityZonePeers(input *[]resourcesSubscription.AvailabilityZon
 	return results
 }
 
-func flattenPeers(input *[]resourcesSubscription.Peers) []ManagementCheckSubscriptionZonePeerPeerEntryModel {
-	results := make([]ManagementCheckSubscriptionZonePeerPeerEntryModel, 0)
+func flattenPeers(input *[]resourcesSubscription.Peers) []SubscriptionZonePeerPeerEntryModel {
+	results := make([]SubscriptionZonePeerPeerEntryModel, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, ManagementCheckSubscriptionZonePeerPeerEntryModel{
+		results = append(results, SubscriptionZonePeerPeerEntryModel{
 			SubscriptionID:   pointer.From(item.SubscriptionId),
 			AvailabilityZone: pointer.From(item.AvailabilityZone),
 		})
