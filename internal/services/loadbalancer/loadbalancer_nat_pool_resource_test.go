@@ -99,9 +99,7 @@ func TestAccAzureRMLoadBalancerNatPool_disappears(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config: func(data acceptance.TestData) string {
-				return r.basic(data)
-			},
+			Config:       r.basic,
 			TestResource: r,
 		}),
 	})
@@ -221,14 +219,14 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-	sku                 = "Standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_lb" "test" {
   name                = "arm-test-loadbalancer-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-	sku                 = "Standard"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "one-%[1]d"
@@ -263,13 +261,13 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-	sku                 = "Standard"
+  sku                 = "Standard"
 }
 resource "azurerm_lb" "test" {
   name                = "arm-test-loadbalancer-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-	sku                 = "Standard"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "one-%[1]d"
