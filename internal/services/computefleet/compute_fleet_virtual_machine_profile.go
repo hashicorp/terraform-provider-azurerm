@@ -97,7 +97,7 @@ func extensionSchema() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^[^_\W][\w-._]{0,79}(?<![-.])$`),
+						regexp.MustCompile(`^[^_\W][\w-._]{0,78}[\W]$|^[^_\W]$`),
 						"`name` can be up to 80 characters long. It must begin with a word character, and it must end with a word character or with `_`. `name` may contain word characters or `.`, `-`, `_`."),
 				},
 
@@ -212,7 +212,7 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^[^_\W][\w-._]{0,79}(?<![-.])$`),
+						regexp.MustCompile(`^[^_\W][\w-._]{0,78}[\W]$|^[^_\W]$`),
 						"`name` can be up to 80 characters long. It must begin with a word character, and it must end with a word character or with `_`. `name` may contain word characters or `.`, `-`, `_`."),
 				},
 
@@ -297,7 +297,7 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^[^_\W][\w-._]{0,79}(?<![-.])$`),
+						regexp.MustCompile(`^[^_\W][\w-._]{0,78}[\W]$|^[^_\W]$`),
 						"`name` can be up to 80 characters long. It must begin with a word character, and it must end with a word character or with `_`. `name` may contain word characters or `.`, `-`, `_`."),
 				},
 
