@@ -1,6 +1,7 @@
 ## 4.72.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_log_analytics_workspace` - add support for the `10000`, `25000` and `50000` values in the `reservation_capacity_in_gb_per_day` property [GH-32322]
 * `azurerm_subnet` - add support for the `Microsoft.MessagingConnectors/connectors` value in the `delegation.service_delegation.name` property [GH-32305]
 * `azurerm_virtual_network` - add support for the `Microsoft.MessagingConnectors/connectors` value in the `subnet.delegation.service_delegation.name` property [GH-32305]
 * `azurerm_data_factory_linked_service_data_lake_storage_gen2` - set schema fields `service_principal_key` and `storage_account_key` as sensitive [GH-32284]
