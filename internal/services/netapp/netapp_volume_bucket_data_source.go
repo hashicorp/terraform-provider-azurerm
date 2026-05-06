@@ -92,8 +92,14 @@ func (r NetAppVolumeBucketDataSource) Attributes() map[string]*pluginsdk.Schema 
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"group_id": {Type: pluginsdk.TypeInt, Computed: true},
-								"user_id":  {Type: pluginsdk.TypeInt, Computed: true},
+								"group_id": {
+									Type:     pluginsdk.TypeInt,
+									Computed: true,
+								},
+								"user_id": {
+									Type:     pluginsdk.TypeInt,
+									Computed: true,
+								},
 							},
 						},
 					},
@@ -102,7 +108,10 @@ func (r NetAppVolumeBucketDataSource) Attributes() map[string]*pluginsdk.Schema 
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"username": {Type: pluginsdk.TypeString, Computed: true},
+								"username": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
 							},
 						},
 					},
@@ -115,13 +124,19 @@ func (r NetAppVolumeBucketDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"fqdn": {Type: pluginsdk.TypeString, Computed: true},
+					"fqdn": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 					"certificate_pem": {
 						Type:      pluginsdk.TypeString,
 						Computed:  true,
 						Sensitive: true,
 					},
-					"on_certificate_conflict_action": {Type: pluginsdk.TypeString, Computed: true},
+					"on_certificate_conflict_action": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
@@ -131,18 +146,45 @@ func (r NetAppVolumeBucketDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"certificate_key_vault_uri": {Type: pluginsdk.TypeString, Computed: true},
-					"certificate_name":          {Type: pluginsdk.TypeString, Computed: true},
-					"credentials_key_vault_uri": {Type: pluginsdk.TypeString, Computed: true},
-					"credentials_secret_name":   {Type: pluginsdk.TypeString, Computed: true},
+					"certificate_key_vault_uri": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"certificate_name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"credentials_key_vault_uri": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"credentials_secret_name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
 
-		"server_certificate_common_name": {Type: pluginsdk.TypeString, Computed: true},
-		"server_certificate_expiry_date": {Type: pluginsdk.TypeString, Computed: true},
-		"server_ip_address":              {Type: pluginsdk.TypeString, Computed: true},
-		"status":                         {Type: pluginsdk.TypeString, Computed: true},
+		"server_certificate_common_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"server_certificate_expiry_date": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"server_ip_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"status": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -174,15 +216,8 @@ func (r NetAppVolumeBucketDataSource) Read() sdk.ResourceFunc {
 			if resp.Model != nil && resp.Model.Properties != nil {
 				props := resp.Model.Properties
 				state.Path = pointer.From(props.Path)
-				if state.Path == "" {
-					state.Path = "/"
-				}
-				if props.Permissions != nil {
-					state.Permissions = string(pointer.From(props.Permissions))
-				}
-				if props.Status != nil {
-					state.Status = string(pointer.From(props.Status))
-				}
+				state.Permissions = string(pointer.From(props.Permissions))
+				state.Status = string(pointer.From(props.Status))
 
 				state.FileSystemUser = flattenNetAppBucketFileSystemUser(props.FileSystemUser)
 				state.KeyVault = flattenNetAppBucketAkvDetails(props.AkvDetails)

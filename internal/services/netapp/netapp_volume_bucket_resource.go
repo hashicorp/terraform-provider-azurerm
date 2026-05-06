@@ -207,37 +207,17 @@ func (r NetAppVolumeBucketResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
 
+			// We need to enforce that at least one of nfs_user or cifs_user is set,
+			// since the API rejects an empty file_system_user block 
 			fileSystemUser := rd.Get("file_system_user").([]interface{})
 			if len(fileSystemUser) > 0 && fileSystemUser[0] != nil {
 				fsu := fileSystemUser[0].(map[string]interface{})
 				nfsUser, _ := fsu["nfs_user"].([]interface{})
 				cifsUser, _ := fsu["cifs_user"].([]interface{})
 
-				hasNfs := len(nfsUser) > 0
-				hasCifs := len(cifsUser) > 0
-
-				if hasNfs && hasCifs {
-					return fmt.Errorf("`file_system_user` must specify exactly one of `nfs_user` or `cifs_user`, not both")
-				}
-				if !hasNfs && !hasCifs {
+				if len(nfsUser) == 0 && len(cifsUser) == 0 {
 					return fmt.Errorf("`file_system_user` must specify exactly one of `nfs_user` or `cifs_user`")
 				}
-			}
-
-			server := rd.Get("server").([]interface{})
-			keyVault := rd.Get("key_vault").([]interface{})
-
-			hasCertPem := false
-			if len(server) > 0 && server[0] != nil {
-				srv := server[0].(map[string]interface{})
-				if certPem, _ := srv["certificate_pem"].(string); certPem != "" {
-					hasCertPem = true
-				}
-			}
-			hasKeyVault := len(keyVault) > 0
-
-			if hasCertPem && hasKeyVault {
-				return fmt.Errorf("`server.0.certificate_pem` and `key_vault` are mutually exclusive")
 			}
 
 			return nil
@@ -275,16 +255,14 @@ func (r NetAppVolumeBucketResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
-			properties := buckets.BucketProperties{
-				Path:           pointer.To(model.Path),
-				Permissions:    pointer.To(buckets.BucketPermissions(model.Permissions)),
-				FileSystemUser: expandNetAppBucketFileSystemUser(model.FileSystemUser),
-				AkvDetails:     expandNetAppBucketAkvDetails(model.KeyVault),
-				Server:         expandNetAppBucketServer(model.Server),
-			}
-
 			payload := buckets.Bucket{
-				Properties: &properties,
+				Properties: &buckets.BucketProperties{
+					Path:           pointer.To(model.Path),
+					Permissions:    pointer.To(buckets.BucketPermissions(model.Permissions)),
+					FileSystemUser: expandNetAppBucketFileSystemUser(model.FileSystemUser),
+					AkvDetails:     expandNetAppBucketAkvDetails(model.KeyVault),
+					Server:         expandNetAppBucketServer(model.Server),
+				},
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -327,17 +305,8 @@ func (r NetAppVolumeBucketResource) Read() sdk.ResourceFunc {
 				props := resp.Model.Properties
 
 				model.Path = pointer.From(props.Path)
-				if model.Path == "" {
-					model.Path = "/"
-				}
-				if props.Permissions != nil {
-					model.Permissions = string(pointer.From(props.Permissions))
-				} else {
-					model.Permissions = string(buckets.BucketPermissionsReadOnly)
-				}
-				if props.Status != nil {
-					model.Status = string(pointer.From(props.Status))
-				}
+				model.Permissions = string(pointer.From(props.Permissions))
+				model.Status = string(pointer.From(props.Status))
 
 				model.FileSystemUser = flattenNetAppBucketFileSystemUser(props.FileSystemUser)
 				model.KeyVault = flattenNetAppBucketAkvDetails(props.AkvDetails)
