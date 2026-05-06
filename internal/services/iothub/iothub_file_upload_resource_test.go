@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -334,7 +336,8 @@ resource "azurerm_iothub_file_upload" "test" {
 }
 
 func (IotHubFileUploadResource) authenticationTypeTemplate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -399,12 +402,80 @@ resource "azurerm_role_assignment" "test_storage_blob_data_contrib_system" {
   scope                = azurerm_storage_account.test.id
   principal_id         = azurerm_iothub.test.identity[0].principal_id
 }
-`, data.Locations.Primary, data.RandomInteger, data.RandomString)
+		`, data.Locations.Primary, data.RandomInteger, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuai-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "test_storage_blob_data_contrib_user" {
+  role_definition_name = "Storage Blob Data Contributor"
+  scope                = azurerm_storage_account.test.id
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  lifecycle {
+    ignore_changes = [
+      file_upload
+    ]
+  }
+}
+
+resource "azurerm_role_assignment" "test_storage_blob_data_contrib_system" {
+  role_definition_name = "Storage Blob Data Contributor"
+  scope                = azurerm_storage_account.test.id
+  principal_id         = azurerm_iothub.test.identity[0].principal_id
+}
+	`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (r IotHubFileUploadResource) basicWithConnectionStringUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+		%s
 
 resource "azurerm_storage_account" "test2" {
   name                     = "acctestsa2%s"
@@ -425,12 +496,37 @@ resource "azurerm_iothub_file_upload" "test" {
   connection_string = azurerm_storage_account.test2.primary_blob_connection_string
   container_name    = azurerm_storage_container.test2.name
 }
-`, r.template(data), data.RandomString)
+		`, r.template(data), data.RandomString)
+	}
+	return fmt.Sprintf(`
+	%s
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctestsa2%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test2" {
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test2.id
+  container_access_type = "private"
+}
+
+resource "azurerm_iothub_file_upload" "test" {
+  iothub_id         = azurerm_iothub.test.id
+  connection_string = azurerm_storage_account.test2.primary_blob_connection_string
+  container_name    = azurerm_storage_container.test2.name
+}
+	`, r.template(data), data.RandomString)
 }
 
 func (r IotHubFileUploadResource) basicWithContainerNameUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+		%s
 
 resource "azurerm_storage_container" "test2" {
   name                  = "test2"
@@ -443,7 +539,23 @@ resource "azurerm_iothub_file_upload" "test" {
   connection_string = azurerm_storage_account.test.primary_blob_connection_string
   container_name    = azurerm_storage_container.test2.name
 }
-`, r.template(data))
+		`, r.template(data))
+	}
+	return fmt.Sprintf(`
+	%s
+
+resource "azurerm_storage_container" "test2" {
+  name                  = "test2"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_iothub_file_upload" "test" {
+  iothub_id         = azurerm_iothub.test.id
+  connection_string = azurerm_storage_account.test.primary_blob_connection_string
+  container_name    = azurerm_storage_container.test2.name
+}
+	`, r.template(data))
 }
 
 func (r IotHubFileUploadResource) defaultTTL(data acceptance.TestData, defaultTTL string) string {
@@ -517,7 +629,8 @@ resource "azurerm_iothub_file_upload" "test" {
 }
 
 func (IotHubFileUploadResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -557,5 +670,47 @@ resource "azurerm_iothub" "test" {
     ]
   }
 }
-`, data.Locations.Primary, data.RandomInteger, data.RandomString)
+		`, data.Locations.Primary, data.RandomInteger, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      file_upload
+    ]
+  }
+}
+	`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
