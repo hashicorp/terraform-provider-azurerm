@@ -129,7 +129,7 @@ func (a *WebAppSetSlotDistributionAction) Metadata(_ context.Context, _ action.M
 }
 
 func (*WebAppSetSlotDistributionAction) ValidateConfig(ctx context.Context, req action.ValidateConfigRequest, resp *action.ValidateConfigResponse) {
-	var data WebAppSetSlotDistributionActionModel
+	data := WebAppSetSlotDistributionActionModel{}
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
@@ -150,12 +150,18 @@ func (*WebAppSetSlotDistributionAction) ValidateConfig(ctx context.Context, req 
 	uniqueHostnameMap := make(map[string]bool)
 	totalRulePercentage := float64(0)
 	for _, rule := range rules {
-		totalRulePercentage += rule.ReroutePercentage.ValueFloat64()
+		// NOTE: there are scenarios where values are Unknown when validation is run.
+		// If any values are Unknown they will not be used for both of these validations.
+		if !rule.ReroutePercentage.IsUnknown() {
+			totalRulePercentage += rule.ReroutePercentage.ValueFloat64()
+		}
 
-		if !foundHostnameDupe && !uniqueHostnameMap[rule.Hostname.ValueString()] {
-			uniqueHostnameMap[rule.Hostname.ValueString()] = true
-		} else {
-			foundHostnameDupe = true
+		if !foundHostnameDupe && !rule.Hostname.IsUnknown() {
+			if !uniqueHostnameMap[rule.Hostname.ValueString()] {
+				uniqueHostnameMap[rule.Hostname.ValueString()] = true
+			} else {
+				foundHostnameDupe = true
+			}
 		}
 	}
 
