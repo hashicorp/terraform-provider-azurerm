@@ -64,9 +64,6 @@ func (ServiceBusNamespaceListResource) List(ctx context.Context, request list.Li
 		results = resp.Items
 	}
 
-	// The flatten function makes additional API calls (auth keys, network rule set).
-	// The context provided to stream.Results will already be cancelled by the time the
-	// iterator is called, so we capture the deadline now and create a fresh context inside.
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		sdk.SetResponseErrorDiagnostic(stream, "internal-error", fmt.Errorf("context had no deadline"))
@@ -74,7 +71,6 @@ func (ServiceBusNamespaceListResource) List(ctx context.Context, request list.Li
 	}
 
 	stream.Results = func(push func(list.ListResult) bool) {
-		// Create a fresh context using the deadline captured above.
 		listCtx, cancel := context.WithDeadline(context.Background(), deadline)
 		defer cancel()
 

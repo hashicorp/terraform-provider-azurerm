@@ -20,7 +20,7 @@ import (
 
 func TestAccServiceBusNamespace_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -65,7 +65,7 @@ func TestAccServiceBusNamespace_list(t *testing.T) {
 	})
 }
 
-func (r ServiceBusNamespaceResource) basicListQuery() string {
+func (r ServicebusNamespaceResource) basicListQuery() string {
 	return `
 list "azurerm_servicebus_namespace" "list" {
   provider = azurerm
@@ -74,7 +74,7 @@ list "azurerm_servicebus_namespace" "list" {
 `
 }
 
-func (r ServiceBusNamespaceResource) basicListQueryByResourceGroupName() string {
+func (r ServicebusNamespaceResource) basicListQueryByResourceGroupName() string {
 	return `
 list "azurerm_servicebus_namespace" "list" {
   provider = azurerm
@@ -85,7 +85,7 @@ list "azurerm_servicebus_namespace" "list" {
 `
 }
 
-func (r ServiceBusNamespaceResource) basicList(data acceptance.TestData) string {
+func (r ServicebusNamespaceResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -97,14 +97,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-}
+	count                = 2
 
-resource "azurerm_servicebus_namespace" "test2" {
-  name                = "acctestservicebusnamespace2-%[1]d"
+	name                = "acctestservicebusnamespace${count.index}-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
