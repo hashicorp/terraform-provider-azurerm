@@ -5,7 +5,7 @@ package mssqlmanagedinstance
 
 import (
 	"context"
-	"error"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -751,11 +751,13 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				props.IsGeneralPurposeV2 = effectiveIsGeneralPurposeV2
 			}
 
-			props.StorageIOps = nil
-
-			// when the MI is not GPv2, the storageIOps is not returned and will be 0 in state. That's not a valid value for the service.
-			if metadata.ResourceData.HasChange("storage_iops") && state.StorageIOps != 0 {
-				props.StorageIOps = pointer.To(state.StorageIOps)
+			// When updating MI from GPv2 to non GPv2, `StorageIOps` is not a valid value in payload.
+			if *effectiveIsGeneralPurposeV2 && state.StorageIOps != 0 {
+				if metadata.ResourceData.HasChange("storage_iops") {
+					props.StorageIOps = pointer.To(state.StorageIOps)
+				}
+			} else {
+				props.StorageIOps = nil
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
