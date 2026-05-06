@@ -556,7 +556,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Read() sdk.ResourceFunc {
 					state.VnetId = props.VnetId
 					state.BackupSubnetCidr = pointer.From(props.BackupSubnetCidr)
 					state.ClusterName = pointer.From(props.ClusterName)
-					state.DataCollection = flattenExadbDataCollectionOptionInterface(props.DataCollectionOptions)
+					state.DataCollection = FlattenExadbDataCollectionOption(props.DataCollectionOptions)
 					state.Domain = pointer.From(props.Domain)
 					state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 					state.InboundNetworkSecurityGroupRule = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
@@ -597,18 +597,6 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Delete() sdk.ResourceFunc {
 
 func (ExascaleDatabaseVirtualMachineClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return exadbvmclusters.ValidateExadbVMClusterID
-}
-
-func flattenExadbDataCollectionOptionInterface(dataCollectionOptions *exadbvmclusters.DataCollectionOptions) []ExascaleDatabaseDataCollectionModel {
-	output := make([]ExascaleDatabaseDataCollectionModel, 0)
-	if dataCollectionOptions != nil {
-		return append(output, ExascaleDatabaseDataCollectionModel{
-			DiagnosticsEventsEnabled: pointer.From(dataCollectionOptions.IsDiagnosticsEventsEnabled),
-			HealthMonitoringEnabled:  pointer.From(dataCollectionOptions.IsHealthMonitoringEnabled),
-			IncidentLogsEnabled:      pointer.From(dataCollectionOptions.IsIncidentLogsEnabled),
-		})
-	}
-	return output
 }
 
 func expandNsgCidrs(input []NetworkSecurityGroupRuleModel) []exadbvmclusters.NsgCidr {
