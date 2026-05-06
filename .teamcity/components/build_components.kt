@@ -35,7 +35,7 @@ fun BuildSteps.ConfigureGoEnv() {
         name = "Configure Go Version"
         scriptContent = """
                         echo "##teamcity[setParameter name='env.BUILD_START_TIME' value='$(date +%s)']"
-                        goenv install -s \$(goenv local) && goenv rehash
+                        goenv install -s $(goenv local) && goenv rehash
                         """.trimIndent()
     })
 }
