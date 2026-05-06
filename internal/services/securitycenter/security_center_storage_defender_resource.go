@@ -25,6 +25,7 @@ type StorageDefenderResource struct{}
 
 type StorageDefenderModel struct {
 	StorageAccountId                 string `tfschema:"storage_account_id"`
+	DefenderEnabled                  bool   `tfschema:"defender_enabled"`
 	OverrideSubscriptionSettings     bool   `tfschema:"override_subscription_settings_enabled"`
 	MalwareScanningOnUploadEnabled   bool   `tfschema:"malware_scanning_on_upload_enabled"`
 	MalwareScanningOnUploadCapPerMon int64  `tfschema:"malware_scanning_on_upload_cap_gb_per_month"`
@@ -53,6 +54,12 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
+		},
+
+		"defender_enabled": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"override_subscription_settings_enabled": {
@@ -118,7 +125,7 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 
 			input := defenderforstorage.DefenderForStorageSetting{
 				Properties: &defenderforstorage.DefenderForStorageSettingProperties{
-					IsEnabled:                         pointer.To(true),
+					IsEnabled:                         pointer.To(plan.DefenderEnabled),
 					OverrideSubscriptionLevelSettings: pointer.To(plan.OverrideSubscriptionSettings),
 					MalwareScanning: &defenderforstorage.MalwareScanningProperties{
 						OnUpload: &defenderforstorage.OnUploadProperties{
@@ -179,6 +186,10 @@ func (s StorageDefenderResource) Update() sdk.ResourceFunc {
 			prop := model.Properties
 			if prop == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", *id)
+			}
+
+			if metadata.ResourceData.HasChange("defender_enabled") {
+				prop.IsEnabled = pointer.To(plan.DefenderEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("override_subscription_settings_enabled") {
@@ -259,6 +270,7 @@ func (s StorageDefenderResource) Read() sdk.ResourceFunc {
 						return metadata.MarkAsGone(id)
 					}
 
+					state.DefenderEnabled = pointer.From(prop.IsEnabled)
 					state.OverrideSubscriptionSettings = pointer.From(prop.OverrideSubscriptionLevelSettings)
 
 					if ms := prop.MalwareScanning; ms != nil {
