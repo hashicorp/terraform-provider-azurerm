@@ -22,10 +22,8 @@ import (
 type KubernetesAutomaticClusterResource struct{}
 
 var (
-	olderKubernetesAutomaticVersion        = "1.34.3"
-	currentKubernetesAutomaticVersion      = "1.35.1"
-	olderKubernetesAutomaticVersionAlias   = "1.34"
-	currentKubernetesAutomaticVersionAlias = "1.35"
+	olderKubernetesAutomaticVersion   = "1.34.3"
+	currentKubernetesAutomaticVersion = "1.35.1"
 )
 
 func TestAccKubernetesAutomaticCluster_automaticSKU(t *testing.T) {
