@@ -10,8 +10,6 @@ description: |-
 
 Manages an IP group that contains a list of CIDRs and/or IP addresses.
 
-~> **Note:** Azure supports updating up to 20 IP Groups in parallel per firewall or firewall policy. If you have more than 20 IP Groups being updated simultaneously, updates beyond this limit may fail. Consider adjusting the Terraform [`-parallelism`](https://developer.hashicorp.com/terraform/cli/commands/apply#parallelism-n) flag to limit concurrent operations. For more details, see the [Azure documentation on parallel IP Group updates](https://learn.microsoft.com/en-us/azure/firewall/ip-groups#parallel-ip-group-updates).
-
 ## Example Usage
 
 ```hcl

@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -95,6 +96,30 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	for _, fw := range d.Get("firewall_ids").([]interface{}) {
+		id, err := azurefirewalls.ParseAzureFirewallID(fw.(string))
+		if err != nil {
+			return fmt.Errorf("parsing Azure Firewall ID %q: %+v", fw, err)
+		}
+		locks.NewWeightedByName(id.AzureFirewallName, firewall.AzureFirewallResourceName, 20)
+		if err := locks.AcquireOneByName(ctx, id.AzureFirewallName, firewall.AzureFirewallResourceName); err != nil {
+			return fmt.Errorf("acquiring Azure Firewall lock `%s`: %+v", id.AzureFirewallName, err)
+		}
+		defer locks.ReleaseOneByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
+	}
+
+	for _, fwpol := range d.Get("firewall_policy_ids").([]interface{}) {
+		id, err := firewallpolicies.ParseFirewallPolicyID(fwpol.(string))
+		if err != nil {
+			return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", fwpol, err)
+		}
+		locks.NewWeightedByName(id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName, 20)
+		if err := locks.AcquireOneByName(ctx, id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName); err != nil {
+			return fmt.Errorf("acquiring Azure Firewall Policy lock `%s`: %+v", id.FirewallPolicyName, err)
+		}
+		defer locks.ReleaseOneByName(id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName)
+	}
 
 	id := ipgroups.NewIPGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
@@ -204,6 +229,30 @@ func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	for _, fw := range d.Get("firewall_ids").([]interface{}) {
+		id, err := azurefirewalls.ParseAzureFirewallID(fw.(string))
+		if err != nil {
+			return fmt.Errorf("parsing Azure Firewall ID %q: %+v", fw, err)
+		}
+		locks.NewWeightedByName(id.AzureFirewallName, firewall.AzureFirewallResourceName, 20)
+		if err := locks.AcquireOneByName(ctx, id.AzureFirewallName, firewall.AzureFirewallResourceName); err != nil {
+			return fmt.Errorf("acquiring Azure Firewall lock `%s`: %+v", id.AzureFirewallName, err)
+		}
+		defer locks.ReleaseOneByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
+	}
+
+	for _, fwpol := range d.Get("firewall_policy_ids").([]interface{}) {
+		id, err := firewallpolicies.ParseFirewallPolicyID(fwpol.(string))
+		if err != nil {
+			return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", fwpol, err)
+		}
+		locks.NewWeightedByName(id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName, 20)
+		if err := locks.AcquireOneByName(ctx, id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName); err != nil {
+			return fmt.Errorf("acquiring Azure Firewall Policy lock `%s`: %+v", id.FirewallPolicyName, err)
+		}
+		defer locks.ReleaseOneByName(id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName)
+	}
+
 	id, err := ipgroups.ParseIPGroupID(d.Id())
 	if err != nil {
 		return err
@@ -291,6 +340,30 @@ func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	if resp.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	for _, fw := range *resp.Model.Properties.Firewalls {
+		fwID, err := azurefirewalls.ParseAzureFirewallID(pointer.From(fw.Id))
+		if err != nil {
+			return fmt.Errorf("parsing Azure Firewall ID %q: %+v", pointer.From(fw.Id), err)
+		}
+		locks.NewWeightedByName(fwID.AzureFirewallName, firewall.AzureFirewallResourceName, 20)
+		if err := locks.AcquireOneByName(ctx, fwID.AzureFirewallName, firewall.AzureFirewallResourceName); err != nil {
+			return fmt.Errorf("acquiring Azure Firewall lock `%s`: %+v", fwID.AzureFirewallName, err)
+		}
+		defer locks.ReleaseOneByName(fwID.AzureFirewallName, firewall.AzureFirewallResourceName)
+	}
+
+	for _, fwpol := range *resp.Model.Properties.FirewallPolicies {
+		polID, err := firewallpolicies.ParseFirewallPolicyID(pointer.From(fwpol.Id))
+		if err != nil {
+			return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", *fwpol.Id, err)
+		}
+		locks.NewWeightedByName(polID.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName, 20)
+		if err := locks.AcquireOneByName(ctx, polID.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName); err != nil {
+			return fmt.Errorf("acquiring Azure Firewall Policy lock `%s`: %+v", polID.FirewallPolicyName, err)
+		}
+		defer locks.ReleaseOneByName(polID.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName)
 	}
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
