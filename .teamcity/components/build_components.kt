@@ -33,7 +33,7 @@ fun BuildFeatures.BuildCacheFeature() {
 fun BuildSteps.SetBuildStartTime() {
     step(ScriptBuildStep {
         name = "Set Build Start Time"
-        scriptContent = scriptContent = File("scripts/set_build_start_time.sh").readText()
+        scriptContent = File("scripts/set_build_start_time.sh").readText()
     })
 }
 
