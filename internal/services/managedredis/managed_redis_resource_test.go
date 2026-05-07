@@ -475,7 +475,9 @@ func (r ManagedRedisResource) completePreflightPlan(data acceptance.TestData) st
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-    preflight_enabled = true
+    enhanced_validation {
+      preflight_enabled = true
+    }
   }
 }
 
