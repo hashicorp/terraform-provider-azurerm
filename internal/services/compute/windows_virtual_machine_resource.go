@@ -88,8 +88,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				RequiredWith: []string{
 					"admin_password",
 				},
-				ExactlyOneOf: []string{
-					"admin_username",
+				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
 				ValidateFunc: computeValidate.WindowsAdminUsername,
@@ -633,135 +632,148 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	securityEncryptionType := ""
 	if !osDiskIsImported {
 		securityEncryptionType = osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-		var computerName string
-		if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
-			computerName = v.(string)
-		} else {
-			_, errs := computeValidate.WindowsComputerNameFull(d.Get("name"), "computer_name")
-			if len(errs) > 0 {
-				return fmt.Errorf("unable to assume default computer name %s. Please adjust the `name`, or specify an explicit `computer_name`", errs[0])
-			}
-			computerName = id.VirtualMachineName
-		}
 
-		provisionVMAgent := true
-		if p, ok := d.GetRawConfig().AsValueMap()["provision_vm_agent"]; ok && !p.IsNull() {
-			provisionVMAgent = d.Get("provision_vm_agent").(bool)
-		}
-
-		if !provisionVMAgent && allowExtensionOperations {
-			return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
-		}
-
-		autoUpdatesEnabled := true
-
-		if !d.GetRawConfig().AsValueMap()["automatic_updates_enabled"].IsNull() {
-			autoUpdatesEnabled = d.Get("automatic_updates_enabled").(bool)
-		}
-
-		if !features.FivePointOh() {
-			// reconcile the 2 bools...
-			if !d.GetRawConfig().AsValueMap()["enable_automatic_updates"].IsNull() {
-				autoUpdatesEnabled = d.Get("enable_automatic_updates").(bool)
-			}
-		}
-
-		params.Properties.OsProfile = &virtualmachines.OSProfile{
-			AdminPassword:            pointer.To(d.Get("admin_password").(string)),
-			AdminUsername:            pointer.To(d.Get("admin_username").(string)),
-			ComputerName:             pointer.To(computerName),
-			AllowExtensionOperations: pointer.To(allowExtensionOperations),
-			WindowsConfiguration: &virtualmachines.WindowsConfiguration{
-				ProvisionVMAgent:       pointer.To(provisionVMAgent),
-				EnableAutomaticUpdates: pointer.To(autoUpdatesEnabled),
-				WinRM:                  expandWinRMListener(d.Get("winrm_listener").(*pluginsdk.Set).List()),
-			},
-			Secrets: secrets,
-		}
-
-		if len(additionalUnattendContentRaw) > 0 {
-			params.Properties.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
-		}
 		sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 		sourceImageId := d.Get("source_image_id").(string)
 		if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
 			params.Properties.StorageProfile.ImageReference = expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 		}
 
-		isHotpatchImage := isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+		adminUsername := d.Get("admin_username").(string)
 
-		// Validate VM Guest Patch Mode configuration
-		if patchMode == string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
-			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
+		// source_image_reference always refers to a generalized image; admin_username is required
+		if len(sourceImageReferenceRaw) > 0 && adminUsername == "" {
+			return fmt.Errorf("`admin_username` is required when `source_image_reference` is specified")
 		}
 
-		if assessmentMode == string(virtualmachines.WindowsPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
-			return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
-		}
-
-		if isHotpatchImage && patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
-			return fmt.Errorf("%q must always be set to %q when %q points to a hotpatch enabled image", "patch_mode", "AutomaticByPlatform", "source_image_reference")
-		}
-
-		// hot patching can only be enabled if the patch_mode is set to "AutomaticByPlatform"
-		// and if the image reference is using one of the following skus:
-		// 2022-datacenter-azure-edition-core, 2022-datacenter-azure-edition-core-smalldisk, 2022-datacenter-azure-edition-hotpatch, 2022-datacenter-azure-edition-hotpatch-smalldisk,
-		// 2025-datacenter-azure-edition, 2025-datacenter-azure-edition-smalldisk, 2025-datacenter-azure-edition-core, 2025-datacenter-azure-edition-core-smalldisk
-		if hotPatch {
-			if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
-				return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "patch_mode", patchMode)
+		if adminUsername != "" {
+			// Generalized image path: build full OSProfile
+			var computerName string
+			if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
+				computerName = v.(string)
+			} else {
+				_, errs := computeValidate.WindowsComputerNameFull(d.Get("name"), "computer_name")
+				if len(errs) > 0 {
+					return fmt.Errorf("unable to assume default computer name %s. Please adjust the `name`, or specify an explicit `computer_name`", errs[0])
+				}
+				computerName = id.VirtualMachineName
 			}
 
-			if !provisionVMAgent {
-				return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "provisionVMAgent", "false")
+			provisionVMAgent := true
+			if p, ok := d.GetRawConfig().AsValueMap()["provision_vm_agent"]; ok && !p.IsNull() {
+				provisionVMAgent = d.Get("provision_vm_agent").(bool)
 			}
 
-			if !isHotpatchImage {
-				if sourceImageId != "" {
-					return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hotpatching_enabled", "source_image_id")
+			if !provisionVMAgent && allowExtensionOperations {
+				return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+			}
+
+			autoUpdatesEnabled := true
+
+			if !d.GetRawConfig().AsValueMap()["automatic_updates_enabled"].IsNull() {
+				autoUpdatesEnabled = d.Get("automatic_updates_enabled").(bool)
+			}
+
+			if !features.FivePointOh() {
+				// reconcile the 2 bools...
+				if !d.GetRawConfig().AsValueMap()["enable_automatic_updates"].IsNull() {
+					autoUpdatesEnabled = d.Get("enable_automatic_updates").(bool)
+				}
+			}
+
+			params.Properties.OsProfile = &virtualmachines.OSProfile{
+				AdminPassword:            pointer.To(d.Get("admin_password").(string)),
+				AdminUsername:            pointer.To(adminUsername),
+				ComputerName:             pointer.To(computerName),
+				AllowExtensionOperations: pointer.To(allowExtensionOperations),
+				WindowsConfiguration: &virtualmachines.WindowsConfiguration{
+					ProvisionVMAgent:       pointer.To(provisionVMAgent),
+					EnableAutomaticUpdates: pointer.To(autoUpdatesEnabled),
+					WinRM:                  expandWinRMListener(d.Get("winrm_listener").(*pluginsdk.Set).List()),
+				},
+				Secrets: secrets,
+			}
+
+			if len(additionalUnattendContentRaw) > 0 {
+				params.Properties.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
+			}
+
+			isHotpatchImage := isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+
+			// Validate VM Guest Patch Mode configuration
+			if patchMode == string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
+				return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
+			}
+
+			if assessmentMode == string(virtualmachines.WindowsPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
+				return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
+			}
+
+			if isHotpatchImage && patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
+				return fmt.Errorf("%q must always be set to %q when %q points to a hotpatch enabled image", "patch_mode", "AutomaticByPlatform", "source_image_reference")
+			}
+
+			// hot patching can only be enabled if the patch_mode is set to "AutomaticByPlatform"
+			// and if the image reference is using one of the following skus:
+			// 2022-datacenter-azure-edition-core, 2022-datacenter-azure-edition-core-smalldisk, 2022-datacenter-azure-edition-hotpatch, 2022-datacenter-azure-edition-hotpatch-smalldisk,
+			// 2025-datacenter-azure-edition, 2025-datacenter-azure-edition-smalldisk, 2025-datacenter-azure-edition-core, 2025-datacenter-azure-edition-core-smalldisk
+			if hotPatch {
+				if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
+					return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "patch_mode", patchMode)
 				}
 
-				return fmt.Errorf("%q is currently only supported on %q, %q, %q, %q, %q, %q, %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk", "2022-datacenter-azure-edition-hotpatch", "2022-datacenter-azure-edition-hotpatch-smalldisk", "2025-datacenter-azure-edition", "2025-datacenter-azure-edition-smalldisk", "2025-datacenter-azure-edition-core", "2025-datacenter-azure-edition-core-smalldisk")
-			}
-		}
+				if !provisionVMAgent {
+					return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "provisionVMAgent", "false")
+				}
 
-		params.Properties.OsProfile.WindowsConfiguration.PatchSettings = &virtualmachines.PatchSettings{
-			PatchMode:         pointer.To(virtualmachines.WindowsVMGuestPatchMode(patchMode)),
-			EnableHotpatching: pointer.To(hotPatch),
-			AssessmentMode:    pointer.To(virtualmachines.WindowsPatchAssessmentMode(assessmentMode)),
-		}
+				if !isHotpatchImage {
+					if sourceImageId != "" {
+						return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hotpatching_enabled", "source_image_id")
+					}
 
-		if d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool) {
-			if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
-				return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
+					return fmt.Errorf("%q is currently only supported on %q, %q, %q, %q, %q, %q, %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk", "2022-datacenter-azure-edition-hotpatch", "2022-datacenter-azure-edition-hotpatch-smalldisk", "2025-datacenter-azure-edition", "2025-datacenter-azure-edition-smalldisk", "2025-datacenter-azure-edition-core", "2025-datacenter-azure-edition-core-smalldisk")
+				}
 			}
 
-			if params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
-				params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.WindowsVMGuestPatchAutomaticByPlatformSettings{}
+			params.Properties.OsProfile.WindowsConfiguration.PatchSettings = &virtualmachines.PatchSettings{
+				PatchMode:         pointer.To(virtualmachines.WindowsVMGuestPatchMode(patchMode)),
+				EnableHotpatching: pointer.To(hotPatch),
+				AssessmentMode:    pointer.To(virtualmachines.WindowsPatchAssessmentMode(assessmentMode)),
 			}
 
-			params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule = pointer.To(true)
-		}
+			if d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool) {
+				if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
+					return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
+				}
 
-		if v, ok := d.GetOk("reboot_setting"); ok {
-			if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
-				return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
+				if params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
+					params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.WindowsVMGuestPatchAutomaticByPlatformSettings{}
+				}
+
+				params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule = pointer.To(true)
 			}
 
-			if params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
-				params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.WindowsVMGuestPatchAutomaticByPlatformSettings{}
+			if v, ok := d.GetOk("reboot_setting"); ok {
+				if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
+					return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
+				}
+
+				if params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
+					params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.WindowsVMGuestPatchAutomaticByPlatformSettings{}
+				}
+
+				params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(v.(string)))
 			}
 
-			params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(v.(string)))
-		}
+			if v, ok := d.GetOk("custom_data"); ok {
+				params.Properties.OsProfile.CustomData = pointer.To(v.(string))
+			}
 
-		if v, ok := d.GetOk("custom_data"); ok {
-			params.Properties.OsProfile.CustomData = pointer.To(v.(string))
+			if v, ok := d.GetOk("timezone"); ok {
+				params.Properties.OsProfile.WindowsConfiguration.TimeZone = pointer.To(v.(string))
+			}
 		}
-
-		if v, ok := d.GetOk("timezone"); ok {
-			params.Properties.OsProfile.WindowsConfiguration.TimeZone = pointer.To(v.(string))
-		}
+		// else: specialized image via source_image_id - OSProfile must not be sent to the Azure API
 	} else {
 		diskId, err := commonids.ParseManagedDiskID(managedDiskIdRaw)
 		if err != nil {
