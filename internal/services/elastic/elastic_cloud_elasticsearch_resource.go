@@ -64,7 +64,7 @@ func resourceElasticsearch() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ElasticEmailAddress,
+				ValidateFunc: validation.IsEmailAddress,
 			},
 
 			"monitoring_enabled": {

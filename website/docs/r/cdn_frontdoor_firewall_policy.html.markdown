@@ -44,7 +44,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
     action                         = "Block"
 
     match_condition {
-      match_variable     = "RemoteAddr"
+      match_variable     = "SocketAddr"
       operator           = "IPMatch"
       negation_condition = false
       match_values       = ["10.0.1.0/24", "10.0.0.0/24"]
@@ -61,7 +61,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
     action                         = "Block"
 
     match_condition {
-      match_variable     = "RemoteAddr"
+      match_variable     = "SocketAddr"
       operator           = "IPMatch"
       negation_condition = false
       match_values       = ["192.168.1.0/24"]
@@ -203,6 +203,8 @@ A `custom_rule` block supports the following:
 A `match_condition` block supports the following:
 
 * `match_variable` - (Required) The request variable to compare with. Possible values are `Cookies`, `PostArgs`, `QueryString`, `RemoteAddr`, `RequestBody`, `RequestHeader`, `RequestMethod`, `RequestUri`, or `SocketAddr`.
+
+-> **Note:** `RemoteAddr` inspects the original client IP from the `X-Forwarded-For` header. Use `SocketAddr` when you need to match the source IP address seen by Front Door WAF.
 
 * `match_values` - (Required) Up to `600` possible values to match. Limit is in total across all `match_condition` blocks and `match_values` arguments. String value itself can be up to `256` characters in length.
 
