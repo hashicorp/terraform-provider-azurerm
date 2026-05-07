@@ -1123,7 +1123,7 @@ func expandMsSqlManagedInstanceAdministrators(input []AzureActiveDirectoryAdmini
 	return pointer.To(adminProps)
 }
 
-func ter.expandMsSqlManagedInstanceGeneralPurposeV2Enabled(input bool, sku string) *bool {
+func expandMsSqlManagedInstanceGeneralPurposeV2Enabled(input bool, sku string) *bool {
 	// The API returns an error when `isGeneralPurposeV2` is set on a non-general purpose SKU regardless of the value
 	if strings.HasPrefix(sku, "BC_") {
 		return nil
