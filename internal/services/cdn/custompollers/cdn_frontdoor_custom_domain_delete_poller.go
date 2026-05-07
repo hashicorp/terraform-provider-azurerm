@@ -20,7 +20,6 @@ type frontDoorCustomDomainDeletePoller struct {
 	id     afdcustomdomains.CustomDomainId
 }
 
-
 func NewFrontDoorCustomDomainDeletePoller(client *afdcustomdomains.AFDCustomDomainsClient, id afdcustomdomains.CustomDomainId) pollers.PollerType {
 	return &frontDoorCustomDomainDeletePoller{
 		client: client,
