@@ -21,56 +21,56 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_actions_task -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_actions_task_definition -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
-type StorageActionsTaskResource struct{}
+type StorageActionsTaskDefinitionResource struct{}
 
 var (
-	_ sdk.ResourceWithIdentity = StorageActionsTaskResource{}
-	_ sdk.ResourceWithUpdate   = StorageActionsTaskResource{}
+	_ sdk.ResourceWithIdentity = StorageActionsTaskDefinitionResource{}
+	_ sdk.ResourceWithUpdate   = StorageActionsTaskDefinitionResource{}
 )
 
-type StorageActionsTaskModel struct {
+type StorageActionsTaskDefinitionModel struct {
 	Name              string                                     `tfschema:"name"`
 	ResourceGroupName string                                     `tfschema:"resource_group_name"`
 	Location          string                                     `tfschema:"location"`
 	Description       string                                     `tfschema:"description"`
-	Action            []StorageActionsTaskActionModel            `tfschema:"action"`
+	Action            []StorageActionsTaskDefinitionActionModel  `tfschema:"action"`
 	Enabled           bool                                       `tfschema:"enabled"`
 	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Tags              map[string]string                          `tfschema:"tags"`
 }
 
-type StorageActionsTaskActionModel struct {
-	If   []StorageActionsTaskIfModel   `tfschema:"if"`
-	Else []StorageActionsTaskElseModel `tfschema:"else"`
+type StorageActionsTaskDefinitionActionModel struct {
+	If   []StorageActionsTaskDefinitionIfModel   `tfschema:"if"`
+	Else []StorageActionsTaskDefinitionElseModel `tfschema:"else"`
 }
 
-type StorageActionsTaskIfModel struct {
-	Condition string                             `tfschema:"condition"`
-	Operation []StorageActionsTaskOperationModel `tfschema:"operation"`
+type StorageActionsTaskDefinitionIfModel struct {
+	Condition string                                       `tfschema:"condition"`
+	Operation []StorageActionsTaskDefinitionOperationModel `tfschema:"operation"`
 }
 
-type StorageActionsTaskElseModel struct {
-	Operation []StorageActionsTaskOperationModel `tfschema:"operation"`
+type StorageActionsTaskDefinitionElseModel struct {
+	Operation []StorageActionsTaskDefinitionOperationModel `tfschema:"operation"`
 }
 
-type StorageActionsTaskOperationModel struct {
+type StorageActionsTaskDefinitionOperationModel struct {
 	Name       string            `tfschema:"name"`
 	OnFailure  string            `tfschema:"on_failure"`
 	OnSuccess  string            `tfschema:"on_success"`
 	Parameters map[string]string `tfschema:"parameters"`
 }
 
-func (r StorageActionsTaskResource) ModelObject() interface{} {
-	return &StorageActionsTaskModel{}
+func (r StorageActionsTaskDefinitionResource) ModelObject() interface{} {
+	return &StorageActionsTaskDefinitionModel{}
 }
 
-func (r StorageActionsTaskResource) ResourceType() string {
-	return "azurerm_storage_actions_task"
+func (r StorageActionsTaskDefinitionResource) ResourceType() string {
+	return "azurerm_storage_actions_task_definition"
 }
 
-func (StorageActionsTaskResource) Arguments() map[string]*pluginsdk.Schema {
+func (StorageActionsTaskDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -103,7 +103,7 @@ func (StorageActionsTaskResource) Arguments() map[string]*pluginsdk.Schema {
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								"operation": storageActionsTaskOperationSchema(),
+								"operation": storageActionsTaskDefinitionOperationSchema(),
 							},
 						},
 					},
@@ -113,7 +113,7 @@ func (StorageActionsTaskResource) Arguments() map[string]*pluginsdk.Schema {
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{ // kept as a block to mirror the `if` block structure for HCL readability
 							Schema: map[string]*pluginsdk.Schema{
-								"operation": storageActionsTaskOperationSchema(),
+								"operation": storageActionsTaskDefinitionOperationSchema(),
 							},
 						},
 					},
@@ -138,11 +138,11 @@ func (StorageActionsTaskResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (StorageActionsTaskResource) Attributes() map[string]*pluginsdk.Schema {
+func (StorageActionsTaskDefinitionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func storageActionsTaskOperationSchema() *pluginsdk.Schema {
+func storageActionsTaskDefinitionOperationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
@@ -175,11 +175,11 @@ func storageActionsTaskOperationSchema() *pluginsdk.Schema {
 	}
 }
 
-func (r StorageActionsTaskResource) Create() sdk.ResourceFunc {
+func (r StorageActionsTaskDefinitionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model StorageActionsTaskModel
+			var model StorageActionsTaskDefinitionModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -208,7 +208,7 @@ func (r StorageActionsTaskResource) Create() sdk.ResourceFunc {
 				Properties: storagetasks.StorageTaskProperties{
 					Description: model.Description,
 					Enabled:     model.Enabled,
-					Action:      expandStorageActionsTaskAction(model.Action),
+					Action:      expandStorageActionsTaskDefinitionAction(model.Action),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -226,7 +226,7 @@ func (r StorageActionsTaskResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageActionsTaskResource) Update() sdk.ResourceFunc {
+func (r StorageActionsTaskDefinitionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 
@@ -239,7 +239,7 @@ func (r StorageActionsTaskResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model StorageActionsTaskModel
+			var model StorageActionsTaskDefinitionModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -267,7 +267,7 @@ func (r StorageActionsTaskResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("action") {
-				payload.Properties.Action = expandStorageActionsTaskAction(model.Action)
+				payload.Properties.Action = expandStorageActionsTaskDefinitionAction(model.Action)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -291,7 +291,7 @@ func (r StorageActionsTaskResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageActionsTaskResource) Read() sdk.ResourceFunc {
+func (r StorageActionsTaskDefinitionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -320,8 +320,8 @@ func (r StorageActionsTaskResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageActionsTaskResource) flatten(metadata sdk.ResourceMetaData, id *storagetasks.StorageTaskId, model *storagetasks.StorageTask) error {
-	state := StorageActionsTaskModel{
+func (r StorageActionsTaskDefinitionResource) flatten(metadata sdk.ResourceMetaData, id *storagetasks.StorageTaskId, model *storagetasks.StorageTask) error {
+	state := StorageActionsTaskDefinitionModel{
 		Name:              id.StorageTaskName,
 		ResourceGroupName: id.ResourceGroupName,
 	}
@@ -338,7 +338,7 @@ func (r StorageActionsTaskResource) flatten(metadata sdk.ResourceMetaData, id *s
 
 		state.Description = model.Properties.Description
 		state.Enabled = model.Properties.Enabled
-		state.Action = flattenStorageActionsTaskAction(model.Properties.Action)
+		state.Action = flattenStorageActionsTaskDefinitionAction(model.Properties.Action)
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -347,7 +347,7 @@ func (r StorageActionsTaskResource) flatten(metadata sdk.ResourceMetaData, id *s
 	return metadata.Encode(&state)
 }
 
-func (r StorageActionsTaskResource) Delete() sdk.ResourceFunc {
+func (r StorageActionsTaskDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -367,34 +367,34 @@ func (r StorageActionsTaskResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageActionsTaskResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r StorageActionsTaskDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return storagetasks.ValidateStorageTaskID
 }
 
-func (r StorageActionsTaskResource) Identity() resourceids.ResourceId {
+func (r StorageActionsTaskDefinitionResource) Identity() resourceids.ResourceId {
 	return &storagetasks.StorageTaskId{}
 }
 
-func expandStorageActionsTaskAction(input []StorageActionsTaskActionModel) storagetasks.StorageTaskAction {
+func expandStorageActionsTaskDefinitionAction(input []StorageActionsTaskDefinitionActionModel) storagetasks.StorageTaskAction {
 	action := input[0]
 
 	result := storagetasks.StorageTaskAction{
 		If: storagetasks.IfCondition{
 			Condition:  action.If[0].Condition,
-			Operations: expandStorageActionsTaskOperations(action.If[0].Operation),
+			Operations: expandStorageActionsTaskDefinitionOperations(action.If[0].Operation),
 		},
 	}
 
 	if len(action.Else) > 0 {
 		result.Else = &storagetasks.ElseCondition{
-			Operations: expandStorageActionsTaskOperations(action.Else[0].Operation),
+			Operations: expandStorageActionsTaskDefinitionOperations(action.Else[0].Operation),
 		}
 	}
 
 	return result
 }
 
-func expandStorageActionsTaskOperations(input []StorageActionsTaskOperationModel) []storagetasks.StorageTaskOperation {
+func expandStorageActionsTaskDefinitionOperations(input []StorageActionsTaskDefinitionOperationModel) []storagetasks.StorageTaskOperation {
 	result := make([]storagetasks.StorageTaskOperation, 0, len(input))
 	for _, op := range input {
 		operation := storagetasks.StorageTaskOperation{
@@ -420,31 +420,31 @@ func expandStorageActionsTaskOperations(input []StorageActionsTaskOperationModel
 	return result
 }
 
-func flattenStorageActionsTaskAction(input storagetasks.StorageTaskAction) []StorageActionsTaskActionModel {
-	action := StorageActionsTaskActionModel{
-		If: []StorageActionsTaskIfModel{
+func flattenStorageActionsTaskDefinitionAction(input storagetasks.StorageTaskAction) []StorageActionsTaskDefinitionActionModel {
+	action := StorageActionsTaskDefinitionActionModel{
+		If: []StorageActionsTaskDefinitionIfModel{
 			{
 				Condition: input.If.Condition,
-				Operation: flattenStorageActionsTaskOperations(input.If.Operations),
+				Operation: flattenStorageActionsTaskDefinitionOperations(input.If.Operations),
 			},
 		},
 	}
 
 	if input.Else != nil {
-		action.Else = []StorageActionsTaskElseModel{
+		action.Else = []StorageActionsTaskDefinitionElseModel{
 			{
-				Operation: flattenStorageActionsTaskOperations(input.Else.Operations),
+				Operation: flattenStorageActionsTaskDefinitionOperations(input.Else.Operations),
 			},
 		}
 	}
 
-	return []StorageActionsTaskActionModel{action}
+	return []StorageActionsTaskDefinitionActionModel{action}
 }
 
-func flattenStorageActionsTaskOperations(input []storagetasks.StorageTaskOperation) []StorageActionsTaskOperationModel {
-	result := make([]StorageActionsTaskOperationModel, 0, len(input))
+func flattenStorageActionsTaskDefinitionOperations(input []storagetasks.StorageTaskOperation) []StorageActionsTaskDefinitionOperationModel {
+	result := make([]StorageActionsTaskDefinitionOperationModel, 0, len(input))
 	for _, op := range input {
-		operation := StorageActionsTaskOperationModel{
+		operation := StorageActionsTaskDefinitionOperationModel{
 			Name:       string(op.Name),
 			OnFailure:  string(pointer.From(op.OnFailure)),
 			OnSuccess:  string(pointer.From(op.OnSuccess)),

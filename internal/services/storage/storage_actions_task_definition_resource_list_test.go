@@ -15,10 +15,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccStorageActionsTask_list(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task", "testlist")
-	r := StorageActionsTaskResource{}
-	listResourceAddress := "azurerm_storage_actions_task.list"
+func TestAccStorageActionsTaskDefinition_list(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task_definition", "testlist")
+	r := StorageActionsTaskDefinitionResource{}
+	listResourceAddress := "azurerm_storage_actions_task_definition.list"
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -47,12 +47,12 @@ func TestAccStorageActionsTask_list(t *testing.T) {
 	})
 }
 
-func (r StorageActionsTaskResource) basicList(data acceptance.TestData) string {
+func (r StorageActionsTaskDefinitionResource) basicList(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_actions_task" "test" {
+resource "azurerm_storage_actions_task_definition" "test" {
   count = 3
 
   name                = "acctest%s${count.index}"
@@ -84,18 +84,18 @@ resource "azurerm_storage_actions_task" "test" {
 `, template, data.RandomString)
 }
 
-func (r StorageActionsTaskResource) subscriptionListQuery() string {
+func (r StorageActionsTaskDefinitionResource) subscriptionListQuery() string {
 	return `
-list "azurerm_storage_actions_task" "list" {
+list "azurerm_storage_actions_task_definition" "list" {
   provider = azurerm
   config {}
 }
 `
 }
 
-func (r StorageActionsTaskResource) resourceGroupListQuery() string {
+func (r StorageActionsTaskDefinitionResource) resourceGroupListQuery() string {
 	return `
-list "azurerm_storage_actions_task" "list" {
+list "azurerm_storage_actions_task_definition" "list" {
   provider = azurerm
   config {
     resource_group_name = azurerm_resource_group.test.name

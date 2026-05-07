@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StorageActionsTaskResource struct{}
+type StorageActionsTaskDefinitionResource struct{}
 
-func TestAccStorageActionsTask_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task", "test")
-	r := StorageActionsTaskResource{}
+func TestAccStorageActionsTaskDefinition_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task_definition", "test")
+	r := StorageActionsTaskDefinitionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -33,12 +33,12 @@ func TestAccStorageActionsTask_basic(t *testing.T) {
 	})
 }
 
-func (r StorageActionsTaskResource) basic(data acceptance.TestData) string {
+func (r StorageActionsTaskDefinitionResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_actions_task" "test" {
+resource "azurerm_storage_actions_task_definition" "test" {
   name                = "acctest%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -68,9 +68,9 @@ resource "azurerm_storage_actions_task" "test" {
 `, template, data.RandomString)
 }
 
-func TestAccStorageActionsTask_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task", "test")
-	r := StorageActionsTaskResource{}
+func TestAccStorageActionsTaskDefinition_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task_definition", "test")
+	r := StorageActionsTaskDefinitionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -82,16 +82,16 @@ func TestAccStorageActionsTask_requiresImport(t *testing.T) {
 	})
 }
 
-func (r StorageActionsTaskResource) requiresImport(data acceptance.TestData) string {
+func (r StorageActionsTaskDefinitionResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
-resource "azurerm_storage_actions_task" "import" {
-  name                = azurerm_storage_actions_task.test.name
-  resource_group_name = azurerm_storage_actions_task.test.resource_group_name
-  location            = azurerm_storage_actions_task.test.location
-  description         = azurerm_storage_actions_task.test.description
-  enabled             = azurerm_storage_actions_task.test.enabled
+resource "azurerm_storage_actions_task_definition" "import" {
+  name                = azurerm_storage_actions_task_definition.test.name
+  resource_group_name = azurerm_storage_actions_task_definition.test.resource_group_name
+  location            = azurerm_storage_actions_task_definition.test.location
+  description         = azurerm_storage_actions_task_definition.test.description
+  enabled             = azurerm_storage_actions_task_definition.test.enabled
 
   identity {
     type = "SystemAssigned"
@@ -116,9 +116,9 @@ resource "azurerm_storage_actions_task" "import" {
 `, config)
 }
 
-func TestAccStorageActionsTask_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task", "test")
-	r := StorageActionsTaskResource{}
+func TestAccStorageActionsTaskDefinition_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task_definition", "test")
+	r := StorageActionsTaskDefinitionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -130,12 +130,12 @@ func TestAccStorageActionsTask_complete(t *testing.T) {
 	})
 }
 
-func (r StorageActionsTaskResource) complete(data acceptance.TestData) string {
+func (r StorageActionsTaskDefinitionResource) complete(data acceptance.TestData) string {
 	config := r.template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_actions_task" "test" {
+resource "azurerm_storage_actions_task_definition" "test" {
   name                = "acctest%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -188,9 +188,9 @@ resource "azurerm_storage_actions_task" "test" {
 `, config, data.RandomString)
 }
 
-func TestAccStorageActionsTask_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task", "test")
-	r := StorageActionsTaskResource{}
+func TestAccStorageActionsTaskDefinition_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task_definition", "test")
+	r := StorageActionsTaskDefinitionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -216,7 +216,7 @@ func TestAccStorageActionsTask_update(t *testing.T) {
 	})
 }
 
-func (r StorageActionsTaskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageActionsTaskDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := storagetasks.ParseStorageTaskID(state.ID)
 	if err != nil {
 		return nil, err
@@ -233,7 +233,7 @@ func (r StorageActionsTaskResource) Exists(ctx context.Context, clients *clients
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r StorageActionsTaskResource) template(data acceptance.TestData) string {
+func (r StorageActionsTaskDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StorageActionsTaskListResource struct{}
+type StorageActionsTaskDefinitionListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(StorageActionsTaskListResource)
+var _ sdk.FrameworkListWrappedResource = new(StorageActionsTaskDefinitionListResource)
 
-func (StorageActionsTaskListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(StorageActionsTaskResource{})
+func (StorageActionsTaskDefinitionListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(StorageActionsTaskDefinitionResource{})
 }
 
-func (StorageActionsTaskListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = StorageActionsTaskResource{}.ResourceType()
+func (StorageActionsTaskDefinitionListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = StorageActionsTaskDefinitionResource{}.ResourceType()
 }
 
-func (StorageActionsTaskListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (StorageActionsTaskDefinitionListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Storage.StorageTasksClient
 
 	var data sdk.DefaultListModel
@@ -42,7 +42,7 @@ func (StorageActionsTaskListResource) List(ctx context.Context, request list.Lis
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	r := StorageActionsTaskResource{}
+	r := StorageActionsTaskDefinitionResource{}
 
 	var results []storagetasks.StorageTask
 	switch {

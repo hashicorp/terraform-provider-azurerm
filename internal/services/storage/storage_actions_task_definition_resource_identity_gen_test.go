@@ -13,9 +13,9 @@ import (
 	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 )
 
-func TestAccStorageActionsTask_resourceIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task", "test")
-	r := StorageActionsTaskResource{}
+func TestAccStorageActionsTaskDefinition_resourceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task_definition", "test")
+	r := StorageActionsTaskDefinitionResource{}
 
 	checkedFields := map[string]struct{}{
 		"subscription_id":     {},
@@ -27,10 +27,10 @@ func TestAccStorageActionsTask_resourceIdentity(t *testing.T) {
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
-				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_storage_actions_task.test", checkedFields),
-				statecheck.ExpectIdentityValue("azurerm_storage_actions_task.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_storage_actions_task.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_storage_actions_task.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_storage_actions_task_definition.test", checkedFields),
+				statecheck.ExpectIdentityValue("azurerm_storage_actions_task_definition.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_storage_actions_task_definition.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_storage_actions_task_definition.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
