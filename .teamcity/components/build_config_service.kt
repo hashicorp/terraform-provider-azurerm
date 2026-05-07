@@ -19,6 +19,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
             }
 
             steps {
+                // SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
                 RunAcceptanceTests(packageName)
@@ -43,6 +44,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 ReadOnlySettings()
                 WorkingDirectory(packageName)
                 GoCache()
+                BuildStartTime()
             }
 
             triggers {
