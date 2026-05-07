@@ -791,7 +791,9 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		expanded.MinimumElasticInstanceCount = pointer.To(windowsSlotSiteConfig.ElasticInstanceMinimum)
 	}
 
-	expanded.VnetRouteAllEnabled = pointer.To(windowsSlotSiteConfig.VnetRouteAllEnabled)
+	if !features.FivePointOh() {
+		expanded.VnetRouteAllEnabled = pointer.To(windowsSlotSiteConfig.VnetRouteAllEnabled)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
 		expanded.DefaultDocuments = &windowsSlotSiteConfig.DefaultDocuments
@@ -1131,7 +1133,9 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		expanded.MinimumElasticInstanceCount = pointer.To(linuxSlotSiteConfig.ElasticInstanceMinimum)
 	}
 
-	expanded.VnetRouteAllEnabled = pointer.To(linuxSlotSiteConfig.VnetRouteAllEnabled)
+	if !features.FivePointOh() {
+		expanded.VnetRouteAllEnabled = pointer.To(linuxSlotSiteConfig.VnetRouteAllEnabled)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
 		expanded.AcrUserManagedIdentityID = pointer.To(linuxSlotSiteConfig.ContainerRegistryMSI)
