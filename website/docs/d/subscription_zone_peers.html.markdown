@@ -63,4 +63,10 @@ A `peers` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when checking zone peers.
+* `read` - (Defaults to 5 minutes) Used when retrieving the subscription zone peers.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Resources` - 2022-12-01
