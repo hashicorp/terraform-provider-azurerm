@@ -756,7 +756,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			// When updating MI from GPv2 to non GPv2, `StorageIOps` is not a valid value in payload.
-			if *effectiveIsGeneralPurposeV2 && state.StorageIOps != 0 {
+			if pointer.From(effectiveIsGeneralPurposeV2) && state.StorageIOps != 0 {
 				if metadata.ResourceData.HasChange("storage_iops") {
 					props.StorageIOps = pointer.To(state.StorageIOps)
 				}
@@ -1123,7 +1123,7 @@ func expandMsSqlManagedInstanceAdministrators(input []AzureActiveDirectoryAdmini
 	return pointer.To(adminProps)
 }
 
-func expandMsSqlManagedInstanceGeneralPurposeV2Enabled(input bool, sku string) *bool {
+func ter.expandMsSqlManagedInstanceGeneralPurposeV2Enabled(input bool, sku string) *bool {
 	// The API returns an error when `isGeneralPurposeV2` is set on a non-general purpose SKU regardless of the value
 	if strings.HasPrefix(sku, "BC_") {
 		return nil
