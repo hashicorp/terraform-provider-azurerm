@@ -17,7 +17,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ action.ActionWithValidateConfig = &webAppSetSlotDistributionAction{}
+var (
+	_ action.ActionWithConfigure      = &webAppSetSlotDistributionAction{}
+	_ action.ActionWithValidateConfig = &webAppSetSlotDistributionAction{}
+)
 
 type webAppSetSlotDistributionAction struct {
 	sdk.ActionMetadata
