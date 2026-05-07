@@ -52,7 +52,7 @@ func (p frontDoorCustomDomainWaitForApprovedPoller) Poll(ctx context.Context) (*
 			}, nil
 		}
 	}
-	
+
 	model := resp.Model
 	if model == nil || model.Properties == nil {
 		log.Printf("[DEBUG] AFD Custom Domain %s waiting for approval; properties are nil", p.id)
