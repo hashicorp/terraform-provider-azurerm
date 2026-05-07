@@ -304,27 +304,31 @@ func (r StorageActionsTaskAssignmentResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := StorageActionsTaskAssignmentModel{
-				Name:             id.StorageTaskAssignmentName,
-				StorageAccountId: commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID(),
-			}
-
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					state.Description = props.Description
-					state.Enabled = props.Enabled
-					state.TaskId = props.TaskId
-					state.ExecutionContext = flattenStorageActionsTaskAssignmentExecutionContext(props.ExecutionContext)
-					state.ReportPrefix = props.Report.Prefix
-				}
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r StorageActionsTaskAssignmentResource) flatten(metadata sdk.ResourceMetaData, id *storagetaskassignments.StorageTaskAssignmentId, model *storagetaskassignments.StorageTaskAssignment) error {
+	state := StorageActionsTaskAssignmentModel{
+		Name:             id.StorageTaskAssignmentName,
+		StorageAccountId: commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID(),
+	}
+
+	if model != nil {
+		if props := model.Properties; props != nil {
+			state.Description = props.Description
+			state.Enabled = props.Enabled
+			state.TaskId = props.TaskId
+			state.ExecutionContext = flattenStorageActionsTaskAssignmentExecutionContext(props.ExecutionContext)
+			state.ReportPrefix = props.Report.Prefix
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+	return metadata.Encode(&state)
 }
 
 func (r StorageActionsTaskAssignmentResource) Delete() sdk.ResourceFunc {

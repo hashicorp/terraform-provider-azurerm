@@ -117,6 +117,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		StorageAccountCustomerManagedKeyListResource{},
 		StorageAccountListResource{},
+		StorageActionsTaskAssignmentListResource{},
 		StorageActionsTaskListResource{},
 		StorageSyncListResource{},
 	}
