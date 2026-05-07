@@ -20,16 +20,6 @@ type frontDoorCustomDomainDeletePoller struct {
 	id     afdcustomdomains.CustomDomainId
 }
 
-var (
-	frontDoorCustomDomainDeleteSuccess = pollers.PollResult{
-		PollInterval: 30 * time.Second,
-		Status:       pollers.PollingStatusSucceeded,
-	}
-	frontDoorCustomDomainDeleteInProgress = pollers.PollResult{
-		PollInterval: 30 * time.Second,
-		Status:       pollers.PollingStatusInProgress,
-	}
-)
 
 func NewFrontDoorCustomDomainDeletePoller(client *afdcustomdomains.AFDCustomDomainsClient, id afdcustomdomains.CustomDomainId) pollers.PollerType {
 	return &frontDoorCustomDomainDeletePoller{
@@ -42,10 +32,16 @@ func (p frontDoorCustomDomainDeletePoller) Poll(ctx context.Context) (*pollers.P
 	resp, err := p.client.Get(ctx, p.id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return &frontDoorCustomDomainDeleteSuccess, nil
+			return &pollers.PollResult{
+				PollInterval: 30 * time.Second,
+				Status:       pollers.PollingStatusSucceeded,
+			}, nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
 	}
 
-	return &frontDoorCustomDomainDeleteInProgress, nil
+	return &pollers.PollResult{
+		PollInterval: 30 * time.Second,
+		Status:       pollers.PollingStatusInProgress,
+	}, nil
 }
