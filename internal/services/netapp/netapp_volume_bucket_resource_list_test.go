@@ -44,7 +44,7 @@ func TestAccNetAppVolumeBucket_list(t *testing.T) {
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength("azurerm_netapp_volume_bucket.list", 1),
 					querycheck.ExpectIdentity("azurerm_netapp_volume_bucket.list", map[string]knownvalue.Check{
-						"bucket_name":          knownvalue.StringExact(bucketName),
+						"name":                 knownvalue.StringExact(bucketName),
 						"volume_name":          knownvalue.StringExact(volumeName),
 						"capacity_pool_name":   knownvalue.StringExact(poolName),
 						"net_app_account_name": knownvalue.StringExact(accountName),
