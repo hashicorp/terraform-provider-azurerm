@@ -84,8 +84,6 @@ The following arguments are supported:
 
 * `oci_backup_cidr_block` - (Optional) Oracle Cloud Infrastructure backup subnet CIDR block.
 
-* `oci_vcn_dns_label` - (Optional) The DNS label for the Oracle Cloud Infrastructure VCN. If not specified, defaults to the Network Anchor name. Changing this forces a new Oracle Network Anchor to be created.
-
 * `oracle_dns_forwarding_endpoint_enabled` - (Optional) Whether to enable the Oracle DNS forwarding endpoint.
 
 * `oracle_dns_listening_endpoint_enabled` - (Optional) Whether to enable the Oracle DNS listening endpoint.

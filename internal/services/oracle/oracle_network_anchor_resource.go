@@ -39,7 +39,6 @@ type NetworkAnchorResourceModel struct {
 	DnsForwardingRule                  []DnsForwardingRuleModel `tfschema:"dns_forwarding_rule"`
 	DnsListeningEndpointAllowedCidrs   string                   `tfschema:"dns_listening_endpoint_allowed_cidrs"`
 	OciBackupCidrBlock                 string                   `tfschema:"oci_backup_cidr_block"`
-	OciVcnDnsLabel                     string                   `tfschema:"oci_vcn_dns_label"`
 	OracleDnsForwardingEndpointEnabled bool                     `tfschema:"oracle_dns_forwarding_endpoint_enabled"`
 	OracleDnsListeningEndpointEnabled  bool                     `tfschema:"oracle_dns_listening_endpoint_enabled"`
 	OracleToAzureDnsZoneSyncEnabled    bool                     `tfschema:"oracle_to_azure_dns_zone_sync_enabled"`
@@ -49,6 +48,7 @@ type NetworkAnchorResourceModel struct {
 	DnsForwardingEndpointNsgRuleUrl string            `tfschema:"dns_forwarding_endpoint_nsg_rule_url"`
 	DnsListeningEndpointIpAddress   string            `tfschema:"dns_listening_endpoint_ip_address"`
 	DnsListeningEndpointNsgRuleUrl  string            `tfschema:"dns_listening_endpoint_nsg_rule_url"`
+	OciVcnDnsLabel                  string            `tfschema:"oci_vcn_dns_label"`
 	Tags                            map[string]string `tfschema:"tags"`
 }
 
@@ -131,14 +131,6 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsCIDR,
 		},
 
-		"oci_vcn_dns_label": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// NOTE: O+C if the value is not specified, this gets set to the name of the Network Anchor
-			Computed: true,
-			ForceNew: true,
-		},
-
 		"oracle_dns_forwarding_endpoint_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -183,6 +175,10 @@ func (NetworkAnchorResource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+		"oci_vcn_dns_label": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -221,10 +217,6 @@ func (r NetworkAnchorResource) Create() sdk.ResourceFunc {
 				IsOracleDnsForwardingEndpointEnabled: pointer.To(model.OracleDnsForwardingEndpointEnabled),
 				IsOracleDnsListeningEndpointEnabled:  pointer.To(model.OracleDnsListeningEndpointEnabled),
 				IsOracleToAzureDnsZoneSyncEnabled:    pointer.To(model.OracleToAzureDnsZoneSyncEnabled),
-			}
-
-			if model.OciVcnDnsLabel != "" {
-				properties.OciVcnDnsLabel = pointer.To(model.OciVcnDnsLabel)
 			}
 
 			if model.OciBackupCidrBlock != "" {

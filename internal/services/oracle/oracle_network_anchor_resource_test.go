@@ -141,7 +141,6 @@ resource "azurerm_oracle_network_anchor" "test" {
   subnet_id          = azurerm_subnet.virtual_network_subnet.id
 
   oci_backup_cidr_block                 = "10.0.0.0/24"
-  oci_vcn_dns_label                     = "ociOFakeacctest"
   oracle_dns_listening_endpoint_enabled = true
   oracle_to_azure_dns_zone_sync_enabled = true
 
