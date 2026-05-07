@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
@@ -33,31 +32,31 @@ func NewFrontDoorCustomDomainWaitForApprovedPoller(client *afdcustomdomains.AFDC
 
 func (p frontDoorCustomDomainWaitForApprovedPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.Get(ctx, p.id)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving %s while waiting for domain validation approval: %+v", p.id, err)
-	}
-
 	pollInterval := 30 * time.Second
-	if !response.WasNotFound(resp.HttpResponse) {
+	if resp.HttpResponse != nil {
 		if retryAfter := resp.HttpResponse.Header.Get("Retry-After"); retryAfter != "" {
 			if parsedSeconds, parseErr := strconv.Atoi(retryAfter); parseErr == nil {
 				pollInterval = time.Duration(parsedSeconds) * time.Second
 			}
 		}
-		if resp.HttpResponse.StatusCode == http.StatusTooManyRequests {
+	}
+
+	if err != nil {
+		if resp.HttpResponse != nil && resp.HttpResponse.StatusCode == http.StatusTooManyRequests {
 			log.Printf("[DEBUG] 429 Too Many Requests retrieving %s. Retrying after %s", p.id, pollInterval)
 			return &pollers.PollResult{
 				PollInterval: pollInterval,
 				Status:       pollers.PollingStatusInProgress,
 			}, nil
 		}
+		return nil, fmt.Errorf("retrieving %s while waiting for domain validation approval: %+v", p.id, err)
 	}
 
 	model := resp.Model
 	if model == nil || model.Properties == nil {
 		log.Printf("[DEBUG] AFD Custom Domain %s waiting for approval; properties are nil", p.id)
 		return &pollers.PollResult{
-			PollInterval: 30 * time.Second,
+			PollInterval: pollInterval,
 			Status:       pollers.PollingStatusInProgress,
 		}, nil
 	}
@@ -73,7 +72,7 @@ func (p frontDoorCustomDomainWaitForApprovedPoller) Poll(ctx context.Context) (*
 	if model.Properties.DomainValidationState == nil {
 		log.Printf("[DEBUG] AFD Custom Domain %s waiting for approval; domainValidationState is nil (deploymentStatus=%q provisioningState=%q)", p.id, deploymentStatus, provisioningState)
 		return &pollers.PollResult{
-			PollInterval: 30 * time.Second,
+			PollInterval: pollInterval,
 			Status:       pollers.PollingStatusInProgress,
 		}, nil
 	}
@@ -84,14 +83,14 @@ func (p frontDoorCustomDomainWaitForApprovedPoller) Poll(ctx context.Context) (*
 		if deploymentStatus != afdcustomdomains.DeploymentStatusSucceeded {
 			log.Printf("[DEBUG] AFD Custom Domain %s validation approved but deployment not succeeded yet (deploymentStatus=%q provisioningState=%q)", p.id, string(deploymentStatus), string(provisioningState))
 			return &pollers.PollResult{
-				PollInterval: 30 * time.Second,
+				PollInterval: pollInterval,
 				Status:       pollers.PollingStatusInProgress,
 			}, nil
 		}
 
 		log.Printf("[DEBUG] AFD Custom Domain %s approved and deployed (deploymentStatus=%q provisioningState=%q)", p.id, string(deploymentStatus), string(provisioningState))
 		return &pollers.PollResult{
-			PollInterval: 30 * time.Second,
+			PollInterval: pollInterval,
 			Status:       pollers.PollingStatusSucceeded,
 		}, nil
 	case afdcustomdomains.DomainValidationStateRejected, afdcustomdomains.DomainValidationStateTimedOut, afdcustomdomains.DomainValidationStateInternalError:
@@ -100,7 +99,7 @@ func (p frontDoorCustomDomainWaitForApprovedPoller) Poll(ctx context.Context) (*
 	default:
 		log.Printf("[DEBUG] AFD Custom Domain %s waiting for approval; domainValidationState=%q (deploymentStatus=%q provisioningState=%q)", p.id, state, string(deploymentStatus), string(provisioningState))
 		return &pollers.PollResult{
-			PollInterval: 30 * time.Second,
+			PollInterval: pollInterval,
 			Status:       pollers.PollingStatusInProgress,
 		}, nil
 	}
