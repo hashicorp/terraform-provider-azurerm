@@ -148,17 +148,17 @@ func (r CdnFrontDoorSecurityPolicyResource) Exists(ctx context.Context, clients 
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) preCheck(t *testing.T) {
-	if os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME") == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME` must be set for acceptance tests!")
+	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("`ARM_TEST_DATA_RESOURCE_GROUP` must be set for acceptance tests!")
 	}
-	if os.Getenv("ARM_TEST_DNS_ZONE_NAME") == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_NAME` must be set for acceptance tests!")
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE` must be set for acceptance tests!")
 	}
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) template(data acceptance.TestData) string {
-	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE_NAME")
-	dnsZoneRG := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME")
+	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE")
+	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
@@ -172,7 +172,7 @@ data "azurerm_dns_zone" "test" {
 
 locals {
   # Create a delegated child zone inside the test RG.
-  # NOTE: ARM_TEST_DNS_ZONE_NAME / ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME must refer to a real, delegated parent zone.
+  # NOTE: ARM_TEST_DNS_ZONE / ARM_TEST_DATA_RESOURCE_GROUP must refer to a real, delegated parent zone.
   child_zone_label = "acctest%[1]d"
   child_zone_name  = join(".", [local.child_zone_label, data.azurerm_dns_zone.test.name])
 }

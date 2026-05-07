@@ -96,10 +96,10 @@ data "azurerm_cdn_frontdoor_custom_domain" "test" {
 }
 
 func (CdnFrontDoorCustomDomainDataSource) preCheck(t *testing.T) {
-	if os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME") == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME` must be set for acceptance tests!")
+	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("`ARM_TEST_DATA_RESOURCE_GROUP` must be set for acceptance tests!")
 	}
-	if os.Getenv("ARM_TEST_DNS_ZONE_NAME") == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_NAME` must be set for acceptance tests!")
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE` must be set for acceptance tests!")
 	}
 }

@@ -15,11 +15,11 @@ import (
 type AzureFrontDoorCachePurgeAction struct{}
 
 func (a AzureFrontDoorCachePurgeAction) preCheck(t *testing.T) {
-	if os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME") == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME` must be set for acceptance tests!")
+	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("`ARM_TEST_DATA_RESOURCE_GROUP` must be set for acceptance tests!")
 	}
-	if os.Getenv("ARM_TEST_DNS_ZONE_NAME") == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_NAME` must be set for acceptance tests!")
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE` must be set for acceptance tests!")
 	}
 }
 
@@ -106,8 +106,8 @@ action "azurerm_cdn_front_door_cache_purge" "test" {
 }
 
 func (a *AzureFrontDoorCachePurgeAction) complete(data acceptance.TestData) string {
-	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE_NAME")
-	dnsZoneRG := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME")
+	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE")
+	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -136,7 +136,7 @@ data "azurerm_dns_zone" "test" {
 
 locals {
   # Create a delegated child zone inside the test RG.
-  # NOTE: ARM_TEST_DNS_ZONE_NAME / ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME must refer to a real, delegated parent zone.
+  # NOTE: ARM_TEST_DNS_ZONE / ARM_TEST_DATA_RESOURCE_GROUP must refer to a real, delegated parent zone.
   child_zone_label = "acctest%[1]d"
   child_zone_name  = join(".", [local.child_zone_label, data.azurerm_dns_zone.test.name])
 }
