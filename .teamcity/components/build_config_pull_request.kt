@@ -21,6 +21,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
             steps {
                 var packageName = "\"%SERVICES%\""
 
+                // SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
                 RunAcceptanceTestsForPullRequest(packageName)
@@ -43,6 +44,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
                 TerraformCoreBinaryTesting()
                 ReadOnlySettings()
                 GoCache()
+                BuildStartTime()
 
                 text("SERVICES", "portal")
             }
