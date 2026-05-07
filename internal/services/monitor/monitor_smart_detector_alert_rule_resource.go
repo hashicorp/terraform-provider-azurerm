@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -185,7 +185,7 @@ func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData
 
 	actionRule := smartdetectoralertrules.AlertRule{
 		// the location is always global from the portal
-		Location: utils.String(location.Normalize("Global")),
+		Location: pointer.To(location.Normalize("Global")),
 		Properties: &smartdetectoralertrules.AlertRuleProperties{
 			Description: pointer.To(d.Get("description").(string)),
 			State:       state,
@@ -260,7 +260,9 @@ func resourceMonitorSmartDetectorAlertRuleRead(d *pluginsdk.ResourceData, meta i
 				return fmt.Errorf("setting `action_group`: %+v", err)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -287,8 +289,8 @@ func expandMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *smartd
 	}
 	v := input[0].(map[string]interface{})
 	return &smartdetectoralertrules.ActionGroupsInformation{
-		CustomEmailSubject:   utils.String(v["email_subject"].(string)),
-		CustomWebhookPayload: utils.String(v["webhook_payload"].(string)),
+		CustomEmailSubject:   pointer.To(v["email_subject"].(string)),
+		CustomWebhookPayload: pointer.To(v["webhook_payload"].(string)),
 		GroupIds:             pointer.From(utils.ExpandStringSlice(v["ids"].(*pluginsdk.Set).List())),
 	}
 }

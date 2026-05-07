@@ -6,7 +6,7 @@ description: |-
   Gets all existing entities from Storage Tablethat match a filter.
 ---
 
-# Data Source: azurerm_storage_table_entity
+# Data Source: azurerm_storage_table_entities
 
 Use this data source to access information about an existing Storage Table Entity.
 
@@ -19,7 +19,7 @@ data "azurerm_storage_table_entities" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -47,6 +47,6 @@ Each element in `items` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Table Entity.

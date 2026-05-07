@@ -4,8 +4,8 @@ package virtualmachinescalesets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AdditionalUnattendContent struct {
-	ComponentName *ComponentNames `json:"componentName,omitempty"`
-	Content       *string         `json:"content,omitempty"`
-	PassName      *PassNames      `json:"passName,omitempty"`
-	SettingName   *SettingNames   `json:"settingName,omitempty"`
+	ComponentName *ComponentName `json:"componentName,omitempty"`
+	Content       *string        `json:"content,omitempty"`
+	PassName      *PassName      `json:"passName,omitempty"`
+	SettingName   *SettingNames  `json:"settingName,omitempty"`
 }

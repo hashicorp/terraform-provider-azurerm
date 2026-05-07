@@ -638,17 +638,17 @@ An `application_stack` block supports the following:
 
 * `docker` - (Optional) a `docker` block as detailed below.
 
-* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1`, `6.0`, `7.0`, `8.0` and `9.0`.
+* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1`, `6.0`, `7.0`, `8.0`, `9.0` and `10.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The version of Java to use. Possible values are `8`, `11` & `17` (In-Preview).
+* `java_version` - (Optional) The version of Java to use. Possible values are `8`, `11`, `17` and `21`.
 
-* `node_version` - (Optional) The version of Node to use. Possible values include `12`, `14`, `16`, `18`, `20` and `22`.
+* `node_version` - (Optional) The version of Node to use. Possible values include `12`, `14`, `16`, `18`, `20`, `22` and `24`.
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to use. Possibles values are `7` , `7.2`, and `7.4`.
 
-* `python_version` - (Optional) The version of Python to use. Possible values are `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
+* `python_version` - (Optional) The version of Python to use. Possible values are `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
 * `use_custom_runtime` - (Optional) Should the Linux Function App use a custom runtime?
 
@@ -796,7 +796,7 @@ A `site_credential` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Linux Function App Slot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Linux Function App Slot.
@@ -815,4 +815,4 @@ terraform import azurerm_linux_function_app_slot.example "/subscriptions/1234567
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-12-01, 2023-01-01
+* `Microsoft.Web` - 2023-12-01, 2023-01-01

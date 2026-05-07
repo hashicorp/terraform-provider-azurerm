@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagecache_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/amlfilesystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagedLustreFileSystemResource struct{}
@@ -29,6 +29,21 @@ func TestAccManagedLustreFileSystem_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mgs_address").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedLustreFileSystem_witRootSquashSetting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_lustre_file_system", "test")
+	r := ManagedLustreFileSystemResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.witRootSquashSetting(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -97,11 +112,11 @@ func (r ManagedLustreFileSystemResource) Exists(ctx context.Context, clients *cl
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagedLustreFileSystemResource) template(data acceptance.TestData) string {
@@ -148,6 +163,34 @@ resource "azurerm_managed_lustre_file_system" "test" {
   subnet_id              = azurerm_subnet.test.id
   storage_capacity_in_tb = 8
   zones                  = ["1"]
+
+  maintenance_window {
+    day_of_week        = "Friday"
+    time_of_day_in_utc = "22:00"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ManagedLustreFileSystemResource) witRootSquashSetting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_lustre_file_system" "test" {
+  name                   = "acctest-amlfs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  sku_name               = "AMLFS-Durable-Premium-250"
+  subnet_id              = azurerm_subnet.test.id
+  storage_capacity_in_tb = 8
+  zones                  = ["1"]
+
+  root_squash {
+    mode           = "All"
+    no_squash_nids = "10.0.0.[5-6]@tcp;10.0.1.2@tcp"
+    squash_gid     = 99
+    squash_uid     = 99
+  }
 
   maintenance_window {
     day_of_week        = "Friday"
@@ -239,13 +282,13 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "storagecontainer"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "test2" {
   name                  = "storagecontainer2"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -299,9 +342,16 @@ resource "azurerm_managed_lustre_file_system" "test" {
   }
 
   hsm_setting {
-    container_id         = azurerm_storage_container.test.resource_manager_id
-    logging_container_id = azurerm_storage_container.test2.resource_manager_id
+    container_id         = azurerm_storage_container.test.id
+    logging_container_id = azurerm_storage_container.test2.id
     import_prefix        = "/"
+  }
+
+  root_squash {
+    mode           = "All"
+    no_squash_nids = "10.0.0.[5-6]@tcp;10.0.1.2@tcp"
+    squash_gid     = 99
+    squash_uid     = 99
   }
 
   tags = {
@@ -383,8 +433,8 @@ resource "azurerm_managed_lustre_file_system" "test" {
   }
 
   hsm_setting {
-    container_id         = azurerm_storage_container.test.resource_manager_id
-    logging_container_id = azurerm_storage_container.test2.resource_manager_id
+    container_id         = azurerm_storage_container.test.id
+    logging_container_id = azurerm_storage_container.test2.id
     import_prefix        = "/"
   }
 

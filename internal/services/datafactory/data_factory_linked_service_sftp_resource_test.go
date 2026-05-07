@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory_test
@@ -104,6 +104,21 @@ func TestAccDataFactoryLinkedServiceSFTP_keyVaultReference(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactoryLinkedServiceSFTP_mfa(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.mfa(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("private_key_content_base64", "private_key_passphrase", "password"),
 	})
 }
 
@@ -213,7 +228,7 @@ func (LinkedServiceSFTPResource) keyKeyVault(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctkv%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -225,7 +240,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
   data_factory_id = azurerm_data_factory.test.id
   key_vault_id    = azurerm_key_vault.test.id
 }
-`, data.RandomInteger)
+`, data.RandomString)
 }
 
 func (r LinkedServiceSFTPResource) sshKeyKeyVaultReference(data acceptance.TestData) string {
@@ -268,6 +283,32 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
   key_vault_password {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "password"
+  }
+}
+`, r.template(data), r.keyKeyVault(data), data.RandomInteger)
+}
+
+func (r LinkedServiceSFTPResource) mfa(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+%[2]s
+resource "azurerm_data_factory_linked_service_sftp" "test" {
+  name                = "acctestlssftp%[3]d"
+  data_factory_id     = azurerm_data_factory.test.id
+  authentication_type = "MultiFactor"
+  host                = "http://www.bing.com"
+  port                = 22
+  username            = "foo"
+  password            = "bar"
+
+  key_vault_private_key_content_base64 {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "private_key_content_base64"
+  }
+
+  key_vault_private_key_passphrase {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "private_key_passphrase"
   }
 }
 `, r.template(data), r.keyKeyVault(data), data.RandomInteger)

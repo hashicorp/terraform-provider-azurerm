@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package analysisservices_test
@@ -11,12 +11,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AnalysisServicesServerResource struct{}
@@ -93,15 +93,7 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.firewallSettings1(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("0"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.firewallSettings2(data, false),
+			Config: r.firewallSettingsSingleRule(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("1"),
@@ -109,10 +101,41 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.firewallSettings3(data, true),
+			Config: r.firewallSettingsNoRules(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.firewallSettingsSingleRule(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.firewallSettingsMultipleRules(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.firewallSettingsMultipleRules(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.firewallSettingsRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -300,7 +323,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, connectionMode)
 }
 
-func (t AnalysisServicesServerResource) firewallSettings1(data acceptance.TestData, enablePowerBIService bool) string {
+func (t AnalysisServicesServerResource) firewallSettingsNoRules(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -321,7 +344,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
 }
 
-func (t AnalysisServicesServerResource) firewallSettings2(data acceptance.TestData, enablePowerBIService bool) string {
+func (t AnalysisServicesServerResource) firewallSettingsSingleRule(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -348,7 +371,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
 }
 
-func (t AnalysisServicesServerResource) firewallSettings3(data acceptance.TestData, enablePowerBIService bool) string {
+func (t AnalysisServicesServerResource) firewallSettingsMultipleRules(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -379,6 +402,26 @@ resource "azurerm_analysis_services_server" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
+}
+
+func (t AnalysisServicesServerResource) firewallSettingsRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-analysis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                = "acctestass%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "B1"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (t AnalysisServicesServerResource) adminUsers(data acceptance.TestData, adminUsers []string) string {
@@ -508,7 +551,7 @@ func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *cli
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {

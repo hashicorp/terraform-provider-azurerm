@@ -45,7 +45,7 @@ resource "azurerm_bot_channel_direct_line_speech" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -55,11 +55,15 @@ The following arguments are supported:
 
 * `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-* `cognitive_account_id` - (Optional) The ID of the Cognitive Account this Bot Channel should be associated with.
+---
 
-* `cognitive_service_access_key` - (Required) The access key to access the Cognitive Service.
+* `cognitive_account_id` - (Optional) The ID of the Cognitive Account this Bot Channel should be associated with. Either `cognitive_account_id` or both `cognitive_service_access_key` and `cognitive_service_location` must be specified.
 
-* `cognitive_service_location` - (Required) Specifies the supported Azure location where the Cognitive Service resource exists.
+!> **Note:** Once added, `cognitive_account_id` cannot be removed, doing so forces a new resource to be created.
+
+* `cognitive_service_access_key` - (Optional) The access key to access the Cognitive Service. Either `cognitive_account_id` or both `cognitive_service_access_key` and `cognitive_service_location` must be specified.
+
+* `cognitive_service_location` - (Optional) Specifies the supported Azure location where the Cognitive Service resource exists. Either `cognitive_account_id` or both `cognitive_service_access_key` and `cognitive_service_location` must be specified.
 
 * `custom_speech_model_id` - (Optional) The custom speech model id for the Direct Line Speech Channel.
 
@@ -73,7 +77,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Direct Line Speech Channel.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Direct Line Speech Channel.

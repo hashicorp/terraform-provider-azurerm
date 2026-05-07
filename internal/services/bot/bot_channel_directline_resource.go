@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -8,10 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
@@ -133,6 +133,18 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"extension_key_1": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"extension_key_2": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -170,7 +182,7 @@ func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interfac
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameDirectLineChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -221,6 +233,14 @@ func resourceBotChannelDirectlineRead(d *pluginsdk.ResourceData, meta interface{
 		if channel, ok := props.AsDirectLineChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
 				d.Set("site", flattenDirectlineSites(filterSites(channelProps.Sites)))
+
+				if channelProps.ExtensionKey1 != nil {
+					d.Set("extension_key_1", channelProps.ExtensionKey1)
+				}
+
+				if channelProps.ExtensionKey2 != nil {
+					d.Set("extension_key_2", channelProps.ExtensionKey2)
+				}
 			}
 		}
 	}
@@ -245,7 +265,7 @@ func resourceBotChannelDirectlineUpdate(d *pluginsdk.ResourceData, meta interfac
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameDirectLineChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -292,9 +312,9 @@ func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
 
 		site := element.(map[string]interface{})
 		expanded := botservice.DirectLineSite{
-			IsBlockUserUploadEnabled:    utils.Bool(!site["user_upload_enabled"].(bool)),
-			IsEndpointParametersEnabled: utils.Bool(site["endpoint_parameters_enabled"].(bool)),
-			IsNoStorageEnabled:          utils.Bool(!site["storage_enabled"].(bool)),
+			IsBlockUserUploadEnabled:    pointer.To(!site["user_upload_enabled"].(bool)),
+			IsEndpointParametersEnabled: pointer.To(site["endpoint_parameters_enabled"].(bool)),
+			IsNoStorageEnabled:          pointer.To(!site["storage_enabled"].(bool)),
 		}
 
 		if v, ok := site["name"].(string); ok {
