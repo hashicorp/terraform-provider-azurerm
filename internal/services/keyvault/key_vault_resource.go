@@ -360,7 +360,9 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	parameters.Properties.EnableRbacAuthorization = pointer.To(d.Get("rbac_authorization_enabled").(bool))
 
 	if !features.FivePointOh() {
-		parameters.Properties.EnableRbacAuthorization = pointer.To(d.Get("enable_rbac_authorization").(bool))
+		if v, ok := d.GetOk("enable_rbac_authorization"); ok {
+			parameters.Properties.EnableRbacAuthorization = pointer.To(v.(bool))
+		}
 	}
 
 	if isPublic {
