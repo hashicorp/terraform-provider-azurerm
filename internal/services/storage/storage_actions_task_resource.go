@@ -291,7 +291,7 @@ func (r StorageActionsTaskResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (StorageActionsTaskResource) Read() sdk.ResourceFunc {
+func (r StorageActionsTaskResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -315,29 +315,36 @@ func (StorageActionsTaskResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := StorageActionsTaskModel{
-				Name:              id.StorageTaskName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
-				Tags:              pointer.From(model.Tags),
-			}
-
-			flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(pointer.To(model.Identity))
-			if err != nil {
-				return fmt.Errorf("flattening identity: %+v", err)
-			}
-			state.Identity = flattenedIdentity
-
-			state.Description = model.Properties.Description
-			state.Enabled = model.Properties.Enabled
-			state.Action = flattenStorageActionsTaskAction(model.Properties.Action)
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, model)
 		},
 	}
+}
+
+func (r StorageActionsTaskResource) flatten(metadata sdk.ResourceMetaData, id *storagetasks.StorageTaskId, model *storagetasks.StorageTask) error {
+	state := StorageActionsTaskModel{
+		Name:              id.StorageTaskName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Tags = pointer.From(model.Tags)
+
+		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(pointer.To(model.Identity))
+		if err != nil {
+			return fmt.Errorf("flattening identity: %+v", err)
+		}
+		state.Identity = flattenedIdentity
+
+		state.Description = model.Properties.Description
+		state.Enabled = model.Properties.Enabled
+		state.Action = flattenStorageActionsTaskAction(model.Properties.Action)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+	return metadata.Encode(&state)
 }
 
 func (r StorageActionsTaskResource) Delete() sdk.ResourceFunc {
