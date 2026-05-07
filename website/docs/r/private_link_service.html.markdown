@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `destination_ip_address` - (Optional) The destination IP address of the Private Link Service.
 
-* `enable_proxy_protocol` - (Optional) Should the Private Link Service support the Proxy Protocol? 
+* `proxy_protocol_enabled` - (Optional) Should the Private Link Service support the Proxy Protocol? Defaults to `false`.
 
 * `fqdns` - (Optional) List of FQDNs allowed for the Private Link Service.
 

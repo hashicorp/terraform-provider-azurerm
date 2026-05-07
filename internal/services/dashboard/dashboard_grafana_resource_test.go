@@ -96,6 +96,20 @@ func TestAccDashboardGrafana_withSku(t *testing.T) {
 	})
 }
 
+func TestAccDashboardGrafana_withSize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
+	r := DashboardGrafanaResource{}
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSize(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DashboardGrafanaResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedgrafanas.ParseGrafanaID(state.ID)
 	if err != nil {
@@ -141,7 +155,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "11"
+  grafana_major_version = "12"
 }
 `, template, data.RandomInteger)
 }
@@ -162,6 +176,23 @@ resource "azurerm_dashboard_grafana" "test" {
 `, template, data.RandomInteger)
 }
 
+func (r DashboardGrafanaResource) withSize(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_dashboard_grafana" "test" {
+  name                  = "a-dg-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  grafana_major_version = "11"
+
+  sku      = "Standard"
+  sku_size = "X1"
+}
+`, template, data.RandomInteger)
+}
+
 func (r DashboardGrafanaResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
@@ -171,7 +202,7 @@ resource "azurerm_dashboard_grafana" "import" {
   name                  = azurerm_dashboard_grafana.test.name
   resource_group_name   = azurerm_dashboard_grafana.test.resource_group_name
   location              = azurerm_dashboard_grafana.test.location
-  grafana_major_version = "11"
+  grafana_major_version = "12"
 }
 `, config)
 }
@@ -193,7 +224,7 @@ resource "azurerm_dashboard_grafana" "test" {
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
-  grafana_major_version             = "11"
+  grafana_major_version             = "12"
   smtp {
     enabled          = true
     host             = "localhost:25"
@@ -235,7 +266,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "11"
+  grafana_major_version = "12"
 
   identity {
     type = "SystemAssigned"

@@ -149,8 +149,7 @@ func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	_, err := client.CreateOrUpdate(ctx, id, payload)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 

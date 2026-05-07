@@ -901,17 +901,8 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		},
 	}
 
-	userAccounts, err := ExpandBatchPoolUserAccounts(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "user_accounts": %v`, err)
-	}
-	parameters.Properties.UserAccounts = userAccounts
-
-	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
-	}
-	parameters.Properties.TaskSchedulingPolicy = taskSchedulingPolicy
+	parameters.Properties.UserAccounts = ExpandBatchPoolUserAccounts(d.Get("user_accounts").([]interface{}))
+	parameters.Properties.TaskSchedulingPolicy = ExpandBatchPoolTaskSchedulingPolicy(d.Get("task_scheduling_policy").([]interface{}))
 
 	identityResult, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -965,17 +956,10 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
+	parameters.Properties.Metadata = ExpandBatchMetaData(d.Get("metadata").(map[string]interface{}))
+	parameters.Properties.MountConfiguration = ExpandBatchPoolMountConfigurations(d.Get("mount").([]interface{}))
 
-	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "mount": %v`, err)
-	}
-	parameters.Properties.MountConfiguration = mountConfiguration
-
-	networkConfiguration := d.Get("network_configuration").([]interface{})
-	parameters.Properties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
+	parameters.Properties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(d.Get("network_configuration").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `network_configuration`: %+v", err)
 	}
@@ -984,8 +968,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(v.(string)))
 	}
 
-	_, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{})
-	if err != nil {
+	if _, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -1026,54 +1009,62 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil && props.AllocationState != nil && *props.AllocationState != pool.AllocationStateSteady {
-			log.Printf("[INFO] there is a pending resize operation on this pool...")
-			stopPendingResizeOperation := d.Get("stop_pending_resize_operation").(bool)
-			if !stopPendingResizeOperation {
-				return fmt.Errorf("updating %s because of pending resize operation. Set flag `stop_pending_resize_operation` to true to force update", *id)
-			}
+	if resp.Model == nil {
+		return fmt.Errorf("retrieving %s: model was nil", *id)
+	}
 
-			log.Printf("[INFO] stopping the pending resize operation on this pool...")
-			if _, err = client.StopResize(ctx, *id); err != nil {
-				return fmt.Errorf("stopping resize operation for %s: %+v", *id, err)
-			}
+	model := resp.Model
+	if props := model.Properties; props != nil && props.AllocationState != nil && *props.AllocationState != pool.AllocationStateSteady {
+		log.Printf("[INFO] there is a pending resize operation on this pool...")
+		stopPendingResizeOperation := d.Get("stop_pending_resize_operation").(bool)
+		if !stopPendingResizeOperation {
+			return fmt.Errorf("updating %s because of pending resize operation. Set flag `stop_pending_resize_operation` to true to force update", *id)
+		}
 
-			// waiting for the pool to be in steady state
-			if err = waitForBatchPoolPendingResizeOperation(ctx, client, *id); err != nil {
-				return fmt.Errorf("waiting for %s", *id)
-			}
+		log.Printf("[INFO] stopping the pending resize operation on this pool...")
+		if _, err = client.StopResize(ctx, *id); err != nil {
+			return fmt.Errorf("stopping resize operation for %s: %+v", *id, err)
+		}
+
+		// waiting for the pool to be in steady state
+		if err = waitForBatchPoolPendingResizeOperation(ctx, client, *id); err != nil {
+			return fmt.Errorf("waiting for %s", *id)
 		}
 	}
 
-	parameters := pool.Pool{
-		Properties: &pool.PoolProperties{},
+	parameters := *resp.Model
+
+	if parameters.Properties == nil {
+		return fmt.Errorf("retrieving %s: properties was nil", *id)
 	}
 
-	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	// Setting properties that are not updatable to nil to avoid sending them in the update request and potentially causing errors
+	parameters.Properties.AllocationState = nil
+	parameters.Properties.AllocationStateTransitionTime = nil
+	parameters.Properties.AutoScaleRun = nil
+	parameters.Properties.CreationTime = nil
+	parameters.Properties.CurrentDedicatedNodes = nil
+	parameters.Properties.CurrentLowPriorityNodes = nil
+	parameters.Properties.CurrentNodeCommunicationMode = nil
+	parameters.Properties.LastModified = nil
+	parameters.Properties.ProvisioningState = nil
+	parameters.Properties.ProvisioningStateTransitionTime = nil
+	parameters.Properties.ResizeOperationStatus = nil
+
+	parameters.Properties.UserAccounts = ExpandBatchPoolUserAccounts(d.Get("user_accounts").([]interface{}))
+	parameters.Properties.TaskSchedulingPolicy = ExpandBatchPoolTaskSchedulingPolicy(d.Get("task_scheduling_policy").([]interface{}))
+
+	identityResult, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
-	parameters.Identity = identity
+	parameters.Identity = identityResult
 
 	scaleSettings, err := expandBatchPoolScaleSettings(d)
 	if err != nil {
 		return fmt.Errorf("expanding scale settings: %+v", err)
 	}
-
 	parameters.Properties.ScaleSettings = scaleSettings
-
-	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
-	}
-	parameters.Properties.TaskSchedulingPolicy = taskSchedulingPolicy
-
-	userAccounts, err := ExpandBatchPoolUserAccounts(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "user_accounts": %v`, err)
-	}
-	parameters.Properties.UserAccounts = userAccounts
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
 		startTaskList := startTaskValue.([]interface{})
@@ -1083,22 +1074,14 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("updating %s: %+v", *id, startTaskErr)
 		}
 
-		// start task should have a user identity defined
 		userIdentity := startTask.UserIdentity
 		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
-			return fmt.Errorf("creating %s: %+v", *id, userIdentityError)
+			return fmt.Errorf("updating %s: %+v", *id, userIdentityError)
 		}
 
 		parameters.Properties.StartTask = startTask
-	}
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			// when updating `data_disks`, it has to include additional properties such as `NodeAgentSkuId`, `ImageReference` and `OsDisk`, otherwise API request will fail.
-			parameters.Properties.DeploymentConfiguration = props.DeploymentConfiguration
-			if d.HasChange("data_disks") {
-				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
-			}
-		}
+	} else {
+		parameters.Properties.StartTask = nil
 	}
 
 	if !features.FivePointOh() {
@@ -1110,28 +1093,25 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		parameters.Properties.Certificates = certificateReferences
 	}
 
+	if parameters.Properties.DeploymentConfiguration != nil && parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration != nil {
+		parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
+	}
+
+	parameters.Properties.InterNodeCommunication = pointer.To(pool.InterNodeCommunicationState(d.Get("inter_node_communication").(string)))
+	parameters.Properties.Metadata = ExpandBatchMetaData(d.Get("metadata").(map[string]interface{}))
+	parameters.Properties.MountConfiguration = ExpandBatchPoolMountConfigurations(d.Get("mount").([]interface{}))
+
+	if targetNodeCommunicationMode, ok := d.GetOk("target_node_communication_mode"); ok {
+		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(targetNodeCommunicationMode.(string)))
+	} else {
+		parameters.Properties.TargetNodeCommunicationMode = nil
+	}
+
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
-		return err
+		return fmt.Errorf("validating cross-field rules: %+v", err)
 	}
 
-	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating the MetaData for %s", *id)
-		metaDataRaw := d.Get("metadata").(map[string]interface{})
-
-		parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
-	}
-
-	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "mount": %v`, err)
-	}
-	parameters.Properties.MountConfiguration = mountConfiguration
-
-	if d.HasChange("target_node_communication_mode") {
-		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(d.Get("target_node_communication_mode").(string)))
-	}
-
-	result, err := client.Update(ctx, *id, parameters, pool.UpdateOperationOptions{})
+	result, err := client.Create(ctx, *id, parameters, pool.CreateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}

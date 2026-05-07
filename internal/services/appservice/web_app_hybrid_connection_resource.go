@@ -177,8 +177,7 @@ func (r WebAppHybridConnectionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope)
-			if err != nil {
+			if _, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -323,8 +322,7 @@ func (r WebAppHybridConnectionResource) Update() sdk.ResourceFunc {
 				model.Properties.SendKeyValue = sendKeyValue
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, *id, model)
-			if err != nil {
+			if _, err = client.CreateOrUpdateHybridConnection(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
