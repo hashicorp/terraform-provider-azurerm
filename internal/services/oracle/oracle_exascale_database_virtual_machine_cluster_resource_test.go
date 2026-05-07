@@ -6,6 +6,7 @@ package oracle_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,6 +20,8 @@ import (
 
 type ExascaleDatabaseVirtualMachineClusterResource struct{}
 
+const exascaleGridImageOcid = "ARM_TEST_ORACLE_EXASCALE_GRID_IMAGE_OCID"
+
 func (a ExascaleDatabaseVirtualMachineClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := exadbvmclusters.ParseExadbVMClusterID(state.ID)
 	if err != nil {
@@ -31,7 +34,17 @@ func (a ExascaleDatabaseVirtualMachineClusterResource) Exists(ctx context.Contex
 	return pointer.To(resp.Model != nil), nil
 }
 
+func skipIfExascaleGridImageOcidEnvVariableNotSpecified(t *testing.T) {
+	t.Helper()
+
+	if os.Getenv(exascaleGridImageOcid) == "" {
+		t.Skipf("skipping since %q has not been specified", exascaleGridImageOcid)
+	}
+}
+
 func TestExascaleDatabaseVirtualMachineClusterResource_basic(t *testing.T) {
+	skipIfExascaleGridImageOcidEnvVariableNotSpecified(t)
+
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +61,8 @@ func TestExascaleDatabaseVirtualMachineClusterResource_basic(t *testing.T) {
 }
 
 func TestExascaleDatabaseVirtualMachineClusterResource_complete(t *testing.T) {
+	skipIfExascaleGridImageOcidEnvVariableNotSpecified(t)
+
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -63,6 +78,8 @@ func TestExascaleDatabaseVirtualMachineClusterResource_complete(t *testing.T) {
 }
 
 func TestExascaleDatabaseVirtualMachineClusterResource_requiresImport(t *testing.T) {
+	skipIfExascaleGridImageOcidEnvVariableNotSpecified(t)
+
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -77,6 +94,8 @@ func TestExascaleDatabaseVirtualMachineClusterResource_requiresImport(t *testing
 }
 
 func TestExascaleDatabaseVirtualMachineClusterResource_update(t *testing.T) {
+	skipIfExascaleGridImageOcidEnvVariableNotSpecified(t)
+
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -237,7 +256,7 @@ provider "azurerm" {
 locals {
   zones           = ["1"]
   ssh_public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
-  grid_image_ocid = "ocid1.dbpatch.oc1.uk-london-1.anwgiljrt5t4sqqaeemieqn7htiuxmhlllbb4dqybnufcmkpswrrew2redcq"
+  grid_image_ocid = "%[3]s"
 }
 
 data "azurerm_client_config" "current" {}
@@ -287,5 +306,5 @@ resource "azurerm_oracle_exascale_database_storage_vault" "test" {
 }
 
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, os.Getenv(exascaleGridImageOcid))
 }
