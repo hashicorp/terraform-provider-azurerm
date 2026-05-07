@@ -2284,4 +2284,3 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 }
 `, r.template(data), data.RandomInteger, statusCode)
 }
-
