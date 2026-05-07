@@ -355,6 +355,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 func (r CdnFrontDoorCustomDomainResource) template(data acceptance.TestData) string {
 	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE")
 	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
+	childZoneSuffix := data.RandomIntOfLength(8)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -373,7 +374,7 @@ data "azurerm_dns_zone" "test" {
 locals {
   # Create a delegated child zone inside the test RG.
   # NOTE: ARM_TEST_DNS_ZONE / ARM_TEST_DATA_RESOURCE_GROUP must refer to a real, delegated parent zone.
-  child_zone_label = "acctest%[1]d"
+  child_zone_label = "acctest%[5]d"
   child_zone_name  = join(".", [local.child_zone_label, data.azurerm_dns_zone.test.name])
 }
 
@@ -409,7 +410,7 @@ resource "azurerm_dns_txt_record" "validation" {
     value = azurerm_cdn_frontdoor_custom_domain.test.validation_token
   }
 }
-`, data.RandomInteger, data.Locations.Primary, dnsZoneName, dnsZoneRG)
+`, data.RandomInteger, data.Locations.Primary, dnsZoneName, dnsZoneRG, childZoneSuffix)
 }
 
 func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteWithoutBlock(data acceptance.TestData) string {
