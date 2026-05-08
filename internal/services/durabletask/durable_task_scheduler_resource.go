@@ -3,6 +3,8 @@
 
 package durabletask
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name durable_task_scheduler -service-package-name durabletask -properties "resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 import (
 	"context"
 	"errors"
@@ -13,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/schedulers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/durabletask/validate"
@@ -37,7 +40,12 @@ var (
 	_ sdk.Resource                  = SchedulerResource{}
 	_ sdk.ResourceWithUpdate        = SchedulerResource{}
 	_ sdk.ResourceWithCustomizeDiff = SchedulerResource{}
+	_ sdk.ResourceWithIdentity      = SchedulerResource{}
 )
+
+func (r SchedulerResource) Identity() resourceids.ResourceId {
+	return &schedulers.SchedulerId{}
+}
 
 func (r SchedulerResource) ResourceType() string {
 	return "azurerm_durable_task_scheduler"

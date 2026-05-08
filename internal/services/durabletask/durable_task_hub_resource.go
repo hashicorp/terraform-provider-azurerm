@@ -3,6 +3,8 @@
 
 package durabletask
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name durable_task_hub -service-package-name durabletask -properties "name" -compare-values "subscription_id:scheduler_id,resource_group_name:scheduler_id,scheduler_name:scheduler_id"
+
 import (
 	"context"
 	"fmt"
@@ -10,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/schedulers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/taskhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -25,7 +28,14 @@ type TaskHubResourceModel struct {
 
 type TaskHubResource struct{}
 
-var _ sdk.Resource = TaskHubResource{}
+var (
+	_ sdk.Resource             = TaskHubResource{}
+	_ sdk.ResourceWithIdentity = TaskHubResource{}
+)
+
+func (r TaskHubResource) Identity() resourceids.ResourceId {
+	return &taskhubs.TaskHubId{}
+}
 
 func (r TaskHubResource) ResourceType() string {
 	return "azurerm_durable_task_hub"

@@ -3,12 +3,15 @@
 
 package durabletask
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name durable_task_retention_policy -service-package-name durabletask -compare-values "subscription_id:scheduler_id,resource_group_name:scheduler_id,scheduler_name:scheduler_id"
+
 import (
 	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/retentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/schedulers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -29,9 +32,14 @@ type RetentionPolicyItemModel struct {
 type RetentionPolicyResource struct{}
 
 var (
-	_ sdk.Resource           = RetentionPolicyResource{}
-	_ sdk.ResourceWithUpdate = RetentionPolicyResource{}
+	_ sdk.Resource             = RetentionPolicyResource{}
+	_ sdk.ResourceWithUpdate   = RetentionPolicyResource{}
+	_ sdk.ResourceWithIdentity = RetentionPolicyResource{}
 )
+
+func (r RetentionPolicyResource) Identity() resourceids.ResourceId {
+	return &RetentionPolicyID{}
+}
 
 func (r RetentionPolicyResource) ResourceType() string {
 	return "azurerm_durable_task_retention_policy"
