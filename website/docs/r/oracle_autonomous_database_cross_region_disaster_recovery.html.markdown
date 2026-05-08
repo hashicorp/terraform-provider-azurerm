@@ -9,7 +9,6 @@ description: |-
 # azurerm_oracle_autonomous_database_cross_region_disaster_recovery
 
 Manages a Cross Region Disaster Recovery Autonomous Database.
-A Cross Region Disaster Recovery Autonomous Database is an Autonomous Database with a specific Cross-Region Disaster Recovery role. It must be an exact copy of the Autonomous Database for which you want to create a Disaster Recovery instance. The Cross Region Disaster Recovery Autonomous Database must reside in a region that is different from the region of the main Autonomous Database. You must create a separate virtual network and subnet in this second region for the Cross Region Disaster Recovery Autonomous Database to be able to communicate with its original database.
 
 ## Example Usage
 
@@ -19,69 +18,69 @@ resource "azurerm_resource_group" "example" {
   location = "eastus"
 }
 
-resource "azurerm_virtual_network" "example_vnet" {
-  name                = "example-vnet"
+resource "azurerm_virtual_network" "example_primary_vnet" {
+  name                = "example-primary-vnet"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_subnet" "example_subnet" {
-  name                 = "example-subnet"
+resource "azurerm_subnet" "example_primary_subnet" {
+  name                 = "example-primary-subnet"
   resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example_vnet.name
+  virtual_network_name = azurerm_virtual_network.example_primary_vnet.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-resource "azurerm_oracle_autonomous_database" "primary" {
-  name                             = "example-primary"
-  display_name                     = "example-primary"
-  resource_group_name              = azurerm_resource_group.example.name
-  location                         = "eastus"
-  compute_model                    = "ECPU"
-  compute_count                    = 2
-  license_model                    = "LicenseIncluded"
-  backup_retention_period_in_days  = 7
-  auto_scaling_enabled             = true
-  auto_scaling_for_storage_enabled = true
-  mtls_connection_required         = false
-  data_storage_size_in_tbs         = 1
-  db_workload                      = "DW"
-  admin_password                   = "SomeP@ssw0rd123"
-  db_version                       = "19c"
-  character_set                    = "AL32UTF8"
-  national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_subnet.example_subnet.id
-  virtual_network_id               = azurerm_virtual_network.example_vnet.id
-  customer_contacts                = ["test@example.com"]
-}
-
-resource "azurerm_virtual_network" "dr_vnet" {
+resource "azurerm_virtual_network" "example_dr_vnet" {
   name                = "example-dr-vnet"
   location            = "westus"
   resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.1.0.0/16"]
 }
 
-resource "azurerm_subnet" "dr_subnet" {
+resource "azurerm_subnet" "example_dr_subnet" {
   name                 = "example-dr-subnet"
   resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.dr_vnet.name
+  virtual_network_name = azurerm_virtual_network.example_dr_vnet.name
   address_prefixes     = ["10.1.1.0/24"]
 }
 
-resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "dr_example" {
+resource "azurerm_oracle_autonomous_database" "example_primary" {
+  name                             = "example-primary"
+  display_name                     = "example-primary"
+  resource_group_name              = azurerm_resource_group.example.name
+  location                         = azurerm_resource_group.example.location
+  subnet_id                        = azurerm_subnet.example_primary_subnet.id
+  virtual_network_id               = azurerm_virtual_network.example_primary_vnet.id
+  admin_password                   = "SomeP@ssw0rd123"
+  auto_scaling_enabled             = false
+  auto_scaling_for_storage_enabled = false
+  backup_retention_period_in_days  = 7
+  character_set                    = "AL32UTF8"
+  compute_count                    = 2
+  compute_model                    = "ECPU"
+  customer_contacts                = ["test@example.com"]
+  data_storage_size_in_tbs         = 1
+  db_version                       = "19c"
+  db_workload                      = "DW"
+  license_model                    = "LicenseIncluded"
+  mtls_connection_required         = false
+  national_character_set           = "AL16UTF16"
+}
+
+resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "example" {
   name                                = "example-dr"
-  display_name                        = "example-dr"
-  location                            = "westus"
   resource_group_name                 = azurerm_resource_group.example.name
-  source_autonomous_database_id       = azurerm_oracle_autonomous_database.primary.id
-  subnet_id                           = azurerm_subnet.dr_subnet.id
+  location                            = "westus"
+  display_name                        = "example-dr"
+  source_autonomous_database_id       = azurerm_oracle_autonomous_database.example_primary.id
+  subnet_id                           = azurerm_subnet.example_dr_subnet.id
+  virtual_network_id                  = azurerm_virtual_network.example_dr_vnet.id
   replicate_automatic_backups_enabled = true
 
   tags = {
-    Environment = "production"
-    Purpose     = "disaster-recovery"
+    environment = "production"
   }
 }
 ```
@@ -94,23 +93,25 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the resource should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the Cross Region Disaster Recovery Autonomous Database should exist. Must differ from the primary region. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure Region where the Cross Region Disaster Recovery Autonomous Database should exist. Changing this forces a new resource to be created.
 
 * `display_name` - (Required) The user-friendly name for the Autonomous Database. Changing this forces a new resource to be created.
-
-* `replicate_automatic_backups_enabled` - (Required) If true, 7 days of backups are replicated across regions. Changing this forces a new resource to be created.
 
 * `source_autonomous_database_id` - (Required) The ID of the source (primary) Autonomous Database. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the subnet in the target region. Changing this forces a new resource to be created.
 
+* `virtual_network_id` - (Required) The ID of the virtual network in the target region. Changing this forces a new resource to be created.
+
+* `replicate_automatic_backups_enabled` - (Optional) If true, 7 days of backups are replicated across regions.
+
 * `tags` - (Optional) A mapping of tags assigned to the resource. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported:
+In addition to the Arguments listed above the following Attributes are exported:
 
-* `id` - The ID of the Autonomous Database.
+* `id` - The ID of the Cross Region Disaster Recovery Autonomous Database.
 
 * `auto_scaling_enabled` - Whether auto-scaling is enabled for the Autonomous Database CPU core count.
 
@@ -118,9 +119,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backup_retention_period_in_days` - The backup retention period in days.
 
-* `character_set` - The character set for the autonomous database.
+* `character_set` - The character set for the Autonomous Database.
 
-* `compute_count` - The compute amount (CPUs) available to the database.
+* `compute_count` - The compute amount available to the database.
 
 * `compute_model` - The compute model of the Autonomous Database.
 
@@ -128,15 +129,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `data_storage_size_in_tb` - The maximum storage that can be allocated for the database in terabytes.
 
-* `database_version` - The Oracle Database version for Autonomous Database.
+* `database_version` - The Oracle Database version for the Autonomous Database.
 
 * `database_workload` - The Autonomous Database workload type.
 
-* `license_model` - The Oracle license model that applies to the Oracle Autonomous Database.
+* `license_model` - The Oracle license model that applies to the Autonomous Database.
 
 * `mtls_connection_required` - Specifies if the Autonomous Database requires mTLS connections.
 
-* `national_character_set` - The national character set for the autonomous database.
+* `national_character_set` - The national character set for the Autonomous Database.
 
 * `remote_disaster_recovery_type` - Type of recovery.
 
@@ -153,7 +154,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Cross Region Disaster Recovery Autonomous Database can be imported using the `resource id`.
 
 ```shell
-terraform import azurerm_oracle_autonomous_database_cross_region_disaster_recovery.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Oracle.Database/autonomousDatabases/database1
+terraform import azurerm_oracle_autonomous_database_cross_region_disaster_recovery.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Oracle.Database/autonomousDatabases/autonomousDatabases1
 ```
 
 ## API Providers

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
@@ -21,8 +21,12 @@ func TestAccAutonomousDatabaseCrossRegionDisasterRecoveryDataSource_basic(t *tes
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-
+				check.That(data.ResourceName).Key("database_workload").Exists(),
+				check.That(data.ResourceName).Key("license_model").Exists(),
 				check.That(data.ResourceName).Key("remote_disaster_recovery_type").HasValue("Adg"),
+				check.That(data.ResourceName).Key("source_autonomous_database_id").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
 			),
 		},
 	})
