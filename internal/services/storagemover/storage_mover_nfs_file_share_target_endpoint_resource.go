@@ -26,8 +26,8 @@ import (
 type StorageMoverNfsFileShareTargetEndpointModel struct {
 	Name             string `tfschema:"name"`
 	StorageMoverId   string `tfschema:"storage_mover_id"`
-	StorageAccountId string `tfschema:"storage_account_id"`
 	FileShareName    string `tfschema:"file_share_name"`
+	StorageAccountId string `tfschema:"storage_account_id"`
 	Description      string `tfschema:"description"`
 }
 
@@ -70,18 +70,18 @@ func (r StorageMoverNfsFileShareTargetEndpointResource) Arguments() map[string]*
 			ValidateFunc: storagemovers.ValidateStorageMoverID,
 		},
 
-		"storage_account_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateStorageAccountID,
-		},
-
 		"file_share_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.StorageShareName,
+		},
+
+		"storage_account_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 
 		"description": {
@@ -143,7 +143,7 @@ func (r StorageMoverNfsFileShareTargetEndpointResource) Create() sdk.ResourceFun
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
 				return err
 			}
-			return metadata.Encode(&model)
+			return nil
 		},
 	}
 }

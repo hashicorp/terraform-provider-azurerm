@@ -45,8 +45,8 @@ resource "azurerm_storage_mover" "example" {
 resource "azurerm_storage_mover_nfs_file_share_target_endpoint" "example" {
   name               = "example-nfse"
   storage_mover_id   = azurerm_storage_mover.example.id
-  storage_account_id = azurerm_storage_account.example.id
   file_share_name    = azurerm_storage_share.example.name
+  storage_account_id = azurerm_storage_account.example.id
   description        = "Example NFS File Share Target Endpoint"
 }
 ```
@@ -59,9 +59,9 @@ The following arguments are supported:
 
 * `storage_mover_id` - (Required) Specifies the ID of the Storage Mover. Changing this forces a new resource to be created.
 
-* `storage_account_id` - (Required) Specifies the ID of the Storage Account that hosts the NFS file share. Changing this forces a new resource to be created.
-
 * `file_share_name` - (Required) The name of the Azure Files share (the same value as the `name` argument of the [`azurerm_storage_share`](storage_share.html) resource). Changing this forces a new resource to be created.
+
+* `storage_account_id` - (Required) Specifies the ID of the Storage Account that hosts the NFS file share. Changing this forces a new resource to be created.
 
 * `description` - (Optional) A description for this Target Endpoint.
 
