@@ -89,14 +89,14 @@ func TestAccCdnFrontDoorSecurityPolicy_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("security_policies.0.firewall.0.association.0.domain.0.active"),
 		{
 			Config: r.update(data, "azurerm_cdn_frontdoor_custom_domain.update_test[1].id"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("security_policies.0.firewall.0.association.0.domain.0.active"),
 	})
 }
 
