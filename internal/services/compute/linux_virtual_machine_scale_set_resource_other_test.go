@@ -3245,11 +3245,7 @@ resource "azurerm_gallery_application_version" "test" {
     storage_account_type   = "Premium_LRS"
   }
 }
-
-
-
-		
-		`, r.template(data), data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 	%[1]s
@@ -3316,11 +3312,7 @@ resource "azurerm_gallery_application_version" "test" {
     storage_account_type   = "Premium_LRS"
   }
 }
-
-
-
-	
-	`, r.template(data), data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherDisableReimageOnManualUpgrade(data acceptance.TestData, sku string) string {

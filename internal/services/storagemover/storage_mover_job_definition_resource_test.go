@@ -8,14 +8,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/jobdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -148,7 +147,7 @@ resource "azurerm_storage_mover_project" "test" {
   name             = "acctest-sp-%[2]d"
   storage_mover_id = azurerm_storage_mover.test.id
 }
-		`, StorageMoverAgentResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, StorageMoverAgentResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 	}
 	return fmt.Sprintf(`
 	%[1]s
@@ -238,7 +237,6 @@ resource "azurerm_storage_mover_job_definition" "import" {
 }
 
 func (r StorageMoverJobDefinitionResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -261,11 +259,10 @@ resource "azurerm_storage_mover_job_definition" "test" {
   target_sub_path          = "/"
   description              = "Example Job Definition Description"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StorageMoverJobDefinitionResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -288,5 +285,5 @@ resource "azurerm_storage_mover_job_definition" "test" {
   target_sub_path          = "/"
   description              = "Update example Job Definition Description"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

@@ -9,13 +9,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -262,7 +261,7 @@ resource "azurerm_virtual_machine_extension" "test" {
     environment = "Production"
   }
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -368,7 +367,7 @@ resource "azurerm_virtual_machine_extension" "test" {
     environment = "Production"
   }
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r VirtualMachineExtensionResource) requiresImport(data acceptance.TestData) string {
@@ -494,7 +493,7 @@ resource "azurerm_virtual_machine_extension" "test" {
     cost_center = "MSFT"
   }
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -601,7 +600,7 @@ resource "azurerm_virtual_machine_extension" "test" {
     cost_center = "MSFT"
   }
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (VirtualMachineExtensionResource) concurrent(data acceptance.TestData) string {
@@ -716,15 +715,7 @@ resource "azurerm_virtual_machine_extension" "test2" {
   auto_upgrade_minor_version = true
   provision_after_extensions = [azurerm_virtual_machine_extension.test.name]
 }
-
-
-
-
-
-
-		
-		
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -836,15 +827,7 @@ resource "azurerm_virtual_machine_extension" "test2" {
   auto_upgrade_minor_version = true
   provision_after_extensions = [azurerm_virtual_machine_extension.test.name]
 }
-
-
-
-
-
-
-	
-	
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (VirtualMachineExtensionResource) provisionAfterExtensions(data acceptance.TestData) string {
@@ -959,7 +942,7 @@ resource "azurerm_virtual_machine_extension" "test2" {
   auto_upgrade_minor_version = true
   provision_after_extensions = [azurerm_virtual_machine_extension.test.name]
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1071,7 +1054,7 @@ resource "azurerm_virtual_machine_extension" "test2" {
   auto_upgrade_minor_version = true
   provision_after_extensions = [azurerm_virtual_machine_extension.test.name]
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (VirtualMachineExtensionResource) basicWithFailureSuppressionEnabledUpdated(data acceptance.TestData) string {
@@ -1177,7 +1160,7 @@ resource "azurerm_virtual_machine_extension" "test" {
 			}
 		SETTINGS
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1280,7 +1263,7 @@ resource "azurerm_virtual_machine_extension" "test" {
 		}
 	SETTINGS
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r VirtualMachineExtensionResource) protectedSettingsFromKeyVault(data acceptance.TestData) string {

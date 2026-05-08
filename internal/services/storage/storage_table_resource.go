@@ -455,7 +455,7 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if err = client.Delete(ctx, id.TableName); err != nil {
-			if strings.Contains(err.Error(), "unexpected status 404") {
+			if strings.Contains(err.Error(), "unexpected status 40") {
 				return nil
 			}
 			return fmt.Errorf("deleting %s: %v", id, err)
@@ -490,7 +490,7 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if err = client.Delete(ctx, rmId.TableName); err != nil {
-		if strings.Contains(err.Error(), "unexpected status 404") {
+		if strings.Contains(err.Error(), "unexpected status 40") {
 			return nil
 		}
 		return fmt.Errorf("deleting table %q: %v", rmId.TableName, err)

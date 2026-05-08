@@ -11,14 +11,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -4565,7 +4564,7 @@ data "azurerm_storage_account_sas" "test" {
     filter  = false
   }
 }
-		`, r.template(data, planSku))
+`, r.template(data, planSku))
 	}
 	return fmt.Sprintf(`
 	%s
@@ -4609,7 +4608,7 @@ data "azurerm_storage_account_sas" "test" {
     filter  = false
   }
 }
-	`, r.template(data, planSku))
+`, r.template(data, planSku))
 }
 
 func (r LinuxFunctionAppResource) storageWithVnetIntegrationTemplate(data acceptance.TestData, planSku string) string {
@@ -5145,7 +5144,7 @@ data "azurerm_storage_account_sas" "test" {
     filter  = false
   }
 }
-		`, r.template(data, planSKU), data.RandomInteger)
+`, r.template(data, planSKU), data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 	%s
@@ -5209,7 +5208,7 @@ data "azurerm_storage_account_sas" "test" {
     filter  = false
   }
 }
-	`, r.template(data, planSKU), data.RandomInteger)
+`, r.template(data, planSKU), data.RandomInteger)
 }
 
 func (r LinuxFunctionAppResource) tlsCipherSuiteConfigured(data acceptance.TestData, planSku string, tlsCipherSuiteValue string) string {

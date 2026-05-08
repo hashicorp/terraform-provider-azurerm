@@ -64,7 +64,7 @@ resource "azurerm_storage_table_entity" "test" {
     testkey = "testval"
   }
 }
-	`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -86,8 +86,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "tabletesttedsc%s"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "tabletesttedsc%s"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_storage_table_entity" "test" {
@@ -114,7 +114,7 @@ data "azurerm_storage_table_entity" "test" {
   partition_key    = azurerm_storage_table_entity.test.partition_key
   row_key          = azurerm_storage_table_entity.test.row_key
 }
-	`, config)
+`, config)
 	}
 	config := d.basic(data)
 	return fmt.Sprintf(`

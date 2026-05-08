@@ -8,14 +8,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountassemblies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -213,7 +212,7 @@ resource "azurerm_logic_app_integration_account_assembly" "test" {
     foo = "bar2"
   }
 }
-		`, template, data.RandomString, data.RandomString, data.RandomInteger)
+`, template, data.RandomString, data.RandomString, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 	%s
@@ -252,5 +251,5 @@ resource "azurerm_logic_app_integration_account_assembly" "test" {
     foo = "bar2"
   }
 }
-	`, template, data.RandomString, data.RandomString, data.RandomInteger)
+`, template, data.RandomString, data.RandomString, data.RandomInteger)
 }

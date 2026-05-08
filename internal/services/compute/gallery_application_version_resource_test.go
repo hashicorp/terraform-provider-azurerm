@@ -321,11 +321,7 @@ resource "azurerm_storage_blob" "test" {
   type                   = "Page" # Use Page Blob as a workaround to UnmanagedStorageAccount quota issue
   size                   = 512
 }
-
-
-
-		
-		`, data.Locations.Primary, data.RandomInteger, data.RandomString)
+`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -370,11 +366,7 @@ resource "azurerm_storage_blob" "test" {
   type                 = "Page" # Use Page Blob as a workaround to UnmanagedStorageAccount quota issue
   size                 = 512
 }
-
-
-
-	
-	`, data.Locations.Primary, data.RandomInteger, data.RandomString)
+`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (r GalleryApplicationVersionResource) basic(data acceptance.TestData) string {

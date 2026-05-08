@@ -290,7 +290,6 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		ContainerName: containerName,
 		BlobName:      name,
 		Client:        blobsClient,
-
 		BlobType:      d.Get("type").(string),
 		CacheControl:  d.Get("cache_control").(string),
 		ContentType:   d.Get("content_type").(string),
@@ -340,64 +339,30 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			accountName = containerId.StorageAccountName
 			containerName = containerId.ContainerName
 
-			if meta.(*clients.Client).Storage.StorageUseAzureAD {
-				account = &client.AccountDetails{
-					StorageAccountId: commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName),
-				}
-			} else {
-				account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
-				}
+			account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
 			}
 		} else {
 			accountName = id.AccountId.AccountName
 			containerName = id.ContainerName
 
-			if meta.(*clients.Client).Storage.StorageUseAzureAD {
-				account = &client.AccountDetails{
-					StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", accountName),
-				}
-			} else {
-				account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
-				}
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
 			}
 		}
 	} else {
-		if containerIdStr, ok := d.GetOk("storage_container_id"); ok && containerIdStr.(string) != "" {
-			containerId, err := commonids.ParseStorageContainerID(containerIdStr.(string))
-			if err != nil {
-				return err
-			}
-			accountName = containerId.StorageAccountName
-			containerName = containerId.ContainerName
+		containerId, err := commonids.ParseStorageContainerID(d.Get("storage_container_id").(string))
+		if err != nil {
+			return err
+		}
+		accountName = containerId.StorageAccountName
+		containerName = containerId.ContainerName
 
-			if meta.(*clients.Client).Storage.StorageUseAzureAD {
-				account = &client.AccountDetails{
-					StorageAccountId: commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName),
-				}
-			} else {
-				account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
-				}
-			}
-		} else {
-			accountName = id.AccountId.AccountName
-			containerName = id.ContainerName
-
-			if meta.(*clients.Client).Storage.StorageUseAzureAD {
-				account = &client.AccountDetails{
-					StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", accountName),
-				}
-			} else {
-				account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
-				}
-			}
+		account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+		if err != nil {
+			return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
 		}
 	}
 
@@ -491,63 +456,40 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			accountName = containerId.StorageAccountName
 			containerName = containerId.ContainerName
 
-			if meta.(*clients.Client).Storage.StorageUseAzureAD {
-				account = &client.AccountDetails{
-					StorageAccountId: commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName),
-				}
-			} else {
-				account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
-				}
+			account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
 			}
 		} else {
 			accountName = id.AccountId.AccountName
 			containerName = id.ContainerName
 
-			if meta.(*clients.Client).Storage.StorageUseAzureAD {
-				account = &client.AccountDetails{
-					StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", accountName),
-				}
-			} else {
-				account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
-				}
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
 			}
 		}
 	} else {
-		if containerIdStr, ok := d.GetOk("storage_container_id"); ok && containerIdStr.(string) != "" {
-			containerId, err := commonids.ParseStorageContainerID(containerIdStr.(string))
+		containerIdStr := d.Get("storage_container_id").(string)
+		if containerIdStr == "" { // this may be missing at import time
+			accountName = id.AccountId.AccountName
+			containerName = id.ContainerName
+
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+			}
+		} else {
+			containerId, err := commonids.ParseStorageContainerID(containerIdStr)
 			if err != nil {
 				return err
 			}
 			accountName = containerId.StorageAccountName
 			containerName = containerId.ContainerName
 
-			if meta.(*clients.Client).Storage.StorageUseAzureAD {
-				account = &client.AccountDetails{
-					StorageAccountId: commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName),
-				}
-			} else {
-				account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
-				}
-			}
-		} else {
-			accountName = id.AccountId.AccountName
-			containerName = id.ContainerName
-
-			if meta.(*clients.Client).Storage.StorageUseAzureAD {
-				account = &client.AccountDetails{
-					StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", accountName),
-				}
-			} else {
-				account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
-				}
+			account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
 			}
 		}
 	}
@@ -638,63 +580,40 @@ func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 			accountName = containerId.StorageAccountName
 			containerName = containerId.ContainerName
 
-			if meta.(*clients.Client).Storage.StorageUseAzureAD {
-				account = &client.AccountDetails{
-					StorageAccountId: commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName),
-				}
-			} else {
-				account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
-				}
+			account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
 			}
 		} else {
 			accountName = id.AccountId.AccountName
 			containerName = id.ContainerName
 
-			if meta.(*clients.Client).Storage.StorageUseAzureAD {
-				account = &client.AccountDetails{
-					StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", accountName),
-				}
-			} else {
-				account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
-				}
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
 			}
 		}
 	} else {
-		if containerIdStr, ok := d.GetOk("storage_container_id"); ok && containerIdStr.(string) != "" {
-			containerId, err := commonids.ParseStorageContainerID(containerIdStr.(string))
+		containerIdStr := d.Get("storage_container_id").(string) // lintignore: gradually-deprecated
+		if containerIdStr == "" {
+			accountName = id.AccountId.AccountName
+			containerName = id.ContainerName
+
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+			}
+		} else {
+			containerId, err := commonids.ParseStorageContainerID(containerIdStr)
 			if err != nil {
 				return err
 			}
 			accountName = containerId.StorageAccountName
 			containerName = containerId.ContainerName
 
-			if meta.(*clients.Client).Storage.StorageUseAzureAD {
-				account = &client.AccountDetails{
-					StorageAccountId: commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName),
-				}
-			} else {
-				account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
-				}
-			}
-		} else {
-			accountName = id.AccountId.AccountName
-			containerName = id.ContainerName
-
-			if meta.(*clients.Client).Storage.StorageUseAzureAD {
-				account = &client.AccountDetails{
-					StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", accountName),
-				}
-			} else {
-				account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
-				}
+			account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
 			}
 		}
 	}

@@ -256,19 +256,13 @@ func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Cl
 		}
 
 		var account *storageclient.AccountDetails
-		if client.Storage.StorageUseAzureAD {
-			account = &storageclient.AccountDetails{
-				StorageAccountId: commonids.NewStorageAccountID(client.Account.SubscriptionId, "", id.AccountId.AccountName),
-			}
-		} else {
-			var err error
-			account, err = client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
-			if err != nil {
-				return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountId.AccountName, id.ContainerName, err)
-			}
-			if account == nil {
-				return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountId.AccountName)
-			}
+
+		account, err = client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountId.AccountName, id.ContainerName, err)
+		}
+		if account == nil {
+			return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountId.AccountName)
 		}
 
 		containersClient, err := client.Storage.ContainersDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
@@ -298,17 +292,6 @@ func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Cl
 }
 
 func (r StorageContainerResource) basic(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-	`, r.template(data))
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -674,24 +657,13 @@ func TestValidateStorageContainerName(t *testing.T) {
 }
 
 func (r StorageContainerResource) withAccountName(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
-		`, r.template(data))
-	}
-	return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "private"
-}
-	`, r.template(data))
+`, r.template(data))
 }

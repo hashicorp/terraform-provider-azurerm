@@ -987,26 +987,15 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) withAccountName(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 5
 }
-		`, r.template(data), data.RandomString)
-	}
-	return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_share" "test" {
-  name               = "testshare%s"
-  storage_account_id = azurerm_storage_account.test.id
-  quota              = 5
-}
-	`, r.template(data), data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) template(data acceptance.TestData) string {

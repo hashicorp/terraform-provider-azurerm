@@ -232,7 +232,6 @@ func (r ApplicationInsightsWorkbookResource) basicForResourceIdentity(data accep
 }
 
 func (r ApplicationInsightsWorkbookResource) hiddenTitleInTags(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -261,11 +260,10 @@ resource "azurerm_application_insights_workbook" "test" {
     hidden-title = "Test Display Name"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ApplicationInsightsWorkbookResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data, data.RandomInteger)
 	return fmt.Sprintf(`
 			%s
 
@@ -278,11 +276,10 @@ resource "azurerm_application_insights_workbook" "import" {
   source_id           = azurerm_application_insights_workbook.test.source_id
   data_json           = azurerm_application_insights_workbook.test.data_json
 }
-`, config)
+`, r.basic(data, data.RandomInteger))
 }
 
 func (r ApplicationInsightsWorkbookResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 					%s
@@ -354,7 +351,7 @@ resource "azurerm_application_insights_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-		`, template, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 	}
 	return fmt.Sprintf(`
 				%s
@@ -426,11 +423,10 @@ resource "azurerm_application_insights_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-	`, template, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r ApplicationInsightsWorkbookResource) completeLegacy(data acceptance.TestData) string {
-	template := r.template(data)
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 					%s
@@ -502,7 +498,7 @@ resource "azurerm_application_insights_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-		`, template, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 	}
 	return fmt.Sprintf(`
 				%s
@@ -574,11 +570,10 @@ resource "azurerm_application_insights_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-	`, template, data.RandomInteger, data.RandomString)
+	`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r ApplicationInsightsWorkbookResource) updateLegacy(data acceptance.TestData) string {
-	template := r.template(data)
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 					%s
@@ -650,7 +645,7 @@ resource "azurerm_application_insights_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-		`, template, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 	}
 	return fmt.Sprintf(`
 				%s
@@ -722,11 +717,10 @@ resource "azurerm_application_insights_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-	`, template, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r ApplicationInsightsWorkbookResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 					%s
@@ -798,7 +792,7 @@ resource "azurerm_application_insights_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-		`, template, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 	}
 	return fmt.Sprintf(`
 				%s
@@ -870,5 +864,5 @@ resource "azurerm_application_insights_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-	`, template, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }

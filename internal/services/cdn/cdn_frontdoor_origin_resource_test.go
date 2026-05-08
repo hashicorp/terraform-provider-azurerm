@@ -8,12 +8,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -382,11 +381,7 @@ func (r CdnFrontDoorOriginResource) templatePrivateLinkWebApp(data acceptance.Te
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
-		
-
-
-
-		%s
+%s
 
 resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[2]d"
@@ -461,11 +456,7 @@ resource "azurerm_linux_web_app" "test" {
 		`, template, data.RandomInteger, data.RandomString)
 	}
 	return fmt.Sprintf(`
-	
-
-
-
-	%s
+%s
 
 resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[2]d"
@@ -537,7 +528,7 @@ resource "azurerm_linux_web_app" "test" {
 
   site_config {}
 }
-	`, template, data.RandomInteger, data.RandomString)
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r CdnFrontDoorOriginResource) basic(data acceptance.TestData) string {

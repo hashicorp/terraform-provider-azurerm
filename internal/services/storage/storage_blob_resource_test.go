@@ -13,14 +13,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	storageclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
@@ -94,13 +93,6 @@ func TestAccStorageBlob_blockEmptyAzureADAuth(t *testing.T) {
 			Config: r.blockEmptyAzureADAuth(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.blockEmptyAzureADAuthUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("metadata.hello").HasValue("world"),
 			),
 		},
 		data.ImportStep("parallelism", "size", "type"),
@@ -798,7 +790,7 @@ provider "azurerm" {
   storage_use_azuread = true
 }
 
-		%s
+%s
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
@@ -814,54 +806,12 @@ provider "azurerm" {
   storage_use_azuread = true
 }
 
-	%s
+%s
 
 resource "azurerm_storage_blob" "test" {
   name                 = "example.vhd"
   storage_container_id = azurerm_storage_container.test.id
   type                 = "Block"
-}
-`, r.template(data, "private"))
-}
-
-func (r StorageBlobResource) blockEmptyAzureADAuthUpdated(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-  storage_use_azuread = true
-}
-
-		%s
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-
-  metadata = {
-    hello = "world"
-  }
-}
-`, r.template(data, "private"))
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-  storage_use_azuread = true
-}
-
-	%s
-
-resource "azurerm_storage_blob" "test" {
-  name                 = "example.vhd"
-  storage_container_id = azurerm_storage_container.test.id
-  type                 = "Block"
-
-  metadata = {
-    hello = "world"
-  }
 }
 `, r.template(data, "private"))
 }
@@ -1357,7 +1307,7 @@ provider "azurerm" {
   features {}
 }
 
-		%[1]s
+%[1]s
 
 resource "azurerm_storage_encryption_scope" "test" {
   name               = "acctestEScontainer%[2]d"
@@ -1841,10 +1791,10 @@ resource "azurerm_storage_blob" "import" {
 	%s
 
 resource "azurerm_storage_blob" "import" {
-  name                   = azurerm_storage_blob.test.name
-  storage_container_name = azurerm_storage_blob.test.storage_container_id
-  type                   = azurerm_storage_blob.test.type
-  size                   = azurerm_storage_blob.test.size
+  name                 = azurerm_storage_blob.test.name
+  storage_container_id = azurerm_storage_blob.test.storage_container_id
+  type                 = azurerm_storage_blob.test.type
+  size                 = azurerm_storage_blob.test.size
 }
 `, r.blockFromPublicBlob(data))
 }

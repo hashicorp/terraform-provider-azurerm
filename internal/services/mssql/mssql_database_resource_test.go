@@ -2513,7 +2513,7 @@ resource "azurerm_mssql_database" "test" {
     create = "10h"
   }
 }
-		`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 	%[1]s
@@ -2563,7 +2563,7 @@ resource "azurerm_mssql_database" "test" {
     create = "10h"
   }
 }
-	`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MssqlDatabaseResource) enclaveType(data acceptance.TestData, enclaveType string) string {

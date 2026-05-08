@@ -1201,7 +1201,6 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) startTask_complete(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1272,7 +1271,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) startTask_userIdentity(data acceptance.TestData) string {
@@ -1956,7 +1955,7 @@ resource "azurerm_batch_pool" "test" {
     id = azurerm_shared_image_version.test.id
   }
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2144,7 +2143,7 @@ resource "azurerm_batch_pool" "test" {
     id = azurerm_shared_image_version.test.id
   }
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) networkConfiguration(data acceptance.TestData) string {
@@ -2230,7 +2229,6 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) mountConfigurationAzureBlobFileSystem(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 		%s
@@ -2275,7 +2273,7 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-		`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 	}
 	return fmt.Sprintf(`
 	%s
@@ -2320,11 +2318,10 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-	`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) mountConfigurationAzureBlobFileSystemWithUserAssignedIdentity(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 		%s
@@ -2389,7 +2386,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-		`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 	}
 	return fmt.Sprintf(`
 	%s
@@ -2454,11 +2451,10 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-	`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) mountConfigurationAzureFileShare(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 		%s
@@ -2503,7 +2499,7 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-		`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 	}
 	return fmt.Sprintf(`
 	%s
@@ -2548,11 +2544,10 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-	`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) mountConfigurationCIFS(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2585,11 +2580,10 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) mountConfigurationNFS(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2620,7 +2614,7 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) targetNodeCommunicationMode(data acceptance.TestData, targetNodeCommunicationMode string) string {
@@ -2664,7 +2658,6 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) extensions(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2707,11 +2700,10 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) extensionsWithEmptySettings(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2754,11 +2746,10 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) diskSettings(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2789,7 +2780,7 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) updateDiskSettings(data acceptance.TestData) string {
@@ -2871,7 +2862,6 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) linuxUserAccounts(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2905,11 +2895,10 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) windowsUserAccountsWithConfig(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2951,7 +2940,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) template(data acceptance.TestData) string {
@@ -2989,7 +2978,6 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 }
 
 func (BatchPoolResource) securityProfileWithUEFISettings(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -3019,5 +3007,5 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }

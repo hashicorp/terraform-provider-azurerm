@@ -223,7 +223,7 @@ resource "azurerm_synapse_firewall_rule" "test" {
   start_ip_address     = "0.0.0.0"
   end_ip_address       = "255.255.255.255"
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -273,5 +273,5 @@ resource "azurerm_synapse_firewall_rule" "test" {
   start_ip_address     = "0.0.0.0"
   end_ip_address       = "255.255.255.255"
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }

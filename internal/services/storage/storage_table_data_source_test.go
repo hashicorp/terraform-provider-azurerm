@@ -64,9 +64,7 @@ resource "azurerm_storage_table" "test" {
     }
   }
 }
-
-
-	`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -101,8 +99,6 @@ resource "azurerm_storage_table" "test" {
     }
   }
 }
-
-
 `, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 

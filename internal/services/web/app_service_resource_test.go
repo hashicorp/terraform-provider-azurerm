@@ -9,8 +9,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -2712,8 +2710,7 @@ resource "azurerm_app_service" "test" {
 }
 
 func (r AppServiceResource) backupTemplate(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -2781,77 +2778,7 @@ resource "azurerm_app_service_plan" "test" {
     size = "S1"
   }
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "example"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "private"
-}
-
-data "azurerm_storage_account_sas" "test" {
-  connection_string = azurerm_storage_account.test.primary_connection_string
-  https_only        = true
-
-  resource_types {
-    service   = false
-    container = false
-    object    = true
-  }
-
-  services {
-    blob  = true
-    queue = false
-    table = false
-    file  = false
-  }
-
-  start  = "2019-03-21"
-  expiry = "2022-03-21"
-
-  permissions {
-    read    = false
-    write   = true
-    delete  = false
-    list    = false
-    add     = false
-    create  = false
-    update  = false
-    process = false
-    tag     = false
-    filter  = false
-  }
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (r AppServiceResource) http2Enabled(data acceptance.TestData) string {
@@ -3198,8 +3125,7 @@ resource "azurerm_app_service" "test" {
 }
 
 func (r AppServiceResource) storageAccounts(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -3250,65 +3176,11 @@ resource "azurerm_app_service" "test" {
     mount_path   = "/blobs"
   }
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acct%d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name               = "acctestcontainer"
-  storage_account_id = azurerm_storage_account.test.id
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "Linux"
-  reserved            = true
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-
-  storage_account {
-    name         = "blobs"
-    type         = "AzureBlob"
-    account_name = azurerm_storage_account.test.name
-    share_name   = azurerm_storage_container.test.name
-    access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "/blobs"
-  }
-}
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r AppServiceResource) storageAccountsUpdated(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -3374,75 +3246,7 @@ resource "azurerm_app_service" "test" {
     mount_path   = "/files"
   }
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "Linux"
-  reserved            = true
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acct%d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name               = "acctestcontainer"
-  storage_account_id = azurerm_storage_account.test.id
-}
-
-resource "azurerm_storage_share" "test" {
-  name               = "acctestshare"
-  storage_account_id = azurerm_storage_account.test.id
-  quota              = 1
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-
-  storage_account {
-    name         = "blobs"
-    type         = "AzureBlob"
-    account_name = azurerm_storage_account.test.name
-    share_name   = azurerm_storage_container.test.name
-    access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "/blobs"
-  }
-
-  storage_account {
-    name         = "files"
-    type         = "AzureFiles"
-    account_name = azurerm_storage_account.test.name
-    share_name   = azurerm_storage_share.test.name
-    access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "/files"
-  }
-}
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r AppServiceResource) oneIpv4Restriction(data acceptance.TestData) string {
