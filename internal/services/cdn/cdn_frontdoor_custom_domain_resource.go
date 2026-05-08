@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -48,6 +49,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(validateManagedCertificateConfiguration),
 			pluginsdk.CustomizeDiffShim(validateCipherSuiteConfiguration),
 		),
 
@@ -74,9 +76,10 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 			},
 
 			"host_name": {
-				Type:     pluginsdk.TypeString,
-				ForceNew: true,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				ForceNew:     true,
+				Required:     true,
+				ValidateFunc: validate.FrontDoorCustomDomainHostName,
 			},
 
 			"tls": {
@@ -610,6 +613,65 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 		}
 	} else if len(customCiphersRaw) > 0 && customCiphersRaw[0] != nil {
 		return errors.New("`custom_ciphers` cannot be specified when `type` is not `Customized`")
+	}
+
+	return nil
+}
+
+func validateManagedCertificateConfiguration(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+	tlsAny := diff.Get("tls")
+	tlsRaw, ok := tlsAny.([]interface{})
+	if !ok {
+		return errors.New("unexpected value for `tls`: expected list")
+	}
+	if len(tlsRaw) == 0 || tlsRaw[0] == nil {
+		return nil
+	}
+
+	tls, ok := tlsRaw[0].(map[string]interface{})
+	if !ok {
+		return errors.New("unexpected value for `tls`: expected object")
+	}
+
+	certificateType := string(afdcustomdomains.AfdCertificateTypeManagedCertificate)
+	if raw, exists := tls["certificate_type"]; exists && raw != nil {
+		v, ok := raw.(string)
+		if !ok {
+			return errors.New("unexpected value for `tls.certificate_type`: expected string")
+		}
+		if v != "" {
+			certificateType = v
+		}
+	}
+
+	if certificateType != string(afdcustomdomains.AfdCertificateTypeManagedCertificate) {
+		return nil
+	}
+
+	hostName, ok := diff.Get("host_name").(string)
+	if !ok {
+		return errors.New("unexpected value for `host_name`: expected string")
+	}
+
+	if len(hostName) > 64 {
+		return errors.New("`host_name` cannot be longer than 64 characters when `tls.certificate_type` is `ManagedCertificate`")
+	}
+
+	dnsZoneId, ok := diff.Get("dns_zone_id").(string)
+	if !ok {
+		return errors.New("unexpected value for `dns_zone_id`: expected string")
+	}
+	if dnsZoneId == "" {
+		return nil
+	}
+
+	zoneId, err := dnsValidate.ParseDnsZoneID(dnsZoneId)
+	if err != nil {
+		return err
+	}
+
+	if strings.EqualFold(hostName, zoneId.DnsZoneName) {
+		return errors.New("`host_name` cannot be an apex/root domain when `tls.certificate_type` is `ManagedCertificate`")
 	}
 
 	return nil

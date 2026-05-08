@@ -165,7 +165,7 @@ func (r CdnFrontDoorCustomDomainAssociationResource) remove(data acceptance.Test
 func (r CdnFrontDoorCustomDomainAssociationResource) template(data acceptance.TestData) string {
 	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE")
 	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
-	childZoneSuffix := data.RandomIntOfLength(8)
+	childZoneSuffix := data.RandomString
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -184,7 +184,7 @@ data "azurerm_dns_zone" "test" {
 locals {
   # Create a delegated child zone inside the test RG.
   # NOTE: ARM_TEST_DNS_ZONE / ARM_TEST_DATA_RESOURCE_GROUP must refer to a real, delegated parent zone.
-  child_zone_label = "acctest%[6]d"
+  child_zone_label = "%[6]s"
   child_zone_name  = join(".", [local.child_zone_label, data.azurerm_dns_zone.test.name])
 }
 
@@ -288,7 +288,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
   depends_on = [azurerm_dns_ns_record.delegation]
 
   dns_zone_id = azurerm_dns_zone.child.id
-  host_name   = join(".", ["%[3]s", azurerm_dns_zone.child.name])
+  host_name   = join(".", ["fd", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type = "ManagedCertificate"
