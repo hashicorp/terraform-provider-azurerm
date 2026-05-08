@@ -1,6 +1,7 @@
 ## 4.72.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_frontdoor_custom_domain` add support for the `cipher_suite` property [GH-30997]
 * `dependencies`: update go to 1.25.10 [GH-32344]
 * `azurerm_log_analytics_workspace` - add support for the `10000`, `25000` and `50000` values in the `reservation_capacity_in_gb_per_day` property [GH-32322]
 * `azurerm_subnet` - add support for the `Microsoft.MessagingConnectors/connectors` value in the `delegation.service_delegation.name` property [GH-32305]
