@@ -1598,7 +1598,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
-						ValidateFunc: validation.StringLenBetween(8, 123),
+						ValidateFunc: validation.StringLenBetween(14, 123),
 					},
 					"license": {
 						Type:     pluginsdk.TypeString,
@@ -1802,6 +1802,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			location := location.Normalize(model.Location)
+
 			kubernetesVersion := model.KubernetesVersion
 
 			linuxProfile := expandKubernetesAutomaticClusterLinuxProfile(model.LinuxProfile)
@@ -2346,7 +2347,6 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 					"default_node_pool.0.kubelet_disk_type",
 					"default_node_pool.0.linux_os_config",
 					"default_node_pool.0.max_pods",
-					"default_node_pool.0.only_critical_addons_enabled",
 					"default_node_pool.0.os_disk_size_gb",
 					"default_node_pool.0.pod_subnet_id",
 					"default_node_pool.0.snapshot_id",
@@ -3158,6 +3158,42 @@ func expandAutomaticIPVersions(input []string) (*[]managedclusters.IPFamily, err
 	return &ipv, nil
 }
 
+func flattenAutomaticLoadBalancerProfile(profile *managedclusters.ManagedClusterLoadBalancerProfile) []LoadBalancerProfileModel {
+	if profile == nil {
+		return []LoadBalancerProfileModel{}
+	}
+
+	result := LoadBalancerProfileModel{}
+
+	if profile.AllocatedOutboundPorts != nil {
+		result.OutboundPortsAllocated = pointer.From(profile.AllocatedOutboundPorts)
+	}
+
+	if profile.IdleTimeoutInMinutes != nil {
+		result.IdleTimeoutInMinutes = pointer.From(profile.IdleTimeoutInMinutes)
+	}
+
+	if profile.ManagedOutboundIPs != nil && profile.ManagedOutboundIPs.Count != nil {
+		result.ManagedOutboundIPCount = pointer.From(profile.ManagedOutboundIPs.Count)
+	}
+
+	if profile.OutboundIPs != nil && profile.OutboundIPs.PublicIPs != nil {
+		result.OutboundIPAddressIDs = automaticResourceReferencesToIds(profile.OutboundIPs.PublicIPs)
+	}
+
+	if profile.OutboundIPPrefixes != nil && profile.OutboundIPPrefixes.PublicIPPrefixes != nil {
+		result.OutboundIPPrefixIDs = automaticResourceReferencesToIds(profile.OutboundIPPrefixes.PublicIPPrefixes)
+	}
+
+	if profile.BackendPoolType != nil {
+		result.BackendPoolType = string(pointer.From(profile.BackendPoolType))
+	}
+
+	result.EffectiveOutboundIPs = automaticResourceReferencesToIds(profile.EffectiveOutboundIPs)
+
+	return []LoadBalancerProfileModel{result}
+}
+
 func expandAutomaticNatGatewayProfile(input []NATGatewayProfileModel) *managedclusters.ManagedClusterNATGatewayProfile {
 	if len(input) == 0 {
 		return nil
@@ -3179,6 +3215,26 @@ func expandAutomaticNatGatewayProfile(input []NATGatewayProfileModel) *managedcl
 	return profile
 }
 
+func flattenAutomaticNatGatewayProfile(profile *managedclusters.ManagedClusterNATGatewayProfile) []NATGatewayProfileModel {
+	if profile == nil {
+		return []NATGatewayProfileModel{}
+	}
+
+	result := NATGatewayProfileModel{}
+
+	if profile.IdleTimeoutInMinutes != nil {
+		result.IdleTimeoutInMinutes = pointer.From(profile.IdleTimeoutInMinutes)
+	}
+
+	if profile.ManagedOutboundIPProfile != nil && profile.ManagedOutboundIPProfile.Count != nil {
+		result.ManagedOutboundIPCount = pointer.From(profile.ManagedOutboundIPProfile.Count)
+	}
+
+	result.EffectiveOutboundIPs = automaticResourceReferencesToIds(profile.EffectiveOutboundIPs)
+
+	return []NATGatewayProfileModel{result}
+}
+
 func flattenKubernetesAutomaticClusterNetworkProfile(profile *managedclusters.ContainerServiceNetworkProfile) []NetworkProfileModel {
 	if profile == nil {
 		return []NetworkProfileModel{}
@@ -3186,79 +3242,27 @@ func flattenKubernetesAutomaticClusterNetworkProfile(profile *managedclusters.Co
 
 	dnsServiceIP := ""
 	if profile.DnsServiceIP != nil {
-		dnsServiceIP = *profile.DnsServiceIP
+		dnsServiceIP = pointer.From(profile.DnsServiceIP)
 	}
 
 	serviceCidr := ""
 	if profile.ServiceCidr != nil {
-		serviceCidr = *profile.ServiceCidr
+		serviceCidr = pointer.From(profile.ServiceCidr)
 	}
 
 	podCidr := ""
 	if profile.PodCidr != nil {
-		podCidr = *profile.PodCidr
+		podCidr = pointer.From(profile.PodCidr)
 	}
 
 	outboundType := ""
 	if profile.OutboundType != nil {
-		outboundType = string(*profile.OutboundType)
+		outboundType = string(pointer.From(profile.OutboundType))
 	}
 
-	lbProfiles := make([]LoadBalancerProfileModel, 0)
-	if lbp := profile.LoadBalancerProfile; lbp != nil {
-		lb := LoadBalancerProfileModel{}
+	lbProfiles := flattenAutomaticLoadBalancerProfile(profile.LoadBalancerProfile)
 
-		if v := lbp.AllocatedOutboundPorts; v != nil {
-			lb.OutboundPortsAllocated = *v
-		}
-
-		if v := lbp.IdleTimeoutInMinutes; v != nil {
-			lb.IdleTimeoutInMinutes = *v
-		}
-
-		if ips := lbp.ManagedOutboundIPs; ips != nil {
-			if count := ips.Count; count != nil {
-				lb.ManagedOutboundIPCount = *count
-			}
-		}
-
-		if oip := lbp.OutboundIPs; oip != nil {
-			if poip := oip.PublicIPs; poip != nil {
-				lb.OutboundIPAddressIDs = automaticResourceReferencesToIds(poip)
-			}
-		}
-
-		if oip := lbp.OutboundIPPrefixes; oip != nil {
-			if pip := oip.PublicIPPrefixes; pip != nil {
-				lb.OutboundIPPrefixIDs = automaticResourceReferencesToIds(pip)
-			}
-		}
-
-		if v := lbp.BackendPoolType; v != nil {
-			lb.BackendPoolType = string(*v)
-		}
-
-		lb.EffectiveOutboundIPs = automaticResourceReferencesToIds(profile.LoadBalancerProfile.EffectiveOutboundIPs)
-		lbProfiles = append(lbProfiles, lb)
-	}
-
-	ngwProfiles := make([]NATGatewayProfileModel, 0)
-	if ngwp := profile.NatGatewayProfile; ngwp != nil {
-		ng := NATGatewayProfileModel{}
-
-		if v := ngwp.IdleTimeoutInMinutes; v != nil {
-			ng.IdleTimeoutInMinutes = *v
-		}
-
-		if ips := ngwp.ManagedOutboundIPProfile; ips != nil {
-			if count := ips.Count; count != nil {
-				ng.ManagedOutboundIPCount = *count
-			}
-		}
-
-		ng.EffectiveOutboundIPs = automaticResourceReferencesToIds(profile.NatGatewayProfile.EffectiveOutboundIPs)
-		ngwProfiles = append(ngwProfiles, ng)
-	}
+	ngwProfiles := flattenAutomaticNatGatewayProfile(profile.NatGatewayProfile)
 
 	ipVersions := make([]string, 0)
 	if ipfs := profile.IPFamilies; ipfs != nil {
@@ -3280,18 +3284,18 @@ func flattenKubernetesAutomaticClusterNetworkProfile(profile *managedclusters.Co
 
 	podCidrs := []string{}
 	if profile.PodCidrs != nil {
-		podCidrs = *profile.PodCidrs
+		podCidrs = pointer.From(profile.PodCidrs)
 	}
 
 	serviceCidrs := []string{}
 	if profile.ServiceCidrs != nil {
-		serviceCidrs = *profile.ServiceCidrs
+		serviceCidrs = pointer.From(profile.ServiceCidrs)
 	}
 
 	return []NetworkProfileModel{
 		{
 			DNSServiceIP:        dnsServiceIP,
-			LoadBalancerSKU:     string(*sku),
+			LoadBalancerSKU:     string(pointer.From(sku)),
 			LoadBalancerProfile: lbProfiles,
 			NATGatewayProfile:   ngwProfiles,
 			IPVersions:          ipVersions,
@@ -3388,62 +3392,62 @@ func flattenKubernetesAutomaticClusterAutoScalerProfile(profile *managedclusters
 
 	expander := ""
 	if profile.Expander != nil {
-		expander = string(*profile.Expander)
+		expander = string(pointer.From(profile.Expander))
 	}
 
 	maxGracefulTerminationSec := ""
 	if profile.MaxGracefulTerminationSec != nil {
-		maxGracefulTerminationSec = *profile.MaxGracefulTerminationSec
+		maxGracefulTerminationSec = pointer.From(profile.MaxGracefulTerminationSec)
 	}
 
 	MaxNodeProvisioningTime := ""
 	if profile.MaxNodeProvisionTime != nil {
-		MaxNodeProvisioningTime = *profile.MaxNodeProvisionTime
+		MaxNodeProvisioningTime = pointer.From(profile.MaxNodeProvisionTime)
 	}
 
 	newPodScaleUpDelay := ""
 	if profile.NewPodScaleUpDelay != nil {
-		newPodScaleUpDelay = *profile.NewPodScaleUpDelay
+		newPodScaleUpDelay = pointer.From(profile.NewPodScaleUpDelay)
 	}
 
 	scaleDownDelayAfterAdd := ""
 	if profile.ScaleDownDelayAfterAdd != nil {
-		scaleDownDelayAfterAdd = *profile.ScaleDownDelayAfterAdd
+		scaleDownDelayAfterAdd = pointer.From(profile.ScaleDownDelayAfterAdd)
 	}
 
 	scaleDownDelayAfterDelete := ""
 	if profile.ScaleDownDelayAfterDelete != nil {
-		scaleDownDelayAfterDelete = *profile.ScaleDownDelayAfterDelete
+		scaleDownDelayAfterDelete = pointer.From(profile.ScaleDownDelayAfterDelete)
 	}
 
 	scaleDownDelayAfterFailure := ""
 	if profile.ScaleDownDelayAfterFailure != nil {
-		scaleDownDelayAfterFailure = *profile.ScaleDownDelayAfterFailure
+		scaleDownDelayAfterFailure = pointer.From(profile.ScaleDownDelayAfterFailure)
 	}
 
 	scaleDownUnneededTime := ""
 	if profile.ScaleDownUnneededTime != nil {
-		scaleDownUnneededTime = *profile.ScaleDownUnneededTime
+		scaleDownUnneededTime = pointer.From(profile.ScaleDownUnneededTime)
 	}
 
 	scaleDownUnreadyTime := ""
 	if profile.ScaleDownUnreadyTime != nil {
-		scaleDownUnreadyTime = *profile.ScaleDownUnreadyTime
+		scaleDownUnreadyTime = pointer.From(profile.ScaleDownUnreadyTime)
 	}
 
 	scaleDownUtilizationThreshold := ""
 	if profile.ScaleDownUtilizationThreshold != nil {
-		scaleDownUtilizationThreshold = *profile.ScaleDownUtilizationThreshold
+		scaleDownUtilizationThreshold = pointer.From(profile.ScaleDownUtilizationThreshold)
 	}
 
 	emptyBulkDeleteMax := ""
 	if profile.MaxEmptyBulkDelete != nil {
-		emptyBulkDeleteMax = *profile.MaxEmptyBulkDelete
+		emptyBulkDeleteMax = pointer.From(profile.MaxEmptyBulkDelete)
 	}
 
 	var skipNodesWithLocalStorage bool
 	if profile.SkipNodesWithLocalStorage != nil {
-		b, err := strconv.ParseBool(*profile.SkipNodesWithLocalStorage)
+		b, err := strconv.ParseBool(pointer.From(profile.SkipNodesWithLocalStorage))
 		if err != nil {
 			return nil, fmt.Errorf("parsing SkipNodesWithLocalStorage: %w", err)
 		}
@@ -3452,7 +3456,7 @@ func flattenKubernetesAutomaticClusterAutoScalerProfile(profile *managedclusters
 
 	var skipNodesWithSystemPods bool
 	if profile.SkipNodesWithSystemPods != nil {
-		b, err := strconv.ParseBool(*profile.SkipNodesWithSystemPods)
+		b, err := strconv.ParseBool(pointer.From(profile.SkipNodesWithSystemPods))
 		if err != nil {
 			return nil, fmt.Errorf("parsing SkipNodesWithSystemPods: %w", err)
 		}
@@ -3461,22 +3465,40 @@ func flattenKubernetesAutomaticClusterAutoScalerProfile(profile *managedclusters
 
 	scanInterval := ""
 	if profile.ScanInterval != nil {
-		scanInterval = *profile.ScanInterval
+		scanInterval = pointer.From(profile.ScanInterval)
 	}
 
 	var daemonsetEvictionForEmptyNodesEnabled bool
 	if profile.DaemonsetEvictionForEmptyNodes != nil {
-		daemonsetEvictionForEmptyNodesEnabled = *profile.DaemonsetEvictionForEmptyNodes
+		daemonsetEvictionForEmptyNodesEnabled = pointer.From(profile.DaemonsetEvictionForEmptyNodes)
 	}
 
 	var daemonsetEvictionForOccupiedNodesEnabled bool
 	if profile.DaemonsetEvictionForOccupiedNodes != nil {
-		daemonsetEvictionForOccupiedNodesEnabled = *profile.DaemonsetEvictionForOccupiedNodes
+		daemonsetEvictionForOccupiedNodesEnabled = pointer.From(profile.DaemonsetEvictionForOccupiedNodes)
 	}
 
 	var ignoreDaemonsetsUtilizationEnabled bool
 	if profile.IgnoreDaemonsetsUtilization != nil {
-		ignoreDaemonsetsUtilizationEnabled = *profile.IgnoreDaemonsetsUtilization
+		ignoreDaemonsetsUtilizationEnabled = pointer.From(profile.IgnoreDaemonsetsUtilization)
+	}
+
+	maxUnreadyNodes := 0
+	if profile.OkTotalUnreadyCount != nil {
+		var err error
+		maxUnreadyNodes, err = strconv.Atoi(pointer.From(profile.OkTotalUnreadyCount))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	maxUnreadyPercentage := 0.0
+	if profile.MaxTotalUnreadyPercentage != nil {
+		var err error
+		maxUnreadyPercentage, err = strconv.ParseFloat(pointer.From(profile.MaxTotalUnreadyPercentage), 64)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return []AutoScalerProfileModel{{
@@ -3487,8 +3509,8 @@ func flattenKubernetesAutomaticClusterAutoScalerProfile(profile *managedclusters
 		IgnoreDaemonsetsUtilizationEnabled:       ignoreDaemonsetsUtilizationEnabled,
 		MaxGracefulTerminationSec:                maxGracefulTerminationSec,
 		MaxNodeProvisioningTime:                  MaxNodeProvisioningTime,
-		MaxUnreadyNodes:                          0,
-		MaxUnreadyPercentage:                     0.0,
+		MaxUnreadyNodes:                          int64(maxUnreadyNodes),
+		MaxUnreadyPercentage:                     maxUnreadyPercentage,
 		NewPodScaleUpDelay:                       newPodScaleUpDelay,
 		ScanInterval:                             scanInterval,
 		ScaleDownDelayAfterAdd:                   scaleDownDelayAfterAdd,
@@ -3821,15 +3843,15 @@ func flattenKubernetesAutomaticClusterMaintenanceConfigurationDateSpans(input *[
 	for _, item := range *input {
 		var end string
 		if item.End != "" {
-			end = item.End
+			end = item.End + "T23:59:59Z"
 		}
 		var start string
 		if item.Start != "" {
-			start = item.Start
+			start = item.Start + "T00:00:00Z"
 		}
 		results = append(results, MaintenanceWindowNotAllowedModel{
-			End:   end + "T00:00:00Z",
-			Start: start + "T00:00:00Z",
+			End:   end,
+			Start: start,
 		})
 	}
 	return results
