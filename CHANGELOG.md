@@ -1,6 +1,7 @@
 ## 4.72.0 (Unreleased)
 
 ENHANCEMENTS:
+* `dependencies`: update go to 1.25.10 [GH-32344]
 * `azurerm_log_analytics_workspace` - add support for the `10000`, `25000` and `50000` values in the `reservation_capacity_in_gb_per_day` property [GH-32322]
 * `azurerm_subnet` - add support for the `Microsoft.MessagingConnectors/connectors` value in the `delegation.service_delegation.name` property [GH-32305]
 * `azurerm_virtual_network` - add support for the `Microsoft.MessagingConnectors/connectors` value in the `subnet.delegation.service_delegation.name` property [GH-32305]
