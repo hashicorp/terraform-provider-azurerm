@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -16,10 +18,12 @@ type Setting interface {
 var _ Setting = BaseSettingImpl{}
 
 type BaseSettingImpl struct {
-	Id   *string     `json:"id,omitempty"`
-	Kind SettingKind `json:"kind"`
-	Name *string     `json:"name,omitempty"`
-	Type *string     `json:"type,omitempty"`
+	Id         *string                `json:"id,omitempty"`
+	Kind       SettingKind            `json:"kind"`
+	Name       *string                `json:"name,omitempty"`
+	Properties *interface{}           `json:"properties,omitempty"`
+	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
+	Type       *string                `json:"type,omitempty"`
 }
 
 func (s BaseSettingImpl) Setting() BaseSettingImpl {
