@@ -170,8 +170,6 @@ An `azure_active_directory_role_based_access_control` block exports the followin
 
 * `admin_group_object_ids` - A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
 
-* `azure_rbac_enabled` - Is Role Based Access Control based on Azure AD enabled?
-
 * `tenant_id` - The Tenant ID used for Azure Active Directory Application.
 
 ---
