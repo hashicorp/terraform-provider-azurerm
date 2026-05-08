@@ -5,6 +5,7 @@ package securitycenter_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -119,16 +120,24 @@ func (SecurityCenterSettingResource) Exists(ctx context.Context, clients *client
 	}
 
 	if alertSyncSettings, ok := resp.Model.(settings.AlertSyncSettings); ok {
-		if alertSyncSettings.Properties == nil {
+		properties, err := expandAlertSyncSettingsTestProperties(alertSyncSettings.Properties)
+		if err != nil {
+			return nil, err
+		}
+		if properties == nil {
 			return pointer.To(false), nil
 		}
-		return pointer.To(alertSyncSettings.Properties.Enabled), nil
+		return pointer.To(properties.Enabled), nil
 	}
 	if dataExportSettings, ok := resp.Model.(settings.DataExportSettings); ok {
-		if dataExportSettings.Properties == nil {
+		properties, err := expandDataExportSettingsTestProperties(dataExportSettings.Properties)
+		if err != nil {
+			return nil, err
+		}
+		if properties == nil {
 			return pointer.To(false), nil
 		}
-		return pointer.To(dataExportSettings.Properties.Enabled), nil
+		return pointer.To(properties.Enabled), nil
 	}
 
 	return pointer.To(false), nil
@@ -142,9 +151,9 @@ func (SecurityCenterSettingResource) Destroy(ctx context.Context, clients *clien
 	}
 
 	setting := settings.DataExportSettings{
-		Properties: &settings.DataExportSettingProperties{
+		Properties: pointer.To(interface{}(settings.DataExportSettingProperties{
 			Enabled: false,
-		},
+		})),
 	}
 
 	if _, err := client.Update(ctx, *id, setting); err != nil {
@@ -161,12 +170,20 @@ func (SecurityCenterSettingResource) Destroy(ctx context.Context, clients *clien
 	}
 
 	if alertSyncSettings, ok := resp.Model.(settings.AlertSyncSettings); ok {
-		if alertSyncSettings.Properties == nil || !alertSyncSettings.Properties.Enabled {
+		properties, err := expandAlertSyncSettingsTestProperties(alertSyncSettings.Properties)
+		if err != nil {
+			return nil, err
+		}
+		if properties == nil || !properties.Enabled {
 			return pointer.To(false), nil
 		}
 	}
 	if dataExportSettings, ok := resp.Model.(settings.DataExportSettings); ok {
-		if dataExportSettings.Properties == nil || !dataExportSettings.Properties.Enabled {
+		properties, err := expandDataExportSettingsTestProperties(dataExportSettings.Properties)
+		if err != nil {
+			return nil, err
+		}
+		if properties == nil || !properties.Enabled {
 			return pointer.To(false), nil
 		}
 	}
@@ -196,4 +213,40 @@ resource "azurerm_security_center_setting" "import" {
   enabled      = azurerm_security_center_setting.test.enabled
 }
 `, r.cfg("MCAS", true))
+}
+
+func expandAlertSyncSettingsTestProperties(input *interface{}) (*settings.AlertSyncSettingProperties, error) {
+	if input == nil || *input == nil {
+		return nil, nil
+	}
+
+	encoded, err := json.Marshal(*input)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling alert sync setting properties: %+v", err)
+	}
+
+	var properties settings.AlertSyncSettingProperties
+	if err := json.Unmarshal(encoded, &properties); err != nil {
+		return nil, fmt.Errorf("unmarshaling alert sync setting properties: %+v", err)
+	}
+
+	return &properties, nil
+}
+
+func expandDataExportSettingsTestProperties(input *interface{}) (*settings.DataExportSettingProperties, error) {
+	if input == nil || *input == nil {
+		return nil, nil
+	}
+
+	encoded, err := json.Marshal(*input)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling data export setting properties: %+v", err)
+	}
+
+	var properties settings.DataExportSettingProperties
+	if err := json.Unmarshal(encoded, &properties); err != nil {
+		return nil, fmt.Errorf("unmarshaling data export setting properties: %+v", err)
+	}
+
+	return &properties, nil
 }

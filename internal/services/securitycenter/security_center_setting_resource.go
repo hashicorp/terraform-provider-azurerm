@@ -4,9 +4,11 @@
 package securitycenter
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -76,11 +78,25 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if existing.Model != nil {
-			if alertSyncSettings, ok := existing.Model.(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
-				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+			if alertSyncSettings, ok := existing.Model.(settings.AlertSyncSettings); ok {
+				properties, err := expandAlertSyncSettingProperties(alertSyncSettings.Properties)
+				if err != nil {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if properties != nil && properties.Enabled {
+					return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+				}
 			}
-			if dataExportSettings, ok := existing.Model.(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
-				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+			if dataExportSettings, ok := existing.Model.(settings.DataExportSettings); ok {
+				properties, err := expandDataExportSettingProperties(dataExportSettings.Properties)
+				if err != nil {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if properties != nil && properties.Enabled {
+					return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+				}
 			}
 		}
 	}
@@ -114,11 +130,25 @@ func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if resp.Model != nil {
-		if alertSyncSettings, ok := resp.Model.(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil {
-			d.Set("enabled", alertSyncSettings.Properties.Enabled)
+		if alertSyncSettings, ok := resp.Model.(settings.AlertSyncSettings); ok {
+			properties, err := expandAlertSyncSettingProperties(alertSyncSettings.Properties)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if properties != nil {
+				d.Set("enabled", properties.Enabled)
+			}
 		}
-		if dataExportSettings, ok := resp.Model.(settings.DataExportSettings); ok && dataExportSettings.Properties != nil {
-			d.Set("enabled", dataExportSettings.Properties.Enabled)
+		if dataExportSettings, ok := resp.Model.(settings.DataExportSettings); ok {
+			properties, err := expandDataExportSettingProperties(dataExportSettings.Properties)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if properties != nil {
+				d.Set("enabled", properties.Enabled)
+			}
 		}
 	}
 
@@ -156,18 +186,54 @@ func expandSecurityCenterSetting(name settings.SettingName, enabled bool) (setti
 		settings.SettingNameWDATPEXCLUDELINUXPUBLICPREVIEW,
 		settings.SettingNameWDATPUNIFIEDSOLUTION:
 		return settings.DataExportSettings{
-			Properties: &settings.DataExportSettingProperties{
+			Properties: pointer.To(interface{}(settings.DataExportSettingProperties{
 				Enabled: enabled,
-			},
+			})),
 		}, nil
 	case "SENTINEL",
 		settings.SettingNameSentinel:
 		return settings.AlertSyncSettings{
-			Properties: &settings.AlertSyncSettingProperties{
+			Properties: pointer.To(interface{}(settings.AlertSyncSettingProperties{
 				Enabled: enabled,
-			},
+			})),
 		}, nil
 	default:
 		return nil, fmt.Errorf("failed to deduce the kind from its name %q", name)
 	}
+}
+
+func expandAlertSyncSettingProperties(input *interface{}) (*settings.AlertSyncSettingProperties, error) {
+	if input == nil || *input == nil {
+		return nil, nil
+	}
+
+	encoded, err := json.Marshal(*input)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling alert sync setting properties: %+v", err)
+	}
+
+	var properties settings.AlertSyncSettingProperties
+	if err := json.Unmarshal(encoded, &properties); err != nil {
+		return nil, fmt.Errorf("unmarshaling alert sync setting properties: %+v", err)
+	}
+
+	return &properties, nil
+}
+
+func expandDataExportSettingProperties(input *interface{}) (*settings.DataExportSettingProperties, error) {
+	if input == nil || *input == nil {
+		return nil, nil
+	}
+
+	encoded, err := json.Marshal(*input)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling data export setting properties: %+v", err)
+	}
+
+	var properties settings.DataExportSettingProperties
+	if err := json.Unmarshal(encoded, &properties); err != nil {
+		return nil, fmt.Errorf("unmarshaling data export setting properties: %+v", err)
+	}
+
+	return &properties, nil
 }
