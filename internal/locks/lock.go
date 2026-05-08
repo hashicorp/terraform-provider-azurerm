@@ -9,8 +9,10 @@ import (
 )
 
 // armMutexKV is the instance of MutexKV for ARM resources
-var armMutexKV = newMutexKV()
-var armSemaphoreKV = newSemaphoreKV()
+var (
+	armMutexKV     = newMutexKV()
+	armSemaphoreKV = newSemaphoreKV()
+)
 
 func ByID(id string) {
 	armMutexKV.Lock(id)
