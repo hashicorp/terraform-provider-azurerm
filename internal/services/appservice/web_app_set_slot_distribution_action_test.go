@@ -4,10 +4,14 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -28,6 +32,7 @@ func TestAccWebAppSetSlotDistributionAction_basic(t *testing.T) {
 			},
 			{
 				Config: a.basicSingleRule(data), // apply the action with a rule
+				Check:  data.CheckWithClientForResource(a.checkValidRuleExist, "azurerm_linux_web_app.test"),
 			},
 			{
 				Config: a.removeAllRules(data), // apply action removing rules, required for `destroy` success
@@ -51,12 +56,43 @@ func TestAccWebAppSetSlotDistributionAction_multiRule(t *testing.T) {
 			},
 			{
 				Config: a.changeStepMultiRule(data), // apply the action with multiple rules
+				Check:  data.CheckWithClientForResource(a.checkValidRuleExist, "azurerm_linux_web_app.test"),
 			},
 			{
 				Config: a.removeAllRules(data), // apply action removing rules, required for `destroy` success
 			},
 		},
 	})
+}
+
+func (WebAppSetSlotDistributionAction) checkValidRuleExist(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	id, err := commonids.ParseWebAppID(state.ID)
+	if err != nil {
+		return err
+	}
+
+	client := clients.AppService.WebAppsClient
+	ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(5*time.Minute))
+	defer cancel()
+
+	resp, err := client.GetConfiguration(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving configuration for App ID %s: %+v", id, err)
+	}
+	if resp.Model == nil || resp.Model.Properties == nil {
+		return fmt.Errorf("retrieving properties for App ID %s", id)
+	}
+	rulesPtr := resp.Model.Properties.Experiments.RampUpRules
+	if rulesPtr == nil || len(*rulesPtr) == 0 {
+		return fmt.Errorf("no rules found in App ID %s", id)
+	}
+	ruleName := (*rulesPtr)[0].Name
+	// check that at least the first rule has a name set
+	if ruleName == nil || len(*ruleName) == 0 {
+		return fmt.Errorf("no valid rule name found in App ID %s", id)
+	}
+
+	return nil
 }
 
 func (a WebAppSetSlotDistributionAction) removeAllRules(data acceptance.TestData) string {
