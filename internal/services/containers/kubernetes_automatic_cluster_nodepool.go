@@ -47,9 +47,7 @@ type DefaultNodePoolModel struct {
 	UltraSSDEnabled            bool                      `tfschema:"ultra_ssd_enabled"`
 	VnetSubnetID               string                    `tfschema:"vnet_subnet_id"`
 	OrchestratorVersion        string                    `tfschema:"orchestrator_version"`
-	PodSubnetID                string                    `tfschema:"pod_subnet_id"`
 	ProximityPlacementGroupID  string                    `tfschema:"proximity_placement_group_id"`
-	OnlyCriticalAddonsEnabled  bool                      `tfschema:"only_critical_addons_enabled"`
 	SnapshotID                 string                    `tfschema:"snapshot_id"`
 	HostGroupID                string                    `tfschema:"host_group_id"`
 	UpgradeSettings            []UpgradeSettingsModel    `tfschema:"upgrade_settings"`
@@ -239,12 +237,6 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					RequiredWith: []string{"default_node_pool.0.node_public_ip_enabled"},
 				},
 
-				"only_critical_addons_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
-
 				"orchestrator_version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -271,12 +263,6 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 						string(agentpools.OSSKUWindowsTwoZeroOneNine),
 						string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 					}, false),
-				},
-
-				"pod_subnet_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: commonids.ValidateSubnetID,
 				},
 
 				"proximity_placement_group_id": {
@@ -1094,10 +1080,6 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 	nodeLabels := pointer.To(raw.NodeLabels)
 	var nodeTaints *[]string
 
-	if raw.OnlyCriticalAddonsEnabled {
-		nodeTaints = pointer.To([]string{"CriticalAddonsOnly=true:NoSchedule"})
-	}
-
 	profile := managedclusters.ManagedClusterAgentPoolProfile{
 		EnableFIPS:             pointer.To(raw.FipsEnabled),
 		EnableNodePublicIP:     pointer.To(raw.NodePublicIPEnabled),
@@ -1137,10 +1119,6 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 
 	if raw.OSSKU != "" {
 		profile.OsSKU = pointer.To(managedclusters.OSSKU(raw.OSSKU))
-	}
-
-	if raw.PodSubnetID != "" {
-		profile.PodSubnetID = pointer.To(raw.PodSubnetID)
 	}
 
 	profile.ScaleDownMode = pointer.To(managedclusters.ScaleDownModeDelete)
@@ -1279,22 +1257,8 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 		result.NodePublicIPPrefixID = pointer.From(agentPool.NodePublicIPPrefixID)
 	}
 
-	// Check for CriticalAddonsOnly taint
-	if agentPool.NodeTaints != nil {
-		for _, taint := range pointer.From(agentPool.NodeTaints) {
-			if taint == "CriticalAddonsOnly=true:NoSchedule" {
-				result.OnlyCriticalAddonsEnabled = true
-				break
-			}
-		}
-	}
-
 	if agentPool.OsDiskSizeGB != nil {
 		result.OSDiskSizeGB = pointer.From(agentPool.OsDiskSizeGB)
-	}
-
-	if agentPool.PodSubnetID != nil {
-		result.PodSubnetID = pointer.From(agentPool.PodSubnetID)
 	}
 
 	if agentPool.VnetSubnetID != nil {
