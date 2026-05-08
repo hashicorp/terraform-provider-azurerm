@@ -476,13 +476,19 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly(t *testing.T) {
 	})
 }
 
+/*
+The compliance security profile standards referenced in this test are available globally.
+
+You can find the regions that each compliance profile is available in under each subpage here:
+https://learn.microsoft.com/en-us/azure/databricks/security/privacy/security-profile
+*/
 func TestAccDatabricksWorkspace_enhancedComplianceSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.enhancedSecurityCompliance(data, "premium", true, true, []string{"PCI_DSS", "HIPAA", "FEDRAMP_MODERATE", "IRAP_PROTECTED", "FEDRAMP_HIGH", "FEDRAMP_IL5", "ITAR_EAR", "CYBER_ESSENTIAL_PLUS", "CANADA_PROTECTED_B", "ISMAP", "HITRUST", "K_FSI", "GERMANY_C5", "GERMANY_TISAX"}, true),
+			Config: r.enhancedSecurityCompliance(data, "premium", true, true, []string{"PCI_DSS", "HIPAA", "HITRUST", "GERMANY_C5", "GERMANY_TISAX"}, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
