@@ -4,6 +4,7 @@
 package validate
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -90,5 +91,54 @@ func TestExascaleDatabaseStorageVaultName(t *testing.T) {
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
 		}
+	}
+}
+
+func TestExascaleDatabaseVirtualMachineClusterSSHPublicKeys(t *testing.T) {
+	testData := []struct {
+		name     string
+		input    interface{}
+		expected bool
+	}{
+		{
+			name:     "multiple keys",
+			input:    []interface{}{"ssh-rsa aaaaaa", "ssh-ed25519 bbbbbbb"},
+			expected: true,
+		},
+		{
+			name:     "combined length equal to limit",
+			input:    []interface{}{strings.Repeat("a", 5000), strings.Repeat("b", 2500), strings.Repeat("b", 2500)},
+			expected: true,
+		},
+		{
+			name:     "combined length exceeding limit",
+			input:    []interface{}{strings.Repeat("a", 5000), strings.Repeat("b", 2500), strings.Repeat("b", 2501)},
+			expected: false,
+		},
+		{
+			name:     "single key exceeding limit",
+			input:    []interface{}{strings.Repeat("a", 10001)},
+			expected: false,
+		},
+		{
+			name:     "model string slice",
+			input:    []string{"ssh-rsa aaaaaa", "ssh-ed25519 bbbbbb"},
+			expected: true,
+		},
+		{
+			name:     "not a list",
+			input:    "ssh-rsa AAAA",
+			expected: false,
+		},
+	}
+
+	for _, v := range testData {
+		t.Run(v.name, func(t *testing.T) {
+			_, errors := ExascaleDatabaseVirtualMachineClusterSSHPublicKeys(v.input, "ssh_public_keys")
+			actual := len(errors) == 0
+			if v.expected != actual {
+				t.Fatalf("expected %t but got %t", v.expected, actual)
+			}
+		})
 	}
 }

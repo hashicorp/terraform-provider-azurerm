@@ -147,6 +147,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
+			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
