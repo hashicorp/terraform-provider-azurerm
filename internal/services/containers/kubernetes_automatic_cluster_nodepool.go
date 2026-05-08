@@ -258,10 +258,6 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(agentpools.OSSKUAzureLinux),
 						string(agentpools.OSSKUAzureLinuxThree),
-						string(agentpools.OSSKUUbuntu),
-						string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
-						string(agentpools.OSSKUWindowsTwoZeroOneNine),
-						string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 					}, false),
 				},
 
