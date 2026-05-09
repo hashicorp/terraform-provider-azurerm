@@ -36,6 +36,7 @@ type AppServiceEnvironmentV3Model struct {
 	ClusterSetting                     []ClusterSettingModel             `tfschema:"cluster_setting"`
 	DedicatedHostCount                 int64                             `tfschema:"dedicated_host_count"`
 	InternalLoadBalancingMode          string                            `tfschema:"internal_load_balancing_mode"`
+	UpgradePreference                  string                            `tfschema:"upgrade_preference"`
 	RemoteDebuggingEnabled             bool                              `tfschema:"remote_debugging_enabled"`
 	ZoneRedundant                      bool                              `tfschema:"zone_redundant"`
 	Tags                               map[string]string                 `tfschema:"tags"`
@@ -55,8 +56,6 @@ type AppServiceV3InboundDependencies struct {
 	IPAddresses []string `tfschema:"ip_addresses"`
 	Ports       []string `tfschema:"ports"`
 }
-
-// (@jackofallops) - Important property missing from the SDK / Swagger that will need to be added later: `upgrade_preference` https://docs.microsoft.com/en-us/azure/app-service/environment/using#upgrade-preference
 
 type AppServiceEnvironmentV3Resource struct{}
 
@@ -128,6 +127,13 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 				string(appserviceenvironments.LoadBalancingModeNone),
 				string(appserviceenvironments.LoadBalancingModeWebPublishing),
 			}, false),
+		},
+
+		"upgrade_preference": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(appserviceenvironments.UpgradePreferenceNone),
+			ValidateFunc: validation.StringInSlice(appserviceenvironments.PossibleValuesForUpgradePreference(), false),
 		},
 
 		"remote_debugging_enabled": {
@@ -294,6 +300,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 					DedicatedHostCount:        pointer.To(model.DedicatedHostCount),
 					ClusterSettings:           expandClusterSettingsModel(model.ClusterSetting),
 					InternalLoadBalancingMode: pointer.To(appserviceenvironments.LoadBalancingMode(model.InternalLoadBalancingMode)),
+					UpgradePreference:         pointer.To(appserviceenvironments.UpgradePreference(model.UpgradePreference)),
 					VirtualNetwork: appserviceenvironments.VirtualNetworkProfile{
 						Id: model.SubnetId,
 					},
@@ -372,6 +379,7 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.SubnetId = props.VirtualNetwork.Id
 					state.InternalLoadBalancingMode = string(pointer.From(props.InternalLoadBalancingMode))
+					state.UpgradePreference = string(pointer.From(props.UpgradePreference))
 					state.DedicatedHostCount = pointer.From(props.DedicatedHostCount)
 					state.PricingTier = pointer.From(props.MultiSize)
 					state.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)
@@ -469,6 +477,10 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("cluster_setting") {
 				model.Properties.ClusterSettings = expandClusterSettingsModel(state.ClusterSetting)
+			}
+
+			if metadata.ResourceData.HasChange("upgrade_preference") {
+				model.Properties.UpgradePreference = pointer.To(appserviceenvironments.UpgradePreference(state.UpgradePreference))
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
