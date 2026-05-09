@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	metricsobjectfirewall "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/metricsobjectfirewallresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -44,12 +45,7 @@ func (r NextGenerationFirewallMetricsResource) ModelObject() interface{} {
 
 func (r NextGenerationFirewallMetricsResource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
-		"firewall_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: firewalls.ValidateFirewallID,
-		},
+		"firewall_id": commonschema.ResourceIDReferenceRequiredForceNew(&firewalls.FirewallId{}),
 
 		"application_insights_connection_string": {
 			Type:         pluginsdk.TypeString,
@@ -111,10 +107,10 @@ func (r NextGenerationFirewallMetricsResource) Create() sdk.ResourceFunc {
 			}
 
 			if err = client.MetricsObjectFirewallCreateOrUpdateThenPoll(ctx, metricsFirewallId, input); err != nil {
-				return fmt.Errorf("creating Metrics for %s: %+v", metricsFirewallId, err)
+				return fmt.Errorf("creating %s: %+v", metricsFirewallId, err)
 			}
 
-			metadata.SetID(firewallId)
+			metadata.SetID(metricsFirewallId)
 
 			return nil
 		},
@@ -199,7 +195,7 @@ func (r NextGenerationFirewallMetricsResource) Update() sdk.ResourceFunc {
 			}
 
 			if err = client.MetricsObjectFirewallCreateOrUpdateThenPoll(ctx, metricsFirewallId, update); err != nil {
-				return fmt.Errorf("updating Metrics for %s: %+v", metricsFirewallId, err)
+				return fmt.Errorf("updating %s: %+v", metricsFirewallId, err)
 			}
 
 			return nil
@@ -221,7 +217,7 @@ func (r NextGenerationFirewallMetricsResource) Delete() sdk.ResourceFunc {
 			metricsFirewallId := metricsobjectfirewall.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
 
 			if err = client.MetricsObjectFirewallDeleteThenPoll(ctx, metricsFirewallId); err != nil {
-				return fmt.Errorf("deleting Metrics for %s: %+v", metricsFirewallId, err)
+				return fmt.Errorf("deleting %s: %+v", metricsFirewallId, err)
 			}
 
 			return nil
