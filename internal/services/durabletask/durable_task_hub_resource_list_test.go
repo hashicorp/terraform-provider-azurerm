@@ -12,8 +12,9 @@ import (
 
 func TestAccDurableTaskHubList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_task_hub", "test")
+	r := TaskHubResource{}
 
-	data.ResourceTest(t, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: taskHubListTestConfig_basic(data),
 		},

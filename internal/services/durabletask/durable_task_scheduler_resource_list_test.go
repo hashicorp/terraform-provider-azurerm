@@ -12,8 +12,9 @@ import (
 
 func TestAccDurableTaskSchedulerList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
+	r := SchedulerResource{}
 
-	data.ResourceTest(t, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: schedulerListTestConfig_basic(data),
 		},
