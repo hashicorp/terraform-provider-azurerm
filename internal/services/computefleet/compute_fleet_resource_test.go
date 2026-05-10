@@ -310,7 +310,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   spot_capacity {
-    allocation_strategy       = "PriceCapacityOptimized"
+    allocation_strategy       = "CapacityOptimized"
     eviction_policy           = "Delete"
     max_hourly_price_per_vm   = -1
     minimum_capacity          = 0
@@ -437,7 +437,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   spot_capacity {
-    allocation_strategy       = "PriceCapacityOptimized"
+    allocation_strategy       = "CapacityOptimized"
     eviction_policy           = "Delete"
     max_hourly_price_per_vm   = -1
     minimum_capacity          = 0

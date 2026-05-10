@@ -173,6 +173,7 @@ resource "azurerm_compute_fleet" "test" {
         public_ip_address {
           name                    = "nic-pip-second"
           idle_timeout_in_minutes = 15
+          public_ip_prefix_id     = azurerm_public_ip_prefix.test.id
         }
       }
     }
@@ -250,6 +251,13 @@ resource "azurerm_subnet" "gwtest" {
       actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctest-pipprefix-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  prefix_length       = 31
 }
 
 resource "azurerm_public_ip" "gwtest" {

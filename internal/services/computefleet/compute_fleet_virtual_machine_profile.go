@@ -21,9 +21,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/computefleet/validate"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -97,7 +100,7 @@ func extensionSchema() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^[^_\W][\w-._]{0,78}[\W]$|^[^_\W]$`),
+						regexp.MustCompile(`^[^_\W][\w.-]{0,78}[\w]$|^[^_\W]$`),
 						"`name` can be up to 80 characters long. It must begin with a word character, and it must end with a word character or with `_`. `name` may contain word characters or `.`, `-`, `_`."),
 				},
 
@@ -212,8 +215,8 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^[^_\W][\w-._]{0,78}[\W]$|^[^_\W]$`),
-						"`name` can be up to 80 characters long. It must begin with a word character, and it must end with a word character or with `_`. `name` may contain word characters or `.`, `-`, `_`."),
+						regexp.MustCompile(`^[^_\W][\w.-]{0,69}[\w]$|^[^_\W]$`),
+						"`name` can be up to 71 characters long. It must begin with a word character, and it must end with a word character or with `_`. `name` may contain word characters or `.`, `-`, `_`."),
 				},
 
 				"ip_configuration": ipConfigurationSchema(),
@@ -290,6 +293,7 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		ForceNew: true,
+		MaxItems: 256,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -297,7 +301,7 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^[^_\W][\w-._]{0,78}[\W]$|^[^_\W]$`),
+						regexp.MustCompile(`^[^_\W][\w.-]{0,78}[\w]$|^[^_\W]$`),
 						"`name` can be up to 80 characters long. It must begin with a word character, and it must end with a word character or with `_`. `name` may contain word characters or `.`, `-`, `_`."),
 				},
 
@@ -312,8 +316,11 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
 					ForceNew: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					Set:      pluginsdk.HashString,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: networkParse.ValidateApplicationGatewayBackendAddressPoolID,
+					},
+					Set: pluginsdk.HashString,
 				},
 
 				"application_security_group_ids": {
@@ -332,8 +339,11 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
 					ForceNew: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					Set:      pluginsdk.HashString,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
+					},
+					Set: pluginsdk.HashString,
 				},
 
 				"primary_ip_configuration_enabled": {
@@ -369,7 +379,7 @@ func publicIPAddressSchema() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^[^_\W][\w-._]{0,70}$`),
+						regexp.MustCompile(`^[^_\W][\w.-]{0,70}$`),
 						"`name` can be up to 71 characters long. It must begin with a word character. `name` may contain word characters or `.`, `-`, `_`."),
 				},
 
@@ -606,12 +616,11 @@ func osProfileSchema() *pluginsdk.Schema {
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
 										"xml": {
-											Type:      pluginsdk.TypeString,
-											Required:  true,
-											ForceNew:  true,
-											Sensitive: true,
-											// Are there functions to validate this is well formed XML?
-											ValidateFunc: validation.StringIsNotEmpty,
+											Type:         pluginsdk.TypeString,
+											Required:     true,
+											ForceNew:     true,
+											Sensitive:    true,
+											ValidateFunc: validate.Xml,
 										},
 										"setting": {
 											Type:         pluginsdk.TypeString,
@@ -726,6 +735,7 @@ func osProfileSchema() *pluginsdk.Schema {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
 								ForceNew: true,
+								MaxItems: 2,
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
 										"protocol": {
@@ -756,6 +766,7 @@ func storageProfileDataDiskSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		ForceNew: true,
+		MaxItems: 10,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"create_option": {
@@ -1311,6 +1322,9 @@ func (r ComputeFleetResource) expandPublicIPAddressModel(inputList []PublicIPAdd
 	if input.IdleTimeoutInMinutes > 0 {
 		output.Properties.IdleTimeoutInMinutes = pointer.To(input.IdleTimeoutInMinutes)
 	}
+	if input.PublicIPPrefix != "" {
+		output.Properties.PublicIPPrefix = r.expandSubResource(input.PublicIPPrefix)
+	}
 	if input.DeleteOption != "" {
 		output.Properties.DeleteOption = pointer.ToEnum[fleets.DeleteOptions](input.DeleteOption)
 	}
@@ -1524,6 +1538,16 @@ func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.Re
 
 			if hotPatchingEnabled {
 				return errors.New("`hot_patching_enabled` field is not supported unless you are using one of the following hot patching enable images, `2022-datacenter-azure-edition-core`, `2022-datacenter-azure-edition-core-smalldisk`, `2022-datacenter-azure-edition-hotpatch`, `2022-datacenter-azure-edition-hotpatch-smalldisk`, `2025-datacenter-azure-edition`, `2025-datacenter-azure-edition-smalldisk`, `2025-datacenter-azure-edition-core` or `2025-datacenter-azure-edition-core-smalldisk`")
+			}
+		}
+
+		if len(v[0].WinRM) == 2 && v[0].WinRM[0].Protocol == v[0].WinRM[1].Protocol {
+			return errors.New("`virtual_machine_profile.0.os_profile.0.windows_configuration.0.win_rm` cannot contain elements with same `protocol`")
+		}
+
+		for _, winRm := range v[0].WinRM {
+			if winRm.Protocol == string(fleets.ProtocolTypesHTTP) && winRm.CertificateUrl != "" {
+				return errors.New("`virtual_machine_profile.0.os_profile.0.windows_configuration.0.win_rm.#.certificate_url` cannot be set when `virtual_machine_profile.0.os_profile.0.windows_configuration.0.win_rm.#.protocol` is set to `HTTP`")
 			}
 		}
 	}
@@ -2447,6 +2471,11 @@ func (r ComputeFleetResource) flattenPublicIPAddressModel(input *fleets.VirtualM
 			output.DomainNameLabelScope = string(pointer.From(v.DomainNameLabelScope))
 		}
 		output.IdleTimeoutInMinutes = pointer.From(props.IdleTimeoutInMinutes)
+
+		if publicIpPrefix := props.PublicIPPrefix; publicIpPrefix != nil {
+			output.PublicIPPrefix = pointer.From(publicIpPrefix.Id)
+		}
+
 		output.Version = string(pointer.From(props.PublicIPAddressVersion))
 	}
 	return append(outputList, output)

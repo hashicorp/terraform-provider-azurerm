@@ -914,6 +914,10 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 						return errors.New("`spot_capacity.0.minimum_capacity` is unable to be specified if `spot_capacity.0.maintain_capacity_enabled` is enabled")
 					}
 
+					if state.SpotCapacity[0].EvictionPolicy != string(fleets.EvictionPolicyDelete) {
+						return errors.New("`spot_capacity.0.eviction_policy` must be `Delete` if `spot_capacity.0.maintain_capacity_enabled` is enabled")
+					}
+
 					if len(state.VMSizesProfile) < 3 {
 						return errors.New("`vm_sizes_profile` must be at least 3 Vm sizes if `spot_capacity.0.maintain_capacity_enabled` is enabled")
 					}
@@ -1039,6 +1043,12 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 			err = validateLinuxSetting(state.VirtualMachineProfile, metadata.ResourceDiff)
 			if err != nil {
 				return err
+			}
+
+			for i, galleryApplicationProfile := range state.VirtualMachineProfile[0].GalleryApplicationProfile {
+				if galleryApplicationProfile.AutomaticUpgradeEnabled && galleryApplicationProfile.ConfigurationBlobUri != "" {
+					return fmt.Errorf("When `virtual_machine_profile.0.gallery_application_profile.%d.automatic_upgrade_enabled` is enabled, `virtual_machine_profile.0.gallery_application_profile.%d.configuration_blob_uri` cannot be specified", i, i)
+				}
 			}
 
 			for _, v := range state.VirtualMachineProfile[0].Extension {
