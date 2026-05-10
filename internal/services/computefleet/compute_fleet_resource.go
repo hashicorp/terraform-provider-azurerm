@@ -1047,7 +1047,7 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 
 			for i, galleryApplicationProfile := range state.VirtualMachineProfile[0].GalleryApplicationProfile {
 				if galleryApplicationProfile.AutomaticUpgradeEnabled && galleryApplicationProfile.ConfigurationBlobUri != "" {
-					return fmt.Errorf("When `virtual_machine_profile.0.gallery_application_profile.%d.automatic_upgrade_enabled` is enabled, `virtual_machine_profile.0.gallery_application_profile.%d.configuration_blob_uri` cannot be specified", i, i)
+					return fmt.Errorf("when `virtual_machine_profile.0.gallery_application_profile.%d.automatic_upgrade_enabled` is enabled, `virtual_machine_profile.0.gallery_application_profile.%d.configuration_blob_uri` cannot be specified", i, i)
 				}
 			}
 
