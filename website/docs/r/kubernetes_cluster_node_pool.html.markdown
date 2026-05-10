@@ -92,7 +92,9 @@ The following arguments are supported:
 
 * `linux_os_config` - (Optional) A `linux_os_config` block as defined below. Changing this requires specifying `temporary_name_for_rotation`.
 
-* `local_dns_profile` - (Optional) A `local_dns_profile` block as defined below. Configures the LocalDNS feature which deploys a DNS proxy on each node for low-latency DNS resolution.
+* `local_dns_profile` - (Optional) A `local_dns_profile` block as defined below.
+
+~> **Note:** LocalDNS feature deploys a proxy on each node for low-latency DNS resolution. Learn more: [aka.ms/aks/localdns](https://aka.ms/aks/localdns).
 
 * `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this property requires specifying `temporary_name_for_rotation`.
 
