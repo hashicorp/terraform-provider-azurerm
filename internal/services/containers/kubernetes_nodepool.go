@@ -701,6 +701,10 @@ func schemaLocalDNSOverride() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
+		Set: func(v interface{}) int {
+			raw := v.(map[string]interface{})
+			return pluginsdk.HashStringInsensitively(raw["domain"].(string))
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"domain": {
