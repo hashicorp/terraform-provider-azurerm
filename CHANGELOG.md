@@ -11,6 +11,10 @@ ENHANCEMENTS:
 * `azurerm_container_app_job` - add support for `identity_id` property to `scaling.rules` ([#31312](https://github.com/hashicorp/terraform-provider-azurerm/issues/31312))
 * `azurerm_databricks_workspace` - add support for the values `FEDRAMP_MODERATE`, `IRAP_PROTECTED`, `FEDRAMP_HIGH`, `FEDRAMP_IL5`, `ITAR_EAR`, `CYBER_ESSENTIAL_PLUS`, `CANADA_PROTECTED_B`, `ISMAP`, `HITRUST`, `K_FSI`, `GERMANY_C5`, and `GERMANY_TISAX` in the `compliance_security_profile_standards` property ([#32163](https://github.com/hashicorp/terraform-provider-azurerm/issues/32163))
 
+BUG FIXES:
+
+* `azurerm_security_center_automation` - fixed an eventual consistency issue where the resource could fail with `Root object was present, but now absent` immediately after creation ([#32105](https://github.com/hashicorp/terraform-provider-azurerm/issues/32105))
+
 ## 4.72.0 (May 08, 2026)
 
 FEATURES:
