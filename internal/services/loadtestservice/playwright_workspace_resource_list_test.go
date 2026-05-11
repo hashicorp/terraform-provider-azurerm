@@ -59,7 +59,7 @@ resource "azurerm_playwright_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomIntOfLength(8))
 }
 
 func (PlaywrightWorkspaceResource) basicQuery() string {
