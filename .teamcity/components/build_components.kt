@@ -33,7 +33,7 @@ fun BuildFeatures.BuildCacheFeature() {
 fun BuildSteps.ConfigureGoEnv() {
     step(ScriptBuildStep {
         name = "Configure Go Version"
-        scriptContent = "goenv install -s \$(goenv local) && goenv rehash"
+        scriptContent = "cd $(goenv root) && git pull && cd - && goenv install -s \$(goenv local) && goenv rehash"
     })
 }
 
