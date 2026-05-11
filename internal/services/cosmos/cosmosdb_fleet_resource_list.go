@@ -80,12 +80,12 @@ func (CosmosDbFleetListResource) List(ctx context.Context, request list.ListRequ
 			rmd := sdk.NewResourceMetaData(metadata.Client, r)
 			rmd.SetID(id)
 
-			if err := r.flatten(rmd, id, pointer.To(cosmosDbFleetResult)); err != nil {
+			if err := r.flatten(rmd, id, &cosmosDbFleetResult); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rmd.ResourceData, pointer.To(result))
+			sdk.EncodeListResult(ctx, rmd.ResourceData, &result)
 			if result.Diagnostics.HasError() {
 				push(result)
 				return
