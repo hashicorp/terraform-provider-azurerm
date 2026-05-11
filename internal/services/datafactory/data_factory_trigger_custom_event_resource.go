@@ -4,6 +4,7 @@
 package datafactory
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -206,6 +207,10 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if d.Get("activated").(bool) {
+		if err := waitForEventSubscriptionEnabled(ctx, d, client, id); err != nil {
+			return err
+		}
+
 		future, err := client.Start(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 		if err != nil {
 			return fmt.Errorf("starting %s: %+v", id, err)
@@ -292,5 +297,26 @@ func resourceDataFactoryTriggerCustomEventDelete(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
+	return nil
+}
+
+func waitForEventSubscriptionEnabled(ctx context.Context, d *pluginsdk.ResourceData, client *datafactory.TriggersClient, id parse.TriggerId) error {
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(datafactory.EventSubscriptionStatusProvisioning), string(datafactory.EventSubscriptionStatusUnknown)},
+		Target:     []string{string(datafactory.EventSubscriptionStatusEnabled)},
+		MinTimeout: 10 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.GetEventSubscriptionStatus(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+			if err != nil {
+				return nil, "", fmt.Errorf("polling event subscription status for %s: %+v", id, err)
+			}
+			return resp, string(resp.Status), nil
+		},
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for event subscription of %s to become enabled: %+v", id, err)
+	}
 	return nil
 }
