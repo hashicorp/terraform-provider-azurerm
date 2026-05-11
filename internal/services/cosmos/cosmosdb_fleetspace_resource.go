@@ -303,7 +303,7 @@ func (r CosmosDbFleetspaceResource) expandFleetspaceThroughputPoolConfiguration(
 	return throughputPoolConfiguration
 }
 
-func flattenFleetspaceThroughputPoolConfiguration(input *fleets.FleetspacePropertiesThroughputPoolConfiguration) (int64, int64) {
+func (CosmosDbFleetspaceResource) flattenFleetspaceThroughputPoolConfiguration(input *fleets.FleetspacePropertiesThroughputPoolConfiguration) (int64, int64) {
 	if input == nil {
 		return 0, 0
 	}
