@@ -105,7 +105,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
   health_probe_id = azurerm_lb_probe.example.id
 
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_D4_v5"
     tier     = "Standard"
     capacity = 2
   }
@@ -211,7 +211,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
   upgrade_policy_mode = "Manual"
 
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_D4_v5"
     tier     = "Standard"
     capacity = 2
   }

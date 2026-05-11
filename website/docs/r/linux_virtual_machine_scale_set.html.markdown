@@ -54,7 +54,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   name                = "example-vmss"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku                 = "Standard_F2"
+  sku                 = "Standard_D4_v5"
   instances           = 1
   admin_username      = "adminuser"
 
@@ -102,7 +102,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **Note:** If you are using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) to ignore changes to this field.
 
-* `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_F2`.
+* `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_D4_v5`.
 
 * `network_interface` - (Required) One or more `network_interface` blocks as defined below.
 
