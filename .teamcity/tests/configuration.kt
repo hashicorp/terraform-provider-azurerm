@@ -51,43 +51,53 @@ class ConfigurationTests {
         assertTrue("The Build Configuration should have a Trigger", exists)
     }
 
-
-     @Test
-        fun buildShouldFailOnErrorBetaVersion() {
-            val project = AzureRMBetaVersion("public", TestConfiguration())
-            project.buildTypes.forEach { bt ->
-                assertTrue("Build '${bt.id}' should fail on errors!", bt.failureConditions.errorMessage)
-            }
+    @Test
+    fun buildShouldFailOnErrorBetaVersion() {
+        val project = AzureRMBetaVersion("public", TestConfiguration())
+        project.buildTypes.forEach { bt ->
+            assertTrue("Build '${bt.id}' should fail on errors!", bt.failureConditions.errorMessage)
         }
+    }
 
-        @Test
-        fun buildShouldHaveGoTestFeatureBetaVersion() {
-            val project = AzureRMBetaVersion("public", TestConfiguration())
-            project.buildTypes.forEach{ bt ->
-                var exists = false
-                bt.features.items.forEach { f ->
-                    if (f.type == "golang") {
-                        exists = true
-                    }
-                }
-
-                if (useTeamCityGoTest) {
-                    assertTrue("Build %s doesn't have Go Test Json enabled".format(bt.name), exists)
-                }
-            }
-        }
-
-        @Test
-        fun buildShouldHaveTriggerBetaVersion() {
-            val project = AzureRMBetaVersion("public", TestConfiguration())
+    @Test
+    fun buildShouldHaveGoTestFeatureBetaVersion() {
+        val project = AzureRMBetaVersion("public", TestConfiguration())
+        project.buildTypes.forEach{ bt ->
             var exists = false
-            project.buildTypes.forEach{ bt ->
-                bt.triggers.items.forEach { t ->
-                    if (t.type == "schedulingTrigger") {
-                        exists = true
-                    }
+            bt.features.items.forEach { f ->
+                if (f.type == "golang") {
+                    exists = true
                 }
             }
-            assertTrue("The Build Configuration should have a Trigger", exists)
+            if (useTeamCityGoTest) {
+                assertTrue("Build %s doesn't have Go Test Json enabled".format(bt.name), exists)
+            }
         }
+    }
+
+    @Test
+    fun buildShouldHaveTriggerBetaVersion() {
+        val project = AzureRMBetaVersion("public", TestConfiguration())
+        var exists = false
+        project.buildTypes.forEach{ bt ->
+            bt.triggers.items.forEach { t ->
+                if (t.type == "schedulingTrigger") {
+                    exists = true
+                }
+            }
+        }
+        assertTrue("The Build Configuration should have a Trigger", exists)
+    }
+
+    @Test
+    fun betaVersionBuildsShouldSetFivePointZeroFlag() {
+        val project = AzureRMBetaVersion("public", TestConfiguration())
+        project.buildTypes.forEach { bt ->
+            val betaFlag = bt.params.findRawParam("env.ARM_FIVEPOINTZERO_BETA")?.value
+            assertTrue(
+                "Build '${bt.id}' should set env.ARM_FIVEPOINTZERO_BETA to true, but was '$betaFlag'",
+                betaFlag == "true"
+            )
+        }
+    }
 }
