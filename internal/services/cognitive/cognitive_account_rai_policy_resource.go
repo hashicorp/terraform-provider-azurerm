@@ -78,23 +78,23 @@ func (r CognitiveAccountRaiPolicyResource) Arguments() map[string]*pluginsdk.Sch
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"filter_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
 					"block_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
-					"severity_threshold": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(raipolicies.PossibleValuesForContentLevel(), false),
+					"filter_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
 					},
 					"source": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(raipolicies.PossibleValuesForRaiPolicyContentSource(), false),
+					},
+					"severity_threshold": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(raipolicies.PossibleValuesForContentLevel(), false),
 					},
 				},
 			},
@@ -311,13 +311,18 @@ func expandRaiPolicyContentFilters(filters []AccountRaiPolicyContentFilter) *[]r
 
 	contentFilters := make([]raipolicies.RaiPolicyContentFilter, 0, len(filters))
 	for _, filter := range filters {
-		contentFilters = append(contentFilters, raipolicies.RaiPolicyContentFilter{
-			Name:              pointer.To(filter.Name),
-			Enabled:           pointer.To(filter.FilterEnabled),
-			Blocking:          pointer.To(filter.BlockEnabled),
-			SeverityThreshold: pointer.To(raipolicies.ContentLevel(filter.SeverityThreshold)),
-			Source:            pointer.To(raipolicies.RaiPolicyContentSource(filter.Source)),
-		})
+		f := raipolicies.RaiPolicyContentFilter{
+			Name:     pointer.To(filter.Name),
+			Enabled:  pointer.To(filter.FilterEnabled),
+			Blocking: pointer.To(filter.BlockEnabled),
+			Source:   pointer.To(raipolicies.RaiPolicyContentSource(filter.Source)),
+		}
+
+		if filter.SeverityThreshold != "" {
+			f.SeverityThreshold = pointer.To(raipolicies.ContentLevel(filter.SeverityThreshold))
+		}
+
+		contentFilters = append(contentFilters, f)
 	}
 	return &contentFilters
 }

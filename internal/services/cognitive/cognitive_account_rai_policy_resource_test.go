@@ -81,6 +81,21 @@ func TestCognitiveAccountRaiPolicy_update(t *testing.T) {
 	})
 }
 
+func TestCognitiveAccountRaiPolicy_withoutSeverityThreshold(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_policy", "test")
+	r := RaiPolicyTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutSeverityThreshold(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r RaiPolicyTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := raipolicies.ParseRaiPolicyID(state.ID)
 	if err != nil {
@@ -187,4 +202,46 @@ resource "azurerm_cognitive_account_rai_policy" "import" {
   }
 }
 `, template)
+}
+
+func (r RaiPolicyTestResource) withoutSeverityThreshold(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%d"
+  location = "%s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "OpenAI"
+  sku_name            = "S0"
+}
+
+resource "azurerm_cognitive_account_rai_policy" "test" {
+  name                 = "acctestraip-%s"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  base_policy_name     = "Microsoft.Default"
+
+  content_filter {
+    name           = "Jailbreak"
+    filter_enabled = true
+    block_enabled  = true
+    source         = "Prompt"
+  }
+
+  content_filter {
+    name               = "Hate"
+    filter_enabled     = true
+    block_enabled      = true
+    severity_threshold = "High"
+    source             = "Prompt"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
