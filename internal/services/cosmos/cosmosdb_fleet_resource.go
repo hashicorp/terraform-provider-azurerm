@@ -130,21 +130,7 @@ func (r CosmosDbFleetResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := CosmosDbFleetModel{
-				Name:              id.FleetName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				state.Location = location.NormalizeNilable(&model.Location)
-				state.Tags = pointer.From(model.Tags)
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
@@ -174,4 +160,22 @@ func (CosmosDbFleetResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (CosmosDbFleetResource) Identity() resourceids.ResourceId {
 	return &fleets.FleetId{}
+}
+
+func (CosmosDbFleetResource) flatten(metadata sdk.ResourceMetaData, id *fleets.FleetId, model *fleets.FleetResource) error {
+	state := CosmosDbFleetModel{
+		Name:              id.FleetName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.NormalizeNilable(&model.Location)
+		state.Tags = pointer.From(model.Tags)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
