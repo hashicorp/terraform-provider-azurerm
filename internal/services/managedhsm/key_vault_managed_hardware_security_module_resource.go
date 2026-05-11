@@ -19,7 +19,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedmanagedhsms"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -423,12 +424,12 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 	// the polling operation of purge can not terminate correctly, so we use the custom polling operation of polling delete
 	// try to purge again if managed HSM still exists after 1 minute
 	// for API issue: https://github.com/Azure/azure-rest-api-specs/issues/27138
-	purgeId := managedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
-	if _, err := client.ManagedHsmClient.PurgeDeleted(ctx, purgeId); err != nil {
+	purgeId := deletedmanagedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
+	if _, err := client.DeletedManagedHsmClient.ManagedHsmsPurgeDeleted(ctx, purgeId); err != nil {
 		return fmt.Errorf("purging %s: %+v", id, err)
 	}
 
-	purgePoller := custompollers.NewHSMPurgePoller(client.ManagedHsmClient, purgeId)
+	purgePoller := custompollers.NewHSMPurgePoller(client.DeletedManagedHsmClient, purgeId)
 	poller := pollers.NewPoller(purgePoller, time.Second*30, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be purged: %+v", id, err)
