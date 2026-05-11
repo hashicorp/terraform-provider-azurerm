@@ -50,7 +50,7 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
         var runNightly = runNightly.getOrDefault(environment, false)
 
         var service = serviceDetails(serviceName, displayName, environment, config.vcsRootId)
-        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers)
+        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers, false)
 
         buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse, testConfig.useAltSubscription, testConfig.useDevTestSubscription)
 
@@ -70,8 +70,8 @@ fun buildConfigurationsForServicesBetaVersion(services: Map<String, String>, pro
         var locationsToUse = if (testConfig.locationOverride.primary != "") testConfig.locationOverride else locationsForEnv
         var runNightly = runNightly.getOrDefault(environment, false)
 
-        var service = betaVersion(serviceName, displayName, environment, config.vcsRootId)
-        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.weeklyTestDay, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers)
+        var service = serviceDetails(serviceName, displayName, environment, config.vcsRootId)
+        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.weeklyTestDay, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers, true)
 
         buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse, testConfig.useAltSubscription, testConfig.useDevTestSubscription, enableFivePointZeroBeta = true)
 
@@ -90,10 +90,7 @@ fun pullRequestBuildConfiguration(environment: String, config: ClientConfigurati
 }
 
 fun buildConfigurationForCache(environment: String, config: ClientConfiguration) : BuildType {
-    var locationsForEnv = locations.get(environment)!!
-    var buildConfiguration = buildCacheConfiguration(environment, config.vcsRootId).buildConfiguration(providerName)
-    buildConfiguration.params.ConfigureAzureSpecificTestParameters(environment, config, locationsForEnv)
-    return buildConfiguration
+    return buildCacheConfiguration(environment, config.vcsRootId).buildConfiguration(providerName)
 }
 
 class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, weeklyTestDay: String = defaultWeeklyDay, daysOfMonth: String = defaultDaysOfMonth, timeout: Int = defaultTimeout, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false), terraformCoreOverride: String = defaultTerraformCoreVersion, disableTriggers: Boolean = false) {

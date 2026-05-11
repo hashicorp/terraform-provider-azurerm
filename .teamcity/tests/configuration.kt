@@ -100,4 +100,20 @@ class ConfigurationTests {
             )
         }
     }
+
+    @Test
+    fun standardBuildsShouldNotSetFivePointZeroFlag() {
+        val project = AzureRM("public", TestConfiguration())
+        project.buildTypes.forEach { bt ->
+            // Skip cache builds as they don't need the ARM_FIVEPOINTZERO_BETA flag
+            if (bt.id.toString().contains("AZURERM_CACHE_PUBLIC")) {
+                return@forEach
+            }
+            val betaFlag = bt.params.findRawParam("env.ARM_FIVEPOINTZERO_BETA")?.value
+            assertTrue(
+                "Build '${bt.id}' should set env.ARM_FIVEPOINTZERO_BETA to false, but was '$betaFlag'",
+                betaFlag == "false"
+            )
+        }
+    }
 }
