@@ -114,9 +114,50 @@ jobs:
           PR_NUMBER=${{ github.event.issue.number }}
           COMMENT_BODY="${{ github.event.comment.body }}"
           PR_SHA="${{ steps.get-pr-sha.outputs.sha }}"
+
+          # Parse flags from comment
+          # Extract everything after /test
+          FLAGS_STRING=$(echo "$COMMENT_BODY" | sed 's|^/test[[:space:]]*||')
+
+          # Initialize default values
+          beta=false
+          service=""
+
+          # Parse flags using getopts
+          # Convert FLAGS_STRING to array for getopts
+          eval set -- $FLAGS_STRING
+
+          while getopts ":bs:" opt; do
+            case "$opt" in
+              b) beta=true ;;
+              s) service="$OPTARG" ;;
+              *)
+                echo "Usage: /test [-b] [-s service_name]"
+                echo "  -b: Test beta version"
+                echo "  -s: Specify service name"
+                exit 1
+                ;;
+            esac
+          done
+
           echo "Running tctest for PR #${PR_NUMBER}"
           echo "PR commit SHA: ${PR_SHA}"
-          tctest pr ${PR_NUMBER} -c --properties "TRACKING_ID=${PR_SHA}"
+          echo "Beta version: ${beta}"
+          echo "Service: ${service:-all}"
+
+          # Run tctest with parsed flags
+          if [ "$service" != "" ]; then
+            tctest pr ${PR_NUMBER} -c --service "$service" --properties "TRACKING_ID=${PR_SHA}"
+            if [ "$beta" = true ]; then
+              tctest pr ${PR_NUMBER} -c --service "$service" --buildtypeid TF_AzureRM_AZURERM_NEXT_RELEASE_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
+            fi
+          else
+            tctest pr ${PR_NUMBER} -c --properties "TRACKING_ID=${PR_SHA}"
+            if [ "$beta" = true ]; then
+              tctest pr ${PR_NUMBER} -c --buildtypeid TF_AzureRM_AZURERM_NEXT_RELEASE_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
+            fi
+          fi
+
       - name: Comment on success
         if: success()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
