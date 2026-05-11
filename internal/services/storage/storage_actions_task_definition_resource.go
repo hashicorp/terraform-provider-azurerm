@@ -62,6 +62,14 @@ type StorageActionsTaskDefinitionOperationModel struct {
 	Parameters map[string]string `tfschema:"parameters"`
 }
 
+func (r StorageActionsTaskDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return storagetasks.ValidateStorageTaskID
+}
+
+func (r StorageActionsTaskDefinitionResource) Identity() resourceids.ResourceId {
+	return &storagetasks.StorageTaskId{}
+}
+
 func (r StorageActionsTaskDefinitionResource) ModelObject() interface{} {
 	return &StorageActionsTaskDefinitionModel{}
 }
@@ -146,6 +154,7 @@ func storageActionsTaskDefinitionOperationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
+		MinItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -155,12 +164,12 @@ func storageActionsTaskDefinitionOperationSchema() *pluginsdk.Schema {
 				},
 				"on_failure": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringInSlice(storagetasks.PossibleValuesForOnFailure(), false),
 				},
 				"on_success": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringInSlice(storagetasks.PossibleValuesForOnSuccess(), false),
 				},
 				"parameters": {
@@ -226,71 +235,6 @@ func (r StorageActionsTaskDefinitionResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageActionsTaskDefinitionResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.StorageTasksClient
-
-			// parse the existing Resource ID from the State
-			id, err := storagetasks.ParseStorageTaskID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var model StorageActionsTaskDefinitionModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			// Retrieve the existing resource and patch it. We use Create (PUT)
-			// rather than Update (PATCH) because the PATCH model treats absent
-			// optional sub-fields (e.g. `action.else`) as "no change", which
-			// would prevent users from clearing them.
-			existing, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", *id)
-			}
-
-			payload := *existing.Model
-
-			if metadata.ResourceData.HasChange("description") {
-				payload.Properties.Description = model.Description
-			}
-
-			if metadata.ResourceData.HasChange("enabled") {
-				payload.Properties.Enabled = model.Enabled
-			}
-
-			if metadata.ResourceData.HasChange("action") {
-				payload.Properties.Action = expandStorageActionsTaskDefinitionAction(model.Action)
-			}
-
-			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
-				if err != nil {
-					return fmt.Errorf("expanding identity: %+v", err)
-				}
-				payload.Identity = pointer.From(expandedIdentity)
-			}
-
-			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = pointer.To(model.Tags)
-			}
-
-			if err := client.CreateThenPoll(ctx, *id, payload); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
-			}
-
-			return nil
-		},
-	}
-}
-
 func (r StorageActionsTaskDefinitionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -347,6 +291,67 @@ func (r StorageActionsTaskDefinitionResource) flatten(metadata sdk.ResourceMetaD
 	return metadata.Encode(&state)
 }
 
+func (r StorageActionsTaskDefinitionResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Storage.StorageTasksClient
+
+			// parse the existing Resource ID from the State
+			id, err := storagetasks.ParseStorageTaskID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model StorageActionsTaskDefinitionModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+
+			payload := *existing.Model
+
+			if metadata.ResourceData.HasChange("description") {
+				payload.Properties.Description = model.Description
+			}
+
+			if metadata.ResourceData.HasChange("enabled") {
+				payload.Properties.Enabled = model.Enabled
+			}
+
+			if metadata.ResourceData.HasChange("action") {
+				payload.Properties.Action = expandStorageActionsTaskDefinitionAction(model.Action)
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding identity: %+v", err)
+				}
+				payload.Identity = pointer.From(expandedIdentity)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = pointer.To(model.Tags)
+			}
+
+			if err := client.CreateThenPoll(ctx, *id, payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
 func (r StorageActionsTaskDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -365,14 +370,6 @@ func (r StorageActionsTaskDefinitionResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func (r StorageActionsTaskDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return storagetasks.ValidateStorageTaskID
-}
-
-func (r StorageActionsTaskDefinitionResource) Identity() resourceids.ResourceId {
-	return &storagetasks.StorageTaskId{}
 }
 
 func expandStorageActionsTaskDefinitionAction(input []StorageActionsTaskDefinitionActionModel) storagetasks.StorageTaskAction {
@@ -398,17 +395,9 @@ func expandStorageActionsTaskDefinitionOperations(input []StorageActionsTaskDefi
 	result := make([]storagetasks.StorageTaskOperation, 0, len(input))
 	for _, op := range input {
 		operation := storagetasks.StorageTaskOperation{
-			Name: storagetasks.StorageTaskOperationName(op.Name),
-		}
-
-		if op.OnFailure != "" {
-			onFailure := storagetasks.OnFailure(op.OnFailure)
-			operation.OnFailure = &onFailure
-		}
-
-		if op.OnSuccess != "" {
-			onSuccess := storagetasks.OnSuccess(op.OnSuccess)
-			operation.OnSuccess = &onSuccess
+			Name:      storagetasks.StorageTaskOperationName(op.Name),
+			OnFailure: pointer.ToEnum[storagetasks.OnFailure](op.OnFailure),
+			OnSuccess: pointer.ToEnum[storagetasks.OnSuccess](op.OnSuccess),
 		}
 
 		if len(op.Parameters) > 0 {

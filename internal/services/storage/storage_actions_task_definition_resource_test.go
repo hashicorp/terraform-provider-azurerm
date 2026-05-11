@@ -33,41 +33,6 @@ func TestAccStorageActionsTaskDefinition_basic(t *testing.T) {
 	})
 }
 
-func (r StorageActionsTaskDefinitionResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_actions_task_definition" "test" {
-  name                = "acctest%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  description         = "basic test"
-  enabled             = true
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  action {
-    if {
-      condition = "[[equals(AccessTier, 'Cool')]]"
-
-      operation {
-        name       = "SetBlobTier"
-        on_failure = "break"
-        on_success = "continue"
-
-        parameters = {
-          tier = "Hot"
-        }
-      }
-    }
-  }
-}
-`, template, data.RandomString)
-}
-
 func TestAccStorageActionsTaskDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task_definition", "test")
 	r := StorageActionsTaskDefinitionResource{}
@@ -82,40 +47,6 @@ func TestAccStorageActionsTaskDefinition_requiresImport(t *testing.T) {
 	})
 }
 
-func (r StorageActionsTaskDefinitionResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
-	return fmt.Sprintf(`
-%s
-resource "azurerm_storage_actions_task_definition" "import" {
-  name                = azurerm_storage_actions_task_definition.test.name
-  resource_group_name = azurerm_storage_actions_task_definition.test.resource_group_name
-  location            = azurerm_storage_actions_task_definition.test.location
-  description         = azurerm_storage_actions_task_definition.test.description
-  enabled             = azurerm_storage_actions_task_definition.test.enabled
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  action {
-    if {
-      condition = "[[equals(AccessTier, 'Cool')]]"
-
-      operation {
-        name       = "SetBlobTier"
-        on_failure = "break"
-        on_success = "continue"
-
-        parameters = {
-          tier = "Hot"
-        }
-      }
-    }
-  }
-}
-`, config)
-}
-
 func TestAccStorageActionsTaskDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task_definition", "test")
 	r := StorageActionsTaskDefinitionResource{}
@@ -128,64 +59,6 @@ func TestAccStorageActionsTaskDefinition_complete(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-}
-
-func (r StorageActionsTaskDefinitionResource) complete(data acceptance.TestData) string {
-	config := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_actions_task_definition" "test" {
-  name                = "acctest%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  description         = "complete test"
-  enabled             = true
-
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
-  }
-
-  action {
-    if {
-      condition = "[[equals(AccessTier, 'Cool')]]"
-
-      operation {
-        name       = "SetBlobTier"
-        on_failure = "break"
-        on_success = "continue"
-
-        parameters = {
-          tier = "Hot"
-        }
-      }
-
-      operation {
-        name       = "SetBlobTags"
-        on_failure = "break"
-        on_success = "continue"
-
-        parameters = {
-          processed = "true"
-        }
-      }
-    }
-
-    else {
-      operation {
-        name       = "DeleteBlob"
-        on_failure = "break"
-        on_success = "continue"
-      }
-    }
-  }
-
-  tags = {
-    environment = "test"
-  }
-}
-`, config, data.RandomString)
 }
 
 func TestAccStorageActionsTaskDefinition_update(t *testing.T) {
@@ -231,6 +104,133 @@ func (r StorageActionsTaskDefinitionResource) Exists(ctx context.Context, client
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
+}
+
+func (r StorageActionsTaskDefinitionResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_actions_task_definition" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  description         = "basic test"
+  enabled             = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  action {
+    if {
+      condition = "[[endsWith(Name, '.docx')]]"
+
+      operation {
+        name       = "SetBlobTier"
+        on_failure = "break"
+        on_success = "continue"
+
+        parameters = {
+          tier = "Hot"
+        }
+      }
+    }
+  }
+}
+`, template, data.RandomString)
+}
+
+func (r StorageActionsTaskDefinitionResource) requiresImport(data acceptance.TestData) string {
+	config := r.basic(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_storage_actions_task_definition" "import" {
+  name                = azurerm_storage_actions_task_definition.test.name
+  resource_group_name = azurerm_storage_actions_task_definition.test.resource_group_name
+  location            = azurerm_storage_actions_task_definition.test.location
+  description         = azurerm_storage_actions_task_definition.test.description
+  enabled             = azurerm_storage_actions_task_definition.test.enabled
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  action {
+    if {
+      condition = "[[endsWith(Name, '.docx')]]"
+
+      operation {
+        name       = "SetBlobTier"
+        on_failure = "break"
+        on_success = "continue"
+
+        parameters = {
+          tier = "Hot"
+        }
+      }
+    }
+  }
+}
+`, config)
+}
+
+func (r StorageActionsTaskDefinitionResource) complete(data acceptance.TestData) string {
+	config := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_actions_task_definition" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  description         = "complete test"
+  enabled             = false
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  action {
+    if {
+      condition = "[[and(equals(AccessTier, 'Cool'), greater(Content-Length, '100'))]]"
+
+      operation {
+        name       = "SetBlobTier"
+        on_failure = "break"
+        on_success = "continue"
+
+        parameters = {
+          tier = "Hot"
+        }
+      }
+
+      operation {
+        name       = "SetBlobTags"
+        on_failure = "break"
+        on_success = "continue"
+
+        parameters = {
+          processed = "true"
+        }
+      }
+    }
+
+    else {
+      operation {
+        name       = "DeleteBlob"
+        on_failure = "break"
+        on_success = "continue"
+      }
+    }
+  }
+
+  tags = {
+    environment = "test"
+  }
+}
+`, config, data.RandomString)
 }
 
 func (r StorageActionsTaskDefinitionResource) template(data acceptance.TestData) string {
