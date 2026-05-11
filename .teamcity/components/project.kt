@@ -6,9 +6,6 @@ var enableTestTriggersGlobally = false
 
 fun AzureRM(environment: String, configuration : ClientConfiguration) : Project {
     return Project{
-        id("AzureRM")
-        name = "AzureRM"
-
         // @tombuildsstuff: this temporary flag enables/disables all triggers, allowing a migration between CI servers
         enableTestTriggersGlobally = configuration.enableTestTriggersGlobally
 
