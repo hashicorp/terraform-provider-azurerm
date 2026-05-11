@@ -1,6 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.*
 
-class nextRelease(name: String, displayName: String, environment: String, vcsRootId : String) {
+class betaVersion(name: String, displayName: String, environment: String, vcsRootId : String) {
     val packageName = name
     val displayName = displayName
     val environment = environment
@@ -45,7 +45,7 @@ class nextRelease(name: String, displayName: String, environment: String, vcsRoo
                 WorkingDirectory(packageName)
                 GoCache()
                 BuildStartTime()
-                SetForNextRelease()
+                SetForBetaVersion()
             }
 
             triggers {
@@ -55,6 +55,6 @@ class nextRelease(name: String, displayName: String, environment: String, vcsRoo
     }
 
     fun uniqueID(provider : String) : String {
-        return "%s_NEXT_RELEASE_SERVICE_%s_%s".format(provider.uppercase(), environment.uppercase(), packageName.uppercase())
+        return "%s_BETA_VERSION_SERVICE_%s_%s".format(provider.uppercase(), environment.uppercase(), packageName.uppercase())
     }
 }

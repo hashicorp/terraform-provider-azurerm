@@ -149,12 +149,12 @@ jobs:
           if [ "$service" != "" ]; then
             tctest pr ${PR_NUMBER} -c --service "$service" --properties "TRACKING_ID=${PR_SHA}"
             if [ "$beta" = true ]; then
-              tctest pr ${PR_NUMBER} -c --service "$service" --buildtypeid TF_AzureRM_AZURERM_NEXT_RELEASE_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
+              tctest pr ${PR_NUMBER} -c --service "$service" --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
             fi
           else
             tctest pr ${PR_NUMBER} -c --properties "TRACKING_ID=${PR_SHA}"
             if [ "$beta" = true ]; then
-              tctest pr ${PR_NUMBER} -c --buildtypeid TF_AzureRM_AZURERM_NEXT_RELEASE_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
+              tctest pr ${PR_NUMBER} -c --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
             fi
           fi
 

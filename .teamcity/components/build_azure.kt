@@ -12,7 +12,7 @@ class ClientConfiguration(var clientId: String,
                           val subscriptionIdAltTenant : String,
                           val principalIdAltTenant : String,
                           val vcsRootId : String,
-                          val runNextMajorRelease : String,
+                          val runBetaVersion : String,
                           val enableTestTriggersGlobally : Boolean,
                           val emailAddressAccTests : String,
                           val gitHubRepo : String,
@@ -45,7 +45,7 @@ fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: Strin
     hiddenVariable("env.ARM_TEST_LOCATION", locationsForEnv.primary, "The Primary region which should be used for testing")
     hiddenVariable("env.ARM_TEST_LOCATION_ALT", locationsForEnv.secondary, "The Secondary region which should be used for testing")
     hiddenVariable("env.ARM_TEST_LOCATION_ALT2", locationsForEnv.tertiary, "The Tertiary region which should be used for testing")
-    hiddenVariable("env.ARM_FIVEPOINTZERO_BETA", config.runNextMajorRelease, "Opt into the 5.0 beta")
+    hiddenVariable("env.ARM_FIVEPOINTZERO_BETA", config.runBetaVersion, "Opt into the 5.0 beta")
     hiddenVariable("env.ARM_TEST_ACC_EMAIL_ADDRESS", config.emailAddressAccTests, "email address for the Acceptance Tests User")
     hiddenPasswordVariable("env.GIT_PAT", config.gitPat, "Personal Access Token for GitHub")
     hiddenVariable("env.GITHUB_REPO", config.gitHubRepo, "GitHub Repository")

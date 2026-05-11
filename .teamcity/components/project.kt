@@ -22,7 +22,7 @@ fun AzureRM(environment: String, configuration : ClientConfiguration) : Project 
     }
 }
 
-fun AzureRMNextRelease(environment: String, configuration : ClientConfiguration) : Project {
+fun AzureRMBetaVersion(environment: String, configuration : ClientConfiguration) : Project {
     return Project{
         // @tombuildsstuff: this temporary flag enables/disables all triggers, allowing a migration between CI servers
         enableTestTriggersGlobally = configuration.enableTestTriggersGlobally
@@ -30,7 +30,7 @@ fun AzureRMNextRelease(environment: String, configuration : ClientConfiguration)
         var cacheBuildConfig = buildConfigurationForCache(environment, configuration)
         buildType(cacheBuildConfig)
 
-        var buildConfigs = buildConfigurationsForServicesNextRelease(services, providerName, environment, configuration)
+        var buildConfigs = buildConfigurationsForServicesBetaVersion(services, providerName, environment, configuration)
         buildConfigs.forEach { buildConfiguration ->
             buildType(buildConfiguration)
         }
@@ -58,7 +58,7 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
     return list
 }
 
-fun buildConfigurationsForServicesNextRelease(services: Map<String, String>, providerName : String, environment: String, config : ClientConfiguration): List<BuildType> {
+fun buildConfigurationsForServicesBetaVersion(services: Map<String, String>, providerName : String, environment: String, config : ClientConfiguration): List<BuildType> {
     var list = ArrayList<BuildType>()
     var locationsForEnv = locations[environment]!!
 
@@ -68,7 +68,7 @@ fun buildConfigurationsForServicesNextRelease(services: Map<String, String>, pro
         var locationsToUse = if (testConfig.locationOverride.primary != "") testConfig.locationOverride else locationsForEnv
         var runNightly = runNightly.getOrDefault(environment, false)
 
-        var service = nextRelease(serviceName, displayName, environment, config.vcsRootId)
+        var service = betaVersion(serviceName, displayName, environment, config.vcsRootId)
         var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.weeklyTestDay, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers)
 
         buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse,  testConfig.useAltSubscription, testConfig.useDevTestSubscription)

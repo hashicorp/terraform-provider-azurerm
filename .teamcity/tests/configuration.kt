@@ -6,7 +6,7 @@
 package tests
 
 import AzureRM
-import AzureRMNextRelease
+import AzureRMBetaVersion
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import useTeamCityGoTest
@@ -53,16 +53,16 @@ class ConfigurationTests {
 
 
      @Test
-        fun buildShouldFailOnErrorNextRelease() {
-            val project = AzureRMNextRelease("public", TestConfiguration())
+        fun buildShouldFailOnErrorBetaVersion() {
+            val project = AzureRMBetaVersion("public", TestConfiguration())
             project.buildTypes.forEach { bt ->
                 assertTrue("Build '${bt.id}' should fail on errors!", bt.failureConditions.errorMessage)
             }
         }
 
         @Test
-        fun buildShouldHaveGoTestFeatureNextRelease() {
-            val project = AzureRMNextRelease("public", TestConfiguration())
+        fun buildShouldHaveGoTestFeatureBetaVersion() {
+            val project = AzureRMBetaVersion("public", TestConfiguration())
             project.buildTypes.forEach{ bt ->
                 var exists = false
                 bt.features.items.forEach { f ->
@@ -78,8 +78,8 @@ class ConfigurationTests {
         }
 
         @Test
-        fun buildShouldHaveTriggerNextRelease() {
-            val project = AzureRMNextRelease("public", TestConfiguration())
+        fun buildShouldHaveTriggerBetaVersion() {
+            val project = AzureRMBetaVersion("public", TestConfiguration())
             var exists = false
             project.buildTypes.forEach{ bt ->
                 bt.triggers.items.forEach { t ->
