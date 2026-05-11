@@ -226,14 +226,11 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		"site_config": helpers.SiteConfigSchemaFunctionAppFlexConsumption(),
 
 		"site_update_strategy": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(webapps.SiteUpdateStrategyTypeRecreate),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.SiteUpdateStrategyTypeRecreate),
-				string(webapps.SiteUpdateStrategyTypeRollingUpdate),
-			}, false),
-			Description: "The update strategy to use when updating the site configuration. Possible values are `Recreate` and `RollingUpdate`. `RollingUpdate` will create a temporary deployment slot, apply the configuration changes to the slot, and then swap it with the production slot. This allows for zero downtime updates but may cause issues with certain configuration changes. The default is `Recreate` which applies the configuration changes directly to the production slot and may cause downtime.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(webapps.SiteUpdateStrategyTypeRecreate),
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSiteUpdateStrategyType(), false),
+			Description:  "The update strategy to use when updating the site configuration. Possible values are `Recreate` and `RollingUpdate`. `RollingUpdate` will create a temporary deployment slot, apply the configuration changes to the slot, and then swap it with the production slot. This allows for zero downtime updates but may cause issues with certain configuration changes. The default is `Recreate` which applies the configuration changes directly to the production slot and may cause downtime.",
 		},
 
 		"sticky_settings": helpers.StickySettingsSchema(),

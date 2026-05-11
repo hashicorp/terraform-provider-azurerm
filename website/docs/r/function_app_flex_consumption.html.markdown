@@ -668,15 +668,11 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Linux Web App Linux Function App use a 32-bit worker. Defaults to `false`.
 
-* `vnet_route_all_enabled` - (Optional) Should the Linux Function App route all traffic through the virtual network. Defaults to `false`.
-
-~> **Note:** In the `2023-12-01` API, `vnet_route_all_enabled` only controls application traffic. It is deprecated in favour of the `vnet_application_traffic_enabled` field in v5.0 provider.
-
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux Function App.
 
-* `site_update_strategy` - (Optional) The strategy used to apply site updates to the Function App. Possible Values includes `Recreate` and `RollingUpdate`. Defaults to `Recreate`
+* `site_update_strategy` - (Optional) The strategy used to apply site updates to the Function App. Possible Values are `Recreate` and `RollingUpdate`. Defaults to `Recreate`
 
 ---
 

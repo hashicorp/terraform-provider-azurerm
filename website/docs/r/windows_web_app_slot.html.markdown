@@ -770,10 +770,6 @@ A `site_config` block supports the following:
 
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
 
-* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
-
-~> **Note:** In the `2023-12-01` API, `vnet_route_all_enabled` only controls application traffic. It is deprecated in favour of the `vnet_application_traffic_enabled` field in v5.0 provider.
-
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Windows App Service Slot.

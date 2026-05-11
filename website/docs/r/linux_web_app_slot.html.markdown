@@ -754,10 +754,6 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker? Defaults to `true`.
 
-* `vnet_route_all_enabled` - (Optional) Should all outbound traffic have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
-
-~> **Note:** In the `2023-12-01` API, `vnet_route_all_enabled` only controls application traffic. It is deprecated in favour of the `vnet_application_traffic_enabled` field in v5.0 provider.
-
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled? Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux App Service Slot.

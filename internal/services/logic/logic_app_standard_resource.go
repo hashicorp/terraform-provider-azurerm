@@ -819,8 +819,12 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			vnetRoutingProps := &webapps.OutboundVnetRouting{}
+			if siteEnvelope.OutboundVnetRouting != nil {
+				vnetRoutingProps = siteEnvelope.OutboundVnetRouting
+			}
 			if metadata.ResourceData.HasChange("vnet_content_share_enabled") {
-				siteEnvelope.OutboundVnetRouting.ContentShareTraffic = pointer.To(data.VNETContentShareEnabled)
+				vnetRoutingProps.ContentShareTraffic = pointer.To(data.VNETContentShareEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
@@ -845,6 +849,7 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 				existing.Model.Identity = expandedIdentity
 			}
 
+			siteEnvelope.OutboundVnetRouting = vnetRoutingProps
 			existing.Model.Properties = pointer.To(siteEnvelope)
 
 			if metadata.ResourceData.HasChange("tags") {
