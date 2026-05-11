@@ -6,6 +6,7 @@ package storage_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -86,6 +87,28 @@ func TestAccStorageActionsTaskDefinition_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageActionsTaskDefinition_deleteWithOtherOperationsInIf(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task_definition", "test")
+	r := StorageActionsTaskDefinitionResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.deleteWithOtherOperationsInIf(data),
+			ExpectError: regexp.MustCompile("`DeleteBlob` operation cannot be combined with other operations"),
+		},
+	})
+}
+
+func TestAccStorageActionsTaskDefinition_deleteWithOtherOperationsInElse(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_actions_task_definition", "test")
+	r := StorageActionsTaskDefinitionResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.deleteWithOtherOperationsInElse(data),
+			ExpectError: regexp.MustCompile("`DeleteBlob` operation cannot be combined with other operations"),
+		},
 	})
 }
 
@@ -250,4 +273,104 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+// deleteWithOtherOperationsInIf produces an invalid configuration where a
+// `DeleteBlob` operation is combined with another operation in the same `if`
+// block. The Azure API rejects this with a `ValidationFailed` error.
+func (r StorageActionsTaskDefinitionResource) deleteWithOtherOperationsInIf(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_actions_task_definition" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  description         = "delete with other operations should fail"
+  enabled             = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  action {
+    if {
+      condition = "[[not(equals(BlobType, 'PageBlob'))]]"
+
+      operation {
+        name       = "DeleteBlob"
+        on_failure = "break"
+        on_success = "continue"
+      }
+
+      operation {
+        name       = "SetBlobTier"
+        on_failure = "break"
+        on_success = "continue"
+
+        parameters = {
+          tier = "Hot"
+        }
+      }
+    }
+  }
+}
+`, template, data.RandomString)
+}
+
+// deleteWithOtherOperationsInElse produces an invalid configuration where a
+// `DeleteBlob` operation is combined with another operation in the same `else`
+// block. The Azure API rejects this with a `ValidationFailed` error.
+func (r StorageActionsTaskDefinitionResource) deleteWithOtherOperationsInElse(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_actions_task_definition" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  description         = "delete with other operations should fail"
+  enabled             = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  action {
+    if {
+      condition = "[[less(LastAccessTime, '2024-01-01T00:00:00Z')]]"
+
+      operation {
+        name       = "SetBlobTier"
+        on_failure = "break"
+        on_success = "continue"
+
+        parameters = {
+          tier = "Hot"
+        }
+      }
+    }
+
+    else {
+      operation {
+        name       = "DeleteBlob"
+        on_failure = "break"
+        on_success = "continue"
+      }
+
+      operation {
+        name       = "SetBlobTags"
+        on_failure = "break"
+        on_success = "continue"
+
+        parameters = {
+          archived = "true"
+        }
+      }
+    }
+  }
+}
+`, template, data.RandomString)
 }

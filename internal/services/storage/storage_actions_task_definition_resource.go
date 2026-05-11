@@ -26,8 +26,9 @@ import (
 type StorageActionsTaskDefinitionResource struct{}
 
 var (
-	_ sdk.ResourceWithIdentity = StorageActionsTaskDefinitionResource{}
-	_ sdk.ResourceWithUpdate   = StorageActionsTaskDefinitionResource{}
+	_ sdk.ResourceWithIdentity      = StorageActionsTaskDefinitionResource{}
+	_ sdk.ResourceWithUpdate        = StorageActionsTaskDefinitionResource{}
+	_ sdk.ResourceWithCustomizeDiff = StorageActionsTaskDefinitionResource{}
 )
 
 type StorageActionsTaskDefinitionModel struct {
@@ -148,6 +149,48 @@ func (StorageActionsTaskDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 
 func (StorageActionsTaskDefinitionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r StorageActionsTaskDefinitionResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model StorageActionsTaskDefinitionModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if len(model.Action) == 0 || len(model.Action[0].If) == 0 {
+				return nil
+			}
+
+			if err := validateNoDeleteBlobWithOtherOperations(model.Action[0].If[0].Operation, "if"); err != nil {
+				return err
+			}
+
+			if len(model.Action[0].Else) > 0 {
+				if err := validateNoDeleteBlobWithOtherOperations(model.Action[0].Else[0].Operation, "else"); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func validateNoDeleteBlobWithOtherOperations(ops []StorageActionsTaskDefinitionOperationModel, blockName string) error {
+	if len(ops) <= 1 {
+		return nil
+	}
+
+	// A `DeleteBlob` operation must be the only operation within its `if` or `else` block.
+	for _, op := range ops {
+		if op.Name == string(storagetasks.StorageTaskOperationNameDeleteBlob) {
+			return fmt.Errorf("`action.0.%s.0.operation`: a `DeleteBlob` operation cannot be combined with other operations in the same block", blockName)
+		}
+	}
+	return nil
 }
 
 func storageActionsTaskDefinitionOperationSchema() *pluginsdk.Schema {
