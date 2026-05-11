@@ -207,8 +207,7 @@ func (a *webAppSetSlotDistributionAction) Invoke(ctx context.Context, request ac
 		Message: fmt.Sprintf("Assigning new Slot Distribution Rules for AppServiceId '%s'", model.AppServiceId),
 	})
 
-	_, err = client.UpdateConfiguration(ctx, *appId, *siteConfigEnvelope)
-	if err != nil {
+	if _, err := client.UpdateConfiguration(ctx, *appId, *siteConfigEnvelope); err != nil {
 		sdk.SetResponseErrorDiagnostic(response, fmt.Sprintf("error updating configuration for AppServiceId '%s'", model.AppServiceId), err)
 		return
 	}
