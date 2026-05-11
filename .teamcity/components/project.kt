@@ -52,7 +52,7 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
         var service = serviceDetails(serviceName, displayName, environment, config.vcsRootId)
         var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers)
 
-        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse,  testConfig.useAltSubscription, testConfig.useDevTestSubscription)
+        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse, testConfig.useAltSubscription, testConfig.useDevTestSubscription)
 
         list.add(buildConfig)
     }
@@ -73,7 +73,7 @@ fun buildConfigurationsForServicesBetaVersion(services: Map<String, String>, pro
         var service = betaVersion(serviceName, displayName, environment, config.vcsRootId)
         var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.weeklyTestDay, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers)
 
-        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse,  testConfig.useAltSubscription, testConfig.useDevTestSubscription)
+        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse, testConfig.useAltSubscription, testConfig.useDevTestSubscription, enableFivePointZeroBeta = true)
 
         list.add(buildConfig)
     }
@@ -90,7 +90,10 @@ fun pullRequestBuildConfiguration(environment: String, config: ClientConfigurati
 }
 
 fun buildConfigurationForCache(environment: String, config: ClientConfiguration) : BuildType {
-    return buildCacheConfiguration(environment, config.vcsRootId).buildConfiguration(providerName)
+    var locationsForEnv = locations.get(environment)!!
+    var buildConfiguration = buildCacheConfiguration(environment, config.vcsRootId).buildConfiguration(providerName)
+    buildConfiguration.params.ConfigureAzureSpecificTestParameters(environment, config, locationsForEnv)
+    return buildConfiguration
 }
 
 class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, weeklyTestDay: String = defaultWeeklyDay, daysOfMonth: String = defaultDaysOfMonth, timeout: Int = defaultTimeout, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false), terraformCoreOverride: String = defaultTerraformCoreVersion, disableTriggers: Boolean = false) {
