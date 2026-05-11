@@ -44,7 +44,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
     action                         = "Block"
 
     match_condition {
-      match_variable     = "RemoteAddr"
+      match_variable     = "SocketAddr"
       operator           = "IPMatch"
       negation_condition = false
       match_values       = ["10.0.1.0/24", "10.0.0.0/24"]
@@ -61,7 +61,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
     action                         = "Block"
 
     match_condition {
-      match_variable     = "RemoteAddr"
+      match_variable     = "SocketAddr"
       operator           = "IPMatch"
       negation_condition = false
       match_values       = ["192.168.1.0/24"]
@@ -204,6 +204,8 @@ A `match_condition` block supports the following:
 
 * `match_variable` - (Required) The request variable to compare with. Possible values are `Cookies`, `PostArgs`, `QueryString`, `RemoteAddr`, `RequestBody`, `RequestHeader`, `RequestMethod`, `RequestUri`, or `SocketAddr`.
 
+-> **Note:** `RemoteAddr` inspects the original client IP from the `X-Forwarded-For` header. Use `SocketAddr` when you need to match the source IP address seen by Front Door WAF.
+
 * `match_values` - (Required) Up to `600` possible values to match. Limit is in total across all `match_condition` blocks and `match_values` arguments. String value itself can be up to `256` characters in length.
 
 * `operator` - (Required) Comparison type to use for matching with the variable value. Possible values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GeoMatch`, `GreaterThan`, `GreaterThanOrEqual`, `IPMatch`, `LessThan`, `LessThanOrEqual`, or `RegEx`.
@@ -330,10 +332,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Front Door Firewall Policy.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Firewall Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Firewall Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Firewall Policy.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Firewall Policy.
+* `update` - (Defaults to 4 hours) Used when updating the Front Door Firewall Policy.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Firewall Policy.
 
 ## Import
 

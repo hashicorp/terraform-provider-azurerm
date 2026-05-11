@@ -60,6 +60,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `node_count` - The current number of Nodes in the Node Pool.
 
+* `node_image_version` - The current node image version running on this Node Pool.
+
 * `node_labels` - A map of Kubernetes Labels applied to each Node in this Node Pool.
 
 * `node_public_ip_prefix_id` - Resource ID for the Public IP Addresses Prefix for the nodes in this Agent Pool.
@@ -114,4 +116,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2025-07-01
+* `Microsoft.ContainerService` - 2025-10-01

@@ -23,8 +23,6 @@ resource "azurerm_recovery_services_vault" "vault" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
-
-  soft_delete_enabled = true
 }
 ```
 
@@ -55,8 +53,6 @@ The following arguments are supported:
 * `cross_region_restore_enabled` - (Optional) Is cross region restore enabled for this Vault? Only can be `true`, when `storage_mode_type` is `GeoRedundant`. Defaults to `false`.
 
 -> **Note:** Once `cross_region_restore_enabled` is set to `true`, changing it back to `false` forces a new Recovery Service Vault to be created.
-
-* `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
 
 * `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
 

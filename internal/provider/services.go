@@ -79,6 +79,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis"
@@ -155,6 +156,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		azurestackhci.Registration{},
 		batch.Registration{},
 		bot.Registration{},
+		cdn.Registration{},
 		codesigning.Registration{},
 		cognitive.Registration{},
 		communication.Registration{},
@@ -192,6 +194,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		logic.Registration{},
 		machinelearning.Registration{},
 		maintenance.Registration{},
+		manageddevopspools.Registration{},
 		managedhsm.Registration{},
 		managedredis.Registration{},
 		mongocluster.Registration{},

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/natgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -70,8 +71,8 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	locks.ByName(natGatewayId.NatGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(natGatewayId.NatGatewayName, natGatewayResourceName)
+	locks.ByID(natGatewayId.ID())
+	defer locks.UnlockByID(natGatewayId.ID())
 
 	natGateway, err := client.Get(ctx, *natGatewayId, natgateways.DefaultGetOperationOptions())
 	if err != nil {
@@ -88,27 +89,42 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving %s: `properties` was nil", natGatewayId)
 	}
 
+	publicIPAddress, err := meta.(*clients.Client).Network.PublicIPAddresses.Get(ctx, *publicIpAddressId, publicipaddresses.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(publicIPAddress.HttpResponse) {
+			return fmt.Errorf("%s was not found", publicIpAddressId)
+		}
+		return fmt.Errorf("retrieving %s: %+v", publicIpAddressId, err)
+	}
+	if publicIPAddress.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", publicIpAddressId)
+	}
+	if publicIPAddress.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", publicIpAddressId)
+	}
+
+	isIPv6 := pointer.From(publicIPAddress.Model.Properties.PublicIPAddressVersion) == publicipaddresses.IPVersionIPvSix
 	id := commonids.NewCompositeResourceID(natGatewayId, publicIpAddressId)
 
-	publicIpAddresses := make([]natgateways.SubResource, 0)
-	if natGateway.Model.Properties.PublicIPAddresses != nil {
-		for _, existingPublicIPAddress := range *natGateway.Model.Properties.PublicIPAddresses {
-			if existingPublicIPAddress.Id == nil {
-				continue
-			}
-
-			if strings.EqualFold(*existingPublicIPAddress.Id, publicIpAddressId.ID()) {
-				return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", id.ID())
-			}
-
-			publicIpAddresses = append(publicIpAddresses, existingPublicIPAddress)
+	gatewayProps := natGateway.Model.Properties
+	publicIpAddresses := pointer.From(gatewayProps.PublicIPAddresses)
+	if isIPv6 {
+		publicIpAddresses = pointer.From(gatewayProps.PublicIPAddressesV6)
+	}
+	for _, existingPublicIPAddress := range publicIpAddresses {
+		if strings.EqualFold(pointer.From(existingPublicIPAddress.Id), publicIpAddressId.ID()) {
+			return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", id.ID())
 		}
 	}
 
 	publicIpAddresses = append(publicIpAddresses, natgateways.SubResource{
 		Id: pointer.To(publicIpAddressId.ID()),
 	})
-	natGateway.Model.Properties.PublicIPAddresses = &publicIpAddresses
+	if isIPv6 {
+		gatewayProps.PublicIPAddressesV6 = pointer.To(publicIpAddresses)
+	} else {
+		gatewayProps.PublicIPAddresses = pointer.To(publicIpAddresses)
+	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *natGatewayId, *natGateway.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", natGatewayId, err)
@@ -139,32 +155,16 @@ func resourceNATGatewayPublicIpAssociationRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	if model := natGateway.Model; model != nil {
-		if props := model.Properties; props != nil {
-			if props.PublicIPAddresses == nil {
-				log.Printf("[DEBUG] %s doesn't have any Public IP's - removing from state!", id.First)
-				d.SetId("")
-				return nil
-			}
-
-			publicIPAddressId := ""
-			for _, pip := range *props.PublicIPAddresses {
-				if pip.Id == nil {
-					continue
-				}
-
-				if strings.EqualFold(*pip.Id, id.Second.ID()) {
-					publicIPAddressId = *pip.Id
-					break
-				}
-			}
-
-			if publicIPAddressId == "" {
-				log.Printf("[DEBUG] Association between %s and %s was not found - removing from state", id.First, id.Second)
-				d.SetId("")
-				return nil
-			}
-		}
+	if natGateway.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id.First)
+	}
+	if natGateway.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id.First)
+	}
+	if !natGatewayPublicIpAssociationExists(natGateway.Model.Properties, id.Second.ID()) {
+		log.Printf("[DEBUG] Association between %s and %s was not found - removing from state", id.First, id.Second)
+		d.SetId("")
+		return nil
 	}
 
 	d.Set("nat_gateway_id", id.First.ID())
@@ -183,8 +183,8 @@ func resourceNATGatewayPublicIpAssociationDelete(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	locks.ByName(id.First.NatGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(id.First.NatGatewayName, natGatewayResourceName)
+	locks.ByID(id.First.ID())
+	defer locks.UnlockByID(id.First.ID())
 
 	natGateway, err := client.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
@@ -201,23 +201,64 @@ func resourceNATGatewayPublicIpAssociationDelete(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving %s: `properties` was nil", id.First)
 	}
 
-	publicIpAddresses := make([]natgateways.SubResource, 0)
-	if publicIPAddresses := natGateway.Model.Properties.PublicIPAddresses; publicIPAddresses != nil {
-		for _, publicIPAddress := range *publicIPAddresses {
-			if publicIPAddress.Id == nil {
-				continue
-			}
-
-			if !strings.EqualFold(*publicIPAddress.Id, id.Second.ID()) {
-				publicIpAddresses = append(publicIpAddresses, publicIPAddress)
-			}
-		}
+	if !removeNATGatewayPublicIpAssociation(natGateway.Model.Properties, id.Second.ID()) {
+		return nil
 	}
-	natGateway.Model.Properties.PublicIPAddresses = &publicIpAddresses
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id.First, *natGateway.Model); err != nil {
-		return fmt.Errorf("removing association between %s and %s: %+v", id.First, id.Second, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
+}
+
+func natGatewayPublicIpAssociationExists(properties *natgateways.NatGatewayPropertiesFormat, publicIPAddressId string) bool {
+	if properties == nil {
+		return false
+	}
+
+	for _, publicIPAddress := range pointer.From(properties.PublicIPAddresses) {
+		if strings.EqualFold(pointer.From(publicIPAddress.Id), publicIPAddressId) {
+			return true
+		}
+	}
+
+	for _, publicIPAddress := range pointer.From(properties.PublicIPAddressesV6) {
+		if strings.EqualFold(pointer.From(publicIPAddress.Id), publicIPAddressId) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func removeNATGatewayPublicIpAssociation(properties *natgateways.NatGatewayPropertiesFormat, publicIPAddressId string) bool {
+	if properties == nil {
+		return false
+	}
+
+	removed := false
+	updatedIPv4Addresses := make([]natgateways.SubResource, 0)
+	for _, publicIPAddress := range pointer.From(properties.PublicIPAddresses) {
+		if strings.EqualFold(pointer.From(publicIPAddress.Id), publicIPAddressId) {
+			removed = true
+			continue
+		}
+
+		updatedIPv4Addresses = append(updatedIPv4Addresses, publicIPAddress)
+	}
+	properties.PublicIPAddresses = pointer.To(updatedIPv4Addresses)
+
+	updatedIPv6Addresses := make([]natgateways.SubResource, 0)
+	for _, publicIPAddress := range pointer.From(properties.PublicIPAddressesV6) {
+		if strings.EqualFold(pointer.From(publicIPAddress.Id), publicIPAddressId) {
+			removed = true
+			continue
+		}
+
+		updatedIPv6Addresses = append(updatedIPv6Addresses, publicIPAddress)
+	}
+	properties.PublicIPAddressesV6 = pointer.To(updatedIPv6Addresses)
+
+	return removed
 }

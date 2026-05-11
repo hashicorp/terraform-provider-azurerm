@@ -198,6 +198,9 @@ func TestAccLinuxWebApp_authV2Update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.apple_v2.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.apple_v2.0.client_id").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -206,6 +209,32 @@ func TestAccLinuxWebApp_authV2Update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.apple_v2.#").HasValue("0"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.facebook_v2.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.facebook_v2.0.app_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.authV2Removed(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.apple_v2.#").HasValue("0"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.facebook_v2.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.authV2Apple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.apple_v2.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.apple_v2.0.client_id").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -485,6 +514,27 @@ resource "azurerm_linux_web_app" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+func (r LinuxWebAppResource) authV2Removed(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestLWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger)
 }
 
 func (r LinuxWebAppResource) authV2Github(data acceptance.TestData) string {

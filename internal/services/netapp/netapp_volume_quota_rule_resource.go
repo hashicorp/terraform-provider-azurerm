@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumequotarules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -60,7 +60,7 @@ func (r NetAppVolumeQuotaRuleResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice(volumequotarules.PossibleValuesForType(), false),
+			ValidateFunc: validation.StringInSlice(volumequotarules.PossibleValuesForQuotaType(), false),
 		},
 
 		"quota_size_in_kib": {
@@ -122,7 +122,7 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Properties: &volumequotarules.VolumeQuotaRulesProperties{
 					QuotaSizeInKiBs: pointer.To(model.QuotaSizeInKiB),
-					QuotaType:       pointer.To(volumequotarules.Type(model.QuotaType)),
+					QuotaType:       pointer.To(volumequotarules.QuotaType(model.QuotaType)),
 					QuotaTarget:     pointer.To(model.QuotaTarget),
 				},
 			}
