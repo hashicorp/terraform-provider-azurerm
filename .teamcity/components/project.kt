@@ -19,16 +19,17 @@ fun AzureRM(environment: String, configuration : ClientConfiguration) : Project 
         buildConfigs.forEach { buildConfiguration ->
             buildType(buildConfiguration)
         }
+
+        subProject(AzureRMBetaVersion(environment, configuration))
     }
 }
 
 fun AzureRMBetaVersion(environment: String, configuration : ClientConfiguration) : Project {
     return Project{
-        // @tombuildsstuff: this temporary flag enables/disables all triggers, allowing a migration between CI servers
-        enableTestTriggersGlobally = configuration.enableTestTriggersGlobally
+        id("AzureRMBetaVersion")
+        name = "Beta"
 
-        var cacheBuildConfig = buildConfigurationForCache(environment, configuration)
-        buildType(cacheBuildConfig)
+        enableTestTriggersGlobally = configuration.enableTestTriggersGlobally
 
         var buildConfigs = buildConfigurationsForServicesBetaVersion(services, providerName, environment, configuration)
         buildConfigs.forEach { buildConfiguration ->
