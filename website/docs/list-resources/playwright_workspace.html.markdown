@@ -1,30 +1,30 @@
 ---
-subcategory: "Video Indexer"
+subcategory: "Load Test"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_video_indexer_account"
+page_title: "Azure Resource Manager: azurerm_playwright_workspace"
 description: |-
-  Lists Video Indexer Account resources.
+  Lists Playwright Workspace resources.
 ---
 
-# List resource: azurerm_video_indexer_account
+# List resource: azurerm_playwright_workspace
 
-Lists Video Indexer Account resources.
+Lists Playwright Workspace resources.
 
 ## Example Usage
 
-### List all Video Indexer Accounts in the subscription
+### List all Playwright Workspaces in the subscription
 
 ```hcl
-list "azurerm_video_indexer_account" "example" {
+list "azurerm_playwright_workspace" "example" {
   provider = azurerm
   config {}
 }
 ```
 
-### List all Video Indexer Accounts in a specific resource group
+### List all Playwright Workspaces in a specific resource group
 
 ```hcl
-list "azurerm_video_indexer_account" "example" {
+list "azurerm_playwright_workspace" "example" {
   provider = azurerm
   config {
     resource_group_name = "example-rg"

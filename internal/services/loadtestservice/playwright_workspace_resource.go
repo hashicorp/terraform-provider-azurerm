@@ -149,7 +149,7 @@ func (r PlaywrightWorkspaceResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (PlaywrightWorkspaceResource) Read() sdk.ResourceFunc {
+func (r PlaywrightWorkspaceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -168,32 +168,7 @@ func (PlaywrightWorkspaceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := PlaywrightWorkspaceModel{
-				Name:              id.PlaywrightWorkspaceName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				state.Location = location.NormalizeNilable(&model.Location)
-
-				if properties := model.Properties; properties != nil {
-					if dataplaneUri := properties.DataplaneUri; dataplaneUri != nil {
-						state.DataplaneUri = pointer.From(dataplaneUri)
-					}
-
-					if workspaceId := properties.WorkspaceId; workspaceId != nil {
-						state.WorkspaceId = pointer.From(workspaceId)
-					}
-				}
-
-				state.Tags = pointer.From(model.Tags)
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
@@ -223,4 +198,33 @@ func (PlaywrightWorkspaceResource) IDValidationFunc() pluginsdk.SchemaValidateFu
 
 func (PlaywrightWorkspaceResource) Identity() resourceids.ResourceId {
 	return &playwrightworkspaces.PlaywrightWorkspaceId{}
+}
+
+func (PlaywrightWorkspaceResource) flatten(metadata sdk.ResourceMetaData, id *playwrightworkspaces.PlaywrightWorkspaceId, model *playwrightworkspaces.PlaywrightWorkspace) error {
+	state := PlaywrightWorkspaceModel{
+		Name:              id.PlaywrightWorkspaceName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.NormalizeNilable(&model.Location)
+
+		if properties := model.Properties; properties != nil {
+			if dataplaneUri := properties.DataplaneUri; dataplaneUri != nil {
+				state.DataplaneUri = pointer.From(dataplaneUri)
+			}
+
+			if workspaceId := properties.WorkspaceId; workspaceId != nil {
+				state.WorkspaceId = pointer.From(workspaceId)
+			}
+		}
+
+		state.Tags = pointer.From(model.Tags)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
