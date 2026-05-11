@@ -58,9 +58,9 @@ action "azurerm_web_app_set_slot_distribution" "enable_distribution" {
   config {
     app_service_id = azurerm_linux_web_app.example.id
     slot_rule {
-      hostname                = azurerm_linux_web_app_slot.example_slot_1.default_hostname
-      rule_name               = azurerm_linux_web_app_slot.example_slot_1.name
-      reroute_percentage      = 10
+      hostname           = azurerm_linux_web_app_slot.example_slot_1.default_hostname
+      rule_name          = azurerm_linux_web_app_slot.example_slot_1.name
+      reroute_percentage = 10
     }
     slot_rule {
       hostname           = azurerm_linux_web_app_slot.example_slot_2.default_hostname
