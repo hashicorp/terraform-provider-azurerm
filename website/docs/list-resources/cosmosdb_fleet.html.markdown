@@ -3,7 +3,7 @@ subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_fleet"
 description: |-
-Lists Cosmos DB Fleet resources.
+  Lists Cosmos DB Fleet resources.
 ---
 
 # List resource: azurerm_cosmosdb_fleet
