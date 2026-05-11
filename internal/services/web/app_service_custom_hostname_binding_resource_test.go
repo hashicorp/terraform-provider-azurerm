@@ -130,7 +130,7 @@ func (r ServiceCustomHostnameBindingResource) Exists(ctx context.Context, client
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.GetHostNameBinding(ctx, id.ResourceGroup, id.AppServiceName, id.Name)
+	resp, err := clients.Web.AppServicesClientV1.GetHostNameBinding(ctx, id.ResourceGroup, id.AppServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil
