@@ -80,6 +80,38 @@ func (r StorageActionsTaskDefinitionResource) ResourceType() string {
 }
 
 func (StorageActionsTaskDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
+	operationSchema := &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Required: true,
+		MinItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(storagetasks.PossibleValuesForStorageTaskOperationName(), false),
+				},
+				"on_failure": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(storagetasks.PossibleValuesForOnFailure(), false),
+				},
+				"on_success": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(storagetasks.PossibleValuesForOnSuccess(), false),
+				},
+				"parameters": {
+					Type:     pluginsdk.TypeMap,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -112,7 +144,7 @@ func (StorageActionsTaskDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								"operation": storageActionsTaskDefinitionOperationSchema(),
+								"operation": operationSchema,
 							},
 						},
 					},
@@ -120,9 +152,9 @@ func (StorageActionsTaskDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &pluginsdk.Resource{ // kept as a block to mirror the `if` block structure for HCL readability
+						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"operation": storageActionsTaskDefinitionOperationSchema(),
+								"operation": operationSchema,
 							},
 						},
 					},
@@ -191,40 +223,6 @@ func validateNoDeleteBlobWithOtherOperations(ops []StorageActionsTaskDefinitionO
 		}
 	}
 	return nil
-}
-
-func storageActionsTaskDefinitionOperationSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Required: true,
-		MinItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(storagetasks.PossibleValuesForStorageTaskOperationName(), false),
-				},
-				"on_failure": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(storagetasks.PossibleValuesForOnFailure(), false),
-				},
-				"on_success": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(storagetasks.PossibleValuesForOnSuccess(), false),
-				},
-				"parameters": {
-					Type:     pluginsdk.TypeMap,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-			},
-		},
-	}
 }
 
 func (r StorageActionsTaskDefinitionResource) Create() sdk.ResourceFunc {
