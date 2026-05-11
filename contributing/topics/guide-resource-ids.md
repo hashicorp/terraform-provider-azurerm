@@ -87,9 +87,9 @@ func (r NatGatewayPublicIpAssociation) Read() sdk.ResourceFunc {
 
 ## Normalizing Resource IDs Before Setting Into State
 
-Azure APIs can return resource IDs with inconsistent casing on static segments (e.g. `/Subscriptions/` vs `/subscriptions/`). Since the provider is largely case-sensitive, storing a raw API-returned ID directly into state can cause unexpected diffs on subsequent plans. To prevent this, always parse any resource ID through its resource ID parser before setting it into state — this normalizes the static segments.
+Azure APIs can return resource IDs with inconsistent casing on static segments (e.g. `/Subscriptions/` vs `/subscriptions/`). Always parse resource IDs through their typed parser before setting into state — this normalizes the casing and prevents phantom diffs on subsequent plans.
 
-This applies to scoped resource IDs where the scope must be parsed separately, and to resource IDs returned as properties in API responses:
+This applies to **scoped resource IDs** (where the scope must be parsed separately) and **IDs returned as properties** in API responses:
 
 ```go
 // Scoped IDs: parse the scope portion into a typed ID
