@@ -81,7 +81,7 @@ func (StorageMoverTargetEndpointListResource) List(ctx context.Context, request 
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			id, err := endpoints.ParseEndpointIDInsensitively(pointer.From(item.Id))
+			id, err := endpoints.ParseEndpointID(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Storage Mover Target Endpoint ID", err)
 				return

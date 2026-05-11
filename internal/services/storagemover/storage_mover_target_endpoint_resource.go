@@ -229,11 +229,7 @@ func (r StorageMoverTargetEndpointResource) flatten(metadata sdk.ResourceMetaDat
 			state.StorageContainerName = v.BlobContainerName
 			state.StorageAccountId = v.StorageAccountResourceId
 
-			description := ""
-			if v.Description != nil {
-				description = *v.Description
-			}
-			state.Description = description
+			state.Description = pointer.From(v.Description)
 		}
 	}
 
