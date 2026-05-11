@@ -154,6 +154,10 @@ fun ParametrizedWithType.BuildStartTime() {
     text("env.BUILD_START_TIME", "1777662664", "The time at which the build started")
 }
 
+fun ParametrizedWithType.SetForNextRelease() {
+    text("env.ARM_FIVEPOINTZERO_BETA", "true", "Setting flag to trigger build on for next major release")
+}
+
 fun ParametrizedWithType.GoCache() {
     text("env.GOMODCACHE", "%teamcity.agent.work.dir%/go-cache/mod", "The location of the Go Module Cache")
     text("env.GOCACHE", "%teamcity.agent.work.dir%/go-cache/build", "The location of the Go Cache")
