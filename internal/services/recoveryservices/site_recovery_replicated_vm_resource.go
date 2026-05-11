@@ -649,7 +649,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		},
 	}
 
-	diskTypeTargets := siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(d)
+	diskTypeTargets := siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(managedDisks, state)
 
 	err = client.UpdateThenPoll(ctx, id, parameters)
 	if err != nil {
@@ -671,44 +671,42 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 	return resourceSiteRecoveryReplicatedItemRead(d, meta)
 }
 
-func siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(d *pluginsdk.ResourceData) []custompollers.SiteRecoveryReplicatedVMDiskTypeTarget {
-	if !d.HasChange("managed_disk") {
+func siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(managedDisks []replicationprotecteditems.A2AVMManagedDiskUpdateDetails, state *replicationprotecteditems.ReplicationProtectedItem) []custompollers.SiteRecoveryReplicatedVMDiskTypeTarget {
+	if len(managedDisks) == 0 || state == nil || state.Properties == nil {
 		return nil
 	}
 
-	oldRaw, newRaw := d.GetChange("managed_disk")
-	oldDisks, ok := oldRaw.(*pluginsdk.Set)
-	if !ok || oldDisks == nil {
+	a2aDetails, ok := state.Properties.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails)
+	if !ok {
 		return nil
 	}
 
-	newDisks, ok := newRaw.(*pluginsdk.Set)
-	if !ok || newDisks == nil {
-		return nil
-	}
-
-	oldByDiskId := make(map[string]map[string]interface{}, oldDisks.Len())
-	for _, raw := range oldDisks.List() {
-		disk := raw.(map[string]interface{})
-		oldByDiskId[siteRecoveryReplicatedVMManagedDiskID(disk)] = disk
+	currentDisks := make(map[string]replicationprotecteditems.A2AProtectedManagedDiskDetails)
+	if a2aDetails.ProtectedManagedDisks != nil {
+		for _, disk := range *a2aDetails.ProtectedManagedDisks {
+			if diskId := pointer.From(disk.DiskId); diskId != "" {
+				currentDisks[siteRecoveryReplicatedVMManagedDiskID(diskId)] = disk
+			}
+		}
 	}
 
 	targets := make([]custompollers.SiteRecoveryReplicatedVMDiskTypeTarget, 0)
-	for _, raw := range newDisks.List() {
-		disk := raw.(map[string]interface{})
-		oldDisk, ok := oldByDiskId[siteRecoveryReplicatedVMManagedDiskID(disk)]
-		if !ok {
+	for _, disk := range managedDisks {
+		diskId := pointer.From(disk.DiskId)
+		if diskId == "" {
 			continue
 		}
 
-		targetDiskType := disk["target_disk_type"].(string)
-		targetReplicaDiskType := disk["target_replica_disk_type"].(string)
-		if targetDiskType == oldDisk["target_disk_type"].(string) && targetReplicaDiskType == oldDisk["target_replica_disk_type"].(string) {
+		targetDiskType := pointer.From(disk.RecoveryTargetDiskAccountType)
+		targetReplicaDiskType := pointer.From(disk.RecoveryReplicaDiskAccountType)
+		if currentDisk, ok := currentDisks[siteRecoveryReplicatedVMManagedDiskID(diskId)]; ok &&
+			pointer.From(currentDisk.RecoveryTargetDiskAccountType) == targetDiskType &&
+			pointer.From(currentDisk.RecoveryReplicaDiskAccountType) == targetReplicaDiskType {
 			continue
 		}
 
 		targets = append(targets, custompollers.SiteRecoveryReplicatedVMDiskTypeTarget{
-			DiskId:                disk["disk_id"].(string),
+			DiskId:                diskId,
 			TargetDiskType:        targetDiskType,
 			TargetReplicaDiskType: targetReplicaDiskType,
 		})
@@ -717,8 +715,7 @@ func siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(d *pluginsdk.ResourceD
 	return targets
 }
 
-func siteRecoveryReplicatedVMManagedDiskID(disk map[string]interface{}) string {
-	diskId := disk["disk_id"].(string)
+func siteRecoveryReplicatedVMManagedDiskID(diskId string) string {
 	if parsed, err := commonids.ParseManagedDiskIDInsensitively(diskId); err == nil {
 		return strings.ToLower(parsed.ID())
 	}
