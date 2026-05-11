@@ -265,7 +265,7 @@ func (r CosmosDbFleetspaceResource) Identity() resourceids.ResourceId {
 	return &fleets.FleetspaceId{}
 }
 
-func (CosmosDbFleetspaceResource) flatten(metadata sdk.ResourceMetaData, id *fleets.FleetspaceId, model *fleets.FleetspaceResource) error {
+func (r CosmosDbFleetspaceResource) flatten(metadata sdk.ResourceMetaData, id *fleets.FleetspaceId, model *fleets.FleetspaceResource) error {
 	state := CosmosDbFleetspaceModel{
 		Name:              id.FleetspaceName,
 		ResourceGroupName: id.ResourceGroupName,
@@ -276,7 +276,7 @@ func (CosmosDbFleetspaceResource) flatten(metadata sdk.ResourceMetaData, id *fle
 		if props := model.Properties; props != nil {
 			state.DataRegions = pointer.From(props.DataRegions)
 			state.ServiceTier = string(pointer.From(props.ServiceTier))
-			state.MinimumThroughput, state.MaximumThroughput = flattenFleetspaceThroughputPoolConfiguration(props.ThroughputPoolConfiguration)
+			state.MinimumThroughput, state.MaximumThroughput = r.flattenFleetspaceThroughputPoolConfiguration(props.ThroughputPoolConfiguration)
 		}
 	}
 
