@@ -7,5 +7,6 @@ type MHSMNetworkRuleSet struct {
 	Bypass              *NetworkRuleBypassOptions `json:"bypass,omitempty"`
 	DefaultAction       *NetworkRuleAction        `json:"defaultAction,omitempty"`
 	IPRules             *[]MHSMIPRule             `json:"ipRules,omitempty"`
+	ServiceTags         *[]MHSMServiceTagRule     `json:"serviceTags,omitempty"`
 	VirtualNetworkRules *[]MHSMVirtualNetworkRule `json:"virtualNetworkRules,omitempty"`
 }

@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms` Documentation
 
-The `managedhsms` SDK allows for interaction with Azure Resource Manager `keyvault` (API Version `2023-07-01`).
+The `managedhsms` SDK allows for interaction with Azure Resource Manager `keyvault` (API Version `2026-02-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 ```
 
 
@@ -18,27 +18,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/m
 ```go
 client := managedhsms.NewManagedHsmsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-```
-
-
-### Example Usage: `ManagedHsmsClient.CheckMhsmNameAvailability`
-
-```go
-ctx := context.TODO()
-id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
-
-payload := managedhsms.CheckMhsmNameAvailabilityParameters{
-	// ...
-}
-
-
-read, err := client.CheckMhsmNameAvailability(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
 ```
 
 
@@ -87,22 +66,6 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ManagedHsmsClient.GetDeleted`
-
-```go
-ctx := context.TODO()
-id := managedhsms.NewDeletedManagedHSMID("12345678-1234-9876-4563-123456789012", "locationName", "deletedManagedHSMName")
-
-read, err := client.GetDeleted(ctx, id)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
 ### Example Usage: `ManagedHsmsClient.ListByResourceGroup`
 
 ```go
@@ -137,31 +100,35 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `ManagedHsmsClient.ListDeleted`
+### Example Usage: `ManagedHsmsClient.MHSMPrivateLinkResourcesListByMHSMResource`
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedHSMName")
 
-// alternatively `client.ListDeleted(ctx, id)` can be used to do batched pagination
-items, err := client.ListDeletedComplete(ctx, id)
+read, err := client.MHSMPrivateLinkResourcesListByMHSMResource(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ManagedHsmsClient.MHSMRegionsListByResource`
+
+```go
+ctx := context.TODO()
+id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedHSMName")
+
+// alternatively `client.MHSMRegionsListByResource(ctx, id)` can be used to do batched pagination
+items, err := client.MHSMRegionsListByResourceComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
 for _, item := range items {
 	// do something
-}
-```
-
-
-### Example Usage: `ManagedHsmsClient.PurgeDeleted`
-
-```go
-ctx := context.TODO()
-id := managedhsms.NewDeletedManagedHSMID("12345678-1234-9876-4563-123456789012", "locationName", "deletedManagedHSMName")
-
-if err := client.PurgeDeletedThenPoll(ctx, id); err != nil {
-	// handle the error
 }
 ```
 

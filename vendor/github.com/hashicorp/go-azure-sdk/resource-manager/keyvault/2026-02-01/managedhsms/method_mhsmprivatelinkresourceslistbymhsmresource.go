@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -13,29 +12,25 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CheckMhsmNameAvailabilityOperationResponse struct {
+type MHSMPrivateLinkResourcesListByMHSMResourceOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *CheckMhsmNameAvailabilityResult
+	Model        *MHSMPrivateLinkResourceListResult
 }
 
-// CheckMhsmNameAvailability ...
-func (c ManagedHsmsClient) CheckMhsmNameAvailability(ctx context.Context, id commonids.SubscriptionId, input CheckMhsmNameAvailabilityParameters) (result CheckMhsmNameAvailabilityOperationResponse, err error) {
+// MHSMPrivateLinkResourcesListByMHSMResource ...
+func (c ManagedHsmsClient) MHSMPrivateLinkResourcesListByMHSMResource(ctx context.Context, id ManagedHSMId) (result MHSMPrivateLinkResourcesListByMHSMResourceOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPost,
-		Path:       fmt.Sprintf("%s/providers/Microsoft.KeyVault/checkMhsmNameAvailability", id.ID()),
+		HttpMethod: http.MethodGet,
+		Path:       fmt.Sprintf("%s/privateLinkResources", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
-	}
-
-	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -49,7 +44,7 @@ func (c ManagedHsmsClient) CheckMhsmNameAvailability(ctx context.Context, id com
 		return
 	}
 
-	var model CheckMhsmNameAvailabilityResult
+	var model MHSMPrivateLinkResourceListResult
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
