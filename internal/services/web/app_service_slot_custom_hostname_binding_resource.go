@@ -81,7 +81,7 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 }
 
 func resourceAppServiceSlotCustomHostnameBindingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -136,7 +136,7 @@ func resourceAppServiceSlotCustomHostnameBindingCreate(d *pluginsdk.ResourceData
 }
 
 func resourceAppServiceSlotCustomHostnameBindingRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -169,7 +169,7 @@ func resourceAppServiceSlotCustomHostnameBindingRead(d *pluginsdk.ResourceData, 
 }
 
 func resourceAppServiceSlotCustomHostnameBindingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

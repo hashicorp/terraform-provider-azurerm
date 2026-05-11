@@ -28,7 +28,7 @@ func dataSourceAppService() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		DeprecationMessage: "The `azurerm_app_service` data source has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_web_app` data sources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_app_service` data source has been superseded by the `azurerm_linux_web_app` and `azurerm_windows_web_app` data sources. This data source will be removed in v5.0 of the AzureRM Provider.",
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -159,7 +159,7 @@ func dataSourceAppService() *pluginsdk.Resource {
 }
 
 func dataSourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
