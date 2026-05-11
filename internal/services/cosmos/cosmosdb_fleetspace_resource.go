@@ -211,25 +211,7 @@ func (r CosmosDbFleetspaceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := CosmosDbFleetspaceModel{
-				Name:              id.FleetspaceName,
-				ResourceGroupName: id.ResourceGroupName,
-				FleetName:         id.FleetName,
-			}
-
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					state.DataRegions = pointer.From(props.DataRegions)
-					state.ServiceTier = string(pointer.From(props.ServiceTier))
-					state.MinimumThroughput, state.MaximumThroughput = flattenFleetspaceThroughputPoolConfiguration(props.ThroughputPoolConfiguration)
-				}
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
@@ -281,6 +263,28 @@ func (CosmosDbFleetspaceResource) IDValidationFunc() pluginsdk.SchemaValidateFun
 
 func (r CosmosDbFleetspaceResource) Identity() resourceids.ResourceId {
 	return &fleets.FleetspaceId{}
+}
+
+func (CosmosDbFleetspaceResource) flatten(metadata sdk.ResourceMetaData, id *fleets.FleetspaceId, model *fleets.FleetspaceResource) error {
+	state := CosmosDbFleetspaceModel{
+		Name:              id.FleetspaceName,
+		ResourceGroupName: id.ResourceGroupName,
+		FleetName:         id.FleetName,
+	}
+
+	if model != nil {
+		if props := model.Properties; props != nil {
+			state.DataRegions = pointer.From(props.DataRegions)
+			state.ServiceTier = string(pointer.From(props.ServiceTier))
+			state.MinimumThroughput, state.MaximumThroughput = flattenFleetspaceThroughputPoolConfiguration(props.ThroughputPoolConfiguration)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r CosmosDbFleetspaceResource) expandFleetspaceThroughputPoolConfiguration(config CosmosDbFleetspaceModel) *fleets.FleetspacePropertiesThroughputPoolConfiguration {

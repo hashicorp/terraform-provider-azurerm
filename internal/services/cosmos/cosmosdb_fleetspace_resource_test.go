@@ -106,24 +106,24 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-cosmos-%d"
-  location = "%s"
+  name     = "acctest-cosmos-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cosmosdb_fleet" "test" {
+  name                = "acctest-cosfleet-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r CosmosdbFleetspaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_fleet" "test" {
-  name                = "acctest-cosfleet-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
+%s
 
 resource "azurerm_cosmosdb_fleetspace" "test" {
-  name                = "acctest-cosfleetspace-%[2]d"
+  name                = "acctest-cosfleetspace-%d"
   resource_group_name = azurerm_resource_group.test.name
   fleet_name          = azurerm_cosmosdb_fleet.test.name
   service_tier        = "GeneralPurpose"
@@ -150,16 +150,10 @@ resource "azurerm_cosmosdb_fleetspace" "import" {
 
 func (r CosmosdbFleetspaceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_fleet" "test" {
-  name                = "acctest-cosfleet-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
+%s
 
 resource "azurerm_cosmosdb_fleetspace" "test" {
-  name                = "acctest-cosfleetspace-%[2]d"
+  name                = "acctest-cosfleetspace-%d"
   resource_group_name = azurerm_resource_group.test.name
   fleet_name          = azurerm_cosmosdb_fleet.test.name
   service_tier        = "BusinessCritical"
@@ -167,8 +161,8 @@ resource "azurerm_cosmosdb_fleetspace" "test" {
   maximum_throughput  = 110000
   data_regions = [
     azurerm_resource_group.test.location,
-    "%[3]s",
-    "%[4]s"
+    "%s",
+    "%s"
   ]
 }
 `, r.template(data), data.RandomInteger, data.Locations.Secondary, data.Locations.Ternary)
@@ -176,16 +170,10 @@ resource "azurerm_cosmosdb_fleetspace" "test" {
 
 func (r CosmosdbFleetspaceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_fleet" "test" {
-  name                = "acctest-cosfleet-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
+%s
 
 resource "azurerm_cosmosdb_fleetspace" "test" {
-  name                = "acctest-cosfleetspace-%[2]d"
+  name                = "acctest-cosfleetspace-%d"
   resource_group_name = azurerm_resource_group.test.name
   fleet_name          = azurerm_cosmosdb_fleet.test.name
   service_tier        = "BusinessCritical"
@@ -193,8 +181,8 @@ resource "azurerm_cosmosdb_fleetspace" "test" {
   maximum_throughput  = 120000
   data_regions = [
     azurerm_resource_group.test.location,
-    "%[3]s",
-    "%[4]s"
+    "%s",
+    "%s"
   ]
 }
 `, r.template(data), data.RandomInteger, data.Locations.Secondary, data.Locations.Ternary)
