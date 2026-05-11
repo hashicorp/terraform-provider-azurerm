@@ -71,9 +71,13 @@ func (WebAppSetSlotDistributionAction) checkValidRuleExist(ctx context.Context, 
 		return err
 	}
 
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+	}
+
 	client := clients.AppService.WebAppsClient
-	ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(5*time.Minute))
-	defer cancel()
 
 	resp, err := client.GetConfiguration(ctx, *id)
 	if err != nil {
