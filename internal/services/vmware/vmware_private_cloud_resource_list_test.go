@@ -16,6 +16,8 @@ import (
 )
 
 func TestAccVmwarePrivateCloud_list_basic(t *testing.T) {
+	t.Skip("Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region")
+
 	r := VmwarePrivateCloudResource{}
 	listResourceAddress := "azurerm_vmware_private_cloud.list"
 

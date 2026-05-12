@@ -16,6 +16,8 @@ import (
 )
 
 func TestAccVmwareNetappVolumeAttachment_list_basic(t *testing.T) {
+	t.Skip("Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region")
+
 	r := VmwareNetappVolumeAttachmentResource{}
 	listResourceAddress := "azurerm_vmware_netapp_volume_attachment.list"
 
