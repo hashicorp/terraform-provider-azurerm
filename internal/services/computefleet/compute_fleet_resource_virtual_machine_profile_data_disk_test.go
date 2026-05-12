@@ -13,7 +13,7 @@ import (
 
 func TestAccComputeFleet_virtualMachineProfileDataDisk_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -29,7 +29,7 @@ func TestAccComputeFleet_virtualMachineProfileDataDisk_basic(t *testing.T) {
 
 func TestAccComputeFleet_virtualMachineProfileDataDisk_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccComputeFleet_virtualMachineProfileDataDisk_complete(t *testing.T) {
 
 func TestAccComputeFleet_dataDiskCreatedFromImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dataDiskCreatedFromImage(data),
@@ -57,7 +57,7 @@ func TestAccComputeFleet_dataDiskCreatedFromImage(t *testing.T) {
 	})
 }
 
-func (r ComputeFleetTestResource) dataDiskBasic(data acceptance.TestData) string {
+func (r ComputeFleetResource) dataDiskBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -126,7 +126,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) dataDiskComplete(data acceptance.TestData) string {
+func (r ComputeFleetResource) dataDiskComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 %[2]s
@@ -200,7 +200,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.diskEncryptionSetResourceDependencies(data), r.templateWithOutProvider(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) diskEncryptionSetResourceDependencies(data acceptance.TestData) string {
+func (r ComputeFleetResource) diskEncryptionSetResourceDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -297,7 +297,7 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
 `, data.RandomString, data.RandomInteger)
 }
 
-func (r ComputeFleetTestResource) dataDiskCreatedFromImage(data acceptance.TestData) string {
+func (r ComputeFleetResource) dataDiskCreatedFromImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

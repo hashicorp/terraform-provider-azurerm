@@ -13,7 +13,7 @@ import (
 
 func TestAccComputeFleet_virtualMachineProfileNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -29,7 +29,7 @@ func TestAccComputeFleet_virtualMachineProfileNetwork_basic(t *testing.T) {
 
 func TestAccComputeFleet_virtualMachineProfileNetwork_completeForBaseVirtualMachineProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -42,7 +42,7 @@ func TestAccComputeFleet_virtualMachineProfileNetwork_completeForBaseVirtualMach
 	})
 }
 
-func (r ComputeFleetTestResource) networkProfileBasic(data acceptance.TestData) string {
+func (r ComputeFleetResource) networkProfileBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -102,7 +102,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) netWorkProfileCompleteForBaseVirtualMachineProfile(data acceptance.TestData) string {
+func (r ComputeFleetResource) netWorkProfileCompleteForBaseVirtualMachineProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -194,7 +194,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), r.netWorkProfileBaseVirtualMachineProfileResourceDependencies(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) netWorkProfileBaseVirtualMachineProfileResourceDependencies(data acceptance.TestData) string {
+func (r ComputeFleetResource) netWorkProfileBaseVirtualMachineProfileResourceDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_network_security_group" "test" {

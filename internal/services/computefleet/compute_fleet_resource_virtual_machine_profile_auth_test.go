@@ -13,7 +13,7 @@ import (
 
 func TestAccComputeFleet_virtualMachineProfileAuth_authPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -29,7 +29,7 @@ func TestAccComputeFleet_virtualMachineProfileAuth_authPassword(t *testing.T) {
 
 func TestAccComputeFleet_virtualMachineProfileAuth_authSSHKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -44,7 +44,7 @@ func TestAccComputeFleet_virtualMachineProfileAuth_authSSHKey(t *testing.T) {
 
 func TestAccComputeFleet_virtualMachineProfileAuth_authMultipleSSHPublicKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,7 +59,7 @@ func TestAccComputeFleet_virtualMachineProfileAuth_authMultipleSSHPublicKeys(t *
 
 func TestAccComputeFleet_virtualMachineProfileAuth_authSSHKeyAndPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func TestAccComputeFleet_virtualMachineProfileAuth_authSSHKeyAndPassword(t *test
 
 func TestAccComputeFleet_virtualMachineProfileAuth_authEd25519SSHPublicKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -88,7 +88,7 @@ func TestAccComputeFleet_virtualMachineProfileAuth_authEd25519SSHPublicKeys(t *t
 	})
 }
 
-func (r ComputeFleetTestResource) authPassword(data acceptance.TestData) string {
+func (r ComputeFleetResource) authPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -145,7 +145,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) authSSHKey(data acceptance.TestData) string {
+func (r ComputeFleetResource) authSSHKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -201,7 +201,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) authMultipleSSHPublicKeys(data acceptance.TestData) string {
+func (r ComputeFleetResource) authMultipleSSHPublicKeys(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -256,7 +256,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) authSSHKeyAndPassword(data acceptance.TestData) string {
+func (r ComputeFleetResource) authSSHKeyAndPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -313,7 +313,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) authEd25519SSHPublicKeys(data acceptance.TestData) string {
+func (r ComputeFleetResource) authEd25519SSHPublicKeys(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

@@ -13,7 +13,7 @@ import (
 
 func TestAccComputeFleet_virtualMachineProfileOthers_bootDiagnosticEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -29,7 +29,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_bootDiagnosticEnabled(t *te
 
 func TestAccComputeFleet_virtualMachineProfileOthers_capacityReservationGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_capacityReservationGroup(t 
 
 func TestAccComputeFleet_virtualMachineProfileOthers_galleryApplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_galleryApplication(t *testi
 
 func TestAccComputeFleet_virtualMachineProfileOthers_galleryApplicationWithAutomaticUpgrade(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -77,7 +77,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_galleryApplicationWithAutom
 
 func TestAccComputeFleet_virtualMachineProfileOthers_licenseType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_licenseType(t *testing.T) {
 
 func TestAccComputeFleet_virtualMachineProfileOthers_scheduledEvent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -109,7 +109,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_scheduledEvent(t *testing.T
 
 func TestAccComputeFleet_virtualMachineProfileOthers_UserData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -125,7 +125,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_UserData(t *testing.T) {
 
 func TestAccComputeFleet_virtualMachineProfileOthers_additionalCapabilitiesUltraSSD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -141,7 +141,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_additionalCapabilitiesUltra
 
 func TestAccComputeFleet_virtualMachineProfileOthers_additionalCapabilitiesHibernation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -155,7 +155,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_additionalCapabilitiesHiber
 	})
 }
 
-func (r ComputeFleetTestResource) bootDiagnostic(data acceptance.TestData) string {
+func (r ComputeFleetResource) bootDiagnostic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -229,7 +229,7 @@ resource "azurerm_storage_account" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r ComputeFleetTestResource) capacityReservationGroup(data acceptance.TestData) string {
+func (r ComputeFleetResource) capacityReservationGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -313,7 +313,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) galleryApplication(data acceptance.TestData) string {
+func (r ComputeFleetResource) galleryApplication(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -447,7 +447,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r ComputeFleetTestResource) galleryApplicationWithAutomaticUpgrade(data acceptance.TestData) string {
+func (r ComputeFleetResource) galleryApplicationWithAutomaticUpgrade(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -582,7 +582,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r ComputeFleetTestResource) licenseType(data acceptance.TestData) string {
+func (r ComputeFleetResource) licenseType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -651,7 +651,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) scheduledEvent(data acceptance.TestData) string {
+func (r ComputeFleetResource) scheduledEvent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -717,7 +717,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) userData(data acceptance.TestData, userDta string) string {
+func (r ComputeFleetResource) userData(data acceptance.TestData, userDta string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -780,7 +780,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary, userDta)
 }
 
-func (r ComputeFleetTestResource) additionalCapabilitiesUltraSSD(data acceptance.TestData) string {
+func (r ComputeFleetResource) additionalCapabilitiesUltraSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -867,7 +867,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) additionalCapabilitiesHibernation(data acceptance.TestData) string {
+func (r ComputeFleetResource) additionalCapabilitiesHibernation(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

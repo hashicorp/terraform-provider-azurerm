@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurefleet/2024-11-01/fleets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
@@ -261,9 +262,11 @@ type VMSizeProfileModel struct {
 
 type ComputeFleetResource struct{}
 
-var _ sdk.ResourceWithUpdate = ComputeFleetResource{}
-
-var _ sdk.ResourceWithCustomizeDiff = ComputeFleetResource{}
+var (
+	_ sdk.ResourceWithCustomizeDiff = ComputeFleetResource{}
+	_ sdk.ResourceWithIdentity      = ComputeFleetResource{}
+	_ sdk.ResourceWithUpdate        = ComputeFleetResource{}
+)
 
 func (r ComputeFleetResource) ResourceType() string {
 	return "azurerm_compute_fleet"
@@ -718,6 +721,9 @@ func (r ComputeFleetResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -823,45 +829,7 @@ func (r ComputeFleetResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := ComputeFleetResourceModel{
-				Name:              id.FleetName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-
-				if model.Identity != nil {
-					v, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
-					if err != nil {
-						return err
-					}
-					state.Identity = pointer.From(v)
-				}
-
-				state.Plan = r.flattenPlanModel(model.Plan)
-
-				if props := model.Properties; props != nil {
-					state.AdditionalCapabilities = r.flattenAdditionalCapabilities(props.ComputeProfile.AdditionalVirtualMachineCapabilities)
-
-					baseVirtualMachineProfileValue, err := r.flattenVirtualMachineProfileModel(&props.ComputeProfile.BaseVirtualMachineProfile, metadata)
-					if err != nil {
-						return err
-					}
-					state.VirtualMachineProfile = baseVirtualMachineProfileValue
-
-					state.ComputeApiVersion = pointer.From(props.ComputeProfile.ComputeApiVersion)
-					state.PlatformFaultDomainCount = pointer.From(props.ComputeProfile.PlatformFaultDomainCount)
-					state.OnDemandCapacity = r.flattenOnDemandCapacityModel(props.RegularPriorityProfile)
-					state.SpotCapacity = r.flattenSpotCapacityModel(props.SpotPriorityProfile)
-					state.UniqueId = pointer.From(props.UniqueId)
-					state.VMSizesProfile = r.flattenVMSizeProfileModel(&props.VMSizesProfile)
-				}
-				state.Tags = pointer.From(model.Tags)
-				state.Zones = pointer.From(model.Zones)
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
@@ -1064,6 +1032,56 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func (r ComputeFleetResource) Identity() resourceids.ResourceId {
+	return &fleets.FleetId{}
+}
+
+func (r ComputeFleetResource) flatten(metadata sdk.ResourceMetaData, id *fleets.FleetId, model *fleets.Fleet) error {
+	state := ComputeFleetResourceModel{
+		Name:              id.FleetName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+
+		if model.Identity != nil {
+			v, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
+			if err != nil {
+				return err
+			}
+			state.Identity = pointer.From(v)
+		}
+
+		state.Plan = r.flattenPlanModel(model.Plan)
+
+		if props := model.Properties; props != nil {
+			state.AdditionalCapabilities = r.flattenAdditionalCapabilities(props.ComputeProfile.AdditionalVirtualMachineCapabilities)
+
+			baseVirtualMachineProfileValue, err := r.flattenVirtualMachineProfileModel(&props.ComputeProfile.BaseVirtualMachineProfile, metadata)
+			if err != nil {
+				return err
+			}
+			state.VirtualMachineProfile = baseVirtualMachineProfileValue
+
+			state.ComputeApiVersion = pointer.From(props.ComputeProfile.ComputeApiVersion)
+			state.PlatformFaultDomainCount = pointer.From(props.ComputeProfile.PlatformFaultDomainCount)
+			state.OnDemandCapacity = r.flattenOnDemandCapacityModel(props.RegularPriorityProfile)
+			state.SpotCapacity = r.flattenSpotCapacityModel(props.SpotPriorityProfile)
+			state.UniqueId = pointer.From(props.UniqueId)
+			state.VMSizesProfile = r.flattenVMSizeProfileModel(&props.VMSizesProfile)
+		}
+		state.Tags = pointer.From(model.Tags)
+		state.Zones = pointer.From(model.Zones)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r ComputeFleetResource) expandPlanModel(inputList []PlanModel) *fleets.Plan {

@@ -13,7 +13,7 @@ import (
 
 func TestAccComputeFleet_virtualMachineProfileExtensions_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -29,7 +29,7 @@ func TestAccComputeFleet_virtualMachineProfileExtensions_basic(t *testing.T) {
 
 func TestAccComputeFleet_virtualMachineProfileExtensions_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccComputeFleet_virtualMachineProfileExtensions_complete(t *testing.T) 
 
 func TestAccComputeFleet_virtualMachineProfileExtensions_protectedSettingsFromKeyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,7 +60,7 @@ func TestAccComputeFleet_virtualMachineProfileExtensions_protectedSettingsFromKe
 	})
 }
 
-func (r ComputeFleetTestResource) extensionsBasic(data acceptance.TestData) string {
+func (r ComputeFleetResource) extensionsBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -131,7 +131,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) extensionsComplete(data acceptance.TestData) string {
+func (r ComputeFleetResource) extensionsComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -234,7 +234,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) extensionsProtectedSettingsFromKeyVault(data acceptance.TestData) string {
+func (r ComputeFleetResource) extensionsProtectedSettingsFromKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

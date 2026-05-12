@@ -10,17 +10,22 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurefleet/2024-11-01/fleets"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ComputeFleetTestResource struct{}
+type ComputeFleetResource struct{}
 
 func TestAccComputeFleet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -34,7 +39,7 @@ func TestAccComputeFleet_basic(t *testing.T) {
 
 func TestAccComputeFleet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -48,7 +53,7 @@ func TestAccComputeFleet_requiresImport(t *testing.T) {
 
 func TestAccComputeFleet_completeExceptVMSS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeExceptVMSS(data),
@@ -62,7 +67,7 @@ func TestAccComputeFleet_completeExceptVMSS(t *testing.T) {
 
 func TestAccComputeFleet_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeExceptVMSS(data),
@@ -91,7 +96,44 @@ func TestAccComputeFleet_update(t *testing.T) {
 	})
 }
 
-func (r ComputeFleetTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+// Generated resource identity test cannot be used due to non-empty plan caused by `virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password`
+func TestAccComputeFleet_resourceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
+	r := ComputeFleetResource{}
+
+	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"name":                {},
+		"resource_group_name": {},
+	}
+
+	data.ResourceIdentityTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_compute_fleet.test", checkedFields),
+				statecheck.ExpectIdentityValue("azurerm_compute_fleet.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_compute_fleet.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_compute_fleet.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+			},
+		},
+		{
+			ResourceName: data.ResourceName,
+			// `ImportStateVerify` and `ImportStateVerifyIgnore` cannot be used on `virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password` in plannable import tests, hence `ExpectNonEmptyPlan` is used instead
+			ExpectNonEmptyPlan: true,
+			ImportState:        true,
+			ImportStateKind:    resource.ImportBlockWithResourceIdentity,
+		},
+		{
+			ResourceName:       data.ResourceName,
+			ExpectNonEmptyPlan: true,
+			ImportState:        true,
+			ImportStateKind:    resource.ImportBlockWithID,
+		},
+	}, false)
+}
+
+func (r ComputeFleetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fleets.ParseFleetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -104,7 +146,7 @@ func (r ComputeFleetTestResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ComputeFleetTestResource) template(data acceptance.TestData) string {
+func (r ComputeFleetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -115,7 +157,7 @@ provider "azurerm" {
 `, r.templateWithOutProvider(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) templateWithOutProvider(data acceptance.TestData) string {
+func (r ComputeFleetResource) templateWithOutProvider(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
   first_public_key          = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
@@ -173,7 +215,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) basic(data acceptance.TestData) string {
+func (r ComputeFleetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %[1]s
@@ -221,7 +263,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) requiresImport(data acceptance.TestData) string {
+func (r ComputeFleetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -268,7 +310,7 @@ resource "azurerm_compute_fleet" "import" {
 `, r.basic(data))
 }
 
-func (r ComputeFleetTestResource) completeExceptVMSS(data acceptance.TestData) string {
+func (r ComputeFleetResource) completeExceptVMSS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%[1]s
 
@@ -395,7 +437,7 @@ resource "azurerm_compute_fleet" "test" {
 	`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) completeExceptVMSSUpdate(data acceptance.TestData) string {
+func (r ComputeFleetResource) completeExceptVMSSUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%[1]s
 
@@ -527,7 +569,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) basicBaseLinuxVirtualMachineProfile() string {
+func (r ComputeFleetResource) basicBaseLinuxVirtualMachineProfile() string {
 	return `
 virtual_machine_profile {
 	network_api_version = "2020-11-01"
@@ -565,7 +607,7 @@ virtual_machine_profile {
 `
 }
 
-func (r ComputeFleetTestResource) basicBaseWindowsVirtualMachineProfile() string {
+func (r ComputeFleetResource) basicBaseWindowsVirtualMachineProfile() string {
 	return `
 virtual_machine_profile {
 	network_api_version = "2020-11-01"

@@ -13,7 +13,7 @@ import (
 
 func TestAccComputeFleet_virtualMachineProfileOsProfile_linuxBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -29,7 +29,7 @@ func TestAccComputeFleet_virtualMachineProfileOsProfile_linuxBasic(t *testing.T)
 
 func TestAccComputeFleet_virtualMachineProfileOsProfile_linuxComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccComputeFleet_virtualMachineProfileOsProfile_linuxComplete(t *testing
 
 func TestAccComputeFleet_virtualMachineProfileOsProfile_windowsBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.osProfileWindowsBasic(data),
@@ -61,7 +61,7 @@ func TestAccComputeFleet_virtualMachineProfileOsProfile_windowsBasic(t *testing.
 
 func TestAccComputeFleet_virtualMachineProfileOsProfile_windowsComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.osProfileWindowsComplete(data),
@@ -76,7 +76,7 @@ func TestAccComputeFleet_virtualMachineProfileOsProfile_windowsComplete(t *testi
 	})
 }
 
-func (r ComputeFleetTestResource) osProfileWindowsBasic(data acceptance.TestData) string {
+func (r ComputeFleetResource) osProfileWindowsBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -110,7 +110,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.templateWithOutProvider(data), data.RandomInteger, data.Locations.Primary, r.basicBaseWindowsVirtualMachineProfile())
 }
 
-func (r ComputeFleetTestResource) osProfileWindowsComplete(data acceptance.TestData) string {
+func (r ComputeFleetResource) osProfileWindowsComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 %[2]s
@@ -212,7 +212,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.templateWithOutProvider(data), r.secretWindowsResourceDependencies(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) osProfileLinuxBasic(data acceptance.TestData) string {
+func (r ComputeFleetResource) osProfileLinuxBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -245,7 +245,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.templateWithOutProvider(data), data.RandomInteger, data.Locations.Primary, r.basicBaseLinuxVirtualMachineProfile())
 }
 
-func (r ComputeFleetTestResource) osProfileLinuxComplete(data acceptance.TestData) string {
+func (r ComputeFleetResource) osProfileLinuxComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 %[2]s
@@ -332,7 +332,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.templateWithOutProvider(data), r.secretLinuxResourceDependencies(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) secretLinuxResourceDependencies(data acceptance.TestData) string {
+func (r ComputeFleetResource) secretLinuxResourceDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -472,7 +472,7 @@ resource "azurerm_key_vault_certificate" "second" {
 `, data.RandomString)
 }
 
-func (r ComputeFleetTestResource) secretWindowsResourceDependencies(data acceptance.TestData) string {
+func (r ComputeFleetResource) secretWindowsResourceDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

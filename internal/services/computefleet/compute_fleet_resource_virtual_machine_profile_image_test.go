@@ -23,7 +23,7 @@ import (
 
 func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageSourceReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -40,7 +40,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageSourceReferenc
 
 func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageId(t *testing.
 
 func TestAccComputeFleet_virtualMachineProfileImage_imageFromCommunitySharedImageGallery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,7 +90,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromCommunitySharedImag
 
 func TestAccComputeFleet_virtualMachineProfileImage_imageFromCommunitySharedImageGalleryVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -115,7 +115,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromCommunitySharedImag
 
 func TestAccComputeFleet_virtualMachineProfileImage_imageFromSharedImageGallery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -140,7 +140,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromSharedImageGallery(
 
 func TestAccComputeFleet_virtualMachineProfileImage_imageFromSharedImageGalleryVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
+	r := ComputeFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -163,7 +163,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromSharedImageGalleryV
 	})
 }
 
-func (r ComputeFleetTestResource) imageFromExistingMachinePrep(data acceptance.TestData) string {
+func (r ComputeFleetResource) imageFromExistingMachinePrep(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -231,7 +231,7 @@ resource "azurerm_linux_virtual_machine" "source" {
 `, r.templateWithOutProvider(data), data.RandomInteger)
 }
 
-func (r ComputeFleetTestResource) imageFromSourceImageReference(data acceptance.TestData) string {
+func (r ComputeFleetResource) imageFromSourceImageReference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -292,7 +292,7 @@ resource "azurerm_compute_fleet" "test" {
 `, r.imageFromExistingMachinePrep(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) imageFromImageId(data acceptance.TestData) string {
+func (r ComputeFleetResource) imageFromImageId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -355,7 +355,7 @@ resource "azurerm_compute_fleet" "image_id" {
 `, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) imageFromSharedImageGallery(data acceptance.TestData) string {
+func (r ComputeFleetResource) imageFromSharedImageGallery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -453,7 +453,7 @@ resource "azurerm_compute_fleet" "image_id" {
 `, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) imageFromSharedImageGalleryVersion(data acceptance.TestData) string {
+func (r ComputeFleetResource) imageFromSharedImageGalleryVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -553,7 +553,7 @@ resource "azurerm_compute_fleet" "image_id" {
 `, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) imageFromCommunitySharedImageGallery(data acceptance.TestData) string {
+func (r ComputeFleetResource) imageFromCommunitySharedImageGallery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -661,7 +661,7 @@ resource "azurerm_compute_fleet" "image_id" {
 `, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ComputeFleetTestResource) imageFromCommunitySharedImageGalleryVersion(data acceptance.TestData) string {
+func (r ComputeFleetResource) imageFromCommunitySharedImageGalleryVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -769,7 +769,7 @@ resource "azurerm_compute_fleet" "image_id" {
 `, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (ComputeFleetTestResource) generalizeVirtualMachine() func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
+func (ComputeFleetResource) generalizeVirtualMachine() func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 		if err != nil {

@@ -375,6 +375,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		cognitive.Registration{},
 		communication.Registration{},
 		compute.Registration{},
+		computefleet.Registration{},
 		confidentialledger.Registration{},
 		connections.Registration{},
 		consumption.Registration{},
