@@ -476,12 +476,6 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly(t *testing.T) {
 	})
 }
 
-/*
-The compliance security profile standards referenced in this test are available globally.
-
-You can find the regions that each compliance profile is available in under each subpage here:
-https://learn.microsoft.com/en-us/azure/databricks/security/privacy/security-profile
-*/
 func TestAccDatabricksWorkspace_enhancedComplianceSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}
