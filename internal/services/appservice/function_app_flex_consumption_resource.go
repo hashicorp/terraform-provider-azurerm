@@ -566,14 +566,13 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("checking name availability for %s: %+v", id, err)
 			}
+
 			if model := checkName.Model; model != nil && model.NameAvailable != nil && !*model.NameAvailable {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *model.Message)
 			}
 
 			backendStorage := functionAppFlexConsumption.BackendStorage
-
 			backendSaConStr, backendStorageUseMsi := expandBackendStorage(backendStorage, storageDomainSuffix)
-
 			deploymentStorage, deploymentSaConStr := expandDeploymentStorage(functionAppFlexConsumption.DeploymentStorage, DeploymentStorageConnStr, storageDomainSuffix)
 
 			if !features.FivePointOh() && deploymentStorage == nil {
@@ -586,6 +585,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				}
 				endpoint, _ := url.Parse(functionAppFlexConsumption.StorageContainerEndpoint)
 				deploymentStorageName := strings.Split(endpoint.Host, ".")[0]
+
 				if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
 					deploymentStorage.Authentication.StorageAccountConnectionStringName = pointer.To(DeploymentStorageConnStr)
 					if functionAppFlexConsumption.StorageAccessKey == "" {
@@ -608,6 +608,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					}
 				}
 			}
+
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(functionAppFlexConsumption.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
@@ -709,7 +710,6 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			}
 
 			stickySettings := helpers.ExpandStickySettings(functionAppFlexConsumption.StickySettings)
-
 			if stickySettings != nil {
 				stickySettingsUpdate := webapps.SlotConfigNamesResource{
 					Properties: stickySettings,
@@ -1034,16 +1034,15 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving App Settings for %s: %+v", id, err)
 			}
 
-			deploymentSaConStrName := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
 			backendSaConStr, backendStorageUseMsi, deploymentSaConStrVal := flattenStorageConnectionStrings(*appSettingsResp.Model)
 			deploymentStorageName, deploymentStorageKey := helpers.ParseWebJobsStorageString(deploymentSaConStrVal)
 
 			deploymentStorage := model.Properties.FunctionAppConfig.Deployment.Storage
 			if metadata.ResourceData.HasChange("deployment_storage") {
-				deploymentStorage, deploymentSaConStrVal = expandDeploymentStorage(state.DeploymentStorage, deploymentSaConStrName, storageDomainSuffix)
+				deploymentStorage, deploymentSaConStrVal = expandDeploymentStorage(state.DeploymentStorage, DeploymentStorageConnStr, storageDomainSuffix)
 				model.Properties.FunctionAppConfig.Deployment.Storage = deploymentStorage
 				if deploymentSaConStrVal != "" {
-					state.AppSettings[deploymentSaConStrName] = deploymentSaConStrVal
+					state.AppSettings[DeploymentStorageConnStr] = deploymentSaConStrVal
 				}
 			}
 
@@ -1056,14 +1055,17 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 					deploymentStorageName = strings.Split(endpoint.Host, ".")[0]
 					model.Properties.FunctionAppConfig.Deployment.Storage.Value = &state.StorageContainerEndpoint
 				}
+
 				if metadata.ResourceData.HasChange("storage_container_type") {
 					containerType := webapps.FunctionsDeploymentStorageType(state.StorageContainerType)
 					model.Properties.FunctionAppConfig.Deployment.Storage.Type = &containerType
 				}
+
 				if metadata.ResourceData.HasChange("storage_access_key") {
 					deploymentStorageKey = fmt.Sprintf(helpers.StorageStringFmt, deploymentStorageName, state.StorageAccessKey, *storageDomainSuffix)
-					state.AppSettings[deploymentSaConStrName] = deploymentStorageKey
+					state.AppSettings[DeploymentStorageConnStr] = deploymentStorageKey
 				}
+
 				if metadata.ResourceData.HasChange("storage_authentication_type") {
 					model.Properties.FunctionAppConfig.Deployment.Storage.Authentication = &webapps.FunctionsDeploymentStorageAuthentication{}
 					storageAuthType := webapps.AuthenticationType(state.StorageAuthType)
@@ -1072,13 +1074,12 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 						if deploymentStorageKey == "" {
 							return fmt.Errorf("the storage account access key must be specified when using the storage key based access")
 						}
-						deploymentStorage.Authentication.StorageAccountConnectionStringName = pointer.To(deploymentSaConStrName)
+						deploymentStorage.Authentication.StorageAccountConnectionStringName = pointer.To(string(DeploymentStorageConnStr))
 					case webapps.AuthenticationTypeUserAssignedIdentity:
 						if state.StorageUserAssignedIdentityID == "" {
 							return fmt.Errorf("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
 						}
 						deploymentSaConStrVal = ""
-						deploymentSaConStrName = ""
 						deploymentStorage.Authentication.UserAssignedIdentityResourceId = pointer.To(state.StorageUserAssignedIdentityID)
 					}
 					model.Properties.FunctionAppConfig.Deployment.Storage.Authentication.Type = &storageAuthType
@@ -1093,7 +1094,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
-			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, backendStorageUseMsi, backendSaConStr, deploymentSaConStrName, deploymentSaConStrVal)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, backendStorageUseMsi, backendSaConStr, DeploymentStorageConnStr, deploymentSaConStrVal)
 			if err != nil {
 				return fmt.Errorf("expanding Site Config for %s: %+v", id, err)
 			}
