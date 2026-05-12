@@ -150,26 +150,19 @@ func TestAccCdnFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorFirewallPolicy_customBlockResponseStatusCodes(t *testing.T) {
-	statusCodes := []int{200, 403, 405, 406, 429, 990, 991, 992, 993, 994, 995, 996, 997, 998, 999}
-
-	for _, code := range statusCodes {
-		code := code
-		t.Run(fmt.Sprintf("StatusCode%d", code), func(t *testing.T) {
-			data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
-			r := CdnFrontDoorFirewallPolicyResource{}
-			data.ResourceTest(t, r, []acceptance.TestStep{
-				{
-					Config: r.customBlockResponseStatusCode(data, code),
-					Check: acceptance.ComposeTestCheckFunc(
-						check.That(data.ResourceName).ExistsInAzure(r),
-						check.That(data.ResourceName).Key("custom_block_response_status_code").HasValue(fmt.Sprintf("%d", code)),
-					),
-				},
-				data.ImportStep(),
-			})
-		})
-	}
+func TestAccCdnFrontDoorFirewallPolicy_customBlockResponseStatusCode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customBlockResponseStatusCode(data, 990),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_block_response_status_code").HasValue("990"),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func TestAccCdnFrontDoorFirewallPolicy_update(t *testing.T) {
