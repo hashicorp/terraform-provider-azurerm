@@ -6,9 +6,12 @@ package storage_test
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/querycheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -34,6 +37,14 @@ func TestAccStorageActionsTaskDefinition_list(t *testing.T) {
 				Config: r.subscriptionListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast(listResourceAddress, 3),
+					querycheck.ExpectIdentity(
+						listResourceAddress,
+						map[string]knownvalue.Check{
+							"name":                knownvalue.StringRegexp(regexp.MustCompile("acctest" + data.RandomString)),
+							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+						},
+					),
 				},
 			},
 			{
@@ -41,6 +52,14 @@ func TestAccStorageActionsTaskDefinition_list(t *testing.T) {
 				Config: r.resourceGroupListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength(listResourceAddress, 3),
+					querycheck.ExpectIdentity(
+						listResourceAddress,
+						map[string]knownvalue.Check{
+							"name":                knownvalue.StringRegexp(regexp.MustCompile("acctest" + data.RandomString)),
+							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+						},
+					),
 				},
 			},
 		},
