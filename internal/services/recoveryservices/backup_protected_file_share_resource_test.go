@@ -6,9 +6,12 @@ package recoveryservices_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -124,6 +127,7 @@ func TestAccBackupProtectedFileShare_suspendAndRetainData(t *testing.T) {
 		{
 			// vault cannot be deleted unless we unregister all backups
 			Config: r.protectionSuspendOnDestroy(data),
+			Check:  data.CheckWithClientWithoutResource(r.checkRetainedProtectionStateAndDelete(data, protecteditems.ProtectionStateBackupsSuspended)),
 		},
 	})
 }
@@ -144,6 +148,7 @@ func TestAccBackupProtectedFileShare_stopAndRetainData(t *testing.T) {
 		{
 			// vault cannot be deleted unless we unregister all backups
 			Config: r.protectionStopOnDestroy(data),
+			Check:  data.CheckWithClientWithoutResource(r.checkRetainedProtectionStateAndDelete(data, protecteditems.ProtectionStateProtectionStopped)),
 		},
 	})
 }
@@ -169,6 +174,51 @@ func (t BackupProtectedFileShareResource) Exists(ctx context.Context, clients *c
 	}
 
 	return pointer.To(existing), nil
+}
+
+func (BackupProtectedFileShareResource) checkRetainedProtectionStateAndDelete(data acceptance.TestData, expected protecteditems.ProtectionState) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, _ *pluginsdk.InstanceState) error {
+		resourceGroupName := fmt.Sprintf("acctestRG-backup-%d", data.RandomInteger)
+		vaultName := fmt.Sprintf("acctest-VAULT-%d", data.RandomInteger)
+		fileShareName := fmt.Sprintf("acctest-ss-%d", data.RandomInteger)
+		storageAccountId := commonids.NewStorageAccountID(clients.Account.SubscriptionId, resourceGroupName, fmt.Sprintf("acctest%s", data.RandomString))
+
+		vaultId := backupprotecteditems.NewVaultID(clients.Account.SubscriptionId, resourceGroupName, vaultName)
+		protectedItems, err := clients.RecoveryServices.ProtectedItemsGroupClient.ListComplete(ctx, vaultId, backupprotecteditems.ListOperationOptions{
+			Filter: pointer.To("backupManagementType eq 'AzureStorage'"),
+		})
+		if err != nil {
+			return fmt.Errorf("listing protected items in %s: %+v", vaultId, err)
+		}
+
+		for _, protectedItem := range protectedItems.Items {
+			if protectedItem.Id == nil || protectedItem.Properties == nil {
+				continue
+			}
+
+			fileShare, ok := protectedItem.Properties.(backupprotecteditems.AzureFileshareProtectedItem)
+			if !ok || pointer.From(fileShare.FriendlyName) != fileShareName || !strings.EqualFold(pointer.From(fileShare.SourceResourceId), storageAccountId.ID()) {
+				continue
+			}
+
+			if fileShare.ProtectionState == nil || string(*fileShare.ProtectionState) != string(expected) {
+				return fmt.Errorf("expected protected file share %q to have protection state %q, got %q", fileShareName, expected, pointer.From(fileShare.ProtectionState))
+			}
+
+			protectedItemId, err := protecteditems.ParseProtectedItemID(pointer.From(protectedItem.Id))
+			if err != nil {
+				return err
+			}
+
+			if err := clients.RecoveryServices.ProtectedItemsClient.DeleteThenPoll(ctx, *protectedItemId); err != nil {
+				return fmt.Errorf("deleting retained protected file share %s: %+v", protectedItemId, err)
+			}
+
+			return nil
+		}
+
+		return fmt.Errorf("could not find retained protected file share %q in %s", fileShareName, vaultId)
+	}
 }
 
 func (t BackupProtectedFileShareResource) base(data acceptance.TestData) string {
@@ -218,6 +268,7 @@ resource "azurerm_recovery_services_vault" "test" {
   sku                 = "Standard"
 
   soft_delete_enabled = true
+  immutability        = "Disabled"
 }
 
 resource "azurerm_backup_policy_file_share" "test1" {
@@ -459,7 +510,13 @@ provider "azurerm" {
     }
   }
 
-  %s
+%s
+
+resource "azurerm_backup_container_storage_account" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  storage_account_id  = azurerm_storage_account.test.id
+}
 `, r.baseWithoutProvider(data))
 }
 
@@ -474,6 +531,12 @@ provider "azurerm" {
     }
   }
 
-  %s
+%s
+
+resource "azurerm_backup_container_storage_account" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  storage_account_id  = azurerm_storage_account.test.id
+}
 `, r.baseWithoutProvider(data))
 }
