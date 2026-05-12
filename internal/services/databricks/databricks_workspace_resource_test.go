@@ -530,7 +530,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidStandardSku
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.enhancedSecurityCompliance(data, "standard", true, true, []string{"PCI_DSS", "HIPAA", "FEDRAMP_MODERATE", "IRAP_PROTECTED", "FEDRAMP_HIGH", "FEDRAMP_IL5", "ITAR_EAR", "CYBER_ESSENTIAL_PLUS", "CANADA_PROTECTED_B", "ISMAP", "HITRUST", "K_FSI", "GERMANY_C5", "GERMANY_TISAX"}, true),
+			Config:      r.enhancedSecurityCompliance(data, "standard", true, true, []string{"PCI_DSS", "HIPAA"}, true),
 			ExpectError: regexp.MustCompile("enhanced_security_compliance.*are only available with a `premium`"),
 		},
 	})
@@ -542,7 +542,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithoutEnhancedSecurit
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.enhancedSecurityCompliance(data, "premium", true, true, []string{"PCI_DSS", "HIPAA", "FEDRAMP_MODERATE", "IRAP_PROTECTED", "FEDRAMP_HIGH", "FEDRAMP_IL5", "ITAR_EAR", "CYBER_ESSENTIAL_PLUS", "CANADA_PROTECTED_B", "ISMAP", "HITRUST", "K_FSI", "GERMANY_C5", "GERMANY_TISAX"}, false),
+			Config:      r.enhancedSecurityCompliance(data, "premium", true, true, []string{"PCI_DSS", "HIPAA"}, false),
 			ExpectError: regexp.MustCompile("`enhanced_security_monitoring_enabled` must be set to true when `compliance_security_profile_enabled` is set to true"),
 		},
 	})
@@ -554,7 +554,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithoutAutomaticCluste
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.enhancedSecurityCompliance(data, "premium", false, true, []string{"PCI_DSS", "HIPAA", "FEDRAMP_MODERATE", "IRAP_PROTECTED", "FEDRAMP_HIGH", "FEDRAMP_IL5", "ITAR_EAR", "CYBER_ESSENTIAL_PLUS", "CANADA_PROTECTED_B", "ISMAP", "HITRUST", "K_FSI", "GERMANY_C5", "GERMANY_TISAX"}, true),
+			Config:      r.enhancedSecurityCompliance(data, "premium", false, true, []string{"PCI_DSS", "HIPAA"}, true),
 			ExpectError: regexp.MustCompile("`automatic_cluster_update_enabled` .* must be set to true when `compliance_security_profile_enabled` is set to true"),
 		},
 	})
@@ -566,7 +566,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidComplianceS
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.enhancedSecurityCompliance(data, "premium", true, false, []string{"PCI_DSS", "HIPAA", "FEDRAMP_MODERATE", "IRAP_PROTECTED", "FEDRAMP_HIGH", "FEDRAMP_IL5", "ITAR_EAR", "CYBER_ESSENTIAL_PLUS", "CANADA_PROTECTED_B", "ISMAP", "HITRUST", "K_FSI", "GERMANY_C5", "GERMANY_TISAX"}, true),
+			Config:      r.enhancedSecurityCompliance(data, "premium", true, false, []string{"PCI_DSS", "HIPAA"}, true),
 			ExpectError: regexp.MustCompile("`compliance_security_profile_standards` cannot be set when `compliance_security_profile_enabled` is false"),
 		},
 	})
