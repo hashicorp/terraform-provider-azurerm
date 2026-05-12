@@ -80,12 +80,12 @@ func (PlaywrightWorkspaceListResource) List(ctx context.Context, request list.Li
 			rmd := sdk.NewResourceMetaData(metadata.Client, r)
 			rmd.SetID(id)
 
-			if err := r.flatten(rmd, id, pointer.To(playwrightWorkspaceResult)); err != nil {
+			if err := r.flatten(rmd, id, &playwrightWorkspaceResult); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rmd.ResourceData, pointer.To(result))
+			sdk.EncodeListResult(ctx, rmd.ResourceData, &result)
 			if result.Diagnostics.HasError() {
 				push(result)
 				return
