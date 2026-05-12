@@ -309,7 +309,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     pause_time_between_batches              = "PT30S"
   }
 
-  enable_automatic_updates = false
+  automatic_updates_enabled = false
 
   depends_on = ["azurerm_lb_rule.test"]
 }
@@ -375,7 +375,8 @@ resource "azurerm_public_ip" "source" {
   name                = "source-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "source" {

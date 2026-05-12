@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsDefault(t *testing.T) {
@@ -784,6 +785,10 @@ func TestAccLinuxVirtualMachine_otherEncryptionAtHostEnabledWithCMK(t *testing.T
 }
 
 func TestAccLinuxVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping test in 5.0 as graceful_shutdown is removed.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
 
@@ -798,6 +803,10 @@ func TestAccLinuxVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
 }
 
 func TestAccLinuxVirtualMachine_otherGracefulShutdownEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping test in 5.0 as graceful_shutdown is removed.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
 
@@ -1395,11 +1404,12 @@ func (r LinuxVirtualMachineResource) otherBootDiagnosticsTemplate(data acceptanc
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 `, r.template(data), data.RandomString)
 }
@@ -1747,11 +1757,12 @@ func (r LinuxVirtualMachineResource) otherGalleryApplicationTemplate(data accept
 %[1]s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accteststr%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accteststr%[2]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {

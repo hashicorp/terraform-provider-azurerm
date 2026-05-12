@@ -549,6 +549,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherUpgradeMode(t *testing.T) {
 		data.ImportStep(
 			"admin_password",
 			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -797,6 +798,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 		data.ImportStep(
 			"admin_password",
 			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 		{
 			Config: r.otherHealthProbeUpdated(data),
@@ -807,6 +809,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 		data.ImportStep(
 			"admin_password",
 			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -983,11 +986,12 @@ func (r WindowsVirtualMachineScaleSetResource) otherBootDiagnostics(data accepta
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1034,11 +1038,12 @@ func (r WindowsVirtualMachineScaleSetResource) otherBootDiagnosticsManaged(data 
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1083,11 +1088,12 @@ func (r WindowsVirtualMachineScaleSetResource) otherBootDiagnosticsDisabled(data
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1477,14 +1483,14 @@ func (r WindowsVirtualMachineScaleSetResource) otherEnableAutomaticUpdatesDisabl
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                     = local.vm_name
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku                      = "Standard_F2"
-  instances                = 1
-  admin_username           = "adminuser"
-  admin_password           = "P@ssword1234!"
-  enable_automatic_updates = false
+  name                      = local.vm_name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  sku                       = "Standard_F2"
+  instances                 = 1
+  admin_username            = "adminuser"
+  admin_password            = "P@ssword1234!"
+  automatic_updates_enabled = false
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -2602,8 +2608,8 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
+  allocation_method       = "Static"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 4
 }
 
@@ -2711,8 +2717,8 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
+  allocation_method       = "Static"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 4
 }
 
@@ -2822,8 +2828,8 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
+  allocation_method       = "Static"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 4
 }
 
@@ -3642,11 +3648,12 @@ func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationTemplate(d
 %[1]s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accteststr%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accteststr%[2]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -3705,6 +3712,7 @@ resource "azurerm_gallery_application_version" "test" {
     storage_account_type   = "Premium_LRS"
   }
 }
+
 
 `, r.template(data), data.RandomString, data.RandomInteger)
 }

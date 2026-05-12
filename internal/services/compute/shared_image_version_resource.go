@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -283,6 +284,25 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, version, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	readCtx, cancelCtx := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancelCtx()
+	err = retry.RetryContext(readCtx, 5*time.Second, func() *retry.RetryError {
+		read, err := client.Get(ctx, id, galleryimageversions.DefaultGetOperationOptions())
+		if err != nil {
+			if response.WasNotFound(read.HttpResponse) {
+				return retry.RetryableError(fmt.Errorf("waiting for creation of %s", id))
+			}
+			return retry.NonRetryableError(err)
+		}
+		if read.Model == nil {
+			return retry.RetryableError(fmt.Errorf("waiting for `model` to become available for %s", id))
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
