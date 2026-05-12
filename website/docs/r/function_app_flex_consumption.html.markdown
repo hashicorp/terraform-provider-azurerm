@@ -64,7 +64,6 @@ resource "azurerm_function_app_flex_consumption" "example" {
   }
 
   deployment_storage {
-    container_type            = "blobContainer"
     container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
@@ -95,22 +94,6 @@ The following arguments are supported:
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity). Defaults to `SystemAssigned`.
 
 * `site_config` - (Required) A `site_config` block as defined below.
-
-* `storage_container_type` - (Required) The type of storage container used to host the application deployment package. The only supported value is `blobContainer`. This property is deprecated in favour of the `deployment_storage.storage_container_type` block and will be removed in v5.0 of the AzureRM Provider.
-
-* `storage_container_endpoint` - (Required) The endpoint of the storage container that hosts the application deployment package. This property is deprecated in favour of the `deployment_storage.storage_container_endpoint` block and will be removed in v5.0 of the AzureRM Provider.
-
-* `storage_authentication_type` - (Required) The authentication method used by the Function App runtime to access the deployment storage. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`. This property is deprecated and will be removed in v5.0 of the AzureRM Provider.
-
-* `storage_access_key` - (Optional) The storage account connection string used to access the deployment storage. This property is deprecated in favour of `deployment_storage.access_key` and will be removed in v5.0 of the AzureRM Provider.
-
-~> **Note:** The `storage_access_key` must be specified when `storage_authentication_type` is set to `StorageAccountConnectionString`.
-
-~> **Note:** When specified, the value of `storage_access_key` is exposed to the app as the environment variable `DEPLOYMENT_STORAGE_CONNECTION_STRING`.
-
-* `storage_user_assigned_identity_id` - (Optional) The resource ID of the user-assigned managed identity used to access the deployment storage. Conflicts with `storage_access_key`. This property is deprecated in favour of `deployment_storage.user_assigned_identity_id` and will be removed in v5.0 of the AzureRM Provider.
-
-~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
 
 * `deployment_storage` - - (Required) A `deployment_storage` block as defined below.
 
@@ -198,8 +181,6 @@ A `backend_storage` block supports the following:
 ---
 
 A `deployment_storage` block supports the following:
-
-* `container_type` - (Required) The type of storage container used to host the application deployment package. The current supported value is `blobContainer`.
 
 * `container_endpoint` - (Required) The endpoint of the storage container that hosts the application deployment package.
 

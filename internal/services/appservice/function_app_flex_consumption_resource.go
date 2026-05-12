@@ -98,7 +98,6 @@ type FunctionAppAlwaysReady struct {
 }
 
 type DeploymentStorage struct {
-	ContainerType          string `tfschema:"container_type"`
 	ContainerEndPoint      string `tfschema:"container_endpoint"`
 	AccessKey              string `tfschema:"access_key"`
 	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
@@ -188,6 +187,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
+		// computed: The key vault reference identity will be computed by API when the Function App uses a Key Vault–stored connection string for backend storage access.
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -202,15 +202,6 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"container_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(webapps.FunctionsDeploymentStorageTypeBlobContainer),
-						}, false),
-						Description: "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
-					},
-
 					"container_endpoint": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -882,7 +873,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 						deploymentStorage := flattenDeploymentStorage(faConfigDeployment.Storage, deploymentSaConStr)
 						state.DeploymentStorage = []DeploymentStorage{deploymentStorage}
 						if !features.FivePointOh() {
-							state.StorageContainerType = deploymentStorage.ContainerType
+							state.StorageContainerType = string(pointer.From(faConfigDeployment.Storage.Type))
 							state.StorageContainerEndpoint = pointer.From(&deploymentStorage.ContainerEndPoint)
 							if faConfigDeployment.Storage.Authentication != nil {
 								storageAuthType := pointer.From(faConfigDeployment.Storage.Authentication.Type)
@@ -1345,7 +1336,7 @@ func expandDeploymentStorage(input []DeploymentStorage, connectionStrName string
 		return nil, ""
 	}
 	result := webapps.FunctionsDeploymentStorage{
-		Type:  pointer.To(webapps.FunctionsDeploymentStorageType(input[0].ContainerType)),
+		Type:  pointer.To(webapps.FunctionsDeploymentStorageTypeBlobContainer),
 		Value: pointer.To(input[0].ContainerEndPoint),
 		Authentication: &webapps.FunctionsDeploymentStorageAuthentication{
 			Type: pointer.To(webapps.AuthenticationTypeSystemAssignedIdentity),
@@ -1374,7 +1365,6 @@ func flattenDeploymentStorage(input *webapps.FunctionsDeploymentStorage, deploym
 		return DeploymentStorage{}
 	}
 	ds := DeploymentStorage{
-		ContainerType:     string(pointer.From(input.Type)),
 		ContainerEndPoint: pointer.From(input.Value),
 	}
 	if input.Authentication != nil {
