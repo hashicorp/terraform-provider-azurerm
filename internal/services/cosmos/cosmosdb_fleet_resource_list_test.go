@@ -19,7 +19,7 @@ func TestAccCosmosdbFleet_list_basic(t *testing.T) {
 	r := CosmosdbFleetResource{}
 	listResourceAddress := "azurerm_cosmosdb_fleet.list"
 
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleet", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleet", "test")
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
