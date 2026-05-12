@@ -70,6 +70,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		StorageMoverAgentListResource{},
 		StorageMoverJobDefinitionListResource{},
 		StorageMoverListResource{},
+		StorageMoverProjectListResource{},
 		StorageMoverSourceEndpointListResource{},
 	}
 }
