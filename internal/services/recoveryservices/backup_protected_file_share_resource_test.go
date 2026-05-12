@@ -502,13 +502,13 @@ resource "azurerm_backup_protected_file_share" "test1" {
 func (r BackupProtectedFileShareResource) protectionSuspendOnDestroy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-    features {
-      recovery_service {
-        purge_protected_items_from_vault_on_destroy          = true
-        file_share_backup_suspend_protection_and_retain_data_on_destroy = true
-      }
+  features {
+    recovery_service {
+      purge_protected_items_from_vault_on_destroy                     = true
+      file_share_backup_suspend_protection_and_retain_data_on_destroy = true
     }
   }
+}
 
 %s
 
@@ -523,13 +523,13 @@ resource "azurerm_backup_container_storage_account" "test" {
 func (r BackupProtectedFileShareResource) protectionStopOnDestroy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-    features {
-      recovery_service {
-        purge_protected_items_from_vault_on_destroy          = true
-        file_share_backup_stop_protection_and_retain_data_on_destroy = true
-      }
+  features {
+    recovery_service {
+      purge_protected_items_from_vault_on_destroy                  = true
+      file_share_backup_stop_protection_and_retain_data_on_destroy = true
     }
   }
+}
 
 %s
 
