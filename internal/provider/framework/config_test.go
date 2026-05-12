@@ -321,9 +321,11 @@ func defaultFeaturesList() types.List {
 	machineLearningList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(MachineLearningAttributes), []attr.Value{machineLearning})
 
 	recoveryServices, _ := basetypes.NewObjectValueFrom(context.Background(), RecoveryServiceAttributes, map[string]attr.Value{
-		"vm_backup_stop_protection_and_retain_data_on_destroy":    basetypes.NewBoolNull(),
-		"vm_backup_suspend_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
-		"purge_protected_items_from_vault_on_destroy":             basetypes.NewBoolNull(),
+		"vm_backup_stop_protection_and_retain_data_on_destroy":            basetypes.NewBoolNull(),
+		"vm_backup_suspend_protection_and_retain_data_on_destroy":         basetypes.NewBoolNull(),
+		"file_share_backup_stop_protection_and_retain_data_on_destroy":    basetypes.NewBoolNull(),
+		"file_share_backup_suspend_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
+		"purge_protected_items_from_vault_on_destroy":                     basetypes.NewBoolNull(),
 	})
 	recoveryServicesList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(RecoveryServiceAttributes), []attr.Value{recoveryServices})
 
