@@ -3,7 +3,7 @@
 
 package vmware
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name vmware_netapp_volume_attachment -service-package-name vmware -properties "name" -compare-values "subscription_id:vmware_cluster_id,resource_group_name:vmware_cluster_id,private_cloud_name:vmware_cluster_id,cluster_name:vmware_cluster_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name vmware_netapp_volume_attachment -service-package-name vmware -properties "name" -compare-values "subscription_id:vmware_cluster_id,resource_group_name:vmware_cluster_id,private_cloud_name:vmware_cluster_id,cluster_name:vmware_cluster_id" -skip -skip-reason "Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region"
 
 import (
 	"context"

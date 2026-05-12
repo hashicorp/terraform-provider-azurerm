@@ -21,6 +21,10 @@ func testAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 {{- else }}
 func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 {{- end }}
+{{- if .Skip }}
+	t.Skip("{{ .SkipReason }}")
+
+{{- end }}
 	data := acceptance.BuildTestData(t, "azurerm_{{ ToSnake $resourceName }}", "test")
 	r := {{ ToCamel $resourceName }}Resource{}
 

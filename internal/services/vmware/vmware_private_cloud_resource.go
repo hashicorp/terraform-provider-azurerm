@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name vmware_private_cloud -service-package-name vmware -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name vmware_private_cloud -service-package-name vmware -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -skip -skip-reason "Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region"
 
 const azureVmwarePrivateCloudResourceName = "azurerm_vmware_private_cloud"
 
