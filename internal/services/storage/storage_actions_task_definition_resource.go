@@ -173,7 +173,7 @@ func (StorageActionsTaskDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 			Required: true,
 		},
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
+		"identity": commonschema.SystemOrUserAssignedIdentityRequired(),
 
 		"tags": commonschema.Tags(),
 	}
