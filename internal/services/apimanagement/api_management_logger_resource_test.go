@@ -121,7 +121,7 @@ func TestAccApiManagementLogger_basicApplicationInsights(t *testing.T) {
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.%"},
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.user_assigned_identity_client_id", "application_insights.0.%"},
 		},
 	})
 }
@@ -145,7 +145,7 @@ func TestAccApiManagementLogger_applicationInsightsConnectionString(t *testing.T
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.%"},
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.user_assigned_identity_client_id", "application_insights.0.%"},
 		},
 	})
 }
@@ -229,7 +229,7 @@ func TestAccApiManagementLogger_complete(t *testing.T) {
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.%"},
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.user_assigned_identity_client_id", "application_insights.0.%"},
 		},
 	})
 }
