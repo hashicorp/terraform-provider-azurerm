@@ -156,7 +156,7 @@ resource "azurerm_key_vault_key" "example" {
 ```
 
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -286,6 +286,7 @@ A `long_term_retention_policy` block supports the following:
 * `monthly_retention` - (Optional) The monthly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 120 months. e.g. `P1Y`, `P1M`, `P4W` or `P30D`. Defaults to `PT0S`.
 * `yearly_retention` - (Optional) The yearly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 10 years. e.g. `P1Y`, `P12M`, `P52W` or `P365D`. Defaults to `PT0S`.
 * `week_of_year` - (Optional) The week of year to take the yearly backup. Value has to be between `1` and `52`.
+* `immutable_backups_enabled` - (Optional) Specifies if the backups are immutable. Defaults to `false`.
 
 ---
 
@@ -320,7 +321,7 @@ A `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the MS SQL Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Database.

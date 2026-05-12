@@ -6,6 +6,7 @@ package fromproto5
 import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -100,5 +101,18 @@ func ValidateResourceTypeConfigClientCapabilities(in *tfprotov5.ValidateResource
 
 	return resource.ValidateConfigClientCapabilities{
 		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
+	}
+}
+
+func ModifyPlanActionClientCapabilities(in *tfprotov5.PlanActionClientCapabilities) action.ModifyPlanClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities
+		return action.ModifyPlanClientCapabilities{
+			DeferralAllowed: false,
+		}
+	}
+
+	return action.ModifyPlanClientCapabilities{
+		DeferralAllowed: in.DeferralAllowed,
 	}
 }

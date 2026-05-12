@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -292,7 +292,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("Windows %s not found", id)
+					return fmt.Errorf("'Windows %s' was not found", id)
 				}
 				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
 			}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus_test
@@ -9,20 +9,20 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusNamespaceResource struct{}
+type ServicebusNamespaceResource struct{}
 
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -36,7 +36,7 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -50,7 +50,7 @@ func TestAccAzureRMServiceBusNamespace_complete(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_updateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,7 +70,7 @@ func TestAccAzureRMServiceBusNamespace_updateSku(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -106,7 +106,7 @@ func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.premium(data),
@@ -120,7 +120,7 @@ func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basicCapacity(data),
@@ -131,7 +131,7 @@ func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.premiumCapacity(data),
@@ -142,7 +142,7 @@ func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_premiumMessagingPartition(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.premiumMessagingPartition(data),
@@ -153,7 +153,7 @@ func TestAccAzureRMServiceBusNamespace_premiumMessagingPartition(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -193,7 +193,7 @@ func TestAccAzureRMServiceBusNamespace_identity(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_customerManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -208,7 +208,7 @@ func TestAccAzureRMServiceBusNamespace_customerManagedKey(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_publicNetworkAccessUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -233,7 +233,7 @@ func TestAccAzureRMServiceBusNamespace_minimumTLSUpdate(t *testing.T) {
 		t.Skipf("Skipping since the only possible value in 5.0 for `minimum_tls_version` is `1.2`, we can not test updating it.")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -255,7 +255,7 @@ func TestAccAzureRMServiceBusNamespace_minimumTLSUpdate(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_endpoint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -271,7 +271,7 @@ func TestAccAzureRMServiceBusNamespace_endpoint(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_networkRuleSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
+	r := ServicebusNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.networkRuleSet(data),
@@ -299,7 +299,7 @@ func TestAccAzureRMServiceBusNamespace_networkRuleSet(t *testing.T) {
 	})
 }
 
-func (t ServiceBusNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ServicebusNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -310,10 +310,10 @@ func (t ServiceBusNamespaceResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("reading Service Bus NameSpace (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (ServiceBusNamespaceResource) basic(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -333,7 +333,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ServiceBusNamespaceResource) complete(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -357,7 +357,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (ServiceBusNamespaceResource) standardSku(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) standardSku(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -378,7 +378,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ServiceBusNamespaceResource) requiresImport(data acceptance.TestData) string {
+func (r ServicebusNamespaceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -391,7 +391,7 @@ resource "azurerm_servicebus_namespace" "import" {
 `, r.basic(data))
 }
 
-func (ServiceBusNamespaceResource) premium(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -413,7 +413,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ServiceBusNamespaceResource) basicCapacity(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) basicCapacity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -434,7 +434,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ServiceBusNamespaceResource) premiumCapacity(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) premiumCapacity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -456,7 +456,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ServiceBusNamespaceResource) premiumMessagingPartition(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) premiumMessagingPartition(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -477,7 +477,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ServiceBusNamespaceResource) identitySystemAssigned(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) identitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -501,7 +501,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ServiceBusNamespaceResource) identityUserAssigned(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) identityUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -534,7 +534,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusNamespaceResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -567,7 +567,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusNamespaceResource) customerManagedKey(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) customerManagedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -592,12 +592,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%[3]s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -654,7 +655,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (ServiceBusNamespaceResource) publicNetworkAccessUpdate(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) publicNetworkAccessUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -675,7 +676,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ServiceBusNamespaceResource) minimumTLSUpdate(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) minimumTLSUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -696,7 +697,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ServiceBusNamespaceResource) networkRuleSet(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) networkRuleSet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -744,7 +745,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (ServiceBusNamespaceResource) networkRuleSetComplete(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) networkRuleSetComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -795,7 +796,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (ServiceBusNamespaceResource) networkRuleSetEmpty(data acceptance.TestData) string {
+func (ServicebusNamespaceResource) networkRuleSetEmpty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

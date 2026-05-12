@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -8,23 +8,23 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/connection"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connection"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAutomationConnectionCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationConnectionCertificateCreateUpdate,
+		Create: resourceAutomationConnectionCertificateCreate,
 		Read:   resourceAutomationConnectionCertificateRead,
-		Update: resourceAutomationConnectionCertificateCreateUpdate,
+		Update: resourceAutomationConnectionCertificateUpdate,
 		Delete: resourceAutomationConnectionCertificateDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
@@ -76,50 +76,94 @@ func resourceAutomationConnectionCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationConnectionCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.Connection
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection creation.")
 
 	id := connection.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_connection_certificate", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	fieldDefinitionValues := map[string]string{
-		"AutomationCertificateName": d.Get("automation_certificate_name").(string),
-		"SubscriptionID":            d.Get("subscription_id").(string),
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_automation_connection_certificate", id.ID())
 	}
 
 	parameters := connection.ConnectionCreateOrUpdateParameters{
 		Name: id.ConnectionName,
 		Properties: connection.ConnectionCreateOrUpdateProperties{
-			Description: utils.String(d.Get("description").(string)),
+			Description: pointer.To(d.Get("description").(string)),
 			ConnectionType: connection.ConnectionTypeAssociationProperty{
-				Name: utils.String("Azure"),
+				Name: pointer.To("Azure"),
 			},
-			FieldDefinitionValues: &fieldDefinitionValues,
+			FieldDefinitionValues: &map[string]string{
+				"AutomationCertificateName": d.Get("automation_certificate_name").(string),
+				"SubscriptionID":            d.Get("subscription_id").(string),
+			},
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return err
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAutomationConnectionCertificateRead(d, meta)
+}
+
+func resourceAutomationConnectionCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.Connection
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := connection.ParseConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+	}
+
+	// Start from the existing field definition values so that fields managed
+	// via ignore_changes retain their server-side value.
+	fieldDefinitionValues := make(map[string]string)
+	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.FieldDefinitionValues != nil {
+		fieldDefinitionValues = *existing.Model.Properties.FieldDefinitionValues
+	}
+
+	if d.HasChange("automation_certificate_name") {
+		fieldDefinitionValues["AutomationCertificateName"] = d.Get("automation_certificate_name").(string)
+	}
+
+	if d.HasChange("subscription_id") {
+		fieldDefinitionValues["SubscriptionID"] = d.Get("subscription_id").(string)
+	}
+
+	parameters := connection.ConnectionUpdateParameters{
+		Name: &id.ConnectionName,
+		Properties: &connection.ConnectionUpdateProperties{
+			FieldDefinitionValues: &fieldDefinitionValues,
+		},
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if _, err := client.Update(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceAutomationConnectionCertificateRead(d, meta)
 }

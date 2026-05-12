@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -150,6 +151,14 @@ func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema
 				string(devices.EncodingJSON),
 			}, true),
 		},
+
+		"subscription_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C : required since this property would always be set even if it isn't specified in the tf config, otherwise it would cause a diff and break existing users
+			Computed:     true,
+			ValidateFunc: validation.IsUUID,
+		},
 	}
 }
 
@@ -193,7 +202,6 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 	storageContainerEndpoint := devices.RoutingStorageContainerProperties{
 		AuthenticationType:      authenticationType,
 		Name:                    &id.EndpointName,
-		SubscriptionID:          &subscriptionID,
 		ResourceGroup:           &endpointRG,
 		ContainerName:           &containerName,
 		FileNameFormat:          &fileNameFormat,
@@ -202,22 +210,31 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 		Encoding:                devices.Encoding(encoding),
 	}
 
+	// To align with the previous TF behavior, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behavior is different than before and it may block the existing users
+	// From the business perspective, the raw config handling is only meant for the case that the user has an CosmosDB Account whose Endpoint's subscription is not the provider's one. Then the user wants to reset it to the provider's one by unset the subscription_id
+	// From the TF code perspective, given `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set in the tf config. So `d.GetRawConfig()` is required to determine if it's set in the tf config
+	if v := d.GetRawConfig().AsValueMap()["subscription_id"]; v.IsNull() {
+		storageContainerEndpoint.SubscriptionID = pointer.To(subscriptionID)
+	} else {
+		storageContainerEndpoint.SubscriptionID = pointer.To(d.Get("subscription_id").(string))
+	}
+
 	if authenticationType == devices.AuthenticationTypeKeyBased {
 		if v, ok := d.GetOk("connection_string"); ok {
-			storageContainerEndpoint.ConnectionString = utils.String(v.(string))
+			storageContainerEndpoint.ConnectionString = pointer.To(v.(string))
 		} else {
 			return fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
 		}
 	} else {
 		if v, ok := d.GetOk("endpoint_uri"); ok {
-			storageContainerEndpoint.EndpointURI = utils.String(v.(string))
+			storageContainerEndpoint.EndpointURI = pointer.To(v.(string))
 		} else {
 			return fmt.Errorf("`endpoint_uri` must be specified when `authentication_type` is `identityBased`")
 		}
 
 		if v, ok := d.GetOk("identity_id"); ok {
 			storageContainerEndpoint.Identity = &devices.ManagedIdentity{
-				UserAssignedIdentity: utils.String(v.(string)),
+				UserAssignedIdentity: pointer.To(v.(string)),
 			}
 		}
 	}
@@ -317,6 +334,7 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 					d.Set("max_chunk_size_in_bytes", endpoint.MaxChunkSizeInBytes)
 					d.Set("encoding", endpoint.Encoding)
 					d.Set("resource_group_name", endpoint.ResourceGroup)
+					d.Set("subscription_id", pointer.From(endpoint.SubscriptionID))
 
 					authenticationType := string(devices.AuthenticationTypeKeyBased)
 					if string(endpoint.AuthenticationType) != "" {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -21,7 +21,7 @@ func SpringCloudDeploymentName(i interface{}, k string) (_ []string, errors []er
 	// 4. The value must be between 4 and 32 characters long
 
 	if !regexp.MustCompile(`^([a-z])([a-z\d-]{2,30})([a-z\d])$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%s must begin with a letter, end with a letter or number, contain only lowercase letters, numbers and hyphens. The value must be between 4 and 32 characters long.", k))
+		errors = append(errors, fmt.Errorf("%s must begin with a letter, end with a letter or number, contain only lowercase letters, numbers and hyphens. The value must be between 4 and 32 characters long", k))
 	}
 
 	return nil, errors

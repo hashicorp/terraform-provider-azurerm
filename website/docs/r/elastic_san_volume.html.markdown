@@ -106,7 +106,7 @@ The following arguments are supported:
 
 -> **Note:** The size can only be increased. If `create_source` is specified, then the size must be equal to or greater than the source's size.
 
-* `create_source` - (Optional) A `create_source` block as defined below.
+* `create_source` - (Optional) A `create_source` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -133,7 +133,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Elastic SAN Volume.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Elastic SAN Volume.

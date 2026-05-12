@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -40,14 +40,14 @@ func newPropertyMiss(checkBase checkBase, missType MissType) *propertyMissDiff {
 func (c propertyMissDiff) String() string {
 	switch c.MissType {
 	case MissBlockDeclare:
-		return fmt.Sprintf("%s blocks should be declared like '%s'", c.checkBase.Str(), util.ItalicCode("One or more `xxx` block as defined below."))
+		return fmt.Sprintf("%s blocks should be declared like '%s'", c.Str(), util.ItalicCode("One or more `xxx` block as defined below."))
 	case MissWrongPlace:
-		return fmt.Sprintf("%s should be nested in %s", c.checkBase.Str(), util.ItalicCode(util.XPathDir(c.correctName)))
+		return fmt.Sprintf("%s should be nested in %s", c.Str(), util.ItalicCode(util.XPathDir(c.correctName)))
 	case Misspelling:
 		// it can be in the wrong place
-		return fmt.Sprintf("%s does not exist in the schema - should this be %s?", c.checkBase.Str(), util.FixedCode(util.XPathBase(c.correctName)))
+		return fmt.Sprintf("%s does not exist in the schema - should this be %s?", c.Str(), util.FixedCode(util.XPathBase(c.correctName)))
 	}
-	return fmt.Sprintf("%s does not exist in the %s or is poorly formatted", c.checkBase.Str(), c.MissType)
+	return fmt.Sprintf("%s does not exist in the %s or is poorly formatted", c.Str(), c.MissType)
 }
 
 func (c propertyMissDiff) Fix(line string) (result string, err error) {
@@ -85,13 +85,13 @@ func newMissBlockDeclare(path string, f *model.Field) Checker {
 
 func newMisspelling(c *propertyMissDiff, d *propertyMissDiff) Checker {
 	// special logic. if the base name equals, treat as a wrong placed field
-	if util.XPathBase(c.checkBase.key) == util.XPathBase(d.checkBase.key) && strings.Contains(d.checkBase.key, ".") {
+	if util.XPathBase(c.key) == util.XPathBase(d.key) && strings.Contains(d.key, ".") {
 		item := newPropertyMiss(c.checkBase, MissWrongPlace)
-		item.correctName = d.checkBase.key
+		item.correctName = d.key
 		return item
 	}
 	item := newPropertyMiss(c.checkBase, Misspelling)
-	item.correctName = d.checkBase.key
+	item.correctName = d.key
 	return item
 }
 
@@ -101,9 +101,10 @@ func mergeMisspelling(checks []Checker) (res []Checker) {
 	var missInDoc, missInCode []*propertyMissDiff
 	for _, c := range checks {
 		if p, ok := c.(*propertyMissDiff); ok {
-			if p.MissType == MissInDoc {
+			switch p.MissType {
+			case MissInDoc:
 				missInDoc = append(missInDoc, p)
-			} else if p.MissType == MissInCode {
+			case MissInCode:
 				missInCode = append(missInCode, p)
 			}
 		}

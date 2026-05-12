@@ -48,8 +48,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `long_term_retention_policy` block exports the following:
 
-* `immutable_backups_enabled` - Specifies if the backups are immutable.
-
 * `monthly_retention` - The monthly retention policy for an LTR backup in an ISO 8601 format.
 
 * `week_of_year` - The week of year to take the yearly backup.
@@ -68,7 +66,7 @@ A `point_in_time_restore` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure SQL Azure Managed Database.
 

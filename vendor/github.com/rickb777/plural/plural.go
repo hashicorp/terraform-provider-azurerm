@@ -153,11 +153,11 @@ func ByOrdinal(zeroth string, rest ...string) Plurals {
 //
 // So
 //
-//   FromZero("nothing", "%v thing", "%v things")
+//	FromZero("nothing", "%v thing", "%v things")
 //
 // is simply a shorthand for
 //
-//   Plurals{Case{0, "nothing"}, Case{1, "%v thing"}, Case{2, "%v things"}}
+//	Plurals{Case{0, "nothing"}, Case{1, "%v thing"}, Case{2, "%v things"}}
 //
 // which would also be valid but a little more verbose.
 //
@@ -167,7 +167,7 @@ func FromZero(zeroth string, rest ...string) Plurals {
 	p := make(Plurals, 0, len(rest)+1)
 	p = append(p, Case{0, zeroth})
 	for i, c := range rest {
-		p = append(p, Case{i+1, c})
+		p = append(p, Case{i + 1, c})
 	}
 	return p
 }
@@ -180,11 +180,11 @@ func FromZero(zeroth string, rest ...string) Plurals {
 //
 // So
 //
-//   FromOne("%v thing", "%v things")
+//	FromOne("%v thing", "%v things")
 //
 // is simply a shorthand for
 //
-//   Plurals{Case{1, "%v thing"}, Case{2, "%v things"}}
+//	Plurals{Case{1, "%v thing"}, Case{2, "%v things"}}
 //
 // which would also be valid but a little more verbose.
 //
@@ -197,7 +197,7 @@ func FromOne(first string, rest ...string) Plurals {
 	p := make(Plurals, 0, len(rest)+1)
 	p = append(p, Case{1, first})
 	for i, c := range rest {
-		p = append(p, Case{i+2, c})
+		p = append(p, Case{i + 2, c})
 	}
 	return p
 }

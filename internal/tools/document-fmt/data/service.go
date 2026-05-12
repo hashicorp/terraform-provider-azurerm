@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package data
@@ -6,6 +6,7 @@ package data
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"unicode"
 
@@ -49,14 +50,14 @@ func NewService(fs afero.Fs, providerDir string, providerServiceRegistration any
 		names = append(names, nameFunc(serviceName), labelFunc(s.AssociatedGitHubLabel()))
 	case sdk.TypedServiceRegistrationWithAGitHubLabel:
 		names = append(names, nameFunc(serviceName), labelFunc(s.AssociatedGitHubLabel()))
-	case sdk.UntypedServiceRegistration, sdk.FrameworkTypedServiceRegistration, sdk.TypedServiceRegistration:
+	case sdk.UntypedServiceRegistration, sdk.FrameworkServiceRegistration, sdk.TypedServiceRegistration:
 		names = append(names, nameFunc(serviceName))
 	default:
 		return nil, fmt.Errorf("unexpected service type `%T`", s)
 	}
 
 	for _, n := range names {
-		path := fmt.Sprintf(serviceDirPattern, providerDir, n)
+		path := filepath.FromSlash(fmt.Sprintf(serviceDirPattern, providerDir, n))
 		if util.DirExists(fs, path) {
 			return &Service{
 				Name: n,

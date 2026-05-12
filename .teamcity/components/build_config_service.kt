@@ -19,9 +19,11 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
             }
 
             steps {
+                SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
                 RunAcceptanceTests(packageName)
+                PostTestResultsToGitHubPullRequest()
             }
 
             failureConditions {
@@ -31,6 +33,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
 
             features {
                 Golang()
+                BuildCacheFeature()
             }
 
             params {
@@ -40,6 +43,8 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 TerraformShouldPanicForSchemaErrors()
                 ReadOnlySettings()
                 WorkingDirectory(packageName)
+                GoCache()
+                BuildStartTime()
             }
 
             triggers {

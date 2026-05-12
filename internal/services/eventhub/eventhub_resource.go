@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -22,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var eventHubResourceName = "azurerm_eventhub"
@@ -172,6 +172,24 @@ func resourceEventHub() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: commonids.ValidateStorageAccountID,
 									},
+
+									// Storage SAS is the default authentication type for capture destination, it's not supported by the API, so hard coding the value to align with azure portal behavior.
+									"storage_authentication_type": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  "StorageSAS",
+										ValidateFunc: validation.StringInSlice([]string{
+											"StorageSAS",
+											string(eventhubs.CaptureIdentityTypeSystemAssigned),
+											string(eventhubs.CaptureIdentityTypeUserAssigned),
+										}, false),
+									},
+
+									"storage_authentication_id": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+									},
 								},
 							},
 						},
@@ -197,6 +215,17 @@ func resourceEventHub() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			capture := d.GetRawConfig().AsValueMap()["capture_description"]
+			if !capture.IsNull() && len(capture.AsValueSlice()) > 0 {
+				destination := capture.AsValueSlice()[0].AsValueMap()["destination"].AsValueSlice()[0].AsValueMap()
+				if !destination["storage_authentication_type"].IsNull() && destination["storage_authentication_type"].AsString() == string(eventhubs.CaptureIdentityTypeUserAssigned) && destination["storage_authentication_id"].IsNull() {
+					return fmt.Errorf("`storage_authentication_id` must be specified when `storage_authentication_type` is set to `UserAssigned`")
+				}
+			}
+			return nil
+		}),
 	}
 
 	if !features.FivePointOh() {
@@ -272,7 +301,7 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
 	parameters := eventhubs.Eventhub{
 		Properties: &eventhubs.EventhubProperties{
-			PartitionCount: utils.Int64(int64(d.Get("partition_count").(int))),
+			PartitionCount: pointer.To(int64(d.Get("partition_count").(int))),
 			Status:         &eventhubStatus,
 		},
 	}
@@ -324,8 +353,8 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			return err
 		}
 		if model := resp.Model; model != nil {
-			if model.Sku.Name != namespaces.SkuNamePremium {
-				return fmt.Errorf("`partition_count` cannot be changed unless the namespace sku is `Premium`")
+			if model.Sku.Name != namespaces.SkuNamePremium && model.Properties.ClusterArmId == nil {
+				return fmt.Errorf("`partition_count` cannot be changed on shared namespaces unless the namespace sku is `Premium`")
 			}
 		}
 	}
@@ -333,9 +362,9 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
 	parameters := eventhubs.Eventhub{
 		Properties: &eventhubs.EventhubProperties{
-			PartitionCount:         utils.Int64(int64(d.Get("partition_count").(int))),
+			PartitionCount:         pointer.To(int64(d.Get("partition_count").(int))),
 			Status:                 &eventhubStatus,
-			MessageRetentionInDays: utils.Int64(int64(d.Get("message_retention").(int))),
+			MessageRetentionInDays: pointer.To(int64(d.Get("message_retention").(int))),
 			CaptureDescription:     expandEventHubCaptureDescription(d),
 		},
 	}
@@ -448,10 +477,10 @@ func expandEventHubRetentionDescription(d *pluginsdk.ResourceData) *eventhubs.Re
 
 	if cleanupPolicy == string(eventhubs.CleanupPolicyRetentionDescriptionDelete) {
 		retentionTimeInHours := input["retention_time_in_hours"].(int)
-		retentionDescription.RetentionTimeInHours = pointer.FromInt64(int64(retentionTimeInHours))
+		retentionDescription.RetentionTimeInHours = pointer.To(int64(retentionTimeInHours))
 	} else {
 		tombstoneRetentionTimeInHours := input["tombstone_retention_time_in_hours"].(int)
-		retentionDescription.TombstoneRetentionTimeInHours = pointer.FromInt64(int64(tombstoneRetentionTimeInHours))
+		retentionDescription.TombstoneRetentionTimeInHours = pointer.To(int64(tombstoneRetentionTimeInHours))
 	}
 
 	return pointer.To(retentionDescription)
@@ -471,14 +500,14 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 	skipEmptyArchives := input["skip_empty_archives"].(bool)
 
 	captureDescription := eventhubs.CaptureDescription{
-		Enabled: utils.Bool(enabled),
+		Enabled: pointer.To(enabled),
 		Encoding: func() *eventhubs.EncodingCaptureDescription {
 			v := eventhubs.EncodingCaptureDescription(encoding)
 			return &v
 		}(),
-		IntervalInSeconds: utils.Int64(int64(intervalInSeconds)),
-		SizeLimitInBytes:  utils.Int64(int64(sizeLimitInBytes)),
-		SkipEmptyArchives: utils.Bool(skipEmptyArchives),
+		IntervalInSeconds: pointer.To(int64(intervalInSeconds)),
+		SizeLimitInBytes:  pointer.To(int64(sizeLimitInBytes)),
+		SkipEmptyArchives: pointer.To(skipEmptyArchives),
 	}
 
 	if v, ok := input["destination"]; ok {
@@ -492,12 +521,26 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 			storageAccountId := destination["storage_account_id"].(string)
 
 			captureDescription.Destination = &eventhubs.Destination{
-				Name: utils.String(destinationName),
+				Name: pointer.To(destinationName),
 				Properties: &eventhubs.DestinationProperties{
-					ArchiveNameFormat:        utils.String(archiveNameFormat),
-					BlobContainer:            utils.String(blobContainerName),
-					StorageAccountResourceId: utils.String(storageAccountId),
+					ArchiveNameFormat:        pointer.To(archiveNameFormat),
+					BlobContainer:            pointer.To(blobContainerName),
+					StorageAccountResourceId: pointer.To(storageAccountId),
 				},
+			}
+
+			if destinationAuthType := destination["storage_authentication_type"]; destinationAuthType != nil && destinationAuthType.(string) != "" {
+				authType := eventhubs.CaptureIdentityType(destinationAuthType.(string))
+				if authType != "StorageSAS" {
+					captureDescription.Destination.Identity = &eventhubs.CaptureIdentity{
+						Type: pointer.To(authType),
+					}
+				}
+			}
+
+			if destinationAuthTypeId := destination["storage_authentication_id"]; destinationAuthTypeId != nil && destinationAuthTypeId.(string) != "" {
+				authId := destinationAuthTypeId.(string)
+				captureDescription.Destination.Identity.UserAssignedIdentity = &authId
 			}
 		}
 	}
@@ -574,6 +617,14 @@ func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription
 				if storageAccountId := props.StorageAccountResourceId; storageAccountId != nil {
 					destinationOutput["storage_account_id"] = *storageAccountId
 				}
+			}
+
+			destinationOutput["storage_authentication_type"] = "StorageSAS"
+			if storageIdentity := destination.Identity; storageIdentity != nil {
+				if storageAuthType := storageIdentity.Type; storageAuthType != nil {
+					destinationOutput["storage_authentication_type"] = pointer.From(storageIdentity.Type)
+				}
+				destinationOutput["storage_authentication_id"] = pointer.From(storageIdentity.UserAssignedIdentity)
 			}
 
 			output["destination"] = []interface{}{destinationOutput}
