@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_durable_task_scheduler
 
-Use this data source to access information about an existing Durable Task Scheduler.
+Gets information about an existing Durable Task Scheduler.
 
 ## Example Usage
 

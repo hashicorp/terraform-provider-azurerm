@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccDurableTaskHubList_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_durable_task_task_hub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
 	r := TaskHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -40,18 +40,14 @@ resource "azurerm_durable_task_scheduler" "test" {
   ip_allow_list       = ["0.0.0.0/0"]
 }
 
-resource "azurerm_durable_task_task_hub" "test" {
-  name                = "acctest%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  scheduler_id        = azurerm_durable_task_scheduler.test.id
+resource "azurerm_durable_task_hub" "test" {
+  name         = "acctest%s"
+  scheduler_id = azurerm_durable_task_scheduler.test.id
 }
 
-resource "azurerm_durable_task_task_hub" "test2" {
-  name                = "acctest%s2"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  scheduler_id        = azurerm_durable_task_scheduler.test.id
+resource "azurerm_durable_task_hub" "test2" {
+  name         = "acctest%s2"
+  scheduler_id = azurerm_durable_task_scheduler.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
