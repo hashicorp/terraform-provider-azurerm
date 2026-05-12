@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccWindowsVirtualMachine_otherPatchModeManual(t *testing.T) {
@@ -472,7 +473,7 @@ func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDefault(t *testing.
 			Config: r.otherEnableAutomaticUpdatesDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_automatic_updates").HasValue("true"),
+				check.That(data.ResourceName).Key("automatic_updates_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -1113,6 +1114,10 @@ func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingDisabled(t *testing.
 }
 
 func TestAccWindowsVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping test in 5.0 as graceful_shutdown is removed.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
@@ -1128,6 +1133,10 @@ func TestAccWindowsVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
 }
 
 func TestAccWindowsVirtualMachine_otherGracefulShutdownEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping test in 5.0 as graceful_shutdown is removed.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
@@ -1740,11 +1749,12 @@ func (r WindowsVirtualMachineResource) otherBootDiagnosticsTemplate(data accepta
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 `, r.template(data), data.RandomString)
 }
@@ -2058,11 +2068,12 @@ func (r WindowsVirtualMachineResource) otherGalleryApplicationTemplate(data acce
 %[1]s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accteststr%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accteststr%[2]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
