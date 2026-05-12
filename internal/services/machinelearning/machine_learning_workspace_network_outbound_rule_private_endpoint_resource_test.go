@@ -458,7 +458,7 @@ resource "azurerm_cognitive_account" "test" {
 resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint" "test" {
   name                = "acctest-CSA-outboundrule-%[3]s"
   workspace_id        = azurerm_machine_learning_workspace.test.id
-  service_resource_id = azure_cognitive_account.test.id
+  service_resource_id = azurerm_cognitive_account.test.id
   sub_resource_target = "account"
 }
 `, template, data.RandomInteger, data.RandomStringOfLength(6))
