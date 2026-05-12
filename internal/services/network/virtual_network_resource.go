@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
 	"regexp"
 	"strings"
 	"time"
@@ -545,7 +546,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				for _, existingAllocation := range *payload.Properties.AddressSpace.IPamPoolPrefixAllocations {
 					for _, expandedAllocation := range *expandedIPAddressPool {
 						if existingAllocation.Pool != nil && expandedAllocation.Pool != nil && strings.EqualFold(pointer.From(existingAllocation.Pool.Id), pointer.From(expandedAllocation.Pool.Id)) &&
-							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil && *existingAllocation.NumberOfIPAddresses > *expandedAllocation.NumberOfIPAddresses {
+							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil && numberOfIPAddressesDecreased(*existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses) {
 							return fmt.Errorf("`number_of_ip_addresses` cannot be decreased from %v to %v on pool: %v", *existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses, *expandedAllocation.Pool.Id)
 						}
 					}
@@ -976,6 +977,19 @@ func flattenVirtualNetworkIPAddressPool(input *[]virtualnetworks.IPamPoolPrefixA
 	}
 
 	return outputs
+}
+
+// numberOfIPAddressesDecreased compares two numeric string values and returns true
+// if existing is greater than expanded (i.e., a decrease). Uses math/big.Int to
+// handle large IPv6 address counts correctly instead of lexicographic string comparison.
+func numberOfIPAddressesDecreased(existing, expanded string) bool {
+	existingVal, ok1 := new(big.Int).SetString(existing, 10)
+	expandedVal, ok2 := new(big.Int).SetString(expanded, 10)
+	if !ok1 || !ok2 {
+		log.Printf("[WARN] could not parse number_of_ip_addresses for comparison: existing=%q, expanded=%q", existing, expanded)
+		return false
+	}
+	return existingVal.Cmp(expandedVal) > 0
 }
 
 func flattenVirtualNetworkDDoSProtectionPlan(input *virtualnetworks.VirtualNetworkPropertiesFormat) []interface{} {
