@@ -1,6 +1,7 @@
 ## 4.73.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_container_app_job` - Add support for `identity_id` property to `scaling.rules` [GH-31312]
 
 FEATURES:
 
