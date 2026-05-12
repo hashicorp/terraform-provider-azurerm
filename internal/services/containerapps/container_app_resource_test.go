@@ -300,21 +300,6 @@ func TestAccContainerAppResource_completeWithNoDaprAppPort(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppResource_completeWithVNet(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
-	r := ContainerAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completeWithVnet(data, "rev1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccContainerAppResource_completeWithSidecar(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
@@ -1792,98 +1777,6 @@ resource "azurerm_container_app" "test" {
 `, r.templatePlusExtras(data), data.RandomInteger, revisionSuffix)
 }
 
-func (r ContainerAppResource) completeWithVnet(data acceptance.TestData, revisionSuffix string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_container_app" "test" {
-  name                         = "acctest-capp-%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  container_app_environment_id = azurerm_container_app_environment.test.id
-  revision_mode                = "Single"
-
-  template {
-    container {
-      name   = "acctest-cont-%[2]d"
-      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu    = 0.25
-      memory = "0.5Gi"
-
-      readiness_probe {
-        transport = "HTTP"
-        port      = 5000
-      }
-
-      liveness_probe {
-        transport = "HTTP"
-        port      = 5000
-        path      = "/health"
-
-        header {
-          name  = "Cache-Control"
-          value = "no-cache"
-        }
-
-        initial_delay           = 5
-        timeout                 = 2
-        failure_count_threshold = 1
-      }
-
-      startup_probe {
-        transport = "TCP"
-        port      = 5000
-      }
-
-      volume_mounts {
-        name = azurerm_container_app_environment_storage.test.name
-        path = "/tmp/testdata"
-      }
-    }
-
-    volume {
-      name          = azurerm_container_app_environment_storage.test.name
-      storage_type  = "AzureFile"
-      storage_name  = azurerm_container_app_environment_storage.test.name
-      mount_options = "dir_mode=0777,file_mode=0666"
-    }
-
-    min_replicas                = 2
-    max_replicas                = 3
-    cooldown_period_in_seconds  = 1000
-    polling_interval_in_seconds = 10
-
-    revision_suffix = "%[3]s"
-  }
-
-  ingress {
-    allow_insecure_connections = true
-    target_port                = 5000
-    transport                  = "http"
-    traffic_weight {
-      latest_revision = true
-      percentage      = 100
-    }
-  }
-
-  registry {
-    server               = azurerm_container_registry.test.login_server
-    username             = azurerm_container_registry.test.admin_username
-    password_secret_name = "registry-password"
-  }
-
-  secret {
-    name  = "registry-password"
-    value = azurerm_container_registry.test.admin_password
-  }
-
-  tags = {
-    foo     = "Bar"
-    accTest = "1"
-  }
-}
-`, r.templateWithVnet(data), data.RandomInteger, revisionSuffix)
-}
-
 func (r ContainerAppResource) completeWithSidecar(data acceptance.TestData, revisionSuffix string) string {
 	return fmt.Sprintf(`
 %s
@@ -2847,7 +2740,7 @@ resource "azurerm_container_app_environment_storage" "test" {
   share_name                   = azurerm_storage_share.test.name
   access_mode                  = "ReadWrite"
 }
-`, ContainerAppEnvironmentResource{}.completeWithoutWorkloadProfile(data), data.RandomInteger, data.RandomString)
+`, ContainerAppEnvironmentResource{}.complete(data), data.RandomInteger, data.RandomString)
 }
 
 func (ContainerAppResource) templatePlusExtras(data acceptance.TestData) string {
