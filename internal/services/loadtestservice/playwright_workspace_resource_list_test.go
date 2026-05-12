@@ -19,7 +19,7 @@ func TestAccPlaywrightWorkspace_list_basic(t *testing.T) {
 	r := PlaywrightWorkspaceResource{}
 	listResourceAddress := "azurerm_playwright_workspace.list"
 
-	data := acceptance.BuildTestData(t, "azurerm_playwright_workspace", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_playwright_workspace", "test")
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
