@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -61,15 +62,17 @@ func (d MsSqlManagedDatabaseDataSource) Arguments() map[string]*pluginsdk.Schema
 }
 
 func (d MsSqlManagedDatabaseDataSource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	attrs := map[string]*pluginsdk.Schema{
 		"managed_instance_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"resource_group_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"long_term_retention_policy": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -94,18 +97,15 @@ func (d MsSqlManagedDatabaseDataSource) Attributes() map[string]*pluginsdk.Schem
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
-
-					"immutable_backups_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
 				},
 			},
 		},
+
 		"short_term_retention_days": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"point_in_time_restore": {
 			Type:     schema.TypeList,
 			Computed: true,
@@ -123,6 +123,16 @@ func (d MsSqlManagedDatabaseDataSource) Attributes() map[string]*pluginsdk.Schem
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		attrs["long_term_retention_policy"].Elem.(*pluginsdk.Resource).Schema["immutable_backups_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "The `long_term_retention_policy.immutable_backups_enabled` property has been deprecated and will be removed in v5.0 of the AzureRM provider. This property is non-functional and was mistakenly exposed in the data source.",
+		}
+	}
+
+	return attrs
 }
 
 func (d MsSqlManagedDatabaseDataSource) Read() sdk.ResourceFunc {

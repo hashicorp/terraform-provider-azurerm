@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AppInsightsResource struct{}
+type ApplicationInsightsResource struct{}
 
 func TestAccApplicationInsights_basicWeb(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccApplicationInsights_basicWeb(t *testing.T) {
 
 func TestAccApplicationInsights_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,7 +55,7 @@ func TestAccApplicationInsights_requiresImport(t *testing.T) {
 
 func TestAccApplicationInsights_basicJava(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,7 +71,7 @@ func TestAccApplicationInsights_basicJava(t *testing.T) {
 
 func TestAccApplicationInsights_basicMobileCenter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +87,7 @@ func TestAccApplicationInsights_basicMobileCenter(t *testing.T) {
 
 func TestAccApplicationInsights_basicOther(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -103,7 +103,7 @@ func TestAccApplicationInsights_basicOther(t *testing.T) {
 
 func TestAccApplicationInsights_basicPhone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -119,7 +119,7 @@ func TestAccApplicationInsights_basicPhone(t *testing.T) {
 
 func TestAccApplicationInsights_basicStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -135,7 +135,7 @@ func TestAccApplicationInsights_basicStore(t *testing.T) {
 
 func TestAccApplicationInsights_basiciOS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -151,7 +151,7 @@ func TestAccApplicationInsights_basiciOS(t *testing.T) {
 
 func TestAccApplicationInsights_basicWorkspaceMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -171,7 +171,7 @@ func TestAccApplicationInsights_basicWorkspaceMode(t *testing.T) {
 	})
 }
 
-func (t AppInsightsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ApplicationInsightsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := components.ParseComponentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -187,7 +187,7 @@ func (t AppInsightsResource) Exists(ctx context.Context, clients *clients.Client
 
 func TestAccApplicationInsights_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -210,7 +210,7 @@ func TestAccApplicationInsights_complete(t *testing.T) {
 
 func TestAccApplicationInsights_completeUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -232,7 +232,7 @@ func TestAccApplicationInsights_completeUpdated(t *testing.T) {
 
 func TestAccApplicationInsights_withInternetQueryEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -254,7 +254,7 @@ func TestAccApplicationInsights_withInternetQueryEnabled(t *testing.T) {
 
 func TestAccApplicationInsights_withInternetIngestionEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -276,7 +276,7 @@ func TestAccApplicationInsights_withInternetIngestionEnabled(t *testing.T) {
 
 func TestAccApplicationInsights_disableGeneratedRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	r := AppInsightsResource{}
+	r := ApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -290,7 +290,7 @@ func TestAccApplicationInsights_disableGeneratedRule(t *testing.T) {
 	})
 }
 
-func (AppInsightsResource) basic(data acceptance.TestData, applicationType string) string {
+func (ApplicationInsightsResource) basic(data acceptance.TestData, applicationType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -310,7 +310,11 @@ resource "azurerm_application_insights" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
 }
 
-func (AppInsightsResource) basicWorkspaceMode(data acceptance.TestData) string {
+func (r ApplicationInsightsResource) basicForResourceIdentity(data acceptance.TestData) string {
+	return r.basic(data, "web")
+}
+
+func (ApplicationInsightsResource) basicWorkspaceMode(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -339,7 +343,7 @@ resource "azurerm_application_insights" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (AppInsightsResource) basicWorkspaceModeUpdated(data acceptance.TestData) string {
+func (ApplicationInsightsResource) basicWorkspaceModeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -376,8 +380,8 @@ resource "azurerm_application_insights" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AppInsightsResource) requiresImport(data acceptance.TestData, applicationType string) string {
-	template := AppInsightsResource{}.basic(data, applicationType)
+func (ApplicationInsightsResource) requiresImport(data acceptance.TestData, applicationType string) string {
+	template := ApplicationInsightsResource{}.basic(data, applicationType)
 	return fmt.Sprintf(`
 %s
 
@@ -390,7 +394,7 @@ resource "azurerm_application_insights" "import" {
 `, template)
 }
 
-func (AppInsightsResource) complete(data acceptance.TestData, applicationType string) string {
+func (ApplicationInsightsResource) complete(data acceptance.TestData, applicationType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -421,7 +425,7 @@ resource "azurerm_application_insights" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
 }
 
-func (AppInsightsResource) completeUpdated(data acceptance.TestData, applicationType string) string {
+func (ApplicationInsightsResource) completeUpdated(data acceptance.TestData, applicationType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -452,7 +456,7 @@ resource "azurerm_application_insights" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
 }
 
-func (AppInsightsResource) withInternetQueryEnabled(data acceptance.TestData) string {
+func (ApplicationInsightsResource) withInternetQueryEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -473,7 +477,7 @@ resource "azurerm_application_insights" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AppInsightsResource) withInternetQueryEnabledUpdate(data acceptance.TestData) string {
+func (ApplicationInsightsResource) withInternetQueryEnabledUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -494,7 +498,7 @@ resource "azurerm_application_insights" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AppInsightsResource) withInternetIngestionEnabled(data acceptance.TestData) string {
+func (ApplicationInsightsResource) withInternetIngestionEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -515,7 +519,7 @@ resource "azurerm_application_insights" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AppInsightsResource) withInternetIngestionEnabledUpdate(data acceptance.TestData) string {
+func (ApplicationInsightsResource) withInternetIngestionEnabledUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -536,7 +540,7 @@ resource "azurerm_application_insights" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AppInsightsResource) disableGeneratedRule(data acceptance.TestData, applicationType string) string {
+func (ApplicationInsightsResource) disableGeneratedRule(data acceptance.TestData, applicationType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

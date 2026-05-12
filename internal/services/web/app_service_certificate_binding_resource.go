@@ -83,8 +83,8 @@ func resourceAppServiceCertificateBinding() *pluginsdk.Resource {
 }
 
 func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
-	certClient := meta.(*clients.Client).Web.CertificatesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
+	certClient := meta.(*clients.Client).Web.CertificatesClientV1
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -97,13 +97,10 @@ func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta 
 
 	certificateID, err := parse.CertificateID(d.Get("certificate_id").(string))
 	if err != nil {
-		return err
+		return fmt.Errorf("could not parse ID: %+v", err)
 	}
 
 	id := parse.NewCertificateBindingId(*hostnameBindingID, *certificateID)
-	if err != nil {
-		return fmt.Errorf("could not parse ID: %+v", err)
-	}
 
 	certDetails, err := certClient.Get(ctx, id.CertificateId.ResourceGroup, id.CertificateId.Name)
 	if err != nil {
@@ -149,7 +146,7 @@ func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceAppServiceCertificateBindingRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,7 +183,7 @@ func resourceAppServiceCertificateBindingRead(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceAppServiceCertificateBindingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

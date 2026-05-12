@@ -119,6 +119,20 @@ func TestAccKustoScript_scriptContent(t *testing.T) {
 	})
 }
 
+func TestAccKustoScript_clusterLevel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_script", "test")
+	r := KustoScriptResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clusterLevel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sas_token", "script_content"),
+	})
+}
+
 func (r KustoScriptResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := scripts.ParseScriptID(state.ID)
 	if err != nil {
@@ -250,6 +264,8 @@ resource "azurerm_kusto_script" "test" {
   sas_token                          = data.azurerm_storage_account_blob_container_sas.test.sas
   continue_on_errors_enabled         = true
   force_an_update_when_value_changed = "first"
+  script_level                       = "Database"
+  principal_permissions_action       = "RemovePermissionOnScriptCompletion"
 }
 `, template, data.RandomInteger)
 }
@@ -323,4 +339,59 @@ resource "azurerm_kusto_script" "test" {
   script_content                     = ".create table MyTable (Level:string, Timestamp:datetime, UserId:string, TraceId:string, Message:string, ProcessId:int32)"
 }
 `, template, data.RandomInteger)
+}
+
+func (r KustoScriptResource) clusterLevel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-kusto-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+}
+
+resource "azurerm_kusto_database" "test" {
+  name                = "acctestkd-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_name        = azurerm_kusto_cluster.test.name
+}
+
+resource "azurerm_kusto_cluster_principal_assignment" "test" {
+  name                = "acctestkcpa%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  cluster_name        = azurerm_kusto_cluster.test.name
+
+  tenant_id      = data.azurerm_client_config.current.tenant_id
+  principal_id   = data.azurerm_client_config.current.object_id
+  principal_type = "App"
+  role           = "AllDatabasesAdmin"
+}
+
+resource "azurerm_kusto_script" "test" {
+  name                               = "acctest-ks-%[3]d"
+  database_id                        = azurerm_kusto_database.test.id
+  continue_on_errors_enabled         = true
+  force_an_update_when_value_changed = "first"
+  script_content                     = ".alter cluster policy callout @'[]'"
+  script_level                       = "Cluster"
+
+  depends_on = [azurerm_kusto_cluster_principal_assignment.test]
+}
+`, data.RandomIntOfLength(12), data.Locations.Primary, data.RandomInteger)
 }

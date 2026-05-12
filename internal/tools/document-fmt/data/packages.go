@@ -15,7 +15,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
 	log "github.com/sirupsen/logrus"
-
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/ssa"

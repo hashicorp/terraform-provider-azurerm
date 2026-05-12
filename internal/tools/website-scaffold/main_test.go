@@ -31,13 +31,13 @@ The following arguments are supported:
 
 * 'list' - (Required) Specifies a list of TODO.
 
-* 'location' - (Required) The Azure Region where the Foobar should exist. Changing this forces a new Foobar to be created.
+* 'location' - (Required) The Azure Region where the Foobar should exist. Changing this forces a new resource to be created.
 
 * 'map' - (Required) Specifies a list of TODO.
 
-* 'name' - (Required) The name which should be used for this Foobar. Changing this forces a new Foobar to be created.
+* 'name' - (Required) The name which should be used for this Foobar. Changing this forces a new resource to be created.
 
-* 'resource_group_name' - (Required) The name of the Resource Group where the Foobar should exist. Changing this forces a new Foobar to be created.
+* 'resource_group_name' - (Required) The name of the Resource Group where the Foobar should exist. Changing this forces a new resource to be created.
 
 * 'set' - (Required) Specifies a list of TODO.
 

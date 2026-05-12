@@ -5,5 +5,5 @@ package pipelines
 
 type ExecuteDataFlowActivityTypePropertiesCompute struct {
 	ComputeType *interface{} `json:"computeType,omitempty"`
-	CoreCount   *int64       `json:"coreCount,omitempty"`
+	CoreCount   *interface{} `json:"coreCount,omitempty"`
 }

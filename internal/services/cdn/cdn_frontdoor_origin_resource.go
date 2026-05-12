@@ -34,10 +34,10 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorOriginDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -449,8 +449,7 @@ func expandPrivateLinkSettings(input []interface{}, skuName profiles.SkuName, en
 	// Private Link Service ID here...
 	settings := input[0].(map[string]interface{})
 	targetType := settings["target_type"].(string)
-	_, err := privatelinkservices.ParsePrivateLinkServiceID(settings["private_link_target_id"].(string))
-	if err != nil && targetType == "" {
+	if _, err := privatelinkservices.ParsePrivateLinkServiceID(settings["private_link_target_id"].(string)); err != nil && targetType == "" {
 		// It is not a Load Balancer and the Target Type is empty, which is invalid...
 		return nil, fmt.Errorf("either 'private_link' or 'target_type' must be specified")
 	}

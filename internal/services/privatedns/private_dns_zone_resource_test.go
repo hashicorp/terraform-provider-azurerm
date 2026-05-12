@@ -96,7 +96,7 @@ func TestAccPrivateDnsZone_withSOARecord(t *testing.T) {
 	})
 }
 
-func (t PrivateDnsZoneResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PrivateDnsZoneResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := privatezones.ParsePrivateDnsZoneID(state.ID)
 	if err != nil {
 		return nil, err

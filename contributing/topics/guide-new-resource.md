@@ -17,11 +17,16 @@ This guide covers adding a new Typed Resource, which makes uses the Typed SDK wi
 2. Add an SDK Client (if required).
 3. Define the Resource ID.
 4. Scaffold an empty/new Resource.
-5. Register the new Resource.
-6. Add Acceptance Test(s) for this Resource.
-7. Run the Acceptance Test(s).
-8. Add Documentation for this Resource.
-9. Send the Pull Request.
+5. Add Resource Identity (**required**).
+6. Add a List Resource (**required**).
+7. Register the new Resource.
+8. Add Acceptance Test(s) for this Resource.
+9. Run the Acceptance Test(s).
+10. Add Documentation for this Resource.
+11. Send the Pull Request.
+
+> [!IMPORTANT]
+> **Resource Identity** and **List Resource** implementations are mandatory for all new resources. Pull requests adding new resources without these will not pass CI checks. If your resource genuinely cannot support one of these (e.g. no List API exists), please explain why in the PR description and a maintainer will apply the `allow-without-list` or `list-not-supported` label.
 
 We'll go through each of those steps in turn, presuming that we're creating a Resource for a Resource Group.
 
@@ -171,8 +176,10 @@ Schema fields should be ordered as follows:
 1. Any fields that make up the resource's ID, with the last user specified segment (usually the resource's name) first. (e.g. `name` then `resource_group_name`, or `name` then `parent_resource_id`)
 2. The `location` field.
 3. Required fields, sorted alphabetically.
-4. Optional fields, sorted alphabetically.
+4. Optional fields, sorted alphabetically. (The `tags` field is a special case and must always be listed last even though it's an `optional` field.)
 5. Computed fields, sorted alphabetically. (Although in a typed resource these are always added within the `Attributes` method)
+
+-> **Note:** This ordering applies to both `typed` and `untyped` resources; typed implementations still need their documentation to follow this sequence even if the schema wiring differs.
 
 ---
 
@@ -596,6 +603,8 @@ func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateF
 
 Things worth noting here:
 
+- An argument must either be marked `ForceNew: true`, or added to `Update()` function.
+
 - In addition to the `sdk.Resource` interface, we also have other interfaces, such as the `sdk.ResourceWithUpdate` interface, which includes an `update` method. Since these interfaces inherit from `sdk.Resource`, you do not need to redefine the `sdk.Resource` interface when defining them.
 
 For example, in this case:
@@ -606,42 +615,99 @@ For example, in this case:
 var _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
 ```
 
-:no_entry: **DO NOT**
+- Historically, we used `pluginsdk.StateChangeConf` to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this [example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go).
 
-```
-var (
-	_ sdk.Resource           = ResourceGroupExampleResource{}
-	_ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
-)
-```
-
-- Sometimes, for complex data types like `pluginsdk.TypeList`, we need to define `expand` and `flatten` methods. When defining such methods, please make sure to define them as global methods.
+- Argument names must be wrapped in backticks in error messages.
 
 For example, in this case:
 
 :white_check_mark: **DO**
 
 ```
-func expandComplexResource(input []ComplexResource) *resource.ComplexResource {
-	...
+"name": {
+	Type:     pluginsdk.TypeString,
+	Required: true,
+	ForceNew: true,
+	ValidateFunc: validation.StringMatch(
+		regexp.MustCompile("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,78}[a-zA-Z0-9])?$"),
+		"The `name` can only contain alphanumeric characters, underscores and dashes up to 80 characters in length.",
+	),
+},
+```
+
+- Wrap `model` and `properties` in backticks in error messages.
+
+For example, in this case:
+
+:white_check_mark: **DO**
+
+```
+func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        ...
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            ...
+
+            if existing.Model == nil {
+               return fmt.Errorf("retrieving %s: `model` was nil", id)
+            }
+
+            if existing.Model.Properties == nil {
+               return fmt.Errorf("retrieving %s: `properties` was nil", id)
+            }
+            
+            ...
+            return nil
+        },
+    }
 }
 ```
 
-:no_entry: **DO NOT**
+- Avoid returning errors in `Update` or `CustomizeDiff` for valid configurations that cannot be updated in-place. Instead, use `ForceNew` in `CustomizeDiff` to trigger resource recreation.
 
-```
-func (ResourceGroupExampleResource) expandComplexResource(input []ComplexResource) *resource.ComplexResource {
-	...
+:white_check_mark: **DO**
+
+```go
+func (r ExampleResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			...
+			o, n := metadata.ResourceDiff.GetChange("zone_balancing_enabled")
+			if o.(bool) != n.(bool) {
+				// Changing `zone_balancing_enabled` from `false` to `true` requires the capacity of the sku to be greater than `1`.
+				if !o.(bool) && n.(bool) && rd.Get("worker_count").(int) < 2 {
+					if err := metadata.ResourceDiff.ForceNew("zone_balancing_enabled"); err != nil {
+						return err
+					}
+				}
+			}
+
+			...
+
+			return nil
+		},
+	}
 }
 ```
 
-- Historically, we used `pluginsdk.StateChangeConf` to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this [example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go).
+### Step 5: Adding Resource Identity (Required)
 
-### Step 4: Adding Resource Identity
+All new resources **must** add support for Resource Identity. Please reference the [Resource Identity](guide-resource-identity.md) guide for detailed instructions.
 
-New resources should add support for Resource Identity, please reference the [Resource Identity](guide-resource-identity.md) guide.
+> [!IMPORTANT]
+> Resource Identity is a prerequisite for List Resources (Step 6). Ensure this is implemented before proceeding.
 
-### Step 5: Register the new Resource
+### Step 6: Adding a List Resource (Required)
+
+All new resources **must** include a List Resource implementation. This enables support for Terraform's `list` block (Terraform >= 1.14), allowing users to query and enumerate existing instances of the resource.
+
+Please reference the [List Resource](guide-list-resource.md) guide for detailed instructions.
+
+> [!NOTE]
+> A CI check (`enforce-list-resources`) will automatically verify that new resources include a `*_resource_list.go` file. If your resource cannot support listing, please explain why in the PR description and a maintainer will apply the `allow-without-list` or `list-not-supported` label to skip the check.
+
+### Step 7: Register the new Resource
 
 Resources are registered within the `registration.go` within each Service Package - and should look something like this:
 
@@ -725,7 +791,7 @@ output "id" {
 }
 ```
 
-### Step 6: Add Acceptance Test(s) for this Resource
+### Step 8: Add Acceptance Test(s) for this Resource
 
 We're going to test the Resource that we've just built by dynamically provisioning a Resource Group using the new `azurerm_resource_group_example` Resource.
 
@@ -752,7 +818,7 @@ type ResourceGroupExampleTestResource struct{}
 func TestAccResourceGroupExample_basic(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
     r := ResourceGroupExampleTestResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config: r.basic(data),
@@ -767,7 +833,7 @@ func TestAccResourceGroupExample_basic(t *testing.T) {
 func TestAccResourceGroupExample_requiresImport(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
     r := ResourceGroupExampleTestResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config: r.basic(data),
@@ -782,7 +848,7 @@ func TestAccResourceGroupExample_requiresImport(t *testing.T) {
 func TestAccResourceGroupExample_complete(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
     r := ResourceGroupExampleTestResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config: r.complete(data),
@@ -797,7 +863,7 @@ func TestAccResourceGroupExample_complete(t *testing.T) {
 func TestAccResourceGroupExample_update(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
     r := ResourceGroupExampleTestResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config: r.basic(data),
@@ -882,7 +948,7 @@ There's a more detailed breakdown of how this works [in the Acceptance Testing r
 
 At this point we should be able to run this test.
 
-### Step 7: Run the Acceptance Test(s)
+### Step 9: Run the Acceptance Test(s)
 
 Detailed [instructions on Running the Tests can be found in this guide](running-the-tests.md) - when a Service Principal is configured you can run the test above using:
 
@@ -915,7 +981,7 @@ PASS
 ok  	github.com/hashicorp/terraform-provider-azurerm/internal/services/resource	324.753s
 ```
 
-### Step 8: Add Documentation for this Resource
+### Step 10: Add Documentation for this Resource
 
 At this point in time documentation for each Resource (and Data Source) is written manually, located within the `./website` folder - in this case this will be located at `./website/docs/d/resource_group_example.html.markdown`.
 
@@ -985,6 +1051,6 @@ terraform import azurerm_resource_group_example.example /subscriptions/00000000-
 ```
 ````
 
-### Step 9: Send the Pull Request
+### Step 11: Send the Pull Request
 
 See [our recommendations for opening a Pull Request](guide-opening-a-pr.md).

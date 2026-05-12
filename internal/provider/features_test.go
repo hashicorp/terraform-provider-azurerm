@@ -35,6 +35,10 @@ func TestExpandFeatures(t *testing.T) {
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   true,
 					PurgeSoftDeletedKeysOnDestroy:    true,
@@ -238,6 +242,10 @@ func TestExpandFeatures(t *testing.T) {
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   true,
 					PurgeSoftDeletedKeysOnDestroy:    true,
@@ -438,6 +446,10 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: false,
+				},
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
 				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   false,

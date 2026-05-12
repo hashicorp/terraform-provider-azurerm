@@ -281,9 +281,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			VaultBaseURL: keyVaultKey.KeyVaultBaseURL,
 			KeyName:      keyVaultKey.Name,
 			KeyVersion:   &keyVaultKey.Version,
-			Identity: &factories.CMKIdentityDefinition{
-				UserAssignedIdentity: pointer.To(d.Get("customer_managed_key_identity_id").(string)),
-			},
+			Identity:     expandDataFactoryEncryptionIdentity(d.Get("customer_managed_key_identity_id").(string)),
 		}
 	}
 

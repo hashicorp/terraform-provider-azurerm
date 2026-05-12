@@ -31,17 +31,21 @@ type changelog struct {
 }
 
 type features struct {
-	dataSources []string
-	general     []string
+	actions       []string
+	dataSources   []string
+	listResources []string
+	general       []string
 }
 
 type enhancements struct {
+	provider     []string
 	dependencies []string
 	dataSources  []string
 	general      []string
 }
 
 type bugs struct {
+	provider    []string
 	dataSources []string
 	general     []string
 }
@@ -125,13 +129,20 @@ func addChangelogEntry(changeLog *changelog, st sectionType, line string) {
 	case sectionTypeBreakingChanges:
 		changeLog.breaking = append(changeLog.breaking, line)
 	case sectionTypeFeatures:
-		if strings.Contains(line, "Data Source") {
+		switch {
+		case strings.Contains(line, "Action"):
+			changeLog.features.actions = append(changeLog.features.actions, line)
+		case strings.Contains(line, "Data Source"):
 			changeLog.features.dataSources = append(changeLog.features.dataSources, line)
-		} else {
+		case strings.Contains(line, "List Resource"):
+			changeLog.features.listResources = append(changeLog.features.listResources, line)
+		default:
 			changeLog.features.general = append(changeLog.features.general, line)
 		}
 	case sectionTypeEnhancements:
 		switch {
+		case strings.Contains(line, "provider:"):
+			changeLog.enhancements.provider = append(changeLog.enhancements.provider, line)
 		case strings.Contains(line, "dependencies"):
 			changeLog.enhancements.dependencies = append(changeLog.enhancements.dependencies, line)
 		case strings.Contains(line, "Data Source"):
@@ -140,9 +151,12 @@ func addChangelogEntry(changeLog *changelog, st sectionType, line string) {
 			changeLog.enhancements.general = append(changeLog.enhancements.general, line)
 		}
 	case sectionTypeBugs:
-		if strings.Contains(line, "Data Source") {
+		switch {
+		case strings.Contains(line, "provider:"):
+			changeLog.bugs.provider = append(changeLog.bugs.provider, line)
+		case strings.Contains(line, "Data Source"):
 			changeLog.bugs.dataSources = append(changeLog.bugs.dataSources, line)
-		} else {
+		default:
 			changeLog.bugs.general = append(changeLog.bugs.general, line)
 		}
 	default:
@@ -190,10 +204,21 @@ func rebuildChangelog(changeLog *changelog) []string {
 		newContent = append(newContent, formatSection(changeLog.breaking, sectionTypeBreakingChanges)...)
 	}
 
+	// Features
 	tmpContent := make([]string, 0)
+	if len(changeLog.features.actions) > 0 {
+		sort(changeLog.features.actions)
+		tmpContent = append(tmpContent, changeLog.features.actions...)
+	}
+
 	if len(changeLog.features.dataSources) > 0 {
 		sort(changeLog.features.dataSources)
 		tmpContent = append(tmpContent, changeLog.features.dataSources...)
+	}
+
+	if len(changeLog.features.listResources) > 0 {
+		sort(changeLog.features.listResources)
+		tmpContent = append(tmpContent, changeLog.features.listResources...)
 	}
 
 	if len(changeLog.features.general) > 0 {
@@ -205,7 +230,13 @@ func rebuildChangelog(changeLog *changelog) []string {
 		newContent = append(newContent, formatSection(tmpContent, sectionTypeFeatures)...)
 	}
 
+	// Enhancements
 	tmpContent = make([]string, 0)
+	if len(changeLog.enhancements.provider) > 0 {
+		sort(changeLog.enhancements.provider)
+		tmpContent = append(tmpContent, changeLog.enhancements.provider...)
+	}
+
 	if len(changeLog.enhancements.dependencies) > 0 {
 		sort(changeLog.enhancements.dependencies)
 		tmpContent = append(tmpContent, changeLog.enhancements.dependencies...)
@@ -225,7 +256,13 @@ func rebuildChangelog(changeLog *changelog) []string {
 		newContent = append(newContent, formatSection(tmpContent, sectionTypeEnhancements)...)
 	}
 
+	// Bugs
 	tmpContent = make([]string, 0)
+	if len(changeLog.bugs.provider) > 0 {
+		sort(changeLog.bugs.provider)
+		tmpContent = append(tmpContent, changeLog.bugs.provider...)
+	}
+
 	if len(changeLog.bugs.dataSources) > 0 {
 		sort(changeLog.bugs.dataSources)
 		tmpContent = append(tmpContent, changeLog.bugs.dataSources...)

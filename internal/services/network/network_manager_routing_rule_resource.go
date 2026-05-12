@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,9 +21,17 @@ import (
 var (
 	_ sdk.ResourceWithUpdate        = ManagerRoutingRuleResource{}
 	_ sdk.ResourceWithCustomizeDiff = ManagerRoutingRuleResource{}
+	_ sdk.ResourceWithIdentity      = ManagerRoutingRuleResource{}
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_manager_routing_rule -service-package-name network -properties "name" -compare-values "subscription_id:rule_collection_id,resource_group_name:rule_collection_id,network_manager_name:rule_collection_id,routing_configuration_name:rule_collection_id,rule_collection_name:rule_collection_id"
+
 type ManagerRoutingRuleResource struct{}
+
+// Identity implements [sdk.ResourceWithIdentity].
+func (r ManagerRoutingRuleResource) Identity() resourceids.ResourceId {
+	return &routingrules.RuleId{}
+}
 
 func (ManagerRoutingRuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return routingrules.ValidateRuleID
@@ -192,7 +201,7 @@ func (r ManagerRoutingRuleResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -228,6 +237,10 @@ func (r ManagerRoutingRuleResource) Read() sdk.ResourceFunc {
 					schema.Destination = flattenNetworkManagerRoutingRuleDestination(props.Destination)
 					schema.NextHop = flattenNetworkManagerRoutingRuleNextHop(props.NextHop)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&schema)

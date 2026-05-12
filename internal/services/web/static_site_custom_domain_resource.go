@@ -27,7 +27,7 @@ const (
 
 func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: "This resource has been deprecated in favour of `azurerm_static_web_app_custom_domain` and will be removed in a future release.",
+		DeprecationMessage: "This resource has been deprecated in favour of `azurerm_static_web_app_custom_domain` and will be removed v5.0 of the AzureRM provider.",
 		Create:             resourceStaticSiteCustomDomainCreate,
 		Read:               resourceStaticSiteCustomDomainRead,
 		Delete:             resourceStaticSiteCustomDomainDelete,
@@ -77,7 +77,7 @@ func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 }
 
 func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.StaticSitesClient
+	client := meta.(*clients.Client).Web.StaticSitesClientV1
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -89,8 +89,7 @@ func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	id := parse.NewStaticSiteCustomDomainID(staticSiteId.SubscriptionId, staticSiteId.ResourceGroup, staticSiteId.Name, d.Get("domain_name").(string))
-	_, err = client.GetStaticSite(ctx, id.ResourceGroup, id.StaticSiteName)
-	if err != nil {
+	if _, err = client.GetStaticSite(ctx, id.ResourceGroup, id.StaticSiteName); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *staticSiteId, err)
 	}
 
@@ -177,7 +176,7 @@ func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceStaticSiteCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.StaticSitesClient
+	client := meta.(*clients.Client).Web.StaticSitesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -202,7 +201,7 @@ func resourceStaticSiteCustomDomainRead(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceStaticSiteCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.StaticSitesClient
+	client := meta.(*clients.Client).Web.StaticSitesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

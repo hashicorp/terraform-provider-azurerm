@@ -50,6 +50,8 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Network Manager Routing Configuration.
 
+* `route_table_usage_mode` - (Optional) The route table usage mode for the Network Manager Routing Configuration. Possible values are `ManagedOnly` and `UseExisting`. Defaults to `ManagedOnly`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

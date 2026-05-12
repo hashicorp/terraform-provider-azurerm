@@ -35,9 +35,10 @@ func (ManagerRoutingConfigurationResource) ModelObject() interface{} {
 }
 
 type ManagerRoutingConfigurationResourceModel struct {
-	Description      string `tfschema:"description"`
-	Name             string `tfschema:"name"`
-	NetworkManagerId string `tfschema:"network_manager_id"`
+	Description         string `tfschema:"description"`
+	Name                string `tfschema:"name"`
+	NetworkManagerId    string `tfschema:"network_manager_id"`
+	RouteTableUsageMode string `tfschema:"route_table_usage_mode"`
 }
 
 func (ManagerRoutingConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -58,6 +59,13 @@ func (ManagerRoutingConfigurationResource) Arguments() map[string]*pluginsdk.Sch
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"route_table_usage_mode": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(networkmanagerroutingconfigurations.RouteTableUsageModeManagedOnly),
+			ValidateFunc: validation.StringInSlice(networkmanagerroutingconfigurations.PossibleValuesForRouteTableUsageMode(), false),
 		},
 	}
 }
@@ -96,7 +104,8 @@ func (r ManagerRoutingConfigurationResource) Create() sdk.ResourceFunc {
 			payload := networkmanagerroutingconfigurations.NetworkManagerRoutingConfiguration{
 				Name: pointer.To(config.Name),
 				Properties: &networkmanagerroutingconfigurations.NetworkManagerRoutingConfigurationPropertiesFormat{
-					Description: pointer.To(config.Description),
+					Description:         pointer.To(config.Description),
+					RouteTableUsageMode: pointer.ToEnum[networkmanagerroutingconfigurations.RouteTableUsageMode](config.RouteTableUsageMode),
 				},
 			}
 
@@ -139,6 +148,7 @@ func (r ManagerRoutingConfigurationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil && model.Properties != nil {
 				schema.Description = pointer.From(model.Properties.Description)
+				schema.RouteTableUsageMode = pointer.FromEnum(model.Properties.RouteTableUsageMode)
 			}
 
 			return metadata.Encode(&schema)
@@ -178,6 +188,10 @@ func (r ManagerRoutingConfigurationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("description") {
 				parameters.Properties.Description = pointer.To(model.Description)
+			}
+
+			if metadata.ResourceData.HasChange("route_table_usage_mode") {
+				parameters.Properties.RouteTableUsageMode = pointer.ToEnum[networkmanagerroutingconfigurations.RouteTableUsageMode](model.RouteTableUsageMode)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *parameters); err != nil {
