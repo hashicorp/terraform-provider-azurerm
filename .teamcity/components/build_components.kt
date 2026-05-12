@@ -154,7 +154,7 @@ fun ParametrizedWithType.BuildStartTime() {
     text("env.BUILD_START_TIME", "1777662664", "The time at which the build started")
 }
 
-fun ParametrizedWithType.SetForBetaVersion(runWithBetaVersion: Boolean) {
+fun ParametrizedWithType.EnvForBetaVersion(runWithBetaVersion: Boolean) {
     text("env.ARM_FIVEPOINTZERO_BETA", runWithBetaVersion.toString(), "Setting flag to trigger build on for next major release")
 }
 

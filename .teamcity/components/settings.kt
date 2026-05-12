@@ -15,8 +15,6 @@ var defaultTimeout = 12
 // specifies the default version of Terraform Core which should be used for testing
 var defaultTerraformCoreVersion = "1.14.3"
 
-const val enableBetaVersionTesting = true
-
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
 

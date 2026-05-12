@@ -19,7 +19,7 @@ fun AzureRM(environment: String, configuration : ClientConfiguration) : Project 
         buildConfigs.forEach { buildConfiguration ->
             buildType(buildConfiguration)
         }
-        if (enableBetaVersionTesting) {
+        if (configuration.runBetaVersion) {
             subProject(AzureRMBetaVersion(environment, configuration))
         }
     }
@@ -71,9 +71,9 @@ fun buildConfigurationsForServicesBetaVersion(services: Map<String, String>, pro
         var runNightly = runNightly.getOrDefault(environment, false)
 
         var service = serviceDetails(serviceName, displayName, environment, config.vcsRootId)
-        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.weeklyTestDay, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers, true)
+        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.weeklyTestDay, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers, config.runBetaVersion)
 
-        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse, testConfig.useAltSubscription, testConfig.useDevTestSubscription, enableFivePointZeroBeta = true)
+        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse, testConfig.useAltSubscription, testConfig.useDevTestSubscription, enableBetaVersion = config.runBetaVersion)
 
         list.add(buildConfig)
     }
