@@ -45,7 +45,6 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 WorkingDirectory(packageName)
                 GoCache()
                 BuildStartTime()
-                EnvForBetaVersion(runWithBetaVersion)
             }
 
             triggers {

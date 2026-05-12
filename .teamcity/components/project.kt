@@ -52,7 +52,7 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
         var service = serviceDetails(serviceName, displayName, environment, config.vcsRootId)
         var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers, false)
 
-        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse, testConfig.useAltSubscription, testConfig.useDevTestSubscription)
+        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse, testConfig.useAltSubscription, testConfig.useDevTestSubscription, enableBetaVersion = false)
 
         list.add(buildConfig)
     }
@@ -71,9 +71,9 @@ fun buildConfigurationsForServicesBetaVersion(services: Map<String, String>, pro
         var runNightly = runNightly.getOrDefault(environment, false)
 
         var service = serviceDetails(serviceName, displayName, environment, config.vcsRootId)
-        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.weeklyTestDay, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers, config.runBetaVersion)
+        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.weeklyTestDay, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers, true)
 
-        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse, testConfig.useAltSubscription, testConfig.useDevTestSubscription, enableBetaVersion = config.runBetaVersion)
+        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse, testConfig.useAltSubscription, testConfig.useDevTestSubscription, enableBetaVersion = true)
 
         list.add(buildConfig)
     }

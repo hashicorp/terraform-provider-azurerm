@@ -91,11 +91,16 @@ class ConfigurationTests {
 
     @Test
     fun betaVersionBuildsShouldSetFivePointZeroFlag() {
-        val project = AzureRMBetaVersion("public", TestConfiguration())
+        val config = TestConfiguration()
+        val project = AzureRMBetaVersion("public", config)
         project.buildTypes.forEach { bt ->
-            val betaFlag = bt.params.findRawParam("env.ARM_FIVEPOINTZERO_BETA")?.value
+            val betaFlag = bt.params.findRawParam(config.betaVersionEnvVar)?.value
             assertTrue(
-                "Build '${bt.id}' should set env.ARM_FIVEPOINTZERO_BETA to true, but was '$betaFlag'",
+                "Build '${bt.id}' should have ${config.betaVersionEnvVar} parameter set, but it was not found",
+                betaFlag != null
+            )
+            assertTrue(
+                "Build '${bt.id}' should set ${config.betaVersionEnvVar} to true, but was '$betaFlag'",
                 betaFlag == "true"
             )
         }
@@ -103,15 +108,20 @@ class ConfigurationTests {
 
     @Test
     fun standardBuildsShouldNotSetFivePointZeroFlag() {
-        val project = AzureRM("public", TestConfiguration())
+        val config = TestConfiguration()
+        val project = AzureRM("public", config)
         project.buildTypes.forEach { bt ->
-            // Skip cache builds as they don't need the ARM_FIVEPOINTZERO_BETA flag
-            if (bt.id.toString().contains("AZURERM_CACHE_PUBLIC")) {
+            // Skip cache and PR builds as they don't need the beta version flag
+            if (bt.id.toString().contains("AZURERM_CACHE_PUBLIC") || bt.id.toString().contains("AZURERM_PR_PUBLIC")) {
                 return@forEach
             }
-            val betaFlag = bt.params.findRawParam("env.ARM_FIVEPOINTZERO_BETA")?.value
+            val betaFlag = bt.params.findRawParam(config.betaVersionEnvVar)?.value
             assertTrue(
-                "Build '${bt.id}' should set env.ARM_FIVEPOINTZERO_BETA to false, but was '$betaFlag'",
+                "Build '${bt.id}' should have ${config.betaVersionEnvVar} parameter set, but it was not found",
+                betaFlag != null
+            )
+            assertTrue(
+                "Build '${bt.id}' should set ${config.betaVersionEnvVar} to false, but was '$betaFlag'",
                 betaFlag == "false"
             )
         }
