@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	StorageStringFmt   = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
-	StorageStringFmtKV = "@Microsoft.KeyVault(SecretUri=%s)"
+	StorageStringFmt         = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	StorageStringFmtKV       = "@Microsoft.KeyVault(SecretUri=%s)"
+	DeploymentStorageConnStr = "DEPLOYMENT_STORAGE_CONNECTION_STRING"
 )
 
 type SiteConfigLinuxFunctionApp struct {
@@ -2068,7 +2069,7 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFle
 	metadata sdk.ResourceMetaData,
 	storageUsesMSI bool,
 	backendStorageString string,
-	deploymentStorageStringName, deploymentStorageStringValue string,
+	deploymentStorageStringValue string,
 ) (*webapps.SiteConfig, error) {
 	if len(input) == 0 {
 		return nil, nil
@@ -2092,9 +2093,9 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFle
 	}
 
 	if deploymentStorageStringValue != "" {
-		appSettings = updateOrAppendAppSettings(appSettings, deploymentStorageStringName, deploymentStorageStringValue, false)
+		appSettings = updateOrAppendAppSettings(appSettings, DeploymentStorageConnStr, deploymentStorageStringValue, false)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, deploymentStorageStringName, deploymentStorageStringValue, true)
+		appSettings = updateOrAppendAppSettings(appSettings, DeploymentStorageConnStr, deploymentStorageStringValue, true)
 	}
 
 	FlexConsumptionSiteConfig := input[0]
