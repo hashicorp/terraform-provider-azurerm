@@ -78,7 +78,6 @@ resource "azurerm_storage_actions_task_definition" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   description         = "list test"
-  enabled             = true
 
   identity {
     type = "SystemAssigned"
@@ -90,8 +89,6 @@ resource "azurerm_storage_actions_task_definition" "test" {
 
       operation {
         name       = "SetBlobTier"
-        on_failure = "break"
-        on_success = "continue"
 
         parameters = {
           tier = "Hot"

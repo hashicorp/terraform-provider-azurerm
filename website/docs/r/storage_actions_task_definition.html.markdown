@@ -34,9 +34,7 @@ resource "azurerm_storage_actions_task_definition" "example" {
       condition = "[[equals(AccessTier, 'Cool')]]"
 
       operation {
-        name       = "SetBlobTier"
-        on_failure = "break"
-        on_success = "continue"
+        name = "SetBlobTier"
 
         parameters = {
           tier = "Hot"
@@ -61,7 +59,7 @@ The following arguments are supported:
 
 * `description` - (Required) A description for this Storage Actions Task Definition.
 
-* `enabled` - (Required) Whether this Storage Actions Task Definition is enabled.
+* `enabled` - (Optional) Whether this Storage Actions Task Definition is enabled. Defaults to `true`.
 
 * `identity` - (Required) An `identity` block as defined below.
 
@@ -108,10 +106,6 @@ An `operation` block supports the following:
 * `name` - (Required) The name of the operation to perform on each blob matched by the condition. Possible values are `DeleteBlob`, `SetBlobExpiry`, `SetBlobImmutabilityPolicy`, `SetBlobLegalHold`, `SetBlobTags`, `SetBlobTier`, and `UndeleteBlob`.
 
 ~> **Note:** When `name` is set to `DeleteBlob` it must be the only `operation` defined within its parent `if` or `else` block.
-
-* `on_failure` - (Optional) The action to take when the operation fails on a blob. The only possible value is `break`.
-
-* `on_success` - (Optional) The action to take when the operation succeeds on a blob. The only possible value is `continue`.
 
 * `parameters` - (Optional) A mapping of parameters used by the operation.
 

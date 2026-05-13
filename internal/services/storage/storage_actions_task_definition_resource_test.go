@@ -139,7 +139,6 @@ resource "azurerm_storage_actions_task_definition" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   description         = "basic test"
-  enabled             = true
 
   identity {
     type = "SystemAssigned"
@@ -151,8 +150,6 @@ resource "azurerm_storage_actions_task_definition" "test" {
 
       operation {
         name       = "SetBlobTier"
-        on_failure = "break"
-        on_success = "continue"
 
         parameters = {
           tier = "Hot"
@@ -173,7 +170,6 @@ resource "azurerm_storage_actions_task_definition" "import" {
   resource_group_name = azurerm_storage_actions_task_definition.test.resource_group_name
   location            = azurerm_storage_actions_task_definition.test.location
   description         = azurerm_storage_actions_task_definition.test.description
-  enabled             = azurerm_storage_actions_task_definition.test.enabled
 
   identity {
     type = "SystemAssigned"
@@ -185,8 +181,6 @@ resource "azurerm_storage_actions_task_definition" "import" {
 
       operation {
         name       = "SetBlobTier"
-        on_failure = "break"
-        on_success = "continue"
 
         parameters = {
           tier = "Hot"
@@ -221,8 +215,6 @@ resource "azurerm_storage_actions_task_definition" "test" {
 
       operation {
         name       = "SetBlobTier"
-        on_failure = "break"
-        on_success = "continue"
 
         parameters = {
           tier = "Hot"
@@ -231,8 +223,6 @@ resource "azurerm_storage_actions_task_definition" "test" {
 
       operation {
         name       = "SetBlobTags"
-        on_failure = "break"
-        on_success = "continue"
 
         parameters = {
           processed = "true"
@@ -243,8 +233,6 @@ resource "azurerm_storage_actions_task_definition" "test" {
     else {
       operation {
         name       = "DeleteBlob"
-        on_failure = "break"
-        on_success = "continue"
       }
     }
   }
@@ -288,7 +276,6 @@ resource "azurerm_storage_actions_task_definition" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   description         = "delete with other operations should fail"
-  enabled             = true
 
   identity {
     type = "SystemAssigned"
@@ -300,14 +287,10 @@ resource "azurerm_storage_actions_task_definition" "test" {
 
       operation {
         name       = "DeleteBlob"
-        on_failure = "break"
-        on_success = "continue"
       }
 
       operation {
         name       = "SetBlobTier"
-        on_failure = "break"
-        on_success = "continue"
 
         parameters = {
           tier = "Hot"
@@ -332,7 +315,6 @@ resource "azurerm_storage_actions_task_definition" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   description         = "delete with other operations should fail"
-  enabled             = true
 
   identity {
     type = "SystemAssigned"
@@ -344,8 +326,6 @@ resource "azurerm_storage_actions_task_definition" "test" {
 
       operation {
         name       = "SetBlobTier"
-        on_failure = "break"
-        on_success = "continue"
 
         parameters = {
           tier = "Hot"
@@ -356,14 +336,10 @@ resource "azurerm_storage_actions_task_definition" "test" {
     else {
       operation {
         name       = "DeleteBlob"
-        on_failure = "break"
-        on_success = "continue"
       }
 
       operation {
         name       = "SetBlobTags"
-        on_failure = "break"
-        on_success = "continue"
 
         parameters = {
           archived = "true"

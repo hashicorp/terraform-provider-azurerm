@@ -58,8 +58,6 @@ type StorageActionsTaskDefinitionElseModel struct {
 
 type StorageActionsTaskDefinitionOperationModel struct {
 	Name       string            `tfschema:"name"`
-	OnFailure  string            `tfschema:"on_failure"`
-	OnSuccess  string            `tfschema:"on_success"`
 	Parameters map[string]string `tfschema:"parameters"`
 }
 
@@ -90,16 +88,6 @@ func (StorageActionsTaskDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(storagetasks.PossibleValuesForStorageTaskOperationName(), false),
-				},
-				"on_failure": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(storagetasks.PossibleValuesForOnFailure(), false),
-				},
-				"on_success": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(storagetasks.PossibleValuesForOnSuccess(), false),
 				},
 				"parameters": {
 					Type:     pluginsdk.TypeMap,
@@ -170,7 +158,8 @@ func (StorageActionsTaskDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Optional: true,
+			Default:  true,
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityRequired(),
@@ -435,10 +424,12 @@ func expandStorageActionsTaskDefinitionAction(input []StorageActionsTaskDefiniti
 func expandStorageActionsTaskDefinitionOperations(input []StorageActionsTaskDefinitionOperationModel) []storagetasks.StorageTaskOperation {
 	result := make([]storagetasks.StorageTaskOperation, 0, len(input))
 	for _, op := range input {
+		// The API only supports a single value for each of `OnFailure` ("break") and `OnSuccess` ("continue"),
+		// so these are set implicitly rather than exposed in the schema.
 		operation := storagetasks.StorageTaskOperation{
 			Name:      storagetasks.StorageTaskOperationName(op.Name),
-			OnFailure: pointer.ToEnum[storagetasks.OnFailure](op.OnFailure),
-			OnSuccess: pointer.ToEnum[storagetasks.OnSuccess](op.OnSuccess),
+			OnFailure: pointer.To(storagetasks.OnFailureBreak),
+			OnSuccess: pointer.To(storagetasks.OnSuccessContinue),
 		}
 
 		if len(op.Parameters) > 0 {
@@ -476,8 +467,6 @@ func flattenStorageActionsTaskDefinitionOperations(input []storagetasks.StorageT
 	for _, op := range input {
 		operation := StorageActionsTaskDefinitionOperationModel{
 			Name:       string(op.Name),
-			OnFailure:  string(pointer.From(op.OnFailure)),
-			OnSuccess:  string(pointer.From(op.OnSuccess)),
 			Parameters: pointer.From(op.Parameters),
 		}
 		result = append(result, operation)
