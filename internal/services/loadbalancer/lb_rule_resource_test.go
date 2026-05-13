@@ -171,21 +171,21 @@ func TestAccAzureRMLoadBalancerRule_vmssBackendPoolUpdateRemoveLBRule(t *testing
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vmssBackendPool(data, lbRuleName, "Standard"),
+			Config: r.vmssBackendPool(data, lbRuleName),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.vmssBackendPoolUpdate(data, lbRuleName, "Standard"),
+			Config: r.vmssBackendPoolUpdate(data, lbRuleName),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.vmssBackendPoolWithoutLBRule(data, "Standard"),
+			Config: r.vmssBackendPoolWithoutLBRule(data),
 		},
 	})
 }
@@ -275,7 +275,7 @@ func (r LoadBalancerRule) Destroy(ctx context.Context, client *clients.Client, s
 	return pointer.To(true), nil
 }
 
-func (r LoadBalancerRule) template(data acceptance.TestData, sku string) string {
+func (r LoadBalancerRule) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -291,21 +291,21 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "%[3]s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctest-loadbalancer-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "%[3]s"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "acctest-fe-%[1]d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, sku)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LoadBalancerRule) basic(data acceptance.TestData) string {
@@ -320,7 +320,7 @@ resource "azurerm_lb_rule" "test" {
   frontend_port                  = 3389
   backend_port                   = 3389
 }
-`, r.template(data, "Standard"), data.RandomInteger%100000000)
+`, r.template(data), data.RandomInteger%100000000)
 }
 
 func (r LoadBalancerRule) complete(data acceptance.TestData) string {
@@ -344,7 +344,7 @@ resource "azurerm_lb_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, "Standard"), data.RandomInteger%100000000)
+`, r.template(data), data.RandomInteger%100000000)
 	}
 
 	return fmt.Sprintf(`
@@ -366,7 +366,7 @@ resource "azurerm_lb_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, "Standard"), data.RandomInteger%100000000)
+`, r.template(data), data.RandomInteger%100000000)
 }
 
 func (r LoadBalancerRule) completeUpdate(data acceptance.TestData) string {
@@ -389,7 +389,7 @@ resource "azurerm_lb_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, "Standard"), data.RandomInteger%100000000)
+`, r.template(data), data.RandomInteger%100000000)
 }
 
 func (r LoadBalancerRule) requiresImport(data acceptance.TestData) string {
@@ -410,7 +410,7 @@ resource "azurerm_lb_rule" "import" {
 
 // https://github.com/hashicorp/terraform/issues/9424
 func (r LoadBalancerRule) inconsistentRead(data acceptance.TestData) string {
-	template := r.template(data, "Standard")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -438,7 +438,7 @@ resource "azurerm_lb_rule" "test" {
 }
 
 func (r LoadBalancerRule) multipleRules(data, data2 acceptance.TestData) string {
-	template := r.template(data, "Standard")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -463,7 +463,7 @@ resource "azurerm_lb_rule" "test2" {
 }
 
 func (r LoadBalancerRule) multipleRulesUpdate(data, data2 acceptance.TestData) string {
-	template := r.template(data, "Standard")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -487,8 +487,8 @@ resource "azurerm_lb_rule" "test2" {
 `, template, data.RandomInteger%100000000, data2.RandomInteger%100000000)
 }
 
-func (r LoadBalancerRule) vmssBackendPoolWithoutLBRule(data acceptance.TestData, sku string) string {
-	template := r.template(data, sku)
+func (r LoadBalancerRule) vmssBackendPoolWithoutLBRule(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -551,8 +551,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r LoadBalancerRule) vmssBackendPool(data acceptance.TestData, lbRuleName, sku string) string {
-	template := r.vmssBackendPoolWithoutLBRule(data, sku)
+func (r LoadBalancerRule) vmssBackendPool(data acceptance.TestData, lbRuleName string) string {
+	template := r.vmssBackendPoolWithoutLBRule(data)
 	return fmt.Sprintf(`
 %s
 
@@ -568,8 +568,8 @@ resource "azurerm_lb_rule" "test" {
 `, template, lbRuleName)
 }
 
-func (r LoadBalancerRule) vmssBackendPoolUpdate(data acceptance.TestData, lbRuleName, sku string) string {
-	template := r.vmssBackendPoolWithoutLBRule(data, sku)
+func (r LoadBalancerRule) vmssBackendPoolUpdate(data acceptance.TestData, lbRuleName string) string {
+	template := r.vmssBackendPoolWithoutLBRule(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_rule" "test" {

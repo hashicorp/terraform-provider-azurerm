@@ -26,7 +26,7 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Standard"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -122,7 +122,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Standard"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -136,7 +136,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "Standard"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -151,7 +151,7 @@ func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Standard"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -166,9 +166,7 @@ func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config: func(data acceptance.TestData) string {
-				return r.basic(data, "Standard")
-			},
+			Config:       r.basic,
 			TestResource: r,
 		}),
 	})
@@ -289,7 +287,7 @@ func (r LoadBalancerNatRule) Destroy(ctx context.Context, client *clients.Client
 	return pointer.To(true), nil
 }
 
-func (r LoadBalancerNatRule) template(data acceptance.TestData, sku string) string {
+func (r LoadBalancerNatRule) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -305,24 +303,24 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "%[3]s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctest-loadbalancer-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "%[3]s"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "acctest-fe-%[1]d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, sku)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancerNatRule) basic(data acceptance.TestData, sku string) string {
+func (r LoadBalancerNatRule) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -335,7 +333,7 @@ resource "azurerm_lb_nat_rule" "test" {
   backend_port                   = 3389
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, sku), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LoadBalancerNatRule) complete(data acceptance.TestData) string {
@@ -358,7 +356,7 @@ resource "azurerm_lb_nat_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, "Standard"), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 %s
@@ -378,7 +376,7 @@ resource "azurerm_lb_nat_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, "Standard"), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LoadBalancerNatRule) completeUpdate(data acceptance.TestData) string {
@@ -400,11 +398,11 @@ resource "azurerm_lb_nat_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, "Standard"), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LoadBalancerNatRule) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data, "Standard")
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -421,7 +419,7 @@ resource "azurerm_lb_nat_rule" "import" {
 }
 
 func (r LoadBalancerNatRule) multipleRules(data, data2 acceptance.TestData) string {
-	template := r.template(data, "Standard")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -448,7 +446,7 @@ resource "azurerm_lb_nat_rule" "test2" {
 }
 
 func (r LoadBalancerNatRule) multipleRulesUpdate(data, data2 acceptance.TestData) string {
-	template := r.template(data, "Standard")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_nat_rule" "test" {
@@ -474,7 +472,7 @@ resource "azurerm_lb_nat_rule" "test2" {
 }
 
 func (r LoadBalancerNatRule) mapToBackendAddressPool(data acceptance.TestData) string {
-	template := r.template(data, "Standard")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_virtual_network" "test" {
