@@ -347,29 +347,29 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 }
 
 func expandUserAssignedIdentityToLegacy(input []identity.ModelUserAssigned) (*identity.LegacySystemAndUserAssignedMap, error) {
-expanded, err := identity.ExpandUserAssignedMapFromModel(input)
-if err != nil {
-return nil, err
-}
+	expanded, err := identity.ExpandUserAssignedMapFromModel(input)
+	if err != nil {
+		return nil, err
+	}
 
-return &identity.LegacySystemAndUserAssignedMap{
-Type:        expanded.Type,
-IdentityIds: expanded.IdentityIds,
-}, nil
+	return &identity.LegacySystemAndUserAssignedMap{
+		Type:        expanded.Type,
+		IdentityIds: expanded.IdentityIds,
+	}, nil
 }
 
 func flattenUserAssignedIdentityFromLegacy(input *identity.LegacySystemAndUserAssignedMap) ([]identity.ModelUserAssigned, error) {
-if input == nil {
-return []identity.ModelUserAssigned{}, nil
-}
+	if input == nil {
+		return []identity.ModelUserAssigned{}, nil
+	}
 
-flattened, err := identity.FlattenUserAssignedMapToModel(&identity.UserAssignedMap{
-Type:        input.Type,
-IdentityIds: input.IdentityIds,
-})
-if err != nil {
-return nil, err
-}
+	flattened, err := identity.FlattenUserAssignedMapToModel(&identity.UserAssignedMap{
+		Type:        input.Type,
+		IdentityIds: input.IdentityIds,
+	})
+	if err != nil {
+		return nil, err
+	}
 
-return *flattened, nil
+	return *flattened, nil
 }
