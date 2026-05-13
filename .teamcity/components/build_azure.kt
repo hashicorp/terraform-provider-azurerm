@@ -49,5 +49,5 @@ fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: Strin
     hiddenPasswordVariable("env.GIT_PAT", config.gitPat, "Personal Access Token for GitHub")
     hiddenVariable("env.GITHUB_REPO", config.gitHubRepo, "GitHub Repository")
     hiddenVariable("env.POST_GITHUB_COMMENT",  "false", "Whether to post a comment on the PR with the results of the tests")
-    hiddenVariable("env.POST_GITHUB_COMMENT_DETAILED",  "false", "Whether to post a detailed comment on the PR with the results of the tests")
+    hiddenVariable("env.TRACKING_ID",  "0", "Tracking id for the comments posted by the build")
 }
