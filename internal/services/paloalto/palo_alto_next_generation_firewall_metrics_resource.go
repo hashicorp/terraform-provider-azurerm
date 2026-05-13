@@ -144,7 +144,8 @@ func (r NextGenerationFirewallMetricsResource) Read() sdk.ResourceFunc {
 
 			if model := existing.Model; model != nil {
 				props := model.Properties
-				// Azure may redact the connection string on GET; preserve the config value in state
+				// Default to current state value in case the API redacts the field on GET
+				state.ApplicationInsightsConnectionString = metadata.ResourceData.Get("application_insights_connection_string").(string)
 				if props.ApplicationInsightsConnectionString != "" {
 					state.ApplicationInsightsConnectionString = props.ApplicationInsightsConnectionString
 				}
