@@ -88,13 +88,6 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				// Always suppress diff if we’re reading existing resource, dns_forwarding_rule is not returning
-				if d.Id() != "" {
-					return true
-				}
-				return false
-			},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"domain_names": {
@@ -116,13 +109,6 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.IsCommaSeparatedCIDRs,
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				// Always suppress diff if we’re reading existing resource, dns_listening_endpoint_allowed_cidrs is not returning
-				if d.Id() != "" {
-					return true
-				}
-				return false
-			},
 		},
 
 		"oci_backup_cidr_block": {
@@ -325,16 +311,33 @@ func (NetworkAnchorResource) Read() sdk.ResourceFunc {
 					state.ResourceAnchorId = props.ResourceAnchorId
 					state.SubnetId = props.SubnetId
 					state.OciVcnDnsLabel = pointer.From(props.OciVcnDnsLabel)
-					state.OciBackupCidrBlock = pointer.From(props.OciBackupCidrBlock)
 					state.OracleDnsForwardingEndpointEnabled = pointer.From(props.IsOracleDnsForwardingEndpointEnabled)
 					state.OracleDnsListeningEndpointEnabled = pointer.From(props.IsOracleDnsListeningEndpointEnabled)
 					state.OracleToAzureDnsZoneSyncEnabled = pointer.From(props.IsOracleToAzureDnsZoneSyncEnabled)
 					state.DnsForwardingEndpointIpAddress = pointer.From(props.DnsForwardingEndpointIPAddress)
 					state.DnsForwardingRuleUrl = pointer.From(props.DnsForwardingRulesURL)
 					state.DnsForwardingEndpointNsgRuleUrl = pointer.From(props.DnsForwardingEndpointNsgRulesURL)
-					state.DnsListeningEndpointAllowedCidrs = pointer.From(props.DnsListeningEndpointAllowedCidrs)
 					state.DnsListeningEndpointIpAddress = pointer.From(props.DnsListeningEndpointIPAddress)
 					state.DnsListeningEndpointNsgRuleUrl = pointer.From(props.DnsListeningEndpointNsgRulesURL)
+
+					if props.OciBackupCidrBlock != nil {
+						state.OciBackupCidrBlock = pointer.From(props.OciBackupCidrBlock)
+					} else if v, ok := metadata.ResourceData.GetOk("oci_backup_cidr_block"); ok {
+						state.OciBackupCidrBlock = v.(string)
+					}
+
+					if props.DnsForwardingRules != nil {
+						state.DnsForwardingRule = flattenDnsForwardingRules(props.DnsForwardingRules)
+					} else if v, ok := metadata.ResourceData.GetOk("dns_forwarding_rule"); ok {
+						// The service may omit these inputs from GET responses even when they were configured.
+						// Preserve the prior state value when omitted to avoid a perpetual ForceNew diff.
+						state.DnsForwardingRule = expandDnsForwardingRulesModel(v.([]interface{}))
+					}
+					if props.DnsListeningEndpointAllowedCidrs != nil {
+						state.DnsListeningEndpointAllowedCidrs = pointer.From(props.DnsListeningEndpointAllowedCidrs)
+					} else if v, ok := metadata.ResourceData.GetOk("dns_listening_endpoint_allowed_cidrs"); ok {
+						state.DnsListeningEndpointAllowedCidrs = v.(string)
+					}
 				}
 			}
 
@@ -375,4 +378,31 @@ func expandDnsForwardingRules(dnsForwardingRules []DnsForwardingRuleModel) *[]ne
 		})
 	}
 	return &results
+}
+
+func flattenDnsForwardingRules(dnsForwardingRules *[]networkanchors.DnsForwardingRule) []DnsForwardingRuleModel {
+	results := make([]DnsForwardingRuleModel, 0)
+	if dnsForwardingRules != nil {
+		for _, item := range *dnsForwardingRules {
+			results = append(results, DnsForwardingRuleModel{
+				DomainNames:         item.DomainNames,
+				ForwardingIPAddress: item.ForwardingIPAddress,
+			})
+		}
+	}
+
+	return results
+}
+
+func expandDnsForwardingRulesModel(input []interface{}) []DnsForwardingRuleModel {
+	results := make([]DnsForwardingRuleModel, 0, len(input))
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		results = append(results, DnsForwardingRuleModel{
+			DomainNames:         v["domain_names"].(string),
+			ForwardingIPAddress: v["forwarding_ip_address"].(string),
+		})
+	}
+
+	return results
 }
