@@ -99,6 +99,8 @@ resource "azurerm_palo_alto_next_generation_firewall_metrics" "test" {
   firewall_id                            = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.id
   application_insights_connection_string = azurerm_application_insights.test.connection_string
   application_insights_resource_id       = azurerm_application_insights.test.id
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, r.template(data))
 }
@@ -123,6 +125,8 @@ resource "azurerm_palo_alto_next_generation_firewall_metrics" "test" {
   firewall_id                            = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.id
   application_insights_connection_string = azurerm_application_insights.test2.connection_string
   application_insights_resource_id       = azurerm_application_insights.test2.id
+
+  depends_on = [azurerm_role_assignment.test2]
 }
 `, r.template(data))
 }
@@ -130,7 +134,11 @@ resource "azurerm_palo_alto_next_generation_firewall_metrics" "test" {
 func (r NextGenerationFirewallMetricsResourceTest) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -138,18 +146,48 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%[1]d"
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuami-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  application_type    = "web"
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_application_insights" "test" {
+  name                          = "acctestappinsights-%[1]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  workspace_id                  = azurerm_log_analytics_workspace.test.id
+  application_type              = "other"
+  local_authentication_disabled = true
 }
 
 resource "azurerm_application_insights" "test2" {
-  name                = "acctestappinsights2-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  application_type    = "web"
+  name                          = "acctestappinsights2-%[1]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  workspace_id                  = azurerm_log_analytics_workspace.test.id
+  application_type              = "other"
+  local_authentication_disabled = true
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_application_insights.test.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test2" {
+  scope                = azurerm_application_insights.test2.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
 resource "azurerm_public_ip" "test" {
@@ -249,6 +287,11 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
   resource_group_name = azurerm_resource_group.test.name
   rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
   plan_id             = "panw-cngfw-payg"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 
   network_profile {
     public_ip_address_ids = [azurerm_public_ip.test.id]
