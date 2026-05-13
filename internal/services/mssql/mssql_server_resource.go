@@ -342,6 +342,13 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	log.Printf("[DEBUG] Waiting for %s to be able to be queried", id)
+	pollerType := custompollers.NewMsSqlServerAvailabilityPoller(client, id)
+	poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err = poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("[DEBUG] waiting for %s to be able to be queried: %+v", id, err)
+	}
+
 	connection := serverconnectionpolicies.ServerConnectionPolicy{
 		Properties: &serverconnectionpolicies.ServerConnectionPolicyProperties{
 			ConnectionType: serverconnectionpolicies.ServerConnectionType(d.Get("connection_policy").(string)),
