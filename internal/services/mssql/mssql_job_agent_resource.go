@@ -117,24 +117,11 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	jobAgentIdentity, err := expandMsSqlJobAgentIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	params.Identity = &jobagents.JobAgentIdentity{
-		Type: jobagents.JobAgentIdentityTypeNone,
-	}
-	if expandedIdentity.Type == identity.TypeUserAssigned {
-		params.Identity.Type = jobagents.JobAgentIdentityTypeUserAssigned
-		userAssignedIdentities := make(map[string]jobagents.JobAgentUserAssignedIdentity, len(expandedIdentity.IdentityIds))
-		for id, details := range expandedIdentity.IdentityIds {
-			userAssignedIdentities[id] = jobagents.JobAgentUserAssignedIdentity{
-				ClientId:    details.ClientId,
-				PrincipalId: details.PrincipalId,
-			}
-		}
-		params.Identity.UserAssignedIdentities = &userAssignedIdentities
-	}
+	params.Identity = jobAgentIdentity
 
 	err = client.CreateOrUpdateThenPoll(ctx, id, params)
 	if err != nil {
@@ -174,24 +161,11 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	params := existing.Model
 
 	if d.HasChanges("identity") {
-		expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+		jobAgentIdentity, err := expandMsSqlJobAgentIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		params.Identity = &jobagents.JobAgentIdentity{
-			Type: jobagents.JobAgentIdentityTypeNone,
-		}
-		if expandedIdentity.Type == identity.TypeUserAssigned {
-			params.Identity.Type = jobagents.JobAgentIdentityTypeUserAssigned
-			userAssignedIdentities := make(map[string]jobagents.JobAgentUserAssignedIdentity, len(expandedIdentity.IdentityIds))
-			for id, details := range expandedIdentity.IdentityIds {
-				userAssignedIdentities[id] = jobagents.JobAgentUserAssignedIdentity{
-					ClientId:    details.ClientId,
-					PrincipalId: details.PrincipalId,
-				}
-			}
-			params.Identity.UserAssignedIdentities = &userAssignedIdentities
-		}
+		params.Identity = jobAgentIdentity
 	}
 
 	if d.HasChanges("sku") {
@@ -210,6 +184,30 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	return resourceMsSqlJobAgentRead(d, meta)
+}
+
+func expandMsSqlJobAgentIdentity(input []interface{}) (*jobagents.JobAgentIdentity, error) {
+	expandedIdentity, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	jobAgentIdentity := &jobagents.JobAgentIdentity{
+		Type: jobagents.JobAgentIdentityTypeNone,
+	}
+	if expandedIdentity.Type == identity.TypeUserAssigned {
+		jobAgentIdentity.Type = jobagents.JobAgentIdentityTypeUserAssigned
+		userAssignedIdentities := make(map[string]jobagents.JobAgentUserAssignedIdentity, len(expandedIdentity.IdentityIds))
+		for id, details := range expandedIdentity.IdentityIds {
+			userAssignedIdentities[id] = jobagents.JobAgentUserAssignedIdentity{
+				ClientId:    details.ClientId,
+				PrincipalId: details.PrincipalId,
+			}
+		}
+		jobAgentIdentity.UserAssignedIdentities = &userAssignedIdentities
+	}
+
+	return jobAgentIdentity, nil
 }
 
 func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) error {
