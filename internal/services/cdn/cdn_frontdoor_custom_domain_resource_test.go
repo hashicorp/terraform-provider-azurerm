@@ -138,6 +138,10 @@ func TestAccCdnFrontDoorCustomDomain_cipherSuites_validation(t *testing.T) {
 			ExpectError: regexp.MustCompile("`custom_ciphers\\.tls13` must contain both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`"),
 		},
 		{
+			Config:      r.customizedCipherSuiteTls12Unsupported(data),
+			ExpectError: regexp.MustCompile("DHE_RSA_AES128_GCM_SHA256"),
+		},
+		{
 			Config:      r.customCiphersWithPresetType(data),
 			ExpectError: regexp.MustCompile("`custom_ciphers` cannot be specified when `type` is not `Customized`"),
 		},
@@ -551,6 +555,41 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteTls12Unsupported(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-customdomain-tls12-unsupported-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["fd", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
+
+    cipher_suite {
+      type = "Customized"
+
+      custom_ciphers {
+        tls12 = [
+          "DHE_RSA_AES128_GCM_SHA256",
+        ]
+        tls13 = [
+          "TLS_AES_128_GCM_SHA256",
+          "TLS_AES_256_GCM_SHA384",
+        ]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r CdnFrontDoorCustomDomainResource) cipherSuitesTls12Single(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -610,7 +649,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
         tls12 = [
           "ECDHE_RSA_AES128_GCM_SHA256",
           "ECDHE_RSA_AES256_GCM_SHA384",
-          "DHE_RSA_AES128_GCM_SHA256",
+          "ECDHE_RSA_AES128_SHA256",
         ]
         tls13 = [
           "TLS_AES_128_GCM_SHA256",

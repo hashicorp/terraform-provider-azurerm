@@ -196,7 +196,7 @@ A `cipher_suite` block supports the following:
 
 A `custom_ciphers` block supports the following:
 
-* `tls12` - (Optional) A set of TLS 1.2 cipher suites. Possible values are `DHE_RSA_AES128_GCM_SHA256`, `DHE_RSA_AES256_GCM_SHA384`, `ECDHE_RSA_AES128_GCM_SHA256`, `ECDHE_RSA_AES128_SHA256`, `ECDHE_RSA_AES256_GCM_SHA384`, and `ECDHE_RSA_AES256_SHA384`.
+* `tls12` - (Optional) A set of TLS 1.2 cipher suites. Possible values are `ECDHE_RSA_AES128_GCM_SHA256`, `ECDHE_RSA_AES128_SHA256`, `ECDHE_RSA_AES256_GCM_SHA384`, and `ECDHE_RSA_AES256_SHA384`.
 
 ~> **Note:** At least one TLS 1.2 cipher suite must be specified in `tls12` when `minimum_version` is `TLS12` and `type` is `Customized`.
 
