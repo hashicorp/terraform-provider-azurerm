@@ -124,6 +124,21 @@ func TestAccWindowsVirtualMachine_imageFromSourceImageReference(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_imageFromSpecializedSharedImageGallery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.imageFromSpecializedSharedImageGallery(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (WindowsVirtualMachineResource) imageFromExistingMachineDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
@@ -463,6 +478,88 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) imageFromSpecializedSharedImageGallery(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_windows_virtual_machine" "source" {
+  name                = "${local.vm_name}1"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.public.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctest-gallery-image"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Windows"
+  specialized         = true
+
+  identifier {
+    publisher = "AcceptanceTest-Publisher"
+    offer     = "AcceptanceTest-Offer"
+    sku       = "AcceptanceTest-Sku"
+  }
+}
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image.test.gallery_name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_shared_image.test.resource_group_name
+  location            = azurerm_shared_image.test.location
+  managed_image_id    = azurerm_windows_virtual_machine.source.id
+
+  target_region {
+    name                   = azurerm_shared_image.test.location
+    regional_replica_count = 1
+    storage_account_type   = "Standard_LRS"
+  }
+}
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                  = "${local.vm_name}2"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  size                  = "Standard_F2"
+  source_image_id       = azurerm_shared_image_version.test.id
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+}
+`, r.imageFromExistingMachineDependencies(data), data.RandomInteger)
 }
 
 func (WindowsVirtualMachineResource) empty() string {
