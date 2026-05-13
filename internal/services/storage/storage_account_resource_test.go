@@ -401,6 +401,35 @@ func TestAccStorageAccount_fileStorageWithUpdate(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_fileStorageZonePlacementPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.fileStorageZonePlacementPolicy(data, "null"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.fileStorageZonePlacementPolicy(data, `"Any"`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.fileStorageZonePlacementPolicy(data, `"None"`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageAccount_storageV2WithUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -2570,12 +2599,37 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
   access_tier              = "Cool"
   large_file_share_enabled = true # defaulted in the API when FileStorage & Premium
+  zone_placement_policy    = "Any"
 
   tags = {
     environment = "production"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) fileStorageZonePlacementPolicy(data acceptance.TestData, policy string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "FileStorage"
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+  zone_placement_policy    = %s
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, policy)
 }
 
 func (r StorageAccountResource) storageV2(data acceptance.TestData) string {

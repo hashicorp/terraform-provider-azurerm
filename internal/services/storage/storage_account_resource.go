@@ -722,6 +722,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"zone_placement_policy": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForZonePlacementPolicy(), false),
+			},
+
 			"primary_location": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -1178,6 +1184,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					keys := sortedKeysFromSlice(storageKindsSupportHns)
 					return fmt.Errorf("`is_hns_enabled` can only be used for accounts with `account_kind` set to one of: %+v", strings.Join(keys, " / "))
 				}
+
+				if d.Get("zone_placement_policy").(string) != "" && d.Get("account_kind").(string) != string(storageaccounts.KindFileStorage) {
+					return fmt.Errorf("`zone_placement_policy` can only be used for accounts with `account_kind` set to %s", storageaccounts.KindFileStorage)
+				}
+
 				return nil
 			}),
 			pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -1194,6 +1205,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					}
 				}
 				return false
+			}),
+			pluginsdk.ForceNewIfChange("zone_placement_policy", func(ctx context.Context, old, new, meta interface{}) bool {
+				// Once set can't be unset by simply unset it in the PUT request, hence mark it ask force new.
+				return new.(string) == ""
 			}),
 		),
 	}
@@ -1455,6 +1470,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if v := d.Get("allowed_copy_scope").(string); v != "" {
 		payload.Properties.AllowedCopyScope = pointer.To(storageaccounts.AllowedCopyScope(v))
+	}
+	if v := d.Get("zone_placement_policy").(string); v != "" {
+		payload.Placement = &storageaccounts.Placement{
+			ZonePlacementPolicy: pointer.ToEnum[storageaccounts.ZonePlacementPolicy](v),
+		}
 	}
 	if v, ok := d.GetOk("azure_files_authentication"); ok {
 		expandAADFilesAuthentication, err := expandAccountAzureFilesAuthentication(v.([]interface{}))
@@ -1900,6 +1920,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		Kind:             *existing.Model.Kind,
 		Location:         existing.Model.Location,
 		Identity:         existing.Model.Identity,
+		Placement:        existing.Model.Placement,
 		Properties:       &props,
 		Sku:              *existing.Model.Sku,
 		Tags:             existing.Model.Tags,
@@ -1920,6 +1941,15 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+	if d.HasChange("zone_placement_policy") {
+		if v := d.Get("zone_placement_policy").(string); v != "" {
+			payload.Placement = &storageaccounts.Placement{
+				ZonePlacementPolicy: pointer.ToEnum[storageaccounts.ZonePlacementPolicy](v),
+			}
+		} else {
+			payload.Placement = nil
+		}
 	}
 
 	if err := client.CreateThenPoll(ctx, *id, payload); err != nil {
@@ -2182,6 +2212,12 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 
 	d.Set("edge_zone", flattenEdgeZone(account.ExtendedLocation))
 	d.Set("location", location.Normalize(account.Location))
+
+	zonePlacementPolicy := ""
+	if placement := account.Placement; placement != nil && placement.ZonePlacementPolicy != nil {
+		zonePlacementPolicy = string(*placement.ZonePlacementPolicy)
+	}
+	d.Set("zone_placement_policy", zonePlacementPolicy)
 
 	if props := account.Properties; props != nil {
 		primaryEndpoints = props.PrimaryEndpoints
