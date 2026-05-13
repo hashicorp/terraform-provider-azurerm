@@ -273,20 +273,15 @@ JSON
 }
 
 func (r PipelineResource) update(data acceptance.TestData) string {
-	metricsFieldName := "monitor_metrics_after_duration"
-	if !features.FivePointOh() {
-		metricsFieldName = "moniter_metrics_after_duration"
-	}
-
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%[2]d"
-  data_factory_id = azurerm_data_factory.test.id
-  annotations     = ["test1", "test2"]
-  description     = "updated description"
-  %[3]s           = "00:02:00"
+  name                           = "acctest%[2]d"
+  data_factory_id                = azurerm_data_factory.test.id
+  annotations                    = ["test1", "test2"]
+  description                    = "updated description"
+  monitor_metrics_after_duration = "00:02:00"
 
   parameters = {
     test  = "testparameter"
@@ -324,7 +319,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 ]
 JSON
 }
-`, r.template(data), data.RandomInteger, metricsFieldName)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r PipelineResource) activities(data acceptance.TestData) string {
