@@ -174,7 +174,7 @@ A `backend_storage` block supports the following:
 
 * `key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account, which used by Function App backend runtime.
 
-~> **Note:** `key_vault_secret_id` cannot be used with `storage_account_name`.
+~> **Note:** `key_vault_secret_id` cannot be used with `name`.
 
 ~> **Note:** `key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
