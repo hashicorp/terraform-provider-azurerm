@@ -1,6 +1,7 @@
 ## 4.73.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_databricks_workspace` - add support for the values `FEDRAMP_MODERATE`, `IRAP_PROTECTED`, `FEDRAMP_HIGH`, `FEDRAMP_IL5`, `ITAR_EAR`, `CYBER_ESSENTIAL_PLUS`, `CANADA_PROTECTED_B`, `ISMAP`, `HITRUST`, `K_FSI`, `GERMANY_C5`, and `GERMANY_TISAX` in the `compliance_security_profile_standards` property [GH-32163]
 * `azurerm_container_app_job` - Add support for `identity_id` property to `scaling.rules` [GH-31312]
 
 FEATURES:
