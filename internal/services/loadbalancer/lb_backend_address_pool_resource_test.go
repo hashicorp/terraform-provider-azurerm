@@ -267,7 +267,7 @@ func (r LoadBalancerBackendAddressPool) Destroy(ctx context.Context, client *cli
 }
 
 func (r LoadBalancerBackendAddressPool) basicSkuBasic(data acceptance.TestData) string {
-	template := r.template(data, "Basic")
+	template := r.template(data, "Standard")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

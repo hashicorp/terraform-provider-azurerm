@@ -26,7 +26,7 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Basic"),
+			Config: r.basic(data, "Standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -84,7 +84,7 @@ func TestAccAzureRMLoadBalancerNatPool_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Basic"),
+			Config: r.basic(data, "Standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -100,7 +100,7 @@ func TestAccAzureRMLoadBalancerNatPool_disappears(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config: func(data acceptance.TestData) string {
-				return r.basic(data, "Basic")
+				return r.basic(data, "Standard")
 			},
 			TestResource: r,
 		}),
@@ -293,7 +293,7 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 func (r LoadBalancerNatPool) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data, "Basic")
+	template := r.basic(data, "Standard")
 	return fmt.Sprintf(`
 %s
 

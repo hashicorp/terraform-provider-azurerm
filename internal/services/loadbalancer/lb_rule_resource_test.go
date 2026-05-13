@@ -410,7 +410,7 @@ resource "azurerm_lb_rule" "import" {
 
 // https://github.com/hashicorp/terraform/issues/9424
 func (r LoadBalancerRule) inconsistentRead(data acceptance.TestData) string {
-	template := r.template(data, "Basic")
+	template := r.template(data, "Standard")
 	return fmt.Sprintf(`
 %s
 
@@ -438,7 +438,7 @@ resource "azurerm_lb_rule" "test" {
 }
 
 func (r LoadBalancerRule) multipleRules(data, data2 acceptance.TestData) string {
-	template := r.template(data, "Basic")
+	template := r.template(data, "Standard")
 	return fmt.Sprintf(`
 %s
 
@@ -463,7 +463,7 @@ resource "azurerm_lb_rule" "test2" {
 }
 
 func (r LoadBalancerRule) multipleRulesUpdate(data, data2 acceptance.TestData) string {
-	template := r.template(data, "Basic")
+	template := r.template(data, "Standard")
 	return fmt.Sprintf(`
 %s
 
