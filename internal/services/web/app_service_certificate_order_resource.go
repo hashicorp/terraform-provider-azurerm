@@ -179,7 +179,7 @@ func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
 }
 
 func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesOrderClient
+	client := meta.(*clients.Client).Web.CertificatesOrderClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,7 +247,7 @@ func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, m
 }
 
 func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesOrderClient
+	client := meta.(*clients.Client).Web.CertificatesOrderClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -313,7 +313,7 @@ func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceAppServiceCertificateOrderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesOrderClient
+	client := meta.(*clients.Client).Web.CertificatesOrderClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

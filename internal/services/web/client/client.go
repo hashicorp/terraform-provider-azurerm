@@ -9,13 +9,13 @@ import (
 )
 
 type Client struct {
-	AppServiceEnvironmentsClient *web.AppServiceEnvironmentsClient
-	AppServicePlansClient        *web.AppServicePlansClient
-	AppServicesClient            *web.AppsClient
-	BaseClient                   *web.BaseClient
-	CertificatesClient           *web.CertificatesClient
-	CertificatesOrderClient      *web.AppServiceCertificateOrdersClient
-	StaticSitesClient            *web.StaticSitesClient
+	AppServiceEnvironmentsClientV1 *web.AppServiceEnvironmentsClient
+	AppServicePlansClientV1        *web.AppServicePlansClient
+	AppServicesClientV1            *web.AppsClient
+	BaseClientV1                   *web.BaseClient
+	CertificatesClientV1           *web.CertificatesClient
+	CertificatesOrderClientV1      *web.AppServiceCertificateOrdersClient
+	StaticSitesClientV1            *web.StaticSitesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -41,12 +41,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&staticSitesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AppServiceEnvironmentsClient: &appServiceEnvironmentsClient,
-		AppServicePlansClient:        &appServicePlansClient,
-		AppServicesClient:            &appServicesClient,
-		BaseClient:                   &baseClient,
-		CertificatesClient:           &certificatesClient,
-		CertificatesOrderClient:      &certificatesOrderClient,
-		StaticSitesClient:            &staticSitesClient,
+		AppServiceEnvironmentsClientV1: &appServiceEnvironmentsClient,
+		AppServicePlansClientV1:        &appServicePlansClient,
+		AppServicesClientV1:            &appServicesClient,
+		BaseClientV1:                   &baseClient,
+		CertificatesClientV1:           &certificatesClient,
+		CertificatesOrderClientV1:      &certificatesOrderClient,
+		StaticSitesClientV1:            &staticSitesClient,
 	}
 }

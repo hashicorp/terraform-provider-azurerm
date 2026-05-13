@@ -1,3 +1,25 @@
+## 4.72.0 (May 08, 2026)
+
+FEATURES:
+
+* **New List Resource**: `azurerm_subnet` ([#32236](https://github.com/hashicorp/terraform-provider-azurerm/issues/32236))
+
+ENHANCEMENTS:
+
+* `dependencies`: update go to 1.25.10 ([#32344](https://github.com/hashicorp/terraform-provider-azurerm/issues/32344))
+* dependencies: `loganalytics` - update to API version `2023-09-01` ([#32280](https://github.com/hashicorp/terraform-provider-azurerm/issues/32280))
+* `azurerm_data_factory_linked_service_data_lake_storage_gen2` - set schema fields `service_principal_key` and `storage_account_key` as sensitive ([#32284](https://github.com/hashicorp/terraform-provider-azurerm/issues/32284))
+* `azurerm_frontdoor_custom_domain` - add support for the `cipher_suite` property ([#30997](https://github.com/hashicorp/terraform-provider-azurerm/issues/30997))
+* `azurerm_log_analytics_workspace` - add support for the `10000`, `25000` and `50000` values in the `reservation_capacity_in_gb_per_day` property ([#32322](https://github.com/hashicorp/terraform-provider-azurerm/issues/32322))
+* `azurerm_machine_learning_compute_cluster` - set schema field `ssh.0.admin_password` as sensitive ([#32293](https://github.com/hashicorp/terraform-provider-azurerm/issues/32293))
+* `azurerm_subnet` - add support for the `Microsoft.MessagingConnectors/connectors` value in the `delegation.service_delegation.name` property ([#32305](https://github.com/hashicorp/terraform-provider-azurerm/issues/32305))
+* `azurerm_virtual_network` - add support for the `Microsoft.MessagingConnectors/connectors` value in the `subnet.delegation.service_delegation.name` property ([#32305](https://github.com/hashicorp/terraform-provider-azurerm/issues/32305))
+* `cosmos` - migrate all resources and data sources to `go-azure-sdk` ([#32066](https://github.com/hashicorp/terraform-provider-azurerm/issues/32066))
+
+BUG FIXES:
+
+* `azurerm_frontdoor_custom_domain` - fixed an eventual consistency bug in creation ([#30997](https://github.com/hashicorp/terraform-provider-azurerm/issues/30997))
+
 ## 4.71.0 (April 30, 2026)
 
 FEATURES:
