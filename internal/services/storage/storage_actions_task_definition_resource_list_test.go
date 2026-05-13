@@ -88,7 +88,7 @@ resource "azurerm_storage_actions_task_definition" "test" {
       condition = "[[equals(AccessTier, 'Cool')]]"
 
       operation {
-        name       = "SetBlobTier"
+        name = "SetBlobTier"
 
         parameters = {
           tier = "Hot"

@@ -149,7 +149,7 @@ resource "azurerm_storage_actions_task_definition" "test" {
       condition = "[[endsWith(Name, '.docx')]]"
 
       operation {
-        name       = "SetBlobTier"
+        name = "SetBlobTier"
 
         parameters = {
           tier = "Hot"
@@ -180,7 +180,7 @@ resource "azurerm_storage_actions_task_definition" "import" {
       condition = "[[endsWith(Name, '.docx')]]"
 
       operation {
-        name       = "SetBlobTier"
+        name = "SetBlobTier"
 
         parameters = {
           tier = "Hot"
@@ -214,7 +214,7 @@ resource "azurerm_storage_actions_task_definition" "test" {
       condition = "[[and(equals(AccessTier, 'Cool'), greater(Content-Length, '100'))]]"
 
       operation {
-        name       = "SetBlobTier"
+        name = "SetBlobTier"
 
         parameters = {
           tier = "Hot"
@@ -222,7 +222,7 @@ resource "azurerm_storage_actions_task_definition" "test" {
       }
 
       operation {
-        name       = "SetBlobTags"
+        name = "SetBlobTags"
 
         parameters = {
           processed = "true"
@@ -232,7 +232,7 @@ resource "azurerm_storage_actions_task_definition" "test" {
 
     else {
       operation {
-        name       = "DeleteBlob"
+        name = "DeleteBlob"
       }
     }
   }
@@ -286,11 +286,11 @@ resource "azurerm_storage_actions_task_definition" "test" {
       condition = "[[not(equals(BlobType, 'PageBlob'))]]"
 
       operation {
-        name       = "DeleteBlob"
+        name = "DeleteBlob"
       }
 
       operation {
-        name       = "SetBlobTier"
+        name = "SetBlobTier"
 
         parameters = {
           tier = "Hot"
@@ -325,7 +325,7 @@ resource "azurerm_storage_actions_task_definition" "test" {
       condition = "[[less(LastAccessTime, '2024-01-01T00:00:00Z')]]"
 
       operation {
-        name       = "SetBlobTier"
+        name = "SetBlobTier"
 
         parameters = {
           tier = "Hot"
@@ -335,11 +335,11 @@ resource "azurerm_storage_actions_task_definition" "test" {
 
     else {
       operation {
-        name       = "DeleteBlob"
+        name = "DeleteBlob"
       }
 
       operation {
-        name       = "SetBlobTags"
+        name = "SetBlobTags"
 
         parameters = {
           archived = "true"
