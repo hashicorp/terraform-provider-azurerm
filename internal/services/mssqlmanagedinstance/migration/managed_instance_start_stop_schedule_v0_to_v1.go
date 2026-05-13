@@ -75,36 +75,6 @@ func (MsSqlManagedInstanceStartStopScheduleV0ToV1) Schema() map[string]*pluginsd
 
 func (MsSqlManagedInstanceStartStopScheduleV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		if schedules, ok := rawState["schedule"].([]interface{}); ok {
-			rawState["schedule"] = pluginsdk.NewSet(pluginsdk.HashResource(startStopScheduleItemSchema()), schedules)
-		}
-
 		return rawState, nil
-	}
-}
-
-func startStopScheduleItemSchema() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Schema: map[string]*pluginsdk.Schema{
-			"start_day": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"start_time": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"stop_day": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"stop_time": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-		},
 	}
 }
