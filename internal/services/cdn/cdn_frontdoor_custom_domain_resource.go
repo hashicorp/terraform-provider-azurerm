@@ -27,6 +27,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+// Front Door currently rejects the DHE TLS 1.2 suites exposed by the SDK helper.
+// The service team confirmed this supported set officially, so this is not a
+// temporary workaround. We keep an explicit allowlist of the accepted ECDHE
+// values here.
+var frontDoorCustomDomainCustomizedCipherSuitesForTls12 = []string{
+	string(afdcustomdomains.AfdCustomizedCipherSuiteForTls12ECDHERSAAESOneTwoEightGCMSHATwoFiveSix),
+	string(afdcustomdomains.AfdCustomizedCipherSuiteForTls12ECDHERSAAESTwoFiveSixGCMSHAThreeEightFour),
+	string(afdcustomdomains.AfdCustomizedCipherSuiteForTls12ECDHERSAAESOneTwoEightSHATwoFiveSix),
+	string(afdcustomdomains.AfdCustomizedCipherSuiteForTls12ECDHERSAAESTwoFiveSixSHAThreeEightFour),
+}
+
 func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
 		Create: resourceCdnFrontDoorCustomDomainCreate,
@@ -148,7 +159,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 														ValidateFunc: validation.StringInSlice(
-															afdcustomdomains.PossibleValuesForAfdCustomizedCipherSuiteForTls12(),
+															frontDoorCustomDomainCustomizedCipherSuitesForTls12,
 															false,
 														),
 													},
