@@ -20,6 +20,7 @@ import (
 type RedisEnterpriseClusterResource struct{}
 
 func TestAccRedisEnterpriseCluster_basic(t *testing.T) {
+	t.Skip("Skipping: Azure Cache for Redis Enterprise (azurerm_redis_enterprise_cluster) resource creation has been blocked since April 2026 due to service retirement.")
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_cluster", "test")
 	r := RedisEnterpriseClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +35,7 @@ func TestAccRedisEnterpriseCluster_basic(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseCluster_requiresImport(t *testing.T) {
+	t.Skip("Skipping: Azure Cache for Redis Enterprise (azurerm_redis_enterprise_cluster) resource creation has been blocked since April 2026 due to service retirement.")
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_cluster", "test")
 	r := RedisEnterpriseClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +50,7 @@ func TestAccRedisEnterpriseCluster_requiresImport(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseCluster_complete(t *testing.T) {
+	t.Skip("Skipping: Azure Cache for Redis Enterprise (azurerm_redis_enterprise_cluster) resource creation has been blocked since April 2026 due to service retirement.")
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_cluster", "test")
 	r := RedisEnterpriseClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -63,6 +66,7 @@ func TestAccRedisEnterpriseCluster_complete(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseCluster_update(t *testing.T) {
+	t.Skip("Skipping: Azure Cache for Redis Enterprise (azurerm_redis_enterprise_cluster) resource creation has been blocked since April 2026 due to service retirement.")
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_cluster", "test")
 	r := RedisEnterpriseClusterResource{}
 

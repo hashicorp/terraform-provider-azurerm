@@ -20,6 +20,7 @@ import (
 type RedisEnterpriseDatabaseResource struct{}
 
 func TestAccRedisEnterpriseDatabase_basic(t *testing.T) {
+	t.Skip("Skipping: Azure Cache for Redis Enterprise (azurerm_redis_enterprise_database) resource creation has been blocked since April 2026 due to service retirement.")
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +35,7 @@ func TestAccRedisEnterpriseDatabase_basic(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseDatabase_requiresImport(t *testing.T) {
+	t.Skip("Skipping: Azure Cache for Redis Enterprise (azurerm_redis_enterprise_database) resource creation has been blocked since April 2026 due to service retirement.")
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +50,7 @@ func TestAccRedisEnterpriseDatabase_requiresImport(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseDatabase_complete(t *testing.T) {
+	t.Skip("Skipping: Azure Cache for Redis Enterprise (azurerm_redis_enterprise_database) resource creation has been blocked since April 2026 due to service retirement.")
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,6 +65,7 @@ func TestAccRedisEnterpriseDatabase_complete(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseDatabase_geoDatabase(t *testing.T) {
+	t.Skip("Skipping: Azure Cache for Redis Enterprise (azurerm_redis_enterprise_database) resource creation has been blocked since April 2026 due to service retirement.")
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -76,6 +80,7 @@ func TestAccRedisEnterpriseDatabase_geoDatabase(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseDatabase_geoDatabaseOtherEvictionPolicy(t *testing.T) {
+	t.Skip("Skipping: Azure Cache for Redis Enterprise (azurerm_redis_enterprise_database) resource creation has been blocked since April 2026 due to service retirement.")
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -90,6 +95,7 @@ func TestAccRedisEnterpriseDatabase_geoDatabaseOtherEvictionPolicy(t *testing.T)
 }
 
 func TestAccRedisEnterpriseDatabase_geoDatabaseModule(t *testing.T) {
+	t.Skip("Skipping: Azure Cache for Redis Enterprise (azurerm_redis_enterprise_database) resource creation has been blocked since April 2026 due to service retirement.")
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -104,6 +110,7 @@ func TestAccRedisEnterpriseDatabase_geoDatabaseModule(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseDatabase_geoDatabaseWithRedisJsonModule(t *testing.T) {
+	t.Skip("Skipping: Azure Cache for Redis Enterprise (azurerm_redis_enterprise_database) resource creation has been blocked since April 2026 due to service retirement.")
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -118,6 +125,7 @@ func TestAccRedisEnterpriseDatabase_geoDatabaseWithRedisJsonModule(t *testing.T)
 }
 
 func TestAccRedisEnterpriseDatabase_unlinkDatabase(t *testing.T) {
+	t.Skip("Skipping: Azure Cache for Redis Enterprise (azurerm_redis_enterprise_database) resource creation has been blocked since April 2026 due to service retirement.")
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
