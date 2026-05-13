@@ -26,7 +26,7 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Basic"),
+			Config: r.basic(data, "Standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -151,7 +151,7 @@ func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Basic"),
+			Config: r.basic(data, "Standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -167,7 +167,7 @@ func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config: func(data acceptance.TestData) string {
-				return r.basic(data, "Basic")
+				return r.basic(data, "Standard")
 			},
 			TestResource: r,
 		}),
@@ -404,7 +404,7 @@ resource "azurerm_lb_nat_rule" "test" {
 }
 
 func (r LoadBalancerNatRule) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data, "Basic")
+	template := r.basic(data, "Standard")
 	return fmt.Sprintf(`
 %s
 
@@ -421,7 +421,7 @@ resource "azurerm_lb_nat_rule" "import" {
 }
 
 func (r LoadBalancerNatRule) multipleRules(data, data2 acceptance.TestData) string {
-	template := r.template(data, "Basic")
+	template := r.template(data, "Standard")
 	return fmt.Sprintf(`
 %s
 
@@ -448,7 +448,7 @@ resource "azurerm_lb_nat_rule" "test2" {
 }
 
 func (r LoadBalancerNatRule) multipleRulesUpdate(data, data2 acceptance.TestData) string {
-	template := r.template(data, "Basic")
+	template := r.template(data, "Standard")
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_nat_rule" "test" {
