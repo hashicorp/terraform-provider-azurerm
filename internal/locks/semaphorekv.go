@@ -2,6 +2,7 @@ package locks
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"sync"
 
@@ -31,28 +32,27 @@ func (s *semaphoreKV) NewWeighted(key string, max int64) {
 func (s *semaphoreKV) Acquire(ctx context.Context, key string, weight int64) error {
 	log.Printf("[DEBUG] acquiring %q with weight %d", key, weight)
 	if err := s.get(key).Acquire(ctx, weight); err != nil {
-		return err
+		return fmt.Errorf("failed to acquire %q with weight %d: %+v", key, weight, err)
 	}
 	log.Printf("[DEBUG] acquired %q with weight %d", key, weight)
 	return nil
 }
 
 // Release releases the provided weight on the semaphore for the given key.
-func (m *semaphoreKV) Release(key string, weight int64) {
+func (s *semaphoreKV) Release(key string, weight int64) {
 	log.Printf("[DEBUG] releasing %q with weight %d", key, weight)
-	m.get(key).Release(weight)
+	s.get(key).Release(weight)
 	log.Printf("[DEBUG] released %q with weight %d", key, weight)
 }
 
-// get returns the semaphore for the given key, initializing it with a default
-// maximum weight of 1 when missing.
+// get returns the semaphore for the given key.
+// It panics if the key is not initialized.
 func (s *semaphoreKV) get(key string) *semaphore.Weighted {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	sp, ok := s.store[key]
 	if !ok {
-		sp = semaphore.NewWeighted(1)
-		s.store[key] = sp
+		panic(fmt.Sprintf("semaphore for key `%s` is not initialized; call NewWeighted before using it", key))
 	}
 	return sp
 }

@@ -91,6 +91,8 @@ func resourceIpGroup() *pluginsdk.Resource {
 	}
 }
 
+const azureFirewallMaxParallelIPGroupUpdates = 20
+
 func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.IPGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -102,7 +104,7 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("parsing Azure Firewall ID %q: %+v", fw, err)
 		}
-		locks.NewWeightedByName(id.AzureFirewallName, firewall.AzureFirewallResourceName, 20)
+		locks.NewWeightedByName(id.AzureFirewallName, firewall.AzureFirewallResourceName, azureFirewallMaxParallelIPGroupUpdates)
 		if err := locks.AcquireOneByName(ctx, id.AzureFirewallName, firewall.AzureFirewallResourceName); err != nil {
 			return fmt.Errorf("acquiring Azure Firewall lock `%s`: %+v", id.AzureFirewallName, err)
 		}
@@ -114,7 +116,7 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", fwpol, err)
 		}
-		locks.NewWeightedByName(id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName, 20)
+		locks.NewWeightedByName(id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName, azureFirewallMaxParallelIPGroupUpdates)
 		if err := locks.AcquireOneByName(ctx, id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName); err != nil {
 			return fmt.Errorf("acquiring Azure Firewall Policy lock `%s`: %+v", id.FirewallPolicyName, err)
 		}
@@ -234,7 +236,7 @@ func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("parsing Azure Firewall ID %q: %+v", fw, err)
 		}
-		locks.NewWeightedByName(id.AzureFirewallName, firewall.AzureFirewallResourceName, 20)
+		locks.NewWeightedByName(id.AzureFirewallName, firewall.AzureFirewallResourceName, azureFirewallMaxParallelIPGroupUpdates)
 		if err := locks.AcquireOneByName(ctx, id.AzureFirewallName, firewall.AzureFirewallResourceName); err != nil {
 			return fmt.Errorf("acquiring Azure Firewall lock `%s`: %+v", id.AzureFirewallName, err)
 		}
@@ -246,7 +248,7 @@ func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", fwpol, err)
 		}
-		locks.NewWeightedByName(id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName, 20)
+		locks.NewWeightedByName(id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName, azureFirewallMaxParallelIPGroupUpdates)
 		if err := locks.AcquireOneByName(ctx, id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName); err != nil {
 			return fmt.Errorf("acquiring Azure Firewall Policy lock `%s`: %+v", id.FirewallPolicyName, err)
 		}
@@ -347,7 +349,7 @@ func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("parsing Azure Firewall ID %q: %+v", pointer.From(fw.Id), err)
 		}
-		locks.NewWeightedByName(fwID.AzureFirewallName, firewall.AzureFirewallResourceName, 20)
+		locks.NewWeightedByName(fwID.AzureFirewallName, firewall.AzureFirewallResourceName, azureFirewallMaxParallelIPGroupUpdates)
 		if err := locks.AcquireOneByName(ctx, fwID.AzureFirewallName, firewall.AzureFirewallResourceName); err != nil {
 			return fmt.Errorf("acquiring Azure Firewall lock `%s`: %+v", fwID.AzureFirewallName, err)
 		}
@@ -359,7 +361,7 @@ func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", *fwpol.Id, err)
 		}
-		locks.NewWeightedByName(polID.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName, 20)
+		locks.NewWeightedByName(polID.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName, azureFirewallMaxParallelIPGroupUpdates)
 		if err := locks.AcquireOneByName(ctx, polID.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName); err != nil {
 			return fmt.Errorf("acquiring Azure Firewall Policy lock `%s`: %+v", polID.FirewallPolicyName, err)
 		}
