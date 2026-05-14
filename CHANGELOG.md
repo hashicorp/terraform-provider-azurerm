@@ -7,6 +7,9 @@ ENHANCEMENTS:
 
 FEATURES:
 
+* **New List Resource**: `azurerm_storage_mover_job_definition` [GH-32184]
+* **New List Resource**: `azurerm_storage_mover_project` [GH-32183]
+
 BUG FIXES:
 
 ## 4.72.0 (May 08, 2026)
