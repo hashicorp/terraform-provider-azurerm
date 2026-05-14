@@ -170,7 +170,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -262,7 +262,7 @@ resource "azurerm_compute_fleet" "test" {
     minimum_starting_capacity = 0
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_D2as_v5"
   }
 
@@ -393,7 +393,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -527,7 +527,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -597,7 +597,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -618,12 +618,12 @@ resource "azurerm_compute_fleet" "test" {
 
     os_profile {
       windows_configuration {
-        computer_name_prefix       = "testvm"
-        admin_username             = local.admin_username
-        admin_password             = local.admin_password
-        automatic_updates_enabled  = true
-        provision_vm_agent_enabled = true
-        time_zone                  = "W. Europe Standard Time"
+        computer_name_prefix                    = "testvm"
+        admin_username                          = local.admin_username
+        admin_password                          = local.admin_password
+        automatic_updates_enabled               = true
+        provision_virtual_machine_agent_enabled = true
+        time_zone                               = "W. Europe Standard Time"
 
         winrm_listener {
           protocol = "Http"
@@ -666,7 +666,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -732,7 +732,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -800,7 +800,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -886,7 +886,7 @@ resource "azurerm_compute_fleet" "test" {
     minimum_starting_capacity = 0
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_D2as_v5"
   }
 

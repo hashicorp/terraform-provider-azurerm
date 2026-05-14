@@ -69,7 +69,7 @@ resource "azurerm_compute_fleet" "example" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_D1_v2"
   }
 
@@ -121,7 +121,7 @@ The following arguments are supported:
 
 * `virtual_machine_profile` - (Required) A `virtual_machine_profile` block as defined below. Changing this forces a new resource to be created.
 
-* `vm_sizes_profile` - (Required) One or more `vm_sizes_profile` blocks as defined below.
+* `virtual_machine_sizes_profile` - (Required) One or more `virtual_machine_sizes_profile` blocks as defined below.
 
 * `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below. Changing this forces a new resource to be created.
 
@@ -295,7 +295,7 @@ A `extension` block supports the following:
 
 * `automatic_upgrade_enabled` - (Optional) Whether to automatically upgrade the extension if there is a newer version of the extension available. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `extensions_to_provision_after_vm_creation` - (Optional) Specifies an ordered list of extension names which Compute Fleet should provision after virtual machine creation. Changing this forces a new resource to be created.
+* `extensions_to_provision_after_virtual_machine_creation` - (Optional) Specifies an ordered list of extension names which Compute Fleet should provision after virtual machine creation. Changing this forces a new resource to be created.
 
 * `failure_suppression_enabled` - (Optional) Whether to suppress the failures from the extension. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -375,13 +375,13 @@ A `linux_configuration` block supports the following:
 
 * `patch_mode` - (Optional) Specifies the mode of in-guest patching of the virtual machines. Possible values are `AutomaticByPlatform` and `ImageDefault`. Changing this forces a new resource to be created.
 
-* `provision_vm_agent_enabled` - (Optional) Whether to provision the virtual machine agent on each virtual machine in the Scale Set. Defaults to `true`. Changing this forces a new resource to be created.
+* `provision_virtual_machine_agent_enabled` - (Optional) Whether to provision the virtual machine agent on each virtual machine in the Scale Set. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `patch_rebooting` - (Optional) Specifies the reboot setting for all `AutomaticByPlatform` patch installation operations. Possible values are `Always`, `IfRequired`, `Never` and `Unknown`. Changing this forces a new resource to be created.
 
 * `secret` - (Optional) One or more `secret` blocks as defined below. Changing this forces a new resource to be created.
 
-* `vm_agent_platform_updates_enabled` - (Optional) Whether to enable the virtual machine agent platform updates for the linux virtual machine in the Compute Fleet. Defaults to `false`. Changing this forces a new resource to be created.
+* `virtual_machine_agent_platform_updates_enabled` - (Optional) Whether to enable the virtual machine agent platform updates for the linux virtual machine in the Compute Fleet. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
@@ -479,23 +479,23 @@ A `source_image_reference` block supports the following:
 
 A `spot_capacity` block supports the following:
 
-* `maintain_capacity_enabled` - (Required) Whether to enable the continuous goal seeking for the desired capacity and restoration of evicted spot virtual machines. Changing this forces a new resource to be created.
+* `maintain_capacity_enabled` - (Required) Whether to enable the continuous goal seeking for the desired capacity and restoration of evicted Spot Virtual Machines. Changing this forces a new resource to be created.
 
-* `target_capacity` - (Required) The total number of the spot virtual machines in the Compute Fleet.
+* `target_capacity` - (Required) The total number of the Spot Virtual Machines in the Compute Fleet.
 
-* `allocation_strategy` - (Optional) Specifies the allocation strategy for the Compute Fleet on which the Azure spot virtual machines will be allocated. Defaults to `PriceCapacityOptimized`. Possible values are `LowestPrice`, `PriceCapacityOptimized`, `CapacityOptimized`. Changing this forces a new resource to be created.
+* `allocation_strategy` - (Optional) Specifies the allocation strategy for the Compute Fleet on which the Azure Spot Virtual Machines will be allocated. Defaults to `PriceCapacityOptimized`. Possible values are `LowestPrice`, `PriceCapacityOptimized`, `CapacityOptimized`. Changing this forces a new resource to be created.
 
-* `eviction_policy` - (Optional) The policy which should be used by spot virtual machines that are evicted from the Compute Fleet. Defaults to `Delete`. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
+* `eviction_policy` - (Optional) The policy which should be used by Spot Virtual Machines that are evicted from the Compute Fleet. Defaults to `Delete`. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
-* `max_hourly_price_per_vm` - (Optional) The maximum price per hour of each spot virtual machine. Defaults to `-1`. Changing this forces a new resource to be created.
+* `maximum_hourly_price_per_virtual_machine_usd` - (Optional) The maximum price per hour of each Spot Virtual Machine. Defaults to `-1`. Changing this forces a new resource to be created.
 
--> **Note:** A value of `-1` indicates that the Azure Spot VM will not be evicted due to price changes.
+-> **Note:** A value of `-1` indicates that the Azure Spot Virtual Machines will not be evicted due to price changes.
 
-* `minimum_capacity` - (Optional) The minimum number of spot virtual machines in the Compute Fleet. Defaults to `0`. Changing this forces a new resource to be created.
+* `minimum_capacity` - (Optional) The minimum number of Spot Virtual Machines in the Compute Fleet. Defaults to `0`. Changing this forces a new resource to be created.
 
 ---
 
-A `vm_sizes_profile` block supports the following:
+A `virtual_machine_sizes_profile` block supports the following:
 
 * `name` - (Required) The name of the virtual machine size.
 
@@ -521,7 +521,7 @@ A `windows_configuration` block supports the following:
 
 * `patch_mode` - (Optional) Specifies the mode of in-guest patching of the virtual machines. Possible values are `AutomaticByOS`, `AutomaticByPlatform` and `Manual`. Changing this forces a new resource to be created.
 
-* `provision_vm_agent_enabled` - (Optional) Whether to provision the virtual machine agent on each virtual machine in the Scale Set. Defaults to `true`. Changing this forces a new resource to be created.
+* `provision_virtual_machine_agent_enabled` - (Optional) Whether to provision the virtual machine agent on each virtual machine in the Scale Set. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `patch_rebooting` - (Optional) Specifies the reboot setting for all `AutomaticByPlatform` patch installation operations. Possible values are `Always`, `IfRequired`, `Never` and `Unknown`. Changing this forces a new resource to be created.
 
@@ -529,7 +529,7 @@ A `windows_configuration` block supports the following:
 
 * `time_zone` - (Optional) Specifies the time zone of the windows virtual machine. Changing this forces a new resource to be created.
 
-* `vm_agent_platform_updates_enabled` - (Optional) Whether to enable the virtual machine agent platform updates for the windows virtual machine in the Compute Fleet. Defaults to `false`. Changing this forces a new resource to be created.
+* `virtal_machine_agent_platform_updates_enabled` - (Optional) Whether to enable the virtual machine agent platform updates for the windows virtual machine in the Compute Fleet. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. Changing this forces a new resource to be created.
 

@@ -28,21 +28,21 @@ import (
 )
 
 type ComputeFleetResourceModel struct {
-	Name                     string                                     `tfschema:"name"`
-	ResourceGroupName        string                                     `tfschema:"resource_group_name"`
-	Identity                 []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Location                 string                                     `tfschema:"location"`
-	Plan                     []PlanModel                                `tfschema:"plan"`
-	AdditionalCapabilities   []AdditionalCapabilitiesModel              `tfschema:"additional_capabilities"`
-	VirtualMachineProfile    []VirtualMachineProfileModel               `tfschema:"virtual_machine_profile"`
-	ComputeApiVersion        string                                     `tfschema:"compute_api_version"`
-	PlatformFaultDomainCount int64                                      `tfschema:"platform_fault_domain_count"`
-	OnDemandCapacity         []OnDemandCapacityModel                    `tfschema:"on_demand_capacity"`
-	SpotCapacity             []SpotCapacityModel                        `tfschema:"spot_capacity"`
-	UniqueId                 string                                     `tfschema:"unique_id"`
-	VMSizesProfile           []VMSizeProfileModel                       `tfschema:"vm_sizes_profile"`
-	Tags                     map[string]string                          `tfschema:"tags"`
-	Zones                    []string                                   `tfschema:"zones"`
+	Name                       string                                     `tfschema:"name"`
+	ResourceGroupName          string                                     `tfschema:"resource_group_name"`
+	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Location                   string                                     `tfschema:"location"`
+	Plan                       []PlanModel                                `tfschema:"plan"`
+	AdditionalCapabilities     []AdditionalCapabilitiesModel              `tfschema:"additional_capabilities"`
+	VirtualMachineProfile      []VirtualMachineProfileModel               `tfschema:"virtual_machine_profile"`
+	ComputeApiVersion          string                                     `tfschema:"compute_api_version"`
+	PlatformFaultDomainCount   int64                                      `tfschema:"platform_fault_domain_count"`
+	OnDemandCapacity           []OnDemandCapacityModel                    `tfschema:"on_demand_capacity"`
+	SpotCapacity               []SpotCapacityModel                        `tfschema:"spot_capacity"`
+	UniqueId                   string                                     `tfschema:"unique_id"`
+	VirtualMachineSizesProfile []VirtualMachineSizeProfileModel           `tfschema:"virtual_machine_sizes_profile"`
+	Tags                       map[string]string                          `tfschema:"tags"`
+	Zones                      []string                                   `tfschema:"zones"`
 }
 
 type AdditionalCapabilitiesModel struct {
@@ -83,18 +83,18 @@ type GalleryApplicationModel struct {
 }
 
 type ExtensionModel struct {
-	Name                                 string                               `tfschema:"name"`
-	Publisher                            string                               `tfschema:"publisher"`
-	Type                                 string                               `tfschema:"type"`
-	TypeHandlerVersion                   string                               `tfschema:"type_handler_version"`
-	AutoUpgradeMinorVersionEnabled       bool                                 `tfschema:"auto_upgrade_minor_version_enabled"`
-	AutomaticUpgradeEnabled              bool                                 `tfschema:"automatic_upgrade_enabled"`
-	ForceExtensionExecutionOnChange      string                               `tfschema:"force_extension_execution_on_change"`
-	ProtectedSettingsJson                string                               `tfschema:"protected_settings_json"`
-	ProtectedSettingsFromKeyVault        []ProtectedSettingsFromKeyVaultModel `tfschema:"protected_settings_from_key_vault"`
-	ExtensionsToProvisionAfterVmCreation []string                             `tfschema:"extensions_to_provision_after_vm_creation"`
-	FailureSuppressionEnabled            bool                                 `tfschema:"failure_suppression_enabled"`
-	SettingsJson                         string                               `tfschema:"settings_json"`
+	Name                                             string                               `tfschema:"name"`
+	Publisher                                        string                               `tfschema:"publisher"`
+	Type                                             string                               `tfschema:"type"`
+	TypeHandlerVersion                               string                               `tfschema:"type_handler_version"`
+	AutoUpgradeMinorVersionEnabled                   bool                                 `tfschema:"auto_upgrade_minor_version_enabled"`
+	AutomaticUpgradeEnabled                          bool                                 `tfschema:"automatic_upgrade_enabled"`
+	ForceExtensionExecutionOnChange                  string                               `tfschema:"force_extension_execution_on_change"`
+	ProtectedSettingsJson                            string                               `tfschema:"protected_settings_json"`
+	ProtectedSettingsFromKeyVault                    []ProtectedSettingsFromKeyVaultModel `tfschema:"protected_settings_from_key_vault"`
+	ExtensionsToProvisionAfterVirtualMachineCreation []string                             `tfschema:"extensions_to_provision_after_virtual_machine_creation"`
+	FailureSuppressionEnabled                        bool                                 `tfschema:"failure_suppression_enabled"`
+	SettingsJson                                     string                               `tfschema:"settings_json"`
 }
 
 type ProtectedSettingsFromKeyVaultModel struct {
@@ -144,17 +144,17 @@ type OSProfileModel struct {
 }
 
 type LinuxConfigurationModel struct {
-	AdminPassword                     string             `tfschema:"admin_password"`
-	AdminUsername                     string             `tfschema:"admin_username"`
-	ComputerNamePrefix                string             `tfschema:"computer_name_prefix"`
-	Secret                            []LinuxSecretModel `tfschema:"secret"`
-	PasswordAuthenticationEnabled     bool               `tfschema:"password_authentication_enabled"`
-	VMAgentPlatformUpdatesEnabled     bool               `tfschema:"vm_agent_platform_updates_enabled"`
-	PatchMode                         string             `tfschema:"patch_mode"`
-	BypassPlatformSafetyChecksEnabled bool               `tfschema:"bypass_platform_safety_checks_enabled"`
-	PatchRebooting                    string             `tfschema:"patch_rebooting"`
-	ProvisionVMAgentEnabled           bool               `tfschema:"provision_vm_agent_enabled"`
-	AdminSSHKeys                      []string           `tfschema:"admin_ssh_keys"`
+	AdminPassword                             string             `tfschema:"admin_password"`
+	AdminUsername                             string             `tfschema:"admin_username"`
+	ComputerNamePrefix                        string             `tfschema:"computer_name_prefix"`
+	Secret                                    []LinuxSecretModel `tfschema:"secret"`
+	PasswordAuthenticationEnabled             bool               `tfschema:"password_authentication_enabled"`
+	VirtualMachineAgentPlatformUpdatesEnabled bool               `tfschema:"virtual_machine_agent_platform_updates_enabled"`
+	PatchMode                                 string             `tfschema:"patch_mode"`
+	BypassPlatformSafetyChecksEnabled         bool               `tfschema:"bypass_platform_safety_checks_enabled"`
+	PatchRebooting                            string             `tfschema:"patch_rebooting"`
+	ProvisionVirtualMachineAgentEnabled       bool               `tfschema:"provision_virtual_machine_agent_enabled"`
+	AdminSSHKeys                              []string           `tfschema:"admin_ssh_keys"`
 }
 
 type LinuxSecretModel struct {
@@ -177,20 +177,20 @@ type WindowsCertificateModel struct {
 }
 
 type WindowsConfigurationModel struct {
-	AdminPassword                     string                           `tfschema:"admin_password"`
-	AdminUsername                     string                           `tfschema:"admin_username"`
-	ComputerNamePrefix                string                           `tfschema:"computer_name_prefix"`
-	Secret                            []WindowsSecretModel             `tfschema:"secret"`
-	AdditionalUnattendContent         []AdditionalUnattendContentModel `tfschema:"additional_unattend_content"`
-	AutomaticUpdatesEnabled           bool                             `tfschema:"automatic_updates_enabled"`
-	VMAgentPlatformUpdatesEnabled     bool                             `tfschema:"vm_agent_platform_updates_enabled"`
-	PatchMode                         string                           `tfschema:"patch_mode"`
-	BypassPlatformSafetyChecksEnabled bool                             `tfschema:"bypass_platform_safety_checks_enabled"`
-	PatchRebooting                    string                           `tfschema:"patch_rebooting"`
-	HotPatchingEnabled                bool                             `tfschema:"hot_patching_enabled"`
-	ProvisionVMAgentEnabled           bool                             `tfschema:"provision_vm_agent_enabled"`
-	TimeZone                          string                           `tfschema:"time_zone"`
-	WinRM                             []WinRMModel                     `tfschema:"winrm_listener"`
+	AdminPassword                             string                           `tfschema:"admin_password"`
+	AdminUsername                             string                           `tfschema:"admin_username"`
+	ComputerNamePrefix                        string                           `tfschema:"computer_name_prefix"`
+	Secret                                    []WindowsSecretModel             `tfschema:"secret"`
+	AdditionalUnattendContent                 []AdditionalUnattendContentModel `tfschema:"additional_unattend_content"`
+	AutomaticUpdatesEnabled                   bool                             `tfschema:"automatic_updates_enabled"`
+	VirtualMachineAgentPlatformUpdatesEnabled bool                             `tfschema:"virtual_machine_agent_platform_updates_enabled"`
+	PatchMode                                 string                           `tfschema:"patch_mode"`
+	BypassPlatformSafetyChecksEnabled         bool                             `tfschema:"bypass_platform_safety_checks_enabled"`
+	PatchRebooting                            string                           `tfschema:"patch_rebooting"`
+	HotPatchingEnabled                        bool                             `tfschema:"hot_patching_enabled"`
+	ProvisionVirtualMachineAgentEnabled       bool                             `tfschema:"provision_virtual_machine_agent_enabled"`
+	TimeZone                                  string                           `tfschema:"time_zone"`
+	WinRM                                     []WinRMModel                     `tfschema:"winrm_listener"`
 }
 
 type AdditionalUnattendContentModel struct {
@@ -247,15 +247,15 @@ type OnDemandCapacityModel struct {
 }
 
 type SpotCapacityModel struct {
-	AllocationStrategy      string  `tfschema:"allocation_strategy"`
-	TargetCapacity          int64   `tfschema:"target_capacity"`
-	EvictionPolicy          string  `tfschema:"eviction_policy"`
-	MaintainCapacityEnabled bool    `tfschema:"maintain_capacity_enabled"`
-	MaxHourlyPricePerVmUsd  float64 `tfschema:"max_hourly_price_per_vm_usd"`
-	MinimumCapacity         int64   `tfschema:"minimum_capacity"`
+	AllocationStrategy                     string  `tfschema:"allocation_strategy"`
+	TargetCapacity                         int64   `tfschema:"target_capacity"`
+	EvictionPolicy                         string  `tfschema:"eviction_policy"`
+	MaintainCapacityEnabled                bool    `tfschema:"maintain_capacity_enabled"`
+	MaximumHourlyPricePerVirtualMachineUsd float64 `tfschema:"maximum_hourly_price_per_virtual_machine_usd"`
+	MinimumCapacity                        int64   `tfschema:"minimum_capacity"`
 }
 
-type VMSizeProfileModel struct {
+type VirtualMachineSizeProfileModel struct {
 	Name string `tfschema:"name"`
 	Rank int64  `tfschema:"rank"`
 }
@@ -441,7 +441,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"vm_sizes_profile": {
+		"virtual_machine_sizes_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			// In Azure portal, maximum number of items is 15 while in Azure REST API, it is 10
@@ -593,8 +593,8 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					// `maintain_capacity_enabled` is `Required` as multiple properties depend on its value
-					// `maintain_capacity_enabled` can be `true` using Azure REST API even if less than 3 `vm_sizes_profile` blocks are defined, which is different from Azure portal behavior
-					// `vm_sizes_profile` can be updated in Azure portal even if `maintain_capacity_enabled` is `false`
+					// `maintain_capacity_enabled` can be `true` using Azure REST API even if less than 3 `virtual_machine_sizes_profile` blocks are defined, which is different from Azure portal behavior
+					// `virtual_machine_sizes_profile` can be updated in Azure portal even if `maintain_capacity_enabled` is `false`
 					"maintain_capacity_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
@@ -620,7 +620,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForEvictionPolicy(), false),
 					},
 
-					"max_hourly_price_per_vm_usd": {
+					"maximum_hourly_price_per_virtual_machine_usd": {
 						Type:         pluginsdk.TypeFloat,
 						Optional:     true,
 						Default:      -1,
@@ -681,7 +681,7 @@ func (r ComputeFleetResource) Create() sdk.ResourceFunc {
 				Properties: &fleets.FleetProperties{
 					RegularPriorityProfile: r.expandOnDemandCapacityModel(model.OnDemandCapacity),
 					SpotPriorityProfile:    r.expandSpotCapacityModel(model.SpotCapacity),
-					VMSizesProfile:         pointer.From(r.expandVMSizeProfileModel(model.VMSizesProfile, metadata)),
+					VMSizesProfile:         pointer.From(r.expandVirtualMachineSizeProfileModel(model.VirtualMachineSizesProfile, metadata)),
 				},
 			}
 
@@ -790,8 +790,8 @@ func (r ComputeFleetResource) Update() sdk.ResourceFunc {
 				properties.Properties.SpotPriorityProfile = r.expandSpotCapacityModel(model.SpotCapacity)
 			}
 
-			if metadata.ResourceData.HasChange("vm_sizes_profile") {
-				properties.Properties.VMSizesProfile = pointer.From(r.expandVMSizeProfileModel(model.VMSizesProfile, metadata))
+			if metadata.ResourceData.HasChange("virtual_machine_sizes_profile") {
+				properties.Properties.VMSizesProfile = pointer.From(r.expandVirtualMachineSizeProfileModel(model.VirtualMachineSizesProfile, metadata))
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -884,8 +884,8 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 						return errors.New("`spot_capacity.0.eviction_policy` must be `Delete` if `spot_capacity.0.maintain_capacity_enabled` is `true`")
 					}
 
-					if len(state.VMSizesProfile) < 3 {
-						return errors.New("`vm_sizes_profile` must be at least 3 Vm sizes if `spot_capacity.0.maintain_capacity_enabled` is `true`")
+					if len(state.VirtualMachineSizesProfile) < 3 {
+						return errors.New("The number of `virtual_machine_sizes_profile` blocks must be at least 3 if `spot_capacity.0.maintain_capacity_enabled` is `true`")
 					}
 
 					if len(state.Zones) == 0 {
@@ -904,7 +904,7 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 				"maintain_capacity_enabled",
 				"allocation_strategy",
 				"eviction_policy",
-				"max_hourly_price_per_vm_usd",
+				"maximum_hourly_price_per_virtual_machine_usd",
 				"minimum_capacity",
 			}
 			oldSpotCapacity, _ := metadata.ResourceDiff.GetChange("spot_capacity")
@@ -976,24 +976,24 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			for i, vmSizesProfile := range state.VMSizesProfile {
-				if !metadata.ResourceDiff.GetRawConfig().AsValueMap()["vm_sizes_profile"].AsValueSlice()[i].AsValueMap()["rank"].IsNull() && (len(state.OnDemandCapacity) == 0 || state.OnDemandCapacity[0].AllocationStrategy != string(fleets.RegularPriorityAllocationStrategyPrioritized)) {
-					return errors.New("`on_demand_capacity` should be specified with `allocation_strategy` equal to `Prioritized` when `virtual_machine_profile.0.vm_sizes_profile.#.rank` is specified")
+			for i, virtualMachineSizesProfile := range state.VirtualMachineSizesProfile {
+				if !metadata.ResourceDiff.GetRawConfig().AsValueMap()["virtual_machine_sizes_profile"].AsValueSlice()[i].AsValueMap()["rank"].IsNull() && (len(state.OnDemandCapacity) == 0 || state.OnDemandCapacity[0].AllocationStrategy != string(fleets.RegularPriorityAllocationStrategyPrioritized)) {
+					return errors.New("`on_demand_capacity` should be specified with `allocation_strategy` equal to `Prioritized` when `virtual_machine_profile.0.virtual_machine_sizes_profile.#.rank` is specified")
 				}
 
-				if vmSizesProfile.Rank >= int64(len(state.VMSizesProfile)) {
-					return fmt.Errorf("`virtual_machine_profile.0.vm_sizes_profile.%d.rank` must be less than the number of `vm_sizes_profile` blocks", i)
+				if virtualMachineSizesProfile.Rank >= int64(len(state.VirtualMachineSizesProfile)) {
+					return fmt.Errorf("`virtual_machine_profile.0.virtual_machine_sizes_profile.%d.rank` must be less than the number of `virtual_machine_sizes_profile` blocks", i)
 				}
 			}
 
-			vmSizesProfileNames := make([]interface{}, len(state.VMSizesProfile))
-			for i, v := range state.VMSizesProfile {
-				vmSizesProfileNames[i] = v.Name
+			virtualMachineSizesProfileNames := make([]interface{}, len(state.VirtualMachineSizesProfile))
+			for i, v := range state.VirtualMachineSizesProfile {
+				virtualMachineSizesProfileNames[i] = v.Name
 			}
 
-			vmSizesProfileNamesWithoutDuplicate := schema.NewSet(pluginsdk.HashString, vmSizesProfileNames)
-			if len(state.VMSizesProfile) > vmSizesProfileNamesWithoutDuplicate.Len() {
-				return errors.New("`virtual_machine_profile.0.vm_sizes_profile` blocks with duplicated `name` are not allowed")
+			virtualMachineSizesProfileNamesWithoutDuplicate := schema.NewSet(pluginsdk.HashString, virtualMachineSizesProfileNames)
+			if len(state.VirtualMachineSizesProfile) > virtualMachineSizesProfileNamesWithoutDuplicate.Len() {
+				return errors.New("`virtual_machine_profile.0.virtual_machine_sizes_profile` blocks with duplicated `name` are not allowed")
 			}
 
 			err := validateSecuritySetting(state.VirtualMachineProfile)
@@ -1069,7 +1069,7 @@ func (r ComputeFleetResource) flatten(metadata sdk.ResourceMetaData, id *fleets.
 			state.OnDemandCapacity = r.flattenOnDemandCapacityModel(props.RegularPriorityProfile)
 			state.SpotCapacity = r.flattenSpotCapacityModel(props.SpotPriorityProfile)
 			state.UniqueId = pointer.From(props.UniqueId)
-			state.VMSizesProfile = r.flattenVMSizeProfileModel(&props.VMSizesProfile)
+			state.VirtualMachineSizesProfile = r.flattenVirtualMachineSizeProfileModel(&props.VMSizesProfile)
 		}
 		state.Tags = pointer.From(model.Tags)
 		state.Zones = pointer.From(model.Zones)
@@ -1129,13 +1129,13 @@ func (r ComputeFleetResource) expandSpotCapacityModel(inputList []SpotCapacityMo
 		MinCapacity:        pointer.To(input.MinimumCapacity),
 	}
 
-	if input.MaxHourlyPricePerVmUsd > 0 || input.MaxHourlyPricePerVmUsd == -1 {
-		output.MaxPricePerVM = pointer.To(input.MaxHourlyPricePerVmUsd)
+	if input.MaximumHourlyPricePerVirtualMachineUsd > 0 || input.MaximumHourlyPricePerVirtualMachineUsd == -1 {
+		output.MaxPricePerVM = pointer.To(input.MaximumHourlyPricePerVirtualMachineUsd)
 	}
 	return &output
 }
 
-func (r ComputeFleetResource) expandVMSizeProfileModel(inputList []VMSizeProfileModel, metadata sdk.ResourceMetaData) *[]fleets.VMSizeProfile {
+func (r ComputeFleetResource) expandVirtualMachineSizeProfileModel(inputList []VirtualMachineSizeProfileModel, metadata sdk.ResourceMetaData) *[]fleets.VMSizeProfile {
 	if len(inputList) == 0 {
 		return nil
 	}
@@ -1146,7 +1146,7 @@ func (r ComputeFleetResource) expandVMSizeProfileModel(inputList []VMSizeProfile
 		output := fleets.VMSizeProfile{
 			Name: input.Name,
 		}
-		if !metadata.ResourceData.GetRawConfig().AsValueMap()["vm_sizes_profile"].AsValueSlice()[i].AsValueMap()["rank"].IsNull() {
+		if !metadata.ResourceData.GetRawConfig().AsValueMap()["virtual_machine_sizes_profile"].AsValueSlice()[i].AsValueMap()["rank"].IsNull() {
 			output.Rank = pointer.To(input.Rank)
 		}
 		outputList = append(outputList, output)
@@ -1224,24 +1224,24 @@ func (r ComputeFleetResource) flattenSpotCapacityModel(input *fleets.SpotPriorit
 		MinimumCapacity:         pointer.From(input.MinCapacity),
 	}
 
-	// defaulted since MaxHourlyPricePerVmUsd isn't returned if it's unset
-	MaxHourlyPricePerVmUsd := float64(-1.0)
+	// defaulted since `MaxPricePerVM isn't returned if it's unset
+	maximumHourlyPricePerVirtualMachineUsd := float64(-1.0)
 	if input.MaxPricePerVM != nil {
-		MaxHourlyPricePerVmUsd = pointer.From(input.MaxPricePerVM)
+		maximumHourlyPricePerVirtualMachineUsd = pointer.From(input.MaxPricePerVM)
 	}
-	output.MaxHourlyPricePerVmUsd = MaxHourlyPricePerVmUsd
+	output.MaximumHourlyPricePerVirtualMachineUsd = maximumHourlyPricePerVirtualMachineUsd
 
 	return append(outputList, output)
 }
 
-func (r ComputeFleetResource) flattenVMSizeProfileModel(inputList *[]fleets.VMSizeProfile) []VMSizeProfileModel {
-	outputList := make([]VMSizeProfileModel, 0)
+func (r ComputeFleetResource) flattenVirtualMachineSizeProfileModel(inputList *[]fleets.VMSizeProfile) []VirtualMachineSizeProfileModel {
+	outputList := make([]VirtualMachineSizeProfileModel, 0)
 	if inputList == nil {
 		return outputList
 	}
 
 	for _, input := range *inputList {
-		output := VMSizeProfileModel{
+		output := VirtualMachineSizeProfileModel{
 			Name: input.Name,
 			Rank: pointer.From(input.Rank),
 		}

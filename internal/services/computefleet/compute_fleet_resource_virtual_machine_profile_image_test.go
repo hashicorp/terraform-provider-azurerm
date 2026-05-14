@@ -246,7 +246,7 @@ resource "azurerm_compute_fleet" "test" {
     minimum_starting_capacity = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -314,7 +314,7 @@ resource "azurerm_compute_fleet" "image_id" {
     minimum_starting_capacity = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_D2as_v5"
   }
 
@@ -412,7 +412,7 @@ resource "azurerm_compute_fleet" "image_id" {
     target_capacity           = 1
     minimum_starting_capacity = 1
   }
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_D2as_v5"
   }
 
@@ -513,7 +513,7 @@ resource "azurerm_compute_fleet" "image_id" {
     minimum_starting_capacity = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_D2as_v5"
   }
 
@@ -621,7 +621,7 @@ resource "azurerm_compute_fleet" "image_id" {
     minimum_starting_capacity = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_D2as_v5"
   }
 
@@ -729,7 +729,7 @@ resource "azurerm_compute_fleet" "image_id" {
     minimum_starting_capacity = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_D2as_v5"
   }
 

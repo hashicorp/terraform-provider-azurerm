@@ -100,7 +100,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -125,7 +125,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -154,14 +154,14 @@ resource "azurerm_compute_fleet" "test" {
           setting = "FirstLogonCommands"
           xml     = "<FirstLogonCommands><SynchronousCommand><CommandLine>shutdown /r /t 0 /c \"initial reboot\"</CommandLine><Description>reboot</Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
         }
-        automatic_updates_enabled         = true
-        vm_agent_platform_updates_enabled = true
+        automatic_updates_enabled                      = true
+        virtual_machine_agent_platform_updates_enabled = true
 
-        patch_mode                            = "AutomaticByPlatform"
-        hot_patching_enabled                  = true
-        bypass_platform_safety_checks_enabled = false
-        patch_rebooting                       = "Always"
-        provision_vm_agent_enabled            = true
+        patch_mode                              = "AutomaticByPlatform"
+        hot_patching_enabled                    = true
+        bypass_platform_safety_checks_enabled   = false
+        patch_rebooting                         = "Always"
+        provision_virtual_machine_agent_enabled = true
         secret {
           key_vault_id = azurerm_key_vault.test.id
           certificate {
@@ -236,7 +236,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -261,7 +261,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -283,16 +283,16 @@ resource "azurerm_compute_fleet" "test" {
     os_profile {
       custom_data_base64 = "Y3VzdG9tIGRhdGEh"
       linux_configuration {
-        computer_name_prefix                  = "testvm"
-        admin_username                        = local.admin_username
-        admin_password                        = local.admin_password
-        password_authentication_enabled       = true
-        admin_ssh_keys                        = [local.first_public_key]
-        provision_vm_agent_enabled            = true
-        vm_agent_platform_updates_enabled     = true
-        patch_mode                            = "AutomaticByPlatform"
-        bypass_platform_safety_checks_enabled = true
-        patch_rebooting                       = "Always"
+        computer_name_prefix                           = "testvm"
+        admin_username                                 = local.admin_username
+        admin_password                                 = local.admin_password
+        password_authentication_enabled                = true
+        admin_ssh_keys                                 = [local.first_public_key]
+        provision_virtual_machine_agent_enabled        = true
+        virtual_machine_agent_platform_updates_enabled = true
+        patch_mode                                     = "AutomaticByPlatform"
+        bypass_platform_safety_checks_enabled          = true
+        patch_rebooting                                = "Always"
         secret {
           key_vault_id = azurerm_key_vault.test.id
           certificate {

@@ -64,7 +64,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 

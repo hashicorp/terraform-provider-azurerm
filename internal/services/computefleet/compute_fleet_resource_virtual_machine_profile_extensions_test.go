@@ -76,7 +76,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -147,7 +147,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -220,13 +220,13 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     extension {
-      name                                      = "Docker"
-      publisher                                 = "Microsoft.Azure.Extensions"
-      type                                      = "DockerExtension"
-      type_handler_version                      = "1.0"
-      auto_upgrade_minor_version_enabled        = true
-      extensions_to_provision_after_vm_creation = ["CustomScript"]
-      force_extension_execution_on_change       = "test"
+      name                                                   = "Docker"
+      publisher                                              = "Microsoft.Azure.Extensions"
+      type                                                   = "DockerExtension"
+      type_handler_version                                   = "1.0"
+      auto_upgrade_minor_version_enabled                     = true
+      extensions_to_provision_after_virtual_machine_creation = ["CustomScript"]
+      force_extension_execution_on_change                    = "test"
     }
     extensions_time_budget_duration = "PT30M"
   }
@@ -288,7 +288,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 

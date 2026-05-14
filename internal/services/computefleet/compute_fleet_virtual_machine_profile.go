@@ -139,7 +139,7 @@ func extensionSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"extensions_to_provision_after_vm_creation": {
+				"extensions_to_provision_after_virtual_machine_creation": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					ForceNew: true,
@@ -531,7 +531,7 @@ func osProfileSchema() *pluginsdk.Schema {
 								ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForLinuxVMGuestPatchMode(), false),
 							},
 
-							"provision_vm_agent_enabled": {
+							"provision_virtual_machine_agent_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
 								ForceNew: true,
@@ -574,7 +574,7 @@ func osProfileSchema() *pluginsdk.Schema {
 								},
 							},
 
-							"vm_agent_platform_updates_enabled": {
+							"virtual_machine_agent_platform_updates_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
 								ForceNew: true,
@@ -669,7 +669,7 @@ func osProfileSchema() *pluginsdk.Schema {
 								ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForWindowsVMGuestPatchMode(), false),
 							},
 
-							"provision_vm_agent_enabled": {
+							"provision_virtual_machine_agent_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
 								ForceNew: true,
@@ -725,7 +725,7 @@ func osProfileSchema() *pluginsdk.Schema {
 								ValidateFunc: computeValidate.VirtualMachineTimeZone(),
 							},
 
-							"vm_agent_platform_updates_enabled": {
+							"virtual_machine_agent_platform_updates_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
 								ForceNew: true,
@@ -1181,8 +1181,8 @@ func (r ComputeFleetResource) expandExtensionModel(inputList []ExtensionModel, t
 			extension.Properties.ProtectedSettings = pointer.To(protectedSettingsValue)
 		}
 
-		if len(v.ExtensionsToProvisionAfterVmCreation) > 0 {
-			extension.Properties.ProvisionAfterExtensions = pointer.To(v.ExtensionsToProvisionAfterVmCreation)
+		if len(v.ExtensionsToProvisionAfterVirtualMachineCreation) > 0 {
+			extension.Properties.ProvisionAfterExtensions = pointer.To(v.ExtensionsToProvisionAfterVirtualMachineCreation)
 		}
 
 		if v.Publisher != "" {
@@ -1346,8 +1346,8 @@ func (r ComputeFleetResource) expandOSProfileModel(inputList []VirtualMachinePro
 	if lConfig := osProfile.LinuxConfiguration; len(lConfig) > 0 {
 		linuxConfig := fleets.LinuxConfiguration{
 			DisablePasswordAuthentication: pointer.To(!lConfig[0].PasswordAuthenticationEnabled),
-			ProvisionVMAgent:              pointer.To(lConfig[0].ProvisionVMAgentEnabled),
-			EnableVMAgentPlatformUpdates:  pointer.To(lConfig[0].VMAgentPlatformUpdatesEnabled),
+			ProvisionVMAgent:              pointer.To(lConfig[0].ProvisionVirtualMachineAgentEnabled),
+			EnableVMAgentPlatformUpdates:  pointer.To(lConfig[0].VirtualMachineAgentPlatformUpdatesEnabled),
 			PatchSettings: &fleets.LinuxPatchSettings{
 				// 'AssessmentMode' can only be set `ImageDefault` on Virtual Machine Scale Sets.
 				AssessmentMode: pointer.To(fleets.LinuxPatchAssessmentModeImageDefault),
@@ -1409,8 +1409,8 @@ func (r ComputeFleetResource) expandOSProfileModel(inputList []VirtualMachinePro
 		windowsConfig := fleets.WindowsConfiguration{
 			AdditionalUnattendContent:    r.expandAdditionalUnAttendContentModel(winConfig[0].AdditionalUnattendContent),
 			EnableAutomaticUpdates:       pointer.To(winConfig[0].AutomaticUpdatesEnabled),
-			EnableVMAgentPlatformUpdates: pointer.To(winConfig[0].VMAgentPlatformUpdatesEnabled),
-			ProvisionVMAgent:             pointer.To(winConfig[0].ProvisionVMAgentEnabled),
+			EnableVMAgentPlatformUpdates: pointer.To(winConfig[0].VirtualMachineAgentPlatformUpdatesEnabled),
+			ProvisionVMAgent:             pointer.To(winConfig[0].ProvisionVirtualMachineAgentEnabled),
 			PatchSettings: &fleets.PatchSettings{
 				EnableHotpatching: pointer.To(winConfig[0].HotPatchingEnabled),
 				// 'AssessmentMode' can only be set `ImageDefault` on Virtual Machine Scale Sets.
@@ -1485,7 +1485,7 @@ func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.Re
 	if v := input.OsProfile[0].WindowsConfiguration; len(v) > 0 {
 		patchMode := v[0].PatchMode
 		hotPatchingEnabled := v[0].HotPatchingEnabled
-		provisionVMAgentEnabled := v[0].ProvisionVMAgentEnabled
+		provisionVirtualMachineAgentEnabled := v[0].ProvisionVirtualMachineAgentEnabled
 
 		rebootSetting := v[0].PatchRebooting
 		bypassPlatformSafetyChecksEnabledExist := d.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["windows_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
@@ -1495,8 +1495,8 @@ func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.Re
 			}
 		}
 
-		if input.ExtensionOperationsEnabled && !provisionVMAgentEnabled {
-			return errors.New("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent_enabled` is set to `false`")
+		if input.ExtensionOperationsEnabled && !provisionVirtualMachineAgentEnabled {
+			return errors.New("`extension_operations_enabled` cannot be set to `true` when `provision_virtual_machine_agent_enabled` is set to `false`")
 		}
 
 		isHotPatchEnabledImage := isValidHotPatchSourceImageReference(input.SourceImageReference)
@@ -1515,8 +1515,8 @@ func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.Re
 			if patchMode != string(fleets.WindowsVMGuestPatchModeAutomaticByPlatform) {
 				return errors.New("when referencing a hot patching enabled image the `patch_mode` field must always be set to `AutomaticByPlatform`")
 			}
-			if !provisionVMAgentEnabled {
-				return errors.New("when referencing a hot patching enabled image the `provision_vm_agent_enabled` field must always be set to `true`")
+			if !provisionVirtualMachineAgentEnabled {
+				return errors.New("when referencing a hot patching enabled image the `provision_virtual_machine_agent_enabled` field must always be set to `true`")
 			}
 			if !hasHealthExtension {
 				return errors.New("when referencing a hot patching enabled image the `extension` field must always contain a `application health extension`")
@@ -1527,8 +1527,8 @@ func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.Re
 		} else {
 			// not a hot patching enabled image verify Automatic VM Guest Patching settings
 			if patchMode == string(fleets.WindowsVMGuestPatchModeAutomaticByPlatform) {
-				if !provisionVMAgentEnabled {
-					return fmt.Errorf("when `patch_mode` is set to %q then `provision_vm_agent_enabled` must be set to `true`", patchMode)
+				if !provisionVirtualMachineAgentEnabled {
+					return fmt.Errorf("when `patch_mode` is set to %q then `provision_virtual_machine_agent_enabled` must be set to `true`", patchMode)
 				}
 				if !hasHealthExtension {
 					return fmt.Errorf("when `patch_mode` is set to %q then the `extension` field must always contain a `application health extension`", patchMode)
@@ -1582,7 +1582,7 @@ func validateLinuxSetting(inputList []VirtualMachineProfileModel, d *schema.Reso
 	input := &inputList[0]
 	if v := input.OsProfile[0].LinuxConfiguration; len(v) > 0 {
 		patchMode := v[0].PatchMode
-		provisionVMAgentEnabled := v[0].ProvisionVMAgentEnabled
+		provisionVirtualMachineAgentEnabled := v[0].ProvisionVirtualMachineAgentEnabled
 
 		rebootSetting := v[0].PatchRebooting
 		bypassPlatformSafetyChecksEnabledExist := d.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["linux_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
@@ -1592,8 +1592,8 @@ func validateLinuxSetting(inputList []VirtualMachineProfileModel, d *schema.Reso
 			}
 		}
 
-		if input.ExtensionOperationsEnabled && !provisionVMAgentEnabled {
-			return errors.New("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent_enabled` is set to `false`")
+		if input.ExtensionOperationsEnabled && !provisionVirtualMachineAgentEnabled {
+			return errors.New("`extension_operations_enabled` cannot be set to `true` when `provision_virtual_machine_agent_enabled` is set to `false`")
 		}
 
 		hasHealthExtension := false
@@ -1607,8 +1607,8 @@ func validateLinuxSetting(inputList []VirtualMachineProfileModel, d *schema.Reso
 		}
 
 		if patchMode == string(fleets.LinuxVMGuestPatchModeAutomaticByPlatform) {
-			if !provisionVMAgentEnabled {
-				return fmt.Errorf("when the `patch_mode` field is set to %q the `provision_vm_agent_enabled` field must always be set to `true`, got %q", patchMode, strconv.FormatBool(provisionVMAgentEnabled))
+			if !provisionVirtualMachineAgentEnabled {
+				return fmt.Errorf("when the `patch_mode` field is set to %q the `provision_virtual_machine_agent_enabled` field must always be set to `true`, got %q", patchMode, strconv.FormatBool(provisionVirtualMachineAgentEnabled))
 			}
 
 			if !hasHealthExtension {
@@ -2124,16 +2124,16 @@ func (r ComputeFleetResource) flattenOSProfileModel(input *fleets.VirtualMachine
 	windowsConfigs := make([]WindowsConfigurationModel, 0)
 	if v := input.WindowsConfiguration; v != nil {
 		windowsConfig := WindowsConfigurationModel{
-			AdditionalUnattendContent:     r.flattenAdditionalUnAttendContentModel(v.AdditionalUnattendContent, d),
-			WinRM:                         r.flattenWinRMModel(v.WinRM),
-			AdminUsername:                 pointer.From(input.AdminUsername),
-			AdminPassword:                 d.Get("virtual_machine_profile.0.os_profile.0.windows_configuration.0.admin_password").(string),
-			AutomaticUpdatesEnabled:       pointer.From(v.EnableAutomaticUpdates),
-			ComputerNamePrefix:            pointer.From(input.ComputerNamePrefix),
-			VMAgentPlatformUpdatesEnabled: pointer.From(v.EnableVMAgentPlatformUpdates),
-			ProvisionVMAgentEnabled:       pointer.From(v.ProvisionVMAgent),
-			TimeZone:                      pointer.From(v.TimeZone),
-			Secret:                        r.flattenOsProfileWindowsSecretsModel(input.Secrets),
+			AdditionalUnattendContent: r.flattenAdditionalUnAttendContentModel(v.AdditionalUnattendContent, d),
+			WinRM:                     r.flattenWinRMModel(v.WinRM),
+			AdminUsername:             pointer.From(input.AdminUsername),
+			AdminPassword:             d.Get("virtual_machine_profile.0.os_profile.0.windows_configuration.0.admin_password").(string),
+			AutomaticUpdatesEnabled:   pointer.From(v.EnableAutomaticUpdates),
+			ComputerNamePrefix:        pointer.From(input.ComputerNamePrefix),
+			VirtualMachineAgentPlatformUpdatesEnabled: pointer.From(v.EnableVMAgentPlatformUpdates),
+			ProvisionVirtualMachineAgentEnabled:       pointer.From(v.ProvisionVMAgent),
+			TimeZone:                                  pointer.From(v.TimeZone),
+			Secret:                                    r.flattenOsProfileWindowsSecretsModel(input.Secrets),
 		}
 
 		if p := v.PatchSettings; p != nil {
@@ -2151,13 +2151,13 @@ func (r ComputeFleetResource) flattenOSProfileModel(input *fleets.VirtualMachine
 	linuxConfigs := make([]LinuxConfigurationModel, 0)
 	if v := input.LinuxConfiguration; v != nil {
 		linuxConfig := LinuxConfigurationModel{
-			AdminUsername:                 pointer.From(input.AdminUsername),
-			AdminPassword:                 d.Get("virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password").(string),
-			ComputerNamePrefix:            pointer.From(input.ComputerNamePrefix),
-			PasswordAuthenticationEnabled: !pointer.From(v.DisablePasswordAuthentication),
-			VMAgentPlatformUpdatesEnabled: pointer.From(v.EnableVMAgentPlatformUpdates),
-			ProvisionVMAgentEnabled:       pointer.From(v.ProvisionVMAgent),
-			Secret:                        r.flattenOsProfileLinuxSecretsModel(input.Secrets),
+			AdminUsername:                             pointer.From(input.AdminUsername),
+			AdminPassword:                             d.Get("virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password").(string),
+			ComputerNamePrefix:                        pointer.From(input.ComputerNamePrefix),
+			PasswordAuthenticationEnabled:             !pointer.From(v.DisablePasswordAuthentication),
+			VirtualMachineAgentPlatformUpdatesEnabled: pointer.From(v.EnableVMAgentPlatformUpdates),
+			ProvisionVirtualMachineAgentEnabled:       pointer.From(v.ProvisionVMAgent),
+			Secret:                                    r.flattenOsProfileLinuxSecretsModel(input.Secrets),
 		}
 
 		if p := v.PatchSettings; p != nil {
@@ -2374,7 +2374,7 @@ func (r ComputeFleetResource) flattenExtensionModel(input *fleets.VirtualMachine
 			// Sensitive data isn't returned, so we get it from config
 			output.ProtectedSettingsJson = metadata.ResourceData.Get("virtual_machine_profile.0.extension." + strconv.Itoa(i) + ".protected_settings_json").(string)
 			output.ProtectedSettingsFromKeyVault = r.flattenProtectedSettingsFromKeyVaultModel(props.ProtectedSettingsFromKeyVault)
-			output.ExtensionsToProvisionAfterVmCreation = pointer.From(props.ProvisionAfterExtensions)
+			output.ExtensionsToProvisionAfterVirtualMachineCreation = pointer.From(props.ProvisionAfterExtensions)
 			extSettings := ""
 			if props.Settings != nil {
 				settings, err := json.Marshal(props.Settings)

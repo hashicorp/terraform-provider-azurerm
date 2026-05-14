@@ -230,7 +230,7 @@ resource "azurerm_compute_fleet" "test" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -277,7 +277,7 @@ resource "azurerm_compute_fleet" "import" {
     target_capacity           = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
   }
 
@@ -352,12 +352,12 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   spot_capacity {
-    allocation_strategy       = "CapacityOptimized"
-    eviction_policy           = "Delete"
-    max_hourly_price_per_vm_usd   = -1
-    minimum_capacity          = 0
-    maintain_capacity_enabled = true
-    target_capacity           = 1
+    allocation_strategy                          = "CapacityOptimized"
+    eviction_policy                              = "Delete"
+    maximum_hourly_price_per_virtual_machine_usd = -1
+    minimum_capacity                             = 0
+    maintain_capacity_enabled                    = true
+    target_capacity                              = 1
   }
 
   on_demand_capacity {
@@ -366,17 +366,17 @@ resource "azurerm_compute_fleet" "test" {
     minimum_starting_capacity = 0
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1as_v7"
     rank = 0
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
     rank = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1als_v7"
     rank = 2
   }
@@ -479,12 +479,12 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   spot_capacity {
-    allocation_strategy       = "CapacityOptimized"
-    eviction_policy           = "Delete"
-    max_hourly_price_per_vm_usd   = -1
-    minimum_capacity          = 0
-    maintain_capacity_enabled = true
-    target_capacity           = 0
+    allocation_strategy                          = "CapacityOptimized"
+    eviction_policy                              = "Delete"
+    maximum_hourly_price_per_virtual_machine_usd = -1
+    minimum_capacity                             = 0
+    maintain_capacity_enabled                    = true
+    target_capacity                              = 0
   }
 
   on_demand_capacity {
@@ -493,22 +493,22 @@ resource "azurerm_compute_fleet" "test" {
     minimum_starting_capacity = 0
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1as_v7"
     rank = 0
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1als_v7"
     rank = 1
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1alds_v7"
     rank = 2
   }
 
-  vm_sizes_profile {
+  virtual_machine_sizes_profile {
     name = "Standard_F1ads_v7"
     rank = 3
   }
