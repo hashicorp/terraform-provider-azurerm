@@ -649,7 +649,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		},
 	}
 
-	diskTypeTargets := siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(managedDisks, state)
+	diskTypeTargets := siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(managedDisks)
 
 	err = client.UpdateThenPoll(ctx, id, parameters)
 	if err != nil {
@@ -671,56 +671,30 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 	return resourceSiteRecoveryReplicatedItemRead(d, meta)
 }
 
-func siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(managedDisks []replicationprotecteditems.A2AVMManagedDiskUpdateDetails, state *replicationprotecteditems.ReplicationProtectedItem) []custompollers.SiteRecoveryReplicatedVMDiskTypeTarget {
-	if len(managedDisks) == 0 || state == nil || state.Properties == nil {
+func siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(managedDisks []replicationprotecteditems.A2AVMManagedDiskUpdateDetails) []custompollers.SiteRecoveryReplicatedVMDiskTypeTarget {
+	if len(managedDisks) == 0 {
 		return nil
 	}
 
-	a2aDetails, ok := state.Properties.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails)
-	if !ok {
-		return nil
-	}
-
-	currentDisks := make(map[string]replicationprotecteditems.A2AProtectedManagedDiskDetails)
-	if a2aDetails.ProtectedManagedDisks != nil {
-		for _, disk := range *a2aDetails.ProtectedManagedDisks {
-			if diskId := pointer.From(disk.DiskId); diskId != "" {
-				currentDisks[siteRecoveryReplicatedVMManagedDiskID(diskId)] = disk
-			}
-		}
-	}
-
-	targets := make([]custompollers.SiteRecoveryReplicatedVMDiskTypeTarget, 0)
+	targets := make([]custompollers.SiteRecoveryReplicatedVMDiskTypeTarget, 0, len(managedDisks))
 	for _, disk := range managedDisks {
 		diskId := pointer.From(disk.DiskId)
 		if diskId == "" {
 			continue
 		}
 
-		targetDiskType := pointer.From(disk.RecoveryTargetDiskAccountType)
-		targetReplicaDiskType := pointer.From(disk.RecoveryReplicaDiskAccountType)
-		if currentDisk, ok := currentDisks[siteRecoveryReplicatedVMManagedDiskID(diskId)]; ok &&
-			pointer.From(currentDisk.RecoveryTargetDiskAccountType) == targetDiskType &&
-			pointer.From(currentDisk.RecoveryReplicaDiskAccountType) == targetReplicaDiskType {
-			continue
-		}
-
 		targets = append(targets, custompollers.SiteRecoveryReplicatedVMDiskTypeTarget{
 			DiskId:                diskId,
-			TargetDiskType:        targetDiskType,
-			TargetReplicaDiskType: targetReplicaDiskType,
+			TargetDiskType:        pointer.From(disk.RecoveryTargetDiskAccountType),
+			TargetReplicaDiskType: pointer.From(disk.RecoveryReplicaDiskAccountType),
 		})
 	}
 
-	return targets
-}
-
-func siteRecoveryReplicatedVMManagedDiskID(diskId string) string {
-	if parsed, err := commonids.ParseManagedDiskIDInsensitively(diskId); err == nil {
-		return strings.ToLower(parsed.ID())
+	if len(targets) == 0 {
+		return nil
 	}
 
-	return strings.ToLower(diskId)
+	return targets
 }
 
 func findNicId(state *replicationprotecteditems.ReplicationProtectedItem, sourceNicId string) *string {
