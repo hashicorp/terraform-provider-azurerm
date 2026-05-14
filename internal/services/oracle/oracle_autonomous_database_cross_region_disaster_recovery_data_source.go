@@ -27,6 +27,7 @@ type AutonomousDatabaseCrossRegionDisasterRecoveryDataModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 
 	// Cross Region Disaster Recovery properties
+	// test git hub
 	ReplicateAutomaticBackupsEnabled bool   `tfschema:"replicate_automatic_backups_enabled"`
 	RemoteDisasterRecoveryType       string `tfschema:"remote_disaster_recovery_type"`
 	Source                           string `tfschema:"source"`
