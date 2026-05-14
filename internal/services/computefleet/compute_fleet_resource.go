@@ -885,7 +885,7 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 
 					if len(state.VirtualMachineSizesProfile) < 3 {
-						return errors.New("The number of `virtual_machine_sizes_profile` blocks must be at least 3 if `spot_capacity.0.maintain_capacity_enabled` is `true`")
+						return errors.New("the number of `virtual_machine_sizes_profile` blocks must be at least 3 if `spot_capacity.0.maintain_capacity_enabled` is `true`")
 					}
 
 					if len(state.Zones) == 0 {
