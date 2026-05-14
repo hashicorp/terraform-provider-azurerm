@@ -545,11 +545,11 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                  = "${local.vm_name}2"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  size                  = "Standard_F2"
-  source_image_id       = azurerm_shared_image_version.test.id
+  name                = "${local.vm_name}2"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  source_image_id     = azurerm_shared_image_version.test.id
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
