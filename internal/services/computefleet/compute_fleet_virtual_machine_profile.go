@@ -143,6 +143,7 @@ func extensionSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					ForceNew: true,
+					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -316,34 +317,34 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
 					ForceNew: true,
+					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: networkParse.ValidateApplicationGatewayBackendAddressPoolID,
 					},
-					Set: pluginsdk.HashString,
 				},
 
 				"application_security_group_ids": {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
 					ForceNew: true,
+					MaxItems: 20,
+					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
 					},
-					Set:      pluginsdk.HashString,
-					MaxItems: 20,
 				},
 
 				"load_balancer_backend_address_pool_ids": {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
 					ForceNew: true,
+					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
 					},
-					Set: pluginsdk.HashString,
 				},
 
 				"primary_ip_configuration_enabled": {
@@ -493,6 +494,7 @@ func osProfileSchema() *pluginsdk.Schema {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
 								ForceNew: true,
+								MinItems: 1,
 								Elem: &pluginsdk.Schema{
 									Type:             pluginsdk.TypeString,
 									ValidateFunc:     computeValidate.SSHKey,
@@ -555,7 +557,6 @@ func osProfileSchema() *pluginsdk.Schema {
 											Type:     pluginsdk.TypeSet,
 											Required: true,
 											ForceNew: true,
-											MinItems: 1,
 											Elem: &pluginsdk.Resource{
 												Schema: map[string]*pluginsdk.Schema{
 													// whilst we /could/ flatten this to `certificate_urls` we're intentionally not to keep this
@@ -1292,10 +1293,8 @@ func (r ComputeFleetResource) expandPublicIPAddressModel(inputList []PublicIPAdd
 
 	input := &inputList[0]
 	output := fleets.VirtualMachineScaleSetPublicIPAddressConfiguration{
-		Name: input.Name,
-		Properties: &fleets.VirtualMachineScaleSetPublicIPAddressConfigurationProperties{
-			PublicIPPrefix: r.expandSubResource(input.PublicIPPrefix),
-		},
+		Name:       input.Name,
+		Properties: &fleets.VirtualMachineScaleSetPublicIPAddressConfigurationProperties{},
 	}
 
 	if input.DomainNameLabel != "" {
@@ -1777,7 +1776,7 @@ func (r ComputeFleetResource) expandImageReference(inputList []SourceImageRefere
 	if imageId != "" {
 		// With Version            : "/communityGalleries/publicGalleryName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
 		// Versionless(e.g. latest): "/communityGalleries/publicGalleryName/images/myGalleryImageName"
-		if _, errors := validation.Any(computeValidate.CommunityGalleryImageID, computeValidate.CommunityGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
+		if _, errs := validation.Any(computeValidate.CommunityGalleryImageID, computeValidate.CommunityGalleryImageVersionID)(imageId, "source_image_id"); len(errs) == 0 {
 			return &fleets.ImageReference{
 				CommunityGalleryImageId: pointer.To(imageId),
 			}
@@ -1786,7 +1785,7 @@ func (r ComputeFleetResource) expandImageReference(inputList []SourceImageRefere
 		// Shared Image Gallery with Cross-Tenant Sharing
 		// With Version            : "/sharedGalleries/galleryUniqueName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
 		// Versionless(e.g. latest): "/sharedGalleries/galleryUniqueName/images/myGalleryImageName"
-		if _, errors := validation.Any(computeValidate.SharedGalleryImageID, computeValidate.SharedGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
+		if _, errs := validation.Any(computeValidate.SharedGalleryImageID, computeValidate.SharedGalleryImageVersionID)(imageId, "source_image_id"); len(errs) == 0 {
 			return &fleets.ImageReference{
 				SharedGalleryImageId: pointer.To(imageId),
 			}
@@ -1885,7 +1884,7 @@ func (r ComputeFleetResource) flattenVirtualMachineProfileModel(input *fleets.Ba
 
 	output.NetworkApiVersion = string(fleets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne)
 	if v := input.NetworkProfile; v != nil {
-		output.NetworkApiVersion = string(pointer.From(v.NetworkApiVersion))
+		output.NetworkApiVersion = pointer.FromEnum(v.NetworkApiVersion)
 	}
 	if v := input.SecurityProfile; v != nil {
 		output.EncryptionAtHostEnabled = pointer.From(v.EncryptionAtHost)
@@ -1925,10 +1924,14 @@ func (r ComputeFleetResource) flattenVirtualMachineProfileModel(input *fleets.Ba
 
 	if se := input.ScheduledEventsProfile; se != nil {
 		if v := se.TerminateNotificationProfile; v != nil {
-			output.ScheduledEventTerminationTimeoutDuration = pointer.From(v.NotBeforeTimeout)
+			if pointer.From(v.Enable) {
+				output.ScheduledEventTerminationTimeoutDuration = pointer.From(v.NotBeforeTimeout)
+			}
 		}
 		if v := se.OsImageNotificationProfile; v != nil {
-			output.ScheduledEventOsImageTimeoutDuration = pointer.From(v.NotBeforeTimeout)
+			if pointer.From(v.Enable) {
+				output.ScheduledEventOsImageTimeoutDuration = pointer.From(v.NotBeforeTimeout)
+			}
 		}
 	}
 
@@ -2044,7 +2047,7 @@ func (r ComputeFleetResource) flattenNetworkInterfaceModel(input *fleets.Virtual
 				output.AuxiliarySku = string(*v)
 			}
 
-			output.DeleteOption = string(pointer.From(props.DeleteOption))
+			output.DeleteOption = pointer.FromEnum(props.DeleteOption)
 
 			if v := props.DnsSettings; v != nil {
 				output.DnsServers = pointer.From(v.DnsServers)
@@ -2134,10 +2137,10 @@ func (r ComputeFleetResource) flattenOSProfileModel(input *fleets.VirtualMachine
 		}
 
 		if p := v.PatchSettings; p != nil {
-			windowsConfig.PatchMode = string(pointer.From(p.PatchMode))
+			windowsConfig.PatchMode = pointer.FromEnum(p.PatchMode)
 			if a := p.AutomaticByPlatformSettings; a != nil {
 				windowsConfig.BypassPlatformSafetyChecksEnabled = pointer.From(a.BypassPlatformSafetyChecksOnUserSchedule)
-				windowsConfig.PatchRebooting = string(pointer.From(a.RebootSetting))
+				windowsConfig.PatchRebooting = pointer.FromEnum(a.RebootSetting)
 			}
 			windowsConfig.HotPatchingEnabled = pointer.From(p.EnableHotpatching)
 		}
@@ -2158,10 +2161,10 @@ func (r ComputeFleetResource) flattenOSProfileModel(input *fleets.VirtualMachine
 		}
 
 		if p := v.PatchSettings; p != nil {
-			linuxConfig.PatchMode = string(pointer.From(p.PatchMode))
+			linuxConfig.PatchMode = pointer.FromEnum(p.PatchMode)
 			if a := p.AutomaticByPlatformSettings; a != nil {
 				linuxConfig.BypassPlatformSafetyChecksEnabled = pointer.From(a.BypassPlatformSafetyChecksOnUserSchedule)
-				linuxConfig.PatchRebooting = string(pointer.From(a.RebootSetting))
+				linuxConfig.PatchRebooting = pointer.FromEnum(a.RebootSetting)
 			}
 		}
 
@@ -2218,7 +2221,7 @@ func (r ComputeFleetResource) flattenAdditionalUnAttendContentModel(inputList *[
 	}
 	for i, input := range *inputList {
 		output := AdditionalUnattendContentModel{
-			Setting: string(pointer.From(input.SettingName)),
+			Setting: pointer.FromEnum(input.SettingName),
 		}
 		existing := make([]interface{}, 0)
 		if v, ok := d.GetOk("virtual_machine_profile.0.os_profile.0.windows_configuration.0.additional_unattend_content"); ok {
@@ -2253,7 +2256,7 @@ func (r ComputeFleetResource) flattenWinRMModel(input *fleets.WinRMConfiguration
 	for _, input := range *input.Listeners {
 		output := WinRMModel{
 			CertificateUrl: pointer.From(input.CertificateURL),
-			Protocol:       string(pointer.From(input.Protocol)),
+			Protocol:       pointer.FromEnum(input.Protocol),
 		}
 
 		outputList = append(outputList, output)
@@ -2271,7 +2274,7 @@ func (r ComputeFleetResource) flattenDataDiskModel(inputList *[]fleets.VirtualMa
 		output := DataDiskModel{
 			CreateOption:            string(input.CreateOption),
 			Lun:                     input.Lun,
-			DeleteOption:            string(pointer.From(input.DeleteOption)),
+			DeleteOption:            pointer.FromEnum(input.DeleteOption),
 			DiskSizeInGiB:           pointer.From(input.DiskSizeGB),
 			WriteAcceleratorEnabled: pointer.From(input.WriteAcceleratorEnabled),
 		}
@@ -2286,7 +2289,7 @@ func (r ComputeFleetResource) flattenDataDiskModel(inputList *[]fleets.VirtualMa
 			if v := md.DiskEncryptionSet; v != nil {
 				output.DiskEncryptionSetId = pointer.From(v.Id)
 			}
-			output.StorageAccountType = string(pointer.From(md.StorageAccountType))
+			output.StorageAccountType = pointer.FromEnum(md.StorageAccountType)
 		}
 
 		outputList = append(outputList, output)
@@ -2317,13 +2320,13 @@ func (r ComputeFleetResource) flattenOSDiskModel(input *fleets.VirtualMachineSca
 	}
 
 	output := OSDiskModel{
-		DeleteOption:            string(pointer.From(input.DeleteOption)),
+		DeleteOption:            pointer.FromEnum(input.DeleteOption),
 		WriteAcceleratorEnabled: pointer.From(input.WriteAcceleratorEnabled),
 	}
 
 	if v := input.DiffDiskSettings; v != nil {
-		output.DiffDiskOption = string(pointer.From(v.Option))
-		output.DiffDiskPlacement = string(pointer.From(v.Placement))
+		output.DiffDiskOption = pointer.FromEnum(v.Option)
+		output.DiffDiskPlacement = pointer.FromEnum(v.Placement)
 	}
 
 	caching := ""
@@ -2341,9 +2344,9 @@ func (r ComputeFleetResource) flattenOSDiskModel(input *fleets.VirtualMachineSca
 			output.DiskEncryptionSetId = pointer.From(v.Id)
 		}
 		if sp := md.SecurityProfile; sp != nil {
-			output.SecurityEncryptionType = string(pointer.From(sp.SecurityEncryptionType))
+			output.SecurityEncryptionType = pointer.FromEnum(sp.SecurityEncryptionType)
 		}
-		output.StorageAccountType = string(pointer.From(md.StorageAccountType))
+		output.StorageAccountType = pointer.FromEnum(md.StorageAccountType)
 	}
 
 	return append(outputList, output)
@@ -2415,7 +2418,7 @@ func (r ComputeFleetResource) flattenIPConfigurationModel(inputList []fleets.Vir
 		}
 		if props := input.Properties; props != nil {
 			output.PrimaryIpConfigurationEnabled = pointer.From(props.Primary)
-			output.Version = string(pointer.From(props.PrivateIPAddressVersion))
+			output.Version = pointer.FromEnum(props.PrivateIPAddressVersion)
 
 			addressPools := make([]string, 0)
 			if v := props.ApplicationGatewayBackendAddressPools; v != nil {
@@ -2465,10 +2468,10 @@ func (r ComputeFleetResource) flattenPublicIPAddressModel(input *fleets.VirtualM
 	}
 
 	if props := input.Properties; props != nil {
-		output.DeleteOption = string(pointer.From(props.DeleteOption))
+		output.DeleteOption = pointer.FromEnum(props.DeleteOption)
 		if v := props.DnsSettings; v != nil {
 			output.DomainNameLabel = v.DomainNameLabel
-			output.DomainNameLabelScope = string(pointer.From(v.DomainNameLabelScope))
+			output.DomainNameLabelScope = pointer.FromEnum(v.DomainNameLabelScope)
 		}
 		output.IdleTimeoutInMinutes = pointer.From(props.IdleTimeoutInMinutes)
 
@@ -2476,7 +2479,7 @@ func (r ComputeFleetResource) flattenPublicIPAddressModel(input *fleets.VirtualM
 			output.PublicIPPrefix = pointer.From(publicIpPrefix.Id)
 		}
 
-		output.Version = string(pointer.From(props.PublicIPAddressVersion))
+		output.Version = pointer.FromEnum(props.PublicIPAddressVersion)
 	}
 	return append(outputList, output)
 }

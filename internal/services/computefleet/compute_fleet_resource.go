@@ -251,7 +251,7 @@ type SpotCapacityModel struct {
 	TargetCapacity          int64   `tfschema:"target_capacity"`
 	EvictionPolicy          string  `tfschema:"eviction_policy"`
 	MaintainCapacityEnabled bool    `tfschema:"maintain_capacity_enabled"`
-	MaxHourlyPricePerVM     float64 `tfschema:"max_hourly_price_per_vm"`
+	MaxHourlyPricePerVmUsd  float64 `tfschema:"max_hourly_price_per_vm_usd"`
 	MinimumCapacity         int64   `tfschema:"minimum_capacity"`
 }
 
@@ -444,10 +444,8 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 		"vm_sizes_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MinItems: 1,
 			// In Azure portal, maximum number of items is 15 while in Azure REST API, it is 10
-			// Leaving `MaxItems` as 15 while confirming with service team whether the limit can be fixed
-			MaxItems: 15,
+			MaxItems: 10,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -622,7 +620,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForEvictionPolicy(), false),
 					},
 
-					"max_hourly_price_per_vm": {
+					"max_hourly_price_per_vm_usd": {
 						Type:         pluginsdk.TypeFloat,
 						Optional:     true,
 						Default:      -1,
@@ -879,15 +877,15 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 			if len(state.SpotCapacity) > 0 {
 				if state.SpotCapacity[0].MaintainCapacityEnabled {
 					if state.SpotCapacity[0].MinimumCapacity > 0 {
-						return errors.New("`spot_capacity.0.minimum_capacity` is unable to be specified if `spot_capacity.0.maintain_capacity_enabled` is enabled")
+						return errors.New("`spot_capacity.0.minimum_capacity` cannot be set if `spot_capacity.0.maintain_capacity_enabled` is set to `true`")
 					}
 
 					if state.SpotCapacity[0].EvictionPolicy != string(fleets.EvictionPolicyDelete) {
-						return errors.New("`spot_capacity.0.eviction_policy` must be `Delete` if `spot_capacity.0.maintain_capacity_enabled` is enabled")
+						return errors.New("`spot_capacity.0.eviction_policy` must be `Delete` if `spot_capacity.0.maintain_capacity_enabled` is `true`")
 					}
 
 					if len(state.VMSizesProfile) < 3 {
-						return errors.New("`vm_sizes_profile` must be at least 3 Vm sizes if `spot_capacity.0.maintain_capacity_enabled` is enabled")
+						return errors.New("`vm_sizes_profile` must be at least 3 Vm sizes if `spot_capacity.0.maintain_capacity_enabled` is `true`")
 					}
 
 					if len(state.Zones) == 0 {
@@ -906,7 +904,7 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 				"maintain_capacity_enabled",
 				"allocation_strategy",
 				"eviction_policy",
-				"max_hourly_price_per_vm",
+				"max_hourly_price_per_vm_usd",
 				"minimum_capacity",
 			}
 			oldSpotCapacity, _ := metadata.ResourceDiff.GetChange("spot_capacity")
@@ -958,7 +956,7 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 				for i, dataDisk := range v {
 					storageAccountType := dataDisk.StorageAccountType
 					if !ultraSSDEnabled && storageAccountType == string(fleets.StorageAccountTypesUltraSSDLRS) {
-						return errors.New("`UltraSSD_LRS` storage account type can be used only when `ultra_ssd_enabled` is enabled")
+						return errors.New("`UltraSSD_LRS` storage account type can be used only when `ultra_ssd_enabled` is `true`")
 					}
 
 					if dataDisk.CreateOption == string(fleets.DiskCreateOptionTypesEmpty) {
@@ -1015,7 +1013,7 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 
 			for i, galleryApplicationProfile := range state.VirtualMachineProfile[0].GalleryApplicationProfile {
 				if galleryApplicationProfile.AutomaticUpgradeEnabled && galleryApplicationProfile.ConfigurationBlobUri != "" {
-					return fmt.Errorf("when `virtual_machine_profile.0.gallery_application_profile.%d.automatic_upgrade_enabled` is enabled, `virtual_machine_profile.0.gallery_application_profile.%d.configuration_blob_uri` cannot be specified", i, i)
+					return fmt.Errorf("when `virtual_machine_profile.0.gallery_application_profile.%d.automatic_upgrade_enabled` is `true`, `virtual_machine_profile.0.gallery_application_profile.%d.configuration_blob_uri` cannot be specified", i, i)
 				}
 			}
 
@@ -1131,8 +1129,8 @@ func (r ComputeFleetResource) expandSpotCapacityModel(inputList []SpotCapacityMo
 		MinCapacity:        pointer.To(input.MinimumCapacity),
 	}
 
-	if input.MaxHourlyPricePerVM > 0 || input.MaxHourlyPricePerVM == -1 {
-		output.MaxPricePerVM = pointer.To(input.MaxHourlyPricePerVM)
+	if input.MaxHourlyPricePerVmUsd > 0 || input.MaxHourlyPricePerVmUsd == -1 {
+		output.MaxPricePerVM = pointer.To(input.MaxHourlyPricePerVmUsd)
 	}
 	return &output
 }
@@ -1204,7 +1202,7 @@ func (r ComputeFleetResource) flattenOnDemandCapacityModel(input *fleets.Regular
 	}
 
 	output := OnDemandCapacityModel{
-		AllocationStrategy:      string(pointer.From(input.AllocationStrategy)),
+		AllocationStrategy:      pointer.FromEnum(input.AllocationStrategy),
 		TargetCapacity:          pointer.From(input.Capacity),
 		MinimumStartingCapacity: pointer.From(input.MinCapacity),
 	}
@@ -1219,19 +1217,19 @@ func (r ComputeFleetResource) flattenSpotCapacityModel(input *fleets.SpotPriorit
 	}
 
 	output := SpotCapacityModel{
-		AllocationStrategy:      string(pointer.From(input.AllocationStrategy)),
+		AllocationStrategy:      pointer.FromEnum(input.AllocationStrategy),
 		TargetCapacity:          pointer.From(input.Capacity),
-		EvictionPolicy:          string(pointer.From(input.EvictionPolicy)),
+		EvictionPolicy:          pointer.FromEnum(input.EvictionPolicy),
 		MaintainCapacityEnabled: pointer.From(input.Maintain),
 		MinimumCapacity:         pointer.From(input.MinCapacity),
 	}
 
-	// defaulted since MaxHourlyPricePerVM isn't returned if it's unset
-	maxHourlyPricePerVM := float64(-1.0)
+	// defaulted since MaxHourlyPricePerVmUsd isn't returned if it's unset
+	MaxHourlyPricePerVmUsd := float64(-1.0)
 	if input.MaxPricePerVM != nil {
-		maxHourlyPricePerVM = pointer.From(input.MaxPricePerVM)
+		MaxHourlyPricePerVmUsd = pointer.From(input.MaxPricePerVM)
 	}
-	output.MaxHourlyPricePerVM = maxHourlyPricePerVM
+	output.MaxHourlyPricePerVmUsd = MaxHourlyPricePerVmUsd
 
 	return append(outputList, output)
 }

@@ -236,9 +236,9 @@ resource "azurerm_compute_fleet" "test" {
 
   virtual_machine_profile {
     source_image_reference {
-      offer     = "0001-com-ubuntu-server-focal"
+      offer     = "ubuntu-24_04-lts"
       publisher = "canonical"
-      sku       = "20_04-lts-gen2"
+      sku       = "server"
       version   = "latest"
     }
 
@@ -283,9 +283,9 @@ resource "azurerm_compute_fleet" "import" {
 
   virtual_machine_profile {
     source_image_reference {
-      offer     = "0001-com-ubuntu-server-focal"
+      offer     = "ubuntu-24_04-lts"
       publisher = "canonical"
-      sku       = "20_04-lts-gen2"
+      sku       = "server"
       version   = "latest"
     }
 
@@ -354,7 +354,7 @@ resource "azurerm_compute_fleet" "test" {
   spot_capacity {
     allocation_strategy       = "CapacityOptimized"
     eviction_policy           = "Delete"
-    max_hourly_price_per_vm   = -1
+    max_hourly_price_per_vm_usd   = -1
     minimum_capacity          = 0
     maintain_capacity_enabled = true
     target_capacity           = 1
@@ -481,7 +481,7 @@ resource "azurerm_compute_fleet" "test" {
   spot_capacity {
     allocation_strategy       = "CapacityOptimized"
     eviction_policy           = "Delete"
-    max_hourly_price_per_vm   = -1
+    max_hourly_price_per_vm_usd   = -1
     minimum_capacity          = 0
     maintain_capacity_enabled = true
     target_capacity           = 0
@@ -574,9 +574,9 @@ func (r ComputeFleetResource) basicBaseLinuxVirtualMachineProfile() string {
 virtual_machine_profile {
 	network_api_version = "2020-11-01"
 	source_image_reference {
-		offer     = "0001-com-ubuntu-server-focal"
+		offer     = "ubuntu-24_04-lts"
 		publisher = "canonical"
-		sku       = "20_04-lts-gen2"
+		sku       = "server"
 		version   = "latest"
 	}
 	
