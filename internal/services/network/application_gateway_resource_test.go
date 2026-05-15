@@ -8377,8 +8377,8 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_profile {
-    name                         = local.ssl_profile_name
-    verify_client_cert_issuer_dn = false
+    name                                = local.ssl_profile_name
+    verify_client_certificate_issuer_dn = false
 
     ssl_policy {
       policy_type = "Predefined"
