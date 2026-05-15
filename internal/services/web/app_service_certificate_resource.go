@@ -146,7 +146,7 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 
 func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).Web.CertificatesClient
+	client := meta.(*clients.Client).Web.CertificatesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -224,7 +224,7 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesClient
+	client := meta.(*clients.Client).Web.CertificatesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -283,7 +283,7 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesClient
+	client := meta.(*clients.Client).Web.CertificatesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

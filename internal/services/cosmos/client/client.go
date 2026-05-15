@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/rbacs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/restorables"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/fleets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/mongorbacs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations"
@@ -25,7 +24,6 @@ type Client struct {
 	ConfigurationsClient      *configurations.ConfigurationsClient
 	CosmosDBClient            *cosmosdb.CosmosDBClient
 	FirewallRulesClient       *firewallrules.FirewallRulesClient
-	FleetsClient              *fleets.FleetsClient
 	ManagedCassandraClient    *managedcassandras.ManagedCassandrasClient
 	MongoRBACClient           *mongorbacs.MongorbacsClient
 	RbacsClient               *rbacs.RbacsClient
@@ -65,12 +63,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(firewallRulesClient.Client, o.Authorizers.ResourceManager)
 
-	fleetsClient, err := fleets.NewFleetsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Fleets Client: %+v", err)
-	}
-	o.Configure(fleetsClient.Client, o.Authorizers.ResourceManager)
-
 	mongorbacsClient, err := mongorbacs.NewMongorbacsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Mongorbacs client: %+v", err)
@@ -107,7 +99,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ConfigurationsClient:      configurationsClient,
 		CosmosDBClient:            cosmosdbClient,
 		FirewallRulesClient:       firewallRulesClient,
-		FleetsClient:              fleetsClient,
 		MongoRBACClient:           mongorbacsClient,
 		RbacsClient:               rbacsClient,
 		RestorablesClient:         restorablesClient,
