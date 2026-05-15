@@ -25,9 +25,13 @@ func FrontDoorCustomDomainHostName(i interface{}, k string) (_ []string, errors 
 		return nil, []error{fmt.Errorf("%q must be a valid fully qualified domain name, got %q", k, v)}
 	}
 
-	for _, label := range labels {
+	for index, label := range labels {
 		if label == "" || len(label) > 63 {
 			return nil, []error{fmt.Errorf("%q must be a valid fully qualified domain name, got %q", k, v)}
+		}
+
+		if index == 0 && label == "*" {
+			continue
 		}
 
 		if m, _ := helperValidate.RegExHelper(label, k, `^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$`); !m {

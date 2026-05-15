@@ -26,7 +26,15 @@ func TestFrontDoorCustomDomainHostName(t *testing.T) {
 			valid: true,
 		},
 		{
+			input: "*.contoso.com",
+			valid: true,
+		},
+		{
 			input: "localhost",
+			valid: false,
+		},
+		{
+			input: "foo.*.contoso.com",
 			valid: false,
 		},
 		{
