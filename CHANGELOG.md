@@ -5,6 +5,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_container_app_environment` - allow names that start with a digit  [GH-32267]
 
 ## 4.73.0 (May 14, 2026)
 
