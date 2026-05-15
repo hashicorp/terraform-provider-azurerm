@@ -316,16 +316,16 @@ func msSqlManagedInstanceTransparentDataEncryptionKeyVaultKeyDiffSuppress(_, old
 		return false
 	}
 
-	return msSqlManagedInstanceTransparentDataEncryptionSameKeyIgnoringVersion(oldValue, newValue)
-}
-
-func msSqlManagedInstanceTransparentDataEncryptionSameKeyIgnoringVersion(oldValue, newValue string) bool {
-	oldId, err := keyvault.ParseNestedItemID(oldValue, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	newId, err := keyvault.ParseNestedItemID(newValue, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return false
 	}
 
-	newId, err := keyvault.ParseNestedItemID(newValue, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if newId.Version != "" {
+		return false
+	}
+
+	oldId, err := keyvault.ParseNestedItemID(oldValue, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return false
 	}
