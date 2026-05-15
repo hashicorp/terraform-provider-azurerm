@@ -10,33 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageSourceReference(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.imageFromSourceImageReference(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
-	})
-}
 
 func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
@@ -44,14 +23,11 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageId(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imageFromSourceImageReference(data),
+			Config: r.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.imageFromImageId(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -69,14 +45,11 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromCommunitySharedImag
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imageFromSourceImageReference(data),
+			Config: r.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.imageFromCommunitySharedImageGallery(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -94,14 +67,11 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromCommunitySharedImag
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imageFromSourceImageReference(data),
+			Config: r.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.imageFromCommunitySharedImageGalleryVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -119,14 +89,11 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromSharedImageGallery(
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imageFromSourceImageReference(data),
+			Config: r.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.imageFromSharedImageGallery(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -144,14 +111,11 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromSharedImageGalleryV
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imageFromSourceImageReference(data),
+			Config: r.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.imageFromSharedImageGalleryVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -216,6 +180,12 @@ resource "azurerm_linux_virtual_machine" "source" {
     public_key = local.first_public_key
   }
 
+  custom_data = base64encode(<<-EOT
+    #!/bin/bash
+    sudo waagent -verbose -deprovision+user -force
+  EOT
+  )
+
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
@@ -231,67 +201,6 @@ resource "azurerm_linux_virtual_machine" "source" {
 `, r.templateWithOutProvider(data), data.RandomInteger)
 }
 
-func (r ComputeFleetResource) imageFromSourceImageReference(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_compute_fleet" "test" {
-  name                = "acctest-fleet-refer-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-  compute_api_version = "2024-03-01"
-
-  on_demand_capacity {
-    target_capacity           = 1
-    minimum_starting_capacity = 1
-  }
-
-  virtual_machine_sizes_profile {
-    name = "Standard_F1alds_v7"
-  }
-
-  virtual_machine_profile {
-    network_api_version = "2020-11-01"
-    source_image_reference {
-      publisher = "canonical"
-      offer     = "ubuntu-24_04-lts"
-      sku       = "server"
-      version   = "latest"
-    }
-
-    os_profile {
-      linux_configuration {
-        computer_name_prefix            = "testvm"
-        admin_username                  = local.admin_username
-        admin_password                  = local.admin_password
-        password_authentication_enabled = true
-      }
-    }
-
-    os_disk {
-      caching              = "ReadWrite"
-      storage_account_type = "Standard_LRS"
-    }
-
-    network_interface {
-      name                              = "networkProTest"
-      primary_network_interface_enabled = true
-      ip_configuration {
-        name                             = "TestIPConfiguration"
-        subnet_id                        = azurerm_subnet.test.id
-        primary_ip_configuration_enabled = true
-        public_ip_address {
-          name                    = "TestPublicIPConfiguration"
-          domain_name_label       = "test-domain-label"
-          idle_timeout_in_minutes = 4
-        }
-      }
-    }
-  }
-}
-`, r.imageFromExistingMachinePrep(data), data.RandomInteger, data.Locations.Primary)
-}
-
 func (r ComputeFleetResource) imageFromImageId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -304,14 +213,13 @@ resource "azurerm_image" "test" {
   source_virtual_machine_id = azurerm_linux_virtual_machine.source.id
 }
 
-resource "azurerm_compute_fleet" "image_id" {
+resource "azurerm_compute_fleet" "test" {
   name                = "acctest-fleet-id-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
   on_demand_capacity {
-    target_capacity           = 1
-    minimum_starting_capacity = 1
+    target_capacity = 1
   }
 
   virtual_machine_sizes_profile {
@@ -352,7 +260,7 @@ resource "azurerm_compute_fleet" "image_id" {
     }
   }
 }
-`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
+`, r.imageFromExistingMachinePrep(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetResource) imageFromSharedImageGallery(data acceptance.TestData) string {
@@ -403,14 +311,13 @@ resource "azurerm_shared_image_version" "test" {
   }
 }
 
-resource "azurerm_compute_fleet" "image_id" {
+resource "azurerm_compute_fleet" "test" {
   name                = "acctest-fleet-id-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
   on_demand_capacity {
-    target_capacity           = 1
-    minimum_starting_capacity = 1
+    target_capacity = 1
   }
   virtual_machine_sizes_profile {
     name = "Standard_D2as_v5"
@@ -450,11 +357,13 @@ resource "azurerm_compute_fleet" "image_id" {
   }
   depends_on = [azurerm_shared_image_version.test]
 }
-`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
+`, r.imageFromExistingMachinePrep(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetResource) imageFromSharedImageGalleryVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+
 
 
 %[1]s
@@ -503,14 +412,13 @@ resource "azurerm_shared_image_version" "test" {
   }
 }
 
-resource "azurerm_compute_fleet" "image_id" {
+resource "azurerm_compute_fleet" "test" {
   name                = "acctest-fleet-id-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
   on_demand_capacity {
-    target_capacity           = 1
-    minimum_starting_capacity = 1
+    target_capacity = 1
   }
 
   virtual_machine_sizes_profile {
@@ -550,7 +458,7 @@ resource "azurerm_compute_fleet" "image_id" {
     }
   }
 }
-`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
+`, r.imageFromExistingMachinePrep(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetResource) imageFromCommunitySharedImageGallery(data acceptance.TestData) string {
@@ -611,14 +519,13 @@ resource "azurerm_shared_image_version" "test" {
   }
 }
 
-resource "azurerm_compute_fleet" "image_id" {
+resource "azurerm_compute_fleet" "test" {
   name                = "acctest-fleet-id-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
   on_demand_capacity {
-    target_capacity           = 1
-    minimum_starting_capacity = 1
+    target_capacity = 1
   }
 
   virtual_machine_sizes_profile {
@@ -658,7 +565,7 @@ resource "azurerm_compute_fleet" "image_id" {
     }
   }
 }
-`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
+`, r.imageFromExistingMachinePrep(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetResource) imageFromCommunitySharedImageGalleryVersion(data acceptance.TestData) string {
@@ -719,14 +626,13 @@ resource "azurerm_shared_image_version" "test" {
   }
 }
 
-resource "azurerm_compute_fleet" "image_id" {
+resource "azurerm_compute_fleet" "test" {
   name                = "acctest-fleet-id-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
 
   on_demand_capacity {
-    target_capacity           = 1
-    minimum_starting_capacity = 1
+    target_capacity = 1
   }
 
   virtual_machine_sizes_profile {
@@ -766,7 +672,7 @@ resource "azurerm_compute_fleet" "image_id" {
     }
   }
 }
-`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
+`, r.imageFromExistingMachinePrep(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (ComputeFleetResource) generalizeVirtualMachine() func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
@@ -780,87 +686,6 @@ func (ComputeFleetResource) generalizeVirtualMachine() func(context.Context, *cl
 			var cancel context.CancelFunc
 			ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
 			defer cancel()
-		}
-
-		// these are nested in a Set in the Legacy VM resource, simpler to compute them
-		userName := "testadmin1234"
-		password := "Password1234!"
-
-		// first retrieve the Virtual Machine, since we need to find
-		nicIdRaw := state.Attributes["network_interface_ids.0"]
-		nicId, err := commonids.ParseNetworkInterfaceID(nicIdRaw)
-		if err != nil {
-			return err
-		}
-
-		log.Printf("[DEBUG] Retrieving Network Interface..")
-		nic, err := client.Network.NetworkInterfaces.Get(ctx, *nicId, networkinterfaces.DefaultGetOperationOptions())
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", *nicId, err)
-		}
-
-		publicIpRaw := ""
-		if model := nic.Model; model != nil {
-			if props := model.Properties; props != nil {
-				if configs := props.IPConfigurations; configs != nil {
-					for _, config := range *props.IPConfigurations {
-						if configProps := config.Properties; configProps != nil {
-							if configProps.PublicIPAddress == nil {
-								continue
-							}
-
-							if configProps.PublicIPAddress.Id == nil {
-								continue
-							}
-
-							publicIpRaw = *configProps.PublicIPAddress.Id
-							break
-						}
-					}
-				}
-			}
-		}
-		if publicIpRaw == "" {
-			return fmt.Errorf("retrieving %s: could not determine Public IP Address ID", *nicId)
-		}
-
-		log.Printf("[DEBUG] Retrieving Public IP Address %q..", publicIpRaw)
-		publicIpId, err := commonids.ParsePublicIPAddressID(publicIpRaw)
-		if err != nil {
-			return err
-		}
-
-		publicIpAddress, err := client.Network.PublicIPAddresses.Get(ctx, *publicIpId, publicipaddresses.DefaultGetOperationOptions())
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", *publicIpId, err)
-		}
-		fqdn := ""
-
-		if model := publicIpAddress.Model; model != nil {
-			if props := model.Properties; props != nil {
-				if dns := props.DnsSettings; dns != nil {
-					if dns.Fqdn != nil {
-						fqdn = *dns.Fqdn
-					}
-				}
-			}
-		}
-		if fqdn == "" {
-			return fmt.Errorf("unable to determine FQDN for %q", *publicIpId)
-		}
-
-		log.Printf("[DEBUG] Running Generalization Command..")
-		sshGeneralizationCommand := ssh.Runner{
-			Hostname: fqdn,
-			Port:     22,
-			Username: userName,
-			Password: password,
-			CommandsToRun: []string{
-				ssh.LinuxAgentDeprovisionCommand,
-			},
-		}
-		if err := sshGeneralizationCommand.Run(ctx); err != nil {
-			return fmt.Errorf("Bad: running generalization command: %+v", err)
 		}
 
 		log.Printf("[DEBUG] Deallocating VM..")

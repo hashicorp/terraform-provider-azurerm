@@ -367,12 +367,12 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   virtual_machine_sizes_profile {
-    name = "Standard_F1as_v7"
+    name = "Standard_F1alds_v7"
     rank = 0
   }
 
   virtual_machine_sizes_profile {
-    name = "Standard_F1alds_v7"
+    name = "Standard_F1as_v7"
     rank = 1
   }
 
