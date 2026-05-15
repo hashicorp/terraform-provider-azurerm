@@ -21,7 +21,7 @@ func dataSourceAppServicePlan() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: AppServicePlanDataSourceRead,
 
-		DeprecationMessage: "The `azurerm_app_service_plan` data source has been superseded by the `azurerm_service_plan` data source. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_app_service_plan` data source has been superseded by the `azurerm_service_plan` data source. This data source will be removed in v5.0 of the AzureRM Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -104,7 +104,7 @@ func dataSourceAppServicePlan() *pluginsdk.Resource {
 }
 
 func AppServicePlanDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicePlansClient
+	client := meta.(*clients.Client).Web.AppServicePlansClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
