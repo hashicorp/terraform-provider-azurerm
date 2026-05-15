@@ -222,6 +222,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"pod_ip_allocation_mode": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						ForceNew:     true,
 						RequiredWith: []string{"default_node_pool.0.pod_subnet_id"},
 						Default:      string(managedclusters.PodIPAllocationModeDynamicIndividual),
 						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForPodIPAllocationMode(), false),
