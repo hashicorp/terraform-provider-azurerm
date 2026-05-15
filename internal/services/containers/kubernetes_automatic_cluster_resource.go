@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -34,7 +34,6 @@ import (
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -53,32 +52,31 @@ type KubernetesAutomaticClusterModel struct {
 	DNSPrefix                       string                              `tfschema:"dns_prefix"`
 	DNSPrefixPrivateCluster         string                              `tfschema:"dns_prefix_private_cluster"`
 	HTTPProxyConfig                 []HTTPProxyConfigModel              `tfschema:"http_proxy_config"`
-	Identity                        []IdentityModel                     `tfschema:"identity"`
-	ImageCleanerIntervalHours       int64                               `tfschema:"image_cleaner_interval_hours"`
+	Identity                        []identity.SystemOrUserAssignedList `tfschema:"identity"`
+	ImageCleanerIntervalHours       int64                               `tfschema:"image_cleaner_interval_in_hours"`
 	KeyManagementService            []KeyManagementServiceModel         `tfschema:"key_management_service"`
 	KubeletIdentity                 []KubeletIdentityModel              `tfschema:"kubelet_identity"`
 	KubernetesVersion               string                              `tfschema:"kubernetes_version"`
 	LinuxProfile                    []LinuxProfileModel                 `tfschema:"linux_profile"`
-	MaintenanceWindow               []MaintenanceWindowModel            `tfschema:"maintenance_window"`
-	MaintenanceWindowAutoUpgrade    []MaintenanceWindowAutoUpgradeModel `tfschema:"maintenance_window_auto_upgrade"`
-	MaintenanceWindowNodeOS         []MaintenanceWindowNodeOSModel      `tfschema:"maintenance_window_node_os"`
-	MicrosoftDefender               []MicrosoftDefenderModel            `tfschema:"microsoft_defender"`
-	MonitorMetrics                  []MonitorMetricsModel               `tfschema:"monitor_metrics"`
-	NetworkProfile                  []NetworkProfileModel               `tfschema:"network_profile"`
-	NodeOSUpgradeChannel            string                              `tfschema:"node_os_upgrade_channel"`
-	NodeResourceGroup               string                              `tfschema:"node_resource_group"`
-	PrivateClusterEnabled           bool                                `tfschema:"private_cluster_enabled"`
-	PrivateClusterPublicFQDNEnabled bool                                `tfschema:"private_cluster_public_fqdn_enabled"`
-	PrivateDNSZoneID                string                              `tfschema:"private_dns_zone_id"`
-	RunCommandEnabled               bool                                `tfschema:"run_command_enabled"`
-	ServiceMeshProfile              []ServiceMeshProfileModel           `tfschema:"service_mesh_profile"`
-	StorageProfile                  []StorageProfileModel               `tfschema:"storage_profile"`
-	SupportPlan                     string                              `tfschema:"support_plan"`
-	Tags                            map[string]interface{}              `tfschema:"tags"`
-	UpgradeOverride                 []UpgradeOverrideModel              `tfschema:"upgrade_override"`
-	WebAppRouting                   []WebAppRoutingModel                `tfschema:"web_app_routing"`
-	WindowsProfile                  []WindowsProfileModel               `tfschema:"windows_profile"`
-	AIToolchainOperatorEnabled      bool                                `tfschema:"ai_toolchain_operator_enabled"`
+	// MaintenanceWindow               []MaintenanceWindowModel            `tfschema:"maintenance_window"`
+	// MaintenanceWindowAutoUpgrade    []MaintenanceWindowAutoUpgradeModel `tfschema:"maintenance_window_auto_upgrade"`
+	// MaintenanceWindowNodeOS         []MaintenanceWindowNodeOSModel      `tfschema:"maintenance_window_node_os"`
+	MicrosoftDefender               []MicrosoftDefenderModel  `tfschema:"microsoft_defender"`
+	MonitorMetrics                  []MonitorMetricsModel     `tfschema:"monitor_metrics"`
+	NetworkProfile                  []NetworkProfileModel     `tfschema:"network_profile"`
+	NodeResourceGroup               string                    `tfschema:"node_resource_group_name"`
+	PrivateClusterEnabled           bool                      `tfschema:"private_cluster_enabled"`
+	PrivateClusterPublicFQDNEnabled bool                      `tfschema:"private_cluster_public_fully_qualified_domain_name_enabled"`
+	PrivateDNSZoneID                string                    `tfschema:"private_dns_zone_id"`
+	RunCommandEnabled               bool                      `tfschema:"run_command_enabled"`
+	ServiceMeshProfile              []ServiceMeshProfileModel `tfschema:"service_mesh_profile"`
+	StorageProfile                  []StorageProfileModel     `tfschema:"storage_profile"`
+	SupportPlan                     string                    `tfschema:"support_plan"`
+	Tags                            map[string]interface{}    `tfschema:"tags"`
+	UpgradeOverride                 []UpgradeOverrideModel    `tfschema:"upgrade_override"`
+	WebAppRouting                   []WebAppRoutingModel      `tfschema:"web_app_routing"`
+	WindowsProfile                  []WindowsProfileModel     `tfschema:"windows_profile"`
+	AIToolchainOperatorEnabled      bool                      `tfschema:"ai_toolchain_operator_enabled"`
 
 	// Addon fields
 	ACIConnectorLinux             []ACIConnectorLinuxModel         `tfschema:"aci_connector_linux"`
@@ -100,13 +98,6 @@ type KubernetesAutomaticClusterModel struct {
 	NodeResourceGroupID            string            `tfschema:"node_resource_group_id"`
 	OIDCIssuerURL                  string            `tfschema:"oidc_issuer_url"`
 	PrivateFQDN                    string            `tfschema:"private_fqdn"`
-}
-
-type IdentityModel struct {
-	Type        string   `tfschema:"type"`
-	IdentityIds []string `tfschema:"identity_ids"`
-	PrincipalId string   `tfschema:"principal_id"`
-	TenantId    string   `tfschema:"tenant_id"`
 }
 
 type APIServerAccessProfileModel struct {
@@ -226,12 +217,12 @@ type MonitorMetricsModel struct {
 }
 
 type NetworkProfileModel struct {
-	DNSServiceIP        string                     `tfschema:"dns_service_ip"`
-	PodCIDR             string                     `tfschema:"pod_cidr"`
-	PodCIDRs            []string                   `tfschema:"pod_cidrs"`
-	ServiceCIDR         string                     `tfschema:"service_cidr"`
-	ServiceCIDRs        []string                   `tfschema:"service_cidrs"`
-	IPVersions          []string                   `tfschema:"ip_versions"`
+	DNSServiceIP string   `tfschema:"dns_service_ip"`
+	PodCIDR      string   `tfschema:"pod_cidr"`
+	PodCIDRs     []string `tfschema:"pod_cidrs"`
+	ServiceCIDR  string   `tfschema:"service_cidr"`
+	ServiceCIDRs []string `tfschema:"service_cidrs"`
+	// IPVersions          []string                   `tfschema:"ip_versions"`
 	OutboundType        string                     `tfschema:"outbound_type"`
 	LoadBalancerSKU     string                     `tfschema:"load_balancer_sku"`
 	LoadBalancerProfile []LoadBalancerProfileModel `tfschema:"load_balancer_profile"`
@@ -270,9 +261,9 @@ type ServiceMeshProfileModel struct {
 
 type CertificateAuthorityModel struct {
 	KeyVaultID          string `tfschema:"key_vault_id"`
-	RootCertObjectName  string `tfschema:"root_cert_object_name"`
-	CertObjectName      string `tfschema:"cert_object_name"`
-	CertChainObjectName string `tfschema:"cert_chain_object_name"`
+	RootCertObjectName  string `tfschema:"root_certificate_object_name"`
+	CertObjectName      string `tfschema:"certificate_object_name"`
+	CertChainObjectName string `tfschema:"certificate_chain_object_name"`
 	KeyObjectName       string `tfschema:"key_object_name"`
 }
 
@@ -352,11 +343,11 @@ func (r KubernetesAutomaticClusterResource) CustomImporter() sdk.ResourceRunFunc
 
 		client := metadata.Client.Containers.KubernetesClustersClient
 		resp, err := client.Get(ctx, *id)
-		if err != nil || resp.Model == nil || resp.Model.Kind == nil {
+		if err != nil || resp.Model == nil || resp.Model.Sku == nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
-		if !strings.EqualFold(string(*resp.Model.Sku.Name), "Automatic") {
+		if pointer.From(resp.Model.Sku.Name) != managedclusters.ManagedClusterSKUNameAutomatic {
 			return fmt.Errorf("importing %s: specified Kubernetes Cluster is not using the SKU `Automatic`, got `%s`", id, *resp.Model.Sku.Name)
 		}
 
@@ -370,15 +361,13 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
 
-			// Check if this is a new resource (no old state)
-			isNewResource := rd.Id() == ""
-
-			if !isNewResource {
+			if rd.Id() != "" {
 				// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
 				// Check default_node_pool upgrade_settings drain_timeout_in_minutes
 				if rd.HasChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes") {
 					old, new := rd.GetChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes")
 					if old.(int) != 0 && new.(int) == 0 {
+						metadata.ResourceDiff.ForceNew("efault_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes")
 						return fmt.Errorf("changing `default_node_pool.upgrade_settings.drain_timeout_in_minutes` from a non-zero value to zero requires recreation")
 					}
 				}
@@ -446,18 +435,7 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func (r KubernetesAutomaticClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(val interface{}, key string) (warns []string, errs []error) {
-		idRaw, ok := val.(string)
-		if !ok {
-			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
-			return
-		}
-
-		if _, err := commonids.ParseKubernetesClusterID(idRaw); err != nil {
-			errs = append(errs, fmt.Errorf("parsing %q: %+v", idRaw, err))
-		}
-		return
-	}
+	return commonids.ValidateKubernetesClusterID
 }
 
 func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Schema {
@@ -466,7 +444,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringLenBetween(1, 63),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -522,7 +500,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
-		"image_cleaner_interval_hours": {
+		"image_cleaner_interval_in_hours": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      168,
@@ -537,23 +515,12 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"node_os_upgrade_channel": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(managedclusters.NodeOSUpgradeChannelNodeImage),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedclusters.NodeOSUpgradeChannelNodeImage),
-				string(managedclusters.NodeOSUpgradeChannelNone),
-				string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
-				string(managedclusters.NodeOSUpgradeChannelUnmanaged),
-			}, false),
-		},
-
-		"node_resource_group": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
+		"node_resource_group_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: resourcegroups.ValidateName,
 		},
 
 		"private_cluster_enabled": {
@@ -563,7 +530,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			Default:  true,
 		},
 
-		"private_cluster_public_fqdn_enabled": {
+		"private_cluster_public_fully_qualified_domain_name_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -572,7 +539,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		"private_dns_zone_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Default:  "None",
 			ForceNew: true,
 			ValidateFunc: validation.Any(
 				privatezones.ValidatePrivateDnsZoneID,
@@ -635,7 +602,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		"auto_scaler_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -673,7 +639,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					"max_graceful_termination_sec": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
+						Default:  "600",
 					},
 					"max_node_provisioning_time": {
 						Type:         pluginsdk.TypeString,
@@ -696,54 +662,54 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					"new_pod_scale_up_delay": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Default:      "0s",
 						ValidateFunc: containerValidate.Duration,
 					},
 					"scan_interval": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Default:      "10",
 						ValidateFunc: containerValidate.Duration,
 					},
 					"scale_down_delay_after_add": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Default:      "10m",
 						ValidateFunc: containerValidate.Duration,
 					},
 					"scale_down_delay_after_delete": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Default:      "3m",
 						ValidateFunc: containerValidate.Duration,
 					},
 					"scale_down_delay_after_failure": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Default:      "3m",
 						ValidateFunc: containerValidate.Duration,
 					},
 					"scale_down_unneeded": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Default:      "10m",
 						ValidateFunc: containerValidate.Duration,
 					},
 					"scale_down_unready": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Default:      "20m",
 						ValidateFunc: containerValidate.Duration,
 					},
 					"scale_down_utilization_threshold": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
+						Default:  "0.5",
 					},
 					"empty_bulk_delete_max": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
+						Default:  "10",
 					},
 					"skip_nodes_with_local_storage": {
 						Type:     pluginsdk.TypeBool,
@@ -795,15 +761,14 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		"bootstrap_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"artifact_source": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForArtifactSource(), false),
 						Default:      managedclusters.ArtifactSourceDirect,
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForArtifactSource(), false),
 					},
 					"container_registry_id": {
 						Type:         pluginsdk.TypeString,
@@ -945,223 +910,223 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"maintenance_window": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"allowed": {
-						Type:         pluginsdk.TypeSet,
-						Optional:     true,
-						AtLeastOneOf: []string{"maintenance_window.0.allowed", "maintenance_window.0.not_allowed"},
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"day": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(maintenanceconfigurations.WeekDaySunday),
-										string(maintenanceconfigurations.WeekDayMonday),
-										string(maintenanceconfigurations.WeekDayTuesday),
-										string(maintenanceconfigurations.WeekDayWednesday),
-										string(maintenanceconfigurations.WeekDayThursday),
-										string(maintenanceconfigurations.WeekDayFriday),
-										string(maintenanceconfigurations.WeekDaySaturday),
-									}, false),
-								},
-								"hours": {
-									Type:     pluginsdk.TypeSet,
-									Required: true,
-									MinItems: 1,
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeInt,
-										ValidateFunc: validation.IntBetween(0, 23),
-									},
-								},
-							},
-						},
-					},
-					"not_allowed": {
-						Type:         pluginsdk.TypeSet,
-						Optional:     true,
-						AtLeastOneOf: []string{"maintenance_window.0.allowed", "maintenance_window.0.not_allowed"},
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"end": {
-									Type:             pluginsdk.TypeString,
-									Required:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
-									ValidateFunc:     validation.IsRFC3339Time,
-								},
-								"start": {
-									Type:             pluginsdk.TypeString,
-									Required:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
-									ValidateFunc:     validation.IsRFC3339Time,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"maintenance_window_auto_upgrade": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"frequency": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"Daily",
-							"Weekly",
-							"RelativeMonthly",
-							"AbsoluteMonthly",
-						}, false),
-					},
-					"interval": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
-					},
-					"day_of_week": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForWeekDay(), false),
-					},
-					"duration": {
-						Type:         pluginsdk.TypeInt,
-						Required:     true,
-						ValidateFunc: validation.IntBetween(4, 24),
-					},
-					"week_index": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForType(), false),
-					},
-					"day_of_month": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 31),
-					},
-					"start_date": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-					},
-					"start_time": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-					"utc_offset": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-					"not_allowed": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"end": {
-									Type:             pluginsdk.TypeString,
-									Required:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
-									ValidateFunc:     validation.IsRFC3339Time,
-								},
-								"start": {
-									Type:             pluginsdk.TypeString,
-									Required:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
-									ValidateFunc:     validation.IsRFC3339Time,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"maintenance_window_node_os": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"frequency": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"Weekly",
-							"RelativeMonthly",
-							"AbsoluteMonthly",
-							"Daily",
-						}, false),
-					},
-					"interval": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
-					},
-					"day_of_week": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForWeekDay(), false),
-					},
-					"duration": {
-						Type:         pluginsdk.TypeInt,
-						Required:     true,
-						ValidateFunc: validation.IntBetween(4, 24),
-					},
-					"week_index": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForType(), false),
-					},
-					"day_of_month": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 31),
-					},
-					"start_date": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						Computed:         true,
-						DiffSuppressFunc: suppress.RFC3339Time,
-						ValidateFunc:     validation.IsRFC3339Time,
-					},
-					"start_time": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-					"utc_offset": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-					"not_allowed": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"end": {
-									Type:             pluginsdk.TypeString,
-									Required:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
-									ValidateFunc:     validation.IsRFC3339Time,
-								},
-								"start": {
-									Type:             pluginsdk.TypeString,
-									Required:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
-									ValidateFunc:     validation.IsRFC3339Time,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+		//"maintenance_window": {
+		//	Type:     pluginsdk.TypeList,
+		//	Optional: true,
+		//	MaxItems: 1,
+		//	Elem: &pluginsdk.Resource{
+		//		Schema: map[string]*pluginsdk.Schema{
+		//			"allowed": {
+		//				Type:         pluginsdk.TypeSet,
+		//				Optional:     true,
+		//				AtLeastOneOf: []string{"maintenance_window.0.allowed", "maintenance_window.0.not_allowed"},
+		//				Elem: &pluginsdk.Resource{
+		//					Schema: map[string]*pluginsdk.Schema{
+		//						"day": {
+		//							Type:     pluginsdk.TypeString,
+		//							Required: true,
+		//							ValidateFunc: validation.StringInSlice([]string{
+		//								string(maintenanceconfigurations.WeekDaySunday),
+		//								string(maintenanceconfigurations.WeekDayMonday),
+		//								string(maintenanceconfigurations.WeekDayTuesday),
+		//								string(maintenanceconfigurations.WeekDayWednesday),
+		//								string(maintenanceconfigurations.WeekDayThursday),
+		//								string(maintenanceconfigurations.WeekDayFriday),
+		//								string(maintenanceconfigurations.WeekDaySaturday),
+		//							}, false),
+		//						},
+		//						"hours": {
+		//							Type:     pluginsdk.TypeSet,
+		//							Required: true,
+		//							MinItems: 1,
+		//							Elem: &pluginsdk.Schema{
+		//								Type:         pluginsdk.TypeInt,
+		//								ValidateFunc: validation.IntBetween(0, 23),
+		//							},
+		//						},
+		//					},
+		//				},
+		//			},
+		//			"not_allowed": {
+		//				Type:         pluginsdk.TypeSet,
+		//				Optional:     true,
+		//				AtLeastOneOf: []string{"maintenance_window.0.allowed", "maintenance_window.0.not_allowed"},
+		//				Elem: &pluginsdk.Resource{
+		//					Schema: map[string]*pluginsdk.Schema{
+		//						"end": {
+		//							Type:             pluginsdk.TypeString,
+		//							Required:         true,
+		//							DiffSuppressFunc: suppress.RFC3339Time,
+		//							ValidateFunc:     validation.IsRFC3339Time,
+		//						},
+		//						"start": {
+		//							Type:             pluginsdk.TypeString,
+		//							Required:         true,
+		//							DiffSuppressFunc: suppress.RFC3339Time,
+		//							ValidateFunc:     validation.IsRFC3339Time,
+		//						},
+		//					},
+		//				},
+		//			},
+		//		},
+		//	},
+		//},
+		//
+		//"maintenance_window_auto_upgrade": {
+		//	Type:     pluginsdk.TypeList,
+		//	Optional: true,
+		//	MaxItems: 1,
+		//	Elem: &pluginsdk.Resource{
+		//		Schema: map[string]*pluginsdk.Schema{
+		//			"frequency": {
+		//				Type:     pluginsdk.TypeString,
+		//				Required: true,
+		//				ValidateFunc: validation.StringInSlice([]string{
+		//					"Daily",
+		//					"Weekly",
+		//					"RelativeMonthly",
+		//					"AbsoluteMonthly",
+		//				}, false),
+		//			},
+		//			"interval": {
+		//				Type:     pluginsdk.TypeInt,
+		//				Required: true,
+		//			},
+		//			"day_of_week": {
+		//				Type:         pluginsdk.TypeString,
+		//				Optional:     true,
+		//				ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForWeekDay(), false),
+		//			},
+		//			"duration": {
+		//				Type:         pluginsdk.TypeInt,
+		//				Required:     true,
+		//				ValidateFunc: validation.IntBetween(4, 24),
+		//			},
+		//			"week_index": {
+		//				Type:         pluginsdk.TypeString,
+		//				Optional:     true,
+		//				ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForType(), false),
+		//			},
+		//			"day_of_month": {
+		//				Type:         pluginsdk.TypeInt,
+		//				Optional:     true,
+		//				ValidateFunc: validation.IntBetween(0, 31),
+		//			},
+		//			"start_date": {
+		//				Type:     pluginsdk.TypeString,
+		//				Optional: true,
+		//				Computed: true,
+		//			},
+		//			"start_time": {
+		//				Type:     pluginsdk.TypeString,
+		//				Optional: true,
+		//			},
+		//			"utc_offset": {
+		//				Type:     pluginsdk.TypeString,
+		//				Optional: true,
+		//			},
+		//			"not_allowed": {
+		//				Type:     pluginsdk.TypeSet,
+		//				Optional: true,
+		//				Elem: &pluginsdk.Resource{
+		//					Schema: map[string]*pluginsdk.Schema{
+		//						"end": {
+		//							Type:             pluginsdk.TypeString,
+		//							Required:         true,
+		//							DiffSuppressFunc: suppress.RFC3339Time,
+		//							ValidateFunc:     validation.IsRFC3339Time,
+		//						},
+		//						"start": {
+		//							Type:             pluginsdk.TypeString,
+		//							Required:         true,
+		//							DiffSuppressFunc: suppress.RFC3339Time,
+		//							ValidateFunc:     validation.IsRFC3339Time,
+		//						},
+		//					},
+		//				},
+		//			},
+		//		},
+		//	},
+		//},
+		//
+		//"maintenance_window_node_os": {
+		//	Type:     pluginsdk.TypeList,
+		//	Optional: true,
+		//	MaxItems: 1,
+		//	Elem: &pluginsdk.Resource{
+		//		Schema: map[string]*pluginsdk.Schema{
+		//			"frequency": {
+		//				Type:     pluginsdk.TypeString,
+		//				Required: true,
+		//				ValidateFunc: validation.StringInSlice([]string{
+		//					"Weekly",
+		//					"RelativeMonthly",
+		//					"AbsoluteMonthly",
+		//					"Daily",
+		//				}, false),
+		//			},
+		//			"interval": {
+		//				Type:     pluginsdk.TypeInt,
+		//				Required: true,
+		//			},
+		//			"day_of_week": {
+		//				Type:         pluginsdk.TypeString,
+		//				Optional:     true,
+		//				ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForWeekDay(), false),
+		//			},
+		//			"duration": {
+		//				Type:         pluginsdk.TypeInt,
+		//				Required:     true,
+		//				ValidateFunc: validation.IntBetween(4, 24),
+		//			},
+		//			"week_index": {
+		//				Type:         pluginsdk.TypeString,
+		//				Optional:     true,
+		//				ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForType(), false),
+		//			},
+		//			"day_of_month": {
+		//				Type:         pluginsdk.TypeInt,
+		//				Optional:     true,
+		//				ValidateFunc: validation.IntBetween(0, 31),
+		//			},
+		//			"start_date": {
+		//				Type:             pluginsdk.TypeString,
+		//				Optional:         true,
+		//				Computed:         true,
+		//				DiffSuppressFunc: suppress.RFC3339Time,
+		//				ValidateFunc:     validation.IsRFC3339Time,
+		//			},
+		//			"start_time": {
+		//				Type:     pluginsdk.TypeString,
+		//				Optional: true,
+		//			},
+		//			"utc_offset": {
+		//				Type:     pluginsdk.TypeString,
+		//				Optional: true,
+		//			},
+		//			"not_allowed": {
+		//				Type:     pluginsdk.TypeSet,
+		//				Optional: true,
+		//				Elem: &pluginsdk.Resource{
+		//					Schema: map[string]*pluginsdk.Schema{
+		//						"end": {
+		//							Type:             pluginsdk.TypeString,
+		//							Required:         true,
+		//							DiffSuppressFunc: suppress.RFC3339Time,
+		//							ValidateFunc:     validation.IsRFC3339Time,
+		//						},
+		//						"start": {
+		//							Type:             pluginsdk.TypeString,
+		//							Required:         true,
+		//							DiffSuppressFunc: suppress.RFC3339Time,
+		//							ValidateFunc:     validation.IsRFC3339Time,
+		//						},
+		//					},
+		//				},
+		//			},
+		//		},
+		//	},
+		//},
 
 		"microsoft_defender": {
 			Type:     pluginsdk.TypeList,
@@ -1301,13 +1266,13 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									ValidateFunc:  validation.IntBetween(1, 100),
 									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 								},
-								"managed_outbound_ipv6_count": {
-									Type:          pluginsdk.TypeInt,
-									Optional:      true,
-									Computed:      true,
-									ValidateFunc:  validation.IntBetween(1, 100),
-									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
-								},
+								//"managed_outbound_ipv6_count": {
+								//	Type:          pluginsdk.TypeInt,
+								//	Optional:      true,
+								//	Computed:      true,
+								//	ValidateFunc:  validation.IntBetween(1, 100),
+								//	ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+								//},
 								"outbound_ip_prefix_ids": {
 									Type:          pluginsdk.TypeSet,
 									Optional:      true,
@@ -1375,19 +1340,19 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							},
 						},
 					},
-					"ip_versions": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.IPFamilyIPvFour),
-								string(managedclusters.IPFamilyIPvSix),
-							}, false),
-						},
-					},
+					//"ip_versions": {
+					//	Type:     pluginsdk.TypeList,
+					//	Optional: true,
+					//	ForceNew: true,
+					//	Computed: true,
+					//	Elem: &pluginsdk.Schema{
+					//		Type: pluginsdk.TypeString,
+					//		ValidateFunc: validation.StringInSlice([]string{
+					//			string(managedclusters.IPFamilyIPvFour),
+					//			string(managedclusters.IPFamilyIPvSix),
+					//		}, false),
+					//	},
+					//},
 					"advanced_networking": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -1441,17 +1406,17 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
-								"root_cert_object_name": {
+								"root_certificate_object_name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								"cert_chain_object_name": {
+								"certificate_chain_object_name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								"cert_object_name": {
+								"certificate_object_name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -1481,7 +1446,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		"storage_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -1585,7 +1549,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		"windows_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -1846,12 +1809,6 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				securityProfile.CustomCATrustCertificates = pointer.To(model.CustomCATrustCertificatesBase64)
 			}
 
-			autoUpgradeProfile := &managedclusters.ManagedClusterAutoUpgradeProfile{}
-			nodeOsChannelUpgrade := model.NodeOSUpgradeChannel
-			if nodeOsChannelUpgrade != "" {
-				autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
-			}
-
 			metricsProfile := expandKubernetesAutomaticClusterMetricsProfile(model.CostAnalysisEnabled)
 
 			ingressProfile := expandKubernetesAutomaticClusterWebAppRouting(model.WebAppRouting, false)
@@ -1901,7 +1858,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 					AddonProfiles:          addonProfiles,
 					AgentPoolProfiles:      agentProfiles,
 					AutoScalerProfile:      autoScalerProfile,
-					AutoUpgradeProfile:     autoUpgradeProfile,
+					AutoUpgradeProfile:     pointer.To(managedclusters.ManagedClusterAutoUpgradeProfile{}),
 					AzureMonitorProfile:    azureMonitorProfile,
 					KubernetesVersion:      pointer.To(kubernetesVersion),
 					BootstrapProfile:       bootstrapProfile,
@@ -1963,38 +1920,38 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			if len(model.MaintenanceWindow) > 0 {
-				maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
-				maintenanceParams := maintenanceconfigurations.MaintenanceConfiguration{
-					Properties: expandKubernetesAutomaticClusterMaintenanceConfigurationDefault(model.MaintenanceWindow),
-				}
-				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
-				if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, maintenanceParams); err != nil {
-					return fmt.Errorf("creating/updating default maintenance config for %s: %+v", id, err)
-				}
-			}
+			//if len(model.MaintenanceWindow) > 0 {
+			//	maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
+			//	maintenanceParams := maintenanceconfigurations.MaintenanceConfiguration{
+			//		Properties: expandKubernetesAutomaticClusterMaintenanceConfigurationDefault(model.MaintenanceWindow),
+			//	}
+			//	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
+			//	if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, maintenanceParams); err != nil {
+			//		return fmt.Errorf("creating/updating default maintenance config for %s: %+v", id, err)
+			//	}
+			//}
 
-			if len(model.MaintenanceWindowAutoUpgrade) > 0 {
-				maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
-				maintenanceParams := maintenanceconfigurations.MaintenanceConfiguration{
-					Properties: expandKubernetesAutomaticClusterMaintenanceConfigurationAutoUpgrade(model.MaintenanceWindowAutoUpgrade),
-				}
-				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
-				if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, maintenanceParams); err != nil {
-					return fmt.Errorf("creating/updating auto upgrade schedule maintenance config for %s: %+v", id, err)
-				}
-			}
+			//if len(model.MaintenanceWindowAutoUpgrade) > 0 {
+			//	maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
+			//	maintenanceParams := maintenanceconfigurations.MaintenanceConfiguration{
+			//		Properties: expandKubernetesAutomaticClusterMaintenanceConfigurationAutoUpgrade(model.MaintenanceWindowAutoUpgrade),
+			//	}
+			//	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
+			//	if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, maintenanceParams); err != nil {
+			//		return fmt.Errorf("creating/updating auto upgrade schedule maintenance config for %s: %+v", id, err)
+			//	}
+			//}
 
-			if len(model.MaintenanceWindowNodeOS) > 0 {
-				maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
-				maintenanceParams := maintenanceconfigurations.MaintenanceConfiguration{
-					Properties: expandKubernetesAutomaticClusterMaintenanceConfigurationNodeOS(model.MaintenanceWindowNodeOS),
-				}
-				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
-				if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, maintenanceParams); err != nil {
-					return fmt.Errorf("creating/updating node os upgrade schedule maintenance config for %s: %+v", id, err)
-				}
-			}
+			//if len(model.MaintenanceWindowNodeOS) > 0 {
+			//	maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
+			//	maintenanceParams := maintenanceconfigurations.MaintenanceConfiguration{
+			//		Properties: expandKubernetesAutomaticClusterMaintenanceConfigurationNodeOS(model.MaintenanceWindowNodeOS),
+			//	}
+			//	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
+			//	if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, maintenanceParams); err != nil {
+			//		return fmt.Errorf("creating/updating node os upgrade schedule maintenance config for %s: %+v", id, err)
+			//	}
+			//}
 
 			metadata.SetID(id)
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
@@ -2073,8 +2030,6 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			if state.NodeResourceGroup != "" {
 				state.NodeResourceGroupID = commonids.NewResourceGroupID(id.SubscriptionId, state.NodeResourceGroup).ID()
 			}
-
-			state.NodeOSUpgradeChannel = string(*props.AutoUpgradeProfile.NodeOSUpgradeChannel)
 
 			if props.SecurityProfile != nil && props.SecurityProfile.CustomCATrustCertificates != nil {
 				state.CustomCATrustCertificatesBase64 = *props.SecurityProfile.CustomCATrustCertificates
@@ -2201,40 +2156,40 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			}
 		}
 
-		maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
-
-		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
-		configResp, _ := maintenanceClient.Get(ctx, maintenanceId)
-		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil {
-			state.MaintenanceWindow = flattenKubernetesAutomaticClusterMaintenanceConfigurationDefault(configurationBody.Properties)
-		}
-
-		maintenanceId = maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
-		configResp, _ = maintenanceClient.Get(ctx, maintenanceId)
-		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil && configurationBody.Properties.MaintenanceWindow != nil {
-			state.MaintenanceWindowAutoUpgrade = flattenKubernetesAutomaticClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow)
-		}
-
-		maintenanceId = maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
-		configResp, _ = maintenanceClient.Get(ctx, maintenanceId)
-		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil && configurationBody.Properties.MaintenanceWindow != nil {
-			autoUpgradeConfig := flattenKubernetesAutomaticClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow)
-			if len(autoUpgradeConfig) > 0 {
-				au := autoUpgradeConfig[0]
-				state.MaintenanceWindowNodeOS = []MaintenanceWindowNodeOSModel{{
-					Frequency:  au.Frequency,
-					Interval:   au.Interval,
-					DayOfWeek:  au.DayOfWeek,
-					Duration:   au.Duration,
-					WeekIndex:  au.WeekIndex,
-					DayOfMonth: au.DayOfMonth,
-					StartDate:  au.StartDate,
-					StartTime:  au.StartTime,
-					UTCOffset:  au.UTCOffset,
-					NotAllowed: au.NotAllowed,
-				}}
-			}
-		}
+		//maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
+		//
+		//maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
+		//configResp, _ := maintenanceClient.Get(ctx, maintenanceId)
+		//if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil {
+		//	state.MaintenanceWindow = flattenKubernetesAutomaticClusterMaintenanceConfigurationDefault(configurationBody.Properties)
+		//}
+		//
+		//maintenanceId = maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
+		//configResp, _ = maintenanceClient.Get(ctx, maintenanceId)
+		//if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil && configurationBody.Properties.MaintenanceWindow != nil {
+		//	state.MaintenanceWindowAutoUpgrade = flattenKubernetesAutomaticClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow)
+		//}
+		//
+		//maintenanceId = maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
+		//configResp, _ = maintenanceClient.Get(ctx, maintenanceId)
+		//if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil && configurationBody.Properties.MaintenanceWindow != nil {
+		//	autoUpgradeConfig := flattenKubernetesAutomaticClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow)
+		//	if len(autoUpgradeConfig) > 0 {
+		//		au := autoUpgradeConfig[0]
+		//		state.MaintenanceWindowNodeOS = []MaintenanceWindowNodeOSModel{{
+		//			Frequency:  au.Frequency,
+		//			Interval:   au.Interval,
+		//			DayOfWeek:  au.DayOfWeek,
+		//			Duration:   au.Duration,
+		//			WeekIndex:  au.WeekIndex,
+		//			DayOfMonth: au.DayOfMonth,
+		//			StartDate:  au.StartDate,
+		//			StartTime:  au.StartTime,
+		//			UTCOffset:  au.UTCOffset,
+		//			NotAllowed: au.NotAllowed,
+		//		}}
+		//	}
+		//}
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -2433,17 +2388,6 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			if metadata.ResourceData.HasChange("node_os_upgrade_channel") {
-				if props.AutoUpgradeProfile == nil {
-					props.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
-				}
-				if model.NodeOSUpgradeChannel != "" {
-					channel := managedclusters.NodeOSUpgradeChannel(model.NodeOSUpgradeChannel)
-					props.AutoUpgradeProfile.NodeOSUpgradeChannel = &channel
-				}
-				updateCluster = true
-			}
-
 			if metadata.ResourceData.HasChange("aci_connector_linux") ||
 				metadata.ResourceData.HasChange("confidential_computing") ||
 				metadata.ResourceData.HasChange("http_application_routing_enabled") ||
@@ -2461,7 +2405,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("api_server_access_profile") ||
 				metadata.ResourceData.HasChange("private_cluster_enabled") ||
-				metadata.ResourceData.HasChange("private_cluster_public_fqdn_enabled") ||
+				metadata.ResourceData.HasChange("private_cluster_public_fully_qualified_domain_name_enabled") ||
 				metadata.ResourceData.HasChange("run_command_enabled") {
 				props.ApiServerAccessProfile = expandKubernetesAutomaticClusterAPIAccessProfile(model)
 				updateCluster = true
@@ -2527,7 +2471,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("microsoft_defender") ||
-				metadata.ResourceData.HasChange("image_cleaner_interval_hours") ||
+				metadata.ResourceData.HasChange("image_cleaner_interval_in_hours") ||
 				metadata.ResourceData.HasChange("key_management_service") ||
 				metadata.ResourceData.HasChange("custom_ca_trust_certificates_base64") {
 				if props.SecurityProfile == nil {
@@ -2538,7 +2482,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 					props.SecurityProfile.Defender = expandKubernetesAutomaticClusterMicrosoftDefender(model.MicrosoftDefender, metadata.ResourceData.HasChange("microsoft_defender"))
 				}
 
-				if metadata.ResourceData.HasChange("image_cleaner_interval_hours") {
+				if metadata.ResourceData.HasChange("image_cleaner_interval_in_hours") {
 					props.SecurityProfile.ImageCleaner.Enabled = pointer.To(true)
 					if model.ImageCleanerIntervalHours > 0 {
 						props.SecurityProfile.ImageCleaner.IntervalHours = pointer.To(model.ImageCleanerIntervalHours)
@@ -2594,55 +2538,55 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
+			// maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
 
-			if metadata.ResourceData.HasChange("maintenance_window") {
-				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
-				if len(model.MaintenanceWindow) > 0 {
-					parameters := maintenanceconfigurations.MaintenanceConfiguration{
-						Properties: expandKubernetesAutomaticClusterMaintenanceConfigurationDefault(model.MaintenanceWindow),
-					}
-					if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
-						return fmt.Errorf("updating default maintenance config for %s: %w", id, err)
-					}
-				} else {
-					if _, err := maintenanceClient.Delete(ctx, maintenanceId); err != nil {
-						return fmt.Errorf("deleting default maintenance config for %s: %w", id, err)
-					}
-				}
-			}
-
-			if metadata.ResourceData.HasChange("maintenance_window_auto_upgrade") {
-				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
-				if len(model.MaintenanceWindowAutoUpgrade) > 0 {
-					parameters := maintenanceconfigurations.MaintenanceConfiguration{
-						Properties: expandKubernetesAutomaticClusterMaintenanceConfigurationAutoUpgrade(model.MaintenanceWindowAutoUpgrade),
-					}
-					if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
-						return fmt.Errorf("updating auto upgrade maintenance config for %s: %w", id, err)
-					}
-				} else {
-					if _, err := maintenanceClient.Delete(ctx, maintenanceId); err != nil {
-						return fmt.Errorf("deleting auto upgrade maintenance config for %s: %w", id, err)
-					}
-				}
-			}
-
-			if metadata.ResourceData.HasChange("maintenance_window_node_os") {
-				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
-				if len(model.MaintenanceWindowNodeOS) > 0 {
-					parameters := maintenanceconfigurations.MaintenanceConfiguration{
-						Properties: expandKubernetesAutomaticClusterMaintenanceConfigurationNodeOS(model.MaintenanceWindowNodeOS),
-					}
-					if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
-						return fmt.Errorf("updating node os maintenance config for %s: %w", id, err)
-					}
-				} else {
-					if _, err := maintenanceClient.Delete(ctx, maintenanceId); err != nil {
-						return fmt.Errorf("deleting node os maintenance config for %s: %w", id, err)
-					}
-				}
-			}
+			//if metadata.ResourceData.HasChange("maintenance_window") {
+			//	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
+			//	if len(model.MaintenanceWindow) > 0 {
+			//		parameters := maintenanceconfigurations.MaintenanceConfiguration{
+			//			Properties: expandKubernetesAutomaticClusterMaintenanceConfigurationDefault(model.MaintenanceWindow),
+			//		}
+			//		if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
+			//			return fmt.Errorf("updating default maintenance config for %s: %w", id, err)
+			//		}
+			//	} else {
+			//		if _, err := maintenanceClient.Delete(ctx, maintenanceId); err != nil {
+			//			return fmt.Errorf("deleting default maintenance config for %s: %w", id, err)
+			//		}
+			//	}
+			//}
+			//
+			//if metadata.ResourceData.HasChange("maintenance_window_auto_upgrade") {
+			//	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
+			//	if len(model.MaintenanceWindowAutoUpgrade) > 0 {
+			//		parameters := maintenanceconfigurations.MaintenanceConfiguration{
+			//			Properties: expandKubernetesAutomaticClusterMaintenanceConfigurationAutoUpgrade(model.MaintenanceWindowAutoUpgrade),
+			//		}
+			//		if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
+			//			return fmt.Errorf("updating auto upgrade maintenance config for %s: %w", id, err)
+			//		}
+			//	} else {
+			//		if _, err := maintenanceClient.Delete(ctx, maintenanceId); err != nil {
+			//			return fmt.Errorf("deleting auto upgrade maintenance config for %s: %w", id, err)
+			//		}
+			//	}
+			//}
+			//
+			//if metadata.ResourceData.HasChange("maintenance_window_node_os") {
+			//	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
+			//	if len(model.MaintenanceWindowNodeOS) > 0 {
+			//		parameters := maintenanceconfigurations.MaintenanceConfiguration{
+			//			Properties: expandKubernetesAutomaticClusterMaintenanceConfigurationNodeOS(model.MaintenanceWindowNodeOS),
+			//		}
+			//		if _, err := maintenanceClient.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
+			//			return fmt.Errorf("updating node os maintenance config for %s: %w", id, err)
+			//		}
+			//	} else {
+			//		if _, err := maintenanceClient.Delete(ctx, maintenanceId); err != nil {
+			//			return fmt.Errorf("deleting node os maintenance config for %s: %w", id, err)
+			//		}
+			//	}
+			//}
 
 			return nil
 		},
@@ -2665,28 +2609,28 @@ func (r KubernetesAutomaticClusterResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %w", err)
 			}
 
-			maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
-
-			if len(model.MaintenanceWindow) > 0 {
-				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
-				if _, err := maintenanceClient.Delete(ctx, maintenanceId); err != nil {
-					return fmt.Errorf("deleting default maintenance configuration for %s: %w", *id, err)
-				}
-			}
-
-			if len(model.MaintenanceWindowAutoUpgrade) > 0 {
-				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
-				if _, err := maintenanceClient.Delete(ctx, maintenanceId); err != nil {
-					return fmt.Errorf("deleting auto-upgrade maintenance configuration for %s: %w", *id, err)
-				}
-			}
-
-			if len(model.MaintenanceWindowNodeOS) > 0 {
-				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
-				if _, err := maintenanceClient.Delete(ctx, maintenanceId); err != nil {
-					return fmt.Errorf("deleting node OS maintenance configuration for %s: %w", *id, err)
-				}
-			}
+			//maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
+			//
+			//if len(model.MaintenanceWindow) > 0 {
+			//	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
+			//	if _, err := maintenanceClient.Delete(ctx, maintenanceId); err != nil {
+			//		return fmt.Errorf("deleting default maintenance configuration for %s: %w", *id, err)
+			//	}
+			//}
+			//
+			//if len(model.MaintenanceWindowAutoUpgrade) > 0 {
+			//	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
+			//	if _, err := maintenanceClient.Delete(ctx, maintenanceId); err != nil {
+			//		return fmt.Errorf("deleting auto-upgrade maintenance configuration for %s: %w", *id, err)
+			//	}
+			//}
+			//
+			//if len(model.MaintenanceWindowNodeOS) > 0 {
+			//	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
+			//	if _, err := maintenanceClient.Delete(ctx, maintenanceId); err != nil {
+			//		return fmt.Errorf("deleting node OS maintenance configuration for %s: %w", *id, err)
+			//	}
+			//}
 
 			if err := client.DeleteThenPoll(ctx, *id, managedclusters.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %w", *id, err)
@@ -2996,15 +2940,15 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel)
 	loadBalancerSku := config.LoadBalancerSKU
 	outboundType := config.OutboundType
 
-	ipVersions, err := expandAutomaticIPVersions(config.IPVersions)
-	if err != nil {
-		return nil, err
-	}
+	//ipVersions, err := expandAutomaticIPVersions(config.IPVersions)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	networkProfile := managedclusters.ContainerServiceNetworkProfile{
 		LoadBalancerSku: pointer.To(managedclusters.LoadBalancerSku(loadBalancerSku)),
 		OutboundType:    pointer.To(managedclusters.OutboundType(outboundType)),
-		IPFamilies:      ipVersions,
+		IPFamilies:      &[]managedclusters.IPFamily{"IPv4"},
 	}
 
 	if len(config.LoadBalancerProfile) > 0 {
@@ -3141,22 +3085,22 @@ func expandAutomaticLoadBalancerProfile(input []LoadBalancerProfileModel) *manag
 	return profile
 }
 
-func expandAutomaticIPVersions(input []string) (*[]managedclusters.IPFamily, error) {
-	if len(input) == 0 {
-		return nil, nil
-	}
-
-	ipv := make([]managedclusters.IPFamily, 0)
-	for _, data := range input {
-		ipv = append(ipv, managedclusters.IPFamily(data))
-	}
-
-	if len(ipv) == 1 && ipv[0] == managedclusters.IPFamilyIPvSix {
-		return nil, fmt.Errorf("`ip_versions` must be `IPv4` or `IPv4` and `IPv6`. `IPv6` alone is not supported")
-	}
-
-	return &ipv, nil
-}
+//func expandAutomaticIPVersions(input []string) (*[]managedclusters.IPFamily, error) {
+//	if len(input) == 0 {
+//		return nil, nil
+//	}
+//
+//	ipv := make([]managedclusters.IPFamily, 0)
+//	for _, data := range input {
+//		ipv = append(ipv, managedclusters.IPFamily(data))
+//	}
+//
+//	if len(ipv) == 1 && ipv[0] == managedclusters.IPFamilyIPvSix {
+//		return nil, fmt.Errorf("`ip_versions` must be `IPv4` or `IPv4` and `IPv6`. `IPv6` alone is not supported")
+//	}
+//
+//	return &ipv, nil
+//}
 
 func flattenAutomaticLoadBalancerProfile(profile *managedclusters.ManagedClusterLoadBalancerProfile) []LoadBalancerProfileModel {
 	if profile == nil {
@@ -3298,13 +3242,13 @@ func flattenKubernetesAutomaticClusterNetworkProfile(profile *managedclusters.Co
 			LoadBalancerSKU:     string(pointer.From(sku)),
 			LoadBalancerProfile: lbProfiles,
 			NATGatewayProfile:   ngwProfiles,
-			IPVersions:          ipVersions,
-			PodCIDR:             podCidr,
-			PodCIDRs:            podCidrs,
-			ServiceCIDR:         serviceCidr,
-			ServiceCIDRs:        serviceCidrs,
-			OutboundType:        outboundType,
-			AdvancedNetworking:  advancedNetworking,
+			// IPVersions:          ipVersions,
+			PodCIDR:            podCidr,
+			PodCIDRs:           podCidrs,
+			ServiceCIDR:        serviceCidr,
+			ServiceCIDRs:       serviceCidrs,
+			OutboundType:       outboundType,
+			AdvancedNetworking: advancedNetworking,
 		},
 	}
 }
@@ -3594,291 +3538,292 @@ func flattenKubernetesAutomaticClusterMetricsProfile(input *managedclusters.Mana
 	return pointer.From(input.CostAnalysis.Enabled)
 }
 
-func expandKubernetesAutomaticClusterMaintenanceConfigurationDefault(input []MaintenanceWindowModel) *maintenanceconfigurations.MaintenanceConfigurationProperties {
-	if len(input) == 0 {
-		return nil
-	}
-	value := input[0]
-	return &maintenanceconfigurations.MaintenanceConfigurationProperties{
-		NotAllowedTime: expandKubernetesAutomaticClusterMaintenanceConfigurationTimeSpans(value.NotAllowed),
-		TimeInWeek:     expandKubernetesAutomaticClusterMaintenanceConfigurationTimeInWeeks(value.Allowed),
-	}
-}
+//func expandKubernetesAutomaticClusterMaintenanceConfigurationDefault(input []MaintenanceWindowModel) *maintenanceconfigurations.MaintenanceConfigurationProperties {
+//	if len(input) == 0 {
+//		return nil
+//	}
+//	value := input[0]
+//	return &maintenanceconfigurations.MaintenanceConfigurationProperties{
+//		NotAllowedTime: expandKubernetesAutomaticClusterMaintenanceConfigurationTimeSpans(value.NotAllowed),
+//		TimeInWeek:     expandKubernetesAutomaticClusterMaintenanceConfigurationTimeInWeeks(value.Allowed),
+//	}
+//}
 
-func expandKubernetesAutomaticClusterMaintenanceConfigurationForCreate(input []MaintenanceWindowAutoUpgradeModel) *maintenanceconfigurations.MaintenanceConfigurationProperties {
-	if len(input) == 0 {
-		return nil
-	}
-	value := input[0]
-
-	var schedule maintenanceconfigurations.Schedule
-
-	if value.Frequency == "Daily" {
-		schedule = maintenanceconfigurations.Schedule{
-			Daily: &maintenanceconfigurations.DailySchedule{
-				IntervalDays: value.Interval,
-			},
-		}
-	}
-	if value.Frequency == "Weekly" {
-		schedule = maintenanceconfigurations.Schedule{
-			Weekly: &maintenanceconfigurations.WeeklySchedule{
-				IntervalWeeks: value.Interval,
-				DayOfWeek:     maintenanceconfigurations.WeekDay(value.DayOfWeek),
-			},
-		}
-	}
-	if value.Frequency == "AbsoluteMonthly" {
-		schedule = maintenanceconfigurations.Schedule{
-			AbsoluteMonthly: &maintenanceconfigurations.AbsoluteMonthlySchedule{
-				DayOfMonth:     value.DayOfMonth,
-				IntervalMonths: value.Interval,
-			},
-		}
-	}
-	if value.Frequency == "RelativeMonthly" {
-		schedule = maintenanceconfigurations.Schedule{
-			RelativeMonthly: &maintenanceconfigurations.RelativeMonthlySchedule{
-				DayOfWeek:      maintenanceconfigurations.WeekDay(value.DayOfWeek),
-				WeekIndex:      maintenanceconfigurations.Type(value.WeekIndex),
-				IntervalMonths: value.Interval,
-			},
-		}
-	}
-
-	output := &maintenanceconfigurations.MaintenanceConfigurationProperties{
-		MaintenanceWindow: &maintenanceconfigurations.MaintenanceWindow{
-			StartTime:       value.StartTime,
-			UtcOffset:       pointer.To(value.UTCOffset),
-			NotAllowedDates: expandKubernetesAutomaticClusterMaintenanceConfigurationDateSpans(value.NotAllowed),
-			Schedule:        schedule,
-		},
-	}
-
-	if value.StartDate != "" {
-		startDate, _ := time.Parse(time.RFC3339, value.StartDate)
-		output.MaintenanceWindow.StartDate = pointer.To(startDate.Format("2006-01-02"))
-	}
-
-	if value.Duration != 0 {
-		output.MaintenanceWindow.DurationHours = value.Duration
-	}
-
-	return output
-}
-
-func expandKubernetesAutomaticClusterMaintenanceConfigurationAutoUpgrade(input []MaintenanceWindowAutoUpgradeModel) *maintenanceconfigurations.MaintenanceConfigurationProperties {
-	return expandKubernetesAutomaticClusterMaintenanceConfigurationForCreate(input)
-}
-
-func expandKubernetesAutomaticClusterMaintenanceConfigurationNodeOS(input []MaintenanceWindowNodeOSModel) *maintenanceconfigurations.MaintenanceConfigurationProperties {
-	if len(input) == 0 {
-		return nil
-	}
-	// Convert MaintenanceWindowNodeOSModel to MaintenanceWindowAutoUpgradeModel since they have the same structure
-	converted := []MaintenanceWindowAutoUpgradeModel{{
-		Frequency:  input[0].Frequency,
-		Interval:   input[0].Interval,
-		DayOfWeek:  input[0].DayOfWeek,
-		Duration:   input[0].Duration,
-		WeekIndex:  input[0].WeekIndex,
-		DayOfMonth: input[0].DayOfMonth,
-		StartDate:  input[0].StartDate,
-		StartTime:  input[0].StartTime,
-		UTCOffset:  input[0].UTCOffset,
-		NotAllowed: input[0].NotAllowed,
-	}}
-	return expandKubernetesAutomaticClusterMaintenanceConfigurationForCreate(converted)
-}
-
-func expandKubernetesAutomaticClusterMaintenanceConfigurationTimeSpans(input []MaintenanceWindowNotAllowedModel) *[]maintenanceconfigurations.TimeSpan {
-	results := make([]maintenanceconfigurations.TimeSpan, 0)
-	for _, item := range input {
-		start, _ := time.Parse(time.RFC3339, item.Start)
-		end, _ := time.Parse(time.RFC3339, item.End)
-		results = append(results, maintenanceconfigurations.TimeSpan{
-			Start: pointer.To(start.Format("2006-01-02T15:04:05Z07:00")),
-			End:   pointer.To(end.Format("2006-01-02T15:04:05Z07:00")),
-		})
-	}
-	return &results
-}
-
-func expandKubernetesAutomaticClusterMaintenanceConfigurationDateSpans(input []MaintenanceWindowNotAllowedModel) *[]maintenanceconfigurations.DateSpan {
-	results := make([]maintenanceconfigurations.DateSpan, 0)
-	for _, item := range input {
-		start, _ := time.Parse(time.RFC3339, item.Start)
-		end, _ := time.Parse(time.RFC3339, item.End)
-		results = append(results, maintenanceconfigurations.DateSpan{
-			Start: start.Format("2006-01-02"),
-			End:   end.Format("2006-01-02"),
-		})
-	}
-	return &results
-}
-
-func expandKubernetesAutomaticClusterMaintenanceConfigurationTimeInWeeks(input []MaintenanceWindowAllowedModel) *[]maintenanceconfigurations.TimeInWeek {
-	results := make([]maintenanceconfigurations.TimeInWeek, 0)
-	for _, item := range input {
-		results = append(results, maintenanceconfigurations.TimeInWeek{
-			Day:       pointer.To(maintenanceconfigurations.WeekDay(item.Day)),
-			HourSlots: pointer.To(item.Hours),
-		})
-	}
-	return &results
-}
-
-func flattenKubernetesAutomaticClusterMaintenanceConfiguration(input *maintenanceconfigurations.MaintenanceWindow) []MaintenanceWindowAutoUpgradeModel {
-	results := make([]MaintenanceWindowAutoUpgradeModel, 0)
-	if input == nil {
-		return results
-	}
-
-	startDate := ""
-	if input.StartDate != nil {
-		startDate = *input.StartDate + "T00:00:00Z"
-	}
-	utcOffset := ""
-	if input.UtcOffset != nil {
-		utcOffset = *input.UtcOffset
-	}
-
-	windowModel := MaintenanceWindowAutoUpgradeModel{
-		NotAllowed: flattenKubernetesAutomaticClusterMaintenanceConfigurationDateSpans(input.NotAllowedDates),
-		Duration:   input.DurationHours,
-		StartDate:  startDate,
-		StartTime:  input.StartTime,
-		UTCOffset:  utcOffset,
-	}
-
-	scheduleProps := flattenKubernetesAutomaticClusterMaintenanceConfigurationSchedule(input.Schedule)
-	windowModel.Frequency = scheduleProps["frequency"].(string)
-	windowModel.Interval = scheduleProps["interval"].(int64)
-	windowModel.DayOfWeek = scheduleProps["day_of_week"].(string)
-	windowModel.WeekIndex = scheduleProps["week_index"].(string)
-	windowModel.DayOfMonth = scheduleProps["day_of_month"].(int64)
-
-	return append(results, windowModel)
-}
-
-func flattenKubernetesAutomaticClusterMaintenanceConfigurationSchedule(input maintenanceconfigurations.Schedule) map[string]interface{} {
-	frequency := ""
-	interval := int64(0)
-	if input.Daily != nil {
-		frequency = "Daily"
-		interval = input.Daily.IntervalDays
-	}
-
-	dayOfWeek := ""
-	if input.Weekly != nil {
-		frequency = "Weekly"
-		interval = input.Weekly.IntervalWeeks
-		dayOfWeek = string(input.Weekly.DayOfWeek)
-	}
-
-	dayOfMonth := int64(0)
-	if input.AbsoluteMonthly != nil {
-		frequency = "AbsoluteMonthly"
-		interval = input.AbsoluteMonthly.IntervalMonths
-		dayOfMonth = input.AbsoluteMonthly.DayOfMonth
-	}
-
-	weekIndex := ""
-	if input.RelativeMonthly != nil {
-		frequency = "RelativeMonthly"
-		interval = input.RelativeMonthly.IntervalMonths
-		dayOfWeek = string(input.RelativeMonthly.DayOfWeek)
-		weekIndex = string(input.RelativeMonthly.WeekIndex)
-	}
-
-	return map[string]interface{}{
-		"frequency":    frequency,
-		"interval":     interval,
-		"day_of_week":  dayOfWeek,
-		"week_index":   weekIndex,
-		"day_of_month": dayOfMonth,
-	}
-}
-
-func flattenKubernetesAutomaticClusterMaintenanceConfigurationDefault(input *maintenanceconfigurations.MaintenanceConfigurationProperties) []MaintenanceWindowModel {
-	results := make([]MaintenanceWindowModel, 0)
-	if input == nil {
-		return results
-	}
-	return append(results, MaintenanceWindowModel{
-		NotAllowed: flattenKubernetesAutomaticClusterMaintenanceConfigurationTimeSpans(input.NotAllowedTime),
-		Allowed:    flattenKubernetesAutomaticClusterMaintenanceConfigurationTimeInWeeks(input.TimeInWeek),
-	})
-}
-
-func flattenKubernetesAutomaticClusterMaintenanceConfigurationTimeSpans(input *[]maintenanceconfigurations.TimeSpan) []MaintenanceWindowNotAllowedModel {
-	results := make([]MaintenanceWindowNotAllowedModel, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		var end string
-		if item.End != nil {
-			end = *item.End
-		}
-		var start string
-		if item.Start != nil {
-			start = *item.Start
-		}
-		results = append(results, MaintenanceWindowNotAllowedModel{
-			End:   end,
-			Start: start,
-		})
-	}
-	return results
-}
-
-func flattenKubernetesAutomaticClusterMaintenanceConfigurationDateSpans(input *[]maintenanceconfigurations.DateSpan) []MaintenanceWindowNotAllowedModel {
-	results := make([]MaintenanceWindowNotAllowedModel, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		var end string
-		if item.End != "" {
-			end = item.End + "T23:59:59Z"
-		}
-		var start string
-		if item.Start != "" {
-			start = item.Start + "T00:00:00Z"
-		}
-		results = append(results, MaintenanceWindowNotAllowedModel{
-			End:   end,
-			Start: start,
-		})
-	}
-	return results
-}
-
-func flattenKubernetesAutomaticClusterMaintenanceConfigurationTimeInWeeks(input *[]maintenanceconfigurations.TimeInWeek) []MaintenanceWindowAllowedModel {
-	results := make([]MaintenanceWindowAllowedModel, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		day := ""
-		if item.Day != nil {
-			day = string(*item.Day)
-		}
-		hours := make([]int64, 0)
-		if item.HourSlots != nil {
-			hours = *item.HourSlots
-		}
-		results = append(results, MaintenanceWindowAllowedModel{
-			Day:   day,
-			Hours: hours,
-		})
-	}
-	return results
-}
+//
+//func expandKubernetesAutomaticClusterMaintenanceConfigurationForCreate(input []MaintenanceWindowAutoUpgradeModel) *maintenanceconfigurations.MaintenanceConfigurationProperties {
+//	if len(input) == 0 {
+//		return nil
+//	}
+//	value := input[0]
+//
+//	var schedule maintenanceconfigurations.Schedule
+//
+//	if value.Frequency == "Daily" {
+//		schedule = maintenanceconfigurations.Schedule{
+//			Daily: &maintenanceconfigurations.DailySchedule{
+//				IntervalDays: value.Interval,
+//			},
+//		}
+//	}
+//	if value.Frequency == "Weekly" {
+//		schedule = maintenanceconfigurations.Schedule{
+//			Weekly: &maintenanceconfigurations.WeeklySchedule{
+//				IntervalWeeks: value.Interval,
+//				DayOfWeek:     maintenanceconfigurations.WeekDay(value.DayOfWeek),
+//			},
+//		}
+//	}
+//	if value.Frequency == "AbsoluteMonthly" {
+//		schedule = maintenanceconfigurations.Schedule{
+//			AbsoluteMonthly: &maintenanceconfigurations.AbsoluteMonthlySchedule{
+//				DayOfMonth:     value.DayOfMonth,
+//				IntervalMonths: value.Interval,
+//			},
+//		}
+//	}
+//	if value.Frequency == "RelativeMonthly" {
+//		schedule = maintenanceconfigurations.Schedule{
+//			RelativeMonthly: &maintenanceconfigurations.RelativeMonthlySchedule{
+//				DayOfWeek:      maintenanceconfigurations.WeekDay(value.DayOfWeek),
+//				WeekIndex:      maintenanceconfigurations.Type(value.WeekIndex),
+//				IntervalMonths: value.Interval,
+//			},
+//		}
+//	}
+//
+//	output := &maintenanceconfigurations.MaintenanceConfigurationProperties{
+//		MaintenanceWindow: &maintenanceconfigurations.MaintenanceWindow{
+//			StartTime:       value.StartTime,
+//			UtcOffset:       pointer.To(value.UTCOffset),
+//			NotAllowedDates: expandKubernetesAutomaticClusterMaintenanceConfigurationDateSpans(value.NotAllowed),
+//			Schedule:        schedule,
+//		},
+//	}
+//
+//	if value.StartDate != "" {
+//		startDate, _ := time.Parse(time.RFC3339, value.StartDate)
+//		output.MaintenanceWindow.StartDate = pointer.To(startDate.Format("2006-01-02"))
+//	}
+//
+//	if value.Duration != 0 {
+//		output.MaintenanceWindow.DurationHours = value.Duration
+//	}
+//
+//	return output
+//}
+//
+//func expandKubernetesAutomaticClusterMaintenanceConfigurationAutoUpgrade(input []MaintenanceWindowAutoUpgradeModel) *maintenanceconfigurations.MaintenanceConfigurationProperties {
+//	return expandKubernetesAutomaticClusterMaintenanceConfigurationForCreate(input)
+//}
+//
+//func expandKubernetesAutomaticClusterMaintenanceConfigurationNodeOS(input []MaintenanceWindowNodeOSModel) *maintenanceconfigurations.MaintenanceConfigurationProperties {
+//	if len(input) == 0 {
+//		return nil
+//	}
+//	// Convert MaintenanceWindowNodeOSModel to MaintenanceWindowAutoUpgradeModel since they have the same structure
+//	converted := []MaintenanceWindowAutoUpgradeModel{{
+//		Frequency:  input[0].Frequency,
+//		Interval:   input[0].Interval,
+//		DayOfWeek:  input[0].DayOfWeek,
+//		Duration:   input[0].Duration,
+//		WeekIndex:  input[0].WeekIndex,
+//		DayOfMonth: input[0].DayOfMonth,
+//		StartDate:  input[0].StartDate,
+//		StartTime:  input[0].StartTime,
+//		UTCOffset:  input[0].UTCOffset,
+//		NotAllowed: input[0].NotAllowed,
+//	}}
+//	return expandKubernetesAutomaticClusterMaintenanceConfigurationForCreate(converted)
+//}
+//
+//func expandKubernetesAutomaticClusterMaintenanceConfigurationTimeSpans(input []MaintenanceWindowNotAllowedModel) *[]maintenanceconfigurations.TimeSpan {
+//	results := make([]maintenanceconfigurations.TimeSpan, 0)
+//	for _, item := range input {
+//		start, _ := time.Parse(time.RFC3339, item.Start)
+//		end, _ := time.Parse(time.RFC3339, item.End)
+//		results = append(results, maintenanceconfigurations.TimeSpan{
+//			Start: pointer.To(start.Format("2006-01-02T15:04:05Z07:00")),
+//			End:   pointer.To(end.Format("2006-01-02T15:04:05Z07:00")),
+//		})
+//	}
+//	return &results
+//}
+//
+//func expandKubernetesAutomaticClusterMaintenanceConfigurationDateSpans(input []MaintenanceWindowNotAllowedModel) *[]maintenanceconfigurations.DateSpan {
+//	results := make([]maintenanceconfigurations.DateSpan, 0)
+//	for _, item := range input {
+//		start, _ := time.Parse(time.RFC3339, item.Start)
+//		end, _ := time.Parse(time.RFC3339, item.End)
+//		results = append(results, maintenanceconfigurations.DateSpan{
+//			Start: start.Format("2006-01-02"),
+//			End:   end.Format("2006-01-02"),
+//		})
+//	}
+//	return &results
+//}
+//
+//func expandKubernetesAutomaticClusterMaintenanceConfigurationTimeInWeeks(input []MaintenanceWindowAllowedModel) *[]maintenanceconfigurations.TimeInWeek {
+//	results := make([]maintenanceconfigurations.TimeInWeek, 0)
+//	for _, item := range input {
+//		results = append(results, maintenanceconfigurations.TimeInWeek{
+//			Day:       pointer.To(maintenanceconfigurations.WeekDay(item.Day)),
+//			HourSlots: pointer.To(item.Hours),
+//		})
+//	}
+//	return &results
+//}
+//
+//func flattenKubernetesAutomaticClusterMaintenanceConfiguration(input *maintenanceconfigurations.MaintenanceWindow) []MaintenanceWindowAutoUpgradeModel {
+//	results := make([]MaintenanceWindowAutoUpgradeModel, 0)
+//	if input == nil {
+//		return results
+//	}
+//
+//	startDate := ""
+//	if input.StartDate != nil {
+//		startDate = *input.StartDate + "T00:00:00Z"
+//	}
+//	utcOffset := ""
+//	if input.UtcOffset != nil {
+//		utcOffset = *input.UtcOffset
+//	}
+//
+//	windowModel := MaintenanceWindowAutoUpgradeModel{
+//		NotAllowed: flattenKubernetesAutomaticClusterMaintenanceConfigurationDateSpans(input.NotAllowedDates),
+//		Duration:   input.DurationHours,
+//		StartDate:  startDate,
+//		StartTime:  input.StartTime,
+//		UTCOffset:  utcOffset,
+//	}
+//
+//	scheduleProps := flattenKubernetesAutomaticClusterMaintenanceConfigurationSchedule(input.Schedule)
+//	windowModel.Frequency = scheduleProps["frequency"].(string)
+//	windowModel.Interval = scheduleProps["interval"].(int64)
+//	windowModel.DayOfWeek = scheduleProps["day_of_week"].(string)
+//	windowModel.WeekIndex = scheduleProps["week_index"].(string)
+//	windowModel.DayOfMonth = scheduleProps["day_of_month"].(int64)
+//
+//	return append(results, windowModel)
+//}
+//
+//func flattenKubernetesAutomaticClusterMaintenanceConfigurationSchedule(input maintenanceconfigurations.Schedule) map[string]interface{} {
+//	frequency := ""
+//	interval := int64(0)
+//	if input.Daily != nil {
+//		frequency = "Daily"
+//		interval = input.Daily.IntervalDays
+//	}
+//
+//	dayOfWeek := ""
+//	if input.Weekly != nil {
+//		frequency = "Weekly"
+//		interval = input.Weekly.IntervalWeeks
+//		dayOfWeek = string(input.Weekly.DayOfWeek)
+//	}
+//
+//	dayOfMonth := int64(0)
+//	if input.AbsoluteMonthly != nil {
+//		frequency = "AbsoluteMonthly"
+//		interval = input.AbsoluteMonthly.IntervalMonths
+//		dayOfMonth = input.AbsoluteMonthly.DayOfMonth
+//	}
+//
+//	weekIndex := ""
+//	if input.RelativeMonthly != nil {
+//		frequency = "RelativeMonthly"
+//		interval = input.RelativeMonthly.IntervalMonths
+//		dayOfWeek = string(input.RelativeMonthly.DayOfWeek)
+//		weekIndex = string(input.RelativeMonthly.WeekIndex)
+//	}
+//
+//	return map[string]interface{}{
+//		"frequency":    frequency,
+//		"interval":     interval,
+//		"day_of_week":  dayOfWeek,
+//		"week_index":   weekIndex,
+//		"day_of_month": dayOfMonth,
+//	}
+//}
+//
+//func flattenKubernetesAutomaticClusterMaintenanceConfigurationDefault(input *maintenanceconfigurations.MaintenanceConfigurationProperties) []MaintenanceWindowModel {
+//	results := make([]MaintenanceWindowModel, 0)
+//	if input == nil {
+//		return results
+//	}
+//	return append(results, MaintenanceWindowModel{
+//		NotAllowed: flattenKubernetesAutomaticClusterMaintenanceConfigurationTimeSpans(input.NotAllowedTime),
+//		Allowed:    flattenKubernetesAutomaticClusterMaintenanceConfigurationTimeInWeeks(input.TimeInWeek),
+//	})
+//}
+//
+//func flattenKubernetesAutomaticClusterMaintenanceConfigurationTimeSpans(input *[]maintenanceconfigurations.TimeSpan) []MaintenanceWindowNotAllowedModel {
+//	results := make([]MaintenanceWindowNotAllowedModel, 0)
+//	if input == nil {
+//		return results
+//	}
+//
+//	for _, item := range *input {
+//		var end string
+//		if item.End != nil {
+//			end = *item.End
+//		}
+//		var start string
+//		if item.Start != nil {
+//			start = *item.Start
+//		}
+//		results = append(results, MaintenanceWindowNotAllowedModel{
+//			End:   end,
+//			Start: start,
+//		})
+//	}
+//	return results
+//}
+//
+//func flattenKubernetesAutomaticClusterMaintenanceConfigurationDateSpans(input *[]maintenanceconfigurations.DateSpan) []MaintenanceWindowNotAllowedModel {
+//	results := make([]MaintenanceWindowNotAllowedModel, 0)
+//	if input == nil {
+//		return results
+//	}
+//
+//	for _, item := range *input {
+//		var end string
+//		if item.End != "" {
+//			end = item.End + "T23:59:59Z"
+//		}
+//		var start string
+//		if item.Start != "" {
+//			start = item.Start + "T00:00:00Z"
+//		}
+//		results = append(results, MaintenanceWindowNotAllowedModel{
+//			End:   end,
+//			Start: start,
+//		})
+//	}
+//	return results
+//}
+//
+//func flattenKubernetesAutomaticClusterMaintenanceConfigurationTimeInWeeks(input *[]maintenanceconfigurations.TimeInWeek) []MaintenanceWindowAllowedModel {
+//	results := make([]MaintenanceWindowAllowedModel, 0)
+//	if input == nil {
+//		return results
+//	}
+//
+//	for _, item := range *input {
+//		day := ""
+//		if item.Day != nil {
+//			day = string(*item.Day)
+//		}
+//		hours := make([]int64, 0)
+//		if item.HourSlots != nil {
+//			hours = *item.HourSlots
+//		}
+//		results = append(results, MaintenanceWindowAllowedModel{
+//			Day:   day,
+//			Hours: hours,
+//		})
+//	}
+//	return results
+//}
 
 func expandKubernetesAutomaticClusterHttpProxyConfig(input []HTTPProxyConfigModel) *managedclusters.ManagedClusterHTTPProxyConfig {
 	if len(input) == 0 {
@@ -4128,22 +4073,22 @@ func flattenKubernetesAutomaticClusterStorageProfile(profile *managedclusters.Ma
 
 	blobDriverEnabled := false
 	if profile.BlobCSIDriver != nil && profile.BlobCSIDriver.Enabled != nil {
-		blobDriverEnabled = *profile.BlobCSIDriver.Enabled
+		blobDriverEnabled = pointer.From(profile.BlobCSIDriver.Enabled)
 	}
 
 	diskDriverEnabled := false
 	if profile.DiskCSIDriver != nil && profile.DiskCSIDriver.Enabled != nil {
-		diskDriverEnabled = *profile.DiskCSIDriver.Enabled
+		diskDriverEnabled = pointer.From(profile.DiskCSIDriver.Enabled)
 	}
 
 	fileDriverEnabled := false
 	if profile.FileCSIDriver != nil && profile.FileCSIDriver.Enabled != nil {
-		fileDriverEnabled = *profile.FileCSIDriver.Enabled
+		fileDriverEnabled = pointer.From(profile.FileCSIDriver.Enabled)
 	}
 
 	snapshotControllerEnabled := false
 	if profile.SnapshotController != nil && profile.SnapshotController.Enabled != nil {
-		snapshotControllerEnabled = *profile.SnapshotController.Enabled
+		snapshotControllerEnabled = pointer.From(profile.SnapshotController.Enabled)
 	}
 
 	return []StorageProfileModel{{
@@ -4360,13 +4305,13 @@ func flattenKubernetesAutomaticClusterAzureActiveDirectoryRBAC(profile *managedc
 	return []AzureActiveDirectoryRBACModel{result}
 }
 
-func expandIdentityModel(input []IdentityModel) *identity.SystemOrUserAssignedMap {
+func expandIdentityModel(input []identity.SystemOrUserAssignedList) *identity.SystemOrUserAssignedMap {
 	if len(input) == 0 {
 		return nil
 	}
 
 	config := input[0]
-	identityType := identity.Type(config.Type)
+	identityType := config.Type
 
 	identityIds := make(map[string]identity.UserAssignedIdentityDetails)
 	for _, id := range config.IdentityIds {
@@ -4379,9 +4324,9 @@ func expandIdentityModel(input []IdentityModel) *identity.SystemOrUserAssignedMa
 	}
 }
 
-func flattenIdentityModel(input *identity.SystemOrUserAssignedMap) []IdentityModel {
+func flattenIdentityModel(input *identity.SystemOrUserAssignedMap) []identity.SystemOrUserAssignedList {
 	if input == nil {
-		return []IdentityModel{}
+		return []identity.SystemOrUserAssignedList{}
 	}
 
 	// Only set IdentityIds for UserAssigned type to avoid empty array in plan
@@ -4405,8 +4350,8 @@ func flattenIdentityModel(input *identity.SystemOrUserAssignedMap) []IdentityMod
 		tenantId = input.TenantId
 	}
 
-	return []IdentityModel{{
-		Type:        string(input.Type),
+	return []identity.SystemOrUserAssignedList{{
+		Type:        input.Type,
 		IdentityIds: identityIds,
 		PrincipalId: principalId,
 		TenantId:    tenantId,
