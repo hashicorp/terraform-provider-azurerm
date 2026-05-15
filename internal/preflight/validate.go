@@ -206,38 +206,63 @@ func extractErrorDetail(resp *http.Response) *string {
 		return nil
 	}
 
-	type errorResponse struct {
-		Error struct {
-			Code    string `json:"code"`
-			Message string `json:"message"`
-			Details []struct {
-				Code    string `json:"code"`
-				Target  string `json:"target"`
-				Message string `json:"message"`
-			} `json:"details"`
-		} `json:"error"`
-	}
-
 	var errorResp errorResponse
 	if err := json.Unmarshal(bodyBytes, &errorResp); err != nil {
-		return nil // if there's no detail provided just bubble the original error
+		return nil
 	}
 
-	var messages []string
-	if errorResp.Error.Message != "" {
-		messages = append(messages, errorResp.Error.Message)
-	}
+	var lines []string
 
-	for _, d := range errorResp.Error.Details {
+	// nested error messages
+	var collect func(d ErrorDetail, indent int)
+	collect = func(d ErrorDetail, indent int) {
+		prefix := strings.Repeat("  ", indent)
 		if d.Message != "" {
-			messages = append(messages, d.Message)
+			if d.Target != nil && *d.Target != "" {
+				lines = append(lines, fmt.Sprintf("%s%s: %s", prefix, *d.Target, d.Message))
+			} else {
+				lines = append(lines, fmt.Sprintf("%s%s", prefix, d.Message))
+			}
+		}
+		for _, child := range d.Details {
+			collect(child, indent+1)
 		}
 	}
 
-	if len(messages) > 0 {
-		msg := strings.Join(messages, " | ")
+	// top-level error message
+	if errorResp.Error.Message != "" {
+		if errorResp.Error.Code != "" {
+			lines = append(lines, fmt.Sprintf("Error (%s): %s", errorResp.Error.Code, errorResp.Error.Message))
+		} else {
+			lines = append(lines, fmt.Sprintf("Error: %s", errorResp.Error.Message))
+		}
+	}
+
+	for _, d := range errorResp.Error.Details {
+		collect(d, 0)
+	}
+
+	if len(lines) > 0 {
+		msg := strings.Join(lines, "\n")
 		return &msg
 	}
 
 	return nil
+}
+
+type errorResponse struct {
+	Error ErrorBody `json:"error"`
+}
+
+type ErrorBody struct {
+	Code    string        `json:"code"`
+	Message string        `json:"message"`
+	Details []ErrorDetail `json:"details,omitempty"`
+}
+
+type ErrorDetail struct {
+	Code    string        `json:"code"`
+	Target  *string       `json:"target,omitempty"`
+	Message string        `json:"message,omitempty"`
+	Details []ErrorDetail `json:"details,omitempty"`
 }
