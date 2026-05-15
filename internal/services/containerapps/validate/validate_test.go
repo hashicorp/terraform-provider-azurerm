@@ -189,6 +189,9 @@ func TestValidateManagedEnvironmentName(t *testing.T) {
 			Input: "-",
 		},
 		{
+			Input: "9",
+		},
+		{
 			Input: "a-",
 		},
 		{
@@ -198,11 +201,11 @@ func TestValidateManagedEnvironmentName(t *testing.T) {
 			Input: "TooLonghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghija",
 		},
 		{
-			Input: "9",
+			Input: "98",
 			Valid: true,
 		},
 		{
-			Input: "42app-prod-eus2-cae-01",
+			Input: "42canhavenumbersatstart01",
 			Valid: true,
 		},
 		{
