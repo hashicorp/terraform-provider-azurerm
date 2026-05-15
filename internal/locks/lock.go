@@ -20,7 +20,8 @@ func ByID(id string) {
 
 // handle the case of using the same name for different kinds of resources
 func ByName(name string, resourceType string) {
-	armMutexKV.Lock(getLockName(name, resourceType))
+	updatedName := resourceType + "." + name
+	armMutexKV.Lock(updatedName)
 }
 
 func MultipleByID(ids *[]string) {
@@ -48,7 +49,8 @@ func UnlockByID(id string) {
 }
 
 func UnlockByName(name string, resourceType string) {
-	armMutexKV.Unlock(getLockName(name, resourceType))
+	updatedName := resourceType + "." + name
+	armMutexKV.Unlock(updatedName)
 }
 
 func UnlockMultipleByID(ids *[]string) {
@@ -67,14 +69,14 @@ func UnlockMultipleByName(names *[]string, resourceType string) {
 	}
 }
 
-func NewWeightedByName(name string, resourceType string, max int64) {
-	armSemaphoreKV.NewWeighted(getLockName(name, resourceType), max)
+func NewWeightedByResource(resourceType string, max int64) {
+	armSemaphoreKV.NewWeighted(resourceType, max)
 }
 
-func AcquireOneByName(ctx context.Context, name string, resourceType string) error {
-	return armSemaphoreKV.Acquire(ctx, getLockName(name, resourceType), 1)
+func AcquireOneByResource(ctx context.Context, resourceType string) error {
+	return armSemaphoreKV.Acquire(ctx, resourceType, 1)
 }
 
-func ReleaseOneByName(name string, resourceType string) {
-	armSemaphoreKV.Release(getLockName(name, resourceType), 1)
+func ReleaseOneByResource(resourceType string) {
+	armSemaphoreKV.Release(resourceType, 1)
 }
