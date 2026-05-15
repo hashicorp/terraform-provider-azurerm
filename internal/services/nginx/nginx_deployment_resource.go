@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -379,97 +380,10 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			req := nginxdeployment.NginxDeployment{}
-			req.Name = pointer.To(model.Name)
-			req.Location = pointer.To(model.Location)
-			req.Tags = pointer.To(model.Tags)
-
-			if model.Sku != "" {
-				sku := nginxdeployment.ResourceSku{Name: model.Sku}
-				req.Sku = &sku
-			}
-
-			prop := &nginxdeployment.NginxDeploymentProperties{}
-
-			if !features.FivePointOh() {
-				if len(model.LoggingStorageAccount) > 0 {
-					prop.Logging = &nginxdeployment.NginxLogging{
-						StorageAccount: &nginxdeployment.NginxStorageAccount{
-							AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
-							ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
-						},
-					}
-				}
-				prop.EnableDiagnosticsSupport = pointer.To(model.DiagnoseSupportEnabled)
-			}
-
-			prop.NetworkProfile = expandNetworkProfile(model.FrontendPublic, model.FrontendPrivate, model.NetworkInterface)
-
-			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
-			hasScaling := (model.Capacity > 0 || len(model.AutoScaleProfile) > 0)
-			if isBasicSKU && hasScaling {
-				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
-			}
-			if !isBasicSKU && !hasScaling {
-				return fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)
-			}
-
-			if model.Capacity > 0 {
-				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					Capacity: pointer.To(model.Capacity),
-				}
-			}
-
-			if autoScaleProfile := model.AutoScaleProfile; len(autoScaleProfile) > 0 {
-				var autoScaleProfiles []nginxdeployment.ScaleProfile
-				for _, profile := range autoScaleProfile {
-					autoScaleProfiles = append(autoScaleProfiles, nginxdeployment.ScaleProfile{
-						Name: profile.Name,
-						Capacity: nginxdeployment.ScaleProfileCapacity{
-							Min: profile.Min,
-							Max: profile.Max,
-						},
-					})
-				}
-				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					AutoScaleSettings: &nginxdeployment.NginxDeploymentScalingPropertiesAutoScaleSettings{
-						Profiles: autoScaleProfiles,
-					},
-				}
-			}
-
-			if model.Email != "" {
-				prop.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
-					PreferredEmail: pointer.To(model.Email),
-				}
-			}
-
-			if model.UpgradeChannel != "" {
-				prop.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
-					UpgradeChannel: model.UpgradeChannel,
-				}
-			}
-
-			if len(model.WebApplicationFirewall) > 0 {
-				activationState := nginxdeployment.ActivationStateDisabled
-				if model.WebApplicationFirewall[0].ActivationStateEnabled {
-					activationState = nginxdeployment.ActivationStateEnabled
-				}
-
-				prop.NginxAppProtect = &nginxdeployment.NginxDeploymentPropertiesNginxAppProtect{
-					WebApplicationFirewallSettings: nginxdeployment.WebApplicationFirewallSettings{
-						ActivationState: &activationState,
-					},
-				}
-			}
-
-			req.Properties = prop
-
-			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+			req, err := expandCreateForNginxDeployment(model)
 			if err != nil {
-				return fmt.Errorf("expanding identities: %+v", err)
+				return err
 			}
-			req.Identity = expandedIdentity
 
 			if err := client.DeploymentsCreateOrUpdateCallbackThenPoll(ctx, id, req, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
@@ -479,6 +393,103 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandCreateForNginxDeployment(model DeploymentModel) (nginxdeployment.NginxDeployment, error) {
+	req := nginxdeployment.NginxDeployment{}
+	req.Name = pointer.To(model.Name)
+	req.Location = pointer.To(model.Location)
+	req.Tags = pointer.To(model.Tags)
+
+	if model.Sku != "" {
+		sku := nginxdeployment.ResourceSku{Name: model.Sku}
+		req.Sku = &sku
+	}
+
+	prop := &nginxdeployment.NginxDeploymentProperties{}
+
+	if !features.FivePointOh() {
+		if len(model.LoggingStorageAccount) > 0 {
+			prop.Logging = &nginxdeployment.NginxLogging{
+				StorageAccount: &nginxdeployment.NginxStorageAccount{
+					AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
+					ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
+				},
+			}
+		}
+		prop.EnableDiagnosticsSupport = pointer.To(model.DiagnoseSupportEnabled)
+	}
+
+	prop.NetworkProfile = expandNetworkProfile(model.FrontendPublic, model.FrontendPrivate, model.NetworkInterface)
+
+	isBasicSKU := strings.HasPrefix(model.Sku, "basic")
+	hasScaling := model.Capacity > 0 || len(model.AutoScaleProfile) > 0
+	if isBasicSKU && hasScaling {
+		return req, fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+	}
+	if !isBasicSKU && !hasScaling {
+		return req, fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)
+	}
+
+	if model.Capacity > 0 {
+		prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+			Capacity: pointer.To(model.Capacity),
+		}
+	}
+
+	if autoScaleProfile := model.AutoScaleProfile; len(autoScaleProfile) > 0 {
+		var autoScaleProfiles []nginxdeployment.ScaleProfile
+		for _, profile := range autoScaleProfile {
+			autoScaleProfiles = append(autoScaleProfiles, nginxdeployment.ScaleProfile{
+				Name: profile.Name,
+				Capacity: nginxdeployment.ScaleProfileCapacity{
+					Min: profile.Min,
+					Max: profile.Max,
+				},
+			})
+		}
+		prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+			AutoScaleSettings: &nginxdeployment.NginxDeploymentScalingPropertiesAutoScaleSettings{
+				Profiles: autoScaleProfiles,
+			},
+		}
+	}
+
+	if model.Email != "" {
+		prop.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
+			PreferredEmail: pointer.To(model.Email),
+		}
+	}
+
+	if model.UpgradeChannel != "" {
+		prop.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
+			UpgradeChannel: model.UpgradeChannel,
+		}
+	}
+
+	if len(model.WebApplicationFirewall) > 0 {
+		activationState := nginxdeployment.ActivationStateDisabled
+		if model.WebApplicationFirewall[0].ActivationStateEnabled {
+			activationState = nginxdeployment.ActivationStateEnabled
+		}
+
+		prop.NginxAppProtect = &nginxdeployment.NginxDeploymentPropertiesNginxAppProtect{
+			WebApplicationFirewallSettings: nginxdeployment.WebApplicationFirewallSettings{
+				ActivationState: &activationState,
+			},
+		}
+	}
+
+	req.Properties = prop
+
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+	if err != nil {
+		return req, fmt.Errorf("expanding identities: %+v", err)
+	}
+
+	req.Identity = expandedIdentity
+
+	return req, nil
 }
 
 func (m DeploymentResource) Read() sdk.ResourceFunc {
@@ -779,4 +790,42 @@ func (m DeploymentResource) Delete() sdk.ResourceFunc {
 
 func (m DeploymentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return nginxdeployment.ValidateNginxDeploymentID
+}
+
+func (m DeploymentResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				// Only perform preflight validation if there are changes. This avoids validation failures and
+				// additional API calls for resources that are unchanged between plan invocations
+				if len(rd.GetChangedKeysPrefix("")) > 0 || rd.Id() == "" {
+					var model DeploymentModel
+					if err := metadata.DecodeDiff(&model); err != nil {
+						return err
+					}
+
+					req, err := expandCreateForNginxDeployment(model)
+					if err != nil {
+						return err
+					}
+
+					id := nginxdeployment.NewNginxDeploymentID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2024-11-01-preview", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
+
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
+		},
+	}
 }
