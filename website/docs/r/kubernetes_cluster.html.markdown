@@ -431,7 +431,7 @@ A `default_node_pool` block supports the following:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist.
 
-* `pod_ip_allocation_mode` - (Optional) The IP allocation mode for pods in the agent pool. Possible values are `DynamicIndividual` and `StaticBlock`. Defaults to `DynamicIndividual`. Must be used with `pod_subnet_id`.
+* `pod_ip_allocation_mode` - (Optional) The IP allocation mode for pods in the agent pool. Possible values are `DynamicIndividual` and `StaticBlock`. Defaults to `DynamicIndividual`. Must be used with `pod_subnet_id`. Changing this forces a new resource to be created.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
 
