@@ -1485,6 +1485,32 @@ func TestAccCosmosDBAccount_withoutMaxAgeInSeconds(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_updateConsistencyToStrongDisablingMultipleWriteLocations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiMasterBoundedStaleness(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("multiple_write_locations_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("consistency_policy.0.consistency_level").HasValue("Session"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.singleWriteStrong(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("multiple_write_locations_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("consistency_policy.0.consistency_level").HasValue("Strong"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CosmosDBAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseDatabaseAccountID(state.ID)
 	if err != nil {
@@ -4853,4 +4879,80 @@ resource "azurerm_cosmosdb_account" "test" {
   network_acl_bypass_for_azure_services = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+}
+
+func (CosmosDBAccountResource) multiMasterBoundedStaleness(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  multiple_write_locations_enabled = true
+
+  consistency_policy {
+    consistency_level       = "Session"
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 100000
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[3]s"
+    failover_priority = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+}
+
+func (CosmosDBAccountResource) singleWriteStrong(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  multiple_write_locations_enabled = false
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[3]s"
+    failover_priority = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

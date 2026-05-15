@@ -1064,6 +1064,21 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		"tags", "automatic_failover_enabled", "analytical_storage_enabled",
 		"local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled")
 
+	// Azure rejects an update that sets `ConsistencyPolicy=Strong` while `EnableMultipleWriteLocations=true`,
+	// because Strong consistency is incompatible with multi-region writes. When both fields change in the same
+	// apply (consistency -> Strong, multi-write true -> false), the consistency change must be deferred until
+	// after multi-write has been disabled, otherwise the initial batched update fails.
+	// This relies on `consistency_policy` being part of `updateRequired`.
+	deferStrongConsistency := false
+	if d.HasChange("consistency_policy") && d.HasChange("multiple_write_locations_enabled") {
+		oldMW, newMW := d.GetChange("multiple_write_locations_enabled")
+		if oldMW.(bool) && !newMW.(bool) {
+			if newPolicy := expandAzureRmCosmosDBAccountConsistencyPolicy(d); newPolicy != nil && newPolicy.DefaultConsistencyLevel == cosmosdb.DefaultConsistencyLevelStrong {
+				deferStrongConsistency = true
+			}
+		}
+	}
+
 	// Incident : #383341730
 	// Azure Bug: #2209567 'Updating identities and default identity at the same time fails silently'
 	//
@@ -1151,6 +1166,10 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
+	if deferStrongConsistency {
+		account.Properties.ConsistencyPolicy = existing.Model.Properties.ConsistencyPolicy
+	}
+
 	// Only do this update if a value has changed above...
 	if updateRequired {
 		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account); err != nil {
@@ -1165,6 +1184,15 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		// Update the database...
 		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account); err != nil {
 			return fmt.Errorf("updating %q EnableMultipleWriteLocations: %+v", id, err)
+		}
+	}
+
+	// Apply the deferred Strong consistency change now that multi-region writes are disabled.
+	if deferStrongConsistency {
+		account.Properties.ConsistencyPolicy = expandAzureRmCosmosDBAccountConsistencyPolicy(d)
+
+		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account); err != nil {
+			return fmt.Errorf("updating %q ConsistencyPolicy: %+v", id, err)
 		}
 	}
 
