@@ -185,9 +185,11 @@ The following arguments are supported:
 
 ---
 
-* `key_vault_key_id` - (Optional) To use customer managed keys from Azure Key Vault, provide the AKV Key ID. To use service managed keys, omit this field.
+* `key_vault_key_id` - (Optional) To use customer managed keys from Azure Key Vault, provide the AKV Key ID. To use service managed keys, omit this field. When `auto_rotation_enabled` is `true`, this can be either a versioned or versionless Key Vault Key ID. When `auto_rotation_enabled` is `false`, this must be a versioned Key Vault Key ID.
 
 ~> **Note:** In order to use customer managed keys, the identity of the MSSQL Managed Instance must have the following permissions on the key vault: 'get', 'wrapKey' and 'unwrapKey'
+
+~> **Note:** When using a versionless `key_vault_key_id`, the principal running Terraform must have permission to read the latest key version from Key Vault.
 
 ~> **Note:** If `managed_instance_id` denotes a secondary instance deployed for disaster recovery purposes, then the `key_vault_key_id` should be the same key used for the primary instance's transparent data encryption. Both primary and secondary instances should be encrypted with same key material.
 
