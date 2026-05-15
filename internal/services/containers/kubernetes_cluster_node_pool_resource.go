@@ -141,6 +141,22 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				"never",
 			}, false),
 		}
+
+		resource.Schema["kubelet_config"].Elem.(*pluginsdk.Resource).Schema["container_log_max_line"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"kubelet_config.0.container_log_max_files"},
+			Deprecated:    "`container_log_max_line` has been renamed to `container_log_max_files` to align with the API property name and will be removed in v5.0 of the AzureRM Provider",
+			ValidateFunc:  validation.IntAtLeast(2),
+		}
+		resource.Schema["kubelet_config"].Elem.(*pluginsdk.Resource).Schema["container_log_max_files"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"kubelet_config.0.container_log_max_line"},
+			ValidateFunc:  validation.IntAtLeast(2),
+		}
 	}
 
 	return resource
@@ -300,6 +316,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"node_image_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"orchestrator_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -333,6 +354,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 				string(agentpools.OSSKUAzureLinuxThree),
 				string(agentpools.OSSKUUbuntu),
 				string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
+				string(agentpools.OSSKUUbuntuTwoFourZeroFour),
 				string(agentpools.OSSKUWindowsTwoZeroOneNine),
 				string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 			}, false),
@@ -649,20 +671,20 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.OsDiskType = pointer.To(agentpools.OSDiskType(osDiskType))
 	}
 
-	subnetsToLock := make([]string, 0)
+	subnetIDsToLock := make([]string, 0)
 	if podSubnetID != nil {
 		// Lock pod subnet to avoid race condition with AKS
 		profile.PodSubnetID = pointer.To(podSubnetID.ID())
-		subnetsToLock = append(subnetsToLock, podSubnetID.SubnetName)
+		subnetIDsToLock = append(subnetIDsToLock, podSubnetID.ID())
 	}
 
 	if nodeSubnetID != nil {
 		// Lock node subnet to avoid race condition with AKS
 		profile.VnetSubnetID = pointer.To(nodeSubnetID.ID())
-		subnetsToLock = append(subnetsToLock, nodeSubnetID.SubnetName)
+		subnetIDsToLock = append(subnetIDsToLock, nodeSubnetID.ID())
 	}
-	locks.MultipleByName(&subnetsToLock, network.SubnetResourceName)
-	defer locks.UnlockMultipleByName(&subnetsToLock, network.SubnetResourceName)
+	locks.MultipleByID(&subnetIDsToLock)
+	defer locks.UnlockMultipleByID(&subnetIDsToLock)
 
 	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
 		profile.HostGroupID = pointer.To(hostGroupID)
@@ -1202,6 +1224,8 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
 
+		d.Set("node_image_version", props.NodeImageVersion)
+
 		// NOTE: workaround for migration from 2022-01-02-preview (<3.12.0) to 2022-03-02-preview (>=3.12.0). Before terraform apply is run against the new API, Azure will respond only with currentOrchestratorVersion, orchestratorVersion will be absent. More details: https://github.com/hashicorp/terraform-provider-azurerm/issues/17833#issuecomment-1227583353
 		if props.OrchestratorVersion != nil {
 			d.Set("orchestrator_version", props.OrchestratorVersion)
@@ -1384,8 +1408,13 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 	if v := raw["container_log_max_size_mb"].(int); v != 0 {
 		result.ContainerLogMaxSizeMB = pointer.To(int64(v))
 	}
-	if v := raw["container_log_max_line"].(int); v != 0 {
+	if v := raw["container_log_max_files"].(int); v != 0 {
 		result.ContainerLogMaxFiles = pointer.To(int64(v))
+	}
+	if !features.FivePointOh() {
+		if v := raw["container_log_max_line"].(int); v != 0 {
+			result.ContainerLogMaxFiles = pointer.To(int64(v))
+		}
 	}
 	if v := raw["pod_max_pid"].(int); v != 0 {
 		result.PodMaxPids = pointer.To(int64(v))

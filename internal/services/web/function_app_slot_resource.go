@@ -40,7 +40,7 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: "The `azurerm_function_app_slot` resource has been superseded by the `azurerm_linux_function_app_slot` and `azurerm_windows_function_app_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_function_app_slot` resource has been superseded by the `azurerm_linux_function_app_slot` and `azurerm_windows_function_app_slot` resources. This resource will be removed in v5.0 of the AzureRM Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -221,7 +221,7 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 }
 
 func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -325,7 +325,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -458,7 +458,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -608,7 +608,7 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func resourceFunctionAppSlotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -696,7 +696,7 @@ func getFunctionAppSlotServiceTier(ctx context.Context, appServicePlanID string,
 
 	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.ServerFarmName, id.ResourceGroup)
 
-	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClient
+	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClientV1
 	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerFarmName)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanID, err)

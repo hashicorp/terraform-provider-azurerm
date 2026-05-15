@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatednszonegroups"
@@ -33,7 +34,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -295,6 +295,24 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			privateServiceConnections := d.Get("private_service_connection").([]interface{})
+			for _, psc := range privateServiceConnections {
+				privateServiceConnection := psc.(map[string]interface{})
+				name := privateServiceConnection["name"].(string)
+
+				// If this is not a manual connection and the message is set return an error since this does not make sense.
+				if !privateServiceConnection["is_manual_connection"].(bool) && privateServiceConnection["request_message"].(string) != "" {
+					return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`, name)
+				}
+
+				// If this is a manual connection and the message isn't set return an error.
+				if privateServiceConnection["is_manual_connection"].(bool) && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
+					return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
+				}
+			}
+			return nil
+		},
 	}
 }
 
@@ -306,10 +324,6 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	defer cancel()
 
 	id := privateendpoints.NewPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	if err := validatePrivateEndpointSettings(d); err != nil {
-		return fmt.Errorf("validating the configuration for %s: %+v", id, err)
-	}
 
 	existing, err := client.Get(ctx, id, privateendpoints.DefaultGetOperationOptions())
 	if err != nil {
@@ -446,7 +460,7 @@ func getCosmosDbResIdInPrivateServiceConnections(p *privateendpoints.PrivateEndp
 			continue
 		}
 		id := *l.Properties.PrivateLinkServiceId
-		if _, err := cosmosParse.DatabaseAccountID(id); err == nil {
+		if _, err := cosmosdb.ParseDatabaseAccountID(id); err == nil {
 			_, ok := exists[id]
 			if !ok {
 				ids = append(ids, id)
@@ -459,7 +473,7 @@ func getCosmosDbResIdInPrivateServiceConnections(p *privateendpoints.PrivateEndp
 			continue
 		}
 		id := *l.Properties.PrivateLinkServiceId
-		if _, err := cosmosParse.DatabaseAccountID(id); err == nil {
+		if _, err := cosmosdb.ParseDatabaseAccountID(id); err == nil {
 			_, ok := exists[id]
 			if !ok {
 				ids = append(ids, id)
@@ -481,10 +495,6 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	id, err := privateendpoints.ParsePrivateEndpointID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	if err := validatePrivateEndpointSettings(d); err != nil {
-		return fmt.Errorf("validating the configuration for %s: %+v", id, err)
 	}
 
 	// Ensure we don't overwrite the existing ApplicationSecurityGroups
@@ -1147,27 +1157,6 @@ func flattenPrivateDnsZoneGroupRecordSets(input *[]privatednszonegroups.RecordSe
 	}
 
 	return output
-}
-
-func validatePrivateEndpointSettings(d *pluginsdk.ResourceData) error {
-	privateServiceConnections := d.Get("private_service_connection").([]interface{})
-
-	for _, psc := range privateServiceConnections {
-		privateServiceConnection := psc.(map[string]interface{})
-		name := privateServiceConnection["name"].(string)
-
-		// If this is not a manual connection and the message is set return an error since this does not make sense.
-		if !privateServiceConnection["is_manual_connection"].(bool) && privateServiceConnection["request_message"].(string) != "" {
-			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`, name)
-		}
-
-		// If this is a manual connection and the message isn't set return an error.
-		if privateServiceConnection["is_manual_connection"].(bool) && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
-			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
-		}
-	}
-
-	return nil
 }
 
 // normalize the PrivateConnectionId due to the casing change at service side

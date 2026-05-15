@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -727,6 +726,32 @@ func TestAccCosmosDBAccount_capabilities_EnableNoSQLVectorSearch(t *testing.T) {
 
 func TestAccCosmosDBAccount_capabilities_EnableNoSQLFullTextSearch(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableNoSQLFullTextSearch"})
+}
+
+func TestAccCosmosDBAccount_capabilities_EnableFabricNetworkAclBypass(t *testing.T) {
+	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableFabricNetworkAclBypass"})
+}
+
+func TestAccCosmosDBAccount_capabilities_EnableFabricNetworkAclBypassAdd(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelStrong),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableFabricNetworkAclBypass"}),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {
@@ -1461,17 +1486,17 @@ func TestAccCosmosDBAccount_withoutMaxAgeInSeconds(t *testing.T) {
 }
 
 func (r CosmosDBAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DatabaseAccountID(state.ID)
+	id, err := cosmosdb.ParseDatabaseAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.DatabaseClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Cosmos.CosmosDBClient.DatabaseAccountsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Cosmos Database (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (CosmosDBAccountResource) basic(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {

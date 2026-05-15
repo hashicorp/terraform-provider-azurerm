@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/restorables"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -30,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -73,6 +73,7 @@ const (
 	databaseAccountCapabilitiesEnableNoSqlFullTextSearch         databaseAccountCapabilities = "EnableNoSQLFullTextSearch"
 	databaseAccountCapabilitiesEnableTtlOnCustomPath             databaseAccountCapabilities = "EnableTtlOnCustomPath"
 	databaseAccountCapabilitiesEnablePartialUniqueIndex          databaseAccountCapabilities = "EnablePartialUniqueIndex"
+	databaseAccountCapabilitiesEnableFabricNetworkAclBypass      databaseAccountCapabilities = "EnableFabricNetworkAclBypass"
 )
 
 /*
@@ -94,6 +95,7 @@ EnableMongoRoleBasedAccessControl : MongoDB
 EnableUniqueCompoundNestedDocs : 	MongoDB
 EnableTtlOnCustomPath:              MongoDB
 EnablePartialUniqueIndex:           MongoDB
+EnableFabricNetworkAclBypass:    	GlobalDocumentDB
 */
 var capabilitiesToKindMap = map[string]interface{}{
 	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo)):                       []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB))},
@@ -115,6 +117,7 @@ var capabilitiesToKindMap = map[string]interface{}{
 	strings.ToLower(string(databaseAccountCapabilitiesDeleteAllItemsByPartitionKey)):      []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesDisableRateLimitingResponses)):      []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36)):    []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableFabricNetworkAclBypass)):      []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB))},
 }
 
 // If the consistency policy of the Cosmos DB Database Account is not bounded staleness,
@@ -180,7 +183,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 		),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DatabaseAccountID(id)
+			_, err := cosmosdb.ParseDatabaseAccountID(id)
 			return err
 		}),
 
@@ -441,6 +444,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								string(databaseAccountCapabilitiesEnableNoSqlFullTextSearch),
 								string(databaseAccountCapabilitiesEnableTtlOnCustomPath),
 								string(databaseAccountCapabilitiesEnablePartialUniqueIndex),
+								string(databaseAccountCapabilitiesEnableFabricNetworkAclBypass),
 							}, false),
 						},
 					},
@@ -591,7 +595,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.RestorableDatabaseAccountID,
+							ValidateFunc: restorables.ValidateRestorableDatabaseAccountID,
 						},
 
 						"restore_timestamp_in_utc": {
@@ -2174,6 +2178,7 @@ func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]cosmosdb.Capa
 		strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)),
 		strings.ToLower(string(databaseAccountCapabilitiesEnableTtlOnCustomPath)),
 		strings.ToLower(string(databaseAccountCapabilitiesEnablePartialUniqueIndex)),
+		strings.ToLower(string(databaseAccountCapabilitiesEnableFabricNetworkAclBypass)),
 	}
 
 	// The feedback from service team: capabilities that can be removed from an existing account
