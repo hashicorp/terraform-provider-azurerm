@@ -34,14 +34,14 @@ func TestAccPlaywrightWorkspace_list_basic(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast(listResourceAddress, 3),
+					querycheck.ExpectLengthAtLeast(listResourceAddress, 2),
 				},
 			},
 			{
 				Query:  true,
 				Config: r.basicQueryByResourceGroupName(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast(listResourceAddress, 3),
+					querycheck.ExpectLengthAtLeast(listResourceAddress, 2),
 				},
 			},
 		},
@@ -53,7 +53,7 @@ func (r PlaywrightWorkspaceResource) basicList(data acceptance.TestData) string 
 %s
 
 resource "azurerm_playwright_workspace" "test" {
-  count = 3
+  count = 2
 
   name                = "acctest-pww-${count.index}-%d"
   resource_group_name = azurerm_resource_group.test.name
