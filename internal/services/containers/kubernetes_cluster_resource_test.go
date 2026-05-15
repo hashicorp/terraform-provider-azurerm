@@ -1443,12 +1443,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%[1]d"
 
   default_node_pool {
-    name                        = "default"
-    node_count                  = 1
-    vm_size                     = "Standard_D2s_v3"
-    vnet_subnet_id              = azurerm_subnet.node.id
-    pod_subnet_id               = azurerm_subnet.pod.id
-    pod_ip_allocation_mode      = "%[3]s"
+    name                   = "default"
+    node_count             = 1
+    vm_size                = "Standard_D2s_v3"
+    vnet_subnet_id         = azurerm_subnet.node.id
+    pod_subnet_id          = azurerm_subnet.pod.id
+    pod_ip_allocation_mode = "%[3]s"
     upgrade_settings {
       max_surge = "10%%"
     }
