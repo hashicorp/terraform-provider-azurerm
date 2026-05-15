@@ -26,7 +26,6 @@ var services = mapOf(
         "cognitive" to "Cognitive Services",
         "communication" to "Communication",
         "compute" to "Compute",
-        "computefleet" to "Compute Fleet",
         "confidentialledger" to "Confidential Ledger",
         "connections" to "Connections",
         "consumption" to "Consumption",

@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/computefleet"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption"
@@ -163,7 +162,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		communication.Registration{},
 		compute.Registration{},
 		connections.Registration{},
-		computefleet.Registration{},
 		consumption.Registration{},
 		containerapps.Registration{},
 		cosmos.Registration{},
@@ -375,7 +373,6 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		cognitive.Registration{},
 		communication.Registration{},
 		compute.Registration{},
-		computefleet.Registration{},
 		confidentialledger.Registration{},
 		connections.Registration{},
 		consumption.Registration{},
