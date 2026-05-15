@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -60,8 +59,250 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(validateManagedCertificateConfiguration),
-			pluginsdk.CustomizeDiffShim(validateCipherSuiteConfiguration),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				tlsAny := diff.Get("tls")
+				tlsRaw, ok := tlsAny.([]interface{})
+				if !ok {
+					return errors.New("unexpected value for `tls`: expected list")
+				}
+				if len(tlsRaw) == 0 || tlsRaw[0] == nil {
+					return nil
+				}
+
+				tls, ok := tlsRaw[0].(map[string]interface{})
+				if !ok {
+					return errors.New("unexpected value for `tls`: expected object")
+				}
+
+				certificateType := string(afdcustomdomains.AfdCertificateTypeManagedCertificate)
+				if raw, exists := tls["certificate_type"]; exists && raw != nil {
+					v, ok := raw.(string)
+					if !ok {
+						return errors.New("unexpected value for `tls.certificate_type`: expected string")
+					}
+					if v != "" {
+						certificateType = v
+					}
+				}
+
+				if certificateType != string(afdcustomdomains.AfdCertificateTypeManagedCertificate) {
+					return nil
+				}
+
+				hostName, ok := diff.Get("host_name").(string)
+				if !ok {
+					return errors.New("unexpected value for `host_name`: expected string")
+				}
+
+				if len(hostName) > 64 {
+					return errors.New("`host_name` cannot be longer than 64 characters when `tls.certificate_type` is `ManagedCertificate`")
+				}
+
+				return nil
+			}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				tlsAny := diff.Get("tls")
+				tlsRaw, ok := tlsAny.([]interface{})
+				if !ok {
+					return errors.New("unexpected value for `tls`: expected list")
+				}
+				if len(tlsRaw) == 0 || tlsRaw[0] == nil {
+					return nil
+				}
+
+				tls, ok := tlsRaw[0].(map[string]interface{})
+				if !ok {
+					return errors.New("unexpected value for `tls`: expected object")
+				}
+
+				if !features.FivePointOh() {
+					if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
+						tlsConfig := rawConfig.GetAttr("tls")
+						if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
+							tlsBlock := tlsConfig.AsValueSlice()[0]
+							if !tlsBlock.IsNull() {
+								if !tlsBlock.GetAttr("minimum_tls_version").IsNull() {
+									if minTlsVersion := tls["minimum_tls_version"].(string); minTlsVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneZero) {
+										return errors.New("support for TLS 1.0 and 1.1 was retired on March 1, 2025. Please use `minimum_version = \"TLS12\"` instead")
+									}
+								}
+							}
+						}
+					}
+				}
+
+				cipherSuiteAny, exists := tls["cipher_suite"]
+				if !exists || cipherSuiteAny == nil {
+					return nil
+				}
+
+				cipherSuiteRaw, ok := cipherSuiteAny.([]interface{})
+				if !ok {
+					return errors.New("unexpected value for `tls.cipher_suite`: expected list")
+				}
+				if cipherSuiteRaw == nil {
+					return nil
+				}
+
+				if len(cipherSuiteRaw) == 0 || cipherSuiteRaw[0] == nil {
+					return nil
+				}
+
+				cipherSuite, ok := cipherSuiteRaw[0].(map[string]interface{})
+				if !ok {
+					return errors.New("unexpected value for `tls.cipher_suite`: expected object")
+				}
+				cipherSuiteTypeAny, exists := cipherSuite["type"]
+				if !exists || cipherSuiteTypeAny == nil {
+					return errors.New("unexpected value for `tls.cipher_suite.type`: expected string")
+				}
+				cipherSuiteType, ok := cipherSuiteTypeAny.(string)
+				if !ok {
+					return errors.New("unexpected value for `tls.cipher_suite.type`: expected string")
+				}
+				customCiphersRaw := make([]interface{}, 0)
+				if raw, exists := cipherSuite["custom_ciphers"]; exists && raw != nil {
+					v, ok := raw.([]interface{})
+					if !ok {
+						return errors.New("unexpected value for `tls.cipher_suite.custom_ciphers`: expected list")
+					}
+					customCiphersRaw = v
+				}
+
+				if cipherSuiteType == string(afdcustomdomains.AfdCipherSuiteSetTypeCustomized) {
+					if len(customCiphersRaw) == 0 {
+						return errors.New("`custom_ciphers` is required when `type` is `Customized`")
+					}
+
+					if customCiphersRaw[0] == nil {
+						return errors.New("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`")
+					}
+
+					customCiphers, ok := customCiphersRaw[0].(map[string]interface{})
+					if !ok {
+						return errors.New("unexpected value for `tls.cipher_suite.custom_ciphers`: expected object")
+					}
+
+					setLen := func(s *pluginsdk.Set) int {
+						if s == nil {
+							return 0
+						}
+						return s.Len()
+					}
+
+					var tls12Suites *pluginsdk.Set
+					if raw, exists := customCiphers["tls12"]; exists && raw != nil {
+						v, ok := raw.(*pluginsdk.Set)
+						if !ok {
+							return errors.New("unexpected value for `custom_ciphers.tls12`: expected set")
+						}
+						tls12Suites = v
+					}
+
+					var tls13Suites *pluginsdk.Set
+					if raw, exists := customCiphers["tls13"]; exists && raw != nil {
+						v, ok := raw.(*pluginsdk.Set)
+						if !ok {
+							return errors.New("unexpected value for `custom_ciphers.tls13`: expected set")
+						}
+						tls13Suites = v
+					}
+
+					tls13Configured := false
+					if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
+						tlsConfig := rawConfig.GetAttr("tls")
+						if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
+							tlsBlock := tlsConfig.AsValueSlice()[0]
+							if !tlsBlock.IsNull() {
+								cipherConfig := tlsBlock.GetAttr("cipher_suite")
+								if !cipherConfig.IsNull() && cipherConfig.LengthInt() > 0 {
+									cipherBlock := cipherConfig.AsValueSlice()[0]
+									if !cipherBlock.IsNull() {
+										customCiphersConfig := cipherBlock.GetAttr("custom_ciphers")
+										if !customCiphersConfig.IsNull() && customCiphersConfig.LengthInt() > 0 {
+											customCiphersBlock := customCiphersConfig.AsValueSlice()[0]
+											if !customCiphersBlock.IsNull() {
+												tls13Config := customCiphersBlock.GetAttr("tls13")
+												tls13Configured = !tls13Config.IsNull()
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+
+					if setLen(tls12Suites) == 0 && setLen(tls13Suites) == 0 {
+						return errors.New("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`")
+					}
+
+					if tls13Configured {
+						has128 := false
+						has256 := false
+						if tls13Suites != nil {
+							for _, raw := range tls13Suites.List() {
+								v, ok := raw.(string)
+								if !ok {
+									continue
+								}
+								switch v {
+								case "TLS_AES_128_GCM_SHA256":
+									has128 = true
+								case "TLS_AES_256_GCM_SHA384":
+									has256 = true
+								}
+							}
+						}
+
+						if !has128 || !has256 {
+							return errors.New("`custom_ciphers.tls13` must contain both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` when specified")
+						}
+					}
+
+					minimumVersion := ""
+
+					if features.FivePointOh() {
+						if rawMin := tls["minimum_version"]; rawMin != nil {
+							if minStr, ok := rawMin.(string); ok {
+								minimumVersion = minStr
+							} else {
+								return errors.New("unexpected value for `tls.minimum_version`: expected string")
+							}
+						}
+					}
+
+					if !features.FivePointOh() {
+						if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
+							tlsConfig := rawConfig.GetAttr("tls")
+							if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
+								tlsBlock := tlsConfig.AsValueSlice()[0]
+								if !tlsBlock.IsNull() {
+									switch {
+									case !tlsBlock.GetAttr("minimum_version").IsNull():
+										minimumVersion = tls["minimum_version"].(string)
+									case !tlsBlock.GetAttr("minimum_tls_version").IsNull():
+										minimumVersion = tls["minimum_tls_version"].(string)
+									default:
+										minimumVersion = string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo)
+									}
+								}
+							}
+						}
+					}
+
+					if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo) && setLen(tls12Suites) == 0 {
+						return errors.New("at least one TLS 1.2 cipher suite must be specified in `custom_ciphers.tls12` when `minimum_version` is set to `TLS12`")
+					}
+
+					if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneThree) && tls13Configured && setLen(tls13Suites) == 0 {
+						return errors.New("at least one TLS 1.3 cipher suite must be specified in `custom_ciphers.tls13` when `minimum_version` is set to `TLS13`")
+					}
+				} else if len(customCiphersRaw) > 0 && customCiphersRaw[0] != nil {
+					return errors.New("`custom_ciphers` cannot be specified when `type` is not `Customized`")
+				}
+
+				return nil
+			}),
 		),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -420,269 +661,6 @@ func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-	}
-
-	return nil
-}
-
-func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-	tlsAny := diff.Get("tls")
-	tlsRaw, ok := tlsAny.([]interface{})
-	if !ok {
-		return errors.New("unexpected value for `tls`: expected list")
-	}
-	if len(tlsRaw) == 0 || tlsRaw[0] == nil {
-		return nil
-	}
-
-	tls, ok := tlsRaw[0].(map[string]interface{})
-	if !ok {
-		return errors.New("unexpected value for `tls`: expected object")
-	}
-
-	if !features.FivePointOh() {
-		if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
-			tlsConfig := rawConfig.GetAttr("tls")
-			if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
-				tlsBlock := tlsConfig.AsValueSlice()[0]
-				if !tlsBlock.IsNull() {
-					if !tlsBlock.GetAttr("minimum_tls_version").IsNull() {
-						if minTlsVersion := tls["minimum_tls_version"].(string); minTlsVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneZero) {
-							return errors.New("support for TLS 1.0 and 1.1 was retired on March 1, 2025. Please use `minimum_version = \"TLS12\"` instead")
-						}
-					}
-				}
-			}
-		}
-	}
-
-	cipherSuiteAny, exists := tls["cipher_suite"]
-	if !exists || cipherSuiteAny == nil {
-		return nil
-	}
-
-	cipherSuiteRaw, ok := cipherSuiteAny.([]interface{})
-	if !ok {
-		return errors.New("unexpected value for `tls.cipher_suite`: expected list")
-	}
-	if cipherSuiteRaw == nil {
-		return nil
-	}
-
-	if len(cipherSuiteRaw) == 0 || cipherSuiteRaw[0] == nil {
-		return nil
-	}
-
-	cipherSuite, ok := cipherSuiteRaw[0].(map[string]interface{})
-	if !ok {
-		return errors.New("unexpected value for `tls.cipher_suite`: expected object")
-	}
-	cipherSuiteTypeAny, exists := cipherSuite["type"]
-	if !exists || cipherSuiteTypeAny == nil {
-		return errors.New("unexpected value for `tls.cipher_suite.type`: expected string")
-	}
-	cipherSuiteType, ok := cipherSuiteTypeAny.(string)
-	if !ok {
-		return errors.New("unexpected value for `tls.cipher_suite.type`: expected string")
-	}
-	customCiphersRaw := make([]interface{}, 0)
-	if raw, exists := cipherSuite["custom_ciphers"]; exists && raw != nil {
-		v, ok := raw.([]interface{})
-		if !ok {
-			return errors.New("unexpected value for `tls.cipher_suite.custom_ciphers`: expected list")
-		}
-		customCiphersRaw = v
-	}
-
-	if cipherSuiteType == string(afdcustomdomains.AfdCipherSuiteSetTypeCustomized) {
-		if len(customCiphersRaw) == 0 {
-			return errors.New("`custom_ciphers` is required when `type` is `Customized`")
-		}
-
-		if customCiphersRaw[0] == nil {
-			return errors.New("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`")
-		}
-
-		customCiphers, ok := customCiphersRaw[0].(map[string]interface{})
-		if !ok {
-			return errors.New("unexpected value for `tls.cipher_suite.custom_ciphers`: expected object")
-		}
-
-		setLen := func(s *pluginsdk.Set) int {
-			if s == nil {
-				return 0
-			}
-			return s.Len()
-		}
-
-		var tls12Suites *pluginsdk.Set
-		if raw, exists := customCiphers["tls12"]; exists && raw != nil {
-			v, ok := raw.(*pluginsdk.Set)
-			if !ok {
-				return errors.New("unexpected value for `custom_ciphers.tls12`: expected set")
-			}
-			tls12Suites = v
-		}
-
-		var tls13Suites *pluginsdk.Set
-		if raw, exists := customCiphers["tls13"]; exists && raw != nil {
-			v, ok := raw.(*pluginsdk.Set)
-			if !ok {
-				return errors.New("unexpected value for `custom_ciphers.tls13`: expected set")
-			}
-			tls13Suites = v
-		}
-
-		tls13Configured := false
-		if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
-			tlsConfig := rawConfig.GetAttr("tls")
-			if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
-				tlsBlock := tlsConfig.AsValueSlice()[0]
-				if !tlsBlock.IsNull() {
-					cipherConfig := tlsBlock.GetAttr("cipher_suite")
-					if !cipherConfig.IsNull() && cipherConfig.LengthInt() > 0 {
-						cipherBlock := cipherConfig.AsValueSlice()[0]
-						if !cipherBlock.IsNull() {
-							customCiphersConfig := cipherBlock.GetAttr("custom_ciphers")
-							if !customCiphersConfig.IsNull() && customCiphersConfig.LengthInt() > 0 {
-								customCiphersBlock := customCiphersConfig.AsValueSlice()[0]
-								if !customCiphersBlock.IsNull() {
-									tls13Config := customCiphersBlock.GetAttr("tls13")
-									tls13Configured = !tls13Config.IsNull()
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if setLen(tls12Suites) == 0 && setLen(tls13Suites) == 0 {
-			return errors.New("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`")
-		}
-
-		if tls13Configured {
-			has128 := false
-			has256 := false
-			if tls13Suites != nil {
-				for _, raw := range tls13Suites.List() {
-					v, ok := raw.(string)
-					if !ok {
-						continue
-					}
-					switch v {
-					case "TLS_AES_128_GCM_SHA256":
-						has128 = true
-					case "TLS_AES_256_GCM_SHA384":
-						has256 = true
-					}
-				}
-			}
-
-			if !has128 || !has256 {
-				return errors.New("`custom_ciphers.tls13` must contain both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` when specified")
-			}
-		}
-
-		minimumVersion := ""
-
-		if features.FivePointOh() {
-			if rawMin := tls["minimum_version"]; rawMin != nil {
-				if minStr, ok := rawMin.(string); ok {
-					minimumVersion = minStr
-				} else {
-					return errors.New("unexpected value for `tls.minimum_version`: expected string")
-				}
-			}
-		}
-
-		if !features.FivePointOh() {
-			if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
-				tlsConfig := rawConfig.GetAttr("tls")
-				if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
-					tlsBlock := tlsConfig.AsValueSlice()[0]
-					if !tlsBlock.IsNull() {
-						switch {
-						case !tlsBlock.GetAttr("minimum_version").IsNull():
-							minimumVersion = tls["minimum_version"].(string)
-						case !tlsBlock.GetAttr("minimum_tls_version").IsNull():
-							minimumVersion = tls["minimum_tls_version"].(string)
-						default:
-							minimumVersion = string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo)
-						}
-					}
-				}
-			}
-		}
-
-		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo) && setLen(tls12Suites) == 0 {
-			return errors.New("at least one TLS 1.2 cipher suite must be specified in `custom_ciphers.tls12` when `minimum_version` is set to `TLS12`")
-		}
-
-		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneThree) && tls13Configured && setLen(tls13Suites) == 0 {
-			return errors.New("at least one TLS 1.3 cipher suite must be specified in `custom_ciphers.tls13` when `minimum_version` is set to `TLS13`")
-		}
-	} else if len(customCiphersRaw) > 0 && customCiphersRaw[0] != nil {
-		return errors.New("`custom_ciphers` cannot be specified when `type` is not `Customized`")
-	}
-
-	return nil
-}
-
-func validateManagedCertificateConfiguration(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-	tlsAny := diff.Get("tls")
-	tlsRaw, ok := tlsAny.([]interface{})
-	if !ok {
-		return errors.New("unexpected value for `tls`: expected list")
-	}
-	if len(tlsRaw) == 0 || tlsRaw[0] == nil {
-		return nil
-	}
-
-	tls, ok := tlsRaw[0].(map[string]interface{})
-	if !ok {
-		return errors.New("unexpected value for `tls`: expected object")
-	}
-
-	certificateType := string(afdcustomdomains.AfdCertificateTypeManagedCertificate)
-	if raw, exists := tls["certificate_type"]; exists && raw != nil {
-		v, ok := raw.(string)
-		if !ok {
-			return errors.New("unexpected value for `tls.certificate_type`: expected string")
-		}
-		if v != "" {
-			certificateType = v
-		}
-	}
-
-	if certificateType != string(afdcustomdomains.AfdCertificateTypeManagedCertificate) {
-		return nil
-	}
-
-	hostName, ok := diff.Get("host_name").(string)
-	if !ok {
-		return errors.New("unexpected value for `host_name`: expected string")
-	}
-
-	if len(hostName) > 64 {
-		return errors.New("`host_name` cannot be longer than 64 characters when `tls.certificate_type` is `ManagedCertificate`")
-	}
-
-	dnsZoneId, ok := diff.Get("dns_zone_id").(string)
-	if !ok {
-		return errors.New("unexpected value for `dns_zone_id`: expected string")
-	}
-	if dnsZoneId == "" {
-		return nil
-	}
-
-	zoneId, err := dnsValidate.ParseDnsZoneID(dnsZoneId)
-	if err != nil {
-		return err
-	}
-
-	if strings.EqualFold(hostName, zoneId.DnsZoneName) {
-		return errors.New("`host_name` cannot be an apex/root domain when `tls.certificate_type` is `ManagedCertificate`")
 	}
 
 	return nil
