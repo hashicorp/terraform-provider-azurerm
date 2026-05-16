@@ -367,12 +367,12 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   virtual_machine_sizes_profile {
-    name = "Standard_F1alds_v7"
+    name = "Standard_F1as_v7"
     rank = 0
   }
 
   virtual_machine_sizes_profile {
-    name = "Standard_F1as_v7"
+    name = "Standard_F1alds_v7"
     rank = 1
   }
 
@@ -432,7 +432,7 @@ resource "azurerm_compute_fleet" "test" {
     Hello = "There"
     World = "Example"
   }
-  zones = ["1", "2", "3"]
+  zones = ["1"]
 }
 	`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -564,7 +564,7 @@ resource "azurerm_compute_fleet" "test" {
     Hello = "ThereUpdate"
     World = "ExampleUpdate"
   }
-  zones = ["1", "2", "3"]
+  zones = ["1"]
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
