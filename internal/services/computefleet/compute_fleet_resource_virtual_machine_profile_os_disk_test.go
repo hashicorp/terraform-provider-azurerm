@@ -170,7 +170,7 @@ resource "azurerm_compute_fleet" "test" {
       diff_disk_placement       = "ResourceDisk"
       disk_size_in_gib          = 30
       storage_account_type      = "Premium_LRS"
-      security_encryption_type  = "SecurityEncryptionTypesNonPersistedTPM"
+      security_encryption_type  = "NonPersistedTPM"
       disk_encryption_set_id    = azurerm_disk_encryption_set.test.id
       write_accelerator_enabled = false
     }
