@@ -258,8 +258,8 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	ddosProtectionPlanId, planOk := d.GetOk("ddos_protection_plan_id")
 	if planOk {
-		if !strings.EqualFold(ddosProtectionMode, "enabled") {
-			return fmt.Errorf("ddos protection plan id can only be set when ddos protection is enabled")
+		if !strings.EqualFold(ddosProtectionMode, string(publicipaddresses.DdosSettingsProtectionModeEnabled)) {
+			return errors.New("ddos protection plan id can only be set when ddos protection is enabled")
 		}
 		publicIp.Properties.DdosSettings.DdosProtectionPlan = &publicipaddresses.SubResource{
 			Id: pointer.To(ddosProtectionPlanId.(string)),
@@ -370,8 +370,8 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			payload.Properties.DdosSettings = &publicipaddresses.DdosSettings{}
 		}
 		if ddosProtectionPlanId, planOk := d.GetOk("ddos_protection_plan_id"); planOk {
-			if !strings.EqualFold(string(pointer.From(payload.Properties.DdosSettings.ProtectionMode)), "enabled") {
-				return fmt.Errorf("ddos protection plan id can only be set when ddos protection is enabled")
+			if !strings.EqualFold(string(pointer.From(payload.Properties.DdosSettings.ProtectionMode)), string(publicipaddresses.DdosSettingsProtectionModeEnabled)) {
+				return errors.New("ddos protection plan id can only be set when ddos protection is enabled")
 			}
 			payload.Properties.DdosSettings.DdosProtectionPlan = &publicipaddresses.SubResource{
 				Id: pointer.To(ddosProtectionPlanId.(string)),
