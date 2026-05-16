@@ -98,6 +98,8 @@ The following arguments are supported:
 
 ~> **Note:** `service_plan_id` should only be specified if it differs from the Service Plan of the associated Linux Web App.
 
+* `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
+
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
@@ -795,6 +797,14 @@ A `status_code` block supports the following:
 * `sub_status` - (Optional) The Request Sub Status of the Status Code.
 
 * `win32_status_code` - (Optional) The Win32 Status Code of the Request.
+
+---
+
+A `sticky_settings` block supports the following:
+
+* `app_setting_names` - (Optional) A list of `app_setting` names that should be Sticky to this Linux Web App Slot.
+
+* `connection_string_names` - (Optional) A list of `connection_string` names that should be Sticky to this Linux Web App Slot.
 
 ---
 
