@@ -72,6 +72,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
+		RetentionPolicyListResource{},
 		SchedulerListResource{},
 		TaskHubListResource{},
 	}

@@ -4,24 +4,42 @@
 package durabletask_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/querycheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
 func TestAccDurableTaskHubList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
 	r := TaskHubResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: taskHubListTestConfig_basic(data),
+	resource.Test(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basicList(data),
+			},
+			{
+				Query:  true,
+				Config: r.basicListQuery(data),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLength("azurerm_durable_task_hub.list", 2),
+				},
+			},
 		},
 	})
 }
 
-func taskHubListTestConfig_basic(data acceptance.TestData) string {
+func (r TaskHubResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -50,4 +68,15 @@ resource "azurerm_durable_task_hub" "test2" {
   scheduler_id = azurerm_durable_task_scheduler.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (r TaskHubResource) basicListQuery(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+list "azurerm_durable_task_hub" "list" {
+  provider = azurerm
+  config {
+    scheduler_id = "/subscriptions/%s/resourceGroups/acctestRG-durabletask-%d/providers/Microsoft.DurableTask/schedulers/acctestdts%s"
+  }
+}
+`, data.Subscriptions.Primary, data.RandomInteger, data.RandomString)
 }

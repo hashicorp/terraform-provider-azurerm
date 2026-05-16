@@ -108,6 +108,28 @@ func TestAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
 	})
 }
 
+func TestAccDurableTaskScheduler_dedicatedRemoveCapacity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
+	r := SchedulerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dedicatedWithCapacity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dedicatedWithoutCapacity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDurableTaskScheduler_consumptionWithCapacityFails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := SchedulerResource{}
@@ -228,6 +250,21 @@ resource "azurerm_durable_task_scheduler" "test" {
   sku_name            = "Dedicated"
   ip_allow_list       = ["0.0.0.0/0"]
   capacity            = 2
+}
+`, template, data.RandomString)
+}
+
+func (r SchedulerResource) dedicatedWithoutCapacity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_durable_task_scheduler" "test" {
+  name                = "acctestdts%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Dedicated"
+  ip_allow_list       = ["0.0.0.0/0"]
 }
 `, template, data.RandomString)
 }

@@ -244,6 +244,28 @@ func (r SchedulerResource) Update() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("Updating %s", id)
 
+			if metadata.ResourceData.HasChange("capacity") {
+				rawCapacity := metadata.ResourceData.GetRawConfig().AsValueMap()["capacity"]
+				if rawCapacity.IsNull() {
+					properties := schedulers.Scheduler{
+						Location: location.Normalize(model.Location),
+						Properties: &schedulers.SchedulerProperties{
+							Sku: schedulers.SchedulerSku{
+								Name: schedulers.SchedulerSkuName(model.SkuName),
+							},
+							IPAllowlist: model.IpAllowList,
+						},
+						Tags: &model.Tags,
+					}
+
+					if err := client.CreateOrUpdateThenPoll(ctx, *id, properties); err != nil {
+						return fmt.Errorf("updating %s: %+v", id, err)
+					}
+
+					return nil
+				}
+			}
+
 			properties := schedulers.SchedulerUpdate{
 				Properties: &schedulers.SchedulerPropertiesUpdate{},
 			}
