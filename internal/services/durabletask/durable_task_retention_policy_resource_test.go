@@ -93,10 +93,6 @@ func TestAccDurableTaskRetentionPolicy_update(t *testing.T) {
 	})
 }
 
-func (r DurableTaskRetentionPolicyIdentityResource) basic(data acceptance.TestData) string {
-	return DurableTaskRetentionPolicyResource{}.basic(data)
-}
-
 func (r DurableTaskRetentionPolicyListResource) basic(data acceptance.TestData) string {
 	return DurableTaskRetentionPolicyResource{}.basic(data)
 }

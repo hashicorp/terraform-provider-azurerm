@@ -48,10 +48,6 @@ func TestAccDurableTaskHub_requiresImport(t *testing.T) {
 	})
 }
 
-func (r DurableTaskHubIdentityResource) basic(data acceptance.TestData) string {
-	return DurableTaskHubResource{}.basic(data)
-}
-
 func (r DurableTaskHubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := taskhubs.ParseTaskHubID(state.ID)
 	if err != nil {
