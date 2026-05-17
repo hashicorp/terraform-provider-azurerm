@@ -130,7 +130,6 @@ resource "azurerm_durable_task_scheduler" "test" {
 }
 
 func (r RetentionPolicyResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -141,11 +140,10 @@ resource "azurerm_durable_task_retention_policy" "test" {
     retention_period_in_days = 30
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func (r RetentionPolicyResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -156,11 +154,10 @@ resource "azurerm_durable_task_retention_policy" "import" {
     retention_period_in_days = 30
   }
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r RetentionPolicyResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -182,5 +179,5 @@ resource "azurerm_durable_task_retention_policy" "test" {
     orchestration_state      = "Terminated"
   }
 }
-`, template)
+`, r.template(data))
 }
