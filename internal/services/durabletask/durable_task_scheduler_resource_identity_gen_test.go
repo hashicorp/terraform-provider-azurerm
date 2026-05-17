@@ -15,7 +15,7 @@ import (
 
 func TestAccDurableTaskScheduler_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
-	r := SchedulerResource{}
+	r := DurableTaskSchedulerResource{}
 
 	checkedFields := map[string]struct{}{
 		"subscription_id":     {},

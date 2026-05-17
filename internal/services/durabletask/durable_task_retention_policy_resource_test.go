@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type RetentionPolicyResource struct{}
+type DurableTaskRetentionPolicyResource struct{}
 
 func TestAccDurableTaskRetentionPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
-	r := RetentionPolicyResource{}
+	r := DurableTaskRetentionPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccDurableTaskRetentionPolicy_basic(t *testing.T) {
 
 func TestAccDurableTaskRetentionPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
-	r := RetentionPolicyResource{}
+	r := DurableTaskRetentionPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccDurableTaskRetentionPolicy_requiresImport(t *testing.T) {
 
 func TestAccDurableTaskRetentionPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
-	r := RetentionPolicyResource{}
+	r := DurableTaskRetentionPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccDurableTaskRetentionPolicy_complete(t *testing.T) {
 
 func TestAccDurableTaskRetentionPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
-	r := RetentionPolicyResource{}
+	r := DurableTaskRetentionPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,15 @@ func TestAccDurableTaskRetentionPolicy_update(t *testing.T) {
 	})
 }
 
-func (r RetentionPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DurableTaskRetentionPolicyIdentityResource) basic(data acceptance.TestData) string {
+	return DurableTaskRetentionPolicyResource{}.basic(data)
+}
+
+func (r DurableTaskRetentionPolicyListResource) basic(data acceptance.TestData) string {
+	return DurableTaskRetentionPolicyResource{}.basic(data)
+}
+
+func (r DurableTaskRetentionPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := durabletask.ParseRetentionPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -108,7 +116,7 @@ func (r RetentionPolicyResource) Exists(ctx context.Context, client *clients.Cli
 	return pointer.To(true), nil
 }
 
-func (r RetentionPolicyResource) template(data acceptance.TestData) string {
+func (r DurableTaskRetentionPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -129,7 +137,7 @@ resource "azurerm_durable_task_scheduler" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r RetentionPolicyResource) basic(data acceptance.TestData) string {
+func (r DurableTaskRetentionPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -143,7 +151,7 @@ resource "azurerm_durable_task_retention_policy" "test" {
 `, r.template(data))
 }
 
-func (r RetentionPolicyResource) requiresImport(data acceptance.TestData) string {
+func (r DurableTaskRetentionPolicyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -157,7 +165,7 @@ resource "azurerm_durable_task_retention_policy" "import" {
 `, r.basic(data))
 }
 
-func (r RetentionPolicyResource) complete(data acceptance.TestData) string {
+func (r DurableTaskRetentionPolicyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

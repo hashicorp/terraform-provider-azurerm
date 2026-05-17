@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SchedulerResource struct{}
+type DurableTaskSchedulerResource struct{}
 
 func TestAccDurableTaskScheduler_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
-	r := SchedulerResource{}
+	r := DurableTaskSchedulerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccDurableTaskScheduler_basic(t *testing.T) {
 
 func TestAccDurableTaskScheduler_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
-	r := SchedulerResource{}
+	r := DurableTaskSchedulerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccDurableTaskScheduler_requiresImport(t *testing.T) {
 
 func TestAccDurableTaskScheduler_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
-	r := SchedulerResource{}
+	r := DurableTaskSchedulerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccDurableTaskScheduler_complete(t *testing.T) {
 
 func TestAccDurableTaskScheduler_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
-	r := SchedulerResource{}
+	r := DurableTaskSchedulerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -95,7 +95,7 @@ func TestAccDurableTaskScheduler_update(t *testing.T) {
 
 func TestAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
-	r := SchedulerResource{}
+	r := DurableTaskSchedulerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
 
 func TestAccDurableTaskScheduler_dedicatedRemoveCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
-	r := SchedulerResource{}
+	r := DurableTaskSchedulerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -132,7 +132,7 @@ func TestAccDurableTaskScheduler_dedicatedRemoveCapacity(t *testing.T) {
 
 func TestAccDurableTaskScheduler_consumptionWithCapacityFails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
-	r := SchedulerResource{}
+	r := DurableTaskSchedulerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -142,7 +142,7 @@ func TestAccDurableTaskScheduler_consumptionWithCapacityFails(t *testing.T) {
 	})
 }
 
-func (r SchedulerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DurableTaskSchedulerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := schedulers.ParseSchedulerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -155,7 +155,7 @@ func (r SchedulerResource) Exists(ctx context.Context, client *clients.Client, s
 	return pointer.To(true), nil
 }
 
-func (r SchedulerResource) template(data acceptance.TestData) string {
+func (r DurableTaskSchedulerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -168,7 +168,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r SchedulerResource) basic(data acceptance.TestData) string {
+func (r DurableTaskSchedulerResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -183,7 +183,7 @@ resource "azurerm_durable_task_scheduler" "test" {
 `, template, data.RandomString)
 }
 
-func (r SchedulerResource) requiresImport(data acceptance.TestData) string {
+func (r DurableTaskSchedulerResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -198,7 +198,7 @@ resource "azurerm_durable_task_scheduler" "import" {
 `, template)
 }
 
-func (r SchedulerResource) update(data acceptance.TestData) string {
+func (r DurableTaskSchedulerResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -217,7 +217,7 @@ resource "azurerm_durable_task_scheduler" "test" {
 `, template, data.RandomString)
 }
 
-func (r SchedulerResource) complete(data acceptance.TestData) string {
+func (r DurableTaskSchedulerResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -238,7 +238,7 @@ resource "azurerm_durable_task_scheduler" "test" {
 `, template, data.RandomString)
 }
 
-func (r SchedulerResource) dedicatedWithCapacity(data acceptance.TestData) string {
+func (r DurableTaskSchedulerResource) dedicatedWithCapacity(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -254,7 +254,7 @@ resource "azurerm_durable_task_scheduler" "test" {
 `, template, data.RandomString)
 }
 
-func (r SchedulerResource) dedicatedWithoutCapacity(data acceptance.TestData) string {
+func (r DurableTaskSchedulerResource) dedicatedWithoutCapacity(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -269,7 +269,7 @@ resource "azurerm_durable_task_scheduler" "test" {
 `, template, data.RandomString)
 }
 
-func (r SchedulerResource) consumptionWithCapacity(data acceptance.TestData) string {
+func (r DurableTaskSchedulerResource) consumptionWithCapacity(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

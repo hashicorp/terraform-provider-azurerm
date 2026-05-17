@@ -12,15 +12,17 @@ import (
 	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 )
 
+type DurableTaskHubIdentityResource struct{}
+
 func TestAccDurableTaskHub_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
-	r := TaskHubResource{}
+	r := DurableTaskHubIdentityResource{}
 
 	checkedFields := map[string]struct{}{
-		"subscription_id":     {},
 		"name":                {},
 		"resource_group_name": {},
 		"scheduler_name":      {},
+		"subscription_id":     {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{

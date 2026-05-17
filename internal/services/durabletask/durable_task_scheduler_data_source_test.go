@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type SchedulerDataSource struct{}
+type DurableTaskSchedulerDataSource struct{}
 
 func TestAccDurableTaskSchedulerDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_durable_task_scheduler", "test")
-	r := SchedulerDataSource{}
+	r := DurableTaskSchedulerDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccDurableTaskSchedulerDataSource_basic(t *testing.T) {
 
 func TestAccDurableTaskSchedulerDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_durable_task_scheduler", "test")
-	r := SchedulerDataSource{}
+	r := DurableTaskSchedulerDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -53,8 +53,8 @@ func TestAccDurableTaskSchedulerDataSource_complete(t *testing.T) {
 	})
 }
 
-func (r SchedulerDataSource) basic(data acceptance.TestData) string {
-	template := SchedulerResource{}.basic(data)
+func (r DurableTaskSchedulerDataSource) basic(data acceptance.TestData) string {
+	template := DurableTaskSchedulerResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -65,8 +65,8 @@ data "azurerm_durable_task_scheduler" "test" {
 `, template)
 }
 
-func (r SchedulerDataSource) complete(data acceptance.TestData) string {
-	template := SchedulerResource{}.complete(data)
+func (r DurableTaskSchedulerDataSource) complete(data acceptance.TestData) string {
+	template := DurableTaskSchedulerResource{}.complete(data)
 	return fmt.Sprintf(`
 %s
 

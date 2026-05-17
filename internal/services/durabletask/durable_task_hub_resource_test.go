@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type TaskHubResource struct{}
+type DurableTaskHubResource struct{}
 
 func TestAccDurableTaskHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
-	r := TaskHubResource{}
+	r := DurableTaskHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDurableTaskHub_basic(t *testing.T) {
 
 func TestAccDurableTaskHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
-	r := TaskHubResource{}
+	r := DurableTaskHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +48,11 @@ func TestAccDurableTaskHub_requiresImport(t *testing.T) {
 	})
 }
 
-func (r TaskHubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DurableTaskHubIdentityResource) basic(data acceptance.TestData) string {
+	return DurableTaskHubResource{}.basic(data)
+}
+
+func (r DurableTaskHubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := taskhubs.ParseTaskHubID(state.ID)
 	if err != nil {
 		return nil, err
@@ -61,7 +65,7 @@ func (r TaskHubResource) Exists(ctx context.Context, client *clients.Client, sta
 	return pointer.To(true), nil
 }
 
-func (r TaskHubResource) template(data acceptance.TestData) string {
+func (r DurableTaskHubResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -82,7 +86,7 @@ resource "azurerm_durable_task_scheduler" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r TaskHubResource) basic(data acceptance.TestData) string {
+func (r DurableTaskHubResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -94,7 +98,7 @@ resource "azurerm_durable_task_hub" "test" {
 `, template, data.RandomString)
 }
 
-func (r TaskHubResource) requiresImport(data acceptance.TestData) string {
+func (r DurableTaskHubResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
