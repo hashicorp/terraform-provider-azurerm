@@ -115,6 +115,9 @@ func (r TaskHubResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -154,6 +157,10 @@ func (r TaskHubResource) Read() sdk.ResourceFunc {
 
 			if props := model.Properties; props != nil {
 				state.DashboardUrl = pointer.From(props.DashboardURL)
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

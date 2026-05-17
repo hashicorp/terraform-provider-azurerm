@@ -176,6 +176,9 @@ func (r SchedulerResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -219,6 +222,10 @@ func (r SchedulerResource) Read() sdk.ResourceFunc {
 				state.Capacity = pointer.From(props.Sku.Capacity)
 				state.IpAllowList = props.IPAllowlist
 				state.Endpoint = pointer.From(props.Endpoint)
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

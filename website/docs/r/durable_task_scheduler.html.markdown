@@ -41,8 +41,6 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of the Durable Task Scheduler. Possible values are `Consumption` and `Dedicated`. Changing this forces a new resource to be created.
 
----
-
 * `capacity` - (Optional) The capacity of the Durable Task Scheduler.
 
 ~> **Note:** `capacity` is only applicable when `sku_name` is set to `Dedicated`.

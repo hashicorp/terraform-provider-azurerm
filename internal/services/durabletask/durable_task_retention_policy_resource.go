@@ -148,6 +148,9 @@ func (r RetentionPolicyResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -195,6 +198,10 @@ func (r RetentionPolicyResource) Read() sdk.ResourceFunc {
 					}
 					state.RetentionPolicy = append(state.RetentionPolicy, item)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)
