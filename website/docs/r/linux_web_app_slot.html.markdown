@@ -100,6 +100,10 @@ The following arguments are supported:
 
 ~> **Note:** `service_plan_id` should only be specified if it differs from the Service Plan of the associated Linux Web App.
 
+* `site_container` - (Optional) One or more `site_container` blocks as defined below.
+
+~> **Note:** `site_container` blocks cannot be used when `site_config.0.application_stack` is configured.
+
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
@@ -815,6 +819,58 @@ A `storage_account` block supports the following:
 * `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles` and `AzureBlob`
 
 * `mount_path` - (Optional) The path at which to mount the storage share.
+
+---
+
+A `site_container` block supports the following:
+
+* `image` - (Required) The fully qualified container image (including tag) that should run inside the Web App Slot.
+
+* `name` - (Required) The unique name for this container definition.
+
+-> **Note:** The `name` value must start and end with an alphanumeric character and may contain hyphens.
+
+* `auth_type` - (Optional) The authentication strategy used to pull the image. Possible values are `Anonymous`, `SystemIdentity`, `UserAssigned`, and `UserCredentials`. Defaults to `Anonymous`.
+
+* `environment_variable` - (Optional) One or more `environment_variable` blocks as defined below.
+
+* `is_main` - (Optional) Should this container serve the primary slot traffic? Defaults to `false`.
+
+~> **Note:** Exactly one `site_container` must have `is_main` set to `true`.
+
+* `password_secret` - (Optional) The password to use when `auth_type` is set to `UserCredentials`.
+
+-> **Note:** Azure does not return values supplied to `password_secret`, so Terraform cannot detect drift for this property.
+
+* `startup_command` - (Optional) The command that should be executed when the container starts.
+
+* `target_port` - (Optional) The port exposed by the container image that should receive traffic. Possible values range between `1` and `65535`.
+
+* `user_managed_identity_client_id` - (Optional) The Client ID of the user-assigned managed identity that should be used when `auth_type` is set to `UserAssigned`.
+
+* `username` - (Optional) The username to use when `auth_type` is set to `UserCredentials`.
+
+* `volume_mount` - (Optional) One or more `volume_mount` blocks as defined below.
+
+---
+
+An `environment_variable` block supports the following:
+
+* `app_setting_name` - (Required) The name of an App Setting on the parent Web App Slot whose value is exposed to the container as the environment variable named above. The actual value is resolved from the App Setting at runtime; if the App Setting is not defined the environment variable is set to an empty string.
+
+* `name` - (Required) The name of the environment variable as it appears inside the container.
+
+---
+
+A `volume_mount` block supports the following:
+
+* `container_mount_path` - (Required) The absolute path inside the container where the volume is mounted.
+
+* `data` - (Optional) The opaque data supplied to Azure for the mount. The contents depend on the selected storage option.
+
+* `read_only` - (Optional) Should the mounted volume be read only? Defaults to `false`.
+
+* `volume_sub_path` - (Optional) The path inside the Web App Slot volume that should be exposed to the container.
 
 ---
 

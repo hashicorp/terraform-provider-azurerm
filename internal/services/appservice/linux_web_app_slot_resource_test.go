@@ -36,6 +36,40 @@ func TestAccLinuxWebAppSlot_basic(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_siteContainer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSiteContainers(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withSiteContainersUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebAppSlot_siteContainerWithApplicationStack(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.siteContainerWithApplicationStack(data),
+			ExpectError: regexp.MustCompile("`site_container` cannot be used when `site_config.0.application_stack` is specified"),
+		},
+	})
+}
+
 func TestAccLinuxWebAppSlot_updateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
@@ -1656,6 +1690,98 @@ resource "azurerm_linux_web_app_slot" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, tlsCipherSuiteValue)
+}
+
+func (r LinuxWebAppSlotResource) withSiteContainers(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {}
+
+  site_container {
+    name        = "app"
+    image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+    target_port = "80"
+    is_main     = true
+
+    environment_variable {
+      name             = "EXAMPLE"
+      app_setting_name = "EXAMPLE_INITIAL"
+    }
+  }
+
+  site_container {
+    name        = "sidecar"
+    image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+    target_port = "8080"
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) withSiteContainersUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {}
+
+  site_container {
+    name        = "app"
+    image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+    target_port = "8080"
+    is_main     = true
+
+    environment_variable {
+      name             = "EXAMPLE"
+      app_setting_name = "EXAMPLE_UPDATED"
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) siteContainerWithApplicationStack(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+  }
+
+  site_container {
+    name        = "app"
+    image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+    target_port = "80"
+    is_main     = true
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
 }
 
 func (r LinuxWebAppSlotResource) basicWithTags(data acceptance.TestData) string {
