@@ -57,6 +57,16 @@ func (d SchedulerDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
+		"capacity": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -70,17 +80,7 @@ func (d SchedulerDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"capacity": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
 		"tags": commonschema.TagsDataSource(),
-
-		"endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 	}
 }
 
