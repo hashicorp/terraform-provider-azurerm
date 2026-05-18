@@ -606,7 +606,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
     enabled  = true
   }
@@ -657,7 +657,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
     enabled  = true
   }
@@ -705,7 +705,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
     enabled  = true
   }
@@ -754,7 +754,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
     enabled  = true
   }
@@ -804,7 +804,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
     enabled  = true
   }
@@ -1109,7 +1109,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
     enabled  = true
   }
@@ -1304,7 +1304,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
     enabled  = true
   }

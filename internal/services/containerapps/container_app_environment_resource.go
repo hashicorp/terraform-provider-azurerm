@@ -631,9 +631,9 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 							return errors.New("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
 						}
 
-					case LogsDestinationAzureMonitor, LogsDestinationNone:
+					case LogsDestinationAzureMonitor:
 						if logAnalyticsWorkspaceID != "" {
-							return errors.New("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
+							return errors.New("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or `\"\"`")
 						}
 					}
 				}
