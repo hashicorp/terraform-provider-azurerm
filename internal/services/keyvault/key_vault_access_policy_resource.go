@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -23,6 +24,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+const keyVaultAccessPolicyResourceName = "azurerm_key_vault_access_policy"
 
 func resourceKeyVaultAccessPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -35,6 +38,27 @@ func resourceKeyVaultAccessPolicy() *pluginsdk.Resource {
 			_, err := parse.AccessPolicyID(id)
 			return err
 		}),
+
+		// NOTE: Resource Identity is implemented manually because `parse.AccessPolicyId` is a custom ID
+		// type that does not implement `resourceids.ResourceId`, so the auto-generation helpers cannot be used.
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: func() map[string]*schema.Schema {
+				return map[string]*schema.Schema{
+					"key_vault_id": {
+						Type:              schema.TypeString,
+						RequiredForImport: true,
+					},
+					"object_id": {
+						Type:              schema.TypeString,
+						RequiredForImport: true,
+					},
+					"application_id": {
+						Type:              schema.TypeString,
+						RequiredForImport: true,
+					},
+				}
+			},
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -180,6 +204,9 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
+	if err := setKeyVaultAccessPolicyIdentityData(d, &id); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -288,31 +315,55 @@ func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{
 		return nil
 	}
 
+	return resourceKeyVaultAccessPolicyFlatten(d, id, accessPolicy)
+}
+
+func resourceKeyVaultAccessPolicyFlatten(d *pluginsdk.ResourceData, id *parse.AccessPolicyId, accessPolicy *vaults.AccessPolicyEntry) error {
 	d.Set("key_vault_id", id.KeyVaultId().ID())
 	d.Set("application_id", id.ApplicationId())
 	d.Set("object_id", id.ObjectID())
-	d.Set("tenant_id", accessPolicy.TenantId)
 
-	certificatePermissions := flattenCertificatePermissions(accessPolicy.Permissions.Certificates)
-	if err := d.Set("certificate_permissions", certificatePermissions); err != nil {
-		return fmt.Errorf("setting `certificate_permissions`: %+v", err)
+	if accessPolicy != nil {
+		d.Set("tenant_id", accessPolicy.TenantId)
+
+		certificatePermissions := flattenCertificatePermissions(accessPolicy.Permissions.Certificates)
+		if err := d.Set("certificate_permissions", certificatePermissions); err != nil {
+			return fmt.Errorf("setting `certificate_permissions`: %+v", err)
+		}
+
+		keyPermissions := flattenKeyPermissions(accessPolicy.Permissions.Keys)
+		if err := d.Set("key_permissions", keyPermissions); err != nil {
+			return fmt.Errorf("setting `key_permissions`: %+v", err)
+		}
+
+		secretPermissions := flattenSecretPermissions(accessPolicy.Permissions.Secrets)
+		if err := d.Set("secret_permissions", secretPermissions); err != nil {
+			return fmt.Errorf("setting `secret_permissions`: %+v", err)
+		}
+
+		storagePermissions := flattenStoragePermissions(accessPolicy.Permissions.Storage)
+		if err := d.Set("storage_permissions", storagePermissions); err != nil {
+			return fmt.Errorf("setting `storage_permissions`: %+v", err)
+		}
 	}
 
-	keyPermissions := flattenKeyPermissions(accessPolicy.Permissions.Keys)
-	if err := d.Set("key_permissions", keyPermissions); err != nil {
-		return fmt.Errorf("setting `key_permissions`: %+v", err)
-	}
+	return setKeyVaultAccessPolicyIdentityData(d, id)
+}
 
-	secretPermissions := flattenSecretPermissions(accessPolicy.Permissions.Secrets)
-	if err := d.Set("secret_permissions", secretPermissions); err != nil {
-		return fmt.Errorf("setting `secret_permissions`: %+v", err)
+func setKeyVaultAccessPolicyIdentityData(d *pluginsdk.ResourceData, id *parse.AccessPolicyId) error {
+	identity, err := d.Identity()
+	if err != nil {
+		return fmt.Errorf("getting identity: %+v", err)
 	}
-
-	storagePermissions := flattenStoragePermissions(accessPolicy.Permissions.Storage)
-	if err := d.Set("storage_permissions", storagePermissions); err != nil {
-		return fmt.Errorf("setting `storage_permissions`: %+v", err)
+	if err := identity.Set("key_vault_id", id.KeyVaultId().ID()); err != nil {
+		return fmt.Errorf("setting `key_vault_id` in resource identity: %+v", err)
 	}
-
+	if err := identity.Set("object_id", id.ObjectID()); err != nil {
+		return fmt.Errorf("setting `object_id` in resource identity: %+v", err)
+	}
+	if err := identity.Set("application_id", id.ApplicationId()); err != nil {
+		return fmt.Errorf("setting `application_id` in resource identity: %+v", err)
+	}
 	return nil
 }
 
