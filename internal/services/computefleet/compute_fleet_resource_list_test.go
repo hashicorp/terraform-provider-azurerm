@@ -70,9 +70,9 @@ resource "azurerm_compute_fleet" "test" {
 
   virtual_machine_profile {
     source_image_reference {
-      offer     = "0001-com-ubuntu-server-focal"
+      offer     = "ubuntu-24_04-lts"
       publisher = "canonical"
-      sku       = "20_04-lts-gen2"
+      sku       = "server"
       version   = "latest"
     }
 
