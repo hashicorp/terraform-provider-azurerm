@@ -18,7 +18,6 @@ func (MsSqlManagedInstanceStartStopScheduleV0ToV1) Schema() map[string]*pluginsd
 		"managed_instance_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"description": {
@@ -29,7 +28,6 @@ func (MsSqlManagedInstanceStartStopScheduleV0ToV1) Schema() map[string]*pluginsd
 		"schedule": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"start_day": {
@@ -58,7 +56,6 @@ func (MsSqlManagedInstanceStartStopScheduleV0ToV1) Schema() map[string]*pluginsd
 		"timezone_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  "UTC",
 		},
 
 		"next_execution_time": {
