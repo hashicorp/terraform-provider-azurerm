@@ -691,7 +691,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "windows-cvm"
-    sku       = "2022-datacenter-cvm"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 
@@ -746,7 +746,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "windows-cvm"
-    sku       = "2022-datacenter-cvm"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 

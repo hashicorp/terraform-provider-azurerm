@@ -2064,6 +2064,106 @@ resource "azurerm_windows_virtual_machine" "test" {
 }
 
 func (r WindowsVirtualMachineResource) otherGalleryApplicationTemplate(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                            = "accteststr%[2]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "script"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Page"
+  size                   = 512
+}
+
+resource "azurerm_storage_blob" "test2" {
+  name                   = "script2"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Page"
+  size                   = 512
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[3]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_gallery_application" "test" {
+  name              = "acctest-app-%[3]d"
+  gallery_id        = azurerm_shared_image_gallery.test.id
+  location          = azurerm_shared_image_gallery.test.location
+  supported_os_type = "Windows"
+}
+
+resource "azurerm_gallery_application_version" "test" {
+  name                   = "0.0.1"
+  gallery_application_id = azurerm_gallery_application.test.id
+  location               = azurerm_gallery_application.test.location
+
+  source {
+    media_link                 = azurerm_storage_blob.test.id
+    default_configuration_link = azurerm_storage_blob.test.id
+  }
+
+  manage_action {
+    install = "echo install"
+    remove  = "echo remove"
+  }
+
+  target_region {
+    name                   = azurerm_gallery_application.test.location
+    regional_replica_count = 1
+    storage_account_type   = "Premium_LRS"
+  }
+}
+
+resource "azurerm_gallery_application" "test2" {
+  name              = "acctest-app2-%[3]d"
+  gallery_id        = azurerm_shared_image_gallery.test.id
+  location          = azurerm_shared_image_gallery.test.location
+  supported_os_type = "Windows"
+}
+
+resource "azurerm_gallery_application_version" "test2" {
+  name                   = "0.0.1"
+  gallery_application_id = azurerm_gallery_application.test2.id
+  location               = azurerm_gallery_application.test2.location
+
+  source {
+    media_link                 = azurerm_storage_blob.test.id
+    default_configuration_link = azurerm_storage_blob.test.id
+  }
+
+  manage_action {
+    install = "echo install"
+    remove  = "echo remove"
+  }
+
+  target_region {
+    name                   = azurerm_gallery_application.test2.location
+    regional_replica_count = 1
+    storage_account_type   = "Premium_LRS"
+  }
+}
+`, r.template(data), data.RandomString, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 %[1]s
 

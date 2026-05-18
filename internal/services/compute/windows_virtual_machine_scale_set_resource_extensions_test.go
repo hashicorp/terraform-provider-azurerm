@@ -307,14 +307,14 @@ func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *tes
 					check.That(data.ResourceName).ExistsInAzure(r),
 				),
 			},
-			data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates", "automatic_updates_enabled"),
+			data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates", "enable_automatic_updates"),
 			{
 				Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
 				Check: acceptance.ComposeTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 				),
 			},
-			data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates", "automatic_updates_enabled"),
+			data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates", "enable_automatic_updates"),
 		})
 	} else {
 		data.ResourceTest(t, r, []acceptance.TestStep{
@@ -324,14 +324,14 @@ func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *tes
 					check.That(data.ResourceName).ExistsInAzure(r),
 				),
 			},
-			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled", "automatic_updates_enabled"),
+			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled", "enable_automatic_updates"),
 			{
 				Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
 				Check: acceptance.ComposeTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 				),
 			},
-			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled", "automatic_updates_enabled"),
+			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled", "enable_automatic_updates"),
 		})
 	}
 }
@@ -840,15 +840,15 @@ func (r WindowsVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithHea
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                      = local.vm_name
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  sku                       = "Standard_F2"
-  instances                 = 1
-  admin_username            = "adminuser"
-  admin_password            = "P@ssword1234!"
-  upgrade_mode              = "Automatic"
-  automatic_updates_enabled = false
+  name                     = local.vm_name
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku                      = "Standard_F2"
+  instances                = 1
+  admin_username           = "adminuser"
+  admin_password           = "P@ssword1234!"
+  upgrade_mode             = "Automatic"
+  enable_automatic_updates = false
 
   automatic_os_upgrade_policy {
     disable_automatic_rollback  = true

@@ -125,7 +125,6 @@ action "azurerm_virtual_machine_power" "test" {
 func (a *VirtualMachinePowerAction) techSupport(data acceptance.TestData, tagVal string) string {
 	return fmt.Sprintf(`
 
-
 %[1]s
 
 resource "azurerm_windows_virtual_machine" "test" {
@@ -153,6 +152,18 @@ resource "azurerm_windows_virtual_machine" "test" {
 
   tags = {
     triggerme = "%[3]s"
+  }
+
+  lifecycle {
+    action_trigger {
+      events  = [before_update]
+      actions = [action.azurerm_virtual_machine_power.power_off]
+    }
+
+    action_trigger {
+      events  = [after_update]
+      actions = [action.azurerm_virtual_machine_power.power_on]
+    }
   }
 }
 

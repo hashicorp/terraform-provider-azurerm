@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -355,6 +356,47 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 }
 
 func (r LinuxVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisites(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_public_ip" "source" {
+  name                = "source-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_network_interface" "source" {
+  name                = "sourcenic-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "source"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.source.id
+  }
+}
+
+resource "azurerm_storage_account" "test" {
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "blob"
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
+	}
 	return fmt.Sprintf(`
 %s
 

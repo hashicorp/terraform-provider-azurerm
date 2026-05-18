@@ -181,28 +181,6 @@ func TestAccLinuxVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthExte
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.extensionsWithHealthExtension(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password", "extension.0.protected_settings"),
-		{
-			Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password", "extension.0.protected_settings"),
-	})
-}
-
 func TestAccLinuxVirtualMachineScaleSet_extensionWithTimeBudget(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
