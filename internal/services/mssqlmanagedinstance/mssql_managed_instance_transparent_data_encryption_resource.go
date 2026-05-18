@@ -311,7 +311,9 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionKeyVaultName(keyVaultU
 	return strings.Split(parsedURL.Host, ".")[0], nil
 }
 
-func msSqlManagedInstanceTransparentDataEncryptionKeyVaultKeyDiffSuppress(_, oldValue, newValue string, d *schema.ResourceData) bool {
+// If versionless KV key is used in config/state, suppress the diff with versioned key. 
+// This is needed because backend API will return back a versioned key if it's given versionless one
+func diffSuppressKeyVaultVersionedKey(_, oldValue, newValue string, d *schema.ResourceData) bool {
 	if d == nil || !d.Get("auto_rotation_enabled").(bool) {
 		return false
 	}
