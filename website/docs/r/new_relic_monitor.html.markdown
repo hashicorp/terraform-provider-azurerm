@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `account_id` - (Optional) Specifies the account id. Changing this forces a new Azure Native New Relic Monitor to be created.
 
--> **NOTE:** The value of `account_id` must come from an Azure Native New Relic Monitor instance of another different subscription.
+-> **Note:** The value of `account_id` must come from an Azure Native New Relic Monitor instance of another different subscription.
 
 * `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Azure Native New Relic Monitor to be created.
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `organization_id` - (Optional) Specifies the organization id. Changing this forces a new Azure Native New Relic Monitor to be created.
 
--> **NOTE:** The value of `organization_id` must come from an Azure Native New Relic Monitor instance of another different subscription.
+-> **Note:** The value of `organization_id` must come from an Azure Native New Relic Monitor instance of another different subscription.
 
 * `org_creation_source` - (Optional) Specifies the source of org creation. Possible values are `LIFTR` and `NEWRELIC`. Defaults to `LIFTR`. Changing this forces a new Azure Native New Relic Monitor to be created.
 
@@ -138,11 +138,10 @@ resource "azurerm_role_assignment" "example" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Native New Relic Monitor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Native New Relic Monitor.
-* `update` - (Defaults to 30 minutes) Used when updating the Azure Native New Relic Monitor.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Azure Native New Relic Monitor.
 
 ## Import
@@ -152,3 +151,9 @@ Azure Native New Relic Monitor can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_new_relic_monitor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/NewRelic.Observability/monitors/monitor1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `NewRelic.Observability` - 2024-03-01

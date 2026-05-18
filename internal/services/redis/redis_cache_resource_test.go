@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package redis_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redis"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redisresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RedisCacheResource struct{}
@@ -576,17 +576,22 @@ func TestAccRedisCache_AccessKeysAuthenticationEnabledDisabled(t *testing.T) {
 }
 
 func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := redis.ParseRediID(state.ID)
+	id, err := redisresources.ParseRediID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Redis.Redis.Get(ctx, *id)
+	resp, err := clients.Redis.RedisResourcesClient.RedisGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
+}
+
+// Default for basic wrapper, useful for generated tests that cannot pass boolean or extra params
+func (t RedisCacheResource) basicWithSSL(data acceptance.TestData) string {
+	return t.basic(data, true)
 }
 
 func (RedisCacheResource) basic(data acceptance.TestData, requireSSL bool) string {

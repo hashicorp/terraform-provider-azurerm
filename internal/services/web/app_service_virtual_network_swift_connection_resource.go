@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -58,8 +58,8 @@ func resourceAppServiceVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 }
 
 func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
-	subnetClient := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Web.AppServicesClientV1
+	subnetClient := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -87,7 +87,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.Re
 			}
 		}
 
-		if existing.SwiftVirtualNetworkProperties != nil && existing.SwiftVirtualNetworkProperties.SubnetResourceID != nil && *existing.SwiftVirtualNetworkProperties.SubnetResourceID != "" {
+		if existing.SwiftVirtualNetworkProperties != nil && existing.SubnetResourceID != nil && *existing.SubnetResourceID != "" {
 			return tf.ImportAsExistsError("azurerm_app_service_virtual_network_swift_connection", *existing.ID)
 		}
 	}
@@ -108,7 +108,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.Re
 
 	connectionEnvelope := web.SwiftVirtualNetwork{
 		SwiftVirtualNetworkProperties: &web.SwiftVirtualNetworkProperties{
-			SubnetResourceID: utils.String(d.Get("subnet_id").(string)),
+			SubnetResourceID: pointer.To(d.Get("subnet_id").(string)),
 		},
 	}
 	if _, err = client.CreateOrUpdateSwiftVirtualNetworkConnectionWithCheck(ctx, resourceGroup, name, connectionEnvelope); err != nil {
@@ -154,7 +154,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.Re
 }
 
 func resourceAppServiceVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -195,7 +195,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceDa
 }
 
 func resourceAppServiceVirtualNetworkSwiftConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

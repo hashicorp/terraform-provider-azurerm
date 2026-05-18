@@ -103,7 +103,7 @@ An `applies_to_group` block supports the following:
  
 * `global_mesh_enabled` - (Optional) Indicates whether to global mesh is supported for this group. Possible values are `true` and `false`.
 
--> **NOTE:** A group can be global only if the `group_connectivity` is `DirectlyConnected`. 
+-> **Note:** A group can be global only if the `group_connectivity` is `DirectlyConnected`.
 
 * `use_hub_gateway` - (Optional) Indicates whether the hub gateway is used. Possible values are `true` and `false`.
 
@@ -123,7 +123,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Manager Connectivity Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Manager Connectivity Configuration.
@@ -137,3 +137,9 @@ Network Manager Connectivity Configuration can be imported using the `resource i
 ```shell
 terraform import azurerm_network_manager_connectivity_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/networkManagers/networkManager1/connectivityConfigurations/configuration1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql_test
@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -16,14 +17,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MsSqlVirtualMachineResource struct{}
+type MssqlVirtualMachineResource struct{}
 
 func TestAccMsSqlVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccMsSqlVirtualMachine_basic(t *testing.T) {
 
 func TestAccMsSqlVirtualMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccMsSqlVirtualMachine_requiresImport(t *testing.T) {
 
 func TestAccMsSqlVirtualMachine_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func TestAccMsSqlVirtualMachine_complete(t *testing.T) {
 
 func TestAccMsSqlVirtualMachine_autoBackup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -114,7 +114,7 @@ func TestAccMsSqlVirtualMachine_autoBackup_AndDeprecatedEncryptionEnabled(t *tes
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -140,7 +140,7 @@ func TestAccMsSqlVirtualMachine_autoBackup_AndDeprecatedEncryptionEnabled(t *tes
 
 func TestAccMsSqlVirtualMachine_autoBackupDaysOfWeek(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -160,9 +160,9 @@ func TestAccMsSqlVirtualMachine_autoBackupDaysOfWeek(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlVirtualMachine_autoPatching(t *testing.T) {
+func TestAccMsSqlVirtualMachine_toggleAutoPatching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -179,12 +179,19 @@ func TestAccMsSqlVirtualMachine_autoPatching(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlVirtualMachine_keyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -207,7 +214,7 @@ func TestAccMsSqlVirtualMachine_keyVault(t *testing.T) {
 
 func TestAccMsSqlVirtualMachine_sqlInstance(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -236,7 +243,7 @@ func TestAccMsSqlVirtualMachine_sqlInstance(t *testing.T) {
 
 func TestAccMsSqlVirtualMachine_sqlInstanceCollation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -251,7 +258,7 @@ func TestAccMsSqlVirtualMachine_sqlInstanceCollation(t *testing.T) {
 
 func TestAccMsSqlVirtualMachine_sqlInstanceInstantFileInitializationEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -266,7 +273,7 @@ func TestAccMsSqlVirtualMachine_sqlInstanceInstantFileInitializationEnabled(t *t
 
 func TestAccMsSqlVirtualMachine_sqlInstanceLockPagesInMemoryEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -281,7 +288,7 @@ func TestAccMsSqlVirtualMachine_sqlInstanceLockPagesInMemoryEnabled(t *testing.T
 
 func TestAccMsSqlVirtualMachine_storageConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -304,7 +311,7 @@ func TestAccMsSqlVirtualMachine_storageConfiguration(t *testing.T) {
 
 func TestAccMsSqlVirtualMachine_storageConfigurationSystemDbOnDataDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -326,7 +333,7 @@ func TestAccMsSqlVirtualMachine_storageConfigurationSystemDbOnDataDisk(t *testin
 
 func TestAccMsSqlVirtualMachine_assessmentSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -348,7 +355,7 @@ func TestAccMsSqlVirtualMachine_assessmentSettings(t *testing.T) {
 
 func TestAccMsSqlVirtualMachine_sqlVirtualMachineGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -382,13 +389,13 @@ func TestAccMsSqlVirtualMachine_sqlVirtualMachineGroup(t *testing.T) {
 	})
 }
 
-func (MsSqlVirtualMachineResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (MssqlVirtualMachineResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := sqlvirtualmachines.ParseSqlVirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.VirtualMachinesClient.Get(ctx, *id, sqlvirtualmachines.GetOperationOptions{Expand: utils.String("*")})
+	resp, err := client.MSSQL.VirtualMachinesClient.Get(ctx, *id, sqlvirtualmachines.GetOperationOptions{Expand: pointer.To("*")})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("%s does not exist", *id)
@@ -396,10 +403,10 @@ func (MsSqlVirtualMachineResource) Exists(ctx context.Context, client *clients.C
 		return nil, fmt.Errorf("reading %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (MsSqlVirtualMachineResource) template(data acceptance.TestData) string {
+func (MssqlVirtualMachineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -440,7 +447,6 @@ resource "azurerm_public_ip" "vm" {
   name                = "acctest-PIP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
   allocation_method   = "Dynamic"
 }
 
@@ -515,7 +521,7 @@ resource "azurerm_virtual_machine" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r MsSqlVirtualMachineResource) basic(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -526,7 +532,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlVirtualMachineResource) requiresImport(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -537,7 +543,7 @@ resource "azurerm_mssql_virtual_machine" "import" {
 `, r.basic(data))
 }
 
-func (r MsSqlVirtualMachineResource) complete(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -553,7 +559,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlVirtualMachineResource) update(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -569,7 +575,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlVirtualMachineResource) withAutoPatching(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) withAutoPatching(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -586,7 +592,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlVirtualMachineResource) withAutoPatchingUpdated(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) withAutoPatchingUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -603,7 +609,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlVirtualMachineResource) withAutoBackupAutoSchedule(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) withAutoBackupAutoSchedule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -630,7 +636,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r MsSqlVirtualMachineResource) withAutoBackupManualSchedule(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) withAutoBackupManualSchedule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -664,7 +670,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r MsSqlVirtualMachineResource) withAutoBackupManualScheduleDaysOfWeek(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) withAutoBackupManualScheduleDaysOfWeek(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -698,7 +704,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r MsSqlVirtualMachineResource) withAutoBackupManualScheduleDaysOfWeekUpdated(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) withAutoBackupManualScheduleDaysOfWeekUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -732,7 +738,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r MsSqlVirtualMachineResource) withAutoBackupAutoSchedule_AndDeprecatedEncryptionEnabled(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) withAutoBackupAutoSchedule_AndDeprecatedEncryptionEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -760,7 +766,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r MsSqlVirtualMachineResource) withAutoBackupManualSchedule_AndDeprecatedEncryptionEnabled(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) withAutoBackupManualSchedule_AndDeprecatedEncryptionEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -795,14 +801,14 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r MsSqlVirtualMachineResource) withKeyVault(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) withKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acckv-%[2]d"
+  name                = "acctest-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -855,11 +861,11 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_application_password" "test" {
-  application_object_id = azuread_application.test.object_id
+  application_id = azuread_application.test.object_id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
@@ -872,17 +878,17 @@ resource "azurerm_mssql_virtual_machine" "test" {
     service_principal_secret = azuread_application_password.test.value
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r MsSqlVirtualMachineResource) withKeyVaultUpdated(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) withKeyVaultUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acckv-%[2]d"
+  name                = "acctest-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -935,7 +941,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_application_password" "test" {
@@ -952,10 +958,10 @@ resource "azurerm_mssql_virtual_machine" "test" {
     service_principal_secret = azuread_application_password.test.value
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r MsSqlVirtualMachineResource) sqlInstanceDefault(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) sqlInstanceDefault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -968,7 +974,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlVirtualMachineResource) sqlInstanceUpdated(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) sqlInstanceUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -986,7 +992,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlVirtualMachineResource) sqlInstanceCollation(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) sqlInstanceCollation(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1001,7 +1007,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlVirtualMachineResource) sqlInstanceInstantFileInitializationEnabled(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) sqlInstanceInstantFileInitializationEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1016,7 +1022,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlVirtualMachineResource) sqlInstanceLockPagesInMemoryEnabled(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) sqlInstanceLockPagesInMemoryEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1031,7 +1037,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlVirtualMachineResource) storageConfiguration(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) storageConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1083,7 +1089,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlVirtualMachineResource) storageConfigurationRevert(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) storageConfigurationRevert(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1114,7 +1120,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlVirtualMachineResource) storageConfigurationSystemDbOnDataDisk(data acceptance.TestData, enabled bool) string {
+func (r MssqlVirtualMachineResource) storageConfigurationSystemDbOnDataDisk(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1168,7 +1174,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger, enabled)
 }
 
-func (r MsSqlVirtualMachineResource) assessmentSettingsWeekly(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) assessmentSettingsWeekly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1187,7 +1193,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlVirtualMachineResource) assessmentSettingsMonthly(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) assessmentSettingsMonthly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1206,7 +1212,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r MsSqlVirtualMachineResource) sqlVirtualMachineGroup(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) sqlVirtualMachineGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1228,7 +1234,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.sqlVirtualMachineGroupDependencies(data))
 }
 
-func (r MsSqlVirtualMachineResource) sqlVirtualMachineGroupRemoved(data acceptance.TestData) string {
+func (r MssqlVirtualMachineResource) sqlVirtualMachineGroupRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1239,7 +1245,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.sqlVirtualMachineGroupDependencies(data))
 }
 
-func (MsSqlVirtualMachineResource) sqlVirtualMachineGroupDependencies(data acceptance.TestData) string {
+func (MssqlVirtualMachineResource) sqlVirtualMachineGroupDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

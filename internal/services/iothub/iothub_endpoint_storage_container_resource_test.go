@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub_test
@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubEndpointStorageContainerResource struct{}
@@ -213,6 +213,8 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"
@@ -263,6 +265,7 @@ resource "azurerm_iothub_endpoint_storage_container" "test" {
   batch_frequency_in_seconds = 60
   max_chunk_size_in_bytes    = 10485760
   encoding                   = "JSON"
+  subscription_id            = data.azurerm_client_config.current.subscription_id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -362,13 +365,13 @@ func (t IotHubEndpointStorageContainerResource) Exists(ctx context.Context, clie
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
-					return utils.Bool(true), nil
+					return pointer.To(true), nil
 				}
 			}
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r IotHubEndpointStorageContainerResource) authenticationTypeDefault(data acceptance.TestData) string {

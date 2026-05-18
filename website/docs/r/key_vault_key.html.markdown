@@ -91,7 +91,7 @@ resource "azurerm_key_vault_key" "generated" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -155,11 +155,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Key.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Key.
 * `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Key.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Key.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Key.
 
 ## Import

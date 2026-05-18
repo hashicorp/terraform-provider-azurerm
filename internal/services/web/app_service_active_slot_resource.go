@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -28,7 +28,7 @@ func resourceAppServiceActiveSlot() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: "The `azurerm_app_service_active_slot` resource has been superseded by the `azurerm_web_app_active_slot` and `azurerm_function_app_active_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_app_service_active_slot` resource has been superseded by the `azurerm_web_app_active_slot` and `azurerm_function_app_active_slot` resources. This resource will be removed in v5.0 of the AzureRM provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -55,7 +55,7 @@ func resourceAppServiceActiveSlot() *pluginsdk.Resource {
 }
 
 func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -74,7 +74,7 @@ func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	if _, err = client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("%s was not found.", id)
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
@@ -96,7 +96,7 @@ func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceAppServiceActiveSlotRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -115,12 +115,12 @@ func resourceAppServiceActiveSlotRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("making Read request on AzureRM App Service %q: %+v", id.SiteName, err)
 	}
 
-	if resp.SiteProperties == nil || resp.SiteProperties.SlotSwapStatus == nil {
-		return fmt.Errorf("App Service Slot %q: SiteProperties or SlotSwapStatus is nil", id.SiteName)
+	if resp.SiteProperties == nil || resp.SlotSwapStatus == nil {
+		return fmt.Errorf("app Service Slot %q: SiteProperties or SlotSwapStatus is nil", id.SiteName)
 	}
 	d.Set("app_service_name", resp.Name)
 	d.Set("resource_group_name", resp.ResourceGroup)
-	d.Set("app_service_slot_name", resp.SiteProperties.SlotSwapStatus.SourceSlotName)
+	d.Set("app_service_slot_name", resp.SlotSwapStatus.SourceSlotName)
 	return nil
 }
 

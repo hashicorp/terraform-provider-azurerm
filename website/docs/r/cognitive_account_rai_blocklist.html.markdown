@@ -3,12 +3,12 @@ subcategory: "Cognitive Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cognitive_account_rai_blocklist"
 description: |-
-  Manages a Cognitive Account Rai Blocklist.
+  Manages a Microsoft Foundry "Guardrails + Controls" blocklist. Microsoft Foundry was previously known as "Cognitive Account".
 ---
 
 # azurerm_cognitive_account_rai_blocklist
 
-Manages a Cognitive Account Rai Blocklist.
+Manages a Microsoft Foundry "Guardrails + Controls" blocklist. Microsoft Foundry was previously known as "Cognitive Account".
 
 ## Example Usage
 
@@ -41,6 +41,8 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new Cognitive Account Rai Blocklist to be created.
 
+* `tags` - (Optional) A mapping of tags assigned to the resource.
+
 ---
 
 * `description` - (Optional) A short description for the Cognitive Account Rai Blocklist.
@@ -53,7 +55,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cognitive Account Rai Blocklist.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Account Rai Blocklist.
@@ -67,3 +69,9 @@ Cognitive Account Rai Blocklist can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cognitive_account_rai_blocklist.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CognitiveServices/accounts/account1/raiBlocklists/raiblocklist1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CognitiveServices` - 2025-06-01

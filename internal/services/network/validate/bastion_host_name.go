@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -11,7 +11,7 @@ import (
 func BastionHostName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[A-Za-z0-9][a-zA-Z0-9_.-]+[a-zA-Z0-9_]$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. %q: %q", k, value))
+		errors = append(errors, fmt.Errorf("the name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. %q: %q", k, value))
 	}
 
 	if 1 > len(value) {

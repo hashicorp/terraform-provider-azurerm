@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dynatrace
@@ -29,7 +29,8 @@ type TagRulesResourceModel struct {
 }
 
 type MetricRule struct {
-	FilteringTags []FilteringTag `tfschema:"filtering_tag"`
+	FilteringTags  []FilteringTag `tfschema:"filtering_tag"`
+	SendingMetrics bool           `tfschema:"sending_metrics_enabled"`
 }
 
 type LogRule struct {
@@ -87,8 +88,7 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 
 					"filtering_tag": {
 						Type:     pluginsdk.TypeList,
-						Required: true,
-						MinItems: 1,
+						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"action": {
@@ -126,8 +126,7 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"filtering_tag": {
 						Type:     pluginsdk.TypeList,
-						Required: true,
-						MinItems: 1,
+						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"action": {
@@ -152,6 +151,11 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 								},
 							},
 						},
+					},
+					"sending_metrics_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 				},
 			},

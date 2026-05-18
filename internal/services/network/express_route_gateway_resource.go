@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressrouteconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressroutegateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressrouteconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutegateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -241,7 +241,9 @@ func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 			d.Set("scale_units", scaleUnits)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

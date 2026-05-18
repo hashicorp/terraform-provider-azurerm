@@ -21,15 +21,17 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_bot_web_app" "example" {
-  name                = "example"
-  location            = "global"
-  resource_group_name = azurerm_resource_group.example.name
-  sku                 = "F0"
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  name                    = "example"
+  location                = "global"
+  resource_group_name     = azurerm_resource_group.example.name
+  sku                     = "F0"
+  microsoft_app_id        = data.azurerm_client_config.current.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -42,6 +44,16 @@ The following arguments are supported:
 * `sku` - (Required) The SKU of the Web App Bot. Valid values include `F0` or `S1`. Changing this forces a new resource to be created.
 
 * `microsoft_app_id` - (Required) The Microsoft Application ID for the Web App Bot. Changing this forces a new resource to be created.
+
+---
+
+* `microsoft_app_type` - (Optional) The Microsoft Application Type for the Bot Channels Registration. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Defaults to `MultiTenant`. Changing this forces a new resource to be created.
+
+~> **Note:** Creation of `azurerm_bot_web_app` resources using the `MultiTenant` type is no longer supported by Azure, existing resources can continue using this type.
+
+* `microsoft_app_tenant_id` - (Optional) The Microsoft Application Tenant ID for the Bot Channels Registration. Changing this forces a new resource to be created.
+
+* `microsoft_app_user_assigned_identity_id` - (Optional) The ID of Microsoft Application User Assigned Identity for the Bot Channels Registration. Changing this forces a new resource to be created.
 
 * `display_name` - (Optional) The name of the Web App Bot will be displayed as. This defaults to `name` if not specified.
 
@@ -67,11 +79,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Bot Web App.
-* `update` - (Defaults to 30 minutes) Used when updating the Bot Web App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Bot Web App.
+* `update` - (Defaults to 30 minutes) Used when updating the Bot Web App.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Bot Web App.
 
 ## Import

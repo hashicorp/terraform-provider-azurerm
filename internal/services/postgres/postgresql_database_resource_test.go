@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres_test
@@ -8,17 +8,22 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PostgreSQLDatabaseResource struct{}
 
 func TestAccPostgreSQLDatabase_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_database` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_database", "test")
 	r := PostgreSQLDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +39,10 @@ func TestAccPostgreSQLDatabase_basic(t *testing.T) {
 }
 
 func TestAccPostgreSQLDatabase_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_database` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_database", "test")
 	r := PostgreSQLDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -50,6 +59,10 @@ func TestAccPostgreSQLDatabase_requiresImport(t *testing.T) {
 }
 
 func TestAccPostgreSQLDatabase_collationWithHyphen(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_database` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_database", "test")
 	r := PostgreSQLDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -65,6 +78,10 @@ func TestAccPostgreSQLDatabase_collationWithHyphen(t *testing.T) {
 }
 
 func TestAccPostgreSQLDatabase_charsetLowercase(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_database` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_database", "test")
 	r := PostgreSQLDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -80,6 +97,10 @@ func TestAccPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 }
 
 func TestAccPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_database` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_database", "test")
 	r := PostgreSQLDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -105,7 +126,7 @@ func (t PostgreSQLDatabaseResource) Exists(ctx context.Context, clients *clients
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PostgreSQLDatabaseResource) basic(data acceptance.TestData) string {
