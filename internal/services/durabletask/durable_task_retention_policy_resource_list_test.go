@@ -15,11 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-type DurableTaskRetentionPolicyListResource struct{}
-
 func TestAccDurableTaskRetentionPolicyList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
-	r := DurableTaskRetentionPolicyListResource{}
+	r := DurableTaskRetentionPolicyResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -41,7 +39,7 @@ func TestAccDurableTaskRetentionPolicyList_basic(t *testing.T) {
 	})
 }
 
-func (r DurableTaskRetentionPolicyListResource) basicListQuery(data acceptance.TestData) string {
+func (r DurableTaskRetentionPolicyResource) basicListQuery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_durable_task_retention_policy" "list" {
   provider = azurerm

@@ -15,11 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-type DurableTaskSchedulerListResource struct{}
-
 func TestAccDurableTaskSchedulerList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
-	r := DurableTaskSchedulerListResource{}
+	r := DurableTaskSchedulerResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -48,7 +46,7 @@ func TestAccDurableTaskSchedulerList_basic(t *testing.T) {
 	})
 }
 
-func (r DurableTaskSchedulerListResource) basicList(data acceptance.TestData) string {
+func (r DurableTaskSchedulerResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -90,7 +88,7 @@ resource "azurerm_durable_task_scheduler" "other" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (r DurableTaskSchedulerListResource) basicListQuery() string {
+func (r DurableTaskSchedulerResource) basicListQuery() string {
 	return `
 list "azurerm_durable_task_scheduler" "list" {
   provider = azurerm
@@ -99,7 +97,7 @@ list "azurerm_durable_task_scheduler" "list" {
 `
 }
 
-func (r DurableTaskSchedulerListResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
+func (r DurableTaskSchedulerResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_durable_task_scheduler" "list" {
   provider = azurerm

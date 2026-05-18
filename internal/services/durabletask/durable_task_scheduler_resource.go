@@ -89,9 +89,11 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"capacity": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// The Dedicated scheduler capacity bounds are taken from the Azure portal UX
+			// because the current Durable Task SDK model does not surface the limit.
+			ValidateFunc: validation.IntBetween(1, 3),
 		},
 
 		"tags": commonschema.Tags(),
@@ -117,12 +119,14 @@ func (r SchedulerResource) CustomizeDiff() sdk.ResourceFunc {
 
 			rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
 			rawCapacity := rawConfig["capacity"]
+			skuName := metadata.ResourceDiff.Get("sku_name").(string)
 
-			if !rawCapacity.IsNull() {
-				skuName := metadata.ResourceDiff.Get("sku_name").(string)
-				if skuName != string(schedulers.SchedulerSkuNameDedicated) {
-					return errors.New("`capacity` can only be configured when `sku_name` is set to `Dedicated`")
-				}
+			if skuName == string(schedulers.SchedulerSkuNameDedicated) && rawCapacity.IsNull() {
+				return errors.New("`capacity` must be configured when `sku_name` is set to `Dedicated`")
+			}
+
+			if !rawCapacity.IsNull() && skuName != string(schedulers.SchedulerSkuNameDedicated) {
+				return errors.New("`capacity` can only be configured when `sku_name` is set to `Dedicated`")
 			}
 
 			return nil

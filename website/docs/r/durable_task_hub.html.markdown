@@ -38,6 +38,8 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Durable Task Hub. Changing this forces a new resource to be created.
 
+-> **Note:** `name` must be between `3` and `63` characters, start and end with an alphanumeric character, and only contain alphanumeric characters and hyphens.
+
 * `scheduler_id` - (Required) The ID of the Durable Task Scheduler where the Task Hub should be created. Changing this forces a new resource to be created.
 
 ## Attributes Reference

@@ -15,11 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-type DurableTaskHubListResource struct{}
-
 func TestAccDurableTaskHubList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
-	r := DurableTaskHubListResource{}
+	r := DurableTaskHubResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -41,7 +39,7 @@ func TestAccDurableTaskHubList_basic(t *testing.T) {
 	})
 }
 
-func (r DurableTaskHubListResource) basicList(data acceptance.TestData) string {
+func (r DurableTaskHubResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -72,7 +70,7 @@ resource "azurerm_durable_task_hub" "test2" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (r DurableTaskHubListResource) basicListQuery(data acceptance.TestData) string {
+func (r DurableTaskHubResource) basicListQuery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_durable_task_hub" "list" {
   provider = azurerm

@@ -54,7 +54,6 @@ func TestAccDurableTaskSchedulerDataSource_complete(t *testing.T) {
 }
 
 func (r DurableTaskSchedulerDataSource) basic(data acceptance.TestData) string {
-	template := DurableTaskSchedulerResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -62,11 +61,10 @@ data "azurerm_durable_task_scheduler" "test" {
   name                = azurerm_durable_task_scheduler.test.name
   resource_group_name = azurerm_durable_task_scheduler.test.resource_group_name
 }
-`, template)
+`, DurableTaskSchedulerResource{}.basic(data))
 }
 
 func (r DurableTaskSchedulerDataSource) complete(data acceptance.TestData) string {
-	template := DurableTaskSchedulerResource{}.complete(data)
 	return fmt.Sprintf(`
 %s
 
@@ -74,5 +72,5 @@ data "azurerm_durable_task_scheduler" "test" {
   name                = azurerm_durable_task_scheduler.test.name
   resource_group_name = azurerm_durable_task_scheduler.test.resource_group_name
 }
-`, template)
+`, DurableTaskSchedulerResource{}.complete(data))
 }

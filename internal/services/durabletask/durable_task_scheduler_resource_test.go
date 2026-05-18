@@ -108,7 +108,7 @@ func TestAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
 	})
 }
 
-func TestAccDurableTaskScheduler_dedicatedRemoveCapacity(t *testing.T) {
+func TestAccDurableTaskScheduler_dedicatedWithoutCapacityFails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -121,12 +121,9 @@ func TestAccDurableTaskScheduler_dedicatedRemoveCapacity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.dedicatedWithoutCapacity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+			Config:      r.dedicatedWithoutCapacity(data),
+			ExpectError: regexp.MustCompile("`capacity` must be configured when `sku_name` is set to `Dedicated`"),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -138,6 +135,18 @@ func TestAccDurableTaskScheduler_consumptionWithCapacityFails(t *testing.T) {
 		{
 			Config:      r.consumptionWithCapacity(data),
 			ExpectError: regexp.MustCompile("`capacity` can only be configured when `sku_name` is set to `Dedicated`"),
+		},
+	})
+}
+
+func TestAccDurableTaskScheduler_dedicatedWithTooMuchCapacityFails(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
+	r := DurableTaskSchedulerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.dedicatedWithTooMuchCapacity(data),
+			ExpectError: regexp.MustCompile(`expected capacity to be in the range \(1 - 3\), got 4`),
 		},
 	})
 }
@@ -281,6 +290,22 @@ resource "azurerm_durable_task_scheduler" "test" {
   sku_name            = "Consumption"
   ip_allow_list       = ["0.0.0.0/0"]
   capacity            = 1
+}
+`, template, data.RandomString)
+}
+
+func (r DurableTaskSchedulerResource) dedicatedWithTooMuchCapacity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_durable_task_scheduler" "test" {
+  name                = "acctestdts%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Dedicated"
+  ip_allow_list       = ["0.0.0.0/0"]
+  capacity            = 4
 }
 `, template, data.RandomString)
 }

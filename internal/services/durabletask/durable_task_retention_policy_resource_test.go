@@ -93,10 +93,6 @@ func TestAccDurableTaskRetentionPolicy_update(t *testing.T) {
 	})
 }
 
-func (r DurableTaskRetentionPolicyListResource) basic(data acceptance.TestData) string {
-	return DurableTaskRetentionPolicyResource{}.basic(data)
-}
-
 func (r DurableTaskRetentionPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := durabletask.ParseRetentionPolicyID(state.ID)
 	if err != nil {

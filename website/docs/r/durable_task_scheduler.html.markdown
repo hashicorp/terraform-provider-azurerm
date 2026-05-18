@@ -33,6 +33,8 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Durable Task Scheduler. Changing this forces a new resource to be created.
 
+-> **Note:** `name` must be between `3` and `63` characters, start and end with an alphanumeric character, and only contain alphanumeric characters and hyphens.
+
 * `resource_group_name` - (Required) The name of the Resource Group where the Durable Task Scheduler should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure Region where the Durable Task Scheduler should exist. Changing this forces a new resource to be created.
@@ -41,9 +43,9 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of the Durable Task Scheduler. Possible values are `Consumption` and `Dedicated`. Changing this forces a new resource to be created.
 
-* `capacity` - (Optional) The capacity of the Durable Task Scheduler.
+* `capacity` - (Optional) The capacity of the Durable Task Scheduler. Possible values range between `1` and `3`.
 
-~> **Note:** `capacity` is only applicable when `sku_name` is set to `Dedicated`.
+~> **Note:** The `capacity` argument must be configured when `sku_name` is set to `Dedicated` and must not be specified when `sku_name` is set to `Consumption`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Durable Task Scheduler.
 
