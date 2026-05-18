@@ -56,7 +56,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource
 			"key_vault_key_id": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				DiffSuppressFunc: msSqlManagedInstanceTransparentDataEncryptionKeyVaultKeyDiffSuppress,
+				DiffSuppressFunc: diffSuppressKeyVaultVersionedKey,
 				ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			},
 
@@ -73,7 +73,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			DiffSuppressFunc: func(_, oldValue, newValue string, d *schema.ResourceData) bool {
-				if msSqlManagedInstanceTransparentDataEncryptionKeyVaultKeyDiffSuppress("", oldValue, newValue, d) {
+				if diffSuppressKeyVaultVersionedKey("", oldValue, newValue, d) {
 					return true
 				}
 
@@ -96,7 +96,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			DiffSuppressFunc: func(_, oldValue, newValue string, d *schema.ResourceData) bool {
-				if msSqlManagedInstanceTransparentDataEncryptionKeyVaultKeyDiffSuppress("", oldValue, newValue, d) {
+				if diffSuppressKeyVaultVersionedKey("", oldValue, newValue, d) {
 					return true
 				}
 
@@ -311,7 +311,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionKeyVaultName(keyVaultU
 	return strings.Split(parsedURL.Host, ".")[0], nil
 }
 
-// If versionless KV key is used in config/state, suppress the diff with versioned key. 
+// If versionless KV key is used in config/state, suppress the diff with versioned key.
 // This is needed because backend API will return back a versioned key if it's given versionless one
 func diffSuppressKeyVaultVersionedKey(_, oldValue, newValue string, d *schema.ResourceData) bool {
 	if d == nil || !d.Get("auto_rotation_enabled").(bool) {
