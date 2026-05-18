@@ -608,7 +608,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -659,7 +658,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -707,7 +705,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -756,7 +753,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -806,7 +802,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -1111,7 +1106,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -1306,7 +1300,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary, alt.tenantId, alt.subscriptionId)
