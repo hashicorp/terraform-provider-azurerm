@@ -118,10 +118,10 @@ func TestAccVirtualNetworkGateway_vpnGw2(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sku(data, "VpnGw2"),
+			Config: r.sku(data, "VpnGw2AZ"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku").HasValue("VpnGw2"),
+				check.That(data.ResourceName).Key("sku").HasValue("VpnGw2AZ"),
 			),
 		},
 	})
@@ -133,10 +133,10 @@ func TestAccVirtualNetworkGateway_vpnGw3(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sku(data, "VpnGw3"),
+			Config: r.sku(data, "VpnGw3AZ"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku").HasValue("VpnGw3"),
+				check.That(data.ResourceName).Key("sku").HasValue("VpnGw3AZ"),
 			),
 		},
 	})
@@ -633,6 +633,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -642,7 +643,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
 
   remote_vnet_traffic_enabled           = true
   virtual_wan_traffic_enabled           = true
@@ -698,6 +699,7 @@ resource "azurerm_public_ip" "second" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -711,7 +713,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
 
   active_active = true
   bgp_enabled   = true
@@ -881,6 +883,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -891,7 +894,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id
@@ -1003,6 +1006,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1013,7 +1017,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id
@@ -1067,6 +1071,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1076,7 +1081,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id
@@ -1127,6 +1132,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1137,7 +1143,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id
@@ -1184,6 +1190,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1235,6 +1242,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1244,7 +1252,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type        = "Vpn"
   vpn_type    = "RouteBased"
-  sku         = "VpnGw1"
+  sku         = "VpnGw1AZ"
   bgp_enabled = true
 
   ip_configuration {
@@ -1287,6 +1295,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1296,7 +1305,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type       = "Vpn"
   vpn_type   = "RouteBased"
-  sku        = "VpnGw1"
+  sku        = "VpnGw1AZ"
   enable_bgp = true
 
   ip_configuration {
@@ -1339,6 +1348,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1348,7 +1358,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type        = "Vpn"
   vpn_type    = "RouteBased"
-  sku         = "VpnGw1"
+  sku         = "VpnGw1AZ"
   bgp_enabled = true
 
   ip_configuration {
@@ -1491,6 +1501,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1500,7 +1511,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type       = "Vpn"
   vpn_type   = "RouteBased"
-  sku        = "VpnGw2"
+  sku        = "VpnGw2AZ"
   generation = "%s"
 
   ip_configuration {
@@ -1662,6 +1673,7 @@ resource "azurerm_public_ip" "first" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_public_ip" "second" {
@@ -1671,6 +1683,7 @@ resource "azurerm_public_ip" "second" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1684,7 +1697,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
 
   active_active = true
   bgp_enabled   = true
@@ -1750,6 +1763,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1760,7 +1774,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id
@@ -1876,6 +1890,7 @@ resource "azurerm_public_ip" "first" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_public_ip" "second" {
@@ -1885,6 +1900,7 @@ resource "azurerm_public_ip" "second" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1898,7 +1914,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
 
   active_active = true
   bgp_enabled   = true
@@ -1970,6 +1986,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1982,7 +1999,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   bgp_enabled                = false
   active_active              = false
   private_ip_address_enabled = false
-  sku                        = "VpnGw2"
+  sku                        = "VpnGw2AZ"
   generation                 = "Generation2"
 
   ip_configuration {
