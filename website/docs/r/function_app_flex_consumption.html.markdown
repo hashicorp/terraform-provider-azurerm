@@ -192,6 +192,8 @@ A `deployment_storage` block supports the following:
 
 ~> **Note:** if `access_key` and `user_assigned_identity_id` is not specified, storage authentication type will be set to `SystemAssignedIdentity`.
 
+~> **Note:** storage container type is default set to `blobContainer`.
+
 ---
 
 An `always_ready` block supports the following:
