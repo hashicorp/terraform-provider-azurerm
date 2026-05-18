@@ -432,7 +432,7 @@ resource "azurerm_compute_fleet" "test" {
     Hello = "There"
     World = "Example"
   }
-  zones = ["1", "2", "3"]
+  zones = ["1"]
 }
 	`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -564,7 +564,7 @@ resource "azurerm_compute_fleet" "test" {
     Hello = "ThereUpdate"
     World = "ExampleUpdate"
   }
-  zones = ["1", "2", "3"]
+  zones = ["1"]
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
