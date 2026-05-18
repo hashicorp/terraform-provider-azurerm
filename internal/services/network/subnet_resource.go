@@ -72,6 +72,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.LabServices/labplans",
 	"Microsoft.Logic/integrationServiceEnvironments",
 	"Microsoft.MachineLearningServices/workspaces",
+	"Microsoft.MessagingConnectors/connectors",
 	"Microsoft.Netapp/volumes",
 	"Microsoft.Network/applicationGateways",
 	"Microsoft.Network/dnsResolvers",

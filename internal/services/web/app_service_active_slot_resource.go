@@ -28,7 +28,7 @@ func resourceAppServiceActiveSlot() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: "The `azurerm_app_service_active_slot` resource has been superseded by the `azurerm_web_app_active_slot` and `azurerm_function_app_active_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_app_service_active_slot` resource has been superseded by the `azurerm_web_app_active_slot` and `azurerm_function_app_active_slot` resources. This resource will be removed in v5.0 of the AzureRM provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -55,7 +55,7 @@ func resourceAppServiceActiveSlot() *pluginsdk.Resource {
 }
 
 func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -96,7 +96,7 @@ func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceAppServiceActiveSlotRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
