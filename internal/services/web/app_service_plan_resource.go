@@ -37,7 +37,7 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: "The `azurerm_app_service_plan` resource has been superseded by the `azurerm_service_plan` resource. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_app_service_plan` resource has been superseded by the `azurerm_service_plan` resource. This resource will be removed in v5.0 of the AzureRM Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -153,7 +153,7 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 }
 
 func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicePlansClient
+	client := meta.(*clients.Client).Web.AppServicePlansClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -243,7 +243,7 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicePlansClient
+	client := meta.(*clients.Client).Web.AppServicePlansClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -311,7 +311,7 @@ func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceAppServicePlanDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicePlansClient
+	client := meta.(*clients.Client).Web.AppServicePlansClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

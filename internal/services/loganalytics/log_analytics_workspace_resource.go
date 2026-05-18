@@ -133,6 +133,9 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 					int(workspaces.CapacityReservationLevelOneThousand),
 					int(workspaces.CapacityReservationLevelTwoThousand),
 					int(workspaces.CapacityReservationLevelFiveThousand),
+					int(workspaces.CapacityReservationLevelOneZeroThousand),
+					int(workspaces.CapacityReservationLevelTwoFiveThousand),
+					int(workspaces.CapacityReservationLevelFiveZeroThousand),
 				}),
 			},
 
