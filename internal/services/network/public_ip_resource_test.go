@@ -255,6 +255,7 @@ func TestAccPublicIp_ddosProtectionModeEnabledWithoutPlan(t *testing.T) {
 
 func TestAccPublicIp_ddosProtectionPlanRemoval(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data.Locations.Primary = data.Locations.Secondary
 	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
