@@ -30,7 +30,6 @@ type AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel struct {
 	DisplayName                      string            `tfschema:"display_name"`
 	SourceAutonomousDatabaseId       string            `tfschema:"source_autonomous_database_id"`
 	SubnetId                         string            `tfschema:"subnet_id"`
-	VnetId                           string            `tfschema:"virtual_network_id"`
 	ReplicateAutomaticBackupsEnabled bool              `tfschema:"replicate_automatic_backups_enabled"`
 	Tags                             map[string]string `tfschema:"tags"`
 	AutoScalingEnabled               bool              `tfschema:"auto_scaling_enabled"`
@@ -47,6 +46,7 @@ type AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel struct {
 	MtlsConnectionRequired           bool              `tfschema:"mtls_connection_required"`
 	NationalCharacterSet             string            `tfschema:"national_character_set"`
 	RemoteDisasterRecoveryType       string            `tfschema:"remote_disaster_recovery_type"`
+	VnetId                           string            `tfschema:"virtual_network_id"`
 }
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[string]*pluginsdk.Schema {
@@ -78,19 +78,12 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
-		"virtual_network_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateVirtualNetworkID,
-		},
-
 		"replicate_automatic_backups_enabled": {
 			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
 			Optional: true,
 			// NOTE: O+C the service returns false when omitted.
 			Computed: true,
+			ForceNew: true,
 		},
 
 		"tags": commonschema.TagsForceNew(),
@@ -156,6 +149,10 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Attributes() map[st
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+		"virtual_network_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -197,24 +194,27 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 			}
 			sourceDb, err := client.Get(ctx, *sourceId)
 			if err != nil {
-				return fmt.Errorf("fetching source DB: %+v", err)
+				return fmt.Errorf("retrieving source %s: %+v", *sourceId, err)
 			}
 			if sourceDb.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", sourceId)
+				return fmt.Errorf("retrieving source %s: `model` was nil", *sourceId)
 			}
 			if sourceDb.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `properties` was nil", sourceId)
+				return fmt.Errorf("retrieving source %s: `properties` was nil", *sourceId)
 			}
 			normalizedLocation := location.Normalize(model.Location)
 			sourceLocation := location.Normalize(sourceDb.Model.Location)
 			if normalizedLocation == sourceLocation {
-				return fmt.Errorf("disaster Recovery database must reside in a different region from the source database (source is '%s', target is '%s')", sourceLocation, model.Location)
+				return fmt.Errorf("disaster recovery database must reside in a different region from the source database (source is %q, target is %q)", sourceLocation, model.Location)
 			}
 
-			sourceProps, ok := sourceDb.Model.Properties.(autonomousdatabases.AutonomousDatabaseProperties)
-			if !ok {
-				return fmt.Errorf("retrieving %s: `properties` was not of type `AutonomousDatabaseProperties`", sourceId)
+			subnetId, err := commonids.ParseSubnetID(model.SubnetId)
+			if err != nil {
+				return err
 			}
+			vnetId := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
+
+			sourceProps := sourceDb.Model.Properties.AutonomousDatabaseBaseProperties()
 
 			param := autonomousdatabases.AutonomousDatabase{
 				Name:     pointer.To(model.Name),
@@ -244,7 +244,7 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 					LicenseModel:                   sourceProps.LicenseModel,
 					NcharacterSet:                  sourceProps.NcharacterSet,
 					SubnetId:                       pointer.To(model.SubnetId),
-					VnetId:                         pointer.To(model.VnetId),
+					VnetId:                         pointer.To(vnetId.ID()),
 				},
 			}
 
@@ -306,6 +306,14 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
 				state.VnetId = pointer.From(props.VnetId)
+				if state.VnetId == "" && state.SubnetId != "" {
+					subnetId, err := commonids.ParseSubnetIDInsensitively(state.SubnetId)
+					if err != nil {
+						return err
+					}
+					vnetId := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
+					state.VnetId = vnetId.ID()
+				}
 			}
 			return metadata.Encode(&state)
 		},

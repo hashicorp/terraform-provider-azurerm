@@ -76,7 +76,6 @@ resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "ex
   display_name                        = "exampledr"
   source_autonomous_database_id       = azurerm_oracle_autonomous_database.example_primary.id
   subnet_id                           = azurerm_subnet.example_dr_subnet.id
-  virtual_network_id                  = azurerm_virtual_network.example_dr_vnet.id
   replicate_automatic_backups_enabled = true
 
   tags = {
@@ -101,9 +100,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet in the target region. Changing this forces a new resource to be created.
 
-* `virtual_network_id` - (Required) The ID of the virtual network in the target region. Changing this forces a new resource to be created.
-
-* `replicate_automatic_backups_enabled` - (Optional) If true, 7 days of backups are replicated across regions.
+* `replicate_automatic_backups_enabled` - (Optional) If true, 7 days of backups are replicated across regions. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource. Changing this forces a new resource to be created.
 
@@ -140,6 +137,8 @@ In addition to the Arguments listed above the following Attributes are exported:
 * `national_character_set` - The national character set for the Autonomous Database.
 
 * `remote_disaster_recovery_type` - Type of recovery.
+
+* `virtual_network_id` - The ID of the virtual network associated with this database.
 
 ## Timeouts
 

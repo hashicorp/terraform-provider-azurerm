@@ -59,11 +59,11 @@ In addition to the Arguments listed above the following Attributes are exported:
 
 * `data_storage_size_in_tb` - The maximum storage that can be allocated for the database in terabytes.
 
-* `database_workload` - The Autonomous Database workload type.
-
 * `database_type` - The database type.
 
 * `database_version` - The Oracle Database version for the Autonomous Database.
+
+* `database_workload` - The Autonomous Database workload type.
 
 * `display_name` - The user-friendly name for the Cross Region Disaster Recovery Autonomous Database.
 
