@@ -20,7 +20,7 @@ type SiteContainer struct {
 	Name                        string                             `tfschema:"name"`
 	Image                       string                             `tfschema:"image"`
 	Main                        bool                               `tfschema:"main"`
-	TargetPort                  int                                `tfschema:"target_port"`
+	TargetPort                  int64                              `tfschema:"target_port"`
 	AuthenticationType          string                             `tfschema:"authentication_type"`
 	StartUpCommand              string                             `tfschema:"startup_command"`
 	UserManagedIdentityClientID string                             `tfschema:"user_managed_identity_client_id"`
@@ -217,7 +217,7 @@ func ExpandSiteContainers(input []SiteContainer) ([]webapps.SiteContainer, error
 		}
 
 		if container.TargetPort != 0 {
-			props.TargetPort = pointer.To(strconv.Itoa(container.TargetPort))
+			props.TargetPort = pointer.To(strconv.FormatInt(container.TargetPort, 10))
 		}
 		if container.PasswordSecret != "" {
 			props.PasswordSecret = pointer.To(container.PasswordSecret)
@@ -295,9 +295,9 @@ func FlattenSiteContainers(input []webapps.SiteContainer) ([]SiteContainer, map[
 			continue
 		}
 
-		targetPort := 0
+		targetPort := int64(0)
 		if props.TargetPort != nil {
-			if parsed, err := strconv.Atoi(*props.TargetPort); err == nil {
+			if parsed, err := strconv.ParseInt(*props.TargetPort, 10, 64); err == nil {
 				targetPort = parsed
 			}
 		}
