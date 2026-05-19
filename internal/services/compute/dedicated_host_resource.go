@@ -113,6 +113,7 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 					"MSv2-Type1",
 					"MSv2MedMem-Type1",
 					"NVASv4-Type1",
+					"NVadsA10v5_Type1",
 					"NVSv3-Type1",
 				}, false),
 			},
