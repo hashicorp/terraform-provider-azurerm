@@ -34,7 +34,7 @@ resource "azurerm_data_protection_resource_guard" "example" {
 }
 
 resource "azurerm_data_protection_backup_vault_resource_guard_association" "example" {
-  data_protection_backup_vault_id  = azurerm_data_protection_backup_vault.example.id
+  data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.example.id
   data_protection_resource_guard_id = azurerm_data_protection_resource_guard.example.id
 }
 ```
