@@ -395,6 +395,7 @@ func TestAccVirtualNetworkGateway_customRoute(t *testing.T) {
 }
 
 func TestAccVirtualNetworkGateway_edgeZone(t *testing.T) {
+	t.Skip("Azure VPN now requires Availability Zone deploy, only `westus` supports an Edge Zone but no AZs. Can unskip when valid region for both scenarios becomes available.")
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
 	r := VirtualNetworkGatewayResource{}
 
