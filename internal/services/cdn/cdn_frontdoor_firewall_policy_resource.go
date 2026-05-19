@@ -38,10 +38,10 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -125,6 +125,16 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 					405,
 					406,
 					429,
+					990,
+					991,
+					992,
+					993,
+					994,
+					995,
+					996,
+					997,
+					998,
+					999,
 				}),
 			},
 

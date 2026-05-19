@@ -32,6 +32,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name servicebus_namespace -service-package-name servicebus -properties "name,resource_group_name"
+
 // Default Authorization Rule/Policy created by Azure, used to populate the
 // default connection strings and keys
 var (
@@ -46,10 +48,11 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 		Update: resourceServiceBusNamespaceUpdate,
 		Delete: resourceServiceBusNamespaceDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := namespaces.ParseNamespaceID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&namespaces.NamespaceId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&namespaces.NamespaceId{}),
+		},
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -361,6 +364,9 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	if err = createNetworkRuleSetForNamespace(ctx, client, id, d.Get("network_rule_set").([]interface{})); err != nil {
 		return err
@@ -454,6 +460,9 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
+	}
 
 	if d.HasChange("network_rule_set") {
 		oldNetworkRuleSet, newNetworkRuleSet := d.GetChange("network_rule_set")
@@ -496,19 +505,23 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceServiceBusNamespaceFlatten(ctx, d, id, resp.Model, client, namespaceAuthClient)
+}
+
+func resourceServiceBusNamespaceFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *namespaces.NamespaceId, model *namespaces.SBNamespace, client *namespaces.NamespacesClient, namespaceAuthClient *namespacesauthorizationrule.NamespacesAuthorizationRuleClient) error {
 	d.Set("name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		d.Set("tags", flattenTags(model.Tags))
 
-		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		identityFlattened, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
-		if err := d.Set("identity", identity); err != nil {
+		if err := d.Set("identity", identityFlattened); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
@@ -569,13 +582,13 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving network rule set %s: %+v", *id, err)
 	}
 
-	if model := networkRuleSet.Model; model != nil {
-		if props := model.Properties; props != nil {
+	if nrsModel := networkRuleSet.Model; nrsModel != nil {
+		if props := nrsModel.Properties; props != nil {
 			d.Set("network_rule_set", flattenServiceBusNamespaceNetworkRuleSet(*props))
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
