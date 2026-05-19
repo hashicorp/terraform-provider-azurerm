@@ -65,6 +65,7 @@ func TestAccLinuxWebAppSlot_siteContainerWithApplicationStack(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.siteContainerWithApplicationStack(data),
+			PlanOnly:    true,
 			ExpectError: regexp.MustCompile("`site_container` cannot be used when `site_config.0.application_stack` is specified"),
 		},
 	})
@@ -1709,8 +1710,8 @@ resource "azurerm_linux_web_app_slot" "test" {
   site_container {
     name        = "app"
     image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
-    target_port = "80"
-    is_main     = true
+    target_port = 80
+    main        = true
 
     environment_variable {
       name             = "EXAMPLE"
@@ -1721,7 +1722,7 @@ resource "azurerm_linux_web_app_slot" "test" {
   site_container {
     name        = "sidecar"
     image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
-    target_port = "8080"
+    target_port = 8080
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)
@@ -1744,8 +1745,8 @@ resource "azurerm_linux_web_app_slot" "test" {
   site_container {
     name        = "app"
     image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
-    target_port = "8080"
-    is_main     = true
+    target_port = 8080
+    main        = true
 
     environment_variable {
       name             = "EXAMPLE"
@@ -1777,8 +1778,8 @@ resource "azurerm_linux_web_app_slot" "test" {
   site_container {
     name        = "app"
     image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
-    target_port = "80"
-    is_main     = true
+    target_port = 80
+    main        = true
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)

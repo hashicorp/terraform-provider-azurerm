@@ -4,9 +4,11 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
@@ -17,9 +19,9 @@ import (
 type SiteContainer struct {
 	Name                        string                             `tfschema:"name"`
 	Image                       string                             `tfschema:"image"`
-	IsMain                      bool                               `tfschema:"is_main"`
-	TargetPort                  string                             `tfschema:"target_port"`
-	AuthType                    string                             `tfschema:"auth_type"`
+	Main                        bool                               `tfschema:"main"`
+	TargetPort                  int                                `tfschema:"target_port"`
+	AuthenticationType          string                             `tfschema:"authentication_type"`
 	StartUpCommand              string                             `tfschema:"startup_command"`
 	UserManagedIdentityClientID string                             `tfschema:"user_managed_identity_client_id"`
 	Username                    string                             `tfschema:"username"`
@@ -59,25 +61,26 @@ func SiteContainerSchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"is_main": {
+				"main": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
 				"target_port": {
-					Type:         pluginsdk.TypeString,
+					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IsPortNumber,
 				},
-				"auth_type": {
+				"authentication_type": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.AuthTypeAnonymous),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForAuthType(), false),
 				},
 				"startup_command": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"user_managed_identity_client_id": {
 					Type:         pluginsdk.TypeString,
@@ -85,13 +88,15 @@ func SiteContainerSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IsUUID,
 				},
 				"username": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"password_secret": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"environment_variable": {
 					Type:     pluginsdk.TypeList,
@@ -122,16 +127,18 @@ func SiteContainerSchema() *pluginsdk.Schema {
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"data": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"read_only": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
 							},
 							"volume_sub_path": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
@@ -151,16 +158,16 @@ func ValidateSiteContainers(containers []SiteContainer, hasSiteConfig bool, hasA
 	}
 
 	if !hasSiteConfig {
-		return fmt.Errorf("`site_config` must be configured when using `site_container`")
+		return errors.New("`site_config` must be configured when using `site_container`")
 	}
 	if hasApplicationStack {
-		return fmt.Errorf("`site_container` cannot be used when `site_config.0.application_stack` is specified")
+		return errors.New("`site_container` cannot be used when `site_config.0.application_stack` is specified")
 	}
 
 	mainCount := 0
 	names := make(map[string]struct{}, len(containers))
 	for _, container := range containers {
-		if container.IsMain {
+		if container.Main {
 			mainCount++
 		}
 		if _, exists := names[container.Name]; exists {
@@ -168,19 +175,19 @@ func ValidateSiteContainers(containers []SiteContainer, hasSiteConfig bool, hasA
 		}
 		names[container.Name] = struct{}{}
 
-		switch webapps.AuthType(container.AuthType) {
+		switch webapps.AuthType(container.AuthenticationType) {
 		case webapps.AuthTypeUserCredentials:
 			if container.Username == "" || container.PasswordSecret == "" {
-				return fmt.Errorf("`username` and `password_secret` must be set for `site_container` %q when `auth_type` is `UserCredentials`", container.Name)
+				return fmt.Errorf("`username` and `password_secret` must be set for `site_container` %q when `authentication_type` is `UserCredentials`", container.Name)
 			}
 		case webapps.AuthTypeUserAssigned:
 			if container.UserManagedIdentityClientID == "" {
-				return fmt.Errorf("`user_managed_identity_client_id` must be set for `site_container` %q when `auth_type` is `UserAssigned`", container.Name)
+				return fmt.Errorf("`user_managed_identity_client_id` must be set for `site_container` %q when `authentication_type` is `UserAssigned`", container.Name)
 			}
 		}
 	}
 	if mainCount != 1 {
-		return fmt.Errorf("exactly one `site_container` must have `is_main` set to `true`")
+		return errors.New("exactly one `site_container` must have `main` set to `true`")
 	}
 
 	return nil
@@ -194,23 +201,23 @@ func ExpandSiteContainers(input []SiteContainer) ([]webapps.SiteContainer, error
 	result := make([]webapps.SiteContainer, 0, len(input))
 	for _, container := range input {
 		if container.Name == "" {
-			return nil, fmt.Errorf("`name` must be specified for `site_container`")
+			return nil, errors.New("`name` must be specified for `site_container`")
 		}
 		if container.Image == "" {
 			return nil, fmt.Errorf("`image` must be specified for `site_container` %q", container.Name)
 		}
 
-		authType := webapps.AuthType(container.AuthType)
+		authType := webapps.AuthType(container.AuthenticationType)
 		props := &webapps.SiteContainerProperties{
 			AuthType:             pointer.To(authType),
 			EnvironmentVariables: expandSiteContainerEnvVars(container.EnvironmentVariables),
 			Image:                container.Image,
-			IsMain:               container.IsMain,
+			IsMain:               container.Main,
 			VolumeMounts:         expandSiteContainerVolumeMounts(container.VolumeMounts),
 		}
 
-		if container.TargetPort != "" {
-			props.TargetPort = pointer.To(container.TargetPort)
+		if container.TargetPort != 0 {
+			props.TargetPort = pointer.To(strconv.Itoa(container.TargetPort))
 		}
 		if container.PasswordSecret != "" {
 			props.PasswordSecret = pointer.To(container.PasswordSecret)
@@ -280,10 +287,6 @@ func expandSiteContainerVolumeMounts(input []SiteContainerVolumeMount) *[]webapp
 }
 
 func FlattenSiteContainers(input []webapps.SiteContainer) ([]SiteContainer, map[string]struct{}) {
-	if len(input) == 0 {
-		return nil, nil
-	}
-
 	result := make([]SiteContainer, 0, len(input))
 	missingSecrets := make(map[string]struct{})
 	for _, container := range input {
@@ -292,12 +295,19 @@ func FlattenSiteContainers(input []webapps.SiteContainer) ([]SiteContainer, map[
 			continue
 		}
 
+		targetPort := 0
+		if props.TargetPort != nil {
+			if parsed, err := strconv.Atoi(*props.TargetPort); err == nil {
+				targetPort = parsed
+			}
+		}
+
 		flattened := SiteContainer{
 			Name:       pointer.From(container.Name),
 			Image:      props.Image,
-			IsMain:     props.IsMain,
-			TargetPort: pointer.From(props.TargetPort),
-			AuthType: func() string {
+			Main:       props.IsMain,
+			TargetPort: targetPort,
+			AuthenticationType: func() string {
 				if props.AuthType == nil {
 					return string(webapps.AuthTypeAnonymous)
 				}
@@ -314,13 +324,8 @@ func FlattenSiteContainers(input []webapps.SiteContainer) ([]SiteContainer, map[
 			missingSecrets[flattened.Name] = struct{}{}
 		}
 
-		if props.EnvironmentVariables != nil {
-			flattened.EnvironmentVariables = flattenSiteContainerEnvVars(*props.EnvironmentVariables)
-		}
-
-		if props.VolumeMounts != nil {
-			flattened.VolumeMounts = flattenSiteContainerVolumeMounts(*props.VolumeMounts)
-		}
+		flattened.EnvironmentVariables = flattenSiteContainerEnvVars(props.EnvironmentVariables)
+		flattened.VolumeMounts = flattenSiteContainerVolumeMounts(props.VolumeMounts)
 
 		result = append(result, flattened)
 	}
@@ -332,13 +337,13 @@ func FlattenSiteContainers(input []webapps.SiteContainer) ([]SiteContainer, map[
 	return result, missingSecrets
 }
 
-func flattenSiteContainerEnvVars(input []webapps.EnvironmentVariable) []SiteContainerEnvironmentVariable {
-	if len(input) == 0 {
-		return nil
+func flattenSiteContainerEnvVars(input *[]webapps.EnvironmentVariable) []SiteContainerEnvironmentVariable {
+	envs := []SiteContainerEnvironmentVariable{}
+	if input == nil || len(*input) == 0 {
+		return envs
 	}
 
-	envs := make([]SiteContainerEnvironmentVariable, 0, len(input))
-	for _, env := range input {
+	for _, env := range *input {
 		envs = append(envs, SiteContainerEnvironmentVariable{
 			Name:           env.Name,
 			AppSettingName: env.Value,
@@ -352,13 +357,13 @@ func flattenSiteContainerEnvVars(input []webapps.EnvironmentVariable) []SiteCont
 	return envs
 }
 
-func flattenSiteContainerVolumeMounts(input []webapps.VolumeMount) []SiteContainerVolumeMount {
-	if len(input) == 0 {
-		return nil
+func flattenSiteContainerVolumeMounts(input *[]webapps.VolumeMount) []SiteContainerVolumeMount {
+	mounts := []SiteContainerVolumeMount{}
+	if input == nil || len(*input) == 0 {
+		return mounts
 	}
 
-	mounts := make([]SiteContainerVolumeMount, 0, len(input))
-	for _, mount := range input {
+	for _, mount := range *input {
 		flattened := SiteContainerVolumeMount{
 			ContainerMountPath: mount.ContainerMountPath,
 			VolumeSubPath:      mount.VolumeSubPath,

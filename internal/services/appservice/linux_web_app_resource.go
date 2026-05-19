@@ -5,6 +5,7 @@ package appservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -1083,7 +1084,7 @@ func (r LinuxWebAppResource) reconcileSiteContainers(ctx context.Context, client
 	for _, container := range expanded {
 		name := pointer.From(container.Name)
 		if name == "" {
-			return fmt.Errorf("`site_container` entries must include `name`")
+			return errors.New("`site_container` entries must include `name`")
 		}
 		desired[name] = container
 	}
