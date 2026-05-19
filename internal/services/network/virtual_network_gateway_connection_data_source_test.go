@@ -109,6 +109,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -194,6 +195,7 @@ resource "azurerm_public_ip" "test_1" {
   location            = azurerm_resource_group.test_1.location
   resource_group_name = azurerm_resource_group.test_1.name
   allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test_1" {
