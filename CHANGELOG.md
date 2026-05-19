@@ -1,7 +1,10 @@
 ## 4.74.0 (Unreleased)
 
 ENHANCEMENTS:
-* `azurerm_windows_web_app`, `azurerm_windows_function_app`, `azurerm_linux_function_app`, `azurerm_linux_web_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
+* `azurerm_windows_web_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
+* `azurerm_windows_function_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
+* `azurerm_linux_function_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
+* `azurerm_linux_web_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
 
 FEATURES:
 
