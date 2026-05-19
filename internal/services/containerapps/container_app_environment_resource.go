@@ -624,15 +624,16 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
 					logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
 					logAnalyticsWorkspaceID := metadata.ResourceDiff.Get("log_analytics_workspace_id").(string)
+					logAnalyticsWorkspaceIDUnknown := !metadata.ResourceDiff.GetRawConfig().AsValueMap()["log_analytics_workspace_id"].IsKnown()
 
 					switch logsDestination {
 					case LogsDestinationLogAnalytics:
-						if logAnalyticsWorkspaceID == "" {
+						if logAnalyticsWorkspaceID == "" && !logAnalyticsWorkspaceIDUnknown {
 							return errors.New("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
 						}
 
 					case LogsDestinationAzureMonitor, LogsDestinationNone:
-						if logAnalyticsWorkspaceID != "" {
+						if logAnalyticsWorkspaceID != "" || logAnalyticsWorkspaceIDUnknown {
 							return errors.New("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or `\"\"`")
 						}
 					}
