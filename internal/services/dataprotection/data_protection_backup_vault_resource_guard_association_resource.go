@@ -23,6 +23,7 @@ import (
 const (
 	dataProtectionBackupVaultResourceGuardAssociationDeleteRequestName = "default"
 	dataProtectionBackupVaultResourceGuardAssociationProxyName         = "DppResourceGuardProxy"
+	dataProtectionBackupVaultResourceGuardAssociationResourceType      = "azurerm_data_protection_backup_vault_resource_guard_association"
 )
 
 type DataProtectionBackupVaultResourceGuardAssociationModel struct {
@@ -52,7 +53,7 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) ModelObject()
 }
 
 func (r DataProtectionBackupVaultResourceGuardAssociationResource) ResourceType() string {
-	return "azurerm_data_protection_backup_vault_resource_guard_association"
+	return dataProtectionBackupVaultResourceGuardAssociationResourceType
 }
 
 func (r DataProtectionBackupVaultResourceGuardAssociationResource) Arguments() map[string]*pluginsdk.Schema {
