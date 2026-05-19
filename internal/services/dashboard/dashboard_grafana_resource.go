@@ -6,7 +6,6 @@ package dashboard
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"regexp"
 	"time"
 
@@ -19,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -306,10 +306,7 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 
 			identityValue := expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 
-			properties, err := expandCreateForDashboardGrafana(model)
-			if err != nil {
-				return err
-			}
+			properties := expandCreateForDashboardGrafana(model)
 
 			properties.Identity = identityValue
 
@@ -326,7 +323,7 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func expandCreateForDashboardGrafana(model DashboardGrafanaModel) (*managedgrafanas.ManagedGrafana, error) {
+func expandCreateForDashboardGrafana(model DashboardGrafanaModel) *managedgrafanas.ManagedGrafana {
 	properties := managedgrafanas.ManagedGrafana{}
 
 	apiKey := managedgrafanas.ApiKeyDisabled
@@ -370,7 +367,7 @@ func expandCreateForDashboardGrafana(model DashboardGrafanaModel) (*managedgrafa
 	if model.SkuSize != "" {
 		properties.Sku.Size = pointer.To(managedgrafanas.Size(model.SkuSize))
 	}
-	return &properties, nil
+	return &properties
 }
 
 func (r DashboardGrafanaResource) Update() sdk.ResourceFunc {
@@ -609,10 +606,7 @@ func (r DashboardGrafanaResource) CustomizeDiff() sdk.ResourceFunc {
 						return err
 					}
 
-					req, err := expandCreateForDashboardGrafana(model)
-					if err != nil {
-						return err
-					}
+					req := expandCreateForDashboardGrafana(model)
 
 					id := managedgrafanas.NewGrafanaID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 

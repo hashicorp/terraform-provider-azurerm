@@ -674,10 +674,6 @@ func TestAccNginxDeployment_autoscaling(t *testing.T) {
 
 func (a DeploymentResource) completePreflightPlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
-
-
 %s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -721,7 +717,6 @@ resource "azurerm_nginx_deployment" "test" {
   tags = {
     foo = "bar"
   }
-
 }
 `, a.template(data), data.RandomInteger)
 }
