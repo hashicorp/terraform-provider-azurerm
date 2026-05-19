@@ -5,7 +5,6 @@ package appservice
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -373,7 +372,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(webApp.SiteContainers) > 0 {
-				siteConfig.LinuxFxVersion = pointer.To(helpers.FxStringSiteContainers)
+				siteConfig.LinuxFxVersion = pointer.To(helpers.LinuxFxVersionSiteContainers)
 			}
 
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(webApp.Identity)
@@ -497,7 +496,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(webApp.SiteContainers) > 0 {
-				if err := r.reconcileSiteContainers(ctx, client, subscriptionId, webApp.ResourceGroup, webApp.Name, webApp.SiteContainers); err != nil {
+				if err := reconcileLinuxWebAppSiteContainers(ctx, client, subscriptionId, webApp.ResourceGroup, webApp.Name, webApp.SiteContainers); err != nil {
 					return fmt.Errorf("reconciling `site_container` for Linux %s: %+v", id, err)
 				}
 			}
@@ -621,7 +620,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("listing Site Containers for Linux %s: %+v", id, err)
 			}
-			flattenedSiteContainers, missingSecrets := helpers.FlattenSiteContainers(siteContainers.Items)
+			flattenedSiteContainers, missingSecrets := helpers.FlattenSiteContainers(siteContainers.Items, existingState.SiteContainers)
 			for i := range flattenedSiteContainers {
 				name := flattenedSiteContainers[i].Name
 				if name == "" {
@@ -882,7 +881,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				if model.Properties.SiteConfig == nil {
 					model.Properties.SiteConfig = &webapps.SiteConfig{}
 				}
-				model.Properties.SiteConfig.LinuxFxVersion = pointer.To(helpers.FxStringSiteContainers)
+				model.Properties.SiteConfig.LinuxFxVersion = pointer.To(helpers.LinuxFxVersionSiteContainers)
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
@@ -953,7 +952,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("site_container") {
-				if err := r.reconcileSiteContainers(ctx, client, id.SubscriptionId, id.ResourceGroupName, id.SiteName, state.SiteContainers); err != nil {
+				if err := reconcileLinuxWebAppSiteContainers(ctx, client, id.SubscriptionId, id.ResourceGroupName, id.SiteName, state.SiteContainers); err != nil {
 					return fmt.Errorf("reconciling `site_container` for Linux %s: %+v", id, err)
 				}
 			}
@@ -1072,50 +1071,30 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r LinuxWebAppResource) reconcileSiteContainers(ctx context.Context, client *webapps.WebAppsClient, subscriptionId, resourceGroupName, siteName string, containers []helpers.SiteContainer) error {
+func reconcileLinuxWebAppSiteContainers(ctx context.Context, client *webapps.WebAppsClient, subscriptionId, resourceGroupName, siteName string, containers []helpers.SiteContainer) error {
 	siteID := commonids.NewAppServiceID(subscriptionId, resourceGroupName, siteName)
-
-	expanded, err := helpers.ExpandSiteContainers(containers)
-	if err != nil {
-		return fmt.Errorf("expanding `site_container`: %+v", err)
-	}
-
-	desired := make(map[string]webapps.SiteContainer, len(expanded))
-	for _, container := range expanded {
-		name := pointer.From(container.Name)
-		if name == "" {
-			return errors.New("`site_container` entries must include `name`")
-		}
-		desired[name] = container
-	}
-
-	existing, err := client.ListSiteContainersComplete(ctx, siteID)
-	if err != nil {
-		return fmt.Errorf("listing Site Containers for Linux %s: %+v", siteID, err)
-	}
-
-	for name, container := range desired {
-		siteContainerID := webapps.NewSitecontainerID(subscriptionId, resourceGroupName, siteName, name)
-		if _, err := client.CreateOrUpdateSiteContainer(ctx, siteContainerID, container); err != nil {
-			return fmt.Errorf("creating or updating Site Container `%s` for Linux %s: %+v", name, siteID, err)
-		}
-	}
-
-	for _, existingContainer := range existing.Items {
-		name := pointer.From(existingContainer.Name)
-		if name == "" {
-			continue
-		}
-		if _, exists := desired[name]; exists {
-			continue
-		}
-		siteContainerID := webapps.NewSitecontainerID(subscriptionId, resourceGroupName, siteName, name)
-		if _, err := client.DeleteSiteContainer(ctx, siteContainerID); err != nil {
-			return fmt.Errorf("deleting Site Container `%s` for Linux %s: %+v", name, siteID, err)
-		}
-	}
-
-	return nil
+	return helpers.ReconcileSiteContainers(
+		ctx,
+		fmt.Sprintf("Linux %s", siteID),
+		containers,
+		func(ctx context.Context) ([]webapps.SiteContainer, error) {
+			result, err := client.ListSiteContainersComplete(ctx, siteID)
+			if err != nil {
+				return nil, err
+			}
+			return result.Items, nil
+		},
+		func(ctx context.Context, name string, container webapps.SiteContainer) error {
+			siteContainerID := webapps.NewSitecontainerID(subscriptionId, resourceGroupName, siteName, name)
+			_, err := client.CreateOrUpdateSiteContainer(ctx, siteContainerID, container)
+			return err
+		},
+		func(ctx context.Context, name string) error {
+			siteContainerID := webapps.NewSitecontainerID(subscriptionId, resourceGroupName, siteName, name)
+			_, err := client.DeleteSiteContainer(ctx, siteContainerID)
+			return err
+		},
+	)
 }
 
 func (r LinuxWebAppResource) CustomImporter() sdk.ResourceRunFunc {
@@ -1199,7 +1178,7 @@ func (r LinuxWebAppResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			hasApplicationStack := len(model.SiteConfig) > 0 && len(model.SiteConfig[0].ApplicationStack) > 0
-			if err := helpers.ValidateSiteContainers(model.SiteContainers, len(model.SiteConfig) > 0, hasApplicationStack); err != nil {
+			if err := helpers.ValidateSiteContainers(model.SiteContainers, hasApplicationStack); err != nil {
 				return err
 			}
 			return nil

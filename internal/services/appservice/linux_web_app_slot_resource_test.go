@@ -1711,7 +1711,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     name        = "app"
     image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
     target_port = 80
-    main        = true
+    is_main     = true
 
     environment_variable {
       name             = "EXAMPLE"
@@ -1746,7 +1746,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     name        = "app"
     image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
     target_port = 8080
-    main        = true
+    is_main     = true
 
     environment_variable {
       name             = "EXAMPLE"
@@ -1779,7 +1779,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     name        = "app"
     image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
     target_port = 80
-    main        = true
+    is_main     = true
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)

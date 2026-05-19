@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"regexp"
@@ -19,7 +20,7 @@ import (
 type SiteContainer struct {
 	Name                        string                             `tfschema:"name"`
 	Image                       string                             `tfschema:"image"`
-	Main                        bool                               `tfschema:"main"`
+	IsMain                      bool                               `tfschema:"is_main"`
 	TargetPort                  int64                              `tfschema:"target_port"`
 	AuthenticationType          string                             `tfschema:"authentication_type"`
 	StartUpCommand              string                             `tfschema:"startup_command"`
@@ -61,14 +62,14 @@ func SiteContainerSchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"main": {
+				"is_main": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
 				"target_port": {
 					Type:         pluginsdk.TypeInt,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.IsPortNumber,
 				},
 				"authentication_type": {
@@ -149,17 +150,14 @@ func SiteContainerSchema() *pluginsdk.Schema {
 }
 
 // ValidateSiteContainers performs cross-field validation for the `site_container` block.
-// Callers pass whether the parent resource has a `site_config` block and whether
-// `site_config.0.application_stack` is set, since those struct types differ across
-// the four web app resource variants.
-func ValidateSiteContainers(containers []SiteContainer, hasSiteConfig bool, hasApplicationStack bool) error {
+// `hasApplicationStack` reports whether `site_config.0.application_stack` is configured
+// on the parent resource. The check is passed in as a bool because the application stack
+// struct types differ across the four web app resource variants.
+func ValidateSiteContainers(containers []SiteContainer, hasApplicationStack bool) error {
 	if len(containers) == 0 {
 		return nil
 	}
 
-	if !hasSiteConfig {
-		return errors.New("`site_config` must be configured when using `site_container`")
-	}
 	if hasApplicationStack {
 		return errors.New("`site_container` cannot be used when `site_config.0.application_stack` is specified")
 	}
@@ -167,7 +165,7 @@ func ValidateSiteContainers(containers []SiteContainer, hasSiteConfig bool, hasA
 	mainCount := 0
 	names := make(map[string]struct{}, len(containers))
 	for _, container := range containers {
-		if container.Main {
+		if container.IsMain {
 			mainCount++
 		}
 		if _, exists := names[container.Name]; exists {
@@ -187,7 +185,66 @@ func ValidateSiteContainers(containers []SiteContainer, hasSiteConfig bool, hasA
 		}
 	}
 	if mainCount != 1 {
-		return errors.New("exactly one `site_container` must have `main` set to `true`")
+		return errors.New("exactly one `site_container` must have `is_main` set to `true`")
+	}
+
+	return nil
+}
+
+// ReconcileSiteContainers diffs the desired set of `site_container` blocks against what
+// currently exists on the Web App (or Slot) and issues create-or-update / delete calls
+// to converge. The three closures abstract over the web-app vs slot SDK methods so the
+// caller only supplies the resource-shaped wrappers.
+func ReconcileSiteContainers(
+	ctx context.Context,
+	resourceLabel string,
+	containers []SiteContainer,
+	listExisting func(ctx context.Context) ([]webapps.SiteContainer, error),
+	createOrUpdate func(ctx context.Context, name string, container webapps.SiteContainer) error,
+	deleteContainer func(ctx context.Context, name string) error,
+) error {
+	expanded, err := ExpandSiteContainers(containers)
+	if err != nil {
+		return fmt.Errorf("expanding `site_container`: %+v", err)
+	}
+
+	desired := make(map[string]webapps.SiteContainer, len(expanded))
+	for _, container := range expanded {
+		name := pointer.From(container.Name)
+		if name == "" {
+			return errors.New("`site_container` entries must include `name`")
+		}
+		desired[name] = container
+	}
+
+	existing, err := listExisting(ctx)
+	if err != nil {
+		return fmt.Errorf("listing Site Containers for %s: %+v", resourceLabel, err)
+	}
+
+	names := make([]string, 0, len(desired))
+	for name := range desired {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	for _, name := range names {
+		if err := createOrUpdate(ctx, name, desired[name]); err != nil {
+			return fmt.Errorf("creating or updating Site Container `%s` for %s: %+v", name, resourceLabel, err)
+		}
+	}
+
+	for _, existingContainer := range existing {
+		name := pointer.From(existingContainer.Name)
+		if name == "" {
+			continue
+		}
+		if _, keep := desired[name]; keep {
+			continue
+		}
+		if err := deleteContainer(ctx, name); err != nil {
+			return fmt.Errorf("deleting Site Container `%s` for %s: %+v", name, resourceLabel, err)
+		}
 	}
 
 	return nil
@@ -212,7 +269,7 @@ func ExpandSiteContainers(input []SiteContainer) ([]webapps.SiteContainer, error
 			AuthType:             pointer.To(authType),
 			EnvironmentVariables: expandSiteContainerEnvVars(container.EnvironmentVariables),
 			Image:                container.Image,
-			IsMain:               container.Main,
+			IsMain:               container.IsMain,
 			VolumeMounts:         expandSiteContainerVolumeMounts(container.VolumeMounts),
 		}
 
@@ -286,9 +343,13 @@ func expandSiteContainerVolumeMounts(input []SiteContainerVolumeMount) *[]webapp
 	return &mounts
 }
 
-func FlattenSiteContainers(input []webapps.SiteContainer) ([]SiteContainer, map[string]struct{}) {
-	result := make([]SiteContainer, 0, len(input))
+// FlattenSiteContainers converts the Azure response into the schema model. The order of
+// `site_container`, `environment_variable`, and `volume_mount` is preserved from `existing`
+// (the previously stored state) to avoid spurious diffs on a TypeList; any items returned
+// by Azure that are not present in the existing state are appended in name/path order.
+func FlattenSiteContainers(input []webapps.SiteContainer, existing []SiteContainer) ([]SiteContainer, map[string]struct{}) {
 	missingSecrets := make(map[string]struct{})
+	flattenedByName := make(map[string]SiteContainer, len(input))
 	for _, container := range input {
 		props := container.Properties
 		if props == nil {
@@ -302,10 +363,11 @@ func FlattenSiteContainers(input []webapps.SiteContainer) ([]SiteContainer, map[
 			}
 		}
 
+		name := pointer.From(container.Name)
 		flattened := SiteContainer{
-			Name:       pointer.From(container.Name),
+			Name:       name,
 			Image:      props.Image,
-			Main:       props.IsMain,
+			IsMain:     props.IsMain,
 			TargetPort: targetPort,
 			AuthenticationType: func() string {
 				if props.AuthType == nil {
@@ -320,49 +382,98 @@ func FlattenSiteContainers(input []webapps.SiteContainer) ([]SiteContainer, map[
 
 		if props.PasswordSecret != nil {
 			flattened.PasswordSecret = pointer.From(props.PasswordSecret)
-		} else if flattened.Name != "" {
-			missingSecrets[flattened.Name] = struct{}{}
+		} else if name != "" {
+			missingSecrets[name] = struct{}{}
 		}
 
-		flattened.EnvironmentVariables = flattenSiteContainerEnvVars(props.EnvironmentVariables)
-		flattened.VolumeMounts = flattenSiteContainerVolumeMounts(props.VolumeMounts)
+		existingForContainer := lookupSiteContainer(existing, name)
+		flattened.EnvironmentVariables = flattenSiteContainerEnvVars(props.EnvironmentVariables, existingForContainer.EnvironmentVariables)
+		flattened.VolumeMounts = flattenSiteContainerVolumeMounts(props.VolumeMounts, existingForContainer.VolumeMounts)
 
-		result = append(result, flattened)
+		flattenedByName[name] = flattened
 	}
 
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Name < result[j].Name
-	})
+	result := make([]SiteContainer, 0, len(flattenedByName))
+	seen := make(map[string]struct{}, len(flattenedByName))
+	for _, prior := range existing {
+		if container, ok := flattenedByName[prior.Name]; ok {
+			result = append(result, container)
+			seen[prior.Name] = struct{}{}
+		}
+	}
+
+	remaining := make([]string, 0, len(flattenedByName)-len(seen))
+	for name := range flattenedByName {
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		remaining = append(remaining, name)
+	}
+	sort.Strings(remaining)
+	for _, name := range remaining {
+		result = append(result, flattenedByName[name])
+	}
 
 	return result, missingSecrets
 }
 
-func flattenSiteContainerEnvVars(input *[]webapps.EnvironmentVariable) []SiteContainerEnvironmentVariable {
+func lookupSiteContainer(existing []SiteContainer, name string) SiteContainer {
+	for _, e := range existing {
+		if e.Name == name {
+			return e
+		}
+	}
+	return SiteContainer{}
+}
+
+func flattenSiteContainerEnvVars(input *[]webapps.EnvironmentVariable, existing []SiteContainerEnvironmentVariable) []SiteContainerEnvironmentVariable {
 	envs := []SiteContainerEnvironmentVariable{}
 	if input == nil || len(*input) == 0 {
 		return envs
 	}
 
+	byName := make(map[string]SiteContainerEnvironmentVariable, len(*input))
 	for _, env := range *input {
-		envs = append(envs, SiteContainerEnvironmentVariable{
+		byName[env.Name] = SiteContainerEnvironmentVariable{
 			Name:           env.Name,
 			AppSettingName: env.Value,
-		})
+		}
 	}
 
-	sort.Slice(envs, func(i, j int) bool {
-		return envs[i].Name < envs[j].Name
-	})
+	seen := make(map[string]struct{}, len(byName))
+	for _, prior := range existing {
+		if env, ok := byName[prior.Name]; ok {
+			envs = append(envs, env)
+			seen[prior.Name] = struct{}{}
+		}
+	}
+
+	remaining := make([]string, 0, len(byName)-len(seen))
+	for name := range byName {
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		remaining = append(remaining, name)
+	}
+	sort.Strings(remaining)
+	for _, name := range remaining {
+		envs = append(envs, byName[name])
+	}
 
 	return envs
 }
 
-func flattenSiteContainerVolumeMounts(input *[]webapps.VolumeMount) []SiteContainerVolumeMount {
+func flattenSiteContainerVolumeMounts(input *[]webapps.VolumeMount, existing []SiteContainerVolumeMount) []SiteContainerVolumeMount {
 	mounts := []SiteContainerVolumeMount{}
 	if input == nil || len(*input) == 0 {
 		return mounts
 	}
 
+	type mountKey struct {
+		path, sub string
+	}
+	byKey := make(map[mountKey]SiteContainerVolumeMount, len(*input))
+	keys := make([]mountKey, 0, len(*input))
 	for _, mount := range *input {
 		flattened := SiteContainerVolumeMount{
 			ContainerMountPath: mount.ContainerMountPath,
@@ -374,15 +485,33 @@ func flattenSiteContainerVolumeMounts(input *[]webapps.VolumeMount) []SiteContai
 		if mount.ReadOnly != nil {
 			flattened.ReadOnly = pointer.From(mount.ReadOnly)
 		}
-		mounts = append(mounts, flattened)
+		key := mountKey{path: flattened.ContainerMountPath, sub: flattened.VolumeSubPath}
+		byKey[key] = flattened
+		keys = append(keys, key)
 	}
 
-	sort.Slice(mounts, func(i, j int) bool {
-		if mounts[i].ContainerMountPath == mounts[j].ContainerMountPath {
-			return mounts[i].VolumeSubPath < mounts[j].VolumeSubPath
+	seen := make(map[mountKey]struct{}, len(byKey))
+	for _, prior := range existing {
+		key := mountKey{path: prior.ContainerMountPath, sub: prior.VolumeSubPath}
+		if mount, ok := byKey[key]; ok {
+			mounts = append(mounts, mount)
+			seen[key] = struct{}{}
 		}
-		return mounts[i].ContainerMountPath < mounts[j].ContainerMountPath
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		if keys[i].path == keys[j].path {
+			return keys[i].sub < keys[j].sub
+		}
+		return keys[i].path < keys[j].path
 	})
+	for _, key := range keys {
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		mounts = append(mounts, byKey[key])
+		seen[key] = struct{}{}
+	}
 
 	return mounts
 }

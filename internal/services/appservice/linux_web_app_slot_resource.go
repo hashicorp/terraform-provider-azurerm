@@ -5,7 +5,6 @@ package appservice
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -352,7 +351,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(webAppSlot.SiteContainers) > 0 {
-				siteConfig.LinuxFxVersion = pointer.To(helpers.FxStringSiteContainers)
+				siteConfig.LinuxFxVersion = pointer.To(helpers.LinuxFxVersionSiteContainers)
 			}
 
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(webAppSlot.Identity)
@@ -466,7 +465,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(webAppSlot.SiteContainers) > 0 {
-				if err := r.reconcileSiteContainers(ctx, client, id, webAppSlot.SiteContainers); err != nil {
+				if err := reconcileLinuxWebAppSlotSiteContainers(ctx, client, id, webAppSlot.SiteContainers); err != nil {
 					return fmt.Errorf("reconciling `site_container` for Linux %s: %+v", id, err)
 				}
 			}
@@ -585,7 +584,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("listing Site Containers for Linux %s: %+v", id, err)
 			}
-			flattenedSiteContainers, missingSecrets := helpers.FlattenSiteContainers(siteContainers.Items)
+			flattenedSiteContainers, missingSecrets := helpers.FlattenSiteContainers(siteContainers.Items, existingState.SiteContainers)
 			for i := range flattenedSiteContainers {
 				name := flattenedSiteContainers[i].Name
 				if name == "" {
@@ -860,7 +859,7 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				if model.Properties.SiteConfig == nil {
 					model.Properties.SiteConfig = &webapps.SiteConfig{}
 				}
-				model.Properties.SiteConfig.LinuxFxVersion = pointer.To(helpers.FxStringSiteContainers)
+				model.Properties.SiteConfig.LinuxFxVersion = pointer.To(helpers.LinuxFxVersionSiteContainers)
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
@@ -931,7 +930,7 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("site_container") {
-				if err := r.reconcileSiteContainers(ctx, client, *id, state.SiteContainers); err != nil {
+				if err := reconcileLinuxWebAppSlotSiteContainers(ctx, client, *id, state.SiteContainers); err != nil {
 					return fmt.Errorf("reconciling `site_container` for Linux %s: %+v", id, err)
 				}
 			}
@@ -1071,7 +1070,7 @@ func (r LinuxWebAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			hasApplicationStack := len(model.SiteConfig) > 0 && len(model.SiteConfig[0].ApplicationStack) > 0
-			if err := helpers.ValidateSiteContainers(model.SiteContainers, len(model.SiteConfig) > 0, hasApplicationStack); err != nil {
+			if err := helpers.ValidateSiteContainers(model.SiteContainers, hasApplicationStack); err != nil {
 				return err
 			}
 			return nil
@@ -1079,46 +1078,27 @@ func (r LinuxWebAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (r LinuxWebAppSlotResource) reconcileSiteContainers(ctx context.Context, client *webapps.WebAppsClient, id webapps.SlotId, containers []helpers.SiteContainer) error {
-	expanded, err := helpers.ExpandSiteContainers(containers)
-	if err != nil {
-		return fmt.Errorf("expanding `site_container`: %+v", err)
-	}
-
-	desired := make(map[string]webapps.SiteContainer, len(expanded))
-	for _, container := range expanded {
-		name := pointer.From(container.Name)
-		if name == "" {
-			return errors.New("`site_container` entries must include `name`")
-		}
-		desired[name] = container
-	}
-
-	existing, err := client.ListSiteContainersSlotComplete(ctx, id)
-	if err != nil {
-		return fmt.Errorf("listing Site Containers for Linux %s: %+v", id, err)
-	}
-
-	for name, container := range desired {
-		siteContainerID := webapps.NewSlotSitecontainerID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, id.SlotName, name)
-		if _, err := client.CreateOrUpdateSiteContainerSlot(ctx, siteContainerID, container); err != nil {
-			return fmt.Errorf("creating or updating Site Container `%s` for Linux %s: %+v", name, id, err)
-		}
-	}
-
-	for _, existingContainer := range existing.Items {
-		name := pointer.From(existingContainer.Name)
-		if name == "" {
-			continue
-		}
-		if _, exists := desired[name]; exists {
-			continue
-		}
-		siteContainerID := webapps.NewSlotSitecontainerID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, id.SlotName, name)
-		if _, err := client.DeleteSiteContainerSlot(ctx, siteContainerID); err != nil {
-			return fmt.Errorf("deleting Site Container `%s` for Linux %s: %+v", name, id, err)
-		}
-	}
-
-	return nil
+func reconcileLinuxWebAppSlotSiteContainers(ctx context.Context, client *webapps.WebAppsClient, id webapps.SlotId, containers []helpers.SiteContainer) error {
+	return helpers.ReconcileSiteContainers(
+		ctx,
+		fmt.Sprintf("Linux %s", id),
+		containers,
+		func(ctx context.Context) ([]webapps.SiteContainer, error) {
+			result, err := client.ListSiteContainersSlotComplete(ctx, id)
+			if err != nil {
+				return nil, err
+			}
+			return result.Items, nil
+		},
+		func(ctx context.Context, name string, container webapps.SiteContainer) error {
+			siteContainerID := webapps.NewSlotSitecontainerID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, id.SlotName, name)
+			_, err := client.CreateOrUpdateSiteContainerSlot(ctx, siteContainerID, container)
+			return err
+		},
+		func(ctx context.Context, name string) error {
+			siteContainerID := webapps.NewSlotSitecontainerID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, id.SlotName, name)
+			_, err := client.DeleteSiteContainerSlot(ctx, siteContainerID)
+			return err
+		},
+	)
 }

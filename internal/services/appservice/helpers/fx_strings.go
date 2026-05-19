@@ -24,9 +24,9 @@ const (
 	FxStringPrefixPython         FxStringPrefix = "PYTHON"
 	FxStringPrefixRuby           FxStringPrefix = "RUBY"
 	FxStringPrefixTomcat         FxStringPrefix = "TOMCAT"
-
-	FxStringSiteContainers string = "sitecontainers"
 )
+
+const LinuxFxVersionSiteContainers = "sitecontainers"
 
 type FxStringPrefix string
 
