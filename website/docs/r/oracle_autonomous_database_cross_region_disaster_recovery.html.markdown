@@ -47,8 +47,8 @@ resource "azurerm_subnet" "example_dr_subnet" {
 }
 
 resource "azurerm_oracle_autonomous_database" "example_primary" {
-  name                             = "example-primary"
-  display_name                     = "example-primary"
+  name                             = "exampleprimary"
+  display_name                     = "exampleprimary"
   resource_group_name              = azurerm_resource_group.example.name
   location                         = azurerm_resource_group.example.location
   subnet_id                        = azurerm_subnet.example_primary_subnet.id
@@ -70,10 +70,10 @@ resource "azurerm_oracle_autonomous_database" "example_primary" {
 }
 
 resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "example" {
-  name                                = "example-dr"
+  name                                = "exampledr"
   resource_group_name                 = azurerm_resource_group.example.name
   location                            = "westus"
-  display_name                        = "example-dr"
+  display_name                        = "exampledr"
   source_autonomous_database_id       = azurerm_oracle_autonomous_database.example_primary.id
   subnet_id                           = azurerm_subnet.example_dr_subnet.id
   virtual_network_id                  = azurerm_virtual_network.example_dr_vnet.id

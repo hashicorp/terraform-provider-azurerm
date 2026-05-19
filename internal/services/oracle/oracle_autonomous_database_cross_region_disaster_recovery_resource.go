@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -24,37 +24,33 @@ var _ sdk.Resource = AutonomousDatabaseCrossRegionDisasterRecoveryResource{}
 type AutonomousDatabaseCrossRegionDisasterRecoveryResource struct{}
 
 type AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel struct {
-	Location                     string            `tfschema:"location"`
-	Name                         string            `tfschema:"name"`
-	ResourceGroupName            string            `tfschema:"resource_group_name"`
-	Tags                         map[string]string `tfschema:"tags"`
-	RemoteDisasterRecoveryType   string            `tfschema:"remote_disaster_recovery_type"`
-	SourceAutonomousDatabaseId   string            `tfschema:"source_autonomous_database_id"`
-	AutoScalingEnabled           bool              `tfschema:"auto_scaling_enabled"`
-	AutoScalingForStorageEnabled bool              `tfschema:"auto_scaling_for_storage_enabled"`
-	BackupRetentionPeriodInDays  int64             `tfschema:"backup_retention_period_in_days"`
-	CharacterSet                 string            `tfschema:"character_set"`
-	ComputeCount                 float64           `tfschema:"compute_count"`
-	ComputeModel                 string            `tfschema:"compute_model"`
-	DataStorageSizeInTb          int64             `tfschema:"data_storage_size_in_tb"`
-	DatabaseVersion              string            `tfschema:"database_version"`
-	DatabaseWorkload             string            `tfschema:"database_workload"`
-	DisplayName                  string            `tfschema:"display_name"`
-	LicenseModel                 string            `tfschema:"license_model"`
-	MtlsConnectionRequired       bool              `tfschema:"mtls_connection_required"`
-	NationalCharacterSet         string            `tfschema:"national_character_set"`
-	SubnetId                     string            `tfschema:"subnet_id"`
-	VnetId                       string            `tfschema:"virtual_network_id"`
-
-	// Optional
-	CustomerContacts                 []string `tfschema:"customer_contacts"`
-	ReplicateAutomaticBackupsEnabled bool     `tfschema:"replicate_automatic_backups_enabled"`
+	Name                             string            `tfschema:"name"`
+	ResourceGroupName                string            `tfschema:"resource_group_name"`
+	Location                         string            `tfschema:"location"`
+	DisplayName                      string            `tfschema:"display_name"`
+	SourceAutonomousDatabaseId       string            `tfschema:"source_autonomous_database_id"`
+	SubnetId                         string            `tfschema:"subnet_id"`
+	VnetId                           string            `tfschema:"virtual_network_id"`
+	ReplicateAutomaticBackupsEnabled bool              `tfschema:"replicate_automatic_backups_enabled"`
+	Tags                             map[string]string `tfschema:"tags"`
+	AutoScalingEnabled               bool              `tfschema:"auto_scaling_enabled"`
+	AutoScalingForStorageEnabled     bool              `tfschema:"auto_scaling_for_storage_enabled"`
+	BackupRetentionPeriodInDays      int64             `tfschema:"backup_retention_period_in_days"`
+	CharacterSet                     string            `tfschema:"character_set"`
+	ComputeCount                     float64           `tfschema:"compute_count"`
+	ComputeModel                     string            `tfschema:"compute_model"`
+	CustomerContacts                 []string          `tfschema:"customer_contacts"`
+	DataStorageSizeInTb              int64             `tfschema:"data_storage_size_in_tb"`
+	DatabaseVersion                  string            `tfschema:"database_version"`
+	DatabaseWorkload                 string            `tfschema:"database_workload"`
+	LicenseModel                     string            `tfschema:"license_model"`
+	MtlsConnectionRequired           bool              `tfschema:"mtls_connection_required"`
+	NationalCharacterSet             string            `tfschema:"national_character_set"`
+	RemoteDisasterRecoveryType       string            `tfschema:"remote_disaster_recovery_type"`
 }
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": commonschema.Location(),
-
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -64,15 +60,14 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
+		"location": commonschema.Location(),
+
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.AutonomousDatabaseName,
 		},
-
-		// Cross Region Disaster Recovery
-		// Required
 
 		"source_autonomous_database_id": commonschema.ResourceIDReferenceRequiredForceNew(&autonomousdatabases.AutonomousDatabaseId{}),
 
@@ -90,10 +85,11 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
-		// Optional
 		"replicate_automatic_backups_enabled": {
 			Type:     pluginsdk.TypeBool,
+			ForceNew: true,
 			Optional: true,
+			// NOTE: O+C the service returns false when omitted.
 			Computed: true,
 		},
 
@@ -103,10 +99,6 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"remote_disaster_recovery_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 		"auto_scaling_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -157,6 +149,10 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Attributes() map[st
 			Computed: true,
 		},
 		"national_character_set": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"remote_disaster_recovery_type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -328,7 +324,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Delete() sdk.Resour
 			}
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil

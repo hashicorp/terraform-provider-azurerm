@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
@@ -26,7 +26,7 @@ func (a AdbsCrossRegionDisasterRecoveryResource) Exists(ctx context.Context, cli
 	}
 	resp, err := client.Oracle.OracleClient.AutonomousDatabases.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
 }
@@ -115,7 +115,6 @@ resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "ad
   subnet_id                     = azurerm_subnet.fra_vnet_subnet_test.id
   virtual_network_id            = azurerm_virtual_network.fra_vnet_test.id
   source_autonomous_database_id = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.id
-
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
@@ -169,7 +168,6 @@ resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "ad
   tags = {
     Purpose = "basic-acceptance"
   }
-
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
@@ -194,7 +192,7 @@ func (a AdbsCrossRegionDisasterRecoveryResource) template(data acceptance.TestDa
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "crdr_rg" {
-  name     = "CRDRacctestRG-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
 
