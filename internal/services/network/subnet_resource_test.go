@@ -361,14 +361,14 @@ func TestAccSubnet_serviceEndpoints(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("service_endpoints", "service_endpoint"),
 		{
 			Config: r.serviceEndpointsUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("service_endpoints", "service_endpoint"),
 		{
 			// remove them
 			Config: r.basic(data),
@@ -381,6 +381,48 @@ func TestAccSubnet_serviceEndpoints(t *testing.T) {
 			Config: r.serviceEndpoints(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("service_endpoints", "service_endpoint"),
+	})
+}
+
+func TestAccSubnet_serviceEndpointBlock(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceEndpointBlock(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_endpoint.0.service").HasValue("Microsoft.Sql"),
+				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceEndpointBlockUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnet_serviceEndpointWithNetworkIdentifier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceEndpointWithNetworkIdentifier(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_endpoint.0.service").HasValue("Microsoft.Storage"),
+				check.That(data.ResourceName).Key("service_endpoint.0.network_identifier").IsSet(),
 			),
 		},
 		data.ImportStep(),
@@ -398,14 +440,14 @@ func TestAccSubnet_serviceEndpointPolicy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("service_endpoints", "service_endpoint"),
 		{
 			Config: r.serviceEndpointPolicyUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("service_endpoints", "service_endpoint"),
 		{
 			Config: r.serviceEndpointPolicyBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1109,6 +1151,70 @@ resource "azurerm_subnet" "test2" {
   service_endpoints    = ["Microsoft.Sql", "Microsoft.Storage"]
 }
 `, r.template(data))
+}
+
+func (r SubnetResource) serviceEndpointBlock(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
+}
+`, r.template(data))
+}
+
+func (r SubnetResource) serviceEndpointBlockUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+}
+`, r.template(data))
+}
+
+func (r SubnetResource) serviceEndpointWithNetworkIdentifier(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  service_endpoint {
+    service            = "Microsoft.Storage"
+    network_identifier = azurerm_public_ip.test.id
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SubnetResource) serviceEndpointPolicyBasic(data acceptance.TestData) string {

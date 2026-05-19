@@ -64,10 +64,28 @@ func dataSourceSubnet() *pluginsdk.Resource {
 			},
 
 			"service_endpoints": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Type:       pluginsdk.TypeList,
+				Computed:   true,
+				Deprecated: "The `service_endpoints` property has been superseded by the `service_endpoint` block and will be removed in a future version of the provider.",
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"service_endpoint": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"service": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"network_identifier": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
 				},
 			},
 
@@ -146,6 +164,11 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
 			if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 				return fmt.Errorf("setting `service_endpoints`: %+v", err)
+			}
+
+			serviceEndpoint := flattenSubnetServiceEndpoint(props.ServiceEndpoints)
+			if err := d.Set("service_endpoint", serviceEndpoint); err != nil {
+				return fmt.Errorf("setting `service_endpoint`: %+v", err)
 			}
 		}
 	}

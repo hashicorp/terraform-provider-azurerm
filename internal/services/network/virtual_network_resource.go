@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -297,12 +298,33 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"service_endpoints": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Type:       pluginsdk.TypeSet,
+						Optional:   true,
+						Deprecated: "The `service_endpoints` property has been superseded by the `service_endpoint` block and will be removed in a future version of the provider.",
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 						Set: pluginsdk.HashString,
+					},
+
+					"service_endpoint": {
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"service": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"network_identifier": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
+							},
+						},
 					},
 
 					"service_endpoint_policy_ids": {
@@ -471,7 +493,16 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 				return fmt.Errorf("setting `encryption`: %+v", err)
 			}
 
-			subnet, err := flattenVirtualNetworkSubnets(props.Subnets)
+			configSubnets := d.Get("subnet").(*pluginsdk.Set).List()
+			oldFormatSubnets := make(map[string]bool)
+			for _, raw := range configSubnets {
+				s := raw.(map[string]interface{})
+				if endpoints := s["service_endpoints"].(*pluginsdk.Set).List(); len(endpoints) > 0 {
+					oldFormatSubnets[s["name"].(string)] = true
+				}
+			}
+
+			subnet, err := flattenVirtualNetworkSubnets(props.Subnets, oldFormatSubnets)
 			if err != nil {
 				return fmt.Errorf("flattening `subnet`: %+v", err)
 			}
@@ -791,7 +822,11 @@ func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.Vir
 		}
 
 		subnetObj.Properties.ServiceEndpointPolicies = expandVirtualNetworkSubnetServiceEndpointPolicies(subnet["service_endpoint_policy_ids"].(*pluginsdk.Set).List())
-		subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoints(subnet["service_endpoints"].(*pluginsdk.Set).List())
+		if serviceEndpointsRaw := subnet["service_endpoints"].(*pluginsdk.Set).List(); len(serviceEndpointsRaw) > 0 {
+			subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoints(serviceEndpointsRaw)
+		} else {
+			subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoint(subnet["service_endpoint"].([]interface{}))
+		}
 
 		if secGroup := subnet["security_group"].(string); secGroup != "" {
 			subnetObj.Properties.NetworkSecurityGroup = &virtualnetworks.NetworkSecurityGroup{
@@ -865,7 +900,11 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 			}
 
 			subnetObj.Properties.ServiceEndpointPolicies = expandVirtualNetworkSubnetServiceEndpointPolicies(subnet["service_endpoint_policy_ids"].(*pluginsdk.Set).List())
-			subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoints(subnet["service_endpoints"].(*pluginsdk.Set).List())
+			if serviceEndpointsRaw := subnet["service_endpoints"].(*pluginsdk.Set).List(); len(serviceEndpointsRaw) > 0 {
+				subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoints(serviceEndpointsRaw)
+			} else {
+				subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoint(subnet["service_endpoint"].([]interface{}))
+			}
 
 			if secGroup := subnet["security_group"].(string); secGroup != "" {
 				subnetObj.Properties.NetworkSecurityGroup = &virtualnetworks.NetworkSecurityGroup{
@@ -1009,7 +1048,7 @@ func flattenVirtualNetworkEncryption(encryption *virtualnetworks.VirtualNetworkE
 	}
 }
 
-func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet) (*pluginsdk.Set, error) {
+func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet, oldFormatSubnets map[string]bool) (*pluginsdk.Set, error) {
 	results := &pluginsdk.Set{
 		F: resourceAzureSubnetHash,
 	}
@@ -1055,7 +1094,13 @@ func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet) (*pluginsdk.S
 					routeTableId = id.ID()
 				}
 				output["route_table_id"] = routeTableId
-				output["service_endpoints"] = flattenVirtualNetworkSubnetServiceEndpoints(props.ServiceEndpoints)
+				if oldFormatSubnets[pointer.From(subnet.Name)] {
+					output["service_endpoints"] = flattenVirtualNetworkSubnetServiceEndpoints(props.ServiceEndpoints)
+					output["service_endpoint"] = make([]interface{}, 0)
+				} else {
+					output["service_endpoints"] = pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+					output["service_endpoint"] = flattenVirtualNetworkSubnetServiceEndpoint(props.ServiceEndpoints)
+				}
 				output["service_endpoint_policy_ids"] = flattenVirtualNetworkSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
 			}
 
@@ -1244,6 +1289,49 @@ func flattenVirtualNetworkSubnetServiceEndpoints(serviceEndpoints *[]virtualnetw
 		if endpoint.Service != nil {
 			endpoints = append(endpoints, *endpoint.Service)
 		}
+	}
+
+	return endpoints
+}
+
+func expandVirtualNetworkSubnetServiceEndpoint(input []interface{}) *[]virtualnetworks.ServiceEndpointPropertiesFormat {
+	endpoints := make([]virtualnetworks.ServiceEndpointPropertiesFormat, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		svc := v["service"].(string)
+		endpoint := virtualnetworks.ServiceEndpointPropertiesFormat{
+			Service: &svc,
+		}
+		if networkIdentifier := v["network_identifier"].(string); networkIdentifier != "" {
+			endpoint.NetworkIdentifier = &virtualnetworks.SubResource{
+				Id: &networkIdentifier,
+			}
+		}
+		endpoints = append(endpoints, endpoint)
+	}
+
+	return &endpoints
+}
+
+func flattenVirtualNetworkSubnetServiceEndpoint(serviceEndpoints *[]virtualnetworks.ServiceEndpointPropertiesFormat) []interface{} {
+	endpoints := make([]interface{}, 0)
+
+	if serviceEndpoints == nil {
+		return endpoints
+	}
+
+	for _, endpoint := range *serviceEndpoints {
+		item := map[string]interface{}{}
+		if endpoint.Service != nil {
+			item["service"] = *endpoint.Service
+		}
+		networkIdentifier := ""
+		if endpoint.NetworkIdentifier != nil && endpoint.NetworkIdentifier.Id != nil {
+			networkIdentifier = *endpoint.NetworkIdentifier.Id
+		}
+		item["network_identifier"] = networkIdentifier
+		endpoints = append(endpoints, item)
 	}
 
 	return endpoints
