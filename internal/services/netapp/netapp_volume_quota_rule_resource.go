@@ -159,7 +159,6 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("quota_size_in_kib") {
-
 				update := volumequotarules.VolumeQuotaRulePatch{
 					Properties: &volumequotarules.VolumeQuotaRulesProperties{},
 				}

@@ -2669,7 +2669,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
-
 	}
 
 	// then roll the version of Kubernetes if necessary

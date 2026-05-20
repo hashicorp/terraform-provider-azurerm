@@ -896,7 +896,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 					if err != nil {
 						return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 					}
-
 				}
 			}
 		}

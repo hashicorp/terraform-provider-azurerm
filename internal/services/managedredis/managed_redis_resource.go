@@ -553,7 +553,6 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						"default_database.0.geo_replication_group_name",
 						"default_database.0.module",
 					) {
-
 						if err := dbClient.DeleteThenPoll(ctx, dbId); err != nil {
 							return fmt.Errorf("deleting database %s for re-creation: %+v", dbId, err)
 						}

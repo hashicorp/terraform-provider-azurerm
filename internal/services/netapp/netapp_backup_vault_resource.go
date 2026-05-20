@@ -126,7 +126,6 @@ func (r NetAppBackupVaultResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-
 				update := backupvaults.BackupVaultPatch{
 					Tags: pointer.To(state.Tags),
 				}

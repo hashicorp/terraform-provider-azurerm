@@ -1802,7 +1802,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			if err != nil {
 				return fmt.Errorf("updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 			}
-
 		} else {
 			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
@@ -1888,7 +1887,6 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 					return fmt.Errorf("OS Disk %s for Windows %s: %+v", diskId, id, err)
 				}
 			}
-
 		} else {
 			log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows %s - cannot determine OS Disk ID.", id)
 		}

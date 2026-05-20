@@ -969,7 +969,6 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 		// delete Data disks if opted in
 		if deleteDataDisks {
-
 			dataDisks := storageProfile.DataDisks
 			if dataDisks == nil {
 				return fmt.Errorf("deleting Data Disks for %s: `dataDisks` was nil", id)
