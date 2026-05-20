@@ -1,6 +1,7 @@
 ## 4.74.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_advisor_recommendations` - add support for the `filter_by_resource_ids` and `filter_by_recommendation_type_guids` properties [GH-26220]
 * `azurerm_windows_web_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
 * `azurerm_windows_function_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
 * `azurerm_linux_function_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
