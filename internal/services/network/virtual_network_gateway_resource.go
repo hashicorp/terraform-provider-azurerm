@@ -488,6 +488,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"radius_server_secret": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Sensitive:    true,
 							RequiredWith: []string{"vpn_client_configuration.0.radius_server_address"},
 						},
 
