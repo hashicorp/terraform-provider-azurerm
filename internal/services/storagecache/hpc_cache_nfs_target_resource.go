@@ -139,7 +139,6 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure HPC Cache NFS Target creation.")
 	id := storagetargets.NewStorageTargetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cache_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {

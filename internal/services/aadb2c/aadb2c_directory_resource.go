@@ -152,7 +152,6 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 
 			id := tenants.NewB2CDirectoryID(subscriptionId, model.ResourceGroup, model.DomainName)
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -162,7 +161,6 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			metadata.Logger.Infof("Domain name availability check for %s", id)
 			availabilityResult, err := client.CheckNameAvailability(ctx, commonids.NewSubscriptionID(subscriptionId), tenants.CheckNameAvailabilityRequest{
 				Name:        &model.DomainName,
 				CountryCode: &model.CountryCode,
@@ -183,8 +181,6 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("checking availability of `domain_name`: the specified domain %q is unavailable: %s", model.DomainName, reason)
 				}
 			}
-
-			metadata.Logger.Infof("Creating %s", id)
 
 			properties := tenants.CreateTenant{
 				Location: tenants.Location(model.DataResidencyLocation),
@@ -222,13 +218,10 @@ func (r AadB2cDirectoryResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state AadB2cDirectoryModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("Updating %s", id)
 
 			properties := tenants.UpdateTenant{
 				Sku: tenants.Sku{
@@ -258,7 +251,6 @@ func (r AadB2cDirectoryResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Reading %s", id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -321,8 +313,6 @@ func (r AadB2cDirectoryResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("Deleting %s", id)
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

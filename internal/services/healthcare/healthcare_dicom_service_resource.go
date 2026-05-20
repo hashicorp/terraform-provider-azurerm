@@ -217,7 +217,6 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceDicomServiceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Healthcare Dicom Service creation.")
 
 	workspace, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {

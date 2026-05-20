@@ -604,7 +604,6 @@ func (AIServices) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			log.Printf("[DEBUG] Retrieving %s..", *id)
 			account, err := client.AccountsGet(ctx, *id)
 			if err != nil || account.Model == nil || account.Model.Location == nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -612,7 +611,6 @@ func (AIServices) Delete() sdk.ResourceFunc {
 
 			deletedAzureAIServicesId := cognitiveservicesaccounts.NewDeletedAccountID(id.SubscriptionId, *account.Model.Location, id.ResourceGroupName, id.AccountName)
 
-			log.Printf("[DEBUG] Deleting %s..", *id)
 			if err := client.AccountsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}

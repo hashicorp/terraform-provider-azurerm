@@ -264,7 +264,6 @@ func (r ServicePlanResource) Delete() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppService.ServicePlanClient
-			metadata.Logger.Infof("deleting %s", id)
 
 			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)

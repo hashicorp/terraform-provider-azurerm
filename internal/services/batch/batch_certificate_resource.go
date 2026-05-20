@@ -110,8 +110,6 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Batch certificate creation.")
-
 	cert := d.Get("certificate").(string)
 	format := d.Get("format").(string)
 	password := d.Get("password").(string)
@@ -217,8 +215,6 @@ func resourceBatchCertificateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	client := meta.(*clients.Client).Batch.CertificateClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure Batch certificate update.")
 
 	id, err := certificate.ParseCertificateID(d.Id())
 	if err != nil {

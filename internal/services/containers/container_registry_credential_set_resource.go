@@ -6,7 +6,6 @@ package containers
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -113,8 +112,6 @@ func (r ContainerRegistryCredentialSetResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&config); err != nil {
 				return err
 			}
-
-			log.Printf("[INFO] preparing arguments for Container Registry Credential Set creation.")
 
 			registryId, err := registries.ParseRegistryID(config.ContainerRegistryId)
 			if err != nil {
