@@ -94,7 +94,7 @@ resource "azurerm_data_protection_resource_guard" "test" {
 }
 
 resource "azurerm_data_protection_backup_vault_resource_guard_association" "test" {
-  data_protection_backup_vault_id  = azurerm_data_protection_backup_vault.test.id
+  data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.test.id
   data_protection_resource_guard_id = azurerm_data_protection_resource_guard.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -105,7 +105,7 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) requiresImpor
 %s
 
 resource "azurerm_data_protection_backup_vault_resource_guard_association" "import" {
-  data_protection_backup_vault_id  = azurerm_data_protection_backup_vault_resource_guard_association.test.data_protection_backup_vault_id
+  data_protection_backup_vault_id   = azurerm_data_protection_backup_vault_resource_guard_association.test.data_protection_backup_vault_id
   data_protection_resource_guard_id = azurerm_data_protection_backup_vault_resource_guard_association.test.data_protection_resource_guard_id
 }
 `, r.basic(data))

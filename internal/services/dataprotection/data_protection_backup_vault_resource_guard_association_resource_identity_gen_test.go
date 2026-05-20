@@ -18,10 +18,10 @@ func TestAccDataProtectionBackupVaultResourceGuardAssociation_resourceIdentity(t
 	r := DataProtectionBackupVaultResourceGuardAssociationResource{}
 
 	checkedFields := map[string]struct{}{
-		"subscription_id":     {},
-		"resource_group_name": {},
-		"backup_vault_name":   {},
 		"name":                {},
+		"backup_vault_name":   {},
+		"resource_group_name": {},
+		"subscription_id":     {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
@@ -29,10 +29,10 @@ func TestAccDataProtectionBackupVaultResourceGuardAssociation_resourceIdentity(t
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_data_protection_backup_vault_resource_guard_association.test", checkedFields),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_vault_resource_guard_association.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("data_protection_backup_vault_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_vault_resource_guard_association.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("data_protection_backup_vault_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_vault_resource_guard_association.test", tfjsonpath.New("backup_vault_name"), tfjsonpath.New("data_protection_backup_vault_id")),
 				statecheck.ExpectIdentityValue("azurerm_data_protection_backup_vault_resource_guard_association.test", tfjsonpath.New("name"), knownvalue.StringExact("DppResourceGuardProxy")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_vault_resource_guard_association.test", tfjsonpath.New("backup_vault_name"), tfjsonpath.New("data_protection_backup_vault_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_vault_resource_guard_association.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("data_protection_backup_vault_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_vault_resource_guard_association.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("data_protection_backup_vault_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
