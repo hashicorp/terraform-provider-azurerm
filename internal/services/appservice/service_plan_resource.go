@@ -84,7 +84,8 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ValidateFunc: validation.StringInSlice(
 				helpers.AllKnownServicePlanSkus(),
-				false),
+				false,
+			),
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 

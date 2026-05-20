@@ -305,7 +305,8 @@ func resourceArmDevTestVirtualNetworkDelete(d *pluginsdk.ResourceData, meta inte
 func ValidateDevTestVirtualNetworkName() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[A-Za-z0-9_-]+$"),
-		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.")
+		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.",
+	)
 }
 
 func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, resourceGroupName, virtualNetworkName string) *[]virtualnetworks.SubnetOverride {

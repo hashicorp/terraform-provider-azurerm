@@ -735,7 +735,7 @@ func expandNetworkACLs(input []NetworkACLs) (*cognitiveservicesaccounts.NetworkR
 		networkRules = append(networkRules, rule)
 	}
 
-	bypass := cognitiveservicesaccounts.ByPassSelection((v.Bypass))
+	bypass := cognitiveservicesaccounts.ByPassSelection(v.Bypass)
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
 		Bypass:              &bypass,

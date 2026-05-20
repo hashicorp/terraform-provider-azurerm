@@ -1225,7 +1225,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 
 			// when `max_size_gb` is below 1GB, the API only accepts 100MB and 500MB. 100MB is 104857600, and 500MB is 524288000.
 			// directly set `max_size_gb` when API returns `104857600` or `524288000`.
-			size := float64((pointer.From(props.MaxSizeBytes)) / int64(1073741824))
+			size := float64(pointer.From(props.MaxSizeBytes) / int64(1073741824))
 			switch pointer.From(props.MaxSizeBytes) {
 			case 104857600:
 				size = 0.1

@@ -1812,7 +1812,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		if err := client.UpdateThenPoll(ctx, *id, update, virtualmachines.DefaultUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating Windows %s: %+v", id, err)
 		}
-
 	}
 
 	// if we've shut it down and it was turned off, let's boot it back up
