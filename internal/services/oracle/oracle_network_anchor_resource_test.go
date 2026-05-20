@@ -307,8 +307,8 @@ resource "azurerm_subnet" "virtual_network_subnet" {
 }
 
 resource "azurerm_oracle_resource_anchor" "test" {
-  name                = "tfRA%[1]d"
+  name                = "acctestRA%[1]d"
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomIntOfLength(15), data.Locations.Primary, data.RandomString)
 }
