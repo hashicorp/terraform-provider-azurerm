@@ -232,6 +232,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] Error reading Snapshot %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
