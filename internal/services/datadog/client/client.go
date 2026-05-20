@@ -6,13 +6,13 @@ package client
 import (
 	"fmt"
 
-	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
+	datadog_v2025_06_11 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-func NewClient(o *common.ClientOptions) (*datadog_v2021_03_01.Client, error) {
-	client, err := datadog_v2021_03_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+func NewClient(o *common.ClientOptions) (*datadog_v2025_06_11.Client, error) {
+	client, err := datadog_v2025_06_11.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c.Client, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
