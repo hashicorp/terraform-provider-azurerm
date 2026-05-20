@@ -670,7 +670,6 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 
 func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registryId registries.RegistryId, oldGeoReplications []replications.Replication, newGeoReplications []replications.Replication) error {
 	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Replications
-	log.Printf("[INFO] preparing to apply geo-replications for Container Registry.")
 
 	oldReplications := map[string]replications.Replication{}
 	for _, replication := range oldGeoReplications {

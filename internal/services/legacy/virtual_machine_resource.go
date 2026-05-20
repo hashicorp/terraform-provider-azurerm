@@ -948,7 +948,6 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if deleteOsDisk {
-			log.Printf("[INFO] delete_os_disk_on_termination is enabled, deleting disk from %s", id)
 			osDisk := storageProfile.OsDisk
 			if osDisk == nil {
 				return fmt.Errorf("deleting OS Disk for %s - `osDisk` was nil", id)
@@ -970,7 +969,6 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 		// delete Data disks if opted in
 		if deleteDataDisks {
-			log.Printf("[INFO] delete_data_disks_on_termination is enabled, deleting each data disk from %s", id)
 
 			dataDisks := storageProfile.DataDisks
 			if dataDisks == nil {

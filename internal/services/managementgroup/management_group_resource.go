@@ -211,7 +211,6 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// then add the new ones
-	log.Printf("[DEBUG] Preparing to assign Subscriptions to Management Group %q", groupName)
 	for _, subscriptionId := range subscriptionIds {
 		log.Printf("[DEBUG] Assigning Subscription ID %q to management group %q", subscriptionId, groupName)
 		if _, err := client.SubscriptionsCreate(ctx, managementgroups.NewSubscriptionID(groupName, subscriptionId), managementgroups.SubscriptionsCreateOperationOptions{

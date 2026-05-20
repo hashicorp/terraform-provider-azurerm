@@ -146,8 +146,6 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Application Insights WebTest creation.")
-
 	appInsightsId, err := components.ParseComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
