@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -651,7 +650,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					state.ServicePlanId = servicePlanId.ID()
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-						hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
+						hostingEnvId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
 						if err != nil {
 							return err
 						}
