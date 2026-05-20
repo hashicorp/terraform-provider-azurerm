@@ -1163,7 +1163,6 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	log.Printf("[DEBUG] Retrieving Linux %s", id)
 	options := virtualmachines.DefaultGetOperationOptions()
 	options.Expand = pointer.To(virtualmachines.InstanceViewTypesUserData)
 	existing, err := client.Get(ctx, *id, options)
@@ -1171,7 +1170,6 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving Linux %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving InstanceView for Linux %s.", id)
 	instanceView, err := client.InstanceView(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving InstanceView for Linux %s: %+v", id, err)
@@ -1749,7 +1747,6 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("updating Linux %s: %+v", id, err)
 		}
 
-		log.Printf("[DEBUG] Updated Linux %s", id)
 	}
 
 	// if we've shut it down and it was turned off, let's boot it back up
@@ -1778,7 +1775,6 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	log.Printf("[DEBUG] Retrieving Linux %s", id)
 	options := virtualmachines.DefaultGetOperationOptions()
 	options.Expand = pointer.To(virtualmachines.InstanceViewTypesUserData)
 	existing, err := client.Get(ctx, *id, options)

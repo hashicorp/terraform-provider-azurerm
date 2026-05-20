@@ -300,7 +300,6 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("updating ACLs for %s: %v", id, err)
 		}
 
-		log.Printf("[DEBUG] Updated ACLs for %s", id)
 	}
 
 	return resourceStorageTableRead(d, meta)

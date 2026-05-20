@@ -1224,7 +1224,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	log.Printf("[DEBUG] Retrieving Windows %s", id)
 	options := virtualmachines.DefaultGetOperationOptions()
 	options.Expand = pointer.To(virtualmachines.InstanceViewTypesUserData)
 	existing, err := client.Get(ctx, *id, options)
@@ -1232,7 +1231,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving InstanceView for Windows %s", id)
 	instanceView, err := client.InstanceView(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving InstanceView for Windows %s: %+v", id, err)
@@ -1818,7 +1816,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("updating Windows %s: %+v", id, err)
 		}
 
-		log.Printf("[DEBUG] Updated Windows %s.", id)
 	}
 
 	// if we've shut it down and it was turned off, let's boot it back up
@@ -1846,7 +1843,6 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	log.Printf("[DEBUG] Retrieving Windows %s", id)
 	existing, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {

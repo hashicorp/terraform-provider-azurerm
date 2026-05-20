@@ -520,7 +520,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
 
-	log.Printf("[DEBUG] Retrieving %s...", *clusterId)
 	cluster, err := clustersClient.Get(ctx, *clusterId)
 	if err != nil {
 		if response.WasNotFound(cluster.HttpResponse) {
@@ -794,7 +793,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	d.Partial(true)
 
-	log.Printf("[DEBUG] Retrieving existing %s..", *id)
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {

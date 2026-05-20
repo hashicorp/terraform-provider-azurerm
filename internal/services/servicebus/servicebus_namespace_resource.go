@@ -468,12 +468,10 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 			if err = resetNetworkRuleSetForNamespace(ctx, client, *id); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Reset the Existing Network Rule Set associated with %s", id)
 		} else {
 			if err = createNetworkRuleSetForNamespace(ctx, client, *id, newNetworkRuleSet.([]interface{})); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Updated the Network Rule Set associated with %s", id)
 		}
 	}
 

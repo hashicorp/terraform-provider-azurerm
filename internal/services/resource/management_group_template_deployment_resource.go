@@ -196,7 +196,6 @@ func managementGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Management Group Template Deployment %q..", id.DeploymentName)
 	template, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("retrieving Management Group Template Deployment %q: %+v", id.DeploymentName, err)

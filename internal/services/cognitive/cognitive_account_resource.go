@@ -737,7 +737,6 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// first we need to retrieve it, since we need the location to be able to purge it
-	log.Printf("[DEBUG] Retrieving %s..", *id)
 	account, err := accountsClient.AccountsGet(ctx, *id)
 	if err != nil || account.Model == nil || account.Model.Location == nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)

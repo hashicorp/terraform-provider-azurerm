@@ -507,7 +507,6 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		if err := updateConfigServerSettings(ctx, configServersClient, id, gitProperty); err != nil {
 			return err
 		}
-		log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
 	}
 
 	monitorSettings := appplatform.MonitoringSettingResource{
@@ -520,7 +519,6 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for update of monitor settings for %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] Updated Monitor Settings for %s.", id)
 
 	if d.Get("service_registry_enabled").(bool) {
 		future, err := serviceRegistryClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default")
@@ -618,7 +616,6 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 			if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Updated Config Server Settings for %s.", *id)
 		}
 	}
 
@@ -633,7 +630,6 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting for update of monitor settings for %s: %+v", id, err)
 		}
-		log.Printf("[DEBUG] Updated Monitor Settings for %s.", id)
 	}
 
 	if d.HasChange("service_registry_enabled") {
@@ -877,7 +873,6 @@ func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigS
 		return fmt.Errorf("waiting for update of config server for %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving Config Server Settings for %s..", id)
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
 		return fmt.Errorf("retrieving config server for %s: %+v", id, err)
@@ -887,7 +882,6 @@ func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigS
 			return fmt.Errorf("setting config server for %s: %+v", id, err)
 		}
 	}
-	log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
 	return nil
 }
 

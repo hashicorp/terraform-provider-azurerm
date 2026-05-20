@@ -522,7 +522,6 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("updating Quota for %s: %v", id, err)
 			}
 
-			log.Printf("[DEBUG] Updated the Quota for %s", id)
 		}
 
 		if d.HasChange("metadata") {
@@ -534,7 +533,6 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("updating MetaData for %s: %v", id, err)
 			}
 
-			log.Printf("[DEBUG] Updated the MetaData for %s", id)
 		}
 
 		if d.HasChange("acl") {
@@ -546,7 +544,6 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("updating ACLs for %s: %v", id, err)
 			}
 
-			log.Printf("[DEBUG] Updated ACLs for %s", id)
 		}
 
 		if d.HasChange("access_tier") {
@@ -566,7 +563,6 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("updating access tier %s: %+v", id, err)
 			}
 
-			log.Printf("[DEBUG] Updated Access Tier for %s", id)
 		}
 
 		return resourceStorageShareRead(d, meta)

@@ -183,7 +183,6 @@ func subscriptionTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Subscription Template Deployment %q..", id.DeploymentName)
 	template, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("retrieving Subscription Template Deployment %q: %+v", id.DeploymentName, err)

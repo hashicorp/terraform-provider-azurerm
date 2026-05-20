@@ -327,7 +327,6 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("updating Access Level for %s: %v", id, err)
 			}
 
-			log.Printf("[DEBUG] Updated Access Level for %s", id)
 		}
 
 		if d.HasChange("metadata") {
@@ -344,7 +343,6 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("updating Metadata for %s: %v", id, err)
 			}
 
-			log.Printf("[DEBUG] Updated Metadata for %s", id)
 		}
 
 		return resourceStorageContainerRead(d, meta)

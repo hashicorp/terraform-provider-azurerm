@@ -216,7 +216,6 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
 	template, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
@@ -373,7 +372,6 @@ func resourceGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
 	template, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(template.Response) {

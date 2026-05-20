@@ -182,7 +182,6 @@ func tenantTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Tenant Template Deployment %q..", id.DeploymentName)
 	template, err := client.GetAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("retrieving Tenant Template Deployment %q: %+v", id.DeploymentName, err)

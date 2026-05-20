@@ -427,7 +427,6 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		if err := createPrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, id, privateDnsZoneGroup); err != nil {
 			return err
 		}
-		log.Printf("[DEBUG] Created the Existing Private DNS Zone Group associated with %s", id)
 	}
 
 	return resourcePrivateEndpointRead(d, meta)
@@ -620,7 +619,6 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			if err := createPrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, *id, privateDnsZoneGroup); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Created the Existing Private DNS Zone Group associated with %s", id)
 		}
 	}
 

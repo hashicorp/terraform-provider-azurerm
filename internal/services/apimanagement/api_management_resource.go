@@ -1496,7 +1496,6 @@ func apiManagementRefreshFunc(ctx context.Context, client *apimanagementservice.
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
-				log.Printf("[DEBUG] Retrieving API Management %q (Resource Group: %q) returned 404.", id.ServiceName, id.ResourceGroupName)
 				return nil, "NotFound", nil
 			}
 

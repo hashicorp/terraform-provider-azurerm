@@ -794,7 +794,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	log.Printf("[DEBUG] Orchestrated %s was created", id)
-	log.Printf("[DEBUG] Retrieving Orchestrated %s.", id)
 
 	d.SetId(id.ID())
 

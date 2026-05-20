@@ -604,7 +604,6 @@ func (AIServices) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			log.Printf("[DEBUG] Retrieving %s..", *id)
 			account, err := client.AccountsGet(ctx, *id)
 			if err != nil || account.Model == nil || account.Model.Location == nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)

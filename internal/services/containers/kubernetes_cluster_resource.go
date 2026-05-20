@@ -2170,7 +2170,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if err != nil {
 			return fmt.Errorf("updating Service Principal for %s: %+v", *id, err)
 		}
-		log.Printf("[DEBUG] Updated the Service Principal for %s.", *id)
 
 		// since we're patching it, re-retrieve the latest version of the cluster
 		existing, err = clusterClient.Get(ctx, *id)
@@ -2664,7 +2663,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
 
-		log.Printf("[DEBUG] Updated %s..", *id)
 	}
 
 	// then roll the version of Kubernetes if necessary
@@ -2817,7 +2815,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
 			}
 
-			log.Printf("[DEBUG] Updated Default Node Pool.")
 		}
 	}
 
