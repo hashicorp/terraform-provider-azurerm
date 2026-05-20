@@ -68,7 +68,8 @@ func (r DataCollectionEndpointResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice(
-				datacollectionendpoints.PossibleValuesForKnownDataCollectionEndpointResourceKind(), false),
+				datacollectionendpoints.PossibleValuesForKnownDataCollectionEndpointResourceKind(), false,
+			),
 		},
 
 		"tags": commonschema.Tags(),

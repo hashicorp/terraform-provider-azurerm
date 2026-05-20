@@ -152,7 +152,8 @@ func resourceStorageShare() *pluginsdk.Resource {
 						string(shares.HotAccessTier),
 						string(shares.CoolAccessTier),
 						string(shares.TransactionOptimizedAccessTier),
-					}, false),
+					}, false,
+				),
 			},
 
 			"rbac_scope_id": {

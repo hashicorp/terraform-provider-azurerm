@@ -197,7 +197,8 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 	var id subscriptions.RuleId
 	if subscriptionIdLit := d.Get("subscription_id").(string); subscriptionIdLit != "" {
 		subscriptionId, _ := rules.ParseSubscriptions2ID(subscriptionIdLit)
-		id = subscriptions.NewRuleID(subscriptionId.SubscriptionId,
+		id = subscriptions.NewRuleID(
+			subscriptionId.SubscriptionId,
 			subscriptionId.ResourceGroupName,
 			subscriptionId.NamespaceName,
 			subscriptionId.TopicName,

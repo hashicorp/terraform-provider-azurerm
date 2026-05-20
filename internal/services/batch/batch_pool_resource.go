@@ -669,7 +669,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						string(pool.DiffDiskPlacementCacheDisk),
-					}, false),
+					}, false,
+				),
 			},
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,

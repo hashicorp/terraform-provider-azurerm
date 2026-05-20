@@ -338,7 +338,7 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 			// set the default value to false, then turn on the extension that appear in the template
 			extensionStatuses[backendExtension.Name] = false
 			if backendExtension.AdditionalExtensionProperties != nil {
-				extensionProperties[backendExtension.Name] = *(backendExtension.AdditionalExtensionProperties)
+				extensionProperties[backendExtension.Name] = *backendExtension.AdditionalExtensionProperties
 			}
 		}
 	}

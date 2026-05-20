@@ -197,7 +197,8 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitForRemediationToDelete(ctx,
+	if err := waitForRemediationToDelete(
+		ctx,
 		existing.Model.Properties,
 		id.ID(),
 		d.Timeout(pluginsdk.TimeoutDelete),

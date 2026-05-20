@@ -84,7 +84,8 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice(
 								profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(),
-								false),
+								false,
+							),
 						},
 					},
 				},
