@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -1137,6 +1138,9 @@ func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool)
 		if err != nil {
 			return err
 		}
+
+		ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
+		defer cancel()
 
 		appSettingsResp, err := clients.AppService.WebAppsClient.ListApplicationSettings(ctx, *id)
 		if err != nil {
