@@ -81,8 +81,6 @@ func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Static Site custom domain creation.")
-
 	staticSiteId, err := parse.StaticSiteID(d.Get("static_site_id").(string))
 	if err != nil {
 		return err

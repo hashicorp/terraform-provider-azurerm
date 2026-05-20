@@ -231,8 +231,6 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
 	}
 
-	log.Printf("[INFO] preparing arguments for AzureRM Function App Slot creation.")
-
 	id := parse.NewFunctionAppSlotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("function_app_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {

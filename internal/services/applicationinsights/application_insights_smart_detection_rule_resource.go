@@ -100,8 +100,6 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Application Insights Smart Detection Rule update.")
-
 	// The Smart Detection Rule name from the UI doesn't match what the API accepts.
 	// We'll have the user submit what the name looks like in the UI and convert it behind the scenes to match what the API accepts
 	name := convertUiNameToApiName(d.Get("name"))

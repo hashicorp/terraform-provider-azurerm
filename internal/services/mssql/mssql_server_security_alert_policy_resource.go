@@ -121,8 +121,6 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for mssql server security alert policy creation")
-
 	payload := serversecurityalertpolicies.ServerSecurityAlertPolicy{}
 	resourceGroupName := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
@@ -300,8 +298,6 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for mssql server security alert policy update")
 
 	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {

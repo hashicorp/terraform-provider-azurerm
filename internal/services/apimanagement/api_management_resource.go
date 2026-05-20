@@ -753,7 +753,6 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	defer cancel()
 
 	sku := expandAzureRmApiManagementSkuName(d.Get("sku_name").(string))
-	log.Printf("[INFO] preparing arguments for API Management Service creation.")
 
 	id := apimanagementservice.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
@@ -1036,8 +1035,6 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	sku := expandAzureRmApiManagementSkuName(d.Get("sku_name").(string))
 	virtualNetworkType := d.Get("virtual_network_type").(string)
 	virtualNetworkConfiguration := expandAzureRmApiManagementVirtualNetworkConfigurations(d)
-
-	log.Printf("[INFO] preparing arguments for API Management Service creation.")
 
 	id := apimanagementservice.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 

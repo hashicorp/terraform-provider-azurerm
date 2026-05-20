@@ -229,7 +229,6 @@ func resourceRedisEnterpriseClusterUpdate(d *pluginsdk.ResourceData, meta interf
 	client := meta.(*clients.Client).RedisEnterprise.Client
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
 
 	id, err := redisenterprise.ParseRedisEnterpriseID(d.Id())
 	if err != nil {
