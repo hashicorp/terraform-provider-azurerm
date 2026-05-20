@@ -94,8 +94,9 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"app_service_plan_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: commonids.ValidateAppServicePlanID,
 		},
 
 		"app_settings": {
@@ -249,6 +250,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FivePointOh() {
+		s["app_service_plan_id"].ValidateFunc = nil
 		s["client_certificate_mode"].Default = nil
 		s["public_network_access"].Default = nil
 		s["public_network_access"].Computed = true
@@ -776,12 +778,7 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("app_service_plan_id") {
-				planId, err := commonids.ParseLogicAppIdInsensitively(metadata.ResourceData.Id())
-				if err != nil {
-					return err
-				}
-
-				siteEnvelope.ServerFarmId = pointer.To(planId.ID())
+				siteEnvelope.ServerFarmId = pointer.To(data.AppServicePlanId)
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
