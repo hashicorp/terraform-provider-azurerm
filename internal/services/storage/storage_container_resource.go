@@ -313,7 +313,6 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
 		}
 		if d.HasChange("container_access_type") {
-
 			// Updating metadata does not work with AAD authentication, returns a cryptic 404
 			client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
 			if err != nil {
@@ -326,11 +325,9 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if err = client.UpdateAccessLevel(ctx, id.ContainerName, accessLevel); err != nil {
 				return fmt.Errorf("updating Access Level for %s: %v", id, err)
 			}
-
 		}
 
 		if d.HasChange("metadata") {
-
 			client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 			if err != nil {
 				return fmt.Errorf("building Containers Client: %v", err)
@@ -342,7 +339,6 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if err = client.UpdateMetaData(ctx, id.ContainerName, metaData); err != nil {
 				return fmt.Errorf("updating Metadata for %s: %v", id, err)
 			}
-
 		}
 
 		return resourceStorageContainerRead(d, meta)

@@ -333,7 +333,6 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if _, err := blobsClient.SetTier(ctx, id.ContainerName, id.BlobName, blobs.SetTierInput{Tier: accessTier}); err != nil {
 			return fmt.Errorf("updating Access Tier for %s: %v", id, err)
 		}
-
 	}
 
 	return resourceStorageBlobRead(d, meta)

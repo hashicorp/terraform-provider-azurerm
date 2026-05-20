@@ -522,29 +522,24 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			if err = client.UpdateQuota(ctx, id.ShareName, quota); err != nil {
 				return fmt.Errorf("updating Quota for %s: %v", id, err)
 			}
-
 		}
 
 		if d.HasChange("metadata") {
-
 			metaDataRaw := d.Get("metadata").(map[string]interface{})
 			metaData := ExpandMetaData(metaDataRaw)
 
 			if err = client.UpdateMetaData(ctx, id.ShareName, metaData); err != nil {
 				return fmt.Errorf("updating MetaData for %s: %v", id, err)
 			}
-
 		}
 
 		if d.HasChange("acl") {
-
 			aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 			acls := expandStorageShareACLsDeprecated(aclsRaw)
 
 			if err = client.UpdateACLs(ctx, id.ShareName, shares.SetAclInput{SignedIdentifiers: acls}); err != nil {
 				return fmt.Errorf("updating ACLs for %s: %v", id, err)
 			}
-
 		}
 
 		if d.HasChange("access_tier") {
@@ -563,7 +558,6 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			if err != nil {
 				return fmt.Errorf("updating access tier %s: %+v", id, err)
 			}
-
 		}
 
 		return resourceStorageShareRead(d, meta)

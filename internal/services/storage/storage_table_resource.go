@@ -286,7 +286,6 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("acl") {
-
 		aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 		acls := expandStorageTableACLs(aclsRaw)
 
@@ -299,7 +298,6 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		if err = aclClient.UpdateACLs(ctx, id.TableName, acls); err != nil {
 			return fmt.Errorf("updating ACLs for %s: %v", id, err)
 		}
-
 	}
 
 	return resourceStorageTableRead(d, meta)
