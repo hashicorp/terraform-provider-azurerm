@@ -348,7 +348,6 @@ func tenantTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta inte
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Deleted Tenant Template Deployment %q.", id.DeploymentName)
 
 	return nil
 }

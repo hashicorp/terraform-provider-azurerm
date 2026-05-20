@@ -1549,7 +1549,6 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	if err = client.DeleteThenPoll(ctx, *id, virtualmachinescalesets.DefaultDeleteOperationOptions()); err != nil {
 		return fmt.Errorf("deleting Orchestrated %s: %w", id, err)
 	}
-	log.Printf("[DEBUG] Deleted Orchestrated %s", id)
 
 	return nil
 }

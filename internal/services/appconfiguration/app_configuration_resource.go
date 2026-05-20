@@ -328,7 +328,6 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 			}
 			// if the soft deleted is not found, skip the recovering
 		} else {
-			log.Printf("[DEBUG] Soft Deleted App Configuration exists, marked for recover")
 			recoverSoftDeleted = true
 		}
 	}

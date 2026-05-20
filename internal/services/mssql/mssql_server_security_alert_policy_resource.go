@@ -211,8 +211,6 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] reading mssql server security alert policy")
-
 	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {
 		return err
@@ -395,8 +393,6 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, met
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] deleting mssql server security alert policy")
 
 	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {

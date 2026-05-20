@@ -364,7 +364,6 @@ func managementGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Deleted Management Group Template Deployment %q.", id.DeploymentName)
 
 	return nil
 }

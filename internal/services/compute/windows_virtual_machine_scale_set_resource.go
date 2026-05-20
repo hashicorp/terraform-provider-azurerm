@@ -1174,7 +1174,6 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 	if err := client.DeleteThenPoll(ctx, *id, virtualmachinescalesets.DefaultDeleteOperationOptions()); err != nil {
 		return fmt.Errorf("deleting Windows %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] Deleted Windows %s", id)
 
 	return nil
 }

@@ -547,7 +547,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	// Issue tracking the REST API update failure: https://github.com/Azure/azure-rest-api-specs/issues/14117
 	if mode == servers.CreateModeReplica {
-		log.Printf("[INFO] updating `public_network_access_enabled` and `identity` for %s", id)
 		properties := servers.ServerUpdateParameters{
 			Identity: expandedIdentity,
 			Properties: &servers.ServerUpdateParametersProperties{
@@ -561,7 +560,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if mode == servers.CreateModePointInTimeRestore {
-		log.Printf("[INFO] updating `public_network_access_enabled` for %s", id)
 		properties := servers.ServerUpdateParameters{
 			Properties: &servers.ServerUpdateParametersProperties{
 				PublicNetworkAccess: &publicAccess,

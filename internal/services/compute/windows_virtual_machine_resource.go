@@ -1863,8 +1863,6 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("deleting Windows %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Deleted Windows %s", id)
-
 	deleteOSDisk := meta.(*clients.Client).Features.VirtualMachine.DeleteOSDiskOnDeletion
 	if deleteOSDisk {
 		disksClient := meta.(*clients.Client).Compute.DisksClient
@@ -1895,7 +1893,6 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 				}
 			}
 
-			log.Printf("[DEBUG] Deleted OS Disk from Windows %s.", id)
 		} else {
 			log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows %s - cannot determine OS Disk ID.", id)
 		}

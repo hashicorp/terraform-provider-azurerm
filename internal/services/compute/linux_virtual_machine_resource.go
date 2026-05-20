@@ -1799,8 +1799,6 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("deleting Linux %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Deleted Linux %s", id)
-
 	deleteOSDisk := meta.(*clients.Client).Features.VirtualMachine.DeleteOSDiskOnDeletion
 	if deleteOSDisk {
 		disksClient := meta.(*clients.Client).Compute.DisksClient
@@ -1821,7 +1819,6 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("deleting %s for Linux %s: %+v", diskId, id, err)
 			}
 
-			log.Printf("[DEBUG] Deleted %s for Linux %s", diskId, id)
 		} else {
 			log.Printf("[DEBUG] Skipping Deleting OS Disk from Linux %s - cannot determine OS Disk ID.", id)
 		}

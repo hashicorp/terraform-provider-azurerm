@@ -347,7 +347,6 @@ func subscriptionTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, met
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Deleted Subscription Template Deployment %q.", id.DeploymentName)
 
 	return nil
 }

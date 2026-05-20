@@ -242,8 +242,6 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] reading managed instance security alert policy")
-
 	id, err := parse.ManagedInstancesSecurityAlertPolicyID(d.Id())
 	if err != nil {
 		return err
