@@ -13,13 +13,13 @@ import (
 var _ Setting = DataExportSettings{}
 
 type DataExportSettings struct {
+	Properties *DataExportSettingProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Setting
 
 	Id         *string                `json:"id,omitempty"`
 	Kind       SettingKind            `json:"kind"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *interface{}           `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }
@@ -29,7 +29,6 @@ func (s DataExportSettings) Setting() BaseSettingImpl {
 		Id:         s.Id,
 		Kind:       s.Kind,
 		Name:       s.Name,
-		Properties: s.Properties,
 		SystemData: s.SystemData,
 		Type:       s.Type,
 	}

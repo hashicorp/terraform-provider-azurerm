@@ -826,7 +826,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("tags") {
-		updateParameters := containerinstance.Resource{
+		updateParameters := containerinstance.ContainerGroupUpdate{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
 
