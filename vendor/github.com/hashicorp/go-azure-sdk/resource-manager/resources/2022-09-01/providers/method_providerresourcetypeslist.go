@@ -39,6 +39,7 @@ func (o ProviderResourceTypesListOperationOptions) ToHeaders() *client.Headers {
 
 func (o ProviderResourceTypesListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -30,16 +30,12 @@ type ParameterWithValidateImplementation interface {
 // definition. ValidateParameterImplementationResponse is the type used for
 // responses.
 type ValidateParameterImplementationRequest struct {
+	// FunctionName is the name of the function being validated.
+	FunctionName string
+
 	// ParameterPosition is the position of the parameter in the function definition for reporting diagnostics.
 	// A parameter without a position (i.e. `nil`) is the variadic parameter.
 	ParameterPosition *int64
-
-	// Name is the provider-defined parameter name or the default parameter name for reporting diagnostics.
-	//
-	// MAINTAINER NOTE: Since parameter names are not required currently and can be defaulted by internal framework logic,
-	// we accept the Name in this validate request, rather than using `(function.Parameter).GetName()` for diagnostics, which
-	// could be empty.
-	Name string
 }
 
 // ValidateParameterImplementationResponse contains the returned data from a

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/schedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/schedule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -270,7 +270,6 @@ func resourceAutomationScheduleCreate(d *pluginsdk.ResourceData, meta interface{
 
 	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
 	if parameters.Properties.Frequency != schedule.ScheduleFrequencyOneTime {
-
 		var interval interface{}
 		interval = 1
 		if v, ok := d.GetOk("interval"); ok {
@@ -306,7 +305,6 @@ func resourceAutomationScheduleUpdate(d *pluginsdk.ResourceData, meta interface{
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("checking for presence of existing %s: %v", id, err)
-
 	}
 
 	if existing.Model == nil || existing.Model.Properties == nil {

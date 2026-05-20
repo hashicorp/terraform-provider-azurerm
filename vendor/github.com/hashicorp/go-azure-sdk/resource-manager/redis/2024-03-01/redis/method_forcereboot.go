@@ -50,7 +50,6 @@ func (c RedisClient) ForceReboot(ctx context.Context, id RediId, input RedisRebo
 
 	var model RedisForceRebootResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

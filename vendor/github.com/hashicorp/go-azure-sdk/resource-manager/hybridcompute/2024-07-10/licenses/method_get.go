@@ -45,7 +45,6 @@ func (c LicensesClient) Get(ctx context.Context, id LicenseId) (result GetOperat
 
 	var model License
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

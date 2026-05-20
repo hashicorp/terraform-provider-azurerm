@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -22,8 +22,10 @@ import (
 // RestorePointCollectionResource remove this in 4.0, the resource is renamed
 type RestorePointCollectionResource struct{}
 
-var _ sdk.ResourceWithUpdate = RestorePointCollectionResource{}
-var _ sdk.ResourceWithDeprecationReplacedBy = RestorePointCollectionResource{}
+var (
+	_ sdk.ResourceWithUpdate                = RestorePointCollectionResource{}
+	_ sdk.ResourceWithDeprecationReplacedBy = RestorePointCollectionResource{}
+)
 
 func (r RestorePointCollectionResource) DeprecatedInFavourOfResource() string {
 	return "azurerm_virtual_machine_restore_point_collection"

@@ -42,7 +42,7 @@ func ParseNetworkInterfaceID(input string) (*NetworkInterfaceId, error) {
 	}
 
 	id := NetworkInterfaceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseNetworkInterfaceIDInsensitively(input string) (*NetworkInterfaceId, er
 	}
 
 	id := NetworkInterfaceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id NetworkInterfaceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAzureStackHCI", "Microsoft.AzureStackHCI", "Microsoft.AzureStackHCI"),
 		resourceids.StaticSegment("staticNetworkInterfaces", "networkInterfaces", "networkInterfaces"),
-		resourceids.UserSpecifiedSegment("networkInterfaceName", "networkInterfaceValue"),
+		resourceids.UserSpecifiedSegment("networkInterfaceName", "networkInterfaceName"),
 	}
 }
 

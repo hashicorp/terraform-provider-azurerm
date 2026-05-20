@@ -50,7 +50,6 @@ func (c CreatorsClient) CreateOrUpdate(ctx context.Context, id CreatorId, input 
 
 	var model Creator
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

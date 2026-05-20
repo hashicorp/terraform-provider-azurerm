@@ -6,6 +6,8 @@ package schema
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -23,7 +24,7 @@ var (
 	_ fwxschema.AttributeWithMapValidators         = MapAttribute{}
 )
 
-// MapAttribute represents a schema attribute that is a list with a single
+// MapAttribute represents a schema attribute that is a map with a single
 // element type. When retrieving the value for this attribute, use types.Map
 // as the value type unless the CustomType field is set. The ElementType field
 // must be set.
@@ -32,7 +33,7 @@ var (
 // require definition beyond type information.
 //
 // Terraform configurations configure this attribute using expressions that
-// return a list or directly via curly brace syntax.
+// return a map or directly via curly brace syntax.
 //
 //	# map of strings
 //	example_attribute = {
@@ -203,6 +204,23 @@ func (a MapAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a MapAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly returns false as write-only attributes are not supported in data source schemas.
+func (a MapAttribute) IsWriteOnly() bool {
+	return false
+}
+
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a MapAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a MapAttribute) IsOptionalForImport() bool {
+	return false
 }
 
 // MapValidators returns the Validators field value.

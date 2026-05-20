@@ -42,7 +42,7 @@ func ParseInstancePoolID(input string) (*InstancePoolId, error) {
 	}
 
 	id := InstancePoolId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseInstancePoolIDInsensitively(input string) (*InstancePoolId, error) {
 	}
 
 	id := InstancePoolId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id InstancePoolId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSql", "Microsoft.Sql", "Microsoft.Sql"),
 		resourceids.StaticSegment("staticInstancePools", "instancePools", "instancePools"),
-		resourceids.UserSpecifiedSegment("instancePoolName", "instancePoolValue"),
+		resourceids.UserSpecifiedSegment("instancePoolName", "instancePoolName"),
 	}
 }
 

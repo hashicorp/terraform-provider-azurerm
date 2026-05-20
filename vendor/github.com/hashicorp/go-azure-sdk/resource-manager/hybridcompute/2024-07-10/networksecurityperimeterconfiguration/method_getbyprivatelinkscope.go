@@ -45,7 +45,6 @@ func (c NetworkSecurityPerimeterConfigurationClient) GetByPrivateLinkScope(ctx c
 
 	var model NetworkSecurityPerimeterConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

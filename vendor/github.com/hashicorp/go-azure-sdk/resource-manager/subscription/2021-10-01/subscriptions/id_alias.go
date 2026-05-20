@@ -38,7 +38,7 @@ func ParseAliasID(input string) (*AliasId, error) {
 	}
 
 	id := AliasId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func ParseAliasIDInsensitively(input string) (*AliasId, error) {
 	}
 
 	id := AliasId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +99,7 @@ func (id AliasId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSubscription", "Microsoft.Subscription", "Microsoft.Subscription"),
 		resourceids.StaticSegment("staticAliases", "aliases", "aliases"),
-		resourceids.UserSpecifiedSegment("aliasName", "aliasValue"),
+		resourceids.UserSpecifiedSegment("aliasName", "aliasName"),
 	}
 }
 

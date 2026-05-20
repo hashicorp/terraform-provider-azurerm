@@ -47,7 +47,6 @@ func (c DatabaseSecurityAlertPoliciesClient) Get(ctx context.Context, id commoni
 
 	var model DatabaseSecurityAlertPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -51,7 +51,6 @@ func (c ResourcesClient) CreateOrUpdate(ctx context.Context, id commonids.ScopeI
 
 	var model GenericResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

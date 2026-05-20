@@ -50,7 +50,6 @@ func (c PrivateLinkScopesClient) CreateOrUpdate(ctx context.Context, id Provider
 
 	var model HybridComputePrivateLinkScope
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ContainerRegistryCredentials interface {
+	ContainerRegistryCredentials() BaseContainerRegistryCredentialsImpl
 }
 
-// RawContainerRegistryCredentialsImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ ContainerRegistryCredentials = BaseContainerRegistryCredentialsImpl{}
+
+type BaseContainerRegistryCredentialsImpl struct {
+	Type string `json:"type"`
+}
+
+func (s BaseContainerRegistryCredentialsImpl) ContainerRegistryCredentials() BaseContainerRegistryCredentialsImpl {
+	return s
+}
+
+var _ ContainerRegistryCredentials = RawContainerRegistryCredentialsImpl{}
+
+// RawContainerRegistryCredentialsImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawContainerRegistryCredentialsImpl struct {
-	Type   string
-	Values map[string]interface{}
+	containerRegistryCredentials BaseContainerRegistryCredentialsImpl
+	Type                         string
+	Values                       map[string]interface{}
 }
 
-func unmarshalContainerRegistryCredentialsImplementation(input []byte) (ContainerRegistryCredentials, error) {
+func (s RawContainerRegistryCredentialsImpl) ContainerRegistryCredentials() BaseContainerRegistryCredentialsImpl {
+	return s.containerRegistryCredentials
+}
+
+func UnmarshalContainerRegistryCredentialsImplementation(input []byte) (ContainerRegistryCredentials, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalContainerRegistryCredentialsImplementation(input []byte) (Containe
 		return nil, fmt.Errorf("unmarshaling ContainerRegistryCredentials into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "BasicAuth") {
@@ -44,10 +61,15 @@ func unmarshalContainerRegistryCredentialsImplementation(input []byte) (Containe
 		return out, nil
 	}
 
-	out := RawContainerRegistryCredentialsImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseContainerRegistryCredentialsImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseContainerRegistryCredentialsImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawContainerRegistryCredentialsImpl{
+		containerRegistryCredentials: parent,
+		Type:                         value,
+		Values:                       temp,
+	}, nil
 
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/scopeconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/scopeconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerScopeConnectionResource struct{}
@@ -29,7 +29,10 @@ func testAccNetworkManagerScopeConnection_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// https://learn.microsoft.com/azure/virtual-network-manager/concept-network-manager-scope#cross-tenant-scope
+		// connection_state shows if the cross-tenant connection is established.
+		// Since we test in a single tenant, we can skip this validation.
+		data.ImportStep("connection_state"),
 	})
 }
 
@@ -57,7 +60,7 @@ func testAccNetworkManagerScopeConnection_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("connection_state"),
 	})
 }
 
@@ -71,14 +74,14 @@ func testAccNetworkManagerScopeConnection_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("connection_state"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("connection_state"),
 	})
 }
 
@@ -92,11 +95,11 @@ func (r ManagerScopeConnectionResource) Exists(ctx context.Context, clients *cli
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagerScopeConnectionResource) template(data acceptance.TestData) string {

@@ -42,7 +42,7 @@ func ParseProviderRemediationID(input string) (*ProviderRemediationId, error) {
 	}
 
 	id := ProviderRemediationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseProviderRemediationIDInsensitively(input string) (*ProviderRemediation
 	}
 
 	id := ProviderRemediationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ProviderRemediationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftPolicyInsights", "Microsoft.PolicyInsights", "Microsoft.PolicyInsights"),
 		resourceids.StaticSegment("staticRemediations", "remediations", "remediations"),
-		resourceids.UserSpecifiedSegment("remediationName", "remediationValue"),
+		resourceids.UserSpecifiedSegment("remediationName", "remediationName"),
 	}
 }
 

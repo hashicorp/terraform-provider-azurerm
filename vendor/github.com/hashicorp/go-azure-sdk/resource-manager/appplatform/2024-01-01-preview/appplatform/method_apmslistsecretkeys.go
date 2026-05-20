@@ -46,7 +46,6 @@ func (c AppPlatformClient) ApmsListSecretKeys(ctx context.Context, id ApmId) (re
 
 	var model ApmSecretKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

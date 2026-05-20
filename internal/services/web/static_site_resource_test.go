@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web_test
@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -19,6 +21,10 @@ import (
 type StaticSiteResource struct{}
 
 func TestAccAzureStaticSite_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -37,6 +43,10 @@ func TestAccAzureStaticSite_basic(t *testing.T) {
 }
 
 func TestAccAzureStaticSite_withSystemAssignedIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -55,6 +65,10 @@ func TestAccAzureStaticSite_withSystemAssignedIdentity(t *testing.T) {
 }
 
 func TestAccAzureStaticSite_identity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -92,6 +106,10 @@ func TestAccAzureStaticSite_identity(t *testing.T) {
 }
 
 func TestAccAzureStaticSite_withSystemAssignedUserAssignedIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -110,6 +128,10 @@ func TestAccAzureStaticSite_withSystemAssignedUserAssignedIdentity(t *testing.T)
 }
 
 func TestAccAzureStaticSite_withUserAssignedIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -127,6 +149,10 @@ func TestAccAzureStaticSite_withUserAssignedIdentity(t *testing.T) {
 }
 
 func TestAccAzureStaticSite_basicUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -155,6 +181,10 @@ func TestAccAzureStaticSite_basicUpdate(t *testing.T) {
 }
 
 func TestAccAzureStaticSite_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -169,7 +199,11 @@ func TestAccAzureStaticSite_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccStaticSite_appSettings(t *testing.T) {
+func TestAccAzureStaticSite_appSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -206,18 +240,20 @@ func (r StaticSiteResource) Exists(ctx context.Context, clients *clients.Client,
 		return nil, err
 	}
 
-	resp, err := clients.Web.StaticSitesClient.GetStaticSite(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Web.StaticSitesClientV1.GetStaticSite(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Static Site %q: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StaticSiteResource) basic(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -237,10 +273,12 @@ resource "azurerm_static_site" "test" {
     environment = "acceptance"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r StaticSiteResource) withSystemAssignedIdentity(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -262,10 +300,12 @@ resource "azurerm_static_site" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r StaticSiteResource) withSystemAssignedUserAssignedIdentity(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -295,10 +335,12 @@ resource "azurerm_static_site" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r StaticSiteResource) withUserAssignedIdentity(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -328,10 +370,12 @@ resource "azurerm_static_site" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r StaticSiteResource) basicUpdate(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -354,7 +398,7 @@ resource "azurerm_static_site" "test" {
     updated     = "true"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r StaticSiteResource) requiresImport(data acceptance.TestData) string {
@@ -371,6 +415,8 @@ resource "azurerm_static_site" "import" {
 }
 
 func (r StaticSiteResource) appSettings(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -390,10 +436,12 @@ resource "azurerm_static_site" "test" {
     "foo" = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r StaticSiteResource) appSettingsUpdate(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -414,5 +462,5 @@ resource "azurerm_static_site" "test" {
     "baz" = "foo"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

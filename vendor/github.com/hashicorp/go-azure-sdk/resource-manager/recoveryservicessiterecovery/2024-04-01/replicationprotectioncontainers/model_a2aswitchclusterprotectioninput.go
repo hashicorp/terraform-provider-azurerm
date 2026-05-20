@@ -16,6 +16,14 @@ type A2ASwitchClusterProtectionInput struct {
 	RecoveryContainerId  *string                   `json:"recoveryContainerId,omitempty"`
 
 	// Fields inherited from SwitchClusterProtectionProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2ASwitchClusterProtectionInput) SwitchClusterProtectionProviderSpecificInput() BaseSwitchClusterProtectionProviderSpecificInputImpl {
+	return BaseSwitchClusterProtectionProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2ASwitchClusterProtectionInput{}
@@ -29,9 +37,10 @@ func (s A2ASwitchClusterProtectionInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2ASwitchClusterProtectionInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2A"
 
 	encoded, err = json.Marshal(decoded)

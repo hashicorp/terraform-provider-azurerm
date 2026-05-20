@@ -15,7 +15,7 @@ type SettingsClient struct {
 }
 
 func NewSettingsClientWithBaseURI(sdkApi sdkEnv.Api) (*SettingsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "settings", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "settings", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SettingsClient: %+v", err)
 	}

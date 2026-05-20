@@ -17,10 +17,12 @@ type RecoveryPlanUnplannedFailoverInputProperties struct {
 var _ json.Unmarshaler = &RecoveryPlanUnplannedFailoverInputProperties{}
 
 func (s *RecoveryPlanUnplannedFailoverInputProperties) UnmarshalJSON(bytes []byte) error {
-	type alias RecoveryPlanUnplannedFailoverInputProperties
-	var decoded alias
+	var decoded struct {
+		FailoverDirection    PossibleOperationsDirections `json:"failoverDirection"`
+		SourceSiteOperations SourceSiteOperations         `json:"sourceSiteOperations"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into RecoveryPlanUnplannedFailoverInputProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.FailoverDirection = decoded.FailoverDirection
@@ -39,7 +41,7 @@ func (s *RecoveryPlanUnplannedFailoverInputProperties) UnmarshalJSON(bytes []byt
 
 		output := make([]RecoveryPlanProviderSpecificFailoverInput, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalRecoveryPlanProviderSpecificFailoverInputImplementation(val)
+			impl, err := UnmarshalRecoveryPlanProviderSpecificFailoverInputImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'ProviderSpecificDetails' for 'RecoveryPlanUnplannedFailoverInputProperties': %+v", i, err)
 			}
@@ -47,5 +49,6 @@ func (s *RecoveryPlanUnplannedFailoverInputProperties) UnmarshalJSON(bytes []byt
 		}
 		s.ProviderSpecificDetails = &output
 	}
+
 	return nil
 }

@@ -38,6 +38,7 @@ func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -86,7 +87,6 @@ func (c SubscriptionClient) CreateOrUpdate(ctx context.Context, id Subscriptions
 
 	var model SubscriptionContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

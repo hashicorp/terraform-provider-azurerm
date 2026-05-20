@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules` Documentation
 
-The `virtualnetworkrules` SDK allows for interaction with the Azure Resource Manager Service `postgresql` (API Version `2017-12-01`).
+The `virtualnetworkrules` SDK allows for interaction with Azure Resource Manager `postgresql` (API Version `2017-12-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkrules.NewVirtualNetworkRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "virtualNetworkRuleValue")
+id := virtualnetworkrules.NewVirtualNetworkRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "virtualNetworkRuleName")
 
 payload := virtualnetworkrules.VirtualNetworkRule{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkrules.NewVirtualNetworkRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "virtualNetworkRuleValue")
+id := virtualnetworkrules.NewVirtualNetworkRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "virtualNetworkRuleName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkrules.NewVirtualNetworkRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "virtualNetworkRuleValue")
+id := virtualnetworkrules.NewVirtualNetworkRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "virtualNetworkRuleName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkrules.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := virtualnetworkrules.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 // alternatively `client.ListByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ListByServerComplete(ctx, id)

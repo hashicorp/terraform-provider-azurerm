@@ -44,7 +44,7 @@ func ParseDicomServiceID(input string) (*DicomServiceId, error) {
 	}
 
 	id := DicomServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDicomServiceIDInsensitively(input string) (*DicomServiceId, error) {
 	}
 
 	id := DicomServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DicomServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHealthcareApis", "Microsoft.HealthcareApis", "Microsoft.HealthcareApis"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticDicomServices", "dicomServices", "dicomServices"),
-		resourceids.UserSpecifiedSegment("dicomServiceName", "dicomServiceValue"),
+		resourceids.UserSpecifiedSegment("dicomServiceName", "dicomServiceName"),
 	}
 }
 

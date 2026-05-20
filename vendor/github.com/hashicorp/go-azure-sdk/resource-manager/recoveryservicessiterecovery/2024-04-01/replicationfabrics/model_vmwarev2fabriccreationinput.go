@@ -16,6 +16,14 @@ type VMwareV2FabricCreationInput struct {
 	VMwareSiteId        *string `json:"vmwareSiteId,omitempty"`
 
 	// Fields inherited from FabricSpecificCreationInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s VMwareV2FabricCreationInput) FabricSpecificCreationInput() BaseFabricSpecificCreationInputImpl {
+	return BaseFabricSpecificCreationInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = VMwareV2FabricCreationInput{}
@@ -29,9 +37,10 @@ func (s VMwareV2FabricCreationInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling VMwareV2FabricCreationInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "VMwareV2"
 
 	encoded, err = json.Marshal(decoded)

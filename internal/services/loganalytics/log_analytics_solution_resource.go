@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -20,11 +21,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsSolutionResource struct{}
@@ -55,8 +54,10 @@ type SolutionPlanModel struct {
 	Product       string `tfschema:"product"`
 }
 
-var _ sdk.ResourceWithUpdate = LogAnalyticsSolutionResource{}
-var _ sdk.ResourceWithStateMigration = LogAnalyticsSolutionResource{}
+var (
+	_ sdk.ResourceWithUpdate         = LogAnalyticsSolutionResource{}
+	_ sdk.ResourceWithStateMigration = LogAnalyticsSolutionResource{}
+)
 
 func (s LogAnalyticsSolutionResource) ModelObject() interface{} {
 	return &SolutionResourceModel{}
@@ -126,13 +127,14 @@ func (s LogAnalyticsSolutionResource) Arguments() map[string]*schema.Schema {
 			},
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
 func (s LogAnalyticsSolutionResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
+
 func (s LogAnalyticsSolutionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -167,7 +169,7 @@ func (s LogAnalyticsSolutionResource) Create() sdk.ResourceFunc {
 
 			parameters := solution.Solution{
 				Name:     pointer.To(id.SolutionName),
-				Location: pointer.To(azure.NormalizeLocation(config.Location)),
+				Location: pointer.To(location.Normalize(config.Location)),
 				Properties: &solution.SolutionProperties{
 					WorkspaceResourceId: workspaceID.ID(),
 				},
@@ -216,8 +218,8 @@ func (s LogAnalyticsSolutionResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				if location := model.Location; location != nil {
-					state.Location = azure.NormalizeLocation(*location)
+				if loc := model.Location; loc != nil {
+					state.Location = location.Normalize(*loc)
 				}
 
 				// Reversing the mapping used to get .solution_name
@@ -252,7 +254,6 @@ func (s LogAnalyticsSolutionResource) Read() sdk.ResourceFunc {
 				}
 
 				state.Tags = pointer.From(model.Tags)
-
 			}
 
 			return metadata.Encode(&state)
@@ -324,10 +325,10 @@ func expandAzureRmLogAnalyticsSolutionPlan(plans []SolutionPlanModel) solution.S
 	product := plan.Product
 
 	expandedPlan := solution.SolutionPlan{
-		Name:          utils.String(name),
-		PromotionCode: utils.String(promotionCode),
-		Publisher:     utils.String(publisher),
-		Product:       utils.String(product),
+		Name:          pointer.To(name),
+		PromotionCode: pointer.To(promotionCode),
+		Publisher:     pointer.To(publisher),
+		Product:       pointer.To(product),
 	}
 
 	return expandedPlan

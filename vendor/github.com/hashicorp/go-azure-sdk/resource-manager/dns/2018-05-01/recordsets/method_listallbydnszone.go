@@ -40,6 +40,7 @@ func (o ListAllByDnsZoneOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListAllByDnsZoneOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

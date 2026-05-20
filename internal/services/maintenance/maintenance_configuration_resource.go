@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maintenance
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -264,26 +265,26 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta inte
 
 	if scope == maintenanceconfigurations.MaintenanceScopeInGuestPatch {
 		if window == nil {
-			return fmt.Errorf("`window` must be specified when `scope` is `InGuestPatch`")
+			return errors.New("`window` must be specified when `scope` is `InGuestPatch`")
 		}
 		if installPatches == nil {
-			return fmt.Errorf("`install_patches` must be specified when `scope` is `InGuestPatch`")
+			return errors.New("`install_patches` must be specified when `scope` is `InGuestPatch`")
 		}
 		if _, ok := (*extensionProperties)["InGuestPatchMode"]; !ok {
 			if _, ok := d.GetOk("in_guest_user_patch_mode"); !ok {
-				return fmt.Errorf("`in_guest_user_patch_mode` must be specified when `scope` is `InGuestPatch`")
+				return errors.New("`in_guest_user_patch_mode` must be specified when `scope` is `InGuestPatch`")
 			}
 			(*extensionProperties)["InGuestPatchMode"] = d.Get("in_guest_user_patch_mode").(string)
 		}
 	}
 
 	configuration := maintenanceconfigurations.MaintenanceConfiguration{
-		Name:     utils.String(id.MaintenanceConfigurationName),
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Name:     pointer.To(id.MaintenanceConfigurationName),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &maintenanceconfigurations.MaintenanceConfigurationProperties{
 			MaintenanceScope:    &scope,
 			Visibility:          &visibility,
-			Namespace:           utils.String("Microsoft.Maintenance"),
+			Namespace:           pointer.To("Microsoft.Maintenance"),
 			MaintenanceWindow:   window,
 			ExtensionProperties: extensionProperties,
 			InstallPatches:      installPatches,
@@ -323,14 +324,14 @@ func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta inte
 		extensionProperties := expandExtensionProperties(d.Get("properties").(map[string]interface{}))
 		if scope == maintenanceconfigurations.MaintenanceScopeInGuestPatch {
 			if window == nil {
-				return fmt.Errorf("`window` must be specified when `scope` is `InGuestPatch`")
+				return errors.New("`window` must be specified when `scope` is `InGuestPatch`")
 			}
 			if installPatches == nil {
-				return fmt.Errorf("`install_patches` must be specified when `scope` is `InGuestPatch`")
+				return errors.New("`install_patches` must be specified when `scope` is `InGuestPatch`")
 			}
 			if _, ok := (*extensionProperties)["InGuestPatchMode"]; !ok {
 				if _, ok := d.GetOk("in_guest_user_patch_mode"); !ok {
-					return fmt.Errorf("`in_guest_user_patch_mode` must be specified when `scope` is `InGuestPatch`")
+					return errors.New("`in_guest_user_patch_mode` must be specified when `scope` is `InGuestPatch`")
 				}
 				(*extensionProperties)["InGuestPatchMode"] = d.Get("in_guest_user_patch_mode").(string)
 			}
@@ -438,11 +439,11 @@ func expandMaintenanceConfigurationWindow(input []interface{}) *maintenanceconfi
 	timeZone := v["time_zone"].(string)
 	recurEvery := v["recur_every"].(string)
 	window := maintenanceconfigurations.MaintenanceWindow{
-		StartDateTime:      utils.String(startDateTime),
-		ExpirationDateTime: utils.String(expirationDateTime),
-		Duration:           utils.String(duration),
-		TimeZone:           utils.String(timeZone),
-		RecurEvery:         utils.String(recurEvery),
+		StartDateTime:      pointer.To(startDateTime),
+		ExpirationDateTime: pointer.To(expirationDateTime),
+		Duration:           pointer.To(duration),
+		TimeZone:           pointer.To(timeZone),
+		RecurEvery:         pointer.To(recurEvery),
 	}
 	return &window
 }

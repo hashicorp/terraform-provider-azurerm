@@ -1,25 +1,28 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maintenance
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-const recurMondayToThursday = "Monday-Thursday"
-const recurFridayToSunday = "Friday-Sunday"
+const (
+	recurMondayToThursday = "Monday-Thursday"
+	recurFridayToSunday   = "Friday-Sunday"
+)
 
 func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -30,11 +33,10 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"location": {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
-				StateFunc: azure.NormalizeLocation,
+				StateFunc: location.StateFunc,
 			},
 
 			"scope": {
@@ -120,7 +122,7 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 	resp, err := client.List(ctx, subId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("no Public Maintenance Configurations were found")
+			return errors.New("no Public Maintenance Configurations were found")
 		}
 		return fmt.Errorf("retrieving Public Maintenance Configurations: %+v", err)
 	}
@@ -129,13 +131,14 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 
 	recurEveryFilterRaw := d.Get("recur_every").(string)
 	recurEveryFilter := recurEveryFilterRaw
-	if recurEveryFilterRaw == recurFridayToSunday {
+	switch recurEveryFilterRaw {
+	case recurFridayToSunday:
 		recurEveryFilter = "week Friday, Saturday, Sunday"
-	} else if recurEveryFilterRaw == recurMondayToThursday {
+	case recurMondayToThursday:
 		recurEveryFilter = "week Monday, Tuesday, Wednesday, Thursday"
 	}
 
-	locationFilter := azure.NormalizeLocation(d.Get("location").(string))
+	locationFilter := location.Normalize(d.Get("location").(string))
 	scopeFilter := d.Get("scope").(string)
 
 	if resp.Model != nil {
@@ -143,7 +146,7 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 			for _, maintenanceConfig := range *resp.Model.Value {
 				var configLocation, configRecurEvery, configScope string
 				if maintenanceConfig.Location != nil {
-					configLocation = azure.NormalizeLocation(*maintenanceConfig.Location)
+					configLocation = location.Normalize(*maintenanceConfig.Location)
 				}
 				if props := maintenanceConfig.Properties; props != nil {
 					if props.MaintenanceWindow != nil && props.MaintenanceWindow.RecurEvery != nil {
@@ -170,7 +173,7 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 		}
 	}
 	if len(filteredPublicConfigs) == 0 {
-		return fmt.Errorf("no Public Maintenance Configurations were found")
+		return errors.New("no Public Maintenance Configurations were found")
 	}
 
 	if err := d.Set("configs", filteredPublicConfigs); err != nil {
@@ -197,7 +200,7 @@ func flattenPublicMaintenanceConfiguration(config publicmaintenanceconfiguration
 
 	output["location"] = ""
 	if config.Location != nil {
-		output["location"] = azure.NormalizeLocation(*config.Location)
+		output["location"] = location.Normalize(*config.Location)
 	}
 
 	var description, recurEvery, timeZone, duration, scope string

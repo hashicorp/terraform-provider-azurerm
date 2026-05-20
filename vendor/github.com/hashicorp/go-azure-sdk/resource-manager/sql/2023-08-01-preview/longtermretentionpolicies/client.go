@@ -15,7 +15,7 @@ type LongTermRetentionPoliciesClient struct {
 }
 
 func NewLongTermRetentionPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*LongTermRetentionPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "longtermretentionpolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "longtermretentionpolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LongTermRetentionPoliciesClient: %+v", err)
 	}

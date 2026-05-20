@@ -15,7 +15,7 @@ type ManagedInstanceAdministratorsClient struct {
 }
 
 func NewManagedInstanceAdministratorsClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagedInstanceAdministratorsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managedinstanceadministrators", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managedinstanceadministrators", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagedInstanceAdministratorsClient: %+v", err)
 	}

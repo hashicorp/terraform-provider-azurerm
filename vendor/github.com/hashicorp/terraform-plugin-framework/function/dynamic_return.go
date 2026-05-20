@@ -22,6 +22,8 @@ var _ Return = DynamicReturn{}
 //
 // - If CustomType is set, use its associated value type.
 // - Otherwise, use the [types.Dynamic] value type.
+//
+// Return documentation is expected in the function [Definition] documentation.
 type DynamicReturn struct {
 	// CustomType enables the use of a custom data type in place of the
 	// default [basetypes.DynamicType]. When setting data, the

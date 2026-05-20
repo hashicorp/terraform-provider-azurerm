@@ -50,7 +50,6 @@ func (c AccountsClient) ListSas(ctx context.Context, id AccountId, input Account
 
 	var model MapsAccountSasToken
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

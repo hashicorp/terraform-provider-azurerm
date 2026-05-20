@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -76,18 +76,21 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						ForceNew: true,
 						Computed: true,
 					},
 
 					"private_ip_allocation_method": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						ForceNew:     true,
 						Default:      string(inboundendpoints.IPAllocationMethodDynamic),
 						ValidateFunc: validation.StringInSlice(inboundendpoints.PossibleValuesForIPAllocationMethod(), false),
 					},
@@ -288,7 +291,7 @@ func dnsResolverInboundEndpointDeleteRefreshFunc(ctx context.Context, client *in
 }
 
 func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundendpoints.IPConfiguration, error) {
-	var outputList []inboundendpoints.IPConfiguration
+	outputList := make([]inboundendpoints.IPConfiguration, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := inboundendpoints.IPConfiguration{}
@@ -320,11 +323,11 @@ func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundend
 }
 
 func flattenIPConfigurationModel(inputList *[]inboundendpoints.IPConfiguration) []IPConfigurationModel {
-	var outputList []IPConfigurationModel
 	if inputList == nil {
-		return outputList
+		return []IPConfigurationModel{}
 	}
 
+	outputList := make([]IPConfigurationModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := IPConfigurationModel{}
 

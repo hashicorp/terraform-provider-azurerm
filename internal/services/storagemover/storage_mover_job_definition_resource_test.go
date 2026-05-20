@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagemover_test
@@ -8,20 +8,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/jobdefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/jobdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type StorageMoverJobDefinitionTestResource struct{}
+type StorageMoverJobDefinitionResource struct{}
 
 func TestAccStorageMoverJobDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_job_definition", "test")
-	r := StorageMoverJobDefinitionTestResource{}
+	r := StorageMoverJobDefinitionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccStorageMoverJobDefinition_basic(t *testing.T) {
 
 func TestAccStorageMoverJobDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_job_definition", "test")
-	r := StorageMoverJobDefinitionTestResource{}
+	r := StorageMoverJobDefinitionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccStorageMoverJobDefinition_requiresImport(t *testing.T) {
 
 func TestAccStorageMoverJobDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_job_definition", "test")
-	r := StorageMoverJobDefinitionTestResource{}
+	r := StorageMoverJobDefinitionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func TestAccStorageMoverJobDefinition_complete(t *testing.T) {
 
 func TestAccStorageMoverJobDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_job_definition", "test")
-	r := StorageMoverJobDefinitionTestResource{}
+	r := StorageMoverJobDefinitionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -82,7 +82,7 @@ func TestAccStorageMoverJobDefinition_update(t *testing.T) {
 	})
 }
 
-func (r StorageMoverJobDefinitionTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageMoverJobDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := jobdefinitions.ParseJobDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -92,14 +92,14 @@ func (r StorageMoverJobDefinitionTestResource) Exists(ctx context.Context, clien
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r StorageMoverJobDefinitionTestResource) template(data acceptance.TestData) string {
+func (r StorageMoverJobDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -147,10 +147,10 @@ resource "azurerm_storage_mover_project" "test" {
   name             = "acctest-sp-%[2]d"
   storage_mover_id = azurerm_storage_mover.test.id
 }
-`, StorageMoverAgentTestResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, StorageMoverAgentResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageMoverJobDefinitionTestResource) basic(data acceptance.TestData) string {
+func (r StorageMoverJobDefinitionResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -174,7 +174,7 @@ resource "azurerm_storage_mover_job_definition" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageMoverJobDefinitionTestResource) requiresImport(data acceptance.TestData) string {
+func (r StorageMoverJobDefinitionResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -190,7 +190,7 @@ resource "azurerm_storage_mover_job_definition" "import" {
 `, config)
 }
 
-func (r StorageMoverJobDefinitionTestResource) complete(data acceptance.TestData) string {
+func (r StorageMoverJobDefinitionResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -217,7 +217,7 @@ resource "azurerm_storage_mover_job_definition" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageMoverJobDefinitionTestResource) update(data acceptance.TestData) string {
+func (r StorageMoverJobDefinitionResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -230,18 +230,11 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_storage_mover_agent" "test2" {
-  name                     = "acctest-sa2-%[2]d"
-  storage_mover_id         = azurerm_storage_mover.test.id
-  arc_virtual_machine_id   = data.azurerm_arc_machine.test.id
-  arc_virtual_machine_uuid = data.azurerm_arc_machine.test.vm_uuid
-}
-
 resource "azurerm_storage_mover_job_definition" "test" {
   name                     = "acctest-sjd-%[2]d"
   storage_mover_project_id = azurerm_storage_mover_project.test.id
-  agent_name               = azurerm_storage_mover_agent.test2.name
-  copy_mode                = "Mirror"
+  agent_name               = azurerm_storage_mover_agent.test.name
+  copy_mode                = "Additive"
   source_name              = azurerm_storage_mover_source_endpoint.test.name
   source_sub_path          = "/"
   target_name              = azurerm_storage_mover_target_endpoint.test.name

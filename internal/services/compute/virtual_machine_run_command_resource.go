@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -594,7 +594,6 @@ func expandVirtualMachineRunCommandInputParameter(input []VirtualMachineRunComma
 			Value: v.Value,
 		}
 		output = append(output, parameter)
-
 	}
 	return &output
 }
@@ -611,7 +610,6 @@ func flattenVirtualMachineRunCommandInputParameter(input *[]virtualmachineruncom
 			Value: v.Value,
 		}
 		output = append(output, parameter)
-
 	}
 
 	return output

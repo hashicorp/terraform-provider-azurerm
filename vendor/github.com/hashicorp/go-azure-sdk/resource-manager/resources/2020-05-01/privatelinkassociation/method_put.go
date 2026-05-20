@@ -50,7 +50,6 @@ func (c PrivateLinkAssociationClient) Put(ctx context.Context, id PrivateLinkAss
 
 	var model PrivateLinkAssociation
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

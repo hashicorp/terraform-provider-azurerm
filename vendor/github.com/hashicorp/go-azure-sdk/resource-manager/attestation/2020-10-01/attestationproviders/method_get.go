@@ -45,7 +45,6 @@ func (c AttestationProvidersClient) Get(ctx context.Context, id AttestationProvi
 
 	var model AttestationProviders
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

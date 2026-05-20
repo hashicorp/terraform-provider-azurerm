@@ -6,6 +6,8 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -17,15 +19,17 @@ import (
 // ReadDataSourceRequest is the framework server request for the
 // ReadDataSource RPC.
 type ReadDataSourceRequest struct {
-	Config           *tfsdk.Config
-	DataSourceSchema fwschema.Schema
-	DataSource       datasource.DataSource
-	ProviderMeta     *tfsdk.Config
+	ClientCapabilities datasource.ReadClientCapabilities
+	Config             *tfsdk.Config
+	DataSourceSchema   fwschema.Schema
+	DataSource         datasource.DataSource
+	ProviderMeta       *tfsdk.Config
 }
 
 // ReadDataSourceResponse is the framework server response for the
 // ReadDataSource RPC.
 type ReadDataSourceResponse struct {
+	Deferred    *datasource.Deferred
 	Diagnostics diag.Diagnostics
 	State       *tfsdk.State
 }
@@ -33,6 +37,25 @@ type ReadDataSourceResponse struct {
 // ReadDataSource implements the framework server ReadDataSource RPC.
 func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest, resp *ReadDataSourceResponse) {
 	if req == nil {
+		return
+	}
+
+	if s.deferred != nil {
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
+			map[string]interface{}{
+				logging.KeyDeferredReason: s.deferred.Reason.String(),
+			},
+		)
+		// Send an unknown value for the data source. This will replace any configured values
+		// for ease of implementation as Terraform Core currently does not use these values for
+		// deferred actions, but this design could change in the future.
+		resp.State = &tfsdk.State{
+			Raw:    tftypes.NewValue(req.DataSourceSchema.Type().TerraformType(ctx), tftypes.UnknownValue),
+			Schema: req.DataSourceSchema,
+		}
+		resp.Deferred = &datasource.Deferred{
+			Reason: datasource.DeferredReason(s.deferred.Reason),
+		}
 		return
 	}
 
@@ -56,6 +79,7 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 	}
 
 	readReq := datasource.ReadRequest{
+		ClientCapabilities: req.ClientCapabilities,
 		Config: tfsdk.Config{
 			Schema: req.DataSourceSchema,
 		},
@@ -81,6 +105,7 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 
 	resp.Diagnostics = readResp.Diagnostics
 	resp.State = &readResp.State
+	resp.Deferred = readResp.Deferred
 
 	if resp.Diagnostics.HasError() {
 		return

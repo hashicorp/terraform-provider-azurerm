@@ -15,7 +15,7 @@ type QuotasClient struct {
 }
 
 func NewQuotasClientWithBaseURI(sdkApi sdkEnv.Api) (*QuotasClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "quotas", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "quotas", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating QuotasClient: %+v", err)
 	}

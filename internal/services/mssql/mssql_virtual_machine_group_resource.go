@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -46,8 +45,10 @@ type WsfcDomainProfile struct {
 	ClusterSubnetType           string `tfschema:"cluster_subnet_type"`
 }
 
-var _ sdk.Resource = MsSqlVirtualMachineGroupResource{}
-var _ sdk.ResourceWithUpdate = MsSqlVirtualMachineGroupResource{}
+var (
+	_ sdk.Resource           = MsSqlVirtualMachineGroupResource{}
+	_ sdk.ResourceWithUpdate = MsSqlVirtualMachineGroupResource{}
+)
 
 func (r MsSqlVirtualMachineGroupResource) ModelObject() interface{} {
 	return &MsSqlVirtualMachineGroupModel{}
@@ -158,7 +159,7 @@ func (r MsSqlVirtualMachineGroupResource) Arguments() map[string]*pluginsdk.Sche
 			},
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -215,7 +216,6 @@ func (r MsSqlVirtualMachineGroupResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.MSSQL.VirtualMachineGroupsClient
 
 			id, err := sqlvirtualmachinegroups.ParseSqlVirtualMachineGroupID(metadata.ResourceData.Id())
@@ -238,7 +238,6 @@ func (r MsSqlVirtualMachineGroupResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-
 					state.SqlImageOffer = pointer.From(props.SqlImageOffer)
 					state.SqlImageSku = string(pointer.From(props.SqlImageSku))
 
@@ -247,11 +246,10 @@ func (r MsSqlVirtualMachineGroupResource) Read() sdk.ResourceFunc {
 						return err
 					}
 					storageAccountPrimaryKey := ""
-					if oldModel.WsfcDomainProfile != nil && len(oldModel.WsfcDomainProfile) != 0 {
+					if len(oldModel.WsfcDomainProfile) != 0 {
 						storageAccountPrimaryKey = oldModel.WsfcDomainProfile[0].StorageAccountPrimaryKey
 					}
 					state.WsfcDomainProfile = flattenMsSqlVirtualMachineGroupWsfcDomainProfile(props.WsfcDomainProfile, storageAccountPrimaryKey)
-
 				}
 				state.Location = location.Normalize(model.Location)
 
@@ -278,8 +276,7 @@ func (r MsSqlVirtualMachineGroupResource) Update() sdk.ResourceFunc {
 
 			id := sqlvirtualmachinegroups.NewSqlVirtualMachineGroupID(subscriptionId, model.ResourceGroup, model.Name)
 
-			_, err := client.Get(ctx, id)
-			if err != nil {
+			if _, err := client.Get(ctx, id); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
@@ -334,7 +331,7 @@ func expandMsSqlVirtualMachineGroupWsfcDomainProfile(wsfcDomainProfile []WsfcDom
 		ClusterBootstrapAccount:  pointer.To(wsfcDomainProfile[0].ClusterBootstrapAccountName),
 		ClusterOperatorAccount:   pointer.To(wsfcDomainProfile[0].ClusterOperatorAccountName),
 		SqlServiceAccount:        pointer.To(wsfcDomainProfile[0].SqlServiceAccountName),
-		StorageAccountUrl:        pointer.To(wsfcDomainProfile[0].StorageAccountUrl),
+		StorageAccountURL:        pointer.To(wsfcDomainProfile[0].StorageAccountUrl),
 		StorageAccountPrimaryKey: pointer.To(wsfcDomainProfile[0].StorageAccountPrimaryKey),
 	}
 
@@ -353,7 +350,7 @@ func flattenMsSqlVirtualMachineGroupWsfcDomainProfile(domainProfile *sqlvirtualm
 			ClusterBootstrapAccountName: pointer.From(domainProfile.ClusterBootstrapAccount),
 			ClusterOperatorAccountName:  pointer.From(domainProfile.ClusterOperatorAccount),
 			SqlServiceAccountName:       pointer.From(domainProfile.SqlServiceAccount),
-			StorageAccountUrl:           pointer.From(domainProfile.StorageAccountUrl),
+			StorageAccountUrl:           pointer.From(domainProfile.StorageAccountURL),
 			ClusterSubnetType:           string(pointer.From(domainProfile.ClusterSubnetType)),
 			StorageAccountPrimaryKey:    storageAccountPrimaryKey,
 		},

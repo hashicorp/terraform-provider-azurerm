@@ -63,8 +63,12 @@ func ValueSemanticEquality(ctx context.Context, req ValueSemanticEqualityRequest
 	switch req.ProposedNewValue.(type) {
 	case basetypes.BoolValuable:
 		ValueSemanticEqualityBool(ctx, req, resp)
+	case basetypes.Float32Valuable:
+		ValueSemanticEqualityFloat32(ctx, req, resp)
 	case basetypes.Float64Valuable:
 		ValueSemanticEqualityFloat64(ctx, req, resp)
+	case basetypes.Int32Valuable:
+		ValueSemanticEqualityInt32(ctx, req, resp)
 	case basetypes.Int64Valuable:
 		ValueSemanticEqualityInt64(ctx, req, resp)
 	case basetypes.ListValuable:

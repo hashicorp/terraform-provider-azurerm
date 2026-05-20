@@ -14,6 +14,14 @@ type AzureSqlReferenceInputDataSource struct {
 	Properties *AzureSqlReferenceInputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from ReferenceInputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s AzureSqlReferenceInputDataSource) ReferenceInputDataSource() BaseReferenceInputDataSourceImpl {
+	return BaseReferenceInputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = AzureSqlReferenceInputDataSource{}
@@ -27,9 +35,10 @@ func (s AzureSqlReferenceInputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureSqlReferenceInputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.Sql/Server/Database"
 
 	encoded, err = json.Marshal(decoded)

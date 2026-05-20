@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -16,26 +16,25 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	managedHSMValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	kv74 "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	kv74 "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceArmKeyVaultManagedHardwareSecurityModuleCreate,
 		Read:   resourceArmKeyVaultManagedHardwareSecurityModuleRead,
 		Delete: resourceArmKeyVaultManagedHardwareSecurityModuleDelete,
@@ -153,7 +152,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				RequiredWith: []string{"security_domain_quorum"},
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: keyVaultValidation.NestedItemId,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate),
 				},
 			},
 
@@ -174,6 +173,12 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["security_domain_key_vault_certificate_ids"].Elem.(*pluginsdk.Schema).ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+	}
+
+	return r
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -198,13 +203,13 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		publicNetworkAccessEnabled = managedhsms.PublicNetworkAccessDisabled
 	}
 	hsm := managedhsms.ManagedHsm{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &managedhsms.ManagedHsmProperties{
 			InitialAdminObjectIds:     utils.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
 			CreateMode:                pointer.To(managedhsms.CreateModeDefault),
-			EnableSoftDelete:          utils.Bool(true),
-			SoftDeleteRetentionInDays: utils.Int64(int64(d.Get("soft_delete_retention_days").(int))),
-			EnablePurgeProtection:     utils.Bool(d.Get("purge_protection_enabled").(bool)),
+			EnableSoftDelete:          pointer.To(true),
+			SoftDeleteRetentionInDays: pointer.To(int64(d.Get("soft_delete_retention_days").(int))),
+			EnablePurgeProtection:     pointer.To(d.Get("purge_protection_enabled").(bool)),
 			PublicNetworkAccess:       pointer.To(publicNetworkAccessEnabled),
 			NetworkAcls:               expandMHSMNetworkAcls(d.Get("network_acls").([]interface{})),
 		},
@@ -471,18 +476,24 @@ func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomainClient, keyClient kv74.BaseClient, vaultBaseUrl string, certIds []interface{}, quorum int) (encDataStr string, err error) {
 	var param kv74.CertificateInfoObject
 
-	param.Required = utils.Int32(int32(quorum))
-	var certs []kv74.SecurityDomainJSONWebKey
+	param.Required = pointer.To(int32(quorum))
+	certs := make([]kv74.SecurityDomainJSONWebKey, 0, len(certIds))
 	for _, certID := range certIds {
 		certIDStr, ok := certID.(string)
 		if !ok {
 			continue
 		}
-		keyID, err := keyVaultParse.ParseNestedItemID(certIDStr)
+
+		nestedItemType := keyvault.NestedItemTypeCertificate
+		if !features.FivePointOh() {
+			nestedItemType = keyvault.NestedItemTypeAny
+		}
+
+		keyID, err := keyvault.ParseNestedItemID(certIDStr, keyvault.VersionTypeVersioned, nestedItemType)
 		if err != nil {
 			return "", fmt.Errorf("parsing %q: %+v", certIDStr, err)
 		}
-		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseUrl, keyID.Name, keyID.Version)
+		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseURL, keyID.Name, keyID.Version)
 		if err != nil {
 			return "", fmt.Errorf("retrieving key %s: %v", certID, err)
 		}
@@ -490,12 +501,12 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 			return "", fmt.Errorf("got nil key for %s", certID)
 		}
 		cert := kv74.SecurityDomainJSONWebKey{
-			Kty:    pointer.FromString("RSA"),
+			Kty:    pointer.To("RSA"),
 			KeyOps: &[]string{""},
-			Alg:    pointer.FromString("RSA-OAEP-256"),
+			Alg:    pointer.To("RSA-OAEP-256"),
 		}
 		if certRes.Policy != nil && certRes.Policy.KeyProperties != nil {
-			cert.Kty = pointer.FromString(string(certRes.Policy.KeyProperties.KeyType))
+			cert.Kty = pointer.To(string(certRes.Policy.KeyProperties.KeyType))
 		}
 		x5c := ""
 		if contents := certRes.Cer; contents != nil {
@@ -506,7 +517,7 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 		sum256 := sha256.Sum256([]byte(x5c))
 		s256Dst := make([]byte, base64.StdEncoding.EncodedLen(len(sum256)))
 		base64.URLEncoding.Encode(s256Dst, sum256[:])
-		cert.X5tS256 = pointer.FromString(string(s256Dst))
+		cert.X5tS256 = pointer.To(string(s256Dst))
 		certs = append(certs, cert)
 	}
 	param.Certificates = &certs

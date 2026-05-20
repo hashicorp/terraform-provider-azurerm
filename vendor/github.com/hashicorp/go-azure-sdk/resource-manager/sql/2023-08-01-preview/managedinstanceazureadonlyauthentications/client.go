@@ -15,7 +15,7 @@ type ManagedInstanceAzureADOnlyAuthenticationsClient struct {
 }
 
 func NewManagedInstanceAzureADOnlyAuthenticationsClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagedInstanceAzureADOnlyAuthenticationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managedinstanceazureadonlyauthentications", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managedinstanceazureadonlyauthentications", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagedInstanceAzureADOnlyAuthenticationsClient: %+v", err)
 	}

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -27,10 +28,13 @@ type longRunningOperationPoller struct {
 	initialRetryDuration time.Duration
 	originalUrl          *url.URL
 	pollingUrl           *url.URL
+
+	droppedConnectionCount int
+	maxDroppedConnections  int
 }
 
 func pollingUriForLongRunningOperation(resp *client.Response) string {
-	pollingUrl := resp.Header.Get(http.CanonicalHeaderKey("Azure-AsyncOperation"))
+	pollingUrl := resp.Header.Get("Azure-AsyncOperation")
 	if pollingUrl == "" {
 		pollingUrl = resp.Header.Get("Location")
 	}
@@ -39,8 +43,9 @@ func pollingUriForLongRunningOperation(resp *client.Response) string {
 
 func longRunningOperationPollerFromResponse(resp *client.Response, client *client.Client) (*longRunningOperationPoller, error) {
 	poller := longRunningOperationPoller{
-		client:               client,
-		initialRetryDuration: 10 * time.Second,
+		client:                client,
+		initialRetryDuration:  10 * time.Second,
+		maxDroppedConnections: 3,
 	}
 
 	pollingUrl := pollingUriForLongRunningOperation(resp)
@@ -107,8 +112,19 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 	}
 	result.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
+		var e *url.Error
+		if errors.As(err, &e) {
+			p.droppedConnectionCount++
+			if p.droppedConnectionCount < p.maxDroppedConnections {
+				result.Status = pollers.PollingStatusUnknown
+				return result, nil
+			}
+		}
+
 		return nil, err
 	}
+
+	p.droppedConnectionCount = 0
 
 	if result.HttpResponse != nil {
 		var respBody []byte
@@ -158,23 +174,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return nil, fmt.Errorf("internal-error: polling support for the Content-Type %q was not implemented: %+v", contentType, err)
 		}
 
-		if op.Properties.ProvisioningState == "" && op.Status == "" {
-			return nil, fmt.Errorf("expected either `provisioningState` or `status` to be returned from the LRO API but both were empty")
-		}
-
-		for k, v := range longRunningOperationCustomStatuses {
-			if strings.EqualFold(string(op.Properties.ProvisioningState), string(k)) {
-				result.Status = v
-				break
-			}
-			if strings.EqualFold(string(op.Status), string(k)) {
-				result.Status = v
-				break
-			}
-		}
-
-		if result.Status == pollers.PollingStatusFailed {
-			lroError, parseError := parseErrorFromApiResponse(*result.HttpResponse.Response)
+		if strings.EqualFold(string(result.Status), string(pollers.PollingStatusFailed)) || strings.EqualFold(string(op.Status), string(statusFailed)) || strings.EqualFold(string(op.Properties.ProvisioningState), string(statusFailed)) {
+			lroError, parseError := parseErrorFromApiResponse(result.HttpResponse.Response)
 			if parseError != nil {
 				return nil, parseError
 			}
@@ -183,10 +184,12 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 				HttpResponse: result.HttpResponse,
 				Message:      lroError.Error(),
 			}
+
+			return
 		}
 
-		if result.Status == pollers.PollingStatusCancelled {
-			lroError, parseError := parseErrorFromApiResponse(*result.HttpResponse.Response)
+		if strings.EqualFold(string(result.Status), string(pollers.PollingStatusCancelled)) || strings.EqualFold(string(op.Status), string(statusCanceled)) || strings.EqualFold(string(op.Properties.ProvisioningState), string(statusCanceled)) {
+			lroError, parseError := parseErrorFromApiResponse(result.HttpResponse.Response)
 			if parseError != nil {
 				return nil, parseError
 			}
@@ -195,14 +198,27 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 				HttpResponse: result.HttpResponse,
 				Message:      lroError.Error(),
 			}
+
+			return
 		}
 
-		if result.Status == "" {
-			err = fmt.Errorf("`result.Status` was nil/empty - `op.Status` was %q / `op.Properties.ProvisioningState` was %q", string(op.Status), string(op.Properties.ProvisioningState))
+		if strings.EqualFold(string(result.Status), string(pollers.PollingStatusSucceeded)) || strings.EqualFold(string(op.Status), string(statusSucceeded)) || strings.EqualFold(string(op.Properties.ProvisioningState), string(statusSucceeded)) {
+			result.Status = pollers.PollingStatusSucceeded
+			return
 		}
+
+		// If we don't have a terminal status anywhere, we must assume we're still in progress
+		result.Status = pollers.PollingStatusInProgress
 	}
 
-	return
+	return result, nil
+}
+
+func (p *longRunningOperationPoller) SkipDelay() bool {
+	if p.client != nil {
+		return client.IsVcrReplaying(p.client.Transport)
+	}
+	return false
 }
 
 type operationResult struct {

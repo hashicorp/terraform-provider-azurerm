@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package advisor
@@ -161,7 +161,7 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("setting `recommendations`: %+v", err)
 	}
 
-	d.SetId(fmt.Sprintf("advisor/recommendations/%s", time.Now().UTC().String()))
+	d.SetId("avdisor/recommendations/" + time.Now().UTC().String())
 
 	return nil
 }

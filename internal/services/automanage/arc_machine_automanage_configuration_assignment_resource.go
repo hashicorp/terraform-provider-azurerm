@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package automanage
 
 import (
@@ -84,7 +87,7 @@ func (v ArcMachineConfigurationAssignment) Create() sdk.ResourceFunc {
 
 			properties := configurationprofilehcrpassignments.ConfigurationProfileAssignment{
 				Properties: &configurationprofilehcrpassignments.ConfigurationProfileAssignmentProperties{
-					ConfigurationProfile: pointer.FromString(configurationId.ID()),
+					ConfigurationProfile: pointer.To(configurationId.ID()),
 				},
 			}
 

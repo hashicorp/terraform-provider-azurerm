@@ -1,31 +1,32 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package redisenterprise
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-10-01-preview/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_redis_enterprise_database` resource has been deprecated in favor of `azurerm_managed_redis_database`",
+
 		Create: resourceRedisEnterpriseDatabaseCreate,
 		Read:   resourceRedisEnterpriseDatabaseRead,
 		Update: resourceRedisEnterpriseDatabaseUpdate,
@@ -217,10 +218,6 @@ func redisEnterpriseDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		s["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
-	}
-
 	return s
 }
 
@@ -263,13 +260,11 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 
 	linkedDatabase, err := expandArmGeoLinkedDatabase(d.Get("linked_database_id").(*pluginsdk.Set).List(), id.ID(), d.Get("linked_database_group_nickname").(string))
 	if err != nil {
-		return fmt.Errorf("Setting geo database for database %s error: %+v", id.ID(), err)
+		return fmt.Errorf("setting geo database for database %s error: %+v", id.ID(), err)
 	}
 
-	isGeoEnabled := false
-	if linkedDatabase != nil {
-		isGeoEnabled = true
-	}
+	isGeoEnabled := linkedDatabase != nil
+
 	module, err := expandArmDatabaseModuleArray(d.Get("module").([]interface{}), isGeoEnabled)
 	if err != nil {
 		return fmt.Errorf("setting module error: %+v", err)
@@ -283,7 +278,7 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 			Modules:          module,
 			// Persistence:      expandArmDatabasePersistence(d.Get("persistence").([]interface{})),
 			GeoReplication: linkedDatabase,
-			Port:           utils.Int64(int64(d.Get("port").(int))),
+			Port:           pointer.To(int64(d.Get("port").(int))),
 		},
 	}
 
@@ -343,10 +338,6 @@ func resourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("name", id.DatabaseName)
 	clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
 	d.Set("cluster_id", clusterId.ID())
-
-	if !features.FourPointOhBeta() {
-		d.Set("resource_group_name", id.ResourceGroupName)
-	}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -420,13 +411,11 @@ func resourceRedisEnterpriseDatabaseUpdate(d *pluginsdk.ResourceData, meta inter
 
 	linkedDatabase, err := expandArmGeoLinkedDatabase(d.Get("linked_database_id").(*pluginsdk.Set).List(), id.ID(), d.Get("linked_database_group_nickname").(string))
 	if err != nil {
-		return fmt.Errorf("Setting geo database for database %s error: %+v", id.ID(), err)
+		return fmt.Errorf("setting geo database for database %s error: %+v", id.ID(), err)
 	}
 
-	isGeoEnabled := false
-	if linkedDatabase != nil {
-		isGeoEnabled = true
-	}
+	isGeoEnabled := linkedDatabase != nil
+
 	module, err := expandArmDatabaseModuleArray(d.Get("module").([]interface{}), isGeoEnabled)
 	if err != nil {
 		return fmt.Errorf("setting module error: %+v", err)
@@ -440,7 +429,7 @@ func resourceRedisEnterpriseDatabaseUpdate(d *pluginsdk.ResourceData, meta inter
 			Modules:          module,
 			// Persistence:      expandArmDatabasePersistence(d.Get("persistence").([]interface{})),
 			GeoReplication: linkedDatabase,
-			Port:           utils.Int64(int64(d.Get("port").(int))),
+			Port:           pointer.To(int64(d.Get("port").(int))),
 		},
 	}
 
@@ -485,6 +474,7 @@ func resourceRedisEnterpriseDatabaseDelete(d *pluginsdk.ResourceData, meta inter
 
 	return nil
 }
+
 func redisEnterpriseDatabaseDeleteRefreshFunc(ctx context.Context, databaseClient *databases.DatabasesClient, clusterClient *redisenterprise.RedisEnterpriseClient, clusterId redisenterprise.RedisEnterpriseId, databaseId databases.DatabaseId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		cluster, err := clusterClient.Get(ctx, clusterId)
@@ -510,11 +500,11 @@ func expandArmDatabaseModuleArray(input []interface{}, isGeoEnabled bool) (*[]da
 		v := item.(map[string]interface{})
 		moduleName := v["name"].(string)
 		if moduleName != "RediSearch" && moduleName != "RedisJSON" && isGeoEnabled {
-			return nil, fmt.Errorf("Only RediSearch and RedisJSON modules are allowed with geo-replication")
+			return nil, errors.New("only RediSearch and RedisJSON modules are allowed with geo-replication")
 		}
 		results = append(results, databases.Module{
 			Name: moduleName,
-			Args: utils.String(v["args"].(string)),
+			Args: pointer.To(v["args"].(string)),
 		})
 	}
 	return &results, nil
@@ -527,9 +517,9 @@ func expandArmDatabaseModuleArray(input []interface{}, isGeoEnabled bool) (*[]da
 // 	}
 // 	v := input[0].(map[string]interface{})
 // 	return &redisenterprise.Persistence{
-// 		AofEnabled:   utils.Bool(v["aof_enabled"].(bool)),
+// 		AofEnabled:   pointer.To(v["aof_enabled"].(bool)),
 // 		AofFrequency: redisenterprise.AofFrequency(v["aof_frequency"].(string)),
-// 		RdbEnabled:   utils.Bool(v["rdb_enabled"].(bool)),
+// 		RdbEnabled:   pointer.To(v["rdb_enabled"].(bool)),
 // 		RdbFrequency: redisenterprise.RdbFrequency(v["rdb_frequency"].(string)),
 // 	}
 // }
@@ -568,6 +558,7 @@ func flattenArmDatabaseModuleArray(input *[]databases.Module) []interface{} {
 
 	return results
 }
+
 func expandArmGeoLinkedDatabase(inputId []interface{}, parentDBId string, inputGeoName string) (*databases.DatabasePropertiesGeoReplication, error) {
 	idList := make([]databases.LinkedDatabase, 0)
 	if len(inputId) == 0 {
@@ -580,13 +571,13 @@ func expandArmGeoLinkedDatabase(inputId []interface{}, parentDBId string, inputG
 			isParentDbIncluded = true
 		}
 		idList = append(idList, databases.LinkedDatabase{
-			Id: utils.String(id.(string)),
+			Id: pointer.To(id.(string)),
 		})
 	}
 	if isParentDbIncluded {
 		return &databases.DatabasePropertiesGeoReplication{
 			LinkedDatabases: &idList,
-			GroupNickname:   utils.String(inputGeoName),
+			GroupNickname:   pointer.To(inputGeoName),
 		}, nil
 	}
 

@@ -49,7 +49,6 @@ func (c VirtualWANsClient) VirtualHubsUpdateTags(ctx context.Context, id Virtual
 
 	var model VirtualHub
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

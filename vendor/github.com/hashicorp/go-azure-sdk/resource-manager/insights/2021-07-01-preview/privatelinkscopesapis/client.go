@@ -15,7 +15,7 @@ type PrivateLinkScopesAPIsClient struct {
 }
 
 func NewPrivateLinkScopesAPIsClientWithBaseURI(sdkApi sdkEnv.Api) (*PrivateLinkScopesAPIsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "privatelinkscopesapis", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "privatelinkscopesapis", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PrivateLinkScopesAPIsClient: %+v", err)
 	}

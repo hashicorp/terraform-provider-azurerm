@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration` Documentation
 
-The `tenantconfiguration` SDK allows for interaction with the Azure Resource Manager Service `portal` (API Version `2019-01-01-preview`).
+The `tenantconfiguration` SDK allows for interaction with Azure Resource Manager `portal` (API Version `2019-01-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 

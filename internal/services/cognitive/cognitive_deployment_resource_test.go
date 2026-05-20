@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_test
@@ -8,29 +8,16 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CognitiveDeploymentTestResource struct{}
-
-func TestAccCognitiveDeploymentSequential(t *testing.T) {
-	// Only two OpenAI resources could be created per region, so run the tests sequentially.
-	// Refer to : https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quotas-limits
-	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"deployment": {
-			"basic":          TestAccCognitiveDeployment_basic,
-			"requiresImport": testAccCognitiveDeployment_requiresImport,
-			"complete":       testAccCognitiveDeployment_complete,
-			"update":         TestAccCognitiveDeployment_update,
-		},
-	})
-}
 
 func TestAccCognitiveDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
@@ -47,7 +34,7 @@ func TestAccCognitiveDeployment_basic(t *testing.T) {
 	})
 }
 
-func testAccCognitiveDeployment_requiresImport(t *testing.T) {
+func TestAccCognitiveDeployment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
 
 	r := CognitiveDeploymentTestResource{}
@@ -62,7 +49,7 @@ func testAccCognitiveDeployment_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccCognitiveDeployment_complete(t *testing.T) {
+func TestAccCognitiveDeployment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
 	r := CognitiveDeploymentTestResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -70,6 +57,7 @@ func testAccCognitiveDeployment_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dynamic_throttling_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -136,11 +124,11 @@ func (r CognitiveDeploymentTestResource) Exists(ctx context.Context, clients *cl
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r CognitiveDeploymentTestResource) template(data acceptance.TestData) string {
@@ -211,9 +199,9 @@ func (r CognitiveDeploymentTestResource) complete(data acceptance.TestData) stri
 %s
 
 resource "azurerm_cognitive_deployment" "test" {
-  name                 = "acctest-cd-%d"
-  cognitive_account_id = azurerm_cognitive_account.test.id
-
+  name                       = "acctest-cd-%d"
+  cognitive_account_id       = azurerm_cognitive_account.test.id
+  dynamic_throttling_enabled = true
   model {
     format  = "OpenAI"
     name    = "text-embedding-ada-002"
@@ -222,7 +210,7 @@ resource "azurerm_cognitive_deployment" "test" {
   sku {
     name = "Standard"
   }
-  rai_policy_name        = "RAI policy"
+  rai_policy_name        = "Microsoft.DefaultV2"
   version_upgrade_option = "OnceNewDefaultVersionAvailable"
 }
 `, template, data.RandomInteger)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -27,7 +27,6 @@ func TestFrontDoorSecretID(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorSecretId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestFrontDoorSecretIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorSecretId
 	}{
-
 		{
 			// empty
 			Input: "",

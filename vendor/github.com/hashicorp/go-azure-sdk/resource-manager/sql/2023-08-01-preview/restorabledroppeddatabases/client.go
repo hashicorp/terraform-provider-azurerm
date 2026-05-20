@@ -15,7 +15,7 @@ type RestorableDroppedDatabasesClient struct {
 }
 
 func NewRestorableDroppedDatabasesClientWithBaseURI(sdkApi sdkEnv.Api) (*RestorableDroppedDatabasesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "restorabledroppeddatabases", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "restorabledroppeddatabases", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RestorableDroppedDatabasesClient: %+v", err)
 	}

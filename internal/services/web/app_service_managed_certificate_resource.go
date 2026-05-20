@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -90,14 +92,14 @@ func resourceAppServiceManagedCertificate() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesClient
-	appServiceClient := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.CertificatesClientV1
+	appServiceClient := meta.(*clients.Client).Web.AppServicesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -113,11 +115,11 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	name := customHostnameBindingId.Name
-	appServicePlanIDRaw := ""
-	if appService.SiteProperties == nil || appService.SiteProperties.ServerFarmID == nil {
+
+	if appService.SiteProperties == nil || appService.ServerFarmID == nil {
 		return fmt.Errorf("could not get App Service Plan ID for Custom Hostname Binding %q (resource group %q)", customHostnameBindingId.Name, customHostnameBindingId.ResourceGroup)
 	}
-	appServicePlanIDRaw = *appService.SiteProperties.ServerFarmID
+	appServicePlanIDRaw := *appService.ServerFarmID
 
 	appServicePlanID, err := commonids.ParseAppServicePlanIDInsensitively(appServicePlanIDRaw)
 	if err != nil {
@@ -148,11 +150,11 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData,
 
 	certificate := web.Certificate{
 		CertificateProperties: &web.CertificateProperties{
-			CanonicalName: utils.String(customHostnameBindingId.Name),
-			ServerFarmID:  utils.String(appServicePlanIDRaw),
+			CanonicalName: pointer.To(customHostnameBindingId.Name),
+			ServerFarmID:  pointer.To(appServicePlanIDRaw),
 			Password:      new(string),
 		},
-		Location: utils.String(appServiceLocation),
+		Location: pointer.To(appServiceLocation),
 		Tags:     tags.Expand(t),
 	}
 
@@ -197,7 +199,7 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData,
 }
 
 func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesClient
+	client := meta.(*clients.Client).Web.CertificatesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -239,7 +241,7 @@ func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceAppServiceManagedCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesClient
+	client := meta.(*clients.Client).Web.CertificatesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

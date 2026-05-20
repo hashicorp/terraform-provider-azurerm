@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager
@@ -30,8 +30,10 @@ type SystemCenterVirtualMachineManagerCloudModel struct {
 	Tags                                                   map[string]string `tfschema:"tags"`
 }
 
-var _ sdk.Resource = SystemCenterVirtualMachineManagerCloudResource{}
-var _ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerCloudResource{}
+var (
+	_ sdk.Resource           = SystemCenterVirtualMachineManagerCloudResource{}
+	_ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerCloudResource{}
+)
 
 type SystemCenterVirtualMachineManagerCloudResource struct{}
 

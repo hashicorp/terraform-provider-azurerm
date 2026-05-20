@@ -50,7 +50,6 @@ func (c NamespacesClient) Update(ctx context.Context, id NamespaceId, input Rela
 
 	var model RelayNamespace
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

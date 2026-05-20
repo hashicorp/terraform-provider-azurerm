@@ -16,6 +16,14 @@ type RecoveryPlanAutomationRunbookActionDetails struct {
 	Timeout        *string                    `json:"timeout,omitempty"`
 
 	// Fields inherited from RecoveryPlanActionDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s RecoveryPlanAutomationRunbookActionDetails) RecoveryPlanActionDetails() BaseRecoveryPlanActionDetailsImpl {
+	return BaseRecoveryPlanActionDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = RecoveryPlanAutomationRunbookActionDetails{}
@@ -29,9 +37,10 @@ func (s RecoveryPlanAutomationRunbookActionDetails) MarshalJSON() ([]byte, error
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RecoveryPlanAutomationRunbookActionDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "AutomationRunbookActionDetails"
 
 	encoded, err = json.Marshal(decoded)

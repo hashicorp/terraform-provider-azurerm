@@ -45,7 +45,6 @@ func (c ConfigurationProfileHCRPAssignmentsClient) Get(ctx context.Context, id P
 
 	var model ConfigurationProfileAssignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

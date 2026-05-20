@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -301,7 +301,6 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			}
 			tmp.Elem().Set(slice)
 			reflect.ValueOf(input).Elem().Field(index).Set(tmp)
-
 		}
 
 	default:

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -15,8 +15,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = AssignmentDedicatedHostV0ToV1{}
 
-type AssignmentDedicatedHostV0ToV1 struct {
-}
+type AssignmentDedicatedHostV0ToV1 struct{}
 
 func (AssignmentDedicatedHostV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

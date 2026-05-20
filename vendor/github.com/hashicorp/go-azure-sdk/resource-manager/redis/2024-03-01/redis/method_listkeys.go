@@ -46,7 +46,6 @@ func (c RedisClient) ListKeys(ctx context.Context, id RediId) (result ListKeysOp
 
 	var model RedisAccessKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

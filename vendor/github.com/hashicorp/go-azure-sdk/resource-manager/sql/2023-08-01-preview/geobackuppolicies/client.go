@@ -15,7 +15,7 @@ type GeoBackupPoliciesClient struct {
 }
 
 func NewGeoBackupPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*GeoBackupPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "geobackuppolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "geobackuppolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GeoBackupPoliciesClient: %+v", err)
 	}

@@ -29,13 +29,14 @@ func DefaultGetOperationOptions() GetOperationOptions {
 func (o GetOperationOptions) ToHeaders() *client.Headers {
 	out := client.Headers{}
 	if o.IfNoneMatch != nil {
-		out.Append("If-None-Match", fmt.Sprintf("%v", *o.IfNoneMatch))
+		out.Append("if-none-match", fmt.Sprintf("%v", *o.IfNoneMatch))
 	}
 	return &out
 }
 
 func (o GetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c FactoriesClient) Get(ctx context.Context, id FactoryId, options GetOpera
 
 	var model Factory
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

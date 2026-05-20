@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -177,8 +177,7 @@ func (r FunctionAppHybridConnectionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope)
-			if err != nil {
+			if _, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -216,7 +215,6 @@ func (r FunctionAppHybridConnectionResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := existing.Model; model != nil {
-
 				if props := model.Properties; props != nil {
 					appHybridConn.RelayId = pointer.From(props.RelayArmUri)
 					appHybridConn.HostName = pointer.From(props.Hostname)
@@ -324,8 +322,7 @@ func (r FunctionAppHybridConnectionResource) Update() sdk.ResourceFunc {
 				model.Properties.SendKeyValue = key
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, *id, model)
-			if err != nil {
+			if _, err = client.CreateOrUpdateHybridConnection(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -348,8 +345,8 @@ func (r FunctionAppHybridConnectionResource) CustomImporter() sdk.ResourceRunFun
 			return err
 		}
 
-		if helpers.PlanIsConsumption(sku) || helpers.PlanIsElastic(sku) {
-			return fmt.Errorf("unsupported plan type. Hybrid Connections are not supported on Consumption or Elastic service plans")
+		if helpers.PlanIsConsumption(sku) {
+			return fmt.Errorf("unsupported plan type. Hybrid Connections are not supported on Consumption service plans")
 		}
 
 		return nil

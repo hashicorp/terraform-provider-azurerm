@@ -35,6 +35,7 @@ func (o DeleteByIdOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeleteByIdOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -76,7 +77,6 @@ func (c RoleAssignmentsClient) DeleteById(ctx context.Context, id commonids.Scop
 
 	var model RoleAssignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

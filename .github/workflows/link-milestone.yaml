@@ -15,10 +15,10 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           # we cannot use go-version-file here because no repositories are checked out so there is no file to reference
-          go-version: '1.22.7'
+          go-version: '1.25.3'
       - run: |
           go install github.com/stephybun/link-milestone@latest
           link-milestone

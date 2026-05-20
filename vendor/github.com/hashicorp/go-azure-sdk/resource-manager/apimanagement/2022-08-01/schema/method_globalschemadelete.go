@@ -35,6 +35,7 @@ func (o GlobalSchemaDeleteOperationOptions) ToHeaders() *client.Headers {
 
 func (o GlobalSchemaDeleteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

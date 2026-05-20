@@ -35,6 +35,14 @@ type A2AEnableProtectionInput struct {
 	VMManagedDisks                     *[]A2AVMManagedDiskInputDetails `json:"vmManagedDisks,omitempty"`
 
 	// Fields inherited from EnableProtectionProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2AEnableProtectionInput) EnableProtectionProviderSpecificInput() BaseEnableProtectionProviderSpecificInputImpl {
+	return BaseEnableProtectionProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2AEnableProtectionInput{}
@@ -48,9 +56,10 @@ func (s A2AEnableProtectionInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2AEnableProtectionInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2A"
 
 	encoded, err = json.Marshal(decoded)

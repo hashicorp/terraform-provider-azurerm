@@ -45,7 +45,6 @@ func (c VirtualNetworkRulesClient) Get(ctx context.Context, id VirtualNetworkRul
 
 	var model VirtualNetworkRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -81,7 +81,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
 
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
-					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
@@ -97,7 +97,6 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
-
 }
 
 func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *testing.T) {
@@ -140,11 +139,11 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
 
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
-					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
-					if err := client.DeleteThenPoll(ctx, defaultNodePoolId); err != nil {
+					if err := client.DeleteThenPoll(ctx, defaultNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
 						return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
 					}
 
@@ -206,14 +205,14 @@ func TestAccKubernetesCluster_cycleSystemNodePoolFipsEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.enableFips(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
-			Config: r.enableFips(data),
+			Config: r.enableFips(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -756,7 +755,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) enableFips(data acceptance.TestData) string {
+func (KubernetesClusterResource) enableFips(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -774,10 +773,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    fips_enabled = true
-    name         = "default"
-    node_count   = 1
-    vm_size      = "Standard_DS2_v2"
+    fips_enabled                = %t
+    name                        = "default"
+    node_count                  = 1
+    temporary_name_for_rotation = "temp"
+    vm_size                     = "Standard_DS2_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -792,7 +792,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "standard"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
 
 func (KubernetesClusterResource) updateOsDisk(data acceptance.TestData, osDiskType string, osDiskSize int) string {
@@ -1067,6 +1067,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, olderKubernetesVersion)
 }
+
 func (KubernetesClusterResource) autoScalingProfileConfigMinimal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1137,23 +1138,26 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   auto_scaler_profile {
-    balance_similar_node_groups      = true
-    expander                         = "least-waste"
-    max_graceful_termination_sec     = 15
-    max_node_provisioning_time       = "10m"
-    max_unready_nodes                = 5
-    max_unready_percentage           = 50
-    new_pod_scale_up_delay           = "10s"
-    scan_interval                    = "10s"
-    scale_down_delay_after_add       = "10m"
-    scale_down_delay_after_delete    = "10s"
-    scale_down_delay_after_failure   = "15m"
-    scale_down_unneeded              = "15m"
-    scale_down_unready               = "15m"
-    scale_down_utilization_threshold = "0.5"
-    empty_bulk_delete_max            = "50"
-    skip_nodes_with_local_storage    = false
-    skip_nodes_with_system_pods      = false
+    balance_similar_node_groups                   = true
+    daemonset_eviction_for_empty_nodes_enabled    = true
+    daemonset_eviction_for_occupied_nodes_enabled = false
+    expander                                      = "least-waste"
+    ignore_daemonsets_utilization_enabled         = true
+    max_graceful_termination_sec                  = 15
+    max_node_provisioning_time                    = "10m"
+    max_unready_nodes                             = 5
+    max_unready_percentage                        = 50
+    new_pod_scale_up_delay                        = "10s"
+    scan_interval                                 = "10s"
+    scale_down_delay_after_add                    = "10m"
+    scale_down_delay_after_delete                 = "10s"
+    scale_down_delay_after_failure                = "15m"
+    scale_down_unneeded                           = "15m"
+    scale_down_unready                            = "15m"
+    scale_down_utilization_threshold              = "0.5"
+    empty_bulk_delete_max                         = "50"
+    skip_nodes_with_local_storage                 = false
+    skip_nodes_with_system_pods                   = false
   }
 
   identity {

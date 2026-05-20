@@ -5,5 +5,5 @@ package fluidrelayservers
 
 type CustomerManagedKeyEncryptionProperties struct {
 	KeyEncryptionKeyIdentity *CustomerManagedKeyEncryptionPropertiesKeyEncryptionKeyIdentity `json:"keyEncryptionKeyIdentity,omitempty"`
-	KeyEncryptionKeyUrl      *string                                                         `json:"keyEncryptionKeyUrl,omitempty"`
+	KeyEncryptionKeyURL      *string                                                         `json:"keyEncryptionKeyUrl,omitempty"`
 }

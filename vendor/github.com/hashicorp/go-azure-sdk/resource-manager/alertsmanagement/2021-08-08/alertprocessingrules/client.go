@@ -15,7 +15,7 @@ type AlertProcessingRulesClient struct {
 }
 
 func NewAlertProcessingRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*AlertProcessingRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "alertprocessingrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "alertprocessingrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AlertProcessingRulesClient: %+v", err)
 	}

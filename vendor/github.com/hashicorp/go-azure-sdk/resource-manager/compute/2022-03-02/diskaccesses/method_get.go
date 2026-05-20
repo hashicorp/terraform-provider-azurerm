@@ -45,7 +45,6 @@ func (c DiskAccessesClient) Get(ctx context.Context, id DiskAccessId) (result Ge
 
 	var model DiskAccess
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

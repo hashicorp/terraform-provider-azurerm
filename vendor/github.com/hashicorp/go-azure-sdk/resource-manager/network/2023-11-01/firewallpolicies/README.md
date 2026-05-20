@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/firewallpolicies` Documentation
 
-The `firewallpolicies` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `firewallpolicies` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 payload := firewallpolicies.FirewallPolicy{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 if err := client.FirewallPolicyDeploymentsDeployThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -66,7 +66,7 @@ if err := client.FirewallPolicyDeploymentsDeployThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 payload := firewallpolicies.FirewallPolicyDraft{
 	// ...
@@ -87,7 +87,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 read, err := client.FirewallPolicyDraftsDelete(ctx, id)
 if err != nil {
@@ -103,7 +103,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 read, err := client.FirewallPolicyDraftsGet(ctx, id)
 if err != nil {
@@ -119,7 +119,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 payload := firewallpolicies.SignatureOverridesFilterValuesQuery{
 	// ...
@@ -140,7 +140,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 payload := firewallpolicies.IDPSQueryObject{
 	// ...
@@ -161,7 +161,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 read, err := client.FirewallPolicyIdpsSignaturesOverridesGet(ctx, id)
 if err != nil {
@@ -177,7 +177,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 read, err := client.FirewallPolicyIdpsSignaturesOverridesList(ctx, id)
 if err != nil {
@@ -193,7 +193,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 payload := firewallpolicies.SignaturesOverrides{
 	// ...
@@ -214,7 +214,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 payload := firewallpolicies.SignaturesOverrides{
 	// ...
@@ -235,7 +235,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewRuleCollectionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue", "ruleCollectionGroupValue")
+id := firewallpolicies.NewRuleCollectionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName", "ruleCollectionGroupName")
 
 payload := firewallpolicies.FirewallPolicyRuleCollectionGroupDraft{
 	// ...
@@ -256,7 +256,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewRuleCollectionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue", "ruleCollectionGroupValue")
+id := firewallpolicies.NewRuleCollectionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName", "ruleCollectionGroupName")
 
 read, err := client.FirewallPolicyRuleCollectionGroupDraftsDelete(ctx, id)
 if err != nil {
@@ -272,7 +272,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewRuleCollectionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue", "ruleCollectionGroupValue")
+id := firewallpolicies.NewRuleCollectionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName", "ruleCollectionGroupName")
 
 read, err := client.FirewallPolicyRuleCollectionGroupDraftsGet(ctx, id)
 if err != nil {
@@ -288,7 +288,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 read, err := client.Get(ctx, id, firewallpolicies.DefaultGetOperationOptions())
 if err != nil {
@@ -338,7 +338,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyValue")
+id := firewallpolicies.NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallPolicyName")
 
 payload := firewallpolicies.TagsObject{
 	// ...

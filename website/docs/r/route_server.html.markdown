@@ -52,6 +52,7 @@ resource "azurerm_route_server" "example" {
   public_ip_address_id             = azurerm_public_ip.example.id
   subnet_id                        = azurerm_subnet.example.id
   branch_to_branch_traffic_enabled = true
+  hub_routing_preference           = "ASPath"
 }
 ```
 
@@ -65,15 +66,17 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Route Server should exist. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) The ID of the Subnet that the Route Server will reside. Changing this forces a new resource to be created.
-
--> **NOTE:** Azure Route Server requires a dedicated subnet named RouteServerSubnet. The subnet size has to be at least /27 or short prefix (such as /26 or /25) and cannot be attached to any security group, otherwise, you'll receive an error message when deploying the Route Server
+* `public_ip_address_id` - (Required) The ID of the Public IP Address. This option is required since September 1st 2021. Changing this forces a new resource to be created.
 
 * `sku` - (Required) The SKU of the Route Server. The only possible value is `Standard`. Changing this forces a new resource to be created.
 
-* `public_ip_address_id` - (Required) The ID of the Public IP Address. This option is required since September 1st 2021. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The ID of the Subnet that the Route Server will reside. Changing this forces a new resource to be created.
 
-* `branch_to_branch_traffic_enabled` - (Optional) Whether to enable route exchange between Azure Route Server and the gateway(s)
+-> **Note:** Azure Route Server requires a dedicated subnet named RouteServerSubnet. The subnet size has to be at least /27 or short prefix (such as /26 or /25) and cannot be attached to any security group, otherwise, you'll receive an error message when deploying the Route Server.
+
+* `branch_to_branch_traffic_enabled` - (Optional) Whether to enable route exchange between Azure Route Server and the gateway(s).
+
+* `hub_routing_preference` - (Optional) The hub routing preference. Valid values are `ASPath`, `ExpressRoute` or `VpnGateway`. Defaults to `ExpressRoute`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -81,16 +84,16 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Route Server .
+* `id` - The ID of the Route Server.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Route Server.
+* `create` - (Defaults to 1 hour) Used when creating the Route Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Route Server.
-* `update` - (Defaults to 60 minutes) Used when updating the Route Server.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Route Server.
+* `update` - (Defaults to 1 hour) Used when updating the Route Server.
+* `delete` - (Defaults to 1 hour) Used when deleting the Route Server.
 
 ## Import
 
@@ -99,3 +102,9 @@ Route Server can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_route_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/routeServer1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

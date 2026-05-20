@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Serialization interface {
+	Serialization() BaseSerializationImpl
 }
 
-// RawSerializationImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ Serialization = BaseSerializationImpl{}
+
+type BaseSerializationImpl struct {
+	Type EventSerializationType `json:"type"`
+}
+
+func (s BaseSerializationImpl) Serialization() BaseSerializationImpl {
+	return s
+}
+
+var _ Serialization = RawSerializationImpl{}
+
+// RawSerializationImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawSerializationImpl struct {
-	Type   string
-	Values map[string]interface{}
+	serialization BaseSerializationImpl
+	Type          string
+	Values        map[string]interface{}
 }
 
-func unmarshalSerializationImplementation(input []byte) (Serialization, error) {
+func (s RawSerializationImpl) Serialization() BaseSerializationImpl {
+	return s.serialization
+}
+
+func UnmarshalSerializationImplementation(input []byte) (Serialization, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalSerializationImplementation(input []byte) (Serialization, error) {
 		return nil, fmt.Errorf("unmarshaling Serialization into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Avro") {
@@ -68,10 +85,15 @@ func unmarshalSerializationImplementation(input []byte) (Serialization, error) {
 		return out, nil
 	}
 
-	out := RawSerializationImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseSerializationImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseSerializationImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawSerializationImpl{
+		serialization: parent,
+		Type:          value,
+		Values:        temp,
+	}, nil
 
 }

@@ -46,7 +46,7 @@ func ParseUpdateRunID(input string) (*UpdateRunId, error) {
 	}
 
 	id := UpdateRunId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseUpdateRunIDInsensitively(input string) (*UpdateRunId, error) {
 	}
 
 	id := UpdateRunId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id UpdateRunId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAzureStackHCI", "Microsoft.AzureStackHCI", "Microsoft.AzureStackHCI"),
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
-		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
+		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticUpdates", "updates", "updates"),
-		resourceids.UserSpecifiedSegment("updateName", "updateValue"),
+		resourceids.UserSpecifiedSegment("updateName", "updateName"),
 		resourceids.StaticSegment("staticUpdateRuns", "updateRuns", "updateRuns"),
-		resourceids.UserSpecifiedSegment("updateRunName", "updateRunValue"),
+		resourceids.UserSpecifiedSegment("updateRunName", "updateRunName"),
 	}
 }
 

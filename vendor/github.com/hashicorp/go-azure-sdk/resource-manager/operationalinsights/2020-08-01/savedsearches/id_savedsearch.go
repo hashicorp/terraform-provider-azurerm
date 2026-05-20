@@ -44,7 +44,7 @@ func ParseSavedSearchID(input string) (*SavedSearchId, error) {
 	}
 
 	id := SavedSearchId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseSavedSearchIDInsensitively(input string) (*SavedSearchId, error) {
 	}
 
 	id := SavedSearchId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id SavedSearchId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationalInsights", "Microsoft.OperationalInsights", "Microsoft.OperationalInsights"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticSavedSearches", "savedSearches", "savedSearches"),
-		resourceids.UserSpecifiedSegment("savedSearchId", "savedSearchIdValue"),
+		resourceids.UserSpecifiedSegment("savedSearchId", "savedSearchId"),
 	}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
@@ -18,8 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
+	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type AlertRuleAnomalyDuplicateModel struct {
@@ -334,7 +334,6 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("reading built-in anomaly rule: %+v", err)
 			}
@@ -373,16 +372,16 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 				Kind: securityinsight.KindBasicSecurityMLAnalyticsSettingKindAnomaly,
 				AnomalySecurityMLAnalyticsSettingsProperties: &securityinsight.AnomalySecurityMLAnalyticsSettingsProperties{
 					Description:            builtInAnomalyRule.Description,
-					DisplayName:            utils.String(metaModel.DisplayName),
+					DisplayName:            pointer.To(metaModel.DisplayName),
 					RequiredDataConnectors: builtInAnomalyRule.RequiredDataConnectors,
 					Tactics:                builtInAnomalyRule.Tactics,
 					Techniques:             builtInAnomalyRule.Techniques,
 					AnomalyVersion:         builtInAnomalyRule.AnomalyVersion,
 					Frequency:              builtInAnomalyRule.Frequency,
-					IsDefaultSettings:      utils.Bool(false), // for duplicate one, it's not default settings.
+					IsDefaultSettings:      pointer.To(false), // for duplicate one, it's not default settings.
 					AnomalySettingsVersion: builtInAnomalyRule.AnomalySettingsVersion,
 					SettingsDefinitionID:   builtInAnomalyRule.SettingsDefinitionID,
-					Enabled:                utils.Bool(metaModel.Enabled),
+					Enabled:                pointer.To(metaModel.Enabled),
 					SettingsStatus:         securityinsight.SettingsStatusFlighting,
 				},
 			}
@@ -405,10 +404,9 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `threshold_observation`: %+v", err)
 			}
 
-			param.AnomalySecurityMLAnalyticsSettingsProperties.CustomizableObservations = customizableObservations
+			param.CustomizableObservations = customizableObservations
 
-			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -521,7 +519,6 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -542,7 +539,7 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 					IsDefaultSettings:      existing.IsDefaultSettings,
 					AnomalySettingsVersion: existing.AnomalySettingsVersion,
 					SettingsDefinitionID:   existing.SettingsDefinitionID,
-					Enabled:                utils.Bool(metaModel.Enabled),
+					Enabled:                pointer.To(metaModel.Enabled),
 					SettingsStatus:         securityinsight.SettingsStatus(metaModel.Mode),
 				},
 			}
@@ -565,10 +562,9 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `threshold_observation`: %+v", err)
 			}
 
-			param.AnomalySecurityMLAnalyticsSettingsProperties.CustomizableObservations = customizableObservations
+			param.CustomizableObservations = customizableObservations
 
-			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -588,8 +584,7 @@ func (r AlertRuleAnomalyDuplicateResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
 			}
 
-			_, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName)
-			if err != nil {
+			if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

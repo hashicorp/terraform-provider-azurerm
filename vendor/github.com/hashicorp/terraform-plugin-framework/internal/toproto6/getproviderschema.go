@@ -18,11 +18,14 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 	}
 
 	protov6 := &tfprotov6.GetProviderSchemaResponse{
-		DataSourceSchemas:  make(map[string]*tfprotov6.Schema, len(fw.DataSourceSchemas)),
-		Diagnostics:        Diagnostics(ctx, fw.Diagnostics),
-		Functions:          make(map[string]*tfprotov6.Function, len(fw.FunctionDefinitions)),
-		ResourceSchemas:    make(map[string]*tfprotov6.Schema, len(fw.ResourceSchemas)),
-		ServerCapabilities: ServerCapabilities(ctx, fw.ServerCapabilities),
+		ActionSchemas:            make(map[string]*tfprotov6.ActionSchema, len(fw.ActionSchemas)),
+		DataSourceSchemas:        make(map[string]*tfprotov6.Schema, len(fw.DataSourceSchemas)),
+		Diagnostics:              Diagnostics(ctx, fw.Diagnostics),
+		EphemeralResourceSchemas: make(map[string]*tfprotov6.Schema, len(fw.EphemeralResourceSchemas)),
+		Functions:                make(map[string]*tfprotov6.Function, len(fw.FunctionDefinitions)),
+		ListResourceSchemas:      make(map[string]*tfprotov6.Schema, len(fw.ListResourceSchemas)),
+		ResourceSchemas:          make(map[string]*tfprotov6.Schema, len(fw.ResourceSchemas)),
+		ServerCapabilities:       ServerCapabilities(ctx, fw.ServerCapabilities),
 	}
 
 	var err error
@@ -51,6 +54,20 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 		return protov6
 	}
 
+	for actionType, actionSchema := range fw.ActionSchemas {
+		protov6.ActionSchemas[actionType], err = ActionSchema(ctx, actionSchema)
+
+		if err != nil {
+			protov6.Diagnostics = append(protov6.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error converting action schema",
+				Detail:   "The schema for the action \"" + actionType + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
+
+			return protov6
+		}
+	}
+
 	for dataSourceType, dataSourceSchema := range fw.DataSourceSchemas {
 		protov6.DataSourceSchemas[dataSourceType], err = Schema(ctx, dataSourceSchema)
 
@@ -77,6 +94,34 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 				Severity: tfprotov6.DiagnosticSeverityError,
 				Summary:  "Error converting resource schema",
 				Detail:   "The schema for the resource \"" + resourceType + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
+
+			return protov6
+		}
+	}
+
+	for ephemeralResourceType, ephemeralResourceSchema := range fw.EphemeralResourceSchemas {
+		protov6.EphemeralResourceSchemas[ephemeralResourceType], err = Schema(ctx, ephemeralResourceSchema)
+
+		if err != nil {
+			protov6.Diagnostics = append(protov6.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error converting ephemeral resource schema",
+				Detail:   "The schema for the ephemeral resource \"" + ephemeralResourceType + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
+
+			return protov6
+		}
+	}
+
+	for listResourceType, listResourceSchema := range fw.ListResourceSchemas {
+		protov6.ListResourceSchemas[listResourceType], err = Schema(ctx, listResourceSchema)
+
+		if err != nil {
+			protov6.Diagnostics = append(protov6.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error converting list resource schema",
+				Detail:   "The schema for the list resource \"" + listResourceType + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
 			})
 
 			return protov6

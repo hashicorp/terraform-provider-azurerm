@@ -42,7 +42,7 @@ func ParseSolutionID(input string) (*SolutionId, error) {
 	}
 
 	id := SolutionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseSolutionIDInsensitively(input string) (*SolutionId, error) {
 	}
 
 	id := SolutionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id SolutionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationsManagement", "Microsoft.OperationsManagement", "Microsoft.OperationsManagement"),
 		resourceids.StaticSegment("staticSolutions", "solutions", "solutions"),
-		resourceids.UserSpecifiedSegment("solutionName", "solutionValue"),
+		resourceids.UserSpecifiedSegment("solutionName", "solutionName"),
 	}
 }
 

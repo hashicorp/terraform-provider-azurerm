@@ -15,7 +15,7 @@ type HybridConnectionsClient struct {
 }
 
 func NewHybridConnectionsClientWithBaseURI(sdkApi sdkEnv.Api) (*HybridConnectionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "hybridconnections", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "hybridconnections", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating HybridConnectionsClient: %+v", err)
 	}

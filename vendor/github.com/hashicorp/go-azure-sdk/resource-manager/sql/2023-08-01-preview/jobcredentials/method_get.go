@@ -45,7 +45,6 @@ func (c JobCredentialsClient) Get(ctx context.Context, id CredentialId) (result 
 
 	var model JobCredential
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

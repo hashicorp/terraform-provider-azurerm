@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package legacy
@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -22,8 +23,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -35,7 +36,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
@@ -163,7 +164,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"storage_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -405,7 +406,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -441,7 +442,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Set: resourceVirtualMachineStorageOsProfileHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_windows_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -526,7 +527,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_linux_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -891,7 +892,9 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) err
 				}
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1161,7 +1164,7 @@ func flattenAzureRmVirtualMachineOsProfileSecrets(secrets *[]virtualmachines.Vau
 			certs := make([]map[string]interface{}, 0, len(*secret.VaultCertificates))
 			for _, cert := range *secret.VaultCertificates {
 				vaultCert := make(map[string]interface{})
-				vaultCert["certificate_url"] = *cert.CertificateUrl
+				vaultCert["certificate_url"] = *cert.CertificateURL
 
 				if cert.CertificateStore != nil {
 					vaultCert["certificate_store"] = *cert.CertificateStore
@@ -1247,8 +1250,8 @@ func flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(config *virtualma
 			listener := make(map[string]interface{})
 			listener["protocol"] = string(pointer.From(i.Protocol))
 
-			if i.CertificateUrl != nil {
-				listener["certificate_url"] = *i.CertificateUrl
+			if i.CertificateURL != nil {
+				listener["certificate_url"] = *i.CertificateURL
 			}
 
 			listeners = append(listeners, listener)
@@ -1453,7 +1456,7 @@ func expandAzureRmVirtualMachineOsProfileSecrets(d *pluginsdk.ResourceData) *[]v
 
 				certUrl := config["certificate_url"].(string)
 				cert := virtualmachines.VaultCertificate{
-					CertificateUrl: &certUrl,
+					CertificateURL: &certUrl,
 				}
 				if v := config["certificate_store"].(string); v != "" {
 					cert.CertificateStore = &v
@@ -1539,7 +1542,7 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *pluginsdk.ResourceData
 					Protocol: pointer.To(virtualmachines.ProtocolTypes(protocol)),
 				}
 				if v := config["certificate_url"].(string); v != "" {
-					winRmListener.CertificateUrl = &v
+					winRmListener.CertificateURL = &v
 				}
 
 				winRmListeners = append(winRmListeners, winRmListener)
@@ -1634,7 +1637,7 @@ func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]virtualma
 		}
 
 		if v, ok := config["write_accelerator_enabled"].(bool); ok {
-			data_disk.WriteAcceleratorEnabled = utils.Bool(v)
+			data_disk.WriteAcceleratorEnabled = pointer.To(v)
 		}
 
 		data_disks = append(data_disks, data_disk)
@@ -1651,7 +1654,7 @@ func expandAzureRmVirtualMachineDiagnosticsProfile(d *pluginsdk.ResourceData) *v
 		bootDiagnostic := bootDiagnostics[0].(map[string]interface{})
 
 		diagnostic := &virtualmachines.BootDiagnostics{
-			Enabled:    utils.Bool(bootDiagnostic["enabled"].(bool)),
+			Enabled:    pointer.To(bootDiagnostic["enabled"].(bool)),
 			StorageUri: pointer.To(bootDiagnostic["storage_uri"].(string)),
 		}
 
@@ -1671,7 +1674,7 @@ func expandAzureRmVirtualMachineAdditionalCapabilities(d *pluginsdk.ResourceData
 
 	additionalCapability := additionalCapabilities[0].(map[string]interface{})
 	capability := &virtualmachines.AdditionalCapabilities{
-		UltraSSDEnabled: utils.Bool(additionalCapability["ultra_ssd_enabled"].(bool)),
+		UltraSSDEnabled: pointer.To(additionalCapability["ultra_ssd_enabled"].(bool)),
 	}
 
 	return capability
@@ -1801,7 +1804,7 @@ func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*virtualmachi
 	}
 
 	if v, ok := config["write_accelerator_enabled"].(bool); ok {
-		osDisk.WriteAcceleratorEnabled = utils.Bool(v)
+		osDisk.WriteAcceleratorEnabled = pointer.To(v)
 	}
 
 	return osDisk, nil
@@ -1840,7 +1843,9 @@ func resourceVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+		if v, ok := m["disable_password_authentication"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
 	}
 
 	return pluginsdk.HashString(buf.String())
@@ -1927,7 +1932,7 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 	}
 
 	if networkInterface == nil {
-		return "", fmt.Errorf("A Network Interface wasn't found on the Virtual Machine")
+		return "", errors.New("a Network Interface wasn't found on the Virtual Machine")
 	}
 
 	if props := networkInterface.Properties; props != nil {

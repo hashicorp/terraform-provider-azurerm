@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -8,14 +8,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/connectiontype"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connectiontype"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type Field struct {
@@ -26,11 +26,11 @@ type Field struct {
 }
 
 type AutomationConnectionTypeModel struct {
-	ResourceGroup         string  `json:"resource_group" tfschema:"resource_group_name"`
+	ResourceGroup         string  `json:"resource_group"          tfschema:"resource_group_name"`
 	AutomationAccountName string  `json:"automation_account_name" tfschema:"automation_account_name"`
-	Name                  string  `json:"name" tfschema:"name"`
-	IsGlobal              bool    `json:"is_global" tfschema:"is_global"`
-	Field                 []Field `json:"field" tfschema:"field"`
+	Name                  string  `json:"name"                    tfschema:"name"`
+	IsGlobal              bool    `json:"is_global"               tfschema:"is_global"`
+	Field                 []Field `json:"field"                   tfschema:"field"`
 }
 
 type AutomationConnectionTypeResource struct{}
@@ -134,19 +134,18 @@ func (m AutomationConnectionTypeResource) Create() sdk.ResourceFunc {
 			param := connectiontype.ConnectionTypeCreateOrUpdateParameters{
 				Name: model.Name,
 				Properties: connectiontype.ConnectionTypeCreateOrUpdateProperties{
-					IsGlobal:         utils.Bool(model.IsGlobal),
+					IsGlobal:         pointer.To(model.IsGlobal),
 					FieldDefinitions: map[string]connectiontype.FieldDefinition{},
 				},
 			}
 			for _, field := range model.Field {
 				param.Properties.FieldDefinitions[field.Name] = connectiontype.FieldDefinition{
-					IsEncrypted: utils.Bool(field.IsEncrypted),
-					IsOptional:  utils.Bool(field.IsOptional),
+					IsEncrypted: pointer.To(field.IsEncrypted),
+					IsOptional:  pointer.To(field.IsOptional),
 					Type:        field.Type,
 				}
 			}
-			_, err = client.CreateOrUpdate(ctx, id, param)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
@@ -181,14 +180,14 @@ func (m AutomationConnectionTypeResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					output.IsGlobal = utils.NormaliseNilableBool(props.IsGlobal)
+					output.IsGlobal = pointer.From(props.IsGlobal)
 					if props.FieldDefinitions != nil {
 						for name, field := range *props.FieldDefinitions {
 							output.Field = append(output.Field, Field{
 								Name:        name,
 								Type:        field.Type,
-								IsEncrypted: utils.NormaliseNilableBool(field.IsEncrypted),
-								IsOptional:  utils.NormaliseNilableBool(field.IsOptional),
+								IsEncrypted: pointer.From(field.IsEncrypted),
+								IsOptional:  pointer.From(field.IsOptional),
 							})
 						}
 					}

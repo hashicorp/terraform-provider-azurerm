@@ -45,7 +45,6 @@ func (c AvailabilitySetsClient) Get(ctx context.Context, id AvailabilitySetId) (
 
 	var model AvailabilitySet
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

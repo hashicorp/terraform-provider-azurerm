@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -8,26 +8,25 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name monitor_action_group -service-package-name monitor -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceMonitorActionGroup() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -36,10 +35,11 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 		Update: resourceMonitorActionGroupCreateUpdate,
 		Delete: resourceMonitorActionGroupDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := actiongroupsapis.ParseActionGroupID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&actiongroupsapis.ActionGroupId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&actiongroupsapis.ActionGroupId{}),
+		},
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -396,100 +396,50 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"event_hub_receiver": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"event_hub_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"event_hub_namespace": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"tenant_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"use_common_alert_schema": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"subscription_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
+			},
+
+			"tags": commonschema.Tags(),
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["event_hub_receiver"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"event_hub_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: eventhubs.ValidateEventhubID,
-						Deprecated:   "This property is deprecated and will be removed in version 4.0 of the provider, please use 'event_hub_name' and 'event_hub_namespace' instead.",
-					},
-					"event_hub_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"event_hub_namespace": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"tenant_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"use_common_alert_schema": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-					"subscription_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-				},
-			},
-		}
-	} else {
-		resource.Schema["event_hub_receiver"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"event_hub_name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"event_hub_namespace": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"tenant_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"use_common_alert_schema": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-					"subscription_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-				},
-			},
-		}
-	}
 	return resource
 }
 
@@ -529,11 +479,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	logicAppReceiversRaw := d.Get("logic_app_receiver").([]interface{})
 	azureFunctionReceiversRaw := d.Get("azure_function_receiver").([]interface{})
 	armRoleReceiversRaw := d.Get("arm_role_receiver").([]interface{})
-
-	expandedEventHubReceiver, err := expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, d)
-	if err != nil {
-		return err
-	}
+	eventHubReceiversRaw := d.Get("event_hub_receiver").([]interface{})
 
 	expandedItsmReceiver, err := expandMonitorActionGroupItsmReceiver(itsmReceiversRaw)
 	if err != nil {
@@ -557,7 +503,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			LogicAppReceivers:          expandMonitorActionGroupLogicAppReceiver(logicAppReceiversRaw),
 			AzureFunctionReceivers:     expandMonitorActionGroupAzureFunctionReceiver(azureFunctionReceiversRaw),
 			ArmRoleReceivers:           expandMonitorActionGroupRoleReceiver(armRoleReceiversRaw),
-			EventHubReceivers:          expandedEventHubReceiver,
+			EventHubReceivers:          expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, eventHubReceiversRaw),
 		},
 		Tags: utils.ExpandPtrMapStringString(t),
 	}
@@ -567,6 +513,9 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceMonitorActionGroupRead(d, meta)
 }
@@ -594,7 +543,6 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
@@ -639,7 +587,7 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 			if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(props.ArmRoleReceivers)); err != nil {
 				return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
 			}
-			if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(id.ResourceGroupName, props.EventHubReceivers)); err != nil {
+			if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(props.EventHubReceivers)); err != nil {
 				return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
 			}
 		}
@@ -647,7 +595,7 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 			return err
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMonitorActionGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -677,7 +625,7 @@ func expandMonitorActionGroupEmailReceiver(v []interface{}) *[]actiongroupsapis.
 		receiver := actiongroupsapis.EmailReceiver{
 			Name:                 val["name"].(string),
 			EmailAddress:         val["email_address"].(string),
-			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -694,7 +642,7 @@ func expandMonitorActionGroupItsmReceiver(v []interface{}) (*[]actiongroupsapis.
 			WorkspaceId:         val["workspace_id"].(string),
 			ConnectionId:        val["connection_id"].(string),
 			TicketConfiguration: ticketConfiguration,
-			Region:              azure.NormalizeLocation(val["region"].(string)),
+			Region:              location.Normalize(val["region"].(string)),
 		}
 
 		// https://github.com/Azure/azure-rest-api-specs/issues/20488 ticket_configuration should have `PayloadRevision` and `WorkItemType` keys
@@ -707,7 +655,7 @@ func expandMonitorActionGroupItsmReceiver(v []interface{}) (*[]actiongroupsapis.
 
 		_, existKeyPayloadRevision := j["PayloadRevision"]
 		_, existKeyWorkItemType := j["WorkItemType"]
-		if !(existKeyPayloadRevision && existKeyWorkItemType) {
+		if !existKeyPayloadRevision || !existKeyWorkItemType {
 			return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys")
 		}
 		receivers = append(receivers, receiver)
@@ -749,17 +697,17 @@ func expandMonitorActionGroupWebHookReceiver(tenantId string, v []interface{}) *
 		receiver := actiongroupsapis.WebhookReceiver{
 			Name:                 val["name"].(string),
 			ServiceUri:           val["service_uri"].(string),
-			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 		if v, ok := val["aad_auth"].([]interface{}); ok && len(v) > 0 {
 			secureWebhook := v[0].(map[string]interface{})
-			receiver.UseAadAuth = utils.Bool(true)
-			receiver.ObjectId = utils.String(secureWebhook["object_id"].(string))
-			receiver.IdentifierUri = utils.String(secureWebhook["identifier_uri"].(string))
+			receiver.UseAadAuth = pointer.To(true)
+			receiver.ObjectId = pointer.To(secureWebhook["object_id"].(string))
+			receiver.IdentifierUri = pointer.To(secureWebhook["identifier_uri"].(string))
 			if v := secureWebhook["tenant_id"].(string); v != "" {
-				receiver.TenantId = utils.String(v)
+				receiver.TenantId = pointer.To(v)
 			} else {
-				receiver.TenantId = utils.String(tenantId)
+				receiver.TenantId = pointer.To(tenantId)
 			}
 		}
 		receivers = append(receivers, receiver)
@@ -772,13 +720,13 @@ func expandMonitorActionGroupAutomationRunbookReceiver(v []interface{}) *[]actio
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 		receiver := actiongroupsapis.AutomationRunbookReceiver{
-			Name:                 utils.String(val["name"].(string)),
+			Name:                 pointer.To(val["name"].(string)),
 			AutomationAccountId:  val["automation_account_id"].(string),
 			RunbookName:          val["runbook_name"].(string),
 			WebhookResourceId:    val["webhook_resource_id"].(string),
 			IsGlobalRunbook:      val["is_global_runbook"].(bool),
-			ServiceUri:           utils.String(val["service_uri"].(string)),
-			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+			ServiceUri:           pointer.To(val["service_uri"].(string)),
+			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -806,8 +754,8 @@ func expandMonitorActionGroupLogicAppReceiver(v []interface{}) *[]actiongroupsap
 		receiver := actiongroupsapis.LogicAppReceiver{
 			Name:                 val["name"].(string),
 			ResourceId:           val["resource_id"].(string),
-			CallbackUrl:          val["callback_url"].(string),
-			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+			CallbackURL:          val["callback_url"].(string),
+			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -822,8 +770,8 @@ func expandMonitorActionGroupAzureFunctionReceiver(v []interface{}) *[]actiongro
 			Name:                  val["name"].(string),
 			FunctionAppResourceId: val["function_app_resource_id"].(string),
 			FunctionName:          val["function_name"].(string),
-			HTTPTriggerUrl:        val["http_trigger_url"].(string),
-			UseCommonAlertSchema:  utils.Bool(val["use_common_alert_schema"].(bool)),
+			HTTPTriggerURL:        val["http_trigger_url"].(string),
+			UseCommonAlertSchema:  pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -837,62 +785,31 @@ func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]actiongroupsapis.A
 		receiver := actiongroupsapis.ArmRoleReceiver{
 			Name:                 val["name"].(string),
 			RoleId:               val["role_id"].(string),
-			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
 	return &receivers
 }
 
-func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId string, d *pluginsdk.ResourceData) (*[]actiongroupsapis.EventHubReceiver, error) {
+func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId string, v []interface{}) *[]actiongroupsapis.EventHubReceiver {
 	receivers := make([]actiongroupsapis.EventHubReceiver, 0)
-	eventHubReceiver := d.Get("event_hub_receiver").([]interface{})
-	for i, receiverValue := range eventHubReceiver {
+	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 
 		eventHubNameSpace, eventHubName, subId := val["event_hub_namespace"].(string), val["event_hub_name"].(string), val["subscription_id"].(string)
-
-		if !features.FourPointOhBeta() {
-			eventHubReceiverRaw := d.GetRawConfig().AsValueMap()["event_hub_receiver"].AsValueSlice()[i].AsValueMap()
-			eventHubIdRaw := eventHubReceiverRaw["event_hub_id"]
-
-			hasSetId := !eventHubIdRaw.IsNull()
-			hasSetName := !eventHubReceiverRaw["event_hub_name"].IsNull()
-			hasSetNamespace := !eventHubReceiverRaw["event_hub_namespace"].IsNull()
-			hasSetSubscriptionId := !eventHubReceiverRaw["subscription_id"].IsNull()
-
-			if hasSetName != hasSetNamespace {
-				return nil, fmt.Errorf("in event_hub_receiver, event_hub_name and event_hub_namespace must be set together")
-			}
-
-			if hasSetId == hasSetName {
-				return nil, fmt.Errorf("in event_hub_receiver, exactly one of event_hub_id or (event_hub_namespace, event_hub_name) must be set")
-			}
-
-			if hasSetId && hasSetSubscriptionId {
-				return nil, fmt.Errorf("in event_hub_receiver, event_hub_id and subscription_id cannot be set together")
-			}
-
-			if hasSetId {
-				eventHubId, err := eventhubs.ParseEventhubID(eventHubIdRaw.AsString())
-				if err != nil {
-					return nil, err
-				}
-				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.EventhubName, eventHubId.SubscriptionId
-			}
-		}
 
 		receiver := actiongroupsapis.EventHubReceiver{
 			EventHubNameSpace:    eventHubNameSpace,
 			EventHubName:         eventHubName,
 			Name:                 val["name"].(string),
-			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 
 		if v := val["tenant_id"].(string); v != "" {
-			receiver.TenantId = utils.String(v)
+			receiver.TenantId = pointer.To(v)
 		} else {
-			receiver.TenantId = utils.String(tenantId)
+			receiver.TenantId = pointer.To(tenantId)
 		}
 
 		if subId != "" {
@@ -903,7 +820,7 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 
 		receivers = append(receivers, receiver)
 	}
-	return &receivers, nil
+	return &receivers
 }
 
 func flattenMonitorActionGroupEmailReceiver(receivers *[]actiongroupsapis.EmailReceiver) []interface{} {
@@ -934,7 +851,7 @@ func flattenMonitorActionGroupItsmReceiver(receivers *[]actiongroupsapis.ItsmRec
 			val["workspace_id"] = receiver.WorkspaceId
 			val["connection_id"] = receiver.ConnectionId
 			val["ticket_configuration"] = receiver.TicketConfiguration
-			val["region"] = azure.NormalizeLocation(receiver.Region)
+			val["region"] = location.Normalize(receiver.Region)
 
 			result = append(result, val)
 		}
@@ -1068,7 +985,7 @@ func flattenMonitorActionGroupLogicAppReceiver(receivers *[]actiongroupsapis.Log
 
 			val["name"] = receiver.Name
 			val["resource_id"] = receiver.ResourceId
-			val["callback_url"] = receiver.CallbackUrl
+			val["callback_url"] = receiver.CallbackURL
 
 			if receiver.UseCommonAlertSchema != nil {
 				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
@@ -1088,7 +1005,7 @@ func flattenMonitorActionGroupAzureFunctionReceiver(receivers *[]actiongroupsapi
 			val["name"] = receiver.Name
 			val["function_app_resource_id"] = receiver.FunctionAppResourceId
 			val["function_name"] = receiver.FunctionName
-			val["http_trigger_url"] = receiver.HTTPTriggerUrl
+			val["http_trigger_url"] = receiver.HTTPTriggerURL
 
 			if receiver.UseCommonAlertSchema != nil {
 				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
@@ -1117,7 +1034,7 @@ func flattenMonitorActionGroupRoleReceiver(receivers *[]actiongroupsapis.ArmRole
 	return result
 }
 
-func flattenMonitorActionGroupEventHubReceiver(resourceGroup string, receivers *[]actiongroupsapis.EventHubReceiver) []interface{} {
+func flattenMonitorActionGroupEventHubReceiver(receivers *[]actiongroupsapis.EventHubReceiver) []interface{} {
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
@@ -1128,9 +1045,6 @@ func flattenMonitorActionGroupEventHubReceiver(resourceGroup string, receivers *
 			eventHubNamespace := receiver.EventHubNameSpace
 			eventHubName := receiver.EventHubName
 			subscriptionId := receiver.SubscriptionId
-			if !features.FourPointOhBeta() {
-				val["event_hub_id"] = eventhubs.NewEventhubID(subscriptionId, resourceGroup, eventHubNamespace, eventHubName).ID()
-			}
 			val["subscription_id"], val["event_hub_namespace"], val["event_hub_name"] = subscriptionId, eventHubNamespace, eventHubName
 
 			if receiver.UseCommonAlertSchema != nil {

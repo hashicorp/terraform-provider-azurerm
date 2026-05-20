@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagecache
@@ -16,15 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/caches"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,6 +31,8 @@ import (
 
 func resourceHPCCache() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_hpc_cache` resource has been deprecated because the service is retiring on 2025-09-30. This resource will be removed in v5.0 of the AzureRM Provider. See https://aka.ms/hpccacheretirement for more information.",
+
 		Create: resourceHPCCacheCreateOrUpdate,
 		Update: resourceHPCCacheCreateOrUpdate,
 		Read:   resourceHPCCacheRead,
@@ -54,7 +54,7 @@ func resourceHPCCache() *pluginsdk.Resource {
 }
 
 func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -79,7 +79,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	location := d.Get("location").(string)
+	loc := d.Get("location").(string)
 	cacheSize := d.Get("cache_size_in_gb").(int)
 	subnet := d.Get("subnet_id").(string)
 	skuName := d.Get("sku_name").(string)
@@ -87,13 +87,13 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	// SKU Cache Combo Validation
 	switch {
 	case skuName == "Standard_L4_5G" && cacheSize != 21623:
-		return fmt.Errorf("The Standard_L4_5G SKU only supports a cache size of 21623")
+		return fmt.Errorf("the Standard_L4_5G SKU only supports a cache size of 21623")
 	case skuName == "Standard_L9G" && cacheSize != 43246:
-		return fmt.Errorf("The Standard_L9G SKU only supports a cache size of 43246")
+		return fmt.Errorf("the Standard_L9G SKU only supports a cache size of 43246")
 	case skuName == "Standard_L16G" && cacheSize != 86491:
-		return fmt.Errorf("The Standard_L16G SKU only supports a cache size of 86491")
+		return fmt.Errorf("the Standard_L16G SKU only supports a cache size of 86491")
 	case (cacheSize == 21623 || cacheSize == 43246 || cacheSize == 86491) && (skuName == "Standard_2G" || skuName == "Standard_4G" || skuName == "Standard_8G"):
-		return fmt.Errorf("Incompatible cache size chosen. 21623, 43246 and 86491 are reserved for Read Only resources.")
+		return fmt.Errorf("incompatible cache size chosen. 21623, 43246 and 86491 are reserved for Read Only resources")
 	}
 
 	var accessPolicies []caches.NfsAccessPolicy
@@ -130,9 +130,9 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	cache := caches.Cache{
 		Name:     pointer.To(name),
-		Location: pointer.To(location),
+		Location: pointer.To(loc),
 		Properties: &caches.CacheProperties{
-			CacheSizeGB:     utils.Int64(int64(cacheSize)),
+			CacheSizeGB:     pointer.To(int64(cacheSize)),
 			Subnet:          pointer.To(subnet),
 			NetworkSettings: expandStorageCacheNetworkSettings(d),
 			SecuritySettings: &caches.CacheSecuritySettings{
@@ -171,19 +171,19 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if err != nil {
 			return fmt.Errorf("validating Key Vault Key %q for HPC Cache: %+v", keyVaultKeyId, err)
 		}
-		if azure.NormalizeLocation(keyVaultDetails.location) != azure.NormalizeLocation(location) {
-			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Key Vault must be in the same region as HPC Cache!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		if location.Normalize(keyVaultDetails.location) != location.Normalize(loc) {
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Key Vault must be in the same region as HPC Cache", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 		}
 		if !keyVaultDetails.softDeleteEnabled {
-			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Soft Delete must be enabled but it isn't", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 		}
 		if !keyVaultDetails.purgeProtectionEnabled {
-			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Purge Protection must be enabled but it isn't", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 		}
 
 		cache.Properties.EncryptionSettings = &caches.CacheEncryptionSettings{
 			KeyEncryptionKey: &caches.KeyVaultKeyReference{
-				KeyUrl: keyVaultKeyId,
+				KeyURL: keyVaultKeyId,
 				SourceVault: caches.KeyVaultKeyReferenceSourceVault{
 					Id: pointer.To(keyVaultDetails.keyVaultId),
 				},
@@ -198,7 +198,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if requireAdditionalUpdate {
 		if err := client.CreateOrUpdateThenPoll(ctx, id, cache); err != nil {
-			return fmt.Errorf("Updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -212,22 +212,22 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		model := resp.Model
 		if model == nil {
-			return fmt.Errorf("Unepxected nil `cacheProperties` in response")
+			return fmt.Errorf("unepxected nil `cacheProperties` in response")
 		}
 		prop := model.Properties
 		if prop == nil {
-			return fmt.Errorf("Unepxected nil `cacheProperties` in response")
+			return fmt.Errorf("unepxected nil `cacheProperties` in response")
 		}
 		ds := prop.DirectoryServicesSettings
 		if ds == nil {
-			return fmt.Errorf("Unexpected nil `directoryServicesSettings` in response")
+			return fmt.Errorf("unexpected nil `directoryServicesSettings` in response")
 		}
 
 		// In case the user uses active directory service, we
 		if directorySetting.ActiveDirectory != nil {
 			ad := ds.ActiveDirectory
 			if ad == nil || ad.DomainJoined == nil {
-				return fmt.Errorf("Unexpected nil `activeDirectory` in response")
+				return fmt.Errorf("unexpected nil `activeDirectory` in response")
 			}
 			if *ad.DomainJoined != caches.DomainJoinedTypeYes {
 				return fmt.Errorf("failed to join domain, current status: %s", *ad.DomainJoined)
@@ -235,7 +235,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 		} else {
 			ud := ds.UsernameDownload
 			if ud == nil || ud.UsernameDownloaded == nil {
-				return fmt.Errorf("Unexpected nil `usernameDownload` in response")
+				return fmt.Errorf("unexpected nil `usernameDownload` in response")
 			}
 			if *ud.UsernameDownloaded != caches.UsernameDownloadedTypeYes {
 				return fmt.Errorf("failed to download directory info, current status: %s", *ud.UsernameDownloaded)
@@ -246,7 +246,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	d.SetId(id.ID())
 
 	// wait for HPC Cache provision state to be succeeded. or further operations with it may fail.
-	cacheClient := meta.(*clients.Client).StorageCache.Caches
+	cacheClient := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	if _, err = resourceHPCCacheWaitForCreating(ctx, cacheClient, id, d); err != nil {
 		return fmt.Errorf("waiting for the HPC Cache provision state %s (Resource Group: %s) : %+v", name, resourceGroup, err)
 	}
@@ -255,7 +255,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -284,7 +284,7 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if props := m.Properties; props != nil {
-			d.Set("location", azure.NormalizeLocation(pointer.From(m.Location)))
+			d.Set("location", location.Normalize(pointer.From(m.Location)))
 			d.Set("cache_size_in_gb", props.CacheSizeGB)
 			d.Set("subnet_id", props.Subnet)
 			d.Set("mount_addresses", utils.FlattenStringSlice(props.MountAddresses))
@@ -332,7 +332,7 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			autoKeyRotationEnabled := false
 			if eprops := props.EncryptionSettings; eprops != nil {
 				if eprops.KeyEncryptionKey != nil {
-					keyVaultKeyId = eprops.KeyEncryptionKey.KeyUrl
+					keyVaultKeyId = eprops.KeyEncryptionKey.KeyURL
 				}
 
 				if eprops.RotationToLatestKeyVersionEnabled != nil {
@@ -351,14 +351,16 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, m.Tags)
+		if err := tags.FlattenAndSet(d, m.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func resourceHPCCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -399,7 +401,7 @@ func flattenStorageCacheNfsDefaultAccessPolicy(input caches.NfsAccessPolicy) ([]
 }
 
 func expandStorageCacheNfsAccessRules(input []interface{}) []caches.NfsAccessRule {
-	var out []caches.NfsAccessRule
+	out := make([]caches.NfsAccessRule, 0, len(input))
 	for _, accessRuleRaw := range input {
 		b := accessRuleRaw.(map[string]interface{})
 		out = append(out, caches.NfsAccessRule{
@@ -417,9 +419,8 @@ func expandStorageCacheNfsAccessRules(input []interface{}) []caches.NfsAccessRul
 }
 
 func flattenStorageCacheNfsAccessRules(input []caches.NfsAccessRule) ([]interface{}, error) {
-	var rules []interface{}
+	rules := make([]interface{}, 0, len(input))
 	for _, accessRule := range input {
-
 		anonymousUID := 0
 		if accessRule.AnonymousUID != nil {
 			var err error
@@ -455,7 +456,7 @@ func flattenStorageCacheNfsAccessRules(input []caches.NfsAccessRule) ([]interfac
 
 func expandStorageCacheNetworkSettings(d *pluginsdk.ResourceData) *caches.CacheNetworkSettings {
 	out := &caches.CacheNetworkSettings{
-		Mtu:       utils.Int64(int64(d.Get("mtu").(int))),
+		Mtu:       pointer.To(int64(d.Get("mtu").(int))),
 		NtpServer: pointer.To(d.Get("ntp_server").(string)),
 	}
 
@@ -654,17 +655,17 @@ type storageCacheKeyVault struct {
 }
 
 func storageCacheRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.Client, subscriptionId string, id string) (*storageCacheKeyVault, error) {
-	keyVaultKeyId, err := keyVaultParse.ParseNestedItemID(id)
+	keyVaultKeyId, err := keyvault.ParseNestedItemID(id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
 	if err != nil {
 		return nil, err
 	}
 	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyId.KeyVaultBaseUrl)
+	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyId.KeyVaultBaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseURL, err)
 	}
 	if keyVaultID == nil {
-		return nil, fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultKeyId.KeyVaultBaseUrl)
+		return nil, fmt.Errorf("unable to determine the Resource ID for the Key Vault at URL %q", keyVaultKeyId.KeyVaultBaseURL)
 	}
 
 	parsedKeyVaultID, err := commonids.ParseKeyVaultID(*keyVaultID)
@@ -1005,7 +1006,7 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 		"key_vault_key_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: keyVaultValidate.NestedItemId,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny),
 			RequiredWith: []string{"identity"},
 		},
 

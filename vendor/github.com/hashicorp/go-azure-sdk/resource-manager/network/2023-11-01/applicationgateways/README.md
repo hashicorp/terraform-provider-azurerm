@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways` Documentation
 
-The `applicationgateways` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `applicationgateways` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayValue")
+id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayName")
 
 if err := client.BackendHealthThenPoll(ctx, id, applicationgateways.DefaultBackendHealthOperationOptions()); err != nil {
 	// handle the error
@@ -37,7 +37,7 @@ if err := client.BackendHealthThenPoll(ctx, id, applicationgateways.DefaultBacke
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayValue")
+id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayName")
 
 payload := applicationgateways.ApplicationGatewayOnDemandProbe{
 	// ...
@@ -54,7 +54,7 @@ if err := client.BackendHealthOnDemandThenPoll(ctx, id, payload, applicationgate
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayValue")
+id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayName")
 
 payload := applicationgateways.ApplicationGateway{
 	// ...
@@ -71,7 +71,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayValue")
+id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -83,7 +83,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayValue")
+id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -99,7 +99,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewPredefinedPolicyID("12345678-1234-9876-4563-123456789012", "predefinedPolicyValue")
+id := applicationgateways.NewPredefinedPolicyID("12345678-1234-9876-4563-123456789012", "predefinedPolicyName")
 
 read, err := client.GetSslPredefinedPolicy(ctx, id)
 if err != nil {
@@ -246,7 +246,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayValue")
+id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayName")
 
 if err := client.StartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -258,7 +258,7 @@ if err := client.StartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayValue")
+id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayName")
 
 if err := client.StopThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -270,7 +270,7 @@ if err := client.StopThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayValue")
+id := applicationgateways.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayName")
 
 payload := applicationgateways.TagsObject{
 	// ...

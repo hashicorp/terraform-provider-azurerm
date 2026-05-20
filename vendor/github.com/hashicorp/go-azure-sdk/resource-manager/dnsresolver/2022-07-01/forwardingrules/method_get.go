@@ -45,7 +45,6 @@ func (c ForwardingRulesClient) Get(ctx context.Context, id ForwardingRuleId) (re
 
 	var model ForwardingRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

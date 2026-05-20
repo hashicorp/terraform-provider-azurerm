@@ -15,7 +15,7 @@ type RolesClient struct {
 }
 
 func NewRolesClientWithBaseURI(sdkApi sdkEnv.Api) (*RolesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "roles", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "roles", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RolesClient: %+v", err)
 	}

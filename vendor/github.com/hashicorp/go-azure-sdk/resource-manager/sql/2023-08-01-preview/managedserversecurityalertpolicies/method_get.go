@@ -47,7 +47,6 @@ func (c ManagedServerSecurityAlertPoliciesClient) Get(ctx context.Context, id co
 
 	var model ManagedServerSecurityAlertPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

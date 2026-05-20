@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions` Documentation
 
-The `subscriptions` SDK allows for interaction with the Azure Resource Manager Service `resources` (API Version `2022-12-01`).
+The `subscriptions` SDK allows for interaction with Azure Resource Manager `resources` (API Version `2022-12-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -81,11 +81,12 @@ for _, item := range items {
 ctx := context.TODO()
 id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-read, err := client.ListLocations(ctx, id, subscriptions.DefaultListLocationsOperationOptions())
+// alternatively `client.ListLocations(ctx, id, subscriptions.DefaultListLocationsOperationOptions())` can be used to do batched pagination
+items, err := client.ListLocationsComplete(ctx, id, subscriptions.DefaultListLocationsOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```

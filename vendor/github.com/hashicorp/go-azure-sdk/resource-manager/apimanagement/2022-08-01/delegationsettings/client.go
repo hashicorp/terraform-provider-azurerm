@@ -15,7 +15,7 @@ type DelegationSettingsClient struct {
 }
 
 func NewDelegationSettingsClientWithBaseURI(sdkApi sdkEnv.Api) (*DelegationSettingsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "delegationsettings", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "delegationsettings", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DelegationSettingsClient: %+v", err)
 	}

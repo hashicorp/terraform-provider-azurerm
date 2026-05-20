@@ -15,7 +15,7 @@ type VMInstanceHybridIdentityMetadatasClient struct {
 }
 
 func NewVMInstanceHybridIdentityMetadatasClientWithBaseURI(sdkApi sdkEnv.Api) (*VMInstanceHybridIdentityMetadatasClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "vminstancehybrididentitymetadatas", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "vminstancehybrididentitymetadatas", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VMInstanceHybridIdentityMetadatasClient: %+v", err)
 	}

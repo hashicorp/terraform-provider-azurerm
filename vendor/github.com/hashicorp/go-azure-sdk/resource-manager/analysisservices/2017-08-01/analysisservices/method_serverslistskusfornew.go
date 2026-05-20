@@ -47,7 +47,6 @@ func (c AnalysisServicesClient) ServersListSkusForNew(ctx context.Context, id co
 
 	var model SkuEnumerationForNewResourceResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

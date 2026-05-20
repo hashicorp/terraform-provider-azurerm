@@ -49,7 +49,6 @@ func (c AttestationProvidersClient) Update(ctx context.Context, id AttestationPr
 
 	var model AttestationProviders
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

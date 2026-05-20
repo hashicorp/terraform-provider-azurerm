@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbookdraft"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/jobschedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbookdraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
@@ -128,6 +127,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 					string(runbook.RunbookTypeEnumGraphPowerShellWorkflow),
 					string(runbook.RunbookTypeEnumPowerShell),
 					string(runbook.RunbookTypeEnumPowerShellSevenTwo),
+					string(runbook.RunbookTypeEnumPython),
 					string(runbook.RunbookTypeEnumPythonTwo),
 					string(runbook.RunbookTypeEnumPythonThree),
 					string(runbook.RunbookTypeEnumPowerShellWorkflow),
@@ -277,6 +277,12 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
+			"runtime_environment_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -309,22 +315,17 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	// for existing runbook, if only job_schedule field updated, then skip update runbook
 	if d.IsNewResource() || d.HasChangeExcept("job_schedule") {
-
-		location := azure.NormalizeLocation(d.Get("location").(string))
+		location := location.Normalize(d.Get("location").(string))
 		t := d.Get("tags").(map[string]interface{})
-
-		runbookType := runbook.RunbookTypeEnum(d.Get("runbook_type").(string))
-		logProgress := d.Get("log_progress").(bool)
-		logVerbose := d.Get("log_verbose").(bool)
-		description := d.Get("description").(string)
 
 		parameters := runbook.RunbookCreateOrUpdateParameters{
 			Properties: runbook.RunbookCreateOrUpdateProperties{
-				LogVerbose:       &logVerbose,
-				LogProgress:      &logProgress,
-				RunbookType:      runbookType,
-				Description:      &description,
-				LogActivityTrace: utils.Int64(int64(d.Get("log_activity_trace_level").(int))),
+				LogVerbose:         pointer.To(d.Get("log_verbose").(bool)),
+				LogProgress:        pointer.To(d.Get("log_progress").(bool)),
+				RuntimeEnvironment: pointer.To(d.Get("runtime_environment_name").(string)),
+				RunbookType:        runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
+				Description:        pointer.To(d.Get("description").(string)),
+				LogActivityTrace:   pointer.To(int64(d.Get("log_activity_trace_level").(int))),
 			},
 
 			Location: &location,
@@ -406,9 +407,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", id.RunbookName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	model := resp.Model
-	if location := model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.Normalize(model.Location))
 
 	d.Set("automation_account_name", id.AutomationAccountName)
 	if props := model.Properties; props != nil {
@@ -417,6 +416,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("runbook_type", string(pointer.From(props.RunbookType)))
 		d.Set("description", props.Description)
 		d.Set("log_activity_trace_level", props.LogActivityTrace)
+		d.Set("runtime_environment_name", pointer.From(props.RuntimeEnvironment))
 	}
 
 	// GetContent need to use preview version client RunbookClientHack
@@ -429,10 +429,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("retrieving content for Automation Runbook %s: %+v", id, err)
 		}
 	}
-
-	if v := contentResp.Model; v != nil && *v != nil {
-		d.Set("content", string(*v))
-	}
+	d.Set("content", string(pointer.From(contentResp.Model)))
 
 	jsMap := make(map[uuid.UUID]jobschedule.JobScheduleProperties)
 	automationAccountId := jobschedule.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
@@ -540,23 +537,24 @@ func expandDraft(inputs []interface{}) *runbook.RunbookDraft {
 	var res runbook.RunbookDraft
 
 	res.DraftContentLink = expandContentLink(input["content_link"].([]interface{}))
-	res.InEdit = utils.Bool(input["edit_mode_enabled"].(bool))
+	res.InEdit = pointer.To(input["edit_mode_enabled"].(bool))
 	parameter := map[string]runbook.RunbookParameter{}
 
 	for _, iparam := range input["parameters"].([]interface{}) {
 		param := iparam.(map[string]interface{})
 		key := param["key"].(string)
 		parameter[key] = runbook.RunbookParameter{
-			Type:         utils.String(param["type"].(string)),
-			IsMandatory:  utils.Bool(param["mandatory"].(bool)),
-			Position:     utils.Int64(int64(param["position"].(int))),
-			DefaultValue: utils.String(param["default_value"].(string)),
+			Type:         pointer.To(param["type"].(string)),
+			IsMandatory:  pointer.To(param["mandatory"].(bool)),
+			Position:     pointer.To(int64(param["position"].(int))),
+			DefaultValue: pointer.To(param["default_value"].(string)),
 		}
 	}
 	res.Parameters = &parameter
 
-	var types []string
-	for _, v := range input["output_types"].([]interface{}) {
+	typesInput := input["output_types"].([]interface{})
+	types := make([]string, 0, len(typesInput))
+	for _, v := range typesInput {
 		types = append(types, v.(string))
 	}
 

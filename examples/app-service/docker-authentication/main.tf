@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -32,8 +32,8 @@ resource "azurerm_linux_web_app" "example" {
 
   site_config {
     application_stack {
-      docker_image     = "jackofallops/azure-containerapps-python-acctest"
-      docker_image_tag = "v0.0.1"
+      docker_image_name   = "nginx:latest"
+      docker_registry_url = "https://index.docker.io"
     }
   }
 

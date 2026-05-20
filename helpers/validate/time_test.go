@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -103,6 +103,66 @@ func TestISO8601Duration(t *testing.T) {
 
 		if len(errors) != tc.Errors {
 			t.Fatalf("Expected ISO8601Duration to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
+		}
+	}
+}
+
+func TestISO8601RepeatingTime(t *testing.T) {
+	cases := []struct {
+		Value  string
+		Errors int
+	}{
+		{
+			Value:  "R/2021-05-23T02:30:00+00:00/P1W",
+			Errors: 0,
+		},
+		{
+			Value:  "R/2021-05-23T02:30:00+00:00/PT20S",
+			Errors: 0,
+		},
+		{
+			Value:  "R/2021-05-23T02:30:00+00:00/PT0.5S",
+			Errors: 0,
+		},
+		{
+			Value:  "R",
+			Errors: 1,
+		},
+		{
+			Value:  "R/",
+			Errors: 1,
+		},
+		{
+			Value:  "2021-05-23T02:30:03+01:02",
+			Errors: 1,
+		},
+		{
+			Value:  "P1W",
+			Errors: 1,
+		},
+		{
+			Value:  "R/2021-05-23T02:30:00+00:00",
+			Errors: 1,
+		},
+		{
+			Value:  "C/2021-05-23T02:30:00+00:00",
+			Errors: 1,
+		},
+		{
+			Value:  "2021-05-23T02:30:00+00:00/D1W",
+			Errors: 1,
+		},
+		{
+			Value:  "2021-05-23T02:30:00+00:00/P1W",
+			Errors: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := ISO8601RepeatingTime(tc.Value, "example")
+
+		if len(errors) != tc.Errors {
+			t.Fatalf("Expected ISO8601RepeatingTime to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
 		}
 	}
 }

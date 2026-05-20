@@ -1,5 +1,40 @@
 # HCL Changelog
 
+## v2.24.0 (July 7, 2025)
+
+### Enhancements
+
+* Add support for decoding block and attribute source ranges when using `gohcl`. ([#703](https://github.com/hashicorp/hcl/pull/703))
+* hclsyntax: Detect and reject invalid nested splat result. ([#724](https://github.com/hashicorp/hcl/pull/724))
+
+### Bugs Fixed
+
+* Correct handling of unknown objects in Index function. ([#763](https://github.com/hashicorp/hcl/pull/763))
+
+## v2.23.0 (November 15, 2024)
+
+### Bugs Fixed
+
+* Preserve marks when traversing through unknown values. ([#699](https://github.com/hashicorp/hcl/pull/699))
+* Retain marks through conditional and for expressions. ([#710](https://github.com/hashicorp/hcl/pull/710))
+
+## v2.22.0 (August 26, 2024)
+
+### Enhancements
+
+* feat: return an ExprSyntaxError for invalid references that end in a dot ([#692](https://github.com/hashicorp/hcl/pull/692))
+
+## v2.21.0 (June 19, 2024)
+
+### Enhancements
+
+* Introduce `ParseTraversalPartial`, which allows traversals that include the splat (`[*]`) index operator.  ([#673](https://github.com/hashicorp/hcl/pull/673))
+* ext/dynblock: Now accepts marked values in `for_each`, and will transfer those marks (as much as technically possible) to values in the generated blocks. ([#679](https://github.com/hashicorp/hcl/pull/679))
+
+### Bugs Fixed
+
+* Expression evaluation will no longer panic if the splat operator is applied to an unknown value that has cty marks. ([#678](https://github.com/hashicorp/hcl/pull/678))
+
 ## v2.20.1 (March 26, 2024)
 
 ### Bugs Fixed

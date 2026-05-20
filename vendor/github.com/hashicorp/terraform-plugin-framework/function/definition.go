@@ -81,20 +81,10 @@ func (d Definition) ValidateImplementation(ctx context.Context, req DefinitionVa
 	paramNames := make(map[string]int, len(d.Parameters))
 	for pos, param := range d.Parameters {
 		parameterPosition := int64(pos)
-		name := param.GetName()
-		// If name is not set, add an error diagnostic, parameter names are mandatory.
-		if name == "" {
-			diags.AddError(
-				"Invalid Function Definition",
-				"When validating the function definition, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("Function %q - Parameter at position %d does not have a name", req.FuncName, pos),
-			)
-		}
 
 		if paramWithValidateImplementation, ok := param.(fwfunction.ParameterWithValidateImplementation); ok {
 			req := fwfunction.ValidateParameterImplementationRequest{
-				Name:              name,
+				FunctionName:      req.FuncName,
 				ParameterPosition: &parameterPosition,
 			}
 			resp := &fwfunction.ValidateParameterImplementationResponse{}
@@ -104,7 +94,9 @@ func (d Definition) ValidateImplementation(ctx context.Context, req DefinitionVa
 			diags.Append(resp.Diagnostics...)
 		}
 
+		name := param.GetName()
 		conflictPos, exists := paramNames[name]
+
 		if exists && name != "" {
 			diags.AddError(
 				"Invalid Function Definition",
@@ -120,20 +112,9 @@ func (d Definition) ValidateImplementation(ctx context.Context, req DefinitionVa
 	}
 
 	if d.VariadicParameter != nil {
-		name := d.VariadicParameter.GetName()
-		// If name is not set, add an error diagnostic, parameter names are mandatory.
-		if name == "" {
-			diags.AddError(
-				"Invalid Function Definition",
-				"When validating the function definition, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("Function %q - The variadic parameter does not have a name", req.FuncName),
-			)
-		}
-
 		if paramWithValidateImplementation, ok := d.VariadicParameter.(fwfunction.ParameterWithValidateImplementation); ok {
 			req := fwfunction.ValidateParameterImplementationRequest{
-				Name: name,
+				FunctionName: req.FuncName,
 			}
 			resp := &fwfunction.ValidateParameterImplementationResponse{}
 
@@ -142,7 +123,9 @@ func (d Definition) ValidateImplementation(ctx context.Context, req DefinitionVa
 			diags.Append(resp.Diagnostics...)
 		}
 
+		name := d.VariadicParameter.GetName()
 		conflictPos, exists := paramNames[name]
+
 		if exists && name != "" {
 			diags.AddError(
 				"Invalid Function Definition",

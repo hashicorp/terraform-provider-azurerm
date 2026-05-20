@@ -15,7 +15,7 @@ type CapabilitiesClient struct {
 }
 
 func NewCapabilitiesClientWithBaseURI(sdkApi sdkEnv.Api) (*CapabilitiesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "capabilities", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "capabilities", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CapabilitiesClient: %+v", err)
 	}

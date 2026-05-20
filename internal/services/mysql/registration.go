@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mysql
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -14,6 +15,7 @@ type Registration struct{}
 var (
 	_ sdk.TypedServiceRegistration                   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.FrameworkServiceRegistration               = Registration{}
 )
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -48,10 +50,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_mysql_flexible_server": dataSourceMysqlFlexibleServer(),
 	}
 
-	if !features.FourPointOhBeta() {
-		dataSources["azurerm_mysql_server"] = dataSourceMySqlServer()
-	}
-
 	return dataSources
 }
 
@@ -64,15 +62,35 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_mysql_flexible_server_firewall_rule": resourceMySqlFlexibleServerFirewallRule(),
 	}
 
-	if !features.FourPointOhBeta() {
-		resources["azurerm_mysql_active_directory_administrator"] = resourceMySQLAdministrator()
-		resources["azurerm_mysql_configuration"] = resourceMySQLConfiguration()
-		resources["azurerm_mysql_database"] = resourceMySqlDatabase()
-		resources["azurerm_mysql_firewall_rule"] = resourceMySqlFirewallRule()
-		resources["azurerm_mysql_server_key"] = resourceMySQLServerKey()
-		resources["azurerm_mysql_server"] = resourceMySqlServer()
-		resources["azurerm_mysql_virtual_network_rule"] = resourceMySQLVirtualNetworkRule()
-	}
-
 	return resources
+}
+
+// Actions implements [sdk.FrameworkServiceRegistration].
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+// EphemeralResources implements [sdk.FrameworkServiceRegistration].
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+// FrameworkDataSources implements [sdk.FrameworkServiceRegistration].
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+// FrameworkResources implements [sdk.FrameworkServiceRegistration].
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+// ListResources returns a list of List Resources supported by this Service
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{
+		MysqlFlexibleServerListResource{},
+		MysqlFlexibleDatabaseListResource{},
+		MysqlFlexibleServerFirewallRuleListResource{},
+		MysqlFlexibleServerConfigurationListResource{},
+	}
 }

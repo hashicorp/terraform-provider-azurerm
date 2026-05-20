@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos_test
@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CassandraDatacenterResource struct{}
@@ -63,61 +62,32 @@ func testAccCassandraDatacenter_updateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
 	r := CassandraDatacenterResource{}
 
-	if !features.FourPointOhBeta() {
-		data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.basicSku(data, "Standard_DS14_v2"),
-				Check: acceptance.ComposeAggregateTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.basicSku(data, "Standard_DS13_v2"),
-				Check: acceptance.ComposeAggregateTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS13_v2"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.basicSku(data, "Standard_DS14_v2"),
-				Check: acceptance.ComposeAggregateTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
-				),
-			},
-			data.ImportStep(),
-		})
-	} else {
-		data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.basic(data),
-				Check: acceptance.ComposeAggregateTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E16s_v5"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.basicSku(data, "Standard_E8s_v5"),
-				Check: acceptance.ComposeAggregateTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E8s_v5"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.basic(data),
-				Check: acceptance.ComposeAggregateTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E16s_v5"),
-				),
-			},
-			data.ImportStep(),
-		})
-	}
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E16s_v5"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicSku(data, "Standard_E8s_v5"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E8s_v5"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E16s_v5"),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func (t CassandraDatacenterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -131,7 +101,7 @@ func (t CassandraDatacenterResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("reading %q: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r CassandraDatacenterResource) basic(data acceptance.TestData) string {

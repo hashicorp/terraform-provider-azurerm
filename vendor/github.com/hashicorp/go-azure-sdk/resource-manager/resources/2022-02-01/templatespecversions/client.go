@@ -15,7 +15,7 @@ type TemplateSpecVersionsClient struct {
 }
 
 func NewTemplateSpecVersionsClientWithBaseURI(sdkApi sdkEnv.Api) (*TemplateSpecVersionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "templatespecversions", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "templatespecversions", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TemplateSpecVersionsClient: %+v", err)
 	}

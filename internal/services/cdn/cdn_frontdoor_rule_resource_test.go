@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_test
@@ -9,22 +9,26 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontDoorRuleResource struct{}
 
-func TestAccCdnFrontDoorRule_basic(t *testing.T) {
+const unattachedFrontDoorRuleSetRegressionSkipMessage = "temporarily skipped due to confirmed service regression for unattached Front Door rulesets; expected service fix 2026-04-17"
+
+func TestAccCdnFrontDoorRule_basic_unattachedRoute(t *testing.T) {
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -33,13 +37,44 @@ func TestAccCdnFrontDoorRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_cacheDuration(t *testing.T) {
+func TestAccCdnFrontDoorRule_basic_attachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_cacheDuration_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #22668
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cacheDuration(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_cacheDuration_attachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #22668
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cacheDuration(data),
+			Config: r.cacheDuration(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -48,13 +83,30 @@ func TestAccCdnFrontDoorRule_cacheDuration(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_cacheDurationZero(t *testing.T) {
+func TestAccCdnFrontDoorRule_cacheDurationZero_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #23376
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cacheDurationZero(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_cacheDurationZero_attachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #23376
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cacheDurationZero(data),
+			Config: r.cacheDurationZero(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -63,13 +115,30 @@ func TestAccCdnFrontDoorRule_cacheDurationZero(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_urlRedirectAction(t *testing.T) {
+func TestAccCdnFrontDoorRule_urlRedirectAction_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #18249
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.urlRedirectAction(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_urlRedirectAction_attachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #18249
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.urlRedirectAction(data),
+			Config: r.urlRedirectAction(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -78,13 +147,15 @@ func TestAccCdnFrontDoorRule_urlRedirectAction(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_originGroupIdOptional(t *testing.T) {
+func TestAccCdnFrontDoorRule_originGroupIdOptional_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #18889
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.originGroupIdOptional(data),
+			Config: r.originGroupIdOptional(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -93,27 +164,73 @@ func TestAccCdnFrontDoorRule_originGroupIdOptional(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_originGroupIdOptionalUpdate(t *testing.T) {
+func TestAccCdnFrontDoorRule_originGroupIdOptional_attachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #18889
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.originGroupIdOptional(data),
+			Config: r.originGroupIdOptional(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_originGroupIdOptionalUpdate_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #18889
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.originGroupIdOptional(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.originGroupIdOptionalUpdate(data),
+			Config: r.originGroupIdOptionalUpdate(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.originGroupIdOptional(data),
+			Config: r.originGroupIdOptional(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_originGroupIdOptionalUpdate_attachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #18889
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.originGroupIdOptional(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.originGroupIdOptionalUpdate(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.originGroupIdOptional(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -137,13 +254,15 @@ func TestAccCdnFrontDoorRule_originGroupIdOptionalError(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_disableCache(t *testing.T) {
+func TestAccCdnFrontDoorRule_disableCache_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19008
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disableCache(data),
+			Config: r.disableCache(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -152,13 +271,13 @@ func TestAccCdnFrontDoorRule_disableCache(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_disableCacheOriginGroupId(t *testing.T) {
+func TestAccCdnFrontDoorRule_disableCache_attachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19008
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disableCacheOriginGroupId(data),
+			Config: r.disableCache(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -167,27 +286,15 @@ func TestAccCdnFrontDoorRule_disableCacheOriginGroupId(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_disableCacheOriginGroupIdUpdate(t *testing.T) {
+func TestAccCdnFrontDoorRule_disableCacheOriginGroupId_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19008
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disableCacheOriginGroupId(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.enableCacheOriginGroupId(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.disableCacheOriginGroupId(data),
+			Config: r.disableCacheOriginGroupId(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -196,27 +303,133 @@ func TestAccCdnFrontDoorRule_disableCacheOriginGroupIdUpdate(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_disableCacheUpdate(t *testing.T) {
+func TestAccCdnFrontDoorRule_disableCacheOriginGroupId_attachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19008
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disableCache(data),
+			Config: r.disableCacheOriginGroupId(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_disableCacheOriginGroupIdUpdate_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #19008
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableCacheOriginGroupId(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.enableCache(data),
+			Config: r.enableCacheOriginGroupId(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.disableCache(data),
+			Config: r.disableCacheOriginGroupId(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_disableCacheOriginGroupIdUpdate_attachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #19008
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableCacheOriginGroupId(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enableCacheOriginGroupId(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disableCacheOriginGroupId(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_disableCacheUpdate_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #19008
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableCache(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enableCache(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disableCache(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_disableCacheUpdate_attachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #19008
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableCache(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enableCache(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disableCache(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -240,12 +453,28 @@ func TestAccCdnFrontDoorRule_disableCacheError(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_actionOnly(t *testing.T) {
+func TestAccCdnFrontDoorRule_actionOnly_unattachedRoute(t *testing.T) {
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.actionOnly(data),
+			Config: r.actionOnly(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_actionOnly_attachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.actionOnly(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -259,7 +488,7 @@ func TestAccCdnFrontDoorRule_requiresImport(t *testing.T) {
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -268,12 +497,14 @@ func TestAccCdnFrontDoorRule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_complete(t *testing.T) {
+func TestAccCdnFrontDoorRule_complete_unattachedRoute(t *testing.T) {
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -282,26 +513,70 @@ func TestAccCdnFrontDoorRule_complete(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_update(t *testing.T) {
+func TestAccCdnFrontDoorRule_complete_attachedRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_update_unattachedRoute(t *testing.T) {
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.update(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_update_attachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -321,13 +596,30 @@ func TestAccCdnFrontDoorRule_invalidCacheDuration(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_multipleQueryStringParameters(t *testing.T) {
+func TestAccCdnFrontDoorRule_multipleQueryStringParameters_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #19097
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleQueryStringParameters(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_multipleQueryStringParameters_attachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19097
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.multipleQueryStringParameters(data),
+			Config: r.multipleQueryStringParameters(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -348,13 +640,30 @@ func TestAccCdnFrontDoorRule_multipleQueryStringParametersError(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_honorOrigin(t *testing.T) {
+func TestAccCdnFrontDoorRule_honorOrigin_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #19311
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.honorOrigin(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_honorOrigin_attachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19311
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.honorOrigin(data),
+			Config: r.honorOrigin(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -363,13 +672,30 @@ func TestAccCdnFrontDoorRule_honorOrigin(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_allowEmptyQueryString(t *testing.T) {
+func TestAccCdnFrontDoorRule_allowEmptyQueryString_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #19682
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.allowEmptyQueryString(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_allowEmptyQueryString_attachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19682
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.allowEmptyQueryString(data),
+			Config: r.allowEmptyQueryString(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -378,12 +704,14 @@ func TestAccCdnFrontDoorRule_allowEmptyQueryString(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRule_allowForwardSlashUrlConditionMatchValue(t *testing.T) {
+func TestAccCdnFrontDoorRule_allowForwardSlashUrlConditionMatchValue_unattachedRoute(t *testing.T) {
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.allowForwardSlashUrlConditionMatchValue(data),
+			Config: r.allowForwardSlashUrlConditionMatchValue(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -392,12 +720,12 @@ func TestAccCdnFrontDoorRule_allowForwardSlashUrlConditionMatchValue(t *testing.
 	})
 }
 
-func TestAccCdnFrontDoorRule_allowForwardSlashUrl2ConditionMatchValue(t *testing.T) {
+func TestAccCdnFrontDoorRule_allowForwardSlashUrlConditionMatchValue_attachedRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.allowForwardSlashUrl2ConditionMatchValue(data),
+			Config: r.allowForwardSlashUrlConditionMatchValue(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -406,13 +734,62 @@ func TestAccCdnFrontDoorRule_allowForwardSlashUrl2ConditionMatchValue(t *testing
 	})
 }
 
-func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorAny(t *testing.T) {
+func TestAccCdnFrontDoorRule_allowForwardSlashUrl2ConditionMatchValue_unattachedRoute(t *testing.T) {
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.allowForwardSlashUrl2ConditionMatchValue(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_allowForwardSlashUrl2ConditionMatchValue_attachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.allowForwardSlashUrl2ConditionMatchValue(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorAny_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #23504
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.urlFilenameConditionOperator(data, "Any", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("conditions.0.url_filename_condition.0.operator").HasValue("Any"),
+				check.That(data.ResourceName).Key("conditions.0.url_filename_condition.0.match_values").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorAny_attachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #23504
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.urlFilenameConditionOperator(data, "Any"),
+			Config: r.urlFilenameConditionOperator(data, "Any", true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("conditions.0.url_filename_condition.0.operator").HasValue("Any"),
@@ -429,27 +806,84 @@ func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorError(t *testing.T) {
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.urlFilenameConditionOperator(data, "Contains"),
+			Config:      r.urlFilenameConditionOperator(data, "Contains", false),
 			ExpectError: regexp.MustCompile(`the 'match_values' field must be set if the conditions 'operator' is not set to 'Any'`),
 		},
 	})
 }
 
+func TestAccCdnFrontDoorRule_urlPathConditionOperatorWildcard_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #29415
+	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.urlPathWildcard(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.urlPathWildcardNegate(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.urlPathWildcard(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_urlPathConditionOperatorWildcard_attachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #29415
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.urlPathWildcard(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.urlPathWildcardNegate(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.urlPathWildcard(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CdnFrontDoorRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorRuleID(state.ID)
+	id, err := rules.ParseRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.Cdn.FrontDoorRulesClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
+	if _, err = client.Get(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+
+	return pointer.To(true), nil
 }
 
 func (r CdnFrontDoorRuleResource) template(data acceptance.TestData) string {
@@ -497,8 +931,38 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnFrontDoorRuleResource) basic(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleResource) templateWithAttachedRoute(data acceptance.TestData, attachRoute bool) string {
 	template := r.template(data)
+	if !attachRoute {
+		return template
+	}
+
+	return fmt.Sprintf(`%s
+
+%s`, template, r.routeTemplate(data))
+}
+
+func (r CdnFrontDoorRuleResource) routeTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
+  name                     = "accTestEndpoint-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_route" "test" {
+  name                          = "accTestRoute-%[1]d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.test.id]
+  patterns_to_match             = ["/*"]
+  supported_protocols           = ["Http", "Https"]
+}
+`, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) basic(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -529,8 +993,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) cacheDuration(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) cacheDuration(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -561,8 +1025,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) cacheDurationZero(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) cacheDurationZero(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -593,8 +1057,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) urlRedirectAction(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) urlRedirectAction(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -629,8 +1093,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) originGroupIdOptional(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) originGroupIdOptional(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -668,8 +1132,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) originGroupIdOptionalUpdate(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) originGroupIdOptionalUpdate(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -749,8 +1213,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) disableCache(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) disableCache(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -784,8 +1248,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) disableCacheOriginGroupId(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) disableCacheOriginGroupId(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -821,8 +1285,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) enableCacheOriginGroupId(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) enableCacheOriginGroupId(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -862,8 +1326,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) enableCache(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) enableCache(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -938,7 +1402,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 }
 
 func (r CdnFrontDoorRuleResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+	config := r.basic(data, true)
 	return fmt.Sprintf(`
 			%s
 
@@ -966,8 +1430,8 @@ resource "azurerm_cdn_frontdoor_rule" "import" {
 `, config)
 }
 
-func (r CdnFrontDoorRuleResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) complete(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -994,13 +1458,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
       cache_duration                = "365.23:59:59"
     }
 
-    url_redirect_action {
-      redirect_type        = "PermanentRedirect"
-      redirect_protocol    = "MatchRequest"
-      query_string         = "clientIp={client_ip}"
-      destination_path     = "/exampleredirection"
-      destination_hostname = "contoso.com"
-      destination_fragment = "UrlRedirect"
+    response_header_action {
+      header_action = "Append"
+      header_name   = "Set-Cookie"
+      value         = "sessionId=12345678"
     }
   }
 
@@ -1042,8 +1503,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) update(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) update(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1109,8 +1570,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) actionOnly(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) actionOnly(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1171,8 +1632,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) multipleQueryStringParameters(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) multipleQueryStringParameters(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1247,8 +1708,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) honorOrigin(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) honorOrigin(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1289,8 +1750,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) allowEmptyQueryString(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) allowEmptyQueryString(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1327,8 +1788,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) allowForwardSlashUrlConditionMatchValue(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) allowForwardSlashUrlConditionMatchValue(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1363,8 +1824,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) allowForwardSlashUrl2ConditionMatchValue(data acceptance.TestData) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) allowForwardSlashUrl2ConditionMatchValue(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1399,8 +1860,8 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) urlFilenameConditionOperator(data acceptance.TestData, operator string) string {
-	template := r.template(data)
+func (r CdnFrontDoorRuleResource) urlFilenameConditionOperator(data acceptance.TestData, operator string, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1431,4 +1892,82 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
   }
 }
 `, template, data.RandomInteger, operator)
+}
+
+func (r CdnFrontDoorRuleResource) urlPathWildcard(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "Wildcard"
+      negate_condition = false
+      match_values     = ["files/customer*/file.pdf"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["foo", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing"
+      cache_duration                = "365.23:59:59"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) urlPathWildcardNegate(data acceptance.TestData, attachRoute bool) string {
+	template := r.templateWithAttachedRoute(data, attachRoute)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "Wildcard"
+      negate_condition = true
+      match_values     = ["files/customer*/file.pdf"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["foo", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing"
+      cache_duration                = "365.23:59:59"
+    }
+  }
+}
+`, template, data.RandomInteger)
 }

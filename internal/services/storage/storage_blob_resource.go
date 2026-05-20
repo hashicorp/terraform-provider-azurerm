@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 func resourceStorageBlob() *pluginsdk.Resource {
@@ -204,17 +204,15 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	id := blobs.NewBlobID(accountId, containerName, name)
-	if d.IsNewResource() {
-		input := blobs.GetPropertiesInput{}
-		props, err := blobsClient.GetProperties(ctx, containerName, name, input)
-		if err != nil {
-			if !response.WasNotFound(props.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %v", id, err)
-			}
-		}
+	input := blobs.GetPropertiesInput{}
+	props, err := blobsClient.GetProperties(ctx, containerName, name, input)
+	if err != nil {
 		if !response.WasNotFound(props.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
+			return fmt.Errorf("checking for existing %s: %v", id, err)
 		}
+	}
+	if !response.WasNotFound(props.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
 	}
 
 	contentMD5Raw := d.Get("content_md5").(string)
@@ -451,7 +449,10 @@ func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	input := blobs.DeleteInput{
 		DeleteSnapshots: true,
 	}
-	if _, err = blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+	if resp, err := blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %v", id, err)
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -6,18 +6,18 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SubnetResource struct{}
@@ -127,20 +127,25 @@ func TestAccSubnet_disappears(t *testing.T) {
 }
 
 func TestAccSubnet_defaultOutbound(t *testing.T) {
-	dataInternal := acceptance.BuildTestData(t, "azurerm_subnet", "internal")
-	dataPublic := acceptance.BuildTestData(t, "azurerm_subnet", "public")
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "internal")
 	r := SubnetResource{}
 
-	dataInternal.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.defaultOutbound(dataInternal),
+			Config: r.defaultOutbound(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(dataInternal.ResourceName).ExistsInAzure(r),
-				check.That(dataInternal.ResourceName).Key("default_outbound_access_enabled").HasValue("false"),
-				check.That(dataPublic.ResourceName).ExistsInAzure(r),
-				check.That(dataPublic.ResourceName).Key("default_outbound_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_outbound_access_enabled").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.defaultOutbound(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("default_outbound_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -180,38 +185,104 @@ func TestAccSubnet_delegation(t *testing.T) {
 	})
 }
 
-// TODO 4.0: Remove test
-func TestAccSubnet_enablePrivateEndpointNetworkPolicies(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-		r := SubnetResource{}
+func testAccSubnet_ipAddressPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
 
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.enablePrivateEndpointNetworkPolicies(data, true),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enablePrivateEndpointNetworkPolicies(data, false),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enablePrivateEndpointNetworkPolicies(data, true),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-		})
-	} else {
-		t.Skip("skipping due to deprecation of the 'private_endpoint_network_policies_enabled' fields in 4.0")
-	}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccSubnet_ipAddressPoolVNet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipAddressPoolVNet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccSubnet_ipAddressPoolIPv6(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipAddressPoolIPv6(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccSubnet_ipAddressPoolBlockUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipAddressPoolVNet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccSubnet_ipAddressPoolNumberUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipAddressPoolNumberUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.ipAddressPool(data),
+			ExpectError: regexp.MustCompile("`number_of_ip_addresses` cannot be decreased"),
+		},
+	})
 }
 
 func TestAccSubnet_privateEndpointNetworkPolicies(t *testing.T) {
@@ -279,232 +350,6 @@ func TestAccSubnet_enablePrivateLinkServiceNetworkPolicies(t *testing.T) {
 	})
 }
 
-// TODO 4.0: Remove test
-func TestAccSubnet_enforcePrivateLinkEndpointNetworkPolicies(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-		r := SubnetResource{}
-
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.enforcePrivateLinkEndpointNetworkPolicies(data, true),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enforcePrivateLinkEndpointNetworkPolicies(data, false),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enforcePrivateLinkEndpointNetworkPolicies(data, true),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-		})
-	} else {
-		t.Skip("@WodansSon: skipping due to deprecation of the 'enforce_private_link_endpoint_network_policies' field in 4.0")
-	}
-}
-
-// TODO 4.0: Remove test
-func TestAccSubnet_enforcePrivateLinkServiceNetworkPolicies(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-		r := SubnetResource{}
-
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.enforcePrivateLinkServiceNetworkPolicies(data, true),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enforcePrivateLinkServiceNetworkPolicies(data, false),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enforcePrivateLinkServiceNetworkPolicies(data, true),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-		})
-	} else {
-		t.Skip("@WodansSon: skipping due to deprecation of the 'enforce_private_link_service_network_policies' field in 4.0")
-	}
-}
-
-// TODO 4.0: Remove test
-func TestAccSubnet_PrivateLinkPoliciesToggleWithEnforceFirst(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-		r := SubnetResource{}
-
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.enforcePrivateLinkEndpointNetworkPolicies(data, true),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("true"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("false"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enablePrivateEndpointNetworkPolicies(data, true),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.privateEndpointNetworkPolicies(data, "Enabled"),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enforcePrivateLinkServiceNetworkPolicies(data, true),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enablePrivateLinkServiceNetworkPolicies(data, true),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.privateEndpointNetworkPolicies(data, "Enabled"),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
-				),
-			},
-			data.ImportStep(),
-		})
-	} else {
-		t.Skip("@WodansSon: skipping due to deprecation of the 'enforce_private_link_endpoint_network_policies' and 'enforce_private_link_service_network_policies' fields in 4.0")
-	}
-}
-
-// TODO 4.0: Remove test
-func TestAccSubnet_PrivateLinkPoliciesToggleWithEnabledFirst(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-		r := SubnetResource{}
-
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.privateEndpointNetworkPolicies(data, "Disabled"),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("true"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("false"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enablePrivateEndpointNetworkPolicies(data, false),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("true"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("false"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enforcePrivateLinkEndpointNetworkPolicies(data, false),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enablePrivateLinkServiceNetworkPolicies(data, false),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.enforcePrivateLinkServiceNetworkPolicies(data, false),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
-				),
-			},
-			data.ImportStep(),
-		})
-	} else {
-		t.Skip("@WodansSon: skipping due to deprecation of the 'enforce_private_link_endpoint_network_policies' and 'enforce_private_link_service_network_policies' fields in 4.0")
-	}
-}
-
 func TestAccSubnet_serviceEndpoints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -570,6 +415,34 @@ func TestAccSubnet_serviceEndpointPolicy(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_sharingScopeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sharingScope(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccSubnet_updateAddressPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -593,40 +466,20 @@ func TestAccSubnet_updateAddressPrefix(t *testing.T) {
 }
 
 func TestAccSubnet_privateLinkEndpointNetworkPoliciesValidateDefaultValues(t *testing.T) {
-	if features.FourPointOhBeta() {
-		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-		r := SubnetResource{}
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
 
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.privateLinkEndpointNetworkPoliciesDefaults(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-				),
-			},
-			data.ImportStep(),
-		})
-	} else {
-		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-		r := SubnetResource{}
-
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.privateLinkEndpointNetworkPoliciesDefaults(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
-				),
-			},
-			data.ImportStep(),
-		})
-	}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateLinkEndpointNetworkPoliciesDefaults(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func TestAccSubnet_updateServiceDelegation(t *testing.T) {
@@ -665,18 +518,18 @@ func TestAccSubnet_updateServiceDelegation(t *testing.T) {
 	})
 }
 
-func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := clients.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Subnet (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -685,11 +538,11 @@ func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state
 		return nil, err
 	}
 
-	if err := client.Network.Client.Subnets.DeleteThenPoll(ctx, *id); err != nil {
+	if err := client.Network.Subnets.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Subnet %q: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -701,7 +554,7 @@ func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Clien
 		return err
 	}
 
-	subnet, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	subnet, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(subnet.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
@@ -734,7 +587,7 @@ func (SubnetResource) hasNoNetworkSecurityGroup(ctx context.Context, client *cli
 		return err
 	}
 
-	resp, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
@@ -769,7 +622,7 @@ func (SubnetResource) hasNoRouteTable(ctx context.Context, client *clients.Clien
 		return err
 	}
 
-	resp, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
@@ -839,7 +692,7 @@ resource "azurerm_subnet" "test" {
 `, r.template(data))
 }
 
-func (r SubnetResource) defaultOutbound(data acceptance.TestData) string {
+func (r SubnetResource) defaultOutbound(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_subnet" "internal" {
@@ -847,16 +700,9 @@ resource "azurerm_subnet" "internal" {
   resource_group_name             = azurerm_resource_group.test.name
   virtual_network_name            = azurerm_virtual_network.test.name
   address_prefixes                = ["10.0.2.0/24"]
-  default_outbound_access_enabled = false
+  default_outbound_access_enabled = %t
 }
-resource "azurerm_subnet" "public" {
-  name                            = "public"
-  resource_group_name             = azurerm_resource_group.test.name
-  virtual_network_name            = azurerm_virtual_network.test.name
-  address_prefixes                = ["10.0.3.0/24"]
-  default_outbound_access_enabled = true
-}
-`, r.template(data))
+`, r.template(data), enabled)
 }
 
 func (r SubnetResource) delegationUpdated(data acceptance.TestData) string {
@@ -885,31 +731,15 @@ resource "azurerm_subnet" "test" {
 `, r.template(data))
 }
 
-// TODO 4.0: Remove test
-func (r SubnetResource) enablePrivateEndpointNetworkPolicies(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  private_endpoint_network_policies = %t
-}
-`, r.template(data), enabled)
-}
-
 func (r SubnetResource) privateEndpointNetworkPolicies(data acceptance.TestData, enabled string) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_subnet" "test" {
   name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
+  resource_group_name  = azurerm_virtual_network.test.resource_group_name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  address_prefixes     = azurerm_virtual_network.test.address_space
 
   private_endpoint_network_policies = "%s"
 }
@@ -917,38 +747,6 @@ resource "azurerm_subnet" "test" {
 }
 
 func (r SubnetResource) enablePrivateLinkServiceNetworkPolicies(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  private_link_service_network_policies_enabled = %t
-}
-`, r.template(data), enabled)
-}
-
-// TODO 4.0: Remove test
-func (r SubnetResource) enforcePrivateLinkEndpointNetworkPolicies(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  private_endpoint_network_policies = %t
-}
-`, r.template(data), enabled)
-}
-
-// TODO 4.0: Remove test
-func (r SubnetResource) enforcePrivateLinkServiceNetworkPolicies(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -978,6 +776,9 @@ resource "azurerm_subnet" "test" {
 
 func (SubnetResource) basic_addressPrefixes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-n-%d"
   location = "%s"
@@ -999,6 +800,9 @@ resource "azurerm_subnet" "test" {
 
 func (SubnetResource) complete_addressPrefixes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-n-%d"
   location = "%s"
@@ -1018,6 +822,224 @@ resource "azurerm_subnet" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (r SubnetResource) ipAddressPool(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-n-%[1]d"
+  location = "%[2]s"
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_network_manager" "test" {
+  name                = "acctest-nm-ipam-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope {
+    subscription_ids = [data.azurerm_subscription.current.id]
+  }
+}
+
+resource "azurerm_network_manager_ipam_pool" "test" {
+  name               = "acctest-ipampool-%[1]d"
+  network_manager_id = azurerm_network_manager.test.id
+  location           = azurerm_resource_group.test.location
+  display_name       = "ipampool1"
+  address_prefixes   = ["10.0.0.0/16"]
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_pool {
+    id                     = azurerm_network_manager_ipam_pool.test.id
+    number_of_ip_addresses = "65535"
+  }
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  ip_address_pool {
+    id                     = azurerm_network_manager_ipam_pool.test.id
+    number_of_ip_addresses = "10"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r SubnetResource) ipAddressPoolNumberUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-n-%[1]d"
+  location = "%[2]s"
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_network_manager" "test" {
+  name                = "acctest-nm-ipam-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope {
+    subscription_ids = [data.azurerm_subscription.current.id]
+  }
+}
+
+resource "azurerm_network_manager_ipam_pool" "test" {
+  name               = "acctest-ipampool-%[1]d"
+  network_manager_id = azurerm_network_manager.test.id
+  location           = azurerm_resource_group.test.location
+  display_name       = "ipampool1"
+  address_prefixes   = ["10.0.0.0/16"]
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_pool {
+    id                     = azurerm_network_manager_ipam_pool.test.id
+    number_of_ip_addresses = "65535"
+  }
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  ip_address_pool {
+    id                     = azurerm_network_manager_ipam_pool.test.id
+    number_of_ip_addresses = "50"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r SubnetResource) ipAddressPoolVNet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-n-%[1]d"
+  location = "%[2]s"
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_network_manager" "test" {
+  name                = "acctest-nm-ipam-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope {
+    subscription_ids = [data.azurerm_subscription.current.id]
+  }
+}
+
+resource "azurerm_network_manager_ipam_pool" "test" {
+  name               = "acctest-ipampool-%[1]d"
+  network_manager_id = azurerm_network_manager.test.id
+  location           = azurerm_resource_group.test.location
+  display_name       = "ipampool1"
+  address_prefixes   = ["10.0.0.0/16"]
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_pool {
+    id                     = azurerm_network_manager_ipam_pool.test.id
+    number_of_ip_addresses = "65535"
+  }
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/24"]
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r SubnetResource) ipAddressPoolIPv6(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-n-%[1]d"
+  location = "%s"
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_network_manager" "test" {
+  name                = "acctest-nm-ipam-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope {
+    subscription_ids = [data.azurerm_subscription.current.id]
+  }
+}
+
+resource "azurerm_network_manager_ipam_pool" "test" {
+  name               = "acctest-ipampool-%[1]d"
+  network_manager_id = azurerm_network_manager.test.id
+  location           = azurerm_resource_group.test.location
+  display_name       = "ipampool1"
+  address_prefixes   = ["2002::/16"]
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_address_pool {
+    id                     = azurerm_network_manager_ipam_pool.test.id
+    number_of_ip_addresses = "5192296858534827628530496329220096"
+  }
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  ip_address_pool {
+    id                     = azurerm_network_manager_ipam_pool.test.id
+    number_of_ip_addresses = "18446744073709551616"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func (r SubnetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1029,6 +1051,20 @@ resource "azurerm_subnet" "import" {
   address_prefixes     = azurerm_subnet.test.address_prefixes
 }
 `, r.basic(data))
+}
+
+func (r SubnetResource) sharingScope(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_subnet" "test" {
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
+  sharing_scope                   = "Tenant"
+}
+`, r.template(data))
 }
 
 func (r SubnetResource) serviceEndpoints(data acceptance.TestData) string {

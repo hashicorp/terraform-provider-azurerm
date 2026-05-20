@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,9 +27,11 @@ type ContainerAppDataSource struct{}
 type ContainerAppDataSourceModel struct {
 	Name                       string                                     `tfschema:"name"`
 	ResourceGroup              string                                     `tfschema:"resource_group_name"`
+	ReadSecrets                bool                                       `tfschema:"read_secrets"`
 	ManagedEnvironmentId       string                                     `tfschema:"container_app_environment_id"`
 	Location                   string                                     `tfschema:"location"`
 	RevisionMode               string                                     `tfschema:"revision_mode"`
+	MaxInactiveRevisions       int64                                      `tfschema:"max_inactive_revisions"`
 	Ingress                    []helpers.Ingress                          `tfschema:"ingress"`
 	Registries                 []helpers.Registry                         `tfschema:"registry"`
 	Secrets                    []helpers.Secret                           `tfschema:"secret"`
@@ -55,6 +57,12 @@ func (r ContainerAppDataSource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+		"read_secrets": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
 	}
 }
 
@@ -117,6 +125,11 @@ func (r ContainerAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"max_inactive_revisions": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
 	}
 }
 
@@ -172,6 +185,7 @@ func (r ContainerAppDataSource) Read() sdk.ResourceFunc {
 							containerApp.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 							containerApp.Registries = helpers.FlattenContainerAppRegistries(config.Registries)
 							containerApp.Dapr = helpers.FlattenContainerAppDapr(config.Dapr)
+							containerApp.MaxInactiveRevisions = pointer.From(config.MaxInactiveRevisions)
 						}
 					}
 					containerApp.LatestRevisionName = pointer.From(props.LatestRevisionName)
@@ -182,14 +196,15 @@ func (r ContainerAppDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			secretsResp, err := client.ListSecrets(ctx, id)
-			if err != nil {
-				return fmt.Errorf("listing secrets for %s: %+v", id, err)
+			if containerApp.ReadSecrets {
+				secretsResp, err := client.ListSecrets(ctx, id)
+				if err != nil {
+					return fmt.Errorf("listing secrets for %s: %+v", id, err)
+				}
+				containerApp.Secrets = helpers.FlattenContainerAppSecrets(secretsResp.Model)
 			}
 
-			containerApp.Secrets = helpers.FlattenContainerAppSecrets(secretsResp.Model)
 			metadata.SetID(id)
-
 			return metadata.Encode(&containerApp)
 		},
 	}

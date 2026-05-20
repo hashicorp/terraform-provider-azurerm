@@ -45,7 +45,6 @@ func (c DiagnosticSettingsClient) Get(ctx context.Context, id DiagnosticSettingI
 
 	var model DiagnosticSettingsResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

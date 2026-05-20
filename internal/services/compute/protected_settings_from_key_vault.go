@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -7,15 +7,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func protectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -30,13 +31,19 @@ func protectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *p
 				"secret_url": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: keyVaultValidate.NestedItemId,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 				},
 
 				"source_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["secret_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+	}
+
+	return s
 }
 
 func expandProtectedSettingsFromKeyVault(input []interface{}) *virtualmachineextensions.KeyVaultSecretReference {
@@ -47,7 +54,7 @@ func expandProtectedSettingsFromKeyVault(input []interface{}) *virtualmachineext
 	v := input[0].(map[string]interface{})
 
 	return &virtualmachineextensions.KeyVaultSecretReference{
-		SecretUrl: v["secret_url"].(string),
+		SecretURL: v["secret_url"].(string),
 		SourceVault: virtualmachineextensions.SubResource{
 			Id: pointer.To(v["source_vault_id"].(string)),
 		},
@@ -62,7 +69,7 @@ func expandProtectedSettingsFromKeyVaultVMSS(input []interface{}) *virtualmachin
 	v := input[0].(map[string]interface{})
 
 	return &virtualmachinescalesets.KeyVaultSecretReference{
-		SecretUrl: v["secret_url"].(string),
+		SecretURL: v["secret_url"].(string),
 		SourceVault: virtualmachinescalesets.SubResource{
 			Id: pointer.To(v["source_vault_id"].(string)),
 		},
@@ -77,7 +84,7 @@ func expandProtectedSettingsFromKeyVaultOldVMSSExtension(input []interface{}) *v
 	v := input[0].(map[string]interface{})
 
 	return &virtualmachinescalesetextensions.KeyVaultSecretReference{
-		SecretUrl: v["secret_url"].(string),
+		SecretURL: v["secret_url"].(string),
 		SourceVault: virtualmachinescalesetextensions.SubResource{
 			Id: pointer.To(v["source_vault_id"].(string)),
 		},
@@ -96,7 +103,7 @@ func flattenProtectedSettingsFromKeyVault(input *virtualmachineextensions.KeyVau
 
 	return []interface{}{
 		map[string]interface{}{
-			"secret_url":      input.SecretUrl,
+			"secret_url":      input.SecretURL,
 			"source_vault_id": sourceVaultId,
 		},
 	}
@@ -114,7 +121,7 @@ func flattenProtectedSettingsFromKeyVaultVMSS(input *virtualmachinescalesets.Key
 
 	return []interface{}{
 		map[string]interface{}{
-			"secret_url":      input.SecretUrl,
+			"secret_url":      input.SecretURL,
 			"source_vault_id": sourceVaultId,
 		},
 	}
@@ -132,7 +139,7 @@ func flattenProtectedSettingsFromKeyVaultOldVMSSExtension(input *virtualmachines
 
 	return []interface{}{
 		map[string]interface{}{
-			"secret_url":      input.SecretUrl,
+			"secret_url":      input.SecretURL,
 			"source_vault_id": sourceVaultId,
 		},
 	}

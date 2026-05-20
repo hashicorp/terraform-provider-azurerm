@@ -18,9 +18,9 @@ type ApiContractUpdateProperties struct {
 	License                       *ApiLicenseInformation                 `json:"license,omitempty"`
 	Path                          *string                                `json:"path,omitempty"`
 	Protocols                     *[]Protocol                            `json:"protocols,omitempty"`
-	ServiceUrl                    *string                                `json:"serviceUrl,omitempty"`
+	ServiceURL                    *string                                `json:"serviceUrl,omitempty"`
 	SubscriptionKeyParameterNames *SubscriptionKeyParameterNamesContract `json:"subscriptionKeyParameterNames,omitempty"`
 	SubscriptionRequired          *bool                                  `json:"subscriptionRequired,omitempty"`
-	TermsOfServiceUrl             *string                                `json:"termsOfServiceUrl,omitempty"`
+	TermsOfServiceURL             *string                                `json:"termsOfServiceUrl,omitempty"`
 	Type                          *ApiType                               `json:"type,omitempty"`
 }

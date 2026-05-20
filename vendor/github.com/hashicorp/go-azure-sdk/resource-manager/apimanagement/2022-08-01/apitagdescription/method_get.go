@@ -45,7 +45,6 @@ func (c ApiTagDescriptionClient) Get(ctx context.Context, id TagDescriptionId) (
 
 	var model TagDescriptionContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

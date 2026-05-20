@@ -45,7 +45,6 @@ func (c CacheClient) Get(ctx context.Context, id CacheId) (result GetOperationRe
 
 	var model CacheContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

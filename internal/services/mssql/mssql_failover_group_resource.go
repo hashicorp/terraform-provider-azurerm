@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -19,10 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlFailoverGroupModel struct {
@@ -142,7 +140,7 @@ func (r MsSqlFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -227,7 +225,7 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 			if rwPolicy := model.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
 				properties.Properties.ReadWriteEndpoint.FailoverPolicy = failovergroups.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
 				if rwPolicy[0].Mode == string(failovergroups.ReadWriteEndpointFailoverPolicyAutomatic) {
-					properties.Properties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int64(rwPolicy[0].GraceMinutes)
+					properties.Properties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = pointer.To(rwPolicy[0].GraceMinutes)
 				}
 			}
 
@@ -324,7 +322,6 @@ func (r MsSqlFailoverGroupResource) Read() sdk.ResourceFunc {
 			}
 
 			if existing.Model != nil {
-
 				model.Tags = pointer.From(existing.Model.Tags)
 
 				if props := existing.Model.Properties; props != nil {
@@ -343,7 +340,6 @@ func (r MsSqlFailoverGroupResource) Read() sdk.ResourceFunc {
 					}}
 
 					model.ReadWriteEndpointFailurePolicy[0].GraceMinutes = pointer.From(props.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes)
-
 				}
 			}
 
@@ -400,7 +396,7 @@ func (r MsSqlFailoverGroupResource) flattenPartnerServers(input []failovergroups
 }
 
 func (r MsSqlFailoverGroupResource) expandPartnerServers(input []PartnerServerModel) []failovergroups.PartnerInfo {
-	var partnerServers []failovergroups.PartnerInfo
+	partnerServers := make([]failovergroups.PartnerInfo, 0, len(input))
 	if input == nil {
 		return partnerServers
 	}

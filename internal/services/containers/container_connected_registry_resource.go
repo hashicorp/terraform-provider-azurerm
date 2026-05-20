@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -10,16 +10,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/connectedregistries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/tokens"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/connectedregistries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/tokens"
 	tfvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerConnectedRegistryResource struct{}
@@ -200,7 +199,7 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
+			client := metadata.Client.Containers.ContainerRegistryClient.ConnectedRegistries
 
 			var model ContainerConnectedRegistryModel
 			if err := metadata.Decode(&model); err != nil {
@@ -238,8 +237,8 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 					Parent: connectedregistries.ParentProperties{
 						SyncProperties: connectedregistries.SyncProperties{
 							TokenId:    model.SyncTokenId,
-							Schedule:   utils.String(model.SyncSchedule),
-							SyncWindow: utils.String(model.SyncWindow),
+							Schedule:   pointer.To(model.SyncSchedule),
+							SyncWindow: pointer.To(model.SyncWindow),
 							MessageTtl: model.SyncMessageTTL,
 						},
 					},
@@ -254,9 +253,9 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 
 			if model.ParentRegistryId != "" {
 				if pid, err := registries.ParseRegistryID(model.ParentRegistryId); err == nil {
-					params.Properties.Parent.Id = utils.String(pid.ID())
+					params.Properties.Parent.Id = pointer.To(pid.ID())
 				} else if pid, err := connectedregistries.ParseConnectedRegistryID(model.ParentRegistryId); err == nil {
-					params.Properties.Parent.Id = utils.String(pid.ID())
+					params.Properties.Parent.Id = pointer.To(pid.ID())
 				}
 			}
 
@@ -275,7 +274,7 @@ func (r ContainerConnectedRegistryResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
+			client := metadata.Client.Containers.ContainerRegistryClient.ConnectedRegistries
 			id, err := connectedregistries.ParseConnectedRegistryID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -374,7 +373,7 @@ func (r ContainerConnectedRegistryResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
+			client := metadata.Client.Containers.ContainerRegistryClient.ConnectedRegistries
 
 			id, err := connectedregistries.ParseConnectedRegistryID(metadata.ResourceData.Id())
 			if err != nil {
@@ -404,7 +403,7 @@ func (r ContainerConnectedRegistryResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
+			client := metadata.Client.Containers.ContainerRegistryClient.ConnectedRegistries
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -500,9 +499,9 @@ func (r ContainerConnectedRegistryResource) flattenRepoNotifications(input []str
 			return nil, fmt.Errorf("parsing %q: %+v", e, err)
 		}
 		output = append(output, RepositoryNotification{
-			Name:   notification.Artifact.Name,
-			Tag:    notification.Artifact.Tag,
-			Digest: notification.Artifact.Digest,
+			Name:   notification.Name,
+			Tag:    notification.Tag,
+			Digest: notification.Digest,
 			Action: string(notification.Action),
 		})
 	}

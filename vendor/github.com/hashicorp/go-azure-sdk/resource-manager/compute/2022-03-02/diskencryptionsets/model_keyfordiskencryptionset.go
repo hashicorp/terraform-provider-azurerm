@@ -4,6 +4,6 @@ package diskencryptionsets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type KeyForDiskEncryptionSet struct {
-	KeyUrl      string       `json:"keyUrl"`
+	KeyURL      string       `json:"keyUrl"`
 	SourceVault *SourceVault `json:"sourceVault,omitempty"`
 }

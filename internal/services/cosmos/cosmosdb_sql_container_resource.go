@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -6,19 +6,16 @@ package cosmos
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -34,7 +31,7 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 		Delete: resourceCosmosDbSQLContainerDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SqlContainerID(id)
+			_, err := cosmosdb.ParseContainerID(id)
 			return err
 		}),
 
@@ -77,20 +74,12 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			// lintignore:S013
 			"partition_key_paths": {
 				Type:     pluginsdk.TypeList,
-				Required: features.FourPointOhBeta(),
-				Optional: !features.FourPointOhBeta(),
-				Computed: !features.FourPointOhBeta(),
+				Required: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				ExactlyOneOf: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"partition_key_path", "partition_key_paths"}
-					}
-					return []string{}
-				}(),
 			},
 
 			"partition_key_kind": {
@@ -107,7 +96,6 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			"partition_key_version": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.IntBetween(1, 2),
 			},
 
@@ -160,19 +148,12 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ interface{}) bool {
 				return (old.(int) == -1 || old.(int) > 0) && new.(int) == 0
 			}),
-		),
-	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["partition_key_path"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			Deprecated:   "`partition_key_path` will be removed in favour of the property `partition_key_paths` in version 4.0 of the AzureRM Provider.",
-			ExactlyOneOf: []string{"partition_key_path", "partition_key_paths"},
-		}
+			pluginsdk.ForceNewIfChange("partition_key_version", func(ctx context.Context, old, new, _ interface{}) bool {
+				// The behavior of the Azure API is that `partition_key_version` can be updated to `1` when it is not set at creation time, but it can not be updated to `2`.
+				return old.(int) != 0 || new.(int) != 1
+			}),
+		),
 	}
 
 	return resource
@@ -180,11 +161,11 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 
 func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := cosmosdb.NewContainerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
+	id := cosmosdb.NewContainerID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
 	existing, err := client.SqlResourcesGetSqlContainer(ctx, id)
 	if err != nil {
@@ -197,9 +178,8 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	indexingPolicy := common.ExpandAzureRmCosmosDbIndexingPolicy(d)
-	err = common.ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy)
-	if err != nil {
-		return fmt.Errorf("generating indexing policy for %s", id)
+	if err := common.ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy); err != nil {
+		return fmt.Errorf("validating `indexing_policy`: %w", err)
 	}
 
 	db := cosmosdb.SqlContainerCreateUpdateParameters{
@@ -217,18 +197,12 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 		Kind: pointer.To(cosmosdb.PartitionKind(d.Get("partition_key_kind").(string))),
 	}
 
-	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOk("partition_key_path"); ok {
-			db.Properties.Resource.PartitionKey.Paths = &[]string{v.(string)}
-		}
-	}
-
 	if v, ok := d.GetOk("partition_key_paths"); ok {
 		db.Properties.Resource.PartitionKey.Paths = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
-		db.Properties.Resource.PartitionKey.Version = utils.Int64(int64(partitionKeyVersion.(int)))
+		db.Properties.Resource.PartitionKey.Version = pointer.To(int64(partitionKeyVersion.(int)))
 	}
 
 	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*pluginsdk.Set)); keys != nil {
@@ -238,11 +212,11 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.Properties.Resource.AnalyticalStorageTtl = utils.Int64(int64(analyticalStorageTTL.(int)))
+		db.Properties.Resource.AnalyticalStorageTtl = pointer.To(int64(analyticalStorageTTL.(int)))
 	}
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
-		db.Properties.Resource.DefaultTtl = utils.Int64(int64(defaultTTL.(int)))
+		db.Properties.Resource.DefaultTtl = pointer.To(int64(defaultTTL.(int)))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
@@ -277,13 +251,12 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
 	if err != nil {
-		return fmt.Errorf("updating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
+		return fmt.Errorf("checking `autoscale_settings` and `throughput` for %s: %w", id, err)
 	}
 
 	indexingPolicy := common.ExpandAzureRmCosmosDbIndexingPolicy(d)
-	err = common.ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy)
-	if err != nil {
-		return fmt.Errorf("updating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
+	if err := common.ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy); err != nil {
+		return fmt.Errorf("validating `indexing_policy`: %w", err)
 	}
 
 	db := cosmosdb.SqlContainerCreateUpdateParameters{
@@ -300,18 +273,12 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 		Kind: pointer.To(cosmosdb.PartitionKind(d.Get("partition_key_kind").(string))),
 	}
 
-	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOk("partition_key_path"); ok {
-			db.Properties.Resource.PartitionKey.Paths = &[]string{v.(string)}
-		}
-	}
-
 	if v, ok := d.GetOk("partition_key_paths"); ok {
 		db.Properties.Resource.PartitionKey.Paths = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
-		db.Properties.Resource.PartitionKey.Version = utils.Int64(int64(partitionKeyVersion.(int)))
+		db.Properties.Resource.PartitionKey.Version = pointer.To(int64(partitionKeyVersion.(int)))
 	}
 
 	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*pluginsdk.Set)); keys != nil {
@@ -321,11 +288,11 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.Properties.Resource.AnalyticalStorageTtl = utils.Int64(int64(analyticalStorageTTL.(int)))
+		db.Properties.Resource.AnalyticalStorageTtl = pointer.To(int64(analyticalStorageTTL.(int)))
 	}
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
-		db.Properties.Resource.DefaultTtl = utils.Int64(int64(defaultTTL.(int)))
+		db.Properties.Resource.DefaultTtl = pointer.To(int64(defaultTTL.(int)))
 	}
 
 	err = client.SqlResourcesCreateUpdateSqlContainerThenPoll(ctx, *id, db)
@@ -334,12 +301,8 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if common.HasThroughputChange(d) {
-		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
-		err := client.SqlResourcesUpdateSqlContainerThroughputThenPoll(ctx, *id, *throughputParameters)
-		if err != nil {
-			return fmt.Errorf("setting Throughput for Cosmos SQL Container %q (Account: %q, Database: %q): %+v - "+
-				"If the collection has not been created with an initial throughput, you cannot configure it later", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
-
+		if err := client.SqlResourcesUpdateSqlContainerThroughputThenPoll(ctx, *id, common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)); err != nil {
+			return fmt.Errorf("setting Throughput for %s: %+v - If the collection has not been created with an initial throughput, you cannot configure it later", id, err)
 		}
 	}
 
@@ -348,7 +311,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 
 func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
-	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -360,12 +323,11 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 	resp, err := client.SqlResourcesGetSqlContainer(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] Error reading %q - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.ContainerName)
@@ -380,12 +342,6 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 					d.Set("partition_key_kind", string(pointer.From(pk.Kind)))
 
 					if paths := pk.Paths; paths != nil {
-						if !features.FourPointOhBeta() {
-							if len(pointer.From(paths)) == 1 {
-								d.Set("partition_key_path", (pointer.From(paths))[0])
-							}
-						}
-
 						d.Set("partition_key_paths", utils.FlattenStringSlice(paths))
 					}
 
@@ -419,27 +375,24 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	accResp, err := accountClient.Get(ctx, id.ResourceGroupName, id.DatabaseAccountName)
+	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)
 	if err != nil {
-		return fmt.Errorf("reading CosmosDB Account %q (Resource Group %q): %+v", id.DatabaseAccountName, id.ResourceGroupName, err)
-	}
-
-	if accResp.ID == nil || *accResp.ID == "" {
-		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroupName)
+		return fmt.Errorf("retrieving %s: %+v", databaseAccountID, err)
 	}
 
 	// if the cosmos account is serverless calling the get throughput api would yield an error
-	if !isServerlessCapacityMode(accResp) {
+	if !isServerlessCapacityMode(accResp.Model) {
 		throughputResp, err := client.SqlResourcesGetSqlContainerThroughput(ctx, *id)
 		if err != nil {
 			if !response.WasNotFound(throughputResp.HttpResponse) {
-				return fmt.Errorf("reading Throughput on Cosmos SQL Container %s (Account: %q, Database: %q) ID: %v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
+				return fmt.Errorf("retrieving Throughput for %s: %v", id, err)
 			} else {
 				d.Set("throughput", nil)
 				d.Set("autoscale_settings", nil)
 			}
 		} else {
-			common.SetResourceDataThroughputFromResponse(*throughputResp.Model, d)
+			common.SetResourceDataThroughputFromResponse(pointer.From(throughputResp.Model), d)
 		}
 	}
 
@@ -448,6 +401,7 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 
 func resourceCosmosDbSQLContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -458,7 +412,7 @@ func resourceCosmosDbSQLContainerDelete(d *pluginsdk.ResourceData, meta interfac
 
 	err = client.SqlResourcesDeleteSqlContainerThenPoll(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("deleting Cosmos SQL Container %q (Account: %q): %+v", id.SqlDatabaseName, id.ContainerName, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

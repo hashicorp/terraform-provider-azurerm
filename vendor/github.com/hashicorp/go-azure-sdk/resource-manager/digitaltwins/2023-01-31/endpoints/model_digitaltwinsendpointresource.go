@@ -21,10 +21,14 @@ type DigitalTwinsEndpointResource struct {
 var _ json.Unmarshaler = &DigitalTwinsEndpointResource{}
 
 func (s *DigitalTwinsEndpointResource) UnmarshalJSON(bytes []byte) error {
-	type alias DigitalTwinsEndpointResource
-	var decoded alias
+	var decoded struct {
+		Id         *string                `json:"id,omitempty"`
+		Name       *string                `json:"name,omitempty"`
+		SystemData *systemdata.SystemData `json:"systemData,omitempty"`
+		Type       *string                `json:"type,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into DigitalTwinsEndpointResource: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Id = decoded.Id
@@ -38,11 +42,12 @@ func (s *DigitalTwinsEndpointResource) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["properties"]; ok {
-		impl, err := unmarshalDigitalTwinsEndpointResourcePropertiesImplementation(v)
+		impl, err := UnmarshalDigitalTwinsEndpointResourcePropertiesImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Properties' for 'DigitalTwinsEndpointResource': %+v", err)
 		}
 		s.Properties = impl
 	}
+
 	return nil
 }

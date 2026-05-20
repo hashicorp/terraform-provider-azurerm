@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package subscription
@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var SubscriptionResourceName = "azurerm_subscription"
@@ -128,7 +127,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	aliasName := ""
+	var aliasName string
 	if aliasNameRaw, ok := d.GetOk("alias"); ok {
 		aliasName = aliasNameRaw.(string)
 	} else {
@@ -163,11 +162,9 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		},
 	}
 
-	subscriptionId := ""
-
 	// Check if we're adding alias management for an existing subscription
 	if subscriptionIdRaw, ok := d.GetOk("subscription_id"); ok {
-		subscriptionId = subscriptionIdRaw.(string)
+		subscriptionId := subscriptionIdRaw.(string)
 		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
 
 		locks.ByID(subscriptionId)
@@ -185,7 +182,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("an Alias for Subscription %q already exists with name %q - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information", subscriptionId, *exists, "azurerm_subscription")
 		}
 
-		req.Properties.SubscriptionId = utils.String(subscriptionId)
+		req.Properties.SubscriptionId = pointer.To(subscriptionId)
 		existingSub, err := client.Get(ctx, subscriptionResourceId)
 		if err != nil {
 			return fmt.Errorf("retrieving existing %s: %+v", subscriptionResourceId, err)
@@ -211,8 +208,8 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	} else {
 		// If we're not assuming control of an existing Subscription, we need to know where to create it.
-		req.Properties.DisplayName = utils.String(d.Get("subscription_name").(string))
-		req.Properties.BillingScope = utils.String(d.Get("billing_scope_id").(string))
+		req.Properties.DisplayName = pointer.To(d.Get("subscription_name").(string))
+		req.Properties.BillingScope = pointer.To(d.Get("billing_scope_id").(string))
 	}
 
 	if err := aliasClient.AliasCreateThenPoll(ctx, id, req); err != nil {
@@ -278,7 +275,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		defer locks.UnlockByID(subscriptionId.ID())
 
 		displayName := subscriptionAlias.SubscriptionName{
-			SubscriptionName: utils.String(d.Get("subscription_name").(string)),
+			SubscriptionName: pointer.To(d.Get("subscription_name").(string)),
 		}
 		if _, err := aliasClient.SubscriptionRename(ctx, subscriptionId, displayName); err != nil {
 			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", subscriptionId, err)

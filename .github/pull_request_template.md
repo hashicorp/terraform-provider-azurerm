@@ -30,7 +30,7 @@ For example: “`resource_name_here` - description of change e.g. adding propert
 ## Changes to existing Resource / Data Source
 
 - [ ] I have added an explanation of what my changes do and why I'd like you to include them (This may be covered by linking to an issue above, but may benefit from additional explanation).
-- [ ] I have written new tests for my resource or datasource changes & updated any relevent documentation.
+- [ ] I have written new tests for my resource or datasource changes & updated any relevant documentation.
 - [ ] I have successfully run tests with my changes locally. If not, please provide details on testing challenges that prevented you running the tests.
 - [ ] (For changes that include a **state migration only**). I have manually tested the migration path between relevant versions of the provider.
 
@@ -46,7 +46,7 @@ For state migrations please test the changes locally and provide details here, s
 
 ## Change Log
 
-Below please provide what should go into the changelog (if anything) conforming to the [Changelog Format documented here](../blob/main/contributing/topics/maintainer-changelog.md).
+Below please provide what should go into the changelog (if anything) conforming to the [Changelog Format documented here](../blob/main/contributing/topics/maintainer-merging.md).
 
 <!-- Replace the changelog example below with your entry. One resource per line. -->
 
@@ -63,8 +63,35 @@ This is a (please select all that apply):
 
 
 ## Related Issue(s)
+
 Fixes #0000
 
+
+## AI Assistance Disclosure
+
+<!-- 
+IMPORTANT!
+
+If you are using any kind of AI/LLM assistance to contribute to the AzureRM provider, this must be disclosed in the pull request.
+
+If this is the case, please check the box below, and include the extent to which AI was used. (e.g. documentation only, code generation, etc.)
+
+If responses to this pull request are/will be generated using AI, disclose this as well.
+-->
+
+- [ ] AI Assisted - This contribution was made by, or with the assistance of, AI/LLMs
+
+<!-- extent of AI usage can be described here -->
+
+<!-- heimdall_github_prtemplate:grc-pci_dss-2024-01-05 -->
+
+## Rollback Plan
+
+If a change needs to be reverted, we will publish an updated version of the provider.
+
+## Changes to Security Controls
+
+Are there any changes to security controls (access controls, encryption, logging) in this pull request? If so, explain.
 
 > [!NOTE] 
 > If this PR changes meaningfully during the course of review please update the title and description as required.

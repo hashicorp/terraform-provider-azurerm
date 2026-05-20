@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WatcherModel struct {
@@ -142,19 +142,18 @@ func (m WatcherResource) Create() sdk.ResourceFunc {
 
 			param := watcher.Watcher{
 				Properties: &watcher.WatcherProperties{
-					Description:                 utils.String(model.Description),
-					ExecutionFrequencyInSeconds: utils.Int64(model.ExecutionFrequencyInSeconds),
-					ScriptName:                  utils.String(model.ScriptName),
+					Description:                 pointer.To(model.Description),
+					ExecutionFrequencyInSeconds: pointer.To(model.ExecutionFrequencyInSeconds),
+					ScriptName:                  pointer.To(model.ScriptName),
 					ScriptParameters:            &scriptParameters,
-					ScriptRunOn:                 utils.String(model.ScriptRunOn),
+					ScriptRunOn:                 pointer.To(model.ScriptRunOn),
 				},
-				Etag:     utils.String(model.Etag),
-				Location: utils.String(model.Location),
+				Etag:     pointer.To(model.Etag),
+				Location: pointer.To(model.Location),
 				Tags:     &tags,
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id, param)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
@@ -192,11 +191,11 @@ func (m WatcherResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := resp.Model.Properties; props != nil {
 					output.AutomationAccountID = watcher.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName).ID()
-					output.ExecutionFrequencyInSeconds = utils.NormaliseNilableInt64(props.ExecutionFrequencyInSeconds)
-					output.ScriptName = utils.NormalizeNilableString(props.ScriptName)
-					output.ScriptRunOn = utils.NormalizeNilableString(props.ScriptRunOn)
-					output.Description = utils.NormalizeNilableString(props.Description)
-					output.Status = utils.NormalizeNilableString(props.Status)
+					output.ExecutionFrequencyInSeconds = pointer.From(props.ExecutionFrequencyInSeconds)
+					output.ScriptName = pointer.From(props.ScriptName)
+					output.ScriptRunOn = pointer.From(props.ScriptRunOn)
+					output.Description = pointer.From(props.Description)
+					output.Status = pointer.From(props.Status)
 
 					if props.ScriptParameters != nil {
 						output.ScriptParameters = flattenMap(*props.ScriptParameters)
@@ -230,7 +229,7 @@ func (m WatcherResource) Update() sdk.ResourceFunc {
 			var upd watcher.WatcherUpdateParameters
 			upd.Properties = &watcher.WatcherUpdateProperties{}
 			if meta.ResourceData.HasChange("execution_frequency_in_seconds") {
-				upd.Properties.ExecutionFrequencyInSeconds = utils.Int64(model.ExecutionFrequencyInSeconds)
+				upd.Properties.ExecutionFrequencyInSeconds = pointer.To(model.ExecutionFrequencyInSeconds)
 			}
 			if _, err = client.Update(ctx, *id, upd); err != nil {
 				return fmt.Errorf("updating %s: %v", *id, err)

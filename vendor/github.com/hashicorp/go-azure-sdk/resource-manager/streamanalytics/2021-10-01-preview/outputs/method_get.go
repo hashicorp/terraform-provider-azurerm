@@ -45,7 +45,6 @@ func (c OutputsClient) Get(ctx context.Context, id OutputId) (result GetOperatio
 
 	var model Output
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

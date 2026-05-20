@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type StorageProperties interface {
+	StorageProperties() BaseStoragePropertiesImpl
 }
 
-// RawStoragePropertiesImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ StorageProperties = BaseStoragePropertiesImpl{}
+
+type BaseStoragePropertiesImpl struct {
+	StorageType StorageType `json:"storageType"`
+}
+
+func (s BaseStoragePropertiesImpl) StorageProperties() BaseStoragePropertiesImpl {
+	return s
+}
+
+var _ StorageProperties = RawStoragePropertiesImpl{}
+
+// RawStoragePropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawStoragePropertiesImpl struct {
-	Type   string
-	Values map[string]interface{}
+	storageProperties BaseStoragePropertiesImpl
+	Type              string
+	Values            map[string]interface{}
 }
 
-func unmarshalStoragePropertiesImplementation(input []byte) (StorageProperties, error) {
+func (s RawStoragePropertiesImpl) StorageProperties() BaseStoragePropertiesImpl {
+	return s.storageProperties
+}
+
+func UnmarshalStoragePropertiesImplementation(input []byte) (StorageProperties, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalStoragePropertiesImplementation(input []byte) (StorageProperties, 
 		return nil, fmt.Errorf("unmarshaling StorageProperties into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["storageType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["storageType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "StorageAccount") {
@@ -44,10 +61,15 @@ func unmarshalStoragePropertiesImplementation(input []byte) (StorageProperties, 
 		return out, nil
 	}
 
-	out := RawStoragePropertiesImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseStoragePropertiesImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseStoragePropertiesImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawStoragePropertiesImpl{
+		storageProperties: parent,
+		Type:              value,
+		Values:            temp,
+	}, nil
 
 }

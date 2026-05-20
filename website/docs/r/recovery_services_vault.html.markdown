@@ -23,12 +23,10 @@ resource "azurerm_recovery_services_vault" "vault" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
-
-  soft_delete_enabled = true
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -56,8 +54,6 @@ The following arguments are supported:
 
 -> **Note:** Once `cross_region_restore_enabled` is set to `true`, changing it back to `false` forces a new Recovery Service Vault to be created.
 
-* `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
-
 * `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
 
 !> **Note:** Once Encryption with your own key has been Enabled it's not possible to Disable it.
@@ -74,7 +70,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
 
-~> **NOTE:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -120,11 +116,11 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the Recovery Services Vault.
-* `update` - (Defaults to 60 minutes) Used when updating the Recovery Services Vault.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services Vault.
+* `update` - (Defaults to 1 hour) Used when updating the Recovery Services Vault.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Recovery Services Vault.
 
 ## Import
@@ -134,3 +130,9 @@ Recovery Services Vaults can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_recovery_services_vault.vault1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/vault1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.RecoveryServices` - 2024-04-01, 2024-01-01

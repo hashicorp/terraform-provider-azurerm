@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -12,6 +13,7 @@ import (
 type Registration struct{}
 
 var (
+	_ sdk.FrameworkServiceRegistration               = Registration{}
 	_ sdk.TypedServiceRegistration                   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
@@ -62,10 +64,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_monitor_scheduled_query_rules_log":   dataSourceMonitorScheduledQueryRulesLog(),
 	}
 
-	if !features.FourPointOhBeta() {
-		dataSources["azurerm_monitor_log_profile"] = dataSourceMonitorLogProfile()
-	}
-
 	return dataSources
 }
 
@@ -77,7 +75,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_monitor_action_group":                resourceMonitorActionGroup(),
 		"azurerm_monitor_activity_log_alert":          resourceMonitorActivityLogAlert(),
 		"azurerm_monitor_diagnostic_setting":          resourceMonitorDiagnosticSetting(),
-		"azurerm_monitor_log_profile":                 resourceMonitorLogProfile(),
 		"azurerm_monitor_metric_alert":                resourceMonitorMetricAlert(),
 		"azurerm_monitor_private_link_scope":          resourceMonitorPrivateLinkScope(),
 		"azurerm_monitor_private_link_scoped_service": resourceMonitorPrivateLinkScopedService(),
@@ -86,10 +83,25 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_monitor_smart_detector_alert_rule":   resourceMonitorSmartDetectorAlertRule(),
 	}
 
-	if !features.FourPointOhBeta() {
-		resources["azurerm_monitor_action_rule_action_group"] = resourceMonitorActionRuleActionGroup()
-		resources["azurerm_monitor_action_rule_suppression"] = resourceMonitorActionRuleSuppression()
-	}
-
 	return resources
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{}
 }

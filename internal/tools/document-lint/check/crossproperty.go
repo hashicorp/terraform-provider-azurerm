@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -63,11 +63,11 @@ func shouldSkipDocProp(rt, path string) bool {
 func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Checker) {
 	// skip deprecated property
 	if shouldSkipDocProp(rt, path) {
-		return
+		return res
 	}
 
 	if isSkipProp(rt, path) {
-		return
+		return res
 	}
 
 	if f == nil {
@@ -89,11 +89,15 @@ func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Chec
 
 	switch ele := s.Elem.(type) {
 	case *schema2.Schema:
+		// For schema elements (e.g., lists of primitives), check if they have nested elements
+		if ele.Elem != nil {
+			return diffDocMiss(rt, path, ele, f)
+		}
 		return nil
 	case *schema2.Resource:
 		if f.Subs == nil {
 			res = append(res, newMissBlockDeclare(path, f))
-			return
+			return res
 		}
 		for key, val := range ele.Schema {
 			subField := f.Subs[key]
@@ -120,10 +124,10 @@ func shouldSkipCodeProp(rt, path string) bool {
 
 func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Checker) {
 	if shouldSkipCodeProp(rt, path) {
-		return
+		return res
 	}
 	if isSkipProp(rt, path) {
-		return
+		return res
 	}
 
 	if f != nil && f.FormatErr != "" {
@@ -139,7 +143,7 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 		} else {
 			res = append(res, newFormatErr(f.Content, f.FormatErr, newCheckBase(f.Line, path, f)))
 		}
-		return
+		return res
 	}
 
 	if s == nil {
@@ -216,14 +220,14 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 	} else if f.Default != "" && !s.Computed {
 		// schema has no default, but the document has default value, then we need a diff item
 		// but if schema is a boolean type and the document has a false default value, it's fine
-		if !(s.Type == pluginsdk.TypeBool && f.Default == "false") {
+		if s.Type != pluginsdk.TypeBool || f.Default != "false" {
 			res = append(res, newDefaultDiff(base, f.Default, ""))
 		}
 	}
 
 	// check forceNew attribute
 	if s.ForceNew != f.ForceNew && f.Name != "resource_group_name" {
-		var forceNew = ForceNewDefault
+		forceNew := ForceNewDefault
 		if s.ForceNew && !f.ForceNew {
 			forceNew = ShouldBeForceNew
 		} else if f.ForceNew && !s.ForceNew {

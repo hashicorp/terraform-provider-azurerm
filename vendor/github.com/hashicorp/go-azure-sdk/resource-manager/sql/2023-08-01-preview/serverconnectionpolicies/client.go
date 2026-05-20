@@ -15,7 +15,7 @@ type ServerConnectionPoliciesClient struct {
 }
 
 func NewServerConnectionPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*ServerConnectionPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "serverconnectionpolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "serverconnectionpolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ServerConnectionPoliciesClient: %+v", err)
 	}

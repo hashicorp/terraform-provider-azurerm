@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_test
@@ -9,10 +9,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -38,9 +39,13 @@ func NewCdnEndpointCustomDomainResource(dnsZoneRg, dnsZoneName string) *CdnEndpo
 }
 
 func TestAccCdnEndpointCustomDomain_basic(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -55,9 +60,13 @@ func TestAccCdnEndpointCustomDomain_basic(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_requiresImport(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -72,9 +81,13 @@ func TestAccCdnEndpointCustomDomain_requiresImport(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_httpsCdn(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -89,9 +102,13 @@ func TestAccCdnEndpointCustomDomain_httpsCdn(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificate(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
 	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
 	r.preCheckUserManagedCertificate(t)
@@ -110,32 +127,14 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificate(t *testing.T) {
 	})
 }
 
-func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificateDeprecated(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("This test is skipped since v4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
-
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
-	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
-	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
-	r.preCheckUserManagedCertificate(t)
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.httpsUserManagedCertificateDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("user_managed_https.0.key_vault_secret_id", "user_managed_https.0.key_vault_certificate_id"),
-	})
-}
-
 func TestAccCdnEndpointCustomDomain_httpsUserManagedSecret(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
 	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
 	r.preCheckUserManagedCertificate(t)
@@ -152,9 +151,13 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedSecret(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
 	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
 	r.preCheckUserManagedCertificate(t)
@@ -193,10 +196,10 @@ func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
 
 func (r CdnEndpointCustomDomainResource) preCheck(t *testing.T) {
 	if r.DNSZoneRG == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME` must be set for acceptance tests!")
+		t.Skipf("`ARM_TEST_DATA_RESOURCE_GROUP` must be set for acceptance tests!")
 	}
 	if r.DNSZoneName == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_NAME` must be set for acceptance tests!")
+		t.Skipf("`ARM_TEST_DNS_ZONE` must be set for acceptance tests!")
 	}
 }
 
@@ -218,11 +221,11 @@ func (r CdnEndpointCustomDomainResource) Exists(ctx context.Context, client *cli
 	resp, err := client.Cdn.CustomDomainsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CdnEndpointCustomDomainResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -240,7 +243,7 @@ func (r CdnEndpointCustomDomainResource) Destroy(ctx context.Context, client *cl
 		return nil, fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CdnEndpointCustomDomainResource) basic(data acceptance.TestData) string {
@@ -372,44 +375,6 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
   host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
   user_managed_https {
     key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
-  }
-}
-`, template, data.RandomIntOfLength(8), r.CertificateP12)
-}
-
-func (r CdnEndpointCustomDomainResource) httpsUserManagedCertificateDeprecated(data acceptance.TestData) string {
-	template := r.httpsUserManagedBase(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_key_vault_certificate" "test" {
-  name         = "testkeyvaultcert-%[2]d"
-  key_vault_id = azurerm_key_vault.test.id
-  certificate {
-    contents = file("%[3]s")
-    password = ""
-  }
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-  }
-}
-resource "azurerm_cdn_endpoint_custom_domain" "test" {
-  name            = "testcustomdomain-%[2]d"
-  cdn_endpoint_id = azurerm_cdn_endpoint.test.id
-  host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
-  user_managed_https {
-    key_vault_certificate_id = azurerm_key_vault_certificate.test.id
   }
 }
 `, template, data.RandomIntOfLength(8), r.CertificateP12)

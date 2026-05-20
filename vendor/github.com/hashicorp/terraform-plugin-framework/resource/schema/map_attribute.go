@@ -28,7 +28,7 @@ var (
 	_ fwxschema.AttributeWithMapValidators         = MapAttribute{}
 )
 
-// MapAttribute represents a schema attribute that is a list with a single
+// MapAttribute represents a schema attribute that is a map with a single
 // element type. When retrieving the value for this attribute, use types.Map
 // as the value type unless the CustomType field is set. The ElementType field
 // must be set.
@@ -37,7 +37,7 @@ var (
 // require definition beyond type information.
 //
 // Terraform configurations configure this attribute using expressions that
-// return a list or directly via curly brace syntax.
+// return a map or directly via curly brace syntax.
 //
 //	# map of strings
 //	example_attribute = {
@@ -171,6 +171,16 @@ type MapAttribute struct {
 	// computed and the value could be altered by other changes then a default
 	// should be avoided and a plan modifier should be used instead.
 	Default defaults.Map
+
+	// WriteOnly indicates that Terraform will not store this attribute value
+	// in the plan or state artifacts.
+	// If WriteOnly is true, either Optional or Required must also be true.
+	// WriteOnly cannot be set with Computed.
+	//
+	// This functionality is only supported in Terraform 1.11 and later.
+	// Practitioners that choose a value for this attribute with older
+	// versions of Terraform will receive an error.
+	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep returns the result of stepping into a map
@@ -233,6 +243,23 @@ func (a MapAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a MapAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly returns the WriteOnly field value.
+func (a MapAttribute) IsWriteOnly() bool {
+	return a.WriteOnly
+}
+
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a MapAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a MapAttribute) IsOptionalForImport() bool {
+	return false
 }
 
 // MapDefaultValue returns the Default field value.

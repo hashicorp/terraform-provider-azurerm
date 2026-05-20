@@ -15,7 +15,7 @@ type CollectorPoliciesClient struct {
 }
 
 func NewCollectorPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*CollectorPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "collectorpolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "collectorpolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CollectorPoliciesClient: %+v", err)
 	}

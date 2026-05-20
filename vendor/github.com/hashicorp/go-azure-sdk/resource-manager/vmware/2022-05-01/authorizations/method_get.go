@@ -45,7 +45,6 @@ func (c AuthorizationsClient) Get(ctx context.Context, id AuthorizationId) (resu
 
 	var model ExpressRouteAuthorization
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

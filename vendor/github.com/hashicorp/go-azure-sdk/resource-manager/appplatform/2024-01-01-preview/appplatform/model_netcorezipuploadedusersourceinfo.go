@@ -16,7 +16,16 @@ type NetCoreZipUploadedUserSourceInfo struct {
 	RuntimeVersion       *string `json:"runtimeVersion,omitempty"`
 
 	// Fields inherited from UserSourceInfo
+
+	Type    string  `json:"type"`
 	Version *string `json:"version,omitempty"`
+}
+
+func (s NetCoreZipUploadedUserSourceInfo) UserSourceInfo() BaseUserSourceInfoImpl {
+	return BaseUserSourceInfoImpl{
+		Type:    s.Type,
+		Version: s.Version,
+	}
 }
 
 var _ json.Marshaler = NetCoreZipUploadedUserSourceInfo{}
@@ -30,9 +39,10 @@ func (s NetCoreZipUploadedUserSourceInfo) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling NetCoreZipUploadedUserSourceInfo: %+v", err)
 	}
+
 	decoded["type"] = "NetCoreZip"
 
 	encoded, err = json.Marshal(decoded)

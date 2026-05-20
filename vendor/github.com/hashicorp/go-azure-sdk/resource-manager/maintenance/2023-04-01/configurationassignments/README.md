@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments` Documentation
 
-The `configurationassignments` SDK allows for interaction with the Azure Resource Manager Service `maintenance` (API Version `2023-04-01`).
+The `configurationassignments` SDK allows for interaction with Azure Resource Manager `maintenance` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
+id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentName")
 
 payload := configurationassignments.ConfigurationAssignment{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
+id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentName")
 
 payload := configurationassignments.ConfigurationAssignment{
 	// ...
@@ -67,7 +67,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
+id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -83,7 +83,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
+id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentName")
 
 read, err := client.DeleteParent(ctx, id)
 if err != nil {
@@ -99,7 +99,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewProviderConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationAssignmentValue")
+id := configurationassignments.NewProviderConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationAssignmentName")
 
 payload := configurationassignments.ConfigurationAssignment{
 	// ...
@@ -120,7 +120,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewProviderConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationAssignmentValue")
+id := configurationassignments.NewProviderConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationAssignmentName")
 
 read, err := client.ForResourceGroupDelete(ctx, id)
 if err != nil {
@@ -136,7 +136,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewProviderConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationAssignmentValue")
+id := configurationassignments.NewProviderConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationAssignmentName")
 
 read, err := client.ForResourceGroupGet(ctx, id)
 if err != nil {
@@ -152,7 +152,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewProviderConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationAssignmentValue")
+id := configurationassignments.NewProviderConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationAssignmentName")
 
 payload := configurationassignments.ConfigurationAssignment{
 	// ...
@@ -173,7 +173,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "configurationAssignmentValue")
+id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "configurationAssignmentName")
 
 payload := configurationassignments.ConfigurationAssignment{
 	// ...
@@ -194,7 +194,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "configurationAssignmentValue")
+id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "configurationAssignmentName")
 
 read, err := client.ForSubscriptionsDelete(ctx, id)
 if err != nil {
@@ -210,7 +210,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "configurationAssignmentValue")
+id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "configurationAssignmentName")
 
 read, err := client.ForSubscriptionsGet(ctx, id)
 if err != nil {
@@ -226,7 +226,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "configurationAssignmentValue")
+id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "configurationAssignmentName")
 
 payload := configurationassignments.ConfigurationAssignment{
 	// ...
@@ -247,7 +247,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
+id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -263,7 +263,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
+id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentName")
 
 read, err := client.GetParent(ctx, id)
 if err != nil {

@@ -45,7 +45,6 @@ func (c ManagedHsmsClient) GetDeleted(ctx context.Context, id DeletedManagedHSMI
 
 	var model DeletedManagedHsm
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -15,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/bastionhosts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -24,10 +27,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name bastion_host -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 var skuWeight = map[string]int8{
 	"Developer": 1,
 	"Basic":     2,
 	"Standard":  3,
+	"Premium":   4,
 }
 
 func resourceBastionHost() *pluginsdk.Resource {
@@ -37,10 +43,11 @@ func resourceBastionHost() *pluginsdk.Resource {
 		Update: resourceBastionHostUpdate,
 		Delete: resourceBastionHostDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := bastionhosts.ParseBastionHostID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&bastionhosts.BastionHostId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&bastionhosts.BastionHostId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -94,7 +101,7 @@ func resourceBastionHost() *pluginsdk.Resource {
 						},
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
@@ -140,6 +147,12 @@ func resourceBastionHost() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"session_recording_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"virtual_network_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -152,7 +165,14 @@ func resourceBastionHost() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"private_only_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": commonschema.Tags(),
+
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
@@ -163,6 +183,29 @@ func resourceBastionHost() *pluginsdk.Resource {
 				}
 				return false
 			}),
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+				sku := bastionhosts.BastionHostSkuName(d.Get("sku").(string))
+
+				// GetRawConfig is used because `public_ip_address_id` may reference another resource and be unknown during plan.
+				// d.Get() returns "" for unknown values, which would incorrectly trigger the required check.
+				// By inspecting the raw config, we can distinguish between "not set" and "unknown" and skip validation when unknown.
+				rawConfig := d.GetRawConfig()
+				ipConfigRaw := rawConfig.AsValueMap()["ip_configuration"]
+
+				// Basic and Standard SKUs require public_ip_address_id; Developer uses virtual_network_id instead.
+				// Premium without public_ip_address_id enables private-only mode.
+				if sku != bastionhosts.BastionHostSkuNamePremium && sku != bastionhosts.BastionHostSkuNameDeveloper {
+					if ipConfigRaw.IsNull() || !ipConfigRaw.IsKnown() || len(ipConfigRaw.AsValueSlice()) == 0 {
+						return errors.New("`ip_configuration` with `public_ip_address_id` is required when `sku` is `Basic` or `Standard`")
+					}
+					pipRaw := ipConfigRaw.AsValueSlice()[0].AsValueMap()["public_ip_address_id"]
+					if pipRaw.IsKnown() && (pipRaw.IsNull() || pipRaw.AsString() == "") {
+						return errors.New("`public_ip_address_id` must be set in `ip_configuration` when `sku` is `Basic` or `Standard`")
+					}
+				}
+
+				return nil
+			},
 		),
 	}
 }
@@ -184,29 +227,34 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	kerberosEnabled := d.Get("kerberos_enabled").(bool)
 	shareableLinkEnabled := d.Get("shareable_link_enabled").(bool)
 	tunnelingEnabled := d.Get("tunneling_enabled").(bool)
+	sessionRecordingEnabled := d.Get("session_recording_enabled").(bool)
 
-	if scaleUnits > 2 && sku == bastionhosts.BastionHostSkuNameBasic {
-		return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`")
+	if scaleUnits > 2 && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
+		return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard` or `Premium`. `scale_units` is always `2` when `sku` is `Basic`")
 	}
 
-	if fileCopyEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
-		return fmt.Errorf("`file_copy_enabled` is only supported when `sku` is `Standard`")
+	if fileCopyEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
+		return fmt.Errorf("`file_copy_enabled` is only supported when `sku` is `Standard` or `Premium`")
 	}
 
-	if ipConnectEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
-		return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard`")
+	if ipConnectEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
+		return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard` or `Premium`")
 	}
 
-	if kerberosEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
-		return fmt.Errorf("`kerberos_enabled` is only supported when `sku` is `Standard`")
+	if kerberosEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
+		return fmt.Errorf("`kerberos_enabled` is only supported when `sku` is `Standard` or `Premium`")
 	}
 
-	if shareableLinkEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
-		return fmt.Errorf("`shareable_link_enabled` is only supported when `sku` is `Standard`")
+	if shareableLinkEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
+		return fmt.Errorf("`shareable_link_enabled` is only supported when `sku` is `Standard` or `Premium`")
 	}
 
-	if tunnelingEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
-		return fmt.Errorf("`tunneling_enabled` is only supported when `sku` is `Standard`")
+	if tunnelingEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
+		return fmt.Errorf("`tunneling_enabled` is only supported when `sku` is `Standard` or `Premium`")
+	}
+
+	if sessionRecordingEnabled && sku != bastionhosts.BastionHostSkuNamePremium {
+		return fmt.Errorf("`session_recording_enabled` is only supported when `sku` is `Premium`")
 	}
 
 	existing, err := client.Get(ctx, id)
@@ -256,6 +304,20 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		parameters.Properties.EnableTunneling = pointer.To(tunnelingEnabled)
 	}
 
+	if sessionRecordingEnabled {
+		parameters.Properties.EnableSessionRecording = pointer.To(sessionRecordingEnabled)
+	}
+
+	if sku == bastionhosts.BastionHostSkuNamePremium {
+		_, ok := d.GetOk("ip_configuration.0.public_ip_address_id")
+		parameters.Properties.EnablePrivateOnlyBastion = pointer.To(!ok)
+	}
+
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		parameters.Zones = pointer.To(zones)
+	}
+
 	if v, ok := d.GetOk("virtual_network_id"); ok {
 		if sku != bastionhosts.BastionHostSkuNameDeveloper {
 			return fmt.Errorf("`virtual_network_id` is only supported when `sku` is `Developer`")
@@ -273,6 +335,9 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceBastionHostRead(d, meta)
 }
@@ -315,47 +380,58 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("file_copy_enabled") {
 		fileCopyEnabled := d.Get("file_copy_enabled").(bool)
-		if fileCopyEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
-			return fmt.Errorf("`file_copy_enabled` is only supported when `sku` is `Standard`")
+		if fileCopyEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
+			return fmt.Errorf("`file_copy_enabled` is only supported when `sku` is `Standard` or `Premium`")
 		}
 		payload.Properties.EnableFileCopy = pointer.To(fileCopyEnabled)
 	}
 
 	if d.HasChange("ip_connect_enabled") {
 		ipConnectEnabled := d.Get("ip_connect_enabled").(bool)
-		if ipConnectEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
-			return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard`")
+		if ipConnectEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
+			return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard` or `Premium`")
 		}
 		payload.Properties.EnableIPConnect = pointer.To(ipConnectEnabled)
 	}
 
 	if d.HasChange("scale_units") {
 		scaleUnits := d.Get("scale_units").(int)
-		if scaleUnits > 2 && sku == bastionhosts.BastionHostSkuNameBasic {
-			return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`")
+		if scaleUnits > 2 && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
+			return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard` or `Premium`. `scale_units` is always `2` when `sku` is `Basic`")
 		}
 		payload.Properties.ScaleUnits = pointer.To(int64(scaleUnits))
 	}
 
 	if d.HasChange("shareable_link_enabled") {
 		shareableLinkEnabled := d.Get("shareable_link_enabled").(bool)
-		if shareableLinkEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
-			return fmt.Errorf("`shareable_link_enabled` is only supported when `sku` is `Standard`")
+		if shareableLinkEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
+			return fmt.Errorf("`shareable_link_enabled` is only supported when `sku` is `Standard` or `Premium`")
 		}
 		payload.Properties.EnableShareableLink = pointer.To(shareableLinkEnabled)
 	}
 
 	if d.HasChange("tunneling_enabled") {
 		tunnelingEnabled := d.Get("tunneling_enabled").(bool)
-		if tunnelingEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
-			return fmt.Errorf("`tunneling_enabled` is only supported when `sku` is `Standard`")
+		if tunnelingEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
+			return fmt.Errorf("`tunneling_enabled` is only supported when `sku` is `Standard` or `Premium`")
 		}
 		payload.Properties.EnableTunneling = pointer.To(tunnelingEnabled)
 	}
 
+	if d.HasChange("session_recording_enabled") {
+		sessionRecordingEnabled := d.Get("session_recording_enabled").(bool)
+		if sessionRecordingEnabled && sku != bastionhosts.BastionHostSkuNamePremium {
+			return fmt.Errorf("`session_recording_enabled` is only supported when `sku` is `Premium`")
+		}
+		payload.Properties.EnableSessionRecording = pointer.To(sessionRecordingEnabled)
+	}
+
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
 
+	if d.HasChange("zones") {
+		payload.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -397,6 +473,8 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("sku", string(*sku.Name))
 		}
 
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
+
 		if props := model.Properties; props != nil {
 			d.Set("dns_name", props.DnsName)
 			d.Set("scale_units", props.ScaleUnits)
@@ -405,6 +483,8 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("kerberos_enabled", props.EnableKerberos)
 			d.Set("shareable_link_enabled", props.EnableShareableLink)
 			d.Set("tunneling_enabled", props.EnableTunneling)
+			d.Set("session_recording_enabled", props.EnableSessionRecording)
+			d.Set("private_only_enabled", props.EnablePrivateOnlyBastion)
 
 			virtualNetworkId := ""
 			if vnet := props.VirtualNetwork; vnet != nil {
@@ -429,10 +509,12 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceBastionHostDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -460,21 +542,23 @@ func expandBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]bastion
 	property := input[0].(map[string]interface{})
 	ipConfName := property["name"].(string)
 	subID := property["subnet_id"].(string)
-	pipID := property["public_ip_address_id"].(string)
 
-	return &[]bastionhosts.BastionHostIPConfiguration{
-		{
-			Name: &ipConfName,
-			Properties: &bastionhosts.BastionHostIPConfigurationPropertiesFormat{
-				Subnet: bastionhosts.SubResource{
-					Id: &subID,
-				},
-				PublicIPAddress: bastionhosts.SubResource{
-					Id: &pipID,
-				},
+	ipConfig := bastionhosts.BastionHostIPConfiguration{
+		Name: &ipConfName,
+		Properties: &bastionhosts.BastionHostIPConfigurationPropertiesFormat{
+			Subnet: bastionhosts.SubResource{
+				Id: &subID,
 			},
 		},
 	}
+
+	if pipID, ok := property["public_ip_address_id"].(string); ok && pipID != "" {
+		ipConfig.Properties.PublicIPAddress = &bastionhosts.SubResource{
+			Id: &pipID,
+		}
+	}
+
+	return &[]bastionhosts.BastionHostIPConfiguration{ipConfig}
 }
 
 func flattenBastionHostIPConfiguration(ipConfigs *[]bastionhosts.BastionHostIPConfiguration) []interface{} {
@@ -498,7 +582,7 @@ func flattenBastionHostIPConfiguration(ipConfigs *[]bastionhosts.BastionHostIPCo
 			ipConfig["subnet_id"] = subnetId
 
 			publicIpId := ""
-			if pip := props.PublicIPAddress; pip.Id != nil {
+			if pip := props.PublicIPAddress; pip != nil && pip.Id != nil {
 				publicIpId = *pip.Id
 			}
 			ipConfig["public_ip_address_id"] = publicIpId

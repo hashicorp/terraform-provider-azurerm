@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/adminrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/adminrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerAdminRuleModel struct {
@@ -48,7 +48,7 @@ func (r ManagerAdminRuleResource) ModelObject() interface{} {
 }
 
 func (r ManagerAdminRuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return adminrules.ValidateRuleID
+	return adminrules.ValidateSecurityAdminConfigurationRuleCollectionRuleID
 }
 
 func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
@@ -64,7 +64,7 @@ func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: adminrules.ValidateRuleCollectionID,
+			ValidateFunc: adminrules.ValidateSecurityAdminConfigurationRuleCollectionID,
 		},
 
 		"action": {
@@ -191,12 +191,12 @@ func (r ManagerAdminRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Network.AdminRules
-			ruleCollectionId, err := adminrules.ParseRuleCollectionID(model.NetworkRuleCollectionId)
+			ruleCollectionId, err := adminrules.ParseSecurityAdminConfigurationRuleCollectionID(model.NetworkRuleCollectionId)
 			if err != nil {
 				return err
 			}
 
-			id := adminrules.NewRuleID(ruleCollectionId.SubscriptionId, ruleCollectionId.ResourceGroupName,
+			id := adminrules.NewSecurityAdminConfigurationRuleCollectionRuleID(ruleCollectionId.SubscriptionId, ruleCollectionId.ResourceGroupName,
 				ruleCollectionId.NetworkManagerName, ruleCollectionId.SecurityAdminConfigurationName, ruleCollectionId.RuleCollectionName, model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -240,7 +240,7 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.AdminRules
 
-			id, err := adminrules.ParseRuleID(metadata.ResourceData.Id())
+			id, err := adminrules.ParseSecurityAdminConfigurationRuleCollectionRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -259,7 +259,7 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 			}
 
 			var rule adminrules.AdminRule
-			if adminRule, ok := (*existing.Model).(adminrules.AdminRule); ok {
+			if adminRule, ok := existing.Model.(adminrules.AdminRule); ok {
 				rule = adminRule
 			}
 
@@ -324,7 +324,7 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.AdminRules
 
-			id, err := adminrules.ParseRuleID(metadata.ResourceData.Id())
+			id, err := adminrules.ParseSecurityAdminConfigurationRuleCollectionRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -342,7 +342,7 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 			}
 
 			var rule adminrules.AdminRule
-			if adminRule, ok := (*existing.Model).(adminrules.AdminRule); ok {
+			if adminRule, ok := existing.Model.(adminrules.AdminRule); ok {
 				rule = adminRule
 			}
 
@@ -355,7 +355,7 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 			state := ManagerAdminRuleModel{
 				Action: properties.Access,
 				Name:   id.RuleName,
-				NetworkRuleCollectionId: adminrules.NewRuleCollectionID(id.SubscriptionId, id.ResourceGroupName,
+				NetworkRuleCollectionId: adminrules.NewSecurityAdminConfigurationRuleCollectionID(id.SubscriptionId, id.ResourceGroupName,
 					id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName).ID(),
 				Destinations: flattenAddressPrefixItemModel(properties.Destinations),
 				Direction:    properties.Direction,
@@ -387,13 +387,13 @@ func (r ManagerAdminRuleResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.AdminRules
 
-			id, err := adminrules.ParseRuleID(metadata.ResourceData.Id())
+			id, err := adminrules.ParseSecurityAdminConfigurationRuleCollectionRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			err = client.DeleteThenPoll(ctx, *id, adminrules.DeleteOperationOptions{
-				Force: utils.Bool(true),
+				Force: pointer.To(true),
 			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
@@ -405,7 +405,7 @@ func (r ManagerAdminRuleResource) Delete() sdk.ResourceFunc {
 }
 
 func expandAddressPrefixItemModel(inputList []AddressPrefixItemModel) *[]adminrules.AddressPrefixItem {
-	var outputList []adminrules.AddressPrefixItem
+	outputList := make([]adminrules.AddressPrefixItem, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := adminrules.AddressPrefixItem{
@@ -423,11 +423,11 @@ func expandAddressPrefixItemModel(inputList []AddressPrefixItemModel) *[]adminru
 }
 
 func flattenAddressPrefixItemModel(inputList *[]adminrules.AddressPrefixItem) []AddressPrefixItemModel {
-	var outputList []AddressPrefixItemModel
 	if inputList == nil {
-		return outputList
+		return []AddressPrefixItemModel{}
 	}
 
+	outputList := make([]AddressPrefixItemModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := AddressPrefixItemModel{}
 

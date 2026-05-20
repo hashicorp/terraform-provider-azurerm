@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/adminrulecollections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/adminrulecollections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerAdminRuleCollectionModel struct {
@@ -37,7 +37,7 @@ func (r ManagerAdminRuleCollectionResource) ModelObject() interface{} {
 }
 
 func (r ManagerAdminRuleCollectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return adminrulecollections.ValidateRuleCollectionID
+	return adminrulecollections.ValidateSecurityAdminConfigurationRuleCollectionID
 }
 
 func (r ManagerAdminRuleCollectionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -91,7 +91,7 @@ func (r ManagerAdminRuleCollectionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := adminrulecollections.NewRuleCollectionID(configurationId.SubscriptionId, configurationId.ResourceGroupName,
+			id := adminrulecollections.NewSecurityAdminConfigurationRuleCollectionID(configurationId.SubscriptionId, configurationId.ResourceGroupName,
 				configurationId.NetworkManagerName, configurationId.SecurityAdminConfigurationName, model.Name)
 			existing, err := client.Get(ctx, id)
 
@@ -129,7 +129,7 @@ func (r ManagerAdminRuleCollectionResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.AdminRuleCollections
 
-			id, err := adminrulecollections.ParseRuleCollectionID(metadata.ResourceData.Id())
+			id, err := adminrulecollections.ParseSecurityAdminConfigurationRuleCollectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -157,7 +157,7 @@ func (r ManagerAdminRuleCollectionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				properties.Description = utils.String(model.Description)
+				properties.Description = pointer.To(model.Description)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
@@ -175,7 +175,7 @@ func (r ManagerAdminRuleCollectionResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.AdminRuleCollections
 
-			id, err := adminrulecollections.ParseRuleCollectionID(metadata.ResourceData.Id())
+			id, err := adminrulecollections.ParseSecurityAdminConfigurationRuleCollectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -219,13 +219,13 @@ func (r ManagerAdminRuleCollectionResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.AdminRuleCollections
 
-			id, err := adminrulecollections.ParseRuleCollectionID(metadata.ResourceData.Id())
+			id, err := adminrulecollections.ParseSecurityAdminConfigurationRuleCollectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			err = client.DeleteThenPoll(ctx, *id, adminrulecollections.DeleteOperationOptions{
-				Force: utils.Bool(true),
+				Force: pointer.To(true),
 			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
@@ -237,7 +237,7 @@ func (r ManagerAdminRuleCollectionResource) Delete() sdk.ResourceFunc {
 }
 
 func expandNetworkManagerNetworkGroupIds(inputList []string) []adminrulecollections.NetworkManagerSecurityGroupItem {
-	var outputList []adminrulecollections.NetworkManagerSecurityGroupItem
+	outputList := make([]adminrulecollections.NetworkManagerSecurityGroupItem, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := adminrulecollections.NetworkManagerSecurityGroupItem{
@@ -251,7 +251,7 @@ func expandNetworkManagerNetworkGroupIds(inputList []string) []adminrulecollecti
 }
 
 func flattenNetworkManagerNetworkGroupIds(inputList []adminrulecollections.NetworkManagerSecurityGroupItem) []string {
-	var outputList []string
+	outputList := make([]string, 0, len(inputList))
 
 	for _, input := range inputList {
 		outputList = append(outputList, input.NetworkGroupId)

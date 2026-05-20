@@ -5,5 +5,5 @@ package accounts
 
 type CustomerManagedKeyEncryption struct {
 	KeyEncryptionKeyIdentity *CustomerManagedKeyEncryptionKeyEncryptionKeyIdentity `json:"keyEncryptionKeyIdentity,omitempty"`
-	KeyEncryptionKeyUrl      *string                                               `json:"keyEncryptionKeyUrl,omitempty"`
+	KeyEncryptionKeyURL      *string                                               `json:"keyEncryptionKeyUrl,omitempty"`
 }

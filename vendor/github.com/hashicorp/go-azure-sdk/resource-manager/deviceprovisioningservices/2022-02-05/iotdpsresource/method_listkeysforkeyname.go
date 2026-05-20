@@ -46,7 +46,6 @@ func (c IotDpsResourceClient) ListKeysForKeyName(ctx context.Context, id KeyId) 
 
 	var model SharedAccessSignatureAuthorizationRuleAccessRightsDescription
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

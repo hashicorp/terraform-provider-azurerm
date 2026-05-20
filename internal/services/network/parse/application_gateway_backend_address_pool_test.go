@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -141,7 +141,6 @@ func TestParseApplicationGatewayBackendAddressPoolID(t *testing.T) {
 		if actual.BackendAddressPoolName != v.Expected.BackendAddressPoolName {
 			t.Fatalf("Expected %q but got %q for BackendAddressPoolName", v.Expected.BackendAddressPoolName, actual.BackendAddressPoolName)
 		}
-
 	}
 }
 
@@ -307,7 +306,6 @@ func TestParseApplicationGatewayBackendAddressPoolIDInsensitively(t *testing.T) 
 		if actual.BackendAddressPoolName != v.Expected.BackendAddressPoolName {
 			t.Fatalf("Expected %q but got %q for BackendAddressPoolName", v.Expected.BackendAddressPoolName, actual.BackendAddressPoolName)
 		}
-
 	}
 }
 

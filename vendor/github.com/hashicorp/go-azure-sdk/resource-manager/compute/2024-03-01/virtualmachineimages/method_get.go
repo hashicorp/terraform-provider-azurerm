@@ -45,7 +45,6 @@ func (c VirtualMachineImagesClient) Get(ctx context.Context, id SkuVersionId) (r
 
 	var model VirtualMachineImage
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

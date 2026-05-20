@@ -45,7 +45,6 @@ func (c WorkflowRunActionsClient) WorkflowRunActionRepetitionsGet(ctx context.Co
 
 	var model WorkflowRunActionRepetitionDefinition
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

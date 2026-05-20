@@ -45,7 +45,6 @@ func (c PrivateLinkScopesAPIsClient) PrivateLinkScopesGet(ctx context.Context, i
 
 	var model AzureMonitorPrivateLinkScope
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

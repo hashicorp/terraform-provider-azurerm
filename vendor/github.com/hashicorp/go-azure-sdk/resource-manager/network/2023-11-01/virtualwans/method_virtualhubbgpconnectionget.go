@@ -46,7 +46,6 @@ func (c VirtualWANsClient) VirtualHubBgpConnectionGet(ctx context.Context, id co
 
 	var model BgpConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

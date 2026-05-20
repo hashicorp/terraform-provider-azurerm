@@ -28,10 +28,9 @@ func ReattachFunc(pid int, addr net.Addr) runner.ReattachFunc {
 		// doesn't actually return an error if it can't find the process.
 		conn, err := net.Dial(addr.Network(), addr.String())
 		if err != nil {
-			p.Kill()
 			return nil, ErrProcessNotFound
 		}
-		conn.Close()
+		_ = conn.Close()
 
 		return &CmdAttachedRunner{
 			pid:     pid,

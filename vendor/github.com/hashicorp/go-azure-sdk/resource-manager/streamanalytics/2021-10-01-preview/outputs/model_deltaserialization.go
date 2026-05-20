@@ -14,6 +14,14 @@ type DeltaSerialization struct {
 	Properties *DeltaSerializationProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Serialization
+
+	Type EventSerializationType `json:"type"`
+}
+
+func (s DeltaSerialization) Serialization() BaseSerializationImpl {
+	return BaseSerializationImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = DeltaSerialization{}
@@ -27,9 +35,10 @@ func (s DeltaSerialization) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DeltaSerialization: %+v", err)
 	}
+
 	decoded["type"] = "Delta"
 
 	encoded, err = json.Marshal(decoded)

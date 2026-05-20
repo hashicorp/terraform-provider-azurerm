@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -56,7 +56,7 @@ func (id ScopedRoleAssignmentId) String() string {
 	}
 
 	if id.TenantId != "" {
-		components = append(components, fmt.Sprintf("Tenant ID: %s", id.TenantId))
+		components = append(components, "Tenant ID: "+id.TenantId)
 	}
 
 	return fmt.Sprintf("Scoped Role Assignment (%s)", strings.Join(components, "\n"))

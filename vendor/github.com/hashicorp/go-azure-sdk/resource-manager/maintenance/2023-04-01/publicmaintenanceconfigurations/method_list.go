@@ -47,7 +47,6 @@ func (c PublicMaintenanceConfigurationsClient) List(ctx context.Context, id comm
 
 	var model ListMaintenanceConfigurationsResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

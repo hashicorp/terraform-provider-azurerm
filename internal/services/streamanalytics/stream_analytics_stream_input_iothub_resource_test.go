@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StreamAnalyticsStreamInputIoTHubResource struct{}
@@ -109,11 +109,11 @@ func (r StreamAnalyticsStreamInputIoTHubResource) Exists(ctx context.Context, cl
 	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StreamAnalyticsStreamInputIoTHubResource) avro(data acceptance.TestData) string {
@@ -190,32 +190,21 @@ func (r StreamAnalyticsStreamInputIoTHubResource) updated(data acceptance.TestDa
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iothub" "updated" {
-  name                = "acctestiot2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku {
-    name     = "S1"
-    capacity = "1"
-  }
-}
-
 resource "azurerm_stream_analytics_stream_input_iothub" "test" {
   name                         = "acctestinput-%d"
   stream_analytics_job_name    = azurerm_stream_analytics_job.test.name
   resource_group_name          = azurerm_stream_analytics_job.test.resource_group_name
   endpoint                     = "messages/events"
   eventhub_consumer_group_name = "$Default"
-  iothub_namespace             = azurerm_iothub.updated.name
-  shared_access_policy_key     = azurerm_iothub.updated.shared_access_policy[0].primary_key
+  iothub_namespace             = azurerm_iothub.test.name
+  shared_access_policy_key     = azurerm_iothub.test.shared_access_policy[0].primary_key
   shared_access_policy_name    = "iothubowner"
 
   serialization {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputIoTHubResource) requiresImport(data acceptance.TestData) string {

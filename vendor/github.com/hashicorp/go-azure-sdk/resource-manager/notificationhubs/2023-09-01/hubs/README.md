@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/hubs` Documentation
 
-The `hubs` SDK allows for interaction with the Azure Resource Manager Service `notificationhubs` (API Version `2023-09-01`).
+The `hubs` SDK allows for interaction with Azure Resource Manager `notificationhubs` (API Version `2023-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := hubs.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 payload := hubs.CheckAvailabilityParameters{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "notificationHubValue")
+id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "notificationHubName")
 
 payload := hubs.NotificationHubResource{
 	// ...
@@ -66,7 +66,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNotificationHubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "notificationHubValue", "authorizationRuleValue")
+id := hubs.NewNotificationHubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "notificationHubName", "authorizationRuleName")
 
 payload := hubs.SharedAccessAuthorizationRuleResource{
 	// ...
@@ -87,7 +87,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "notificationHubValue")
+id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "notificationHubName")
 
 read, err := client.NotificationHubsDebugSend(ctx, id)
 if err != nil {
@@ -103,7 +103,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "notificationHubValue")
+id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "notificationHubName")
 
 read, err := client.NotificationHubsDelete(ctx, id)
 if err != nil {
@@ -119,7 +119,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNotificationHubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "notificationHubValue", "authorizationRuleValue")
+id := hubs.NewNotificationHubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "notificationHubName", "authorizationRuleName")
 
 read, err := client.NotificationHubsDeleteAuthorizationRule(ctx, id)
 if err != nil {
@@ -135,7 +135,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "notificationHubValue")
+id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "notificationHubName")
 
 read, err := client.NotificationHubsGet(ctx, id)
 if err != nil {
@@ -151,7 +151,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNotificationHubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "notificationHubValue", "authorizationRuleValue")
+id := hubs.NewNotificationHubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "notificationHubName", "authorizationRuleName")
 
 read, err := client.NotificationHubsGetAuthorizationRule(ctx, id)
 if err != nil {
@@ -167,7 +167,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "notificationHubValue")
+id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "notificationHubName")
 
 read, err := client.NotificationHubsGetPnsCredentials(ctx, id)
 if err != nil {
@@ -183,7 +183,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := hubs.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 // alternatively `client.NotificationHubsList(ctx, id, hubs.DefaultNotificationHubsListOperationOptions())` can be used to do batched pagination
 items, err := client.NotificationHubsListComplete(ctx, id, hubs.DefaultNotificationHubsListOperationOptions())
@@ -200,7 +200,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "notificationHubValue")
+id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "notificationHubName")
 
 // alternatively `client.NotificationHubsListAuthorizationRules(ctx, id)` can be used to do batched pagination
 items, err := client.NotificationHubsListAuthorizationRulesComplete(ctx, id)
@@ -217,7 +217,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNotificationHubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "notificationHubValue", "authorizationRuleValue")
+id := hubs.NewNotificationHubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "notificationHubName", "authorizationRuleName")
 
 read, err := client.NotificationHubsListKeys(ctx, id)
 if err != nil {
@@ -233,7 +233,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNotificationHubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "notificationHubValue", "authorizationRuleValue")
+id := hubs.NewNotificationHubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "notificationHubName", "authorizationRuleName")
 
 payload := hubs.PolicyKeyResource{
 	// ...
@@ -254,7 +254,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "notificationHubValue")
+id := hubs.NewNotificationHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "notificationHubName")
 
 payload := hubs.NotificationHubPatchParameters{
 	// ...

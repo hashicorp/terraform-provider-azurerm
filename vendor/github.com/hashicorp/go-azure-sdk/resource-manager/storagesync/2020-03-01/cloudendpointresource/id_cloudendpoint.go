@@ -46,7 +46,7 @@ func ParseCloudEndpointID(input string) (*CloudEndpointId, error) {
 	}
 
 	id := CloudEndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseCloudEndpointIDInsensitively(input string) (*CloudEndpointId, error) {
 	}
 
 	id := CloudEndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id CloudEndpointId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorageSync", "Microsoft.StorageSync", "Microsoft.StorageSync"),
 		resourceids.StaticSegment("staticStorageSyncServices", "storageSyncServices", "storageSyncServices"),
-		resourceids.UserSpecifiedSegment("storageSyncServiceName", "storageSyncServiceValue"),
+		resourceids.UserSpecifiedSegment("storageSyncServiceName", "storageSyncServiceName"),
 		resourceids.StaticSegment("staticSyncGroups", "syncGroups", "syncGroups"),
-		resourceids.UserSpecifiedSegment("syncGroupName", "syncGroupValue"),
+		resourceids.UserSpecifiedSegment("syncGroupName", "syncGroupName"),
 		resourceids.StaticSegment("staticCloudEndpoints", "cloudEndpoints", "cloudEndpoints"),
-		resourceids.UserSpecifiedSegment("cloudEndpointName", "cloudEndpointValue"),
+		resourceids.UserSpecifiedSegment("cloudEndpointName", "cloudEndpointName"),
 	}
 }
 

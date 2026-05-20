@@ -44,7 +44,7 @@ func ParseNotificationHubID(input string) (*NotificationHubId, error) {
 	}
 
 	id := NotificationHubId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseNotificationHubIDInsensitively(input string) (*NotificationHubId, erro
 	}
 
 	id := NotificationHubId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id NotificationHubId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNotificationHubs", "Microsoft.NotificationHubs", "Microsoft.NotificationHubs"),
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
-		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
+		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticNotificationHubs", "notificationHubs", "notificationHubs"),
-		resourceids.UserSpecifiedSegment("notificationHubName", "notificationHubValue"),
+		resourceids.UserSpecifiedSegment("notificationHubName", "notificationHubName"),
 	}
 }
 

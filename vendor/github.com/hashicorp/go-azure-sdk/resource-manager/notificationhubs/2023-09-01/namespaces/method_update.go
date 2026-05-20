@@ -49,7 +49,6 @@ func (c NamespacesClient) Update(ctx context.Context, id NamespaceId, input Name
 
 	var model NamespaceResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

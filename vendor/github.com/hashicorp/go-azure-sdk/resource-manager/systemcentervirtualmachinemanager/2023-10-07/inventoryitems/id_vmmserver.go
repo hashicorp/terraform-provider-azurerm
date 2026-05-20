@@ -42,7 +42,7 @@ func ParseVMmServerID(input string) (*VMmServerId, error) {
 	}
 
 	id := VMmServerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseVMmServerIDInsensitively(input string) (*VMmServerId, error) {
 	}
 
 	id := VMmServerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id VMmServerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftScVmm", "Microsoft.ScVmm", "Microsoft.ScVmm"),
 		resourceids.StaticSegment("staticVmmServers", "vmmServers", "vmmServers"),
-		resourceids.UserSpecifiedSegment("vmmServerName", "vmmServerValue"),
+		resourceids.UserSpecifiedSegment("vmmServerName", "vmmServerName"),
 	}
 }
 

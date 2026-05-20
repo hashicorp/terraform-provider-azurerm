@@ -4,5 +4,5 @@ package attestationproviders
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type JsonWebKeySet struct {
-	Keys *[]JsonWebKey `json:"keys,omitempty"`
+	Keys *[]JSONWebKey `json:"keys,omitempty"`
 }

@@ -15,7 +15,7 @@ type InventoryItemsClient struct {
 }
 
 func NewInventoryItemsClientWithBaseURI(sdkApi sdkEnv.Api) (*InventoryItemsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "inventoryitems", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "inventoryitems", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating InventoryItemsClient: %+v", err)
 	}

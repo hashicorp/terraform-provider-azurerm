@@ -4,7 +4,7 @@ package channel
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type LineChannelProperties struct {
-	CallbackUrl       *string            `json:"callbackUrl,omitempty"`
+	CallbackURL       *string            `json:"callbackUrl,omitempty"`
 	IsValidated       *bool              `json:"isValidated,omitempty"`
 	LineRegistrations []LineRegistration `json:"lineRegistrations"`
 }

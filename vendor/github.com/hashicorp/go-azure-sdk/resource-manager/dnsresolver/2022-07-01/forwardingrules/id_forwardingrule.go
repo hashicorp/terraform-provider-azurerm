@@ -44,7 +44,7 @@ func ParseForwardingRuleID(input string) (*ForwardingRuleId, error) {
 	}
 
 	id := ForwardingRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseForwardingRuleIDInsensitively(input string) (*ForwardingRuleId, error)
 	}
 
 	id := ForwardingRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ForwardingRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticDnsForwardingRulesets", "dnsForwardingRulesets", "dnsForwardingRulesets"),
-		resourceids.UserSpecifiedSegment("dnsForwardingRulesetName", "dnsForwardingRulesetValue"),
+		resourceids.UserSpecifiedSegment("dnsForwardingRulesetName", "dnsForwardingRulesetName"),
 		resourceids.StaticSegment("staticForwardingRules", "forwardingRules", "forwardingRules"),
-		resourceids.UserSpecifiedSegment("forwardingRuleName", "forwardingRuleValue"),
+		resourceids.UserSpecifiedSegment("forwardingRuleName", "forwardingRuleName"),
 	}
 }
 

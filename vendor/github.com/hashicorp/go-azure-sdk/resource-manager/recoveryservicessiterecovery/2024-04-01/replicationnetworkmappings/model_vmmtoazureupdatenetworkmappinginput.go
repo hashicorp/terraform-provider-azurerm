@@ -13,6 +13,14 @@ var _ FabricSpecificUpdateNetworkMappingInput = VMmToAzureUpdateNetworkMappingIn
 type VMmToAzureUpdateNetworkMappingInput struct {
 
 	// Fields inherited from FabricSpecificUpdateNetworkMappingInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s VMmToAzureUpdateNetworkMappingInput) FabricSpecificUpdateNetworkMappingInput() BaseFabricSpecificUpdateNetworkMappingInputImpl {
+	return BaseFabricSpecificUpdateNetworkMappingInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = VMmToAzureUpdateNetworkMappingInput{}
@@ -26,9 +34,10 @@ func (s VMmToAzureUpdateNetworkMappingInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling VMmToAzureUpdateNetworkMappingInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "VmmToAzure"
 
 	encoded, err = json.Marshal(decoded)

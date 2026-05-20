@@ -50,7 +50,6 @@ func (c ConfigurationAssignmentsClient) ForResourceGroupCreateOrUpdate(ctx conte
 
 	var model ConfigurationAssignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

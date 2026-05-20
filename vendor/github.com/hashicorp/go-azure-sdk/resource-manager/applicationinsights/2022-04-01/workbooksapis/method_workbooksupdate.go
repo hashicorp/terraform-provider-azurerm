@@ -34,6 +34,7 @@ func (o WorkbooksUpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o WorkbooksUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -79,7 +80,6 @@ func (c WorkbooksAPIsClient) WorkbooksUpdate(ctx context.Context, id WorkbookId,
 
 	var model Workbook
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

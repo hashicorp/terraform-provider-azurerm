@@ -45,7 +45,6 @@ func (c VirtualWANsClient) NatRulesGet(ctx context.Context, id NatRuleId) (resul
 
 	var model VpnGatewayNatRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

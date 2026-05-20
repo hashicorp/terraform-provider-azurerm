@@ -26,6 +26,8 @@ var (
 //   - If CustomType is set, use its associated value type.
 //   - Otherwise, use [types.Set] or a Go slice value type compatible with the
 //     element type.
+//
+// Return documentation is expected in the function [Definition] documentation.
 type SetReturn struct {
 	// ElementType is the type for all elements of the set. This field must be
 	// set.
@@ -71,7 +73,13 @@ func (r SetReturn) NewResultData(ctx context.Context) (ResultData, *FuncError) {
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (p SetReturn) ValidateImplementation(ctx context.Context, req fwfunction.ValidateReturnImplementationRequest, resp *fwfunction.ValidateReturnImplementationResponse) {
-	if p.CustomType == nil && fwtype.ContainsCollectionWithDynamic(p.GetType()) {
-		resp.Diagnostics.Append(fwtype.ReturnCollectionWithDynamicTypeDiag())
+	if p.CustomType == nil {
+		if fwtype.ContainsCollectionWithDynamic(p.GetType()) {
+			resp.Diagnostics.Append(fwtype.ReturnCollectionWithDynamicTypeDiag())
+		}
+
+		if fwtype.ContainsMissingUnderlyingType(p.GetType()) {
+			resp.Diagnostics.Append(fwtype.ReturnMissingUnderlyingTypeDiag())
+		}
 	}
 }

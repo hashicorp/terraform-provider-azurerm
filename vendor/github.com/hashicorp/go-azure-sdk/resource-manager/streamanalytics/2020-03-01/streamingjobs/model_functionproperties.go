@@ -10,18 +10,37 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FunctionProperties interface {
+	FunctionProperties() BaseFunctionPropertiesImpl
 }
 
-// RawFunctionPropertiesImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ FunctionProperties = BaseFunctionPropertiesImpl{}
+
+type BaseFunctionPropertiesImpl struct {
+	Etag       *string                `json:"etag,omitempty"`
+	Properties *FunctionConfiguration `json:"properties,omitempty"`
+	Type       string                 `json:"type"`
+}
+
+func (s BaseFunctionPropertiesImpl) FunctionProperties() BaseFunctionPropertiesImpl {
+	return s
+}
+
+var _ FunctionProperties = RawFunctionPropertiesImpl{}
+
+// RawFunctionPropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawFunctionPropertiesImpl struct {
-	Type   string
-	Values map[string]interface{}
+	functionProperties BaseFunctionPropertiesImpl
+	Type               string
+	Values             map[string]interface{}
 }
 
-func unmarshalFunctionPropertiesImplementation(input []byte) (FunctionProperties, error) {
+func (s RawFunctionPropertiesImpl) FunctionProperties() BaseFunctionPropertiesImpl {
+	return s.functionProperties
+}
+
+func UnmarshalFunctionPropertiesImplementation(input []byte) (FunctionProperties, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +50,9 @@ func unmarshalFunctionPropertiesImplementation(input []byte) (FunctionProperties
 		return nil, fmt.Errorf("unmarshaling FunctionProperties into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Aggregate") {
@@ -52,10 +71,15 @@ func unmarshalFunctionPropertiesImplementation(input []byte) (FunctionProperties
 		return out, nil
 	}
 
-	out := RawFunctionPropertiesImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseFunctionPropertiesImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseFunctionPropertiesImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawFunctionPropertiesImpl{
+		functionProperties: parent,
+		Type:               value,
+		Values:             temp,
+	}, nil
 
 }

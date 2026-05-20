@@ -49,7 +49,6 @@ func (c AssignmentClient) CreateOrUpdate(ctx context.Context, id ScopedBlueprint
 
 	var model Assignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package aadb2c
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -105,7 +105,7 @@ func (r AadB2cDirectoryResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -144,10 +144,10 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.CountryCode == "" {
-				return fmt.Errorf("`country_code` is required when creating a new AADB2C directory")
+				return errors.New("`country_code` is required when creating a new AADB2C directory")
 			}
 			if model.DisplayName == "" {
-				return fmt.Errorf("`display_name` is required when creating a new AADB2C directory")
+				return errors.New("`display_name` is required when creating a new AADB2C directory")
 			}
 
 			id := tenants.NewB2CDirectoryID(subscriptionId, model.ResourceGroup, model.DomainName)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -155,7 +155,7 @@ func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("is_online", pointer.From(props.IsOnline))
 			d.Set("path", props.Path)
 			d.Set("revision", pointer.From(props.ApiRevision))
-			d.Set("service_url", pointer.From(props.ServiceUrl))
+			d.Set("service_url", pointer.From(props.ServiceURL))
 			d.Set("soap_pass_through", pointer.From(props.Type) == api.ApiTypeSoap)
 			d.Set("subscription_required", pointer.From(props.SubscriptionRequired))
 			d.Set("version", pointer.From(props.ApiVersion))

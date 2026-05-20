@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -16,11 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -55,18 +53,13 @@ func (l LogAnalyticsClusterResource) Arguments() map[string]*schema.Schema {
 		"identity": commonschema.SystemOrUserAssignedIdentityRequiredForceNew(),
 
 		"size_gb": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default: func() int {
-				if !features.FourPointOh() {
-					return 1000
-				}
-				return 100
-			}(),
-			ValidateFunc: validation.IntInSlice([]int{100, 500, 1000, 2000, 5000}),
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      100,
+			ValidateFunc: validation.IntInSlice([]int{100, 200, 300, 400, 500, 1000, 2000, 5000, 10000, 25000, 50000}),
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -216,29 +209,20 @@ func (r LogAnalyticsClusterResource) Update() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: +%v", *id, err)
-			}
+			payload := clusters.ClusterPatch{}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `model` is nil", *id)
-			}
-
-			if props := model.Properties; props == nil {
-				return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
-			}
-
-			if metadata.ResourceData.HasChange("size_gb") && model.Sku != nil && model.Sku.Capacity != nil {
-				model.Sku.Capacity = pointer.To(clusters.Capacity(config.SizeGB))
+			if metadata.ResourceData.HasChange("size_gb") {
+				payload.Sku = &clusters.ClusterSku{
+					Capacity: pointer.To(clusters.Capacity(config.SizeGB)),
+					Name:     pointer.To(clusters.ClusterSkuNameEnumCapacityReservation),
+				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				model.Tags = pointer.To(config.Tags)
+				payload.Tags = pointer.To(config.Tags)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

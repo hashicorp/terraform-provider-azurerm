@@ -15,6 +15,14 @@ type A2ACrossClusterMigrationEnableProtectionInput struct {
 	RecoveryContainerId *string `json:"recoveryContainerId,omitempty"`
 
 	// Fields inherited from EnableProtectionProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2ACrossClusterMigrationEnableProtectionInput) EnableProtectionProviderSpecificInput() BaseEnableProtectionProviderSpecificInputImpl {
+	return BaseEnableProtectionProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2ACrossClusterMigrationEnableProtectionInput{}
@@ -28,9 +36,10 @@ func (s A2ACrossClusterMigrationEnableProtectionInput) MarshalJSON() ([]byte, er
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2ACrossClusterMigrationEnableProtectionInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2ACrossClusterMigration"
 
 	encoded, err = json.Marshal(decoded)

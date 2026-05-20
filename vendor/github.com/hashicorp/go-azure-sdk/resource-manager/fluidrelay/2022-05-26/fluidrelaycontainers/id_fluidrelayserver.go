@@ -42,7 +42,7 @@ func ParseFluidRelayServerID(input string) (*FluidRelayServerId, error) {
 	}
 
 	id := FluidRelayServerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseFluidRelayServerIDInsensitively(input string) (*FluidRelayServerId, er
 	}
 
 	id := FluidRelayServerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id FluidRelayServerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftFluidRelay", "Microsoft.FluidRelay", "Microsoft.FluidRelay"),
 		resourceids.StaticSegment("staticFluidRelayServers", "fluidRelayServers", "fluidRelayServers"),
-		resourceids.UserSpecifiedSegment("fluidRelayServerName", "fluidRelayServerValue"),
+		resourceids.UserSpecifiedSegment("fluidRelayServerName", "fluidRelayServerName"),
 	}
 }
 

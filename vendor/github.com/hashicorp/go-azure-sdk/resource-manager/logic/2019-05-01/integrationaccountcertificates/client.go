@@ -15,7 +15,7 @@ type IntegrationAccountCertificatesClient struct {
 }
 
 func NewIntegrationAccountCertificatesClientWithBaseURI(sdkApi sdkEnv.Api) (*IntegrationAccountCertificatesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "integrationaccountcertificates", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "integrationaccountcertificates", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating IntegrationAccountCertificatesClient: %+v", err)
 	}

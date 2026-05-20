@@ -49,7 +49,6 @@ func (c FirewallPoliciesClient) UpdateTags(ctx context.Context, id FirewallPolic
 
 	var model FirewallPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

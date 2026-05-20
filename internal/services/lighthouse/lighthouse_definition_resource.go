@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package lighthouse
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions"
@@ -249,9 +250,9 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	parameters := registrationdefinitions.RegistrationDefinition{
 		Plan: expandLighthouseDefinitionPlan(d.Get("plan").([]interface{})),
 		Properties: &registrationdefinitions.RegistrationDefinitionProperties{
-			Description:                utils.String(d.Get("description").(string)),
+			Description:                pointer.To(d.Get("description").(string)),
 			Authorizations:             authorizations,
-			RegistrationDefinitionName: utils.String(d.Get("name").(string)),
+			RegistrationDefinitionName: pointer.To(d.Get("name").(string)),
 			ManagedByTenantId:          d.Get("managing_tenant_id").(string),
 		},
 	}
@@ -358,7 +359,7 @@ func expandLighthouseDefinitionAuthorization(input []interface{}) []registration
 		result := registrationdefinitions.Authorization{
 			RoleDefinitionId:           v["role_definition_id"].(string),
 			PrincipalId:                v["principal_id"].(string),
-			PrincipalIdDisplayName:     utils.String(v["principal_display_name"].(string)),
+			PrincipalIdDisplayName:     pointer.To(v["principal_display_name"].(string)),
 			DelegatedRoleDefinitionIds: delegatedRoleDefinitionIds,
 		}
 		results = append(results, result)
@@ -400,8 +401,7 @@ func expandLighthouseDefinitionEligibleAuthorization(input []interface{}) *[]reg
 		return nil
 	}
 
-	var results []registrationdefinitions.EligibleAuthorization
-
+	results := make([]registrationdefinitions.EligibleAuthorization, 0, len(input))
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
@@ -412,7 +412,7 @@ func expandLighthouseDefinitionEligibleAuthorization(input []interface{}) *[]reg
 		}
 
 		if principalDisplayName := v["principal_display_name"].(string); principalDisplayName != "" {
-			result.PrincipalIdDisplayName = utils.String(principalDisplayName)
+			result.PrincipalIdDisplayName = pointer.To(principalDisplayName)
 		}
 
 		results = append(results, result)
@@ -429,7 +429,7 @@ func expandLighthouseDefinitionJustInTimeAccessPolicy(input []interface{}) *regi
 	justInTimeAccessPolicy := input[0].(map[string]interface{})
 
 	result := registrationdefinitions.JustInTimeAccessPolicy{
-		MaximumActivationDuration: utils.String(justInTimeAccessPolicy["maximum_activation_duration"].(string)),
+		MaximumActivationDuration: pointer.To(justInTimeAccessPolicy["maximum_activation_duration"].(string)),
 		ManagedByTenantApprovers:  expandLighthouseDefinitionApprover(justInTimeAccessPolicy["approver"].(*pluginsdk.Set).List()),
 	}
 
@@ -447,8 +447,7 @@ func expandLighthouseDefinitionApprover(input []interface{}) *[]registrationdefi
 		return nil
 	}
 
-	var results []registrationdefinitions.EligibleApprover
-
+	results := make([]registrationdefinitions.EligibleApprover, 0)
 	for _, v := range input {
 		eligibleApprover := v.(map[string]interface{})
 
@@ -457,7 +456,7 @@ func expandLighthouseDefinitionApprover(input []interface{}) *[]registrationdefi
 		}
 
 		if principalDisplayName := eligibleApprover["principal_display_name"].(string); principalDisplayName != "" {
-			result.PrincipalIdDisplayName = utils.String(principalDisplayName)
+			result.PrincipalIdDisplayName = pointer.To(principalDisplayName)
 		}
 
 		results = append(results, result)
@@ -471,8 +470,7 @@ func flattenLighthouseDefinitionEligibleAuthorization(input *[]registrationdefin
 		return nil
 	}
 
-	var results []interface{}
-
+	results := make([]interface{}, 0, len(*input))
 	for _, item := range *input {
 		result := map[string]interface{}{
 			"principal_id":       item.PrincipalId,
@@ -524,8 +522,7 @@ func flattenLighthouseDefinitionApprover(input *[]registrationdefinitions.Eligib
 		return nil
 	}
 
-	var results []interface{}
-
+	results := make([]interface{}, 0, len(*input))
 	for _, item := range *input {
 		result := map[string]interface{}{
 			"principal_id": item.PrincipalId,

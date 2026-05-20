@@ -15,7 +15,7 @@ type CommunicationServicesClient struct {
 }
 
 func NewCommunicationServicesClientWithBaseURI(sdkApi sdkEnv.Api) (*CommunicationServicesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "communicationservices", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "communicationservices", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CommunicationServicesClient: %+v", err)
 	}

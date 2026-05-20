@@ -13,6 +13,14 @@ var _ FabricSpecificDetails = VMmDetails{}
 type VMmDetails struct {
 
 	// Fields inherited from FabricSpecificDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s VMmDetails) FabricSpecificDetails() BaseFabricSpecificDetailsImpl {
+	return BaseFabricSpecificDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = VMmDetails{}
@@ -26,9 +34,10 @@ func (s VMmDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling VMmDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "VMM"
 
 	encoded, err = json.Marshal(decoded)

@@ -47,7 +47,6 @@ func (c AgreementsClient) MarketplaceAgreementsList(ctx context.Context, id comm
 
 	var model AgreementTermsList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

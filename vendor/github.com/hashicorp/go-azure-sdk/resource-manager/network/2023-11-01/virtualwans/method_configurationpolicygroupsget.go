@@ -45,7 +45,6 @@ func (c VirtualWANsClient) ConfigurationPolicyGroupsGet(ctx context.Context, id 
 
 	var model VpnServerConfigurationPolicyGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

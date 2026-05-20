@@ -14,6 +14,14 @@ type AzureFabricCreationInput struct {
 	Location *string `json:"location,omitempty"`
 
 	// Fields inherited from FabricSpecificCreationInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s AzureFabricCreationInput) FabricSpecificCreationInput() BaseFabricSpecificCreationInputImpl {
+	return BaseFabricSpecificCreationInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = AzureFabricCreationInput{}
@@ -27,9 +35,10 @@ func (s AzureFabricCreationInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureFabricCreationInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "Azure"
 
 	encoded, err = json.Marshal(decoded)

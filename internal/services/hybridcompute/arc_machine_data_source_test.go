@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hybridcompute_test
@@ -16,9 +16,11 @@ import (
 
 type ArcMachineDataSource struct{}
 
-const LetterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const NumberBytes = "1234567890"
-const SpecialBytes = "!@#$%^()"
+const (
+	LetterBytes  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NumberBytes  = "1234567890"
+	SpecialBytes = "!@#$%^()"
+)
 
 func generateRandomPassword(n int) string {
 	b := make([]byte, n)

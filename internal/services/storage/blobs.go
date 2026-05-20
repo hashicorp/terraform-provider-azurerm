@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -16,7 +17,7 @@ import (
 	"sync"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 type BlobUpload struct {
@@ -44,11 +45,11 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 
 	if blobType == "append" {
 		if sbu.Source != "" || sbu.SourceContent != "" || sbu.SourceUri != "" {
-			return fmt.Errorf("A source cannot be specified for an Append blob")
+			return errors.New("a source cannot be specified for an Append blob")
 		}
 
 		if sbu.ContentMD5 != "" {
-			return fmt.Errorf("`content_md5` cannot be specified for an Append blob")
+			return errors.New("`content_md5` cannot be specified for an Append blob")
 		}
 
 		return sbu.createEmptyAppendBlob(ctx)
@@ -71,7 +72,7 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 
 	if blobType == "page" {
 		if sbu.ContentMD5 != "" {
-			return fmt.Errorf("`content_md5` cannot be specified for a Page blob")
+			return errors.New("`content_md5` cannot be specified for a Page blob")
 		}
 		if sbu.SourceUri != "" {
 			return sbu.copy(ctx)
@@ -86,7 +87,7 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 		return sbu.createEmptyPageBlob(ctx)
 	}
 
-	return fmt.Errorf("Unsupported Blob Type: %q", blobType)
+	return fmt.Errorf("unsupported Blob Type: %q", blobType)
 }
 
 func (sbu BlobUpload) copy(ctx context.Context) error {
@@ -121,7 +122,7 @@ func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
 
 func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 	if sbu.ContentMD5 != "" {
-		return fmt.Errorf("`content_md5` cannot be specified for empty Block blobs")
+		return errors.New("`content_md5` cannot be specified for empty Block blobs")
 	}
 
 	input := blobs.PutBlockBlobInput{
@@ -180,7 +181,7 @@ func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 
 func (sbu BlobUpload) createEmptyPageBlob(ctx context.Context) error {
 	if sbu.Size == 0 {
-		return fmt.Errorf("`size` cannot be zero for a page blob")
+		return errors.New("`size` cannot be zero for a page blob")
 	}
 
 	input := blobs.PutPageBlobInput{
@@ -216,7 +217,7 @@ func (sbu BlobUpload) uploadPageBlobFromContent(ctx context.Context) error {
 
 func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 	if sbu.Size != 0 {
-		return fmt.Errorf("`size` cannot be set for an uploaded page blob")
+		return errors.New("`size` cannot be set for an uploaded page blob")
 	}
 
 	// determine the details about the file
@@ -230,7 +231,7 @@ func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 
 	info, err := file.Stat()
 	if err != nil {
-		return fmt.Errorf("Could not stat file %q: %s", file.Name(), err)
+		return fmt.Errorf("could not stat file %q: %s", file.Name(), err)
 	}
 
 	fileSize := info.Size()
@@ -273,7 +274,7 @@ func (sbu BlobUpload) pageUploadFromSource(ctx context.Context, file io.ReaderAt
 
 	// finally we upload the contents of said file
 	pages := make(chan storageBlobPage, len(pageList))
-	errors := make(chan error, len(pageList))
+	errs := make(chan error, len(pageList))
 	wg := &sync.WaitGroup{}
 	wg.Add(len(pageList))
 
@@ -288,15 +289,15 @@ func (sbu BlobUpload) pageUploadFromSource(ctx context.Context, file io.ReaderAt
 		go sbu.blobPageUploadWorker(ctx, blobPageUploadContext{
 			blobSize: fileSize,
 			pages:    pages,
-			errors:   errors,
+			errors:   errs,
 			wg:       wg,
 		})
 	}
 
 	wg.Wait()
 
-	if len(errors) > 0 {
-		return fmt.Errorf("while uploading source file %q: %s", sbu.Source, <-errors)
+	if len(errs) > 0 {
+		return fmt.Errorf("while uploading source file %q: %s", sbu.Source, <-errs)
 	}
 
 	return nil
@@ -328,7 +329,7 @@ func (sbu BlobUpload) storageBlobPageSplit(file io.ReaderAt, fileSize int64) ([]
 	for i := int64(0); i < blobSize; i += minPageSize {
 		pageBuf := make([]byte, minPageSize)
 		if _, err := file.ReadAt(pageBuf, i); err != nil && err != io.EOF {
-			return nil, fmt.Errorf("Could not read chunk at %d: %s", i, err)
+			return nil, fmt.Errorf("could not read chunk at %d: %s", i, err)
 		}
 
 		if bytes.Equal(pageBuf, emptyPage) {
@@ -349,7 +350,7 @@ func (sbu BlobUpload) storageBlobPageSplit(file io.ReaderAt, fileSize int64) ([]
 		}
 	}
 
-	var pages []storageBlobPage
+	pages := make([]storageBlobPage, 0, len(nonEmptyRanges))
 	for _, nonEmptyRange := range nonEmptyRanges {
 		pages = append(pages, storageBlobPage{
 			offset:  nonEmptyRange.offset,

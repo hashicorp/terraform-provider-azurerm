@@ -15,7 +15,7 @@ type VaultCertificatesClient struct {
 }
 
 func NewVaultCertificatesClientWithBaseURI(sdkApi sdkEnv.Api) (*VaultCertificatesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "vaultcertificates", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "vaultcertificates", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VaultCertificatesClient: %+v", err)
 	}

@@ -15,7 +15,7 @@ type VirtualNetworkRulesClient struct {
 }
 
 func NewVirtualNetworkRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualNetworkRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualnetworkrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualnetworkrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualNetworkRulesClient: %+v", err)
 	}

@@ -15,7 +15,7 @@ type GalleryImagesClient struct {
 }
 
 func NewGalleryImagesClientWithBaseURI(sdkApi sdkEnv.Api) (*GalleryImagesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "galleryimages", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "galleryimages", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GalleryImagesClient: %+v", err)
 	}

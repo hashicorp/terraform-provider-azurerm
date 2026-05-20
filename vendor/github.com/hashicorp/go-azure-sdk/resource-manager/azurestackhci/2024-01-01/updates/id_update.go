@@ -44,7 +44,7 @@ func ParseUpdateID(input string) (*UpdateId, error) {
 	}
 
 	id := UpdateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseUpdateIDInsensitively(input string) (*UpdateId, error) {
 	}
 
 	id := UpdateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id UpdateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAzureStackHCI", "Microsoft.AzureStackHCI", "Microsoft.AzureStackHCI"),
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
-		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
+		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticUpdates", "updates", "updates"),
-		resourceids.UserSpecifiedSegment("updateName", "updateValue"),
+		resourceids.UserSpecifiedSegment("updateName", "updateName"),
 	}
 }
 

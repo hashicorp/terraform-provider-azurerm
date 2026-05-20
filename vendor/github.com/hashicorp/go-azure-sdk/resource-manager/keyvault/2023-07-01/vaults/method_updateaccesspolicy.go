@@ -50,7 +50,6 @@ func (c VaultsClient) UpdateAccessPolicy(ctx context.Context, id OperationKindId
 
 	var model VaultAccessPolicyParameters
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

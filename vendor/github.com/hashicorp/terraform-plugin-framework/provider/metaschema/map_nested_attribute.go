@@ -6,11 +6,12 @@ package metaschema
 import (
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -18,7 +19,7 @@ var (
 	_ NestedAttribute = MapNestedAttribute{}
 )
 
-// MapNestedAttribute represents an attribute that is a set of objects where
+// MapNestedAttribute represents an attribute that is a map of objects where
 // the object attributes can be fully defined, including further nested
 // attributes. When retrieving the value for this attribute, use types.Map
 // as the value type unless the CustomType field is set. The NestedObject field
@@ -28,7 +29,7 @@ var (
 // not require definition beyond type information.
 //
 // Terraform configurations configure this attribute using expressions that
-// return a set of objects or directly via curly brace syntax.
+// return a map of objects or directly via curly brace syntax.
 //
 //	# map of objects
 //	example_attribute = {
@@ -123,7 +124,7 @@ func (a MapNestedAttribute) GetNestedObject() fwschema.NestedAttributeObject {
 	return a.NestedObject
 }
 
-// GetNestingMode always returns NestingModeList.
+// GetNestingMode always returns NestingModeMap.
 func (a MapNestedAttribute) GetNestingMode() fwschema.NestingMode {
 	return fwschema.NestingModeMap
 }
@@ -157,5 +158,23 @@ func (a MapNestedAttribute) IsRequired() bool {
 // IsSensitive always returns false as there is no plan for provider meta
 // schema data.
 func (a MapNestedAttribute) IsSensitive() bool {
+	return false
+}
+
+// IsWriteOnly returns false as write-only attributes are not relevant to provider meta schemas,
+// as these schemas describe data explicitly not saved to any artifact.
+func (a MapNestedAttribute) IsWriteOnly() bool {
+	return false
+}
+
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a MapNestedAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a MapNestedAttribute) IsOptionalForImport() bool {
 	return false
 }

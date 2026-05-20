@@ -8,6 +8,6 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CredentialSetUpdateParameters struct {
-	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
-	Properties *CredentialSetUpdateProperties     `json:"properties,omitempty"`
+	Identity   *identity.SystemAssigned       `json:"identity,omitempty"`
+	Properties *CredentialSetUpdateProperties `json:"properties,omitempty"`
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -289,7 +289,7 @@ func (r PrivateDNSResolverForwardingRuleResource) Delete() sdk.ResourceFunc {
 }
 
 func expandTargetDnsServerModel(inputList []TargetDnsServerModel) *[]forwardingrules.TargetDnsServer {
-	var outputList []forwardingrules.TargetDnsServer
+	outputList := make([]forwardingrules.TargetDnsServer, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := forwardingrules.TargetDnsServer{
@@ -304,11 +304,11 @@ func expandTargetDnsServerModel(inputList []TargetDnsServerModel) *[]forwardingr
 }
 
 func flattenTargetDnsServerModel(inputList *[]forwardingrules.TargetDnsServer) []TargetDnsServerModel {
-	var outputList []TargetDnsServerModel
 	if inputList == nil {
-		return outputList
+		return []TargetDnsServerModel{}
 	}
 
+	outputList := make([]TargetDnsServerModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := TargetDnsServerModel{
 			IPAddress: input.IPAddress,

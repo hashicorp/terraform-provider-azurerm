@@ -50,7 +50,6 @@ func (c RestorePointCollectionsClient) CreateOrUpdate(ctx context.Context, id Re
 
 	var model RestorePointCollection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

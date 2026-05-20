@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -255,7 +255,7 @@ func retreiveLogicAppTriggerCallbackUrl(d *pluginsdk.ResourceData, meta interfac
 	locks.ByName(id.WorkflowName, logicAppResourceName)
 	defer locks.UnlockByName(id.WorkflowName, logicAppResourceName)
 
-	result, err := client.TriggersClient.ListCallbackUrl(ctx, id)
+	result, err := client.TriggersClient.ListCallbackURL(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Error getting trigger callback URL (%w)", err)
 	}

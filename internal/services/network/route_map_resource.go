@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -10,12 +10,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_map -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id" -test-params "ident"
 
 type RouteMapModel struct {
 	Name         string `tfschema:"name"`
@@ -50,8 +53,15 @@ type Criterion struct {
 
 type RouteMapResource struct{}
 
-var _ sdk.ResourceWithUpdate = RouteMapResource{}
-var _ sdk.ResourceWithCustomizeDiff = RouteMapResource{}
+var (
+	_ sdk.ResourceWithIdentity      = RouteMapResource{}
+	_ sdk.ResourceWithUpdate        = RouteMapResource{}
+	_ sdk.ResourceWithCustomizeDiff = RouteMapResource{}
+)
+
+func (r RouteMapResource) Identity() resourceids.ResourceId {
+	return &virtualwans.RouteMapId{}
+}
 
 func (r RouteMapResource) ResourceType() string {
 	return "azurerm_route_map"
@@ -249,7 +259,7 @@ func (r RouteMapResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -326,6 +336,10 @@ func (r RouteMapResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
 			return metadata.Encode(&state)
 		},
 	}
@@ -375,11 +389,11 @@ func (r RouteMapResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func expandRules(input []Rule) *[]virtualwans.RouteMapRule {
-	var rules []virtualwans.RouteMapRule
 	if input == nil {
 		return nil
 	}
 
+	rules := make([]virtualwans.RouteMapRule, 0, len(input))
 	for _, v := range input {
 		rule := virtualwans.RouteMapRule{
 			Name:          pointer.To(v.Name),
@@ -398,11 +412,11 @@ func expandRules(input []Rule) *[]virtualwans.RouteMapRule {
 }
 
 func expandActions(input []Action) *[]virtualwans.Action {
-	var actions []virtualwans.Action
 	if input == nil {
 		return nil
 	}
 
+	actions := make([]virtualwans.Action, 0, len(input))
 	for _, v := range input {
 		action := virtualwans.Action{
 			Type:       pointer.To(v.Type),
@@ -416,11 +430,11 @@ func expandActions(input []Action) *[]virtualwans.Action {
 }
 
 func expandParameters(input []Parameter) *[]virtualwans.Parameter {
-	var parameters []virtualwans.Parameter
 	if input == nil {
 		return nil
 	}
 
+	parameters := make([]virtualwans.Parameter, 0, len(input))
 	for _, item := range input {
 		v := item
 		parameter := virtualwans.Parameter{}
@@ -444,11 +458,11 @@ func expandParameters(input []Parameter) *[]virtualwans.Parameter {
 }
 
 func expandCriteria(input []Criterion) *[]virtualwans.Criterion {
-	var criteria []virtualwans.Criterion
 	if input == nil {
 		return nil
 	}
 
+	criteria := make([]virtualwans.Criterion, 0, len(input))
 	for _, item := range input {
 		v := item
 		criterion := virtualwans.Criterion{
@@ -474,11 +488,11 @@ func expandCriteria(input []Criterion) *[]virtualwans.Criterion {
 }
 
 func flattenRules(input *[]virtualwans.RouteMapRule) []Rule {
-	var rules []Rule
 	if input == nil {
-		return rules
+		return []Rule{}
 	}
 
+	rules := make([]Rule, 0, len(*input))
 	for _, v := range *input {
 		rule := Rule{
 			Actions:       flattenActions(v.Actions),
@@ -500,11 +514,11 @@ func flattenRules(input *[]virtualwans.RouteMapRule) []Rule {
 }
 
 func flattenActions(input *[]virtualwans.Action) []Action {
-	var actions []Action
 	if input == nil {
-		return actions
+		return []Action{}
 	}
 
+	actions := make([]Action, 0, len(*input))
 	for _, v := range *input {
 		action := Action{
 			Parameters: flattenParameters(v.Parameters),
@@ -521,11 +535,11 @@ func flattenActions(input *[]virtualwans.Action) []Action {
 }
 
 func flattenParameters(input *[]virtualwans.Parameter) []Parameter {
-	var parameters []Parameter
 	if input == nil {
-		return parameters
+		return []Parameter{}
 	}
 
+	parameters := make([]Parameter, 0, len(*input))
 	for _, v := range *input {
 		parameter := Parameter{}
 
@@ -548,11 +562,11 @@ func flattenParameters(input *[]virtualwans.Parameter) []Parameter {
 }
 
 func flattenCriteria(input *[]virtualwans.Criterion) []Criterion {
-	var criteria []Criterion
 	if input == nil {
-		return criteria
+		return []Criterion{}
 	}
 
+	criteria := make([]Criterion, 0, len(*input))
 	for _, v := range *input {
 		criterion := Criterion{}
 

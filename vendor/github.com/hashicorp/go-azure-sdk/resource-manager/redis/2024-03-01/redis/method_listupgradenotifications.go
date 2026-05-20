@@ -39,6 +39,7 @@ func (o ListUpgradeNotificationsOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListUpgradeNotificationsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

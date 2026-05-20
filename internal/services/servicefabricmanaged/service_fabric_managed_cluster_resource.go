@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicefabricmanaged
@@ -12,15 +12,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/managedcluster"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/nodetype"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/managedcluster"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/nodetype"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomFabricSetting struct {
@@ -119,6 +119,7 @@ type ClusterResourceModel struct {
 	LBRules              []LBRule                             `tfschema:"lb_rule"`
 	NodeTypes            []NodeType                           `tfschema:"node_type"`
 	Sku                  managedcluster.SkuName               `tfschema:"sku"`
+	SubnetId             string                               `tfschema:"subnet_id"`
 	Tags                 map[string]interface{}               `tfschema:"tags"`
 	UpgradeWave          managedcluster.ClusterUpgradeCadence `tfschema:"upgrade_wave"`
 }
@@ -212,7 +213,8 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				string(managedcluster.SkuNameStandard),
 			}, false),
 		},
-		"tags": tags.Schema(),
+		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
+		"tags":      commonschema.Tags(),
 		"upgrade_wave": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -254,9 +256,9 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 			managedClusterId := managedcluster.NewManagedClusterID(subscriptionId, model.ResourceGroup, model.Name)
 			cluster := managedcluster.ManagedCluster{
 				Location:   model.Location,
-				Name:       utils.String(model.Name),
+				Name:       pointer.To(model.Name),
 				Properties: expandClusterProperties(&model),
-				Sku:        &managedcluster.Sku{Name: model.Sku},
+				Sku:        managedcluster.Sku{Name: model.Sku},
 			}
 
 			tagsMap := make(map[string]string)
@@ -396,9 +398,9 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 
 			cluster := managedcluster.ManagedCluster{
 				Location:   model.Location,
-				Name:       utils.String(model.Name),
+				Name:       pointer.To(model.Name),
 				Properties: expandClusterProperties(&model),
-				Sku: &managedcluster.Sku{
+				Sku: managedcluster.Sku{
 					Name: model.Sku,
 				},
 			}
@@ -558,11 +560,9 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 		return model
 	}
 
-	model.Name = utils.NormalizeNilableString(cluster.Name)
+	model.Name = pointer.From(cluster.Name)
 	model.Location = cluster.Location
-	if sku := cluster.Sku; sku != nil {
-		model.Sku = sku.Name
-	}
+	model.Sku = cluster.Sku.Name
 
 	properties := cluster.Properties
 	if properties == nil {
@@ -570,12 +570,14 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 	}
 
 	model.DNSName = properties.DnsName
+	model.SubnetId = pointer.From(properties.SubnetId)
 
 	if features := properties.AddonFeatures; features != nil {
 		for _, feature := range *features {
-			if feature == managedcluster.AddonFeaturesDnsService {
+			switch feature {
+			case managedcluster.ManagedClusterAddOnFeatureDnsService:
 				model.DNSService = true
-			} else if feature == managedcluster.AddonFeaturesBackupRestoreService {
+			case managedcluster.ManagedClusterAddOnFeatureBackupRestoreService:
 				model.BackupRestoreService = true
 			}
 		}
@@ -587,9 +589,9 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 		adModels := make([]ADAuthentication, 0)
 
 		adModel := ADAuthentication{}
-		adModel.ClientApp = utils.NormalizeNilableString(aad.ClientApplication)
-		adModel.ClusterApp = utils.NormalizeNilableString(aad.ClusterApplication)
-		adModel.TenantId = utils.NormalizeNilableString(aad.TenantId)
+		adModel.ClientApp = pointer.From(aad.ClientApplication)
+		adModel.ClusterApp = pointer.From(aad.ClusterApplication)
+		adModel.TenantId = pointer.From(aad.TenantId)
 
 		adModels = append(adModels, adModel)
 		model.Authentication[0].ADAuth = adModels
@@ -604,8 +606,8 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 			}
 			certs[idx] = ThumbprintAuth{
 				CertificateType: t,
-				CommonName:      utils.NormalizeNilableString(client.CommonName),
-				Thumbprint:      utils.NormalizeNilableString(client.Thumbprint),
+				CommonName:      pointer.From(client.CommonName),
+				Thumbprint:      pointer.From(client.Thumbprint),
 			}
 		}
 		if len(model.Authentication) == 0 {
@@ -628,8 +630,8 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 		model.CustomFabricSettings = cfs
 	}
 
-	model.ClientConnectionPort = utils.NormaliseNilableInt64(properties.ClientConnectionPort)
-	model.HTTPGatewayPort = utils.NormaliseNilableInt64(properties.HTTPGatewayConnectionPort)
+	model.ClientConnectionPort = pointer.From(properties.ClientConnectionPort)
+	model.HTTPGatewayPort = pointer.From(properties.HTTPGatewayConnectionPort)
 
 	if lbrules := properties.LoadBalancingRules; lbrules != nil {
 		model.LBRules = make([]LBRule, len(*lbrules))
@@ -638,7 +640,7 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 				BackendPort:      rule.BackendPort,
 				FrontendPort:     rule.FrontendPort,
 				ProbeProtocol:    rule.ProbeProtocol,
-				ProbeRequestPath: utils.NormalizeNilableString(rule.ProbeRequestPath),
+				ProbeRequestPath: pointer.From(rule.ProbeRequestPath),
 				Protocol:         rule.Protocol,
 			}
 		}
@@ -651,7 +653,12 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 	if t := cluster.Tags; t != nil {
 		modelTags := make(map[string]interface{})
 		for tag, value := range *t {
-			modelTags[tag] = value
+			// This tag is temporary and will be removed at a later date.
+			// More info can be found here https://azure.microsoft.com/en-us/updates/default-outbound-access-for-vms-in-azure-will-be-retired-transition-to-a-new-method-of-internet-access/
+			// In the meantime, we'll ignore it when setting tags into state
+			if !strings.Contains(tag, "SFRP.DisableDefaultOutboundAccess") {
+				modelTags[tag] = value
+			}
 		}
 		model.Tags = modelTags
 	}
@@ -661,20 +668,20 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 	props := nt.Properties
 	if props == nil {
-		return NodeType{Name: utils.NormalizeNilableString(nt.Name)}
+		return NodeType{Name: pointer.From(nt.Name)}
 	}
 
 	out := NodeType{
-		DataDiskSize:     nt.Properties.DataDiskSizeGB,
-		Name:             utils.NormalizeNilableString(nt.Name),
+		DataDiskSize:     pointer.From(nt.Properties.DataDiskSizeGB),
+		Name:             pointer.From(nt.Name),
 		Primary:          props.IsPrimary,
-		VmImageOffer:     utils.NormalizeNilableString(props.VMImageOffer),
-		VmImagePublisher: utils.NormalizeNilableString(props.VMImagePublisher),
-		VmImageSku:       utils.NormalizeNilableString(props.VMImageSku),
-		VmImageVersion:   utils.NormalizeNilableString(props.VMImageVersion),
+		VmImageOffer:     pointer.From(props.VMImageOffer),
+		VmImagePublisher: pointer.From(props.VMImagePublisher),
+		VmImageSku:       pointer.From(props.VMImageSku),
+		VmImageVersion:   pointer.From(props.VMImageVersion),
 		VmInstanceCount:  props.VMInstanceCount,
-		VmSize:           utils.NormalizeNilableString(props.VMSize),
-		Id:               utils.NormalizeNilableString(nt.Id),
+		VmSize:           pointer.From(props.VMSize),
+		Id:               pointer.From(nt.Id),
 	}
 
 	if appPorts := props.ApplicationPorts; appPorts != nil {
@@ -720,11 +727,11 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 			for idx, cert := range sec.VaultCertificates {
 				certs[idx] = VaultCertificates{
 					Store: cert.CertificateStore,
-					Url:   cert.CertificateUrl,
+					Url:   cert.CertificateURL,
 				}
 			}
 			secs[idx] = VmSecrets{
-				SourceVault:  utils.NormalizeNilableString(sec.SourceVault.Id),
+				SourceVault:  pointer.From(sec.SourceVault.Id),
 				Certificates: certs,
 			}
 		}
@@ -736,16 +743,16 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 func expandClusterProperties(model *ClusterResourceModel) *managedcluster.ManagedClusterProperties {
 	out := &managedcluster.ManagedClusterProperties{}
 
-	addons := make([]managedcluster.AddonFeatures, 0)
+	addons := make([]managedcluster.ManagedClusterAddOnFeature, 0)
 	if model.DNSService {
-		addons = append(addons, managedcluster.AddonFeaturesDnsService)
+		addons = append(addons, managedcluster.ManagedClusterAddOnFeatureDnsService)
 	}
 	if model.BackupRestoreService {
-		addons = append(addons, managedcluster.AddonFeaturesBackupRestoreService)
+		addons = append(addons, managedcluster.ManagedClusterAddOnFeatureBackupRestoreService)
 	}
 	out.AddonFeatures = &addons
 
-	out.AdminPassword = utils.String(model.Password)
+	out.AdminPassword = pointer.To(model.Password)
 	out.AdminUserName = model.Username
 
 	out.DnsName = model.Name
@@ -753,13 +760,17 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 		out.DnsName = model.DNSName
 	}
 
+	if v := model.SubnetId; v != "" {
+		out.SubnetId = pointer.To(v)
+	}
+
 	if auth := model.Authentication; len(auth) > 0 {
 		if adAuth := auth[0].ADAuth; len(adAuth) > 0 {
 			if adAuth[0].ClientApp != "" && adAuth[0].ClusterApp != "" && adAuth[0].TenantId != "" {
 				out.AzureActiveDirectory = &managedcluster.AzureActiveDirectory{
-					ClientApplication:  utils.String(adAuth[0].ClientApp),
-					ClusterApplication: utils.String(adAuth[0].ClusterApp),
-					TenantId:           utils.String(adAuth[0].TenantId),
+					ClientApplication:  pointer.To(adAuth[0].ClientApp),
+					ClusterApplication: pointer.To(adAuth[0].ClusterApp),
+					TenantId:           pointer.To(adAuth[0].TenantId),
 				}
 			}
 		}
@@ -767,9 +778,9 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 			clients := make([]managedcluster.ClientCertificate, len(certs))
 			for idx, cert := range certs {
 				clients[idx] = managedcluster.ClientCertificate{
-					CommonName: utils.String(cert.CommonName),
+					CommonName: pointer.To(cert.CommonName),
 					IsAdmin:    cert.CertificateType == CertTypeAdmin,
-					Thumbprint: utils.String(cert.Thumbprint),
+					Thumbprint: pointer.To(cert.Thumbprint),
 				}
 			}
 			out.Clients = &clients
@@ -812,7 +823,7 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 				BackendPort:      rule.BackendPort,
 				FrontendPort:     rule.FrontendPort,
 				ProbeProtocol:    rule.ProbeProtocol,
-				ProbeRequestPath: utils.String(rule.ProbeRequestPath),
+				ProbeRequestPath: pointer.To(rule.ProbeRequestPath),
 				Protocol:         rule.Protocol,
 			}
 
@@ -849,7 +860,7 @@ func expandNodeTypeProperties(nt *NodeType) (*nodetype.NodeTypeProperties, error
 		for cidx, cert := range secret.Certificates {
 			vcs[cidx] = nodetype.VaultCertificate{
 				CertificateStore: cert.Store,
-				CertificateUrl:   cert.Url,
+				CertificateURL:   cert.Url,
 			}
 		}
 		vmSecrets[idx] = nodetype.VaultSecretGroup{
@@ -873,7 +884,7 @@ func expandNodeTypeProperties(nt *NodeType) (*nodetype.NodeTypeProperties, error
 			StartPort: appFrom,
 		},
 		Capacities:     &nt.Capacities,
-		DataDiskSizeGB: nt.DataDiskSize,
+		DataDiskSizeGB: &nt.DataDiskSize,
 		DataDiskType:   &nt.DataDiskType,
 		EphemeralPorts: &nodetype.EndpointRangeDescription{
 			EndPort:   ephemeralTo,

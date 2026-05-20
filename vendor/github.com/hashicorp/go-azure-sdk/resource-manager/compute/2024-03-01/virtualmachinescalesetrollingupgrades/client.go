@@ -15,7 +15,7 @@ type VirtualMachineScaleSetRollingUpgradesClient struct {
 }
 
 func NewVirtualMachineScaleSetRollingUpgradesClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualMachineScaleSetRollingUpgradesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualmachinescalesetrollingupgrades", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualmachinescalesetrollingupgrades", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualMachineScaleSetRollingUpgradesClient: %+v", err)
 	}

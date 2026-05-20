@@ -9,6 +9,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -16,6 +17,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -288,6 +291,8 @@ func (r *Response) Unmarshal(model interface{}) error {
 	return fmt.Errorf("internal-error: unimplemented unmarshal function for content type %q", contentType)
 }
 
+var _ BaseClient = &Client{}
+
 // Client is a base client to be used by API-specific clients. It satisfies the BaseClient interface.
 type Client struct {
 	// BaseUri is the base endpoint for this API.
@@ -316,6 +321,10 @@ type Client struct {
 
 	// ResponseMiddlewares is a slice of functions that are called in order before a response is parsed and returned
 	ResponseMiddlewares *[]ResponseMiddleware
+
+	// Transport allows overriding the http.RoundTripper used by the client.
+	// When nil, a default transport will be used.
+	Transport http.RoundTripper
 }
 
 // NewClient returns a new Client configured with sensible defaults
@@ -330,9 +339,78 @@ func NewClient(baseUri string, serviceName, apiVersion string) *Client {
 	}
 }
 
+// SetTransport configures the transport to be used by the client
+func (c *Client) SetTransport(transport http.RoundTripper) {
+	c.Transport = transport
+}
+
 // SetAuthorizer configures the request authorizer for the client
 func (c *Client) SetAuthorizer(authorizer auth.Authorizer) {
 	c.Authorizer = authorizer
+}
+
+// IsVcrReplaying returns true if the provided transport appears to be a VCR recorder in replay mode.
+func IsVcrReplaying(transport http.RoundTripper) bool {
+	if transport == nil {
+		return false
+	}
+
+	// We use reflection to avoid a hard dependency on the go-vcr package in the SDK.
+	// We check for "recorder" in the type name and then attempt to call the Mode() method.
+	t := reflect.TypeOf(transport)
+	if !strings.Contains(strings.ToLower(t.String()), "recorder") {
+		return false
+	}
+
+	v := reflect.ValueOf(transport)
+	// If it's a pointer, get the underlying value (MethodByName works on both)
+	modeMethod := v.MethodByName("Mode")
+	if !modeMethod.IsValid() {
+		return false
+	}
+
+	results := modeMethod.Call(nil)
+	if len(results) != 1 {
+		return false
+	}
+
+	// Mode is normally an int (or an alias of int).
+	// In go-vcr v1/v2, ModeReplay is 1.
+	// In go-vcr v3/v4, ModeReplayOnly is 1 and ModeReplayWithNewEpisodes is 2.
+	// Support for RecordOnce (3) mode: skip only if cassette is NOT new.
+	if results[0].Kind() == reflect.Int {
+		mode := results[0].Int()
+		if mode == 1 || mode == 2 {
+			return true
+		}
+
+		if mode == 3 {
+			// use reflection to get the unexported cassette field
+			v := reflect.ValueOf(transport)
+			if v.Kind() == reflect.Ptr {
+				v = v.Elem()
+			}
+			if v.Kind() == reflect.Struct {
+				cassetteField := v.FieldByName("cassette")
+				if cassetteField.IsValid() {
+					cassette := cassetteField
+					if cassette.Kind() == reflect.Ptr && !cassette.IsNil() {
+						cassette = cassette.Elem()
+					}
+
+					if cassette.Kind() == reflect.Struct {
+						isNewField := cassette.FieldByName("IsNew")
+						if isNewField.IsValid() && isNewField.Kind() == reflect.Bool {
+							// If the cassette is NOT new, we are replaying
+							return !isNewField.Bool()
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return false
 }
 
 // SetUserAgent configures the user agent to be included in requests
@@ -392,7 +470,7 @@ func (c *Client) NewRequest(ctx context.Context, input RequestOptions) (*Request
 		req.Header.Add("X-Ms-Correlation-Request-Id", c.CorrelationId)
 	}
 
-	path := strings.TrimPrefix(input.Path, "/")
+	path := strings.TrimLeft(input.Path, "/")
 	u, err := url.ParseRequestURI(fmt.Sprintf("%s/%s", c.BaseUri, path))
 	if err != nil {
 		return nil, err
@@ -443,16 +521,8 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 	// Instantiate a RetryableHttp client and configure its CheckRetry func
 	r := c.retryableClient(ctx, func(ctx context.Context, r *http.Response, err error) (bool, error) {
-		// First check for badly malformed responses
-		if r == nil {
-			if req.IsIdempotent() {
-				return true, nil
-			}
-			return false, fmt.Errorf("HTTP response was nil; connection may have been reset")
-		}
-
 		// Eventual consistency checks
-		if !c.DisableRetries {
+		if r != nil && !c.DisableRetries {
 			if r.StatusCode == http.StatusFailedDependency {
 				return true, nil
 			}
@@ -472,6 +542,19 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 					return shouldRetry, err
 				}
 			}
+		}
+
+		// Check for failed connections etc and decide if retries are appropriate
+		if r == nil {
+			if req.IsIdempotent() {
+				if !isResourceManagerHost(req) {
+					return extendedRetryPolicy(r, err)
+				}
+
+				return retryablehttp.DefaultRetryPolicy(ctx, r, err)
+			}
+
+			return false, fmt.Errorf("HTTP response was nil; connection may have been reset")
 		}
 
 		// Fall back to default retry policy to handle rate limiting, server errors etc.
@@ -511,6 +594,11 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 			}
 			resp.Response = r
 		}
+	}
+
+	// If we're running with a VCR transport in REPLAY mode, we mark the response so that the poller knows to skip the delay
+	if IsVcrReplaying(c.Transport) {
+		resp.Header.Add("X-Go-Azure-SDK-Skip-Polling-Delay", "true")
 	}
 
 	// Extract OData from response, intentionally ignoring any errors as it's not crucial to extract
@@ -615,7 +703,7 @@ func (c *Client) ExecutePaged(ctx context.Context, req *Request) (*Response, err
 			return resp, err
 		}
 	}
-	if nextLink == nil {
+	if nextLink == nil || string(*nextLink) == "" {
 		// This is the last page
 		return resp, nil
 	}
@@ -692,34 +780,54 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 	r.RetryWaitMin = 1 * time.Second
 	r.RetryWaitMax = 61 * time.Second
 
+	// The default backoff results into the following formula T(n):
+	// ("t" repr. total time in sec, "n" repr. total retry count):
+	// - t = 2**(n+1) - 1 				(0<=n<6)
+	// - t = (1+2+4+8+16+32) + 61*(n-6) (n>6)
+	// This results into the following N(t) (by guaranteeing T(n) <= t):
+	// - n = floor(log(t+1)) - 1 		(0<=t<=63)
+	// - n = (t - 63)/61 + 6 			(t > 63)
+	safeRetryNumber := func(t time.Duration) int {
+		sec := t.Seconds()
+		if sec <= 63 {
+			return int(math.Floor(math.Log2(sec+1))) - 1
+		}
+		return (int(sec)-63)/61 + 6
+	}
+
 	// Default RetryMax of 16 takes approx 10 minutes to iterate
 	r.RetryMax = 16
 
-	// Extend the RetryMax if the context timeout exceeds 10 minutes
+	// In case the context has deadline defined, adjust the retry count to a value
+	// that the total time spent for retrying is right before the deadline exceeded.
 	if deadline, ok := ctx.Deadline(); ok {
-		if timeout := deadline.Sub(time.Now()); timeout > 10*time.Minute {
-			r.RetryMax = int(math.Round(timeout.Minutes())) + 6
-		}
+		r.RetryMax = safeRetryNumber(time.Until(deadline))
 	}
 
-	tlsConfig := tls.Config{
-		MinVersion: tls.VersionTLS12,
-	}
-	r.HTTPClient = &http.Client{
-		Transport: &http.Transport{
+	var transport http.RoundTripper
+	if c.Transport != nil {
+		transport = c.Transport
+	} else {
+		transport = &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				d := &net.Dialer{Resolver: &net.Resolver{}}
 				return d.DialContext(ctx, network, addr)
 			},
-			TLSClientConfig:       &tlsConfig,
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12,
+			},
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 			ForceAttemptHTTP2:     true,
 			MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
-		},
+		}
+	}
+
+	r.HTTPClient = &http.Client{
+		Transport: transport,
 	}
 
 	return
@@ -730,6 +838,115 @@ func containsStatusCode(expected []int, actual int) bool {
 	for _, v := range expected {
 		if actual == v {
 			return true
+		}
+	}
+
+	return false
+}
+
+// extendedRetryPolicy extends the defaultRetryPolicy implementation in go-retryablehhtp with
+// additional error conditions that should not be retried indefinitely
+// TODO - This should be removed as part of 5.0 release of AzureRM, and the base layer returned to the `retryablehttp.DefaultRetryPolicy` for all requests.
+func extendedRetryPolicy(resp *http.Response, err error) (bool, error) {
+	// A regular expression to match the error returned by net/http when the
+	// configured number of redirects is exhausted. This error isn't typed
+	// specifically so we resort to matching on the error string.
+	redirectsErrorRe := regexp.MustCompile(`stopped after \d+ redirects\z`)
+
+	// A regular expression to match the error returned by net/http when the
+	// scheme specified in the URL is invalid. This error isn't typed
+	// specifically so we resort to matching on the error string.
+	schemeErrorRe := regexp.MustCompile(`unsupported protocol scheme`)
+
+	// A regular expression to match the error returned by net/http when a
+	// request header or value is invalid. This error isn't typed
+	// specifically so we resort to matching on the error string.
+	invalidHeaderErrorRe := regexp.MustCompile(`invalid header`)
+
+	// A regular expression to match the error returned by net/http when the
+	// TLS certificate is not trusted. This error isn't typed
+	// specifically so we resort to matching on the error string.
+	notTrustedErrorRe := regexp.MustCompile(`certificate is not trusted`)
+
+	// A regular expression to catch dial timeouts in the underlying TCP session
+	// connection
+	tcpDialTCPRe := regexp.MustCompile(`dial tcp`)
+
+	// A regular expression to match complete packet loss
+	completePacketLossRe := regexp.MustCompile(`EOF`)
+
+	if err != nil {
+		var v *url.Error
+		if errors.As(err, &v) {
+			// Don't retry if the error was due to too many redirects.
+			if redirectsErrorRe.MatchString(v.Error()) {
+				return false, v
+			}
+
+			// Don't retry if the error was due to an invalid protocol scheme.
+			if schemeErrorRe.MatchString(v.Error()) {
+				return false, v
+			}
+
+			// Don't retry if the error was due to an invalid header.
+			if invalidHeaderErrorRe.MatchString(v.Error()) {
+				return false, v
+			}
+
+			// Don't retry if the error was due to TLS cert verification failure.
+			if notTrustedErrorRe.MatchString(v.Error()) {
+				return false, v
+			}
+
+			if tcpDialTCPRe.MatchString(v.Error()) {
+				return false, v
+			}
+
+			if completePacketLossRe.MatchString(v.Error()) {
+				return false, v
+			}
+
+			var certificateVerificationError *tls.CertificateVerificationError
+			if ok := errors.As(v.Err, &certificateVerificationError); ok {
+				return false, v
+			}
+		}
+
+		// The error is likely recoverable so retry.
+		return true, nil
+	}
+
+	// 429 Too Many Requests is recoverable. Sometimes the server puts
+	// a Retry-After response header to indicate when the server is
+	// available to start processing request from client.
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return true, nil
+	}
+
+	// Check the response code. We retry on 500-range responses to allow
+	// the server time to recover, as 500's are typically not permanent
+	// errors and may relate to outages on the server side. This will catch
+	// invalid response codes as well, like 0 and 999.
+	if resp.StatusCode == 0 || (resp.StatusCode >= 500 && resp.StatusCode != http.StatusNotImplemented) {
+		return true, fmt.Errorf("unexpected HTTP status %s", resp.Status)
+	}
+
+	return false, nil
+}
+
+// exclude Resource Manager calls from the network failure retry avoidance to help users on unreliable networks
+// This code path should be removed when the Data Plane separation work is completed and 5.0 ships.
+func isResourceManagerHost(req *Request) bool {
+	knownResourceManagerHosts := []string{
+		"management.azure.com",
+		"management.chinacloudapi.cn",
+		"management.usgovcloudapi.net",
+	}
+	if url := req.Request.URL; url != nil {
+		for _, host := range knownResourceManagerHosts {
+			if strings.Contains(url.Host, host) {
+				return true
+			}
 		}
 	}
 

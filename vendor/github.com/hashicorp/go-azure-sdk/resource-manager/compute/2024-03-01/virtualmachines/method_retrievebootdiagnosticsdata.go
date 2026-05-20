@@ -34,6 +34,7 @@ func (o RetrieveBootDiagnosticsDataOperationOptions) ToHeaders() *client.Headers
 
 func (o RetrieveBootDiagnosticsDataOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c VirtualMachinesClient) RetrieveBootDiagnosticsData(ctx context.Context, 
 
 	var model RetrieveBootDiagnosticsDataResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

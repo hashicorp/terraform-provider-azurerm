@@ -46,7 +46,6 @@ func (c VirtualMachineImagesClient) ListOffers(ctx context.Context, id Publisher
 
 	var model []VirtualMachineImageResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

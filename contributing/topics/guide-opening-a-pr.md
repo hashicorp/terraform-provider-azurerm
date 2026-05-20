@@ -8,7 +8,7 @@ If you are ever unsure please just reach out, we are more than happy to guide yo
 
 ## Considerations
 
-As a general rule, the smaller the PR the quicker it's merged - as such when upgrading an SDK and introducing new properties we'd ask that you split that into multiple smaller PR's, for example if you were planning on updating an SDK to add a new resource and update an existing one we would prefer `3` separate PRs:
+As a general rule, the smaller the PR the quicker it's merged - as such when upgrading an SDK and introducing new properties we'd ask that you split that into multiple smaller PRs, for example if you were planning on updating an SDK to add a new resource and update an existing one we would prefer `3` separate PRs:
 
 1. Update the Cosmos DB SDK to use API Version `2022-02-02` from `2020-01-01`.
 2. Add the new property `new_feature` to the `azurerm_cosmosdb_*` resources.
@@ -43,10 +43,12 @@ In general, Pull Requests which add/change either code or SDK's go through the f
 
 ## What makes a good PR?
 
-* Don't send the PR from your `main` branch.
+* Don't change your forked repo's `main` branch, instead, make a feature branch.
 * The PR Title is obvious/clear about what it's changing (see `Title` below).
 * The PR Body contains a summary of what/why is included (see `Body` below).
 * any linked Issues (see `Body` below)
+* Avoid force pushing - it removes commit history and forces reviewers to re-review everything
+* Reply to every reviewer comment and only mark it as resolved if you are 100% sure it has been resolved, such as "remove this comment" and you have removed it.
 
 ### Title
 
@@ -56,7 +58,7 @@ Examples of good PR titles:
 
 - `azurerm_storage_management_policy - Mark rule.filters.blob_type as required`
 - `azurerm_container_registry - support updating replications on demand`
-- `azurerm_automation_account - support for the encrytion, local_authentication_enabled, and tags properties`
+- `azurerm_automation_account - support for the encryption, local_authentication_enabled, and tags properties`
 - `Data Source: azurerm_automation_account - prevent panic (#15474) by adding a nil check`
 - `Upgrade bot API version from 2021-03-01 to 2021-05-01-preview`
 - `New Resource: azurerm_managed_disk_sas_token`
@@ -133,7 +135,7 @@ Example:
 - [ ] New Feature
 
 
-> [!NOTE] If this PR changes meaningfully during the course of review please update the title and description as required.
+> **Note:** If this PR changes meaningfully during the course of review please update the title and description as required.
 
 
 

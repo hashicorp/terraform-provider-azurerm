@@ -45,7 +45,6 @@ func (c MachineExtensionsClient) Get(ctx context.Context, id ExtensionId) (resul
 
 	var model MachineExtension
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

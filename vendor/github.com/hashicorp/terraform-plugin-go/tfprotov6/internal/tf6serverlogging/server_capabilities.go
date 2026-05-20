@@ -14,11 +14,13 @@ import (
 func ServerCapabilities(ctx context.Context, capabilities *tfprotov6.ServerCapabilities) {
 	responseFields := map[string]interface{}{
 		logging.KeyServerCapabilityGetProviderSchemaOptional: false,
+		logging.KeyServerCapabilityMoveResourceState:         false,
 		logging.KeyServerCapabilityPlanDestroy:               false,
 	}
 
 	if capabilities != nil {
 		responseFields[logging.KeyServerCapabilityGetProviderSchemaOptional] = capabilities.GetProviderSchemaOptional
+		responseFields[logging.KeyServerCapabilityMoveResourceState] = capabilities.MoveResourceState
 		responseFields[logging.KeyServerCapabilityPlanDestroy] = capabilities.PlanDestroy
 	}
 

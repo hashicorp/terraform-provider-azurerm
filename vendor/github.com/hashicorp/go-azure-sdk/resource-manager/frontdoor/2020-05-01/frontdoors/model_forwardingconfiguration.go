@@ -17,6 +17,14 @@ type ForwardingConfiguration struct {
 	ForwardingProtocol   *FrontDoorForwardingProtocol `json:"forwardingProtocol,omitempty"`
 
 	// Fields inherited from RouteConfiguration
+
+	OdataType string `json:"@odata.type"`
+}
+
+func (s ForwardingConfiguration) RouteConfiguration() BaseRouteConfigurationImpl {
+	return BaseRouteConfigurationImpl{
+		OdataType: s.OdataType,
+	}
 }
 
 var _ json.Marshaler = ForwardingConfiguration{}
@@ -30,9 +38,10 @@ func (s ForwardingConfiguration) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ForwardingConfiguration: %+v", err)
 	}
+
 	decoded["@odata.type"] = "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration"
 
 	encoded, err = json.Marshal(decoded)

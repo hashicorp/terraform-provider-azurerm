@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -25,9 +25,10 @@ func RedisEnterpriseClusterLocationFlashSkuSupport(input string) error {
 }
 
 func invalidRedisEnterpriseClusterFlashLocations() []string {
-	var validFlash []string
+	locations := friendlyInvalidRedisEnterpriseClusterFlashLocations()
+	validFlash := make([]string, 0, len(locations))
 
-	for _, v := range friendlyInvalidRedisEnterpriseClusterFlashLocations() {
+	for _, v := range locations {
 		validFlash = append(validFlash, location.Normalize(v))
 	}
 

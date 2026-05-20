@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -26,7 +27,7 @@ import (
 
 func resourceStaticSite() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: "This resource has been deprecated in favour of `azurerm_static_web_app` and will be removed in a future release.",
+		DeprecationMessage: "This resource has been deprecated in favour of `azurerm_static_web_app` and will be removed in v5.0 of the AzureRM provider.",
 		Create:             resourceStaticSiteCreateOrUpdate,
 		Read:               resourceStaticSiteRead,
 		Update:             resourceStaticSiteCreateOrUpdate,
@@ -96,13 +97,13 @@ func resourceStaticSite() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.StaticSitesClient
+	client := meta.(*clients.Client).Web.StaticSitesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,7 +142,7 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 	siteEnvelope := web.StaticSiteARMResource{
 		Sku: &web.SkuDescription{
 			Name: &skuName,
-			Tier: utils.String(d.Get("sku_tier").(string)),
+			Tier: pointer.To(d.Get("sku_tier").(string)),
 		},
 		StaticSite: &web.StaticSite{},
 		Location:   &loc,
@@ -173,7 +174,7 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.StaticSitesClient
+	client := meta.(*clients.Client).Web.StaticSitesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -248,7 +249,7 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceStaticSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.StaticSitesClient
+	client := meta.(*clients.Client).Web.StaticSitesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -324,7 +325,7 @@ func expandStaticSiteAppSettings(d *pluginsdk.ResourceData) map[string]*string {
 	output := make(map[string]*string, len(input))
 
 	for k, v := range input {
-		output[k] = utils.String(v.(string))
+		output[k] = pointer.To(v.(string))
 	}
 
 	return output

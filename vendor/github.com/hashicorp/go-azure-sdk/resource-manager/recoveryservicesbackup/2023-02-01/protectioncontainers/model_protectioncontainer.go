@@ -10,18 +10,40 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ProtectionContainer interface {
+	ProtectionContainer() BaseProtectionContainerImpl
 }
 
-// RawProtectionContainerImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ ProtectionContainer = BaseProtectionContainerImpl{}
+
+type BaseProtectionContainerImpl struct {
+	BackupManagementType  *BackupManagementType    `json:"backupManagementType,omitempty"`
+	ContainerType         ProtectableContainerType `json:"containerType"`
+	FriendlyName          *string                  `json:"friendlyName,omitempty"`
+	HealthStatus          *string                  `json:"healthStatus,omitempty"`
+	ProtectableObjectType *string                  `json:"protectableObjectType,omitempty"`
+	RegistrationStatus    *string                  `json:"registrationStatus,omitempty"`
+}
+
+func (s BaseProtectionContainerImpl) ProtectionContainer() BaseProtectionContainerImpl {
+	return s
+}
+
+var _ ProtectionContainer = RawProtectionContainerImpl{}
+
+// RawProtectionContainerImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawProtectionContainerImpl struct {
-	Type   string
-	Values map[string]interface{}
+	protectionContainer BaseProtectionContainerImpl
+	Type                string
+	Values              map[string]interface{}
 }
 
-func unmarshalProtectionContainerImplementation(input []byte) (ProtectionContainer, error) {
+func (s RawProtectionContainerImpl) ProtectionContainer() BaseProtectionContainerImpl {
+	return s.protectionContainer
+}
+
+func UnmarshalProtectionContainerImplementation(input []byte) (ProtectionContainer, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +53,9 @@ func unmarshalProtectionContainerImplementation(input []byte) (ProtectionContain
 		return nil, fmt.Errorf("unmarshaling ProtectionContainer into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["containerType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["containerType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AzureBackupServerContainer") {
@@ -132,10 +154,15 @@ func unmarshalProtectionContainerImplementation(input []byte) (ProtectionContain
 		return out, nil
 	}
 
-	out := RawProtectionContainerImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseProtectionContainerImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseProtectionContainerImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawProtectionContainerImpl{
+		protectionContainer: parent,
+		Type:                value,
+		Values:              temp,
+	}, nil
 
 }

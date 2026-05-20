@@ -49,7 +49,6 @@ func (c HubsClient) NotificationHubsUpdate(ctx context.Context, id NotificationH
 
 	var model NotificationHubResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

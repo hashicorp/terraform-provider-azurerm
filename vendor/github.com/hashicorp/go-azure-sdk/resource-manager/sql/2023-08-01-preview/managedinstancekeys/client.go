@@ -15,7 +15,7 @@ type ManagedInstanceKeysClient struct {
 }
 
 func NewManagedInstanceKeysClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagedInstanceKeysClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managedinstancekeys", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managedinstancekeys", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagedInstanceKeysClient: %+v", err)
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maintenance
@@ -258,11 +258,9 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-
 				state.Name = id.ConfigurationAssignmentName
 
 				if properties := model.Properties; properties != nil {
-
 					if properties.MaintenanceConfigurationId != nil {
 						maintenanceConfigurationId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(pointer.From(properties.MaintenanceConfigurationId))
 						if err != nil {

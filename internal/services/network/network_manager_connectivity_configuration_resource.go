@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/connectivityconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/connectivityconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerConnectivityConfigurationModel struct {
@@ -249,7 +249,7 @@ func (r ManagerConnectivityConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				properties.Description = utils.String(model.Description)
+				properties.Description = pointer.To(model.Description)
 			}
 
 			if metadata.ResourceData.HasChange("hub") {
@@ -328,7 +328,7 @@ func (r ManagerConnectivityConfigurationResource) Delete() sdk.ResourceFunc {
 			}
 
 			err = client.DeleteThenPoll(ctx, *id, connectivityconfigurations.DeleteOperationOptions{
-				Force: utils.Bool(true),
+				Force: pointer.To(true),
 			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
@@ -356,7 +356,7 @@ func expandConnectivityConfIsGlobal(input bool) *connectivityconfigurations.IsGl
 }
 
 func expandConnectivityGroupItemModel(inputList []ConnectivityGroupItemModel) []connectivityconfigurations.ConnectivityGroupItem {
-	var outputList []connectivityconfigurations.ConnectivityGroupItem
+	outputList := make([]connectivityconfigurations.ConnectivityGroupItem, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := connectivityconfigurations.ConnectivityGroupItem{
@@ -381,12 +381,12 @@ func expandUseHubGateWay(input bool) *connectivityconfigurations.UseHubGateway {
 }
 
 func expandHubModel(inputList []HubModel) *[]connectivityconfigurations.Hub {
-	var outputList []connectivityconfigurations.Hub
+	outputList := make([]connectivityconfigurations.Hub, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := connectivityconfigurations.Hub{
-			ResourceId:   utils.String(input.ResourceId),
-			ResourceType: utils.String(input.ResourceType),
+			ResourceId:   pointer.To(input.ResourceId),
+			ResourceType: pointer.To(input.ResourceType),
 		}
 
 		outputList = append(outputList, output)
@@ -410,8 +410,7 @@ func flattenConnectivityConfIsGlobal(input *connectivityconfigurations.IsGlobal)
 }
 
 func flattenConnectivityGroupItemModel(inputList []connectivityconfigurations.ConnectivityGroupItem) []ConnectivityGroupItemModel {
-	var outputList []ConnectivityGroupItemModel
-
+	outputList := make([]ConnectivityGroupItemModel, 0, len(inputList))
 	for _, input := range inputList {
 		output := ConnectivityGroupItemModel{
 			GroupConnectivity: input.GroupConnectivity,
@@ -434,11 +433,11 @@ func flattenUseHubGateWay(input *connectivityconfigurations.UseHubGateway) bool 
 }
 
 func flattenHubModel(inputList *[]connectivityconfigurations.Hub) []HubModel {
-	var outputList []HubModel
 	if inputList == nil {
-		return outputList
+		return []HubModel{}
 	}
 
+	outputList := make([]HubModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := HubModel{}
 

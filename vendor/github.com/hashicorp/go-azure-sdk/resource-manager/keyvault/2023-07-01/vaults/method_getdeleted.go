@@ -45,7 +45,6 @@ func (c VaultsClient) GetDeleted(ctx context.Context, id DeletedVaultId) (result
 
 	var model DeletedVault
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

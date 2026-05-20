@@ -15,7 +15,7 @@ type PublishersClient struct {
 }
 
 func NewPublishersClientWithBaseURI(sdkApi sdkEnv.Api) (*PublishersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "publishers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "publishers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PublishersClient: %+v", err)
 	}

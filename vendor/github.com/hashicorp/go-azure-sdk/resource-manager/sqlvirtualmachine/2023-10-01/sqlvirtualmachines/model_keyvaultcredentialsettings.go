@@ -4,7 +4,7 @@ package sqlvirtualmachines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type KeyVaultCredentialSettings struct {
-	AzureKeyVaultUrl       *string `json:"azureKeyVaultUrl,omitempty"`
+	AzureKeyVaultURL       *string `json:"azureKeyVaultUrl,omitempty"`
 	CredentialName         *string `json:"credentialName,omitempty"`
 	Enable                 *bool   `json:"enable,omitempty"`
 	ServicePrincipalName   *string `json:"servicePrincipalName,omitempty"`

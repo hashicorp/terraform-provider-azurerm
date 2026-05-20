@@ -20,11 +20,24 @@ type MabContainer struct {
 	ProtectedItemCount        *int64                       `json:"protectedItemCount,omitempty"`
 
 	// Fields inherited from ProtectionContainer
-	BackupManagementType  *BackupManagementType `json:"backupManagementType,omitempty"`
-	FriendlyName          *string               `json:"friendlyName,omitempty"`
-	HealthStatus          *string               `json:"healthStatus,omitempty"`
-	ProtectableObjectType *string               `json:"protectableObjectType,omitempty"`
-	RegistrationStatus    *string               `json:"registrationStatus,omitempty"`
+
+	BackupManagementType  *BackupManagementType    `json:"backupManagementType,omitempty"`
+	ContainerType         ProtectableContainerType `json:"containerType"`
+	FriendlyName          *string                  `json:"friendlyName,omitempty"`
+	HealthStatus          *string                  `json:"healthStatus,omitempty"`
+	ProtectableObjectType *string                  `json:"protectableObjectType,omitempty"`
+	RegistrationStatus    *string                  `json:"registrationStatus,omitempty"`
+}
+
+func (s MabContainer) ProtectionContainer() BaseProtectionContainerImpl {
+	return BaseProtectionContainerImpl{
+		BackupManagementType:  s.BackupManagementType,
+		ContainerType:         s.ContainerType,
+		FriendlyName:          s.FriendlyName,
+		HealthStatus:          s.HealthStatus,
+		ProtectableObjectType: s.ProtectableObjectType,
+		RegistrationStatus:    s.RegistrationStatus,
+	}
 }
 
 var _ json.Marshaler = MabContainer{}
@@ -38,9 +51,10 @@ func (s MabContainer) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling MabContainer: %+v", err)
 	}
+
 	decoded["containerType"] = "Windows"
 
 	encoded, err = json.Marshal(decoded)

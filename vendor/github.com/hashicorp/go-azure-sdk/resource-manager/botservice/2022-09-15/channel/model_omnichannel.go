@@ -13,9 +13,20 @@ var _ Channel = Omnichannel{}
 type Omnichannel struct {
 
 	// Fields inherited from Channel
+
+	ChannelName       string  `json:"channelName"`
 	Etag              *string `json:"etag,omitempty"`
 	Location          *string `json:"location,omitempty"`
 	ProvisioningState *string `json:"provisioningState,omitempty"`
+}
+
+func (s Omnichannel) Channel() BaseChannelImpl {
+	return BaseChannelImpl{
+		ChannelName:       s.ChannelName,
+		Etag:              s.Etag,
+		Location:          s.Location,
+		ProvisioningState: s.ProvisioningState,
+	}
 }
 
 var _ json.Marshaler = Omnichannel{}
@@ -29,9 +40,10 @@ func (s Omnichannel) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling Omnichannel: %+v", err)
 	}
+
 	decoded["channelName"] = "Omnichannel"
 
 	encoded, err = json.Marshal(decoded)

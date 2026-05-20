@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners` Documentation
 
-The `availabilitygrouplisteners` SDK allows for interaction with the Azure Resource Manager Service `sqlvirtualmachine` (API Version `2023-10-01`).
+The `availabilitygrouplisteners` SDK allows for interaction with Azure Resource Manager `sqlvirtualmachine` (API Version `2023-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := availabilitygrouplisteners.NewAvailabilityGroupListenerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupValue", "availabilityGroupListenerValue")
+id := availabilitygrouplisteners.NewAvailabilityGroupListenerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupName", "availabilityGroupListenerName")
 
 payload := availabilitygrouplisteners.AvailabilityGroupListener{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := availabilitygrouplisteners.NewAvailabilityGroupListenerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupValue", "availabilityGroupListenerValue")
+id := availabilitygrouplisteners.NewAvailabilityGroupListenerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupName", "availabilityGroupListenerName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := availabilitygrouplisteners.NewAvailabilityGroupListenerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupValue", "availabilityGroupListenerValue")
+id := availabilitygrouplisteners.NewAvailabilityGroupListenerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupName", "availabilityGroupListenerName")
 
 read, err := client.Get(ctx, id, availabilitygrouplisteners.DefaultGetOperationOptions())
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := availabilitygrouplisteners.NewSqlVirtualMachineGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupValue")
+id := availabilitygrouplisteners.NewSqlVirtualMachineGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupName")
 
 // alternatively `client.ListByGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByGroupComplete(ctx, id)

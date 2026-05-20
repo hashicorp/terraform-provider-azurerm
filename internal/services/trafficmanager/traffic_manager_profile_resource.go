@@ -1,41 +1,48 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name traffic_manager_profile -service-package-name trafficmanager -properties "name,resource_group_name" -test-params "Geographic" -known-values "subscription_id:data.Subscriptions.Primary"
+
+const azureTrafficManagerProfileResourceName = "azurerm_traffic_manager_profile"
+
 func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmTrafficManagerProfileCreate,
 		Read:   resourceArmTrafficManagerProfileRead,
 		Update: resourceArmTrafficManagerProfileUpdate,
 		Delete: resourceArmTrafficManagerProfileDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := profiles.ParseTrafficManagerProfileID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&profiles.TrafficManagerProfileId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&profiles.TrafficManagerProfileId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -81,7 +88,7 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 						"ttl": {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntBetween(0, 2147483647),
+							ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 						},
 					},
 				},
@@ -194,19 +201,6 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["profile_status"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(profiles.ProfileStatusEnabled),
-				string(profiles.ProfileStatusDisabled),
-			}, false),
-		}
-	}
-	return resource
 }
 
 func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -232,18 +226,19 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	trafficRoutingMethod := profiles.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
 	// No existing profile - start from a new struct.
 	profile := profiles.Profile{
-		Name:     utils.String(id.TrafficManagerProfileName),
-		Location: utils.String("global"), // must be provided in request
+		Name:     pointer.To(id.TrafficManagerProfileName),
+		Location: pointer.To("global"), // must be provided in request
 		Properties: &profiles.ProfileProperties{
-			TrafficRoutingMethod: &trafficRoutingMethod,
-			DnsConfig:            expandArmTrafficManagerDNSConfig(d),
-			MonitorConfig:        expandArmTrafficManagerMonitorConfig(d),
+			TrafficRoutingMethod:        &trafficRoutingMethod,
+			TrafficViewEnrollmentStatus: expandArmTrafficManagerTrafficView(d.Get("traffic_view_enabled").(bool)),
+			DnsConfig:                   expandArmTrafficManagerDNSConfig(d),
+			MonitorConfig:               expandArmTrafficManagerMonitorConfig(d),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if maxReturn, ok := d.GetOk("max_return"); ok {
-		profile.Properties.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+		profile.Properties.MaxReturn = pointer.To(int64(maxReturn.(int)))
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
@@ -251,19 +246,15 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 		profile.Properties.ProfileStatus = &profileStatus
 	}
 
-	if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
-		profile.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
-	}
-
 	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
 	if *trafficRoutingMethodPtr == profiles.TrafficRoutingMethodMultiValue &&
 		profile.Properties.MaxReturn == nil {
-		return fmt.Errorf("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
+		return errors.New("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
 	}
 
 	if *profile.Properties.MonitorConfig.IntervalInSeconds == int64(10) &&
 		*profile.Properties.MonitorConfig.TimeoutInSeconds == int64(10) {
-		return fmt.Errorf("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
+		return errors.New("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, profile); err != nil {
@@ -271,6 +262,10 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceArmTrafficManagerProfileRead(d, meta)
 }
 
@@ -293,10 +288,14 @@ func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceArmTrafficManagerProfileFlatten(d, id, resp.Model)
+}
+
+func resourceArmTrafficManagerProfileFlatten(d *pluginsdk.ResourceData, id *profiles.TrafficManagerProfileId, model *profiles.Profile) error {
 	d.Set("name", id.TrafficManagerProfileName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if profile := model.Properties; profile != nil {
 			profileStatus := ""
 			if profile.ProfileStatus != nil {
@@ -323,9 +322,12 @@ func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interf
 				d.Set("fqdn", dns.Fqdn)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -357,7 +359,7 @@ func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("max_return") {
 		if maxReturn, ok := d.GetOk("max_return"); ok {
-			update.Properties.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+			update.Properties.MaxReturn = pointer.To(int64(maxReturn.(int)))
 		}
 	}
 
@@ -370,9 +372,7 @@ func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("traffic_view_enabled") {
-		if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
-			update.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
-		}
+		update.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(d.Get("traffic_view_enabled").(bool))
 	}
 
 	if _, err := client.Update(ctx, *id, update); err != nil {
@@ -412,22 +412,22 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 	cfg := profiles.MonitorConfig{
 		Protocol:                  &protocol,
 		CustomHeaders:             customHeaders,
-		Port:                      utils.Int64(int64(monitor["port"].(int))),
-		Path:                      utils.String(monitor["path"].(string)),
-		IntervalInSeconds:         utils.Int64(int64(monitor["interval_in_seconds"].(int))),
-		TimeoutInSeconds:          utils.Int64(int64(monitor["timeout_in_seconds"].(int))),
-		ToleratedNumberOfFailures: utils.Int64(int64(monitor["tolerated_number_of_failures"].(int))),
+		Port:                      pointer.To(int64(monitor["port"].(int))),
+		Path:                      pointer.To(monitor["path"].(string)),
+		IntervalInSeconds:         pointer.To(int64(monitor["interval_in_seconds"].(int))),
+		TimeoutInSeconds:          pointer.To(int64(monitor["timeout_in_seconds"].(int))),
+		ToleratedNumberOfFailures: pointer.To(int64(monitor["tolerated_number_of_failures"].(int))),
 	}
 
 	if v, ok := monitor["expected_status_code_ranges"].([]interface{}); ok {
-		ranges := make([]profiles.MonitorConfigExpectedStatusCodeRangesInlined, 0)
+		ranges := make([]profiles.MonitorConfigExpectedStatusCodeRangesItem, 0)
 		for _, r := range v {
 			parts := strings.Split(r.(string), "-")
 			min, _ := strconv.Atoi(parts[0])
 			max, _ := strconv.Atoi(parts[1])
-			ranges = append(ranges, profiles.MonitorConfigExpectedStatusCodeRangesInlined{
-				Min: utils.Int64(int64(min)),
-				Max: utils.Int64(int64(max)),
+			ranges = append(ranges, profiles.MonitorConfigExpectedStatusCodeRangesItem{
+				Min: pointer.To(int64(min)),
+				Max: pointer.To(int64(max)),
 			})
 		}
 		cfg.ExpectedStatusCodeRanges = &ranges
@@ -436,25 +436,25 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 	return &cfg
 }
 
-func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.MonitorConfigCustomHeadersInlined {
+func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.MonitorConfigCustomHeadersItem {
 	if len(d) == 0 || d[0] == nil {
 		return nil
 	}
 
-	customHeaders := make([]profiles.MonitorConfigCustomHeadersInlined, len(d))
+	customHeaders := make([]profiles.MonitorConfigCustomHeadersItem, len(d))
 
 	for i, v := range d {
 		ch := v.(map[string]interface{})
-		customHeaders[i] = profiles.MonitorConfigCustomHeadersInlined{
-			Name:  utils.String(ch["name"].(string)),
-			Value: utils.String(ch["value"].(string)),
+		customHeaders[i] = profiles.MonitorConfigCustomHeadersItem{
+			Name:  pointer.To(ch["name"].(string)),
+			Value: pointer.To(ch["value"].(string)),
 		}
 	}
 
 	return &customHeaders
 }
 
-func flattenArmTrafficManagerCustomHeadersConfig(input *[]profiles.MonitorConfigCustomHeadersInlined) []interface{} {
+func flattenArmTrafficManagerCustomHeadersConfig(input *[]profiles.MonitorConfigCustomHeadersItem) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result

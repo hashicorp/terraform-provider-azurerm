@@ -6,10 +6,11 @@ package fromproto5
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // ConfigureProviderRequest returns the *fwserver.ConfigureProviderRequest
@@ -20,7 +21,8 @@ func ConfigureProviderRequest(ctx context.Context, proto5 *tfprotov5.ConfigurePr
 	}
 
 	fw := &provider.ConfigureRequest{
-		TerraformVersion: proto5.TerraformVersion,
+		TerraformVersion:   proto5.TerraformVersion,
+		ClientCapabilities: ConfigureProviderClientCapabilities(proto5.ClientCapabilities),
 	}
 
 	config, diags := Config(ctx, proto5.Config, providerSchema)

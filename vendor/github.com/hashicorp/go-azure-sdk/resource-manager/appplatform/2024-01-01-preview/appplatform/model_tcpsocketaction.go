@@ -13,6 +13,14 @@ var _ ProbeAction = TCPSocketAction{}
 type TCPSocketAction struct {
 
 	// Fields inherited from ProbeAction
+
+	Type ProbeActionType `json:"type"`
+}
+
+func (s TCPSocketAction) ProbeAction() BaseProbeActionImpl {
+	return BaseProbeActionImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = TCPSocketAction{}
@@ -26,9 +34,10 @@ func (s TCPSocketAction) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling TCPSocketAction: %+v", err)
 	}
+
 	decoded["type"] = "TCPSocketAction"
 
 	encoded, err = json.Marshal(decoded)

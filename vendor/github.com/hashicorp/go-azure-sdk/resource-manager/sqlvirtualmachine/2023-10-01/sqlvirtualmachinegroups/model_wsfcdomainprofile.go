@@ -13,5 +13,5 @@ type WsfcDomainProfile struct {
 	OuPath                   *string            `json:"ouPath,omitempty"`
 	SqlServiceAccount        *string            `json:"sqlServiceAccount,omitempty"`
 	StorageAccountPrimaryKey *string            `json:"storageAccountPrimaryKey,omitempty"`
-	StorageAccountUrl        *string            `json:"storageAccountUrl,omitempty"`
+	StorageAccountURL        *string            `json:"storageAccountUrl,omitempty"`
 }

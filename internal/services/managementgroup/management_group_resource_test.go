@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managementgroup_test
@@ -9,12 +9,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagementGroupResource struct{}
@@ -131,7 +132,7 @@ func TestAccManagementGroup_withName(t *testing.T) {
 	})
 }
 
-func TestAccManagementGroup_updateName(t *testing.T) {
+func TestAccManagementGroup_updateDisplayName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 	r := ManagementGroupResource{}
 
@@ -143,10 +144,10 @@ func TestAccManagementGroup_updateName(t *testing.T) {
 			),
 		},
 		{
-			Config: r.withName(data),
+			Config: r.withDisplayName(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestmg-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("accTestMG-%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -180,21 +181,31 @@ func TestAccManagementGroup_withSubscriptions(t *testing.T) {
 				check.That(data.ResourceName).Key("subscription_ids.#").HasValue("0"),
 			),
 		},
+		{
+			Config: r.withSubscriptions(subscriptionID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subscription_ids.#").HasValue("1"),
+			),
+		},
 	})
 }
 
 func (ManagementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagementGroupID(state.ID)
+	id, err := commonids.ParseManagementGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-
-	resp, err := clients.ManagementGroups.GroupsClient.Get(ctx, id.Name, "children", utils.Bool(true), "", "no-cache")
+	resp, err := clients.ManagementGroups.GroupsClient.Get(ctx, *id, managementgroups.GetOperationOptions{
+		CacheControl: pointer.To("no-cache"),
+		Expand:       pointer.To(managementgroups.ExpandChildren),
+		Recurse:      pointer.To(false),
+	})
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Management Group %s: %v", id.Name, err)
+		return nil, fmt.Errorf("retrieving Management Group %s: %v", id.GroupId, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (r ManagementGroupResource) basic() string {
@@ -268,6 +279,18 @@ resource "azurerm_management_group" "test" {
   display_name = "accTestMG-%d"
 }
 `, data.RandomInteger, data.RandomInteger)
+}
+
+func (ManagementGroupResource) withDisplayName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_management_group" "test" {
+  display_name = "accTestMG-%d"
+}
+`, data.RandomInteger)
 }
 
 // TODO: switch this out for dynamically creating a subscription once that's supported in the future

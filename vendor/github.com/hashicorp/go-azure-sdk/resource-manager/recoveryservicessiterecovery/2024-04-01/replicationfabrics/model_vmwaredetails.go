@@ -46,6 +46,14 @@ type VMwareDetails struct {
 	WebLoadStatus                      *string                                           `json:"webLoadStatus,omitempty"`
 
 	// Fields inherited from FabricSpecificDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s VMwareDetails) FabricSpecificDetails() BaseFabricSpecificDetailsImpl {
+	return BaseFabricSpecificDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = VMwareDetails{}
@@ -59,9 +67,10 @@ func (s VMwareDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling VMwareDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "VMware"
 
 	encoded, err = json.Marshal(decoded)

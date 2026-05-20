@@ -37,6 +37,7 @@ func (o FailoverOperationOptions) ToHeaders() *client.Headers {
 
 func (o FailoverOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

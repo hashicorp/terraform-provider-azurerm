@@ -50,7 +50,6 @@ func (c ConfigurationProfileHCIAssignmentsClient) CreateOrUpdate(ctx context.Con
 
 	var model ConfigurationProfileAssignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

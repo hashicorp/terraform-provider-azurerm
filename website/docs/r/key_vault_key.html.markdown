@@ -91,7 +91,7 @@ resource "azurerm_key_vault_key" "generated" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -111,7 +111,9 @@ The following arguments are supported:
 
 ~> **Note:** Once `expiration_date` is set, it's not possible to unset the key even if it is deleted & recreated as underlying Azure API uses the restore of the purged key.
 
-* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z'). When this parameter gets changed on reruns, if newer date is ahead of current date, an update is performed. If the newer date is before the current date, resource will be force created.
+* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
+
+~> **Note:** Removing this field from the config forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -153,11 +155,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Key.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Key.
 * `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Key.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Key.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Key.
 
 ## Import

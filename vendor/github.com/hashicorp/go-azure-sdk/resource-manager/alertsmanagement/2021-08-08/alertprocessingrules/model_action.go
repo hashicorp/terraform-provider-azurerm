@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Action interface {
+	Action() BaseActionImpl
 }
 
-// RawActionImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ Action = BaseActionImpl{}
+
+type BaseActionImpl struct {
+	ActionType ActionType `json:"actionType"`
+}
+
+func (s BaseActionImpl) Action() BaseActionImpl {
+	return s
+}
+
+var _ Action = RawActionImpl{}
+
+// RawActionImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawActionImpl struct {
+	action BaseActionImpl
 	Type   string
 	Values map[string]interface{}
 }
 
-func unmarshalActionImplementation(input []byte) (Action, error) {
+func (s RawActionImpl) Action() BaseActionImpl {
+	return s.action
+}
+
+func UnmarshalActionImplementation(input []byte) (Action, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalActionImplementation(input []byte) (Action, error) {
 		return nil, fmt.Errorf("unmarshaling Action into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["actionType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["actionType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AddActionGroups") {
@@ -52,10 +69,15 @@ func unmarshalActionImplementation(input []byte) (Action, error) {
 		return out, nil
 	}
 
-	out := RawActionImpl{
+	var parent BaseActionImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseActionImpl: %+v", err)
+	}
+
+	return RawActionImpl{
+		action: parent,
 		Type:   value,
 		Values: temp,
-	}
-	return out, nil
+	}, nil
 
 }

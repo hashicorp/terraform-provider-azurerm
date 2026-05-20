@@ -15,8 +15,17 @@ const (
 	// as parent.0.child in this project.
 	KeyAttributePath = "tf_attribute_path"
 
+	// The type of action being operated on, such as "examplecloud_do_thing"
+	KeyActionType = "tf_action_type"
+
 	// The type of data source being operated on, such as "archive_file"
 	KeyDataSourceType = "tf_data_source_type"
+
+	// The type of ephemeral resource being operated on, such as "random_password"
+	KeyEphemeralResourceType = "tf_ephemeral_resource_type"
+
+	// The Deferred reason for an RPC response
+	KeyDeferredReason = "tf_deferred_reason"
 
 	// Human readable string when calling a provider defined type that must
 	// implement the Description() method, such as validators.
@@ -30,6 +39,9 @@ const (
 
 	// The type of resource being operated on, such as "random_pet"
 	KeyResourceType = "tf_resource_type"
+
+	// The type of list resource being operated on, such as "random_pet"
+	KeyListResourceType = "tf_list_resource_type"
 
 	// The type of value being operated on, such as "JSONStringValue".
 	KeyValueType = "tf_value_type"

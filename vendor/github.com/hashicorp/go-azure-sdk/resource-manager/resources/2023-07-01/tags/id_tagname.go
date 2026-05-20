@@ -40,7 +40,7 @@ func ParseTagNameID(input string) (*TagNameId, error) {
 	}
 
 	id := TagNameId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseTagNameIDInsensitively(input string) (*TagNameId, error) {
 	}
 
 	id := TagNameId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -105,7 +105,7 @@ func (id TagNameId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
 		resourceids.StaticSegment("staticTagNames", "tagNames", "tagNames"),
-		resourceids.UserSpecifiedSegment("tagName", "tagValue"),
+		resourceids.UserSpecifiedSegment("tagName", "tagName"),
 	}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -18,9 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-const vaultResourceType string = "Vaults"
-const vaultProviderNameSpace string = "Microsoft.RecoveryServices"
-const xmlContentVersion string = "2.0"
+const (
+	vaultResourceType      string = "Vaults"
+	vaultProviderNameSpace string = "Microsoft.RecoveryServices"
+	xmlContentVersion      string = "2.0"
+)
 
 func (HyperVHostTestResource) generateHyperVHostRegistrationCert(callbackFunc func(xmlContent string) error) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {

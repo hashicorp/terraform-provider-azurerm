@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -337,7 +337,7 @@ type ResourceIdGenerator struct {
 
 func (id ResourceIdGenerator) Code() string {
 	return fmt.Sprintf(`
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -345,6 +345,7 @@ package parse
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -396,8 +397,8 @@ func New%[1]sID(%[2]s string) %[1]sId {
 func (id ResourceIdGenerator) codeForDescription() string {
 	makeHumanReadable := func(input string) string {
 		chars := make([]rune, 0)
-		for _, c := range input {
-			if unicode.IsUpper(c) {
+		for i, c := range input {
+			if unicode.IsUpper(c) && i+1 < len(input) && unicode.IsLower(rune(input[i+1])) {
 				chars = append(chars, ' ')
 			}
 
@@ -465,7 +466,7 @@ func (id ResourceIdGenerator) codeForParser() string {
 		if isSubscription || isResourceGroup {
 			parserStatements = append(parserStatements, fmt.Sprintf(`
 	if resourceId.%[1]s == "" {
-		return nil, fmt.Errorf("ID was missing the '%[2]s' element")
+		return nil, errors.New("ID was missing the '%[2]s' element")
 	}
 `, segment.FieldName, segment.SegmentKey))
 			continue
@@ -520,7 +521,7 @@ func (id ResourceIdGenerator) codeForParserInsensitive() string {
 		if isSubscription || isResourceGroup {
 			parserStatements = append(parserStatements, fmt.Sprintf(`
 	if resourceId.%[1]s == "" {
-		return nil, fmt.Errorf("ID was missing the '%[2]s' element")
+		return nil, errors.New("ID was missing the '%[2]s' element")
 	}
 `, segment.FieldName, segment.SegmentKey))
 			continue
@@ -579,7 +580,7 @@ func (id ResourceIdGenerator) TestCode() string {
 	}
 
 	return fmt.Sprintf(`
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse%s
@@ -700,8 +701,7 @@ func Test%[1]sID(t *testing.T) {
 		Input  string
 		Error  bool
 		Expected *%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {
@@ -731,8 +731,7 @@ func Test%[1]sID(t *testing.T) {
 		Input  string
 		Error  bool
 		Expected *parse.%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {
@@ -857,8 +856,7 @@ func Test%[1]sIDInsensitively(t *testing.T) {
 		Input  string
 		Error  bool
 		Expected *%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {
@@ -888,8 +886,7 @@ func Test%[1]sIDInsensitively(t *testing.T) {
 		Input  string
 		Error  bool
 		Expected *parse.%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {
@@ -915,7 +912,7 @@ func Test%[1]sIDInsensitively(t *testing.T) {
 
 func (id ResourceIdGenerator) ValidatorCode() string {
 	return fmt.Sprintf(`
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -992,7 +989,7 @@ func (id ResourceIdGenerator) ValidatorTestCode() string {
 
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -1005,8 +1002,7 @@ func Test%[1]sID(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Valid bool
-	}{
-%[2]s
+	}{%[2]s
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %%s", tc.Input)
@@ -1021,7 +1017,7 @@ func Test%[1]sID(t *testing.T) {
 `, id.TypeName, testCasesStr)
 	}
 
-	return fmt.Sprintf(`// Copyright (c) HashiCorp, Inc.
+	return fmt.Sprintf(`// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate%[1]s
@@ -1038,8 +1034,7 @@ func Test%[2]sID(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Valid bool
-	}{
-%[3]s
+	}{%[3]s
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %%s", tc.Input)

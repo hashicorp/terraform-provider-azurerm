@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -63,6 +62,12 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 		if strings.HasPrefix(javaParts[0], "17") {
 			result.JavaVersion = "17"
 		}
+		if strings.HasPrefix(javaParts[0], "21") {
+			result.JavaVersion = "21"
+		}
+		if strings.HasPrefix(javaParts[0], "25") {
+			result.JavaVersion = "25"
+		}
 		result.JavaServerVersion = javaParts[0]
 
 	case FxStringPrefixTomcat:
@@ -100,7 +105,7 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 
 func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *string {
 	if len(input) == 0 || input[0].CustomHandler {
-		return utils.String("")
+		return pointer.To("")
 	}
 
 	appStack := input[0]
@@ -145,7 +150,7 @@ func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *
 		}
 	}
 
-	return utils.String(fmt.Sprintf("%s|%s", appType, appString))
+	return pointer.To(fmt.Sprintf("%s|%s", appType, appString))
 }
 
 func DecodeFunctionAppLinuxFxVersion(input string) ([]ApplicationStackLinuxFunctionApp, error) {
@@ -274,14 +279,45 @@ func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion st
 		case LinuxJavaServerTomcat:
 			return pointer.To(fmt.Sprintf("%s|%s-java17", LinuxJavaServerTomcat, javaServerVersion)), nil // e,g, TOMCAT|10.0-java17 / TOMCAT|10.0.20-java17
 		case LinuxJavaServerJboss:
-			return nil, fmt.Errorf("java 17 is not supported on %s", LinuxJavaServerJboss)
+			return pointer.To(fmt.Sprintf("%s|%s-java17", LinuxJavaServerJboss, javaServerVersion)), nil // e.g. TOMCAT|10.0-java17 and TOMCAT|10.0.20-java17// e.g. JBOSSEAP|7-java17 / JBOSSEAP|7.4.2-java17
 		default:
 			return pointer.To(fmt.Sprintf("%s|%s-java17", javaServer, javaServerVersion)), nil
+		}
+	case "21":
+		switch javaServer {
+		case LinuxJavaServerJava:
+			if len(strings.Split(javaServerVersion, ".")) == 3 {
+				return pointer.To(fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion)), nil // "JAVA|21.0.4"
+			} else {
+				return pointer.To(fmt.Sprintf("%s|%s-java21", LinuxJavaServerJava, javaServerVersion)), nil // "JAVA|21-21"
+			}
+
+		case LinuxJavaServerTomcat:
+			return pointer.To(fmt.Sprintf("%s|%s-java21", LinuxJavaServerTomcat, javaServerVersion)), nil // e,g, TOMCAT|10.0-java21 / TOMCAT|10.0.20-java21
+		case LinuxJavaServerJboss:
+			return nil, fmt.Errorf("java 21 is not supported on %s", LinuxJavaServerJboss)
+		default:
+			return pointer.To(fmt.Sprintf("%s|%s-java21", javaServer, javaServerVersion)), nil
+		}
+	case "25":
+		switch javaServer {
+		case LinuxJavaServerJava:
+			if len(strings.Split(javaServerVersion, ".")) == 3 {
+				return pointer.To(fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion)), nil // "JAVA|25.0.1"
+			} else {
+				return pointer.To(fmt.Sprintf("%s|%s-java25", LinuxJavaServerJava, javaServerVersion)), nil // "JAVA|25-25"
+			}
+
+		case LinuxJavaServerTomcat:
+			return pointer.To(fmt.Sprintf("%s|%s-java25", LinuxJavaServerTomcat, javaServerVersion)), nil // e,g, TOMCAT|10.0-java25 / TOMCAT|10.0.20-java25
+		case LinuxJavaServerJboss:
+			return nil, fmt.Errorf("java 25 is not supported on %s", LinuxJavaServerJboss)
+		default:
+			return pointer.To(fmt.Sprintf("%s|%s-java25", javaServer, javaServerVersion)), nil
 		}
 
 	default:
 		return pointer.To(fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, javaMajorVersion)), nil
-
 	}
 	return nil, fmt.Errorf("unsupported combination of `java_version`, `java_server`, and `java_server_version`")
 }
@@ -289,7 +325,7 @@ func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion st
 func EncodeDockerFxString(image string, registryUrl string) string {
 	template := "DOCKER|%s/%s"
 
-	registryUrl = trimURLScheme(registryUrl)
+	registryUrl = trimURLScheme(strings.TrimSuffix(registryUrl, "/"))
 
 	return fmt.Sprintf(template, registryUrl, image)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -13,17 +13,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/capacitypools"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceNetAppPool() *pluginsdk.Resource {
@@ -71,6 +69,7 @@ func resourceNetAppPool() *pluginsdk.Resource {
 					string(capacitypools.ServiceLevelPremium),
 					string(capacitypools.ServiceLevelStandard),
 					string(capacitypools.ServiceLevelUltra),
+					string(capacitypools.ServiceLevelFlexible),
 				}, false),
 			},
 
@@ -101,20 +100,47 @@ func resourceNetAppPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"cool_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"custom_throughput_mibps": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(128),
+			},
+
 			"tags": commonschema.Tags(),
 		},
-	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["qos_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(capacitypools.QosTypeAuto),
-				string(capacitypools.QosTypeManual),
-			}, false),
-		}
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// `cool_access_enabled` cannot be disabled
+			pluginsdk.ForceNewIfChange("cool_access_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(bool) && !new.(bool)
+			}),
+			// custom_throughput_mibps validation
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+				customThroughput := d.Get("custom_throughput_mibps").(int)
+				qosType := d.Get("qos_type").(string)
+				serviceLevel := d.Get("service_level").(string)
+
+				if customThroughput > 0 {
+					// customThroughputMibps should only be accepted if manual qosType is set
+					if qosType != string(capacitypools.QosTypeManual) {
+						return fmt.Errorf("`custom_throughput_mibps` can only be set when `qos_type` is set to `Manual`")
+					}
+
+					// customThroughputMibps should only be accepted for Flexible service level
+					if serviceLevel != string(capacitypools.ServiceLevelFlexible) {
+						return fmt.Errorf("`custom_throughput_mibps` can only be set when `service_level` is set to `Flexible`")
+					}
+				}
+
+				return nil
+			},
+		),
 	}
 
 	return resource
@@ -146,11 +172,12 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	encryptionType := capacitypools.EncryptionType(d.Get("encryption_type").(string))
 
 	capacityPoolParameters := capacitypools.CapacityPool{
-		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Location: location.Normalize(d.Get("location").(string)),
 		Properties: capacitypools.PoolProperties{
 			ServiceLevel:   capacitypools.ServiceLevel(d.Get("service_level").(string)),
 			Size:           sizeInBytes,
 			EncryptionType: &encryptionType,
+			CoolAccess:     pointer.To(d.Get("cool_access_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -158,6 +185,10 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	if qosType, ok := d.GetOk("qos_type"); ok {
 		qos := capacitypools.QosType(qosType.(string))
 		capacityPoolParameters.Properties.QosType = &qos
+	}
+
+	if customThroughputMibps, ok := d.GetOk("custom_throughput_mibps"); ok {
+		capacityPoolParameters.Properties.CustomThroughputMibps = pointer.To(int64(customThroughputMibps.(int)))
 	}
 
 	if err := client.PoolsCreateOrUpdateThenPoll(ctx, id, capacityPoolParameters); err != nil {
@@ -183,42 +214,45 @@ func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	shouldUpdate := false
 	update := capacitypools.CapacityPoolPatch{
 		Properties: &capacitypools.PoolPatchProperties{},
 	}
 
 	if d.HasChange("size_in_tb") {
-		shouldUpdate = true
-
 		sizeInTB := int64(d.Get("size_in_tb").(int))
 		sizeInMB := sizeInTB * 1024 * 1024
 		sizeInBytes := sizeInMB * 1024 * 1024
 
-		update.Properties.Size = utils.Int64(sizeInBytes)
+		update.Properties.Size = pointer.To(sizeInBytes)
 	}
 
 	if d.HasChange("qos_type") {
-		shouldUpdate = true
 		qosType := capacitypools.QosType(d.Get("qos_type").(string))
 		update.Properties.QosType = &qosType
 	}
 
+	if d.HasChange("cool_access_enabled") {
+		update.Properties.CoolAccess = pointer.To(d.Get("cool_access_enabled").(bool))
+	}
+
+	if d.HasChange("custom_throughput_mibps") {
+		if customThroughputMibps, ok := d.GetOk("custom_throughput_mibps"); ok {
+			update.Properties.CustomThroughputMibps = pointer.To(int64(customThroughputMibps.(int)))
+		}
+	}
+
 	if d.HasChange("tags") {
-		shouldUpdate = true
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
-	if shouldUpdate {
-		if err = client.PoolsUpdateThenPoll(ctx, *id, update); err != nil {
-			return fmt.Errorf("updating %s: %+v", id.ID(), err)
-		}
+	if err = client.PoolsUpdateThenPoll(ctx, *id, update); err != nil {
+		return fmt.Errorf("updating %s: %+v", id.ID(), err)
+	}
 
-		// Wait for pool to complete update
-		if err = waitForPoolCreateOrUpdate(ctx, client, *id); err != nil {
-			return err
-		}
+	// Wait for pool to complete update
+	if err = waitForPoolCreateOrUpdate(ctx, client, *id); err != nil {
+		return err
 	}
 
 	return resourceNetAppPoolRead(d, meta)
@@ -249,15 +283,14 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("account_name", id.NetAppAccountName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		poolProperties := model.Properties
 		d.Set("service_level", poolProperties.ServiceLevel)
 
-		sizeInTB := int64(0)
 		sizeInBytes := poolProperties.Size
 		sizeInMB := sizeInBytes / 1024 / 1024
-		sizeInTB = sizeInMB / 1024 / 1024
+		sizeInTB := sizeInMB / 1024 / 1024
 		d.Set("size_in_tb", int(sizeInTB))
 		qosType := ""
 		if poolProperties.QosType != nil {
@@ -265,8 +298,12 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("qos_type", qosType)
 		d.Set("encryption_type", string(pointer.From(poolProperties.EncryptionType)))
+		d.Set("cool_access_enabled", pointer.From(poolProperties.CoolAccess))
+		d.Set("custom_throughput_mibps", int(pointer.From(poolProperties.CustomThroughputMibps)))
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

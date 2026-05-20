@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -9,7 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
@@ -17,8 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
+	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type AlertRuleAnomalyBuiltInModel struct {
@@ -199,7 +199,6 @@ func (r AlertRuleAnomalyBuiltInResource) Create() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("reading: %+v", err)
 			}
@@ -228,14 +227,13 @@ func (r AlertRuleAnomalyBuiltInResource) Create() sdk.ResourceFunc {
 					IsDefaultSettings:        builtinRule.IsDefaultSettings,
 					AnomalySettingsVersion:   builtinRule.AnomalySettingsVersion,
 					SettingsDefinitionID:     builtinRule.SettingsDefinitionID,
-					Enabled:                  utils.Bool(metaModel.Enabled),
+					Enabled:                  pointer.To(metaModel.Enabled),
 					SettingsStatus:           securityinsight.SettingsStatus(metaModel.Mode),
 					CustomizableObservations: builtinRule.CustomizableObservations,
 				},
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -354,7 +352,6 @@ func (r AlertRuleAnomalyBuiltInResource) Update() sdk.ResourceFunc {
 				}
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -375,14 +372,13 @@ func (r AlertRuleAnomalyBuiltInResource) Update() sdk.ResourceFunc {
 					IsDefaultSettings:        existing.IsDefaultSettings,
 					AnomalySettingsVersion:   existing.AnomalySettingsVersion,
 					SettingsDefinitionID:     existing.SettingsDefinitionID,
-					Enabled:                  utils.Bool(metaModel.Enabled),
+					Enabled:                  pointer.To(metaModel.Enabled),
 					SettingsStatus:           securityinsight.SettingsStatus(metaModel.Mode),
 					CustomizableObservations: existing.CustomizableObservations,
 				},
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -419,7 +415,6 @@ func (r AlertRuleAnomalyBuiltInResource) Delete() sdk.ResourceFunc {
 				}
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -440,14 +435,13 @@ func (r AlertRuleAnomalyBuiltInResource) Delete() sdk.ResourceFunc {
 					IsDefaultSettings:        existing.IsDefaultSettings,
 					AnomalySettingsVersion:   existing.AnomalySettingsVersion,
 					SettingsDefinitionID:     existing.SettingsDefinitionID,
-					Enabled:                  utils.Bool(false),
+					Enabled:                  pointer.To(false),
 					SettingsStatus:           securityinsight.SettingsStatus(metaModel.Mode),
 					CustomizableObservations: existing.CustomizableObservations,
 				},
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

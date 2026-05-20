@@ -42,7 +42,7 @@ func ParseCommunicationsGatewayID(input string) (*CommunicationsGatewayId, error
 	}
 
 	id := CommunicationsGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseCommunicationsGatewayIDInsensitively(input string) (*CommunicationsGat
 	}
 
 	id := CommunicationsGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id CommunicationsGatewayId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftVoiceServices", "Microsoft.VoiceServices", "Microsoft.VoiceServices"),
 		resourceids.StaticSegment("staticCommunicationsGateways", "communicationsGateways", "communicationsGateways"),
-		resourceids.UserSpecifiedSegment("communicationsGatewayName", "communicationsGatewayValue"),
+		resourceids.UserSpecifiedSegment("communicationsGatewayName", "communicationsGatewayName"),
 	}
 }
 

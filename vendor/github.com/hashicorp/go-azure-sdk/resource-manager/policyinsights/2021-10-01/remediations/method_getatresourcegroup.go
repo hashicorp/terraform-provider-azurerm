@@ -45,7 +45,6 @@ func (c RemediationsClient) GetAtResourceGroup(ctx context.Context, id ProviderR
 
 	var model Remediation
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

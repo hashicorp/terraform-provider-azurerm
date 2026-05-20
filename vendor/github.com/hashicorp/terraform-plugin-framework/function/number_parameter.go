@@ -4,13 +4,17 @@
 package function
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = NumberParameter{}
 var _ ParameterWithNumberValidators = NumberParameter{}
+var _ fwfunction.ParameterWithValidateImplementation = NumberParameter{}
 
 // NumberParameter represents a function parameter that is a 512-bit arbitrary
 // precision number.
@@ -109,4 +113,10 @@ func (p NumberParameter) GetType() attr.Type {
 	}
 
 	return basetypes.NumberType{}
+}
+
+func (p NumberParameter) ValidateImplementation(ctx context.Context, req fwfunction.ValidateParameterImplementationRequest, resp *fwfunction.ValidateParameterImplementationResponse) {
+	if p.GetName() == "" {
+		resp.Diagnostics.Append(fwfunction.MissingParameterNameDiag(req.FunctionName, req.ParameterPosition))
+	}
 }

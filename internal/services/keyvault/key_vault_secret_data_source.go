@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,7 +32,7 @@ func dataSourceKeyVaultSecret() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.NestedItemName,
+				ValidateFunc: keyvault.ValidateNestedItemName,
 			},
 
 			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
@@ -77,7 +78,7 @@ func dataSourceKeyVaultSecret() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -109,30 +110,35 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// the version may have changed, so parse the updated id
-	respID, err := parse.ParseNestedItemID(*resp.ID)
+	secretId, err := keyvault.ParseNestedItemID(pointer.From(resp.ID), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(secretId.ID())
 
-	d.Set("name", respID.Name)
+	d.Set("name", secretId.Name)
 	d.Set("key_vault_id", keyVaultId.ID())
 	d.Set("value", resp.Value)
-	d.Set("version", respID.Version)
+	d.Set("version", secretId.Version)
 	d.Set("content_type", resp.ContentType)
 	if attributes := resp.Attributes; attributes != nil {
-		if notBefore := attributes.NotBefore; notBefore != nil {
-			d.Set("not_before_date", time.Time(*notBefore).Format(time.RFC3339))
+		notBeforeDate := ""
+		if v := attributes.NotBefore; v != nil {
+			notBeforeDate = time.Time(*v).Format(time.RFC3339)
 		}
-		if expires := attributes.Expires; expires != nil {
-			d.Set("expiration_date", time.Time(*expires).Format(time.RFC3339))
-		}
-	}
-	d.Set("versionless_id", respID.VersionlessID())
+		d.Set("not_before_date", notBeforeDate)
 
-	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, respID.Name, respID.Version).ID())
-	d.Set("resource_versionless_id", parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, respID.Name).ID())
+		expirationDate := ""
+		if v := attributes.Expires; v != nil {
+			expirationDate = time.Time(*v).Format(time.RFC3339)
+		}
+		d.Set("expiration_date", expirationDate)
+	}
+	d.Set("versionless_id", secretId.VersionlessID())
+
+	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, secretId.Name, secretId.Version).ID())
+	d.Set("resource_versionless_id", parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, secretId.Name).ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

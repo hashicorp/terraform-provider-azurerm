@@ -14,6 +14,14 @@ type EventGridStreamInputDataSource struct {
 	Properties *EventGridStreamInputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from StreamInputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s EventGridStreamInputDataSource) StreamInputDataSource() BaseStreamInputDataSourceImpl {
+	return BaseStreamInputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = EventGridStreamInputDataSource{}
@@ -27,9 +35,10 @@ func (s EventGridStreamInputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EventGridStreamInputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.EventGrid/EventSubscriptions"
 
 	encoded, err = json.Marshal(decoded)

@@ -40,7 +40,7 @@ func ParseScopedRegistrationAssignmentID(input string) (*ScopedRegistrationAssig
 	}
 
 	id := ScopedRegistrationAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseScopedRegistrationAssignmentIDInsensitively(input string) (*ScopedRegi
 	}
 
 	id := ScopedRegistrationAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (id ScopedRegistrationAssignmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftManagedServices", "Microsoft.ManagedServices", "Microsoft.ManagedServices"),
 		resourceids.StaticSegment("staticRegistrationAssignments", "registrationAssignments", "registrationAssignments"),
-		resourceids.UserSpecifiedSegment("registrationAssignmentId", "registrationAssignmentIdValue"),
+		resourceids.UserSpecifiedSegment("registrationAssignmentId", "registrationAssignmentId"),
 	}
 }
 

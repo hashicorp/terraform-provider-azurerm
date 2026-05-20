@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -13,22 +13,23 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.ResourceWithUpdate = DataCollectionRuleResource{}
-var _ sdk.ResourceWithCustomizeDiff = DataCollectionRuleResource{}
+var (
+	_ sdk.ResourceWithUpdate        = DataCollectionRuleResource{}
+	_ sdk.ResourceWithCustomizeDiff = DataCollectionRuleResource{}
+)
 
 type DataCollectionRule struct {
 	DataCollectionEndpointId string                 `tfschema:"data_collection_endpoint_id"`
@@ -499,7 +500,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 											"name": {
 												Type:         pluginsdk.TypeString,
 												Required:     true,
-												ValidateFunc: validation.StringIsNotEmpty,
+												ValidateFunc: validation.StringLenBetween(1, 32),
 											},
 											"stream": {
 												Type:         pluginsdk.TypeString,
@@ -525,7 +526,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"extension_name": {
 									Type:         pluginsdk.TypeString,
@@ -566,7 +567,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -597,7 +598,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -655,7 +656,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"sampling_frequency_in_seconds": {
 									Type:         pluginsdk.TypeInt,
@@ -691,7 +692,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -713,7 +714,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -755,7 +756,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"facility_names": {
 									Type:     pluginsdk.TypeList,
@@ -781,9 +782,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								// lintignore:S013
 								"streams": {
 									Type:     pluginsdk.TypeList,
-									Optional: !features.FourPointOhBeta(),
-									Computed: !features.FourPointOhBeta(),
-									Required: features.FourPointOhBeta(),
+									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
@@ -801,7 +800,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -832,7 +831,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -964,12 +963,12 @@ func (r DataCollectionRuleResource) Create() sdk.ResourceFunc {
 			input := datacollectionrules.DataCollectionRuleResource{
 				Identity: identityValue,
 				Kind:     expandDataCollectionRuleKind(state.Kind),
-				Location: azure.NormalizeLocation(state.Location),
-				Name:     utils.String(state.Name),
+				Location: location.Normalize(state.Location),
+				Name:     pointer.To(state.Name),
 				Properties: &datacollectionrules.DataCollectionRule{
 					DataFlows:          expandDataCollectionRuleDataFlows(state.DataFlows),
 					DataSources:        dataSources,
-					Description:        utils.String(state.Description),
+					Description:        pointer.To(state.Description),
 					Destinations:       expandDataCollectionRuleDestinations(state.Destinations),
 					StreamDeclarations: expandDataCollectionRuleStreamDeclarations(state.StreamDeclaration),
 				},
@@ -977,7 +976,7 @@ func (r DataCollectionRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			if state.DataCollectionEndpointId != "" {
-				input.Properties.DataCollectionEndpointId = utils.String(state.DataCollectionEndpointId)
+				input.Properties.DataCollectionEndpointId = pointer.To(state.DataCollectionEndpointId)
 			}
 
 			if _, err := client.Create(ctx, id, input); err != nil {
@@ -1010,7 +1009,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var dataCollectionEndpointId, description, immutableId, kind, location string
+			var dataCollectionEndpointId, description, immutableId, kind, loc string
 			var tag map[string]interface{}
 			var dataFlows []DataFlow
 			var dataSources []DataSource
@@ -1019,7 +1018,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionRuleKind(model.Kind)
-				location = azure.NormalizeLocation(model.Location)
+				loc = location.Normalize(model.Location)
 				tag = tags.Flatten(model.Tags)
 
 				identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
@@ -1052,7 +1051,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 				Destinations:             destinations,
 				ImmutableId:              immutableId,
 				Kind:                     kind,
-				Location:                 location,
+				Location:                 loc,
 				StreamDeclaration:        streamDeclaration,
 				Tags:                     tag,
 			})
@@ -1110,14 +1109,14 @@ func (r DataCollectionRuleResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("data_collection_endpoint_id") {
 				if state.DataCollectionEndpointId != "" {
-					existing.Properties.DataCollectionEndpointId = utils.String(state.DataCollectionEndpointId)
+					existing.Properties.DataCollectionEndpointId = pointer.To(state.DataCollectionEndpointId)
 				} else {
 					existing.Properties.DataCollectionEndpointId = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				existing.Properties.Description = utils.String(state.Description)
+				existing.Properties.Description = pointer.To(state.Description)
 			}
 
 			if metadata.ResourceData.HasChange("destinations") {
@@ -1155,7 +1154,7 @@ func (r DataCollectionRuleResource) Delete() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("deleting %s..", *id)
-			resp, err := client.Delete(ctx, *id)
+			resp, err := client.Delete(ctx, *id, datacollectionrules.DefaultDeleteOperationOptions())
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
@@ -1187,15 +1186,15 @@ func expandDataCollectionRuleDataFlows(input []DataFlow) *[]datacollectionrules.
 		}
 
 		if v.BuiltInTransform != "" {
-			dataFlow.BuiltInTransform = utils.String(v.BuiltInTransform)
+			dataFlow.BuiltInTransform = pointer.To(v.BuiltInTransform)
 		}
 
 		if v.OutputStream != "" {
-			dataFlow.OutputStream = utils.String(v.OutputStream)
+			dataFlow.OutputStream = pointer.To(v.OutputStream)
 		}
 
 		if v.TransformKql != "" {
-			dataFlow.TransformKql = utils.String(v.TransformKql)
+			dataFlow.TransformKql = pointer.To(v.TransformKql)
 		}
 
 		result = append(result, dataFlow)
@@ -1246,17 +1245,16 @@ func expandDataCollectionRuleDataSourceDataImports(input []DataImport) *datacoll
 
 	result := &datacollectionrules.DataImportSources{
 		EventHub: &datacollectionrules.EventHubDataSource{
-			Name:   utils.String(input[0].EventHubDataSource[0].Name),
-			Stream: utils.String(input[0].EventHubDataSource[0].Stream),
+			Name:   pointer.To(input[0].EventHubDataSource[0].Name),
+			Stream: pointer.To(input[0].EventHubDataSource[0].Stream),
 		},
 	}
 
 	if consumerGroup := input[0].EventHubDataSource[0].ConsumerGroup; consumerGroup != "" {
-		result.EventHub.ConsumerGroup = utils.String(consumerGroup)
+		result.EventHub.ConsumerGroup = pointer.To(consumerGroup)
 	}
 
 	return result
-
 }
 
 func expandDataCollectionRuleDataSourceExtensions(input []Extension) (*[]datacollectionrules.ExtensionDataSource, error) {
@@ -1279,7 +1277,7 @@ func expandDataCollectionRuleDataSourceExtensions(input []Extension) (*[]datacol
 			ExtensionName:     v.ExtensionName,
 			ExtensionSettings: &extensionSettings,
 			InputDataSources:  pointer.To(v.InputDataSources),
-			Name:              utils.String(v.Name),
+			Name:              pointer.To(v.Name),
 			Streams:           expandDataCollectionRuleDataSourceExtensionStreams(v.Streams),
 		})
 	}
@@ -1306,7 +1304,7 @@ func expandDataCollectionRuleDataSourceIisLogs(input []IisLog) *[]datacollection
 	result := make([]datacollectionrules.IisLogsDataSource, 0)
 	for _, v := range input {
 		iisLog := datacollectionrules.IisLogsDataSource{
-			Name:    utils.String(v.Name),
+			Name:    pointer.To(v.Name),
 			Streams: v.Streams,
 		}
 
@@ -1328,7 +1326,7 @@ func expandDataCollectionRuleDataSourceLogFiles(input []LogFile) *[]datacollecti
 	result := make([]datacollectionrules.LogFilesDataSource, 0)
 	for _, v := range input {
 		logFile := datacollectionrules.LogFilesDataSource{
-			Name:         utils.String(v.Name),
+			Name:         pointer.To(v.Name),
 			Streams:      v.Streams,
 			FilePatterns: v.FilePatterns,
 			Format:       datacollectionrules.KnownLogFilesDataSourceFormat(v.Format),
@@ -1357,8 +1355,8 @@ func expandDataCollectionRuleDataSourcePerfCounters(input []PerfCounter) *[]data
 	for _, v := range input {
 		result = append(result, datacollectionrules.PerfCounterDataSource{
 			CounterSpecifiers:          pointer.To(v.CounterSpecifiers),
-			Name:                       utils.String(v.Name),
-			SamplingFrequencyInSeconds: utils.Int64(v.SamplingFrequencyInSeconds),
+			Name:                       pointer.To(v.Name),
+			SamplingFrequencyInSeconds: pointer.To(v.SamplingFrequencyInSeconds),
 			Streams:                    expandDataCollectionRuleDataSourcePerfCounterStreams(v.Streams),
 		})
 	}
@@ -1386,7 +1384,7 @@ func expandDataCollectionRuleDataSourcePlatformTelemetry(input []PlatformTelemet
 	result := make([]datacollectionrules.PlatformTelemetryDataSource, 0)
 	for _, v := range input {
 		platformTelemetry := datacollectionrules.PlatformTelemetryDataSource{
-			Name:    utils.String(v.Name),
+			Name:    pointer.To(v.Name),
 			Streams: v.Streams,
 		}
 
@@ -1409,7 +1407,7 @@ func expandDataCollectionRuleDataSourcePrometheusForwarder(input []PrometheusFor
 		}
 
 		prometheusForwarder := datacollectionrules.PrometheusForwarderDataSource{
-			Name:    utils.String(v.Name),
+			Name:    pointer.To(v.Name),
 			Streams: &streams,
 		}
 
@@ -1438,7 +1436,7 @@ func expandDataCollectionRuleDataSourceSyslog(input []Syslog) *[]datacollectionr
 		result = append(result, datacollectionrules.SyslogDataSource{
 			FacilityNames: expandDataCollectionRuleDataSourceSyslogFacilityNames(v.FacilityNames),
 			LogLevels:     expandDataCollectionRuleDataSourceSyslogLogLevels(v.LogLevels),
-			Name:          utils.String(v.Name),
+			Name:          pointer.To(v.Name),
 			Streams:       expandDataCollectionRuleDataSourceSyslogStreams(v.Streams),
 		})
 	}
@@ -1447,9 +1445,6 @@ func expandDataCollectionRuleDataSourceSyslog(input []Syslog) *[]datacollectionr
 
 func expandDataCollectionRuleDataSourceSyslogStreams(input []string) *[]datacollectionrules.KnownSyslogDataSourceStreams {
 	if len(input) == 0 {
-		if !features.FourPointOhBeta() {
-			return &[]datacollectionrules.KnownSyslogDataSourceStreams{datacollectionrules.KnownSyslogDataSourceStreamsMicrosoftNegativeSyslog}
-		}
 		return nil
 	}
 
@@ -1492,7 +1487,7 @@ func expandDataCollectionRuleDataSourceWindowsEventLogs(input []WindowsEventLog)
 	result := make([]datacollectionrules.WindowsEventLogDataSource, 0)
 	for _, v := range input {
 		result = append(result, datacollectionrules.WindowsEventLogDataSource{
-			Name:         utils.String(v.Name),
+			Name:         pointer.To(v.Name),
 			Streams:      expandDataCollectionRuleDataSourceWindowsEventLogsStreams(v.Streams),
 			XPathQueries: pointer.To(v.XPathQueries),
 		})
@@ -1520,7 +1515,7 @@ func expandDataCollectionRuleDataSourceWindowsFirewallLogs(input []WindowsFirewa
 	result := make([]datacollectionrules.WindowsFirewallLogsDataSource, 0)
 	for _, v := range input {
 		windowsFirewallLog := datacollectionrules.WindowsFirewallLogsDataSource{
-			Name:    utils.String(v.Name),
+			Name:    pointer.To(v.Name),
 			Streams: v.Streams,
 		}
 
@@ -1553,7 +1548,7 @@ func expandDataCollectionRuleDestinationMetrics(input []AzureMonitorMetric) *dat
 	}
 
 	return &datacollectionrules.AzureMonitorMetricsDestination{
-		Name: utils.String(input[0].Name),
+		Name: pointer.To(input[0].Name),
 	}
 }
 
@@ -1565,8 +1560,8 @@ func expandDataCollectionRuleDestinationEventHubs(input []EventHub) *[]datacolle
 	result := make([]datacollectionrules.EventHubDestination, 0)
 	for _, v := range input {
 		eventhub := datacollectionrules.EventHubDestination{
-			Name:               utils.String(v.Name),
-			EventHubResourceId: utils.String(v.EventHubResourceId),
+			Name:               pointer.To(v.Name),
+			EventHubResourceId: pointer.To(v.EventHubResourceId),
 		}
 
 		result = append(result, eventhub)
@@ -1583,8 +1578,8 @@ func expandDataCollectionRuleDestinationEventHubsDirect(input []EventHub) *[]dat
 	result := make([]datacollectionrules.EventHubDirectDestination, 0)
 	for _, v := range input {
 		eventhub := datacollectionrules.EventHubDirectDestination{
-			Name:               utils.String(v.Name),
-			EventHubResourceId: utils.String(v.EventHubResourceId),
+			Name:               pointer.To(v.Name),
+			EventHubResourceId: pointer.To(v.EventHubResourceId),
 		}
 
 		result = append(result, eventhub)
@@ -1601,8 +1596,8 @@ func expandDataCollectionRuleDestinationLogAnalytics(input []LogAnalytic) *[]dat
 	result := make([]datacollectionrules.LogAnalyticsDestination, 0)
 	for _, v := range input {
 		result = append(result, datacollectionrules.LogAnalyticsDestination{
-			Name:                utils.String(v.Name),
-			WorkspaceResourceId: utils.String(v.WorkspaceResourceId),
+			Name:                pointer.To(v.Name),
+			WorkspaceResourceId: pointer.To(v.WorkspaceResourceId),
 		})
 	}
 	return &result
@@ -1616,8 +1611,8 @@ func expandDataCollectionRuleDestinationMonitoringAccounts(input []MonitorAccoun
 	result := make([]datacollectionrules.MonitoringAccountDestination, 0)
 	for _, v := range input {
 		monitorAccount := datacollectionrules.MonitoringAccountDestination{
-			Name:              utils.String(v.Name),
-			AccountResourceId: utils.String(v.AccountId),
+			Name:              pointer.To(v.Name),
+			AccountResourceId: pointer.To(v.AccountId),
 		}
 
 		result = append(result, monitorAccount)
@@ -1634,9 +1629,9 @@ func expandDataCollectionRuleDestinationStorageBlobs(input []StorageBlob) *[]dat
 	result := make([]datacollectionrules.StorageBlobDestination, 0)
 	for _, v := range input {
 		monitorAccount := datacollectionrules.StorageBlobDestination{
-			Name:                     utils.String(v.Name),
-			StorageAccountResourceId: utils.String(v.StorageAccountId),
-			ContainerName:            utils.String(v.ContainerName),
+			Name:                     pointer.To(v.Name),
+			StorageAccountResourceId: pointer.To(v.StorageAccountId),
+			ContainerName:            pointer.To(v.ContainerName),
 		}
 
 		result = append(result, monitorAccount)
@@ -1653,9 +1648,9 @@ func expandDataCollectionRuleDestinationStorageTableDirect(input []StorageTableD
 	result := make([]datacollectionrules.StorageTableDestination, 0)
 	for _, v := range input {
 		monitorAccount := datacollectionrules.StorageTableDestination{
-			Name:                     utils.String(v.Name),
-			StorageAccountResourceId: utils.String(v.StorageAccountId),
-			TableName:                utils.String(v.TableName),
+			Name:                     pointer.To(v.Name),
+			StorageAccountResourceId: pointer.To(v.StorageAccountId),
+			TableName:                pointer.To(v.TableName),
 		}
 
 		result = append(result, monitorAccount)
@@ -1675,7 +1670,7 @@ func expandDataCollectionRuleStreamDeclarations(input []StreamDeclaration) *map[
 		for _, column := range v.Column {
 			columnType := datacollectionrules.KnownColumnDefinitionType(column.Type)
 			columns = append(columns, datacollectionrules.ColumnDefinition{
-				Name: utils.String(column.Name),
+				Name: pointer.To(column.Name),
 				Type: &columnType,
 			})
 		}
@@ -1854,7 +1849,6 @@ func flattenDataCollectionRuleDataSourceLogFiles(input *[]datacollectionrules.Lo
 		})
 	}
 	return result
-
 }
 
 func flattenDataCollectionRuleDataSourcePerfCounters(input *[]datacollectionrules.PerfCounterDataSource) []PerfCounter {
@@ -1867,7 +1861,7 @@ func flattenDataCollectionRuleDataSourcePerfCounters(input *[]datacollectionrule
 		result = append(result, PerfCounter{
 			Name:                       flattenStringPtr(v.Name),
 			CounterSpecifiers:          flattenStringSlicePtr(v.CounterSpecifiers),
-			SamplingFrequencyInSeconds: utils.NormaliseNilableInt64(v.SamplingFrequencyInSeconds),
+			SamplingFrequencyInSeconds: pointer.From(v.SamplingFrequencyInSeconds),
 			Streams:                    flattenDataCollectionRuleDataSourcePerfCounterStreams(v.Streams),
 		})
 	}

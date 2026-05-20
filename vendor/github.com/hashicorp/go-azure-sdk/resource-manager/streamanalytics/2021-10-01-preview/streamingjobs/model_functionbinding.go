@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FunctionBinding interface {
+	FunctionBinding() BaseFunctionBindingImpl
 }
 
-// RawFunctionBindingImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ FunctionBinding = BaseFunctionBindingImpl{}
+
+type BaseFunctionBindingImpl struct {
+	Type string `json:"type"`
+}
+
+func (s BaseFunctionBindingImpl) FunctionBinding() BaseFunctionBindingImpl {
+	return s
+}
+
+var _ FunctionBinding = RawFunctionBindingImpl{}
+
+// RawFunctionBindingImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawFunctionBindingImpl struct {
-	Type   string
-	Values map[string]interface{}
+	functionBinding BaseFunctionBindingImpl
+	Type            string
+	Values          map[string]interface{}
 }
 
-func unmarshalFunctionBindingImplementation(input []byte) (FunctionBinding, error) {
+func (s RawFunctionBindingImpl) FunctionBinding() BaseFunctionBindingImpl {
+	return s.functionBinding
+}
+
+func UnmarshalFunctionBindingImplementation(input []byte) (FunctionBinding, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalFunctionBindingImplementation(input []byte) (FunctionBinding, erro
 		return nil, fmt.Errorf("unmarshaling FunctionBinding into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Microsoft.MachineLearningServices") {
@@ -68,10 +85,15 @@ func unmarshalFunctionBindingImplementation(input []byte) (FunctionBinding, erro
 		return out, nil
 	}
 
-	out := RawFunctionBindingImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseFunctionBindingImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseFunctionBindingImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawFunctionBindingImpl{
+		functionBinding: parent,
+		Type:            value,
+		Values:          temp,
+	}, nil
 
 }

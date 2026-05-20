@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const SiteRecoveryReplicationPolicyVMWareAssociationTargetContainerId string = "Microsoft Azure"
@@ -114,16 +114,11 @@ func (s VMWareReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError("azurerm_site_recovery_replication_policy_vmware_association", *existing.Model.Id)
 			}
 
-			type RawProviderSpecificInput struct {
-				Type   string                 `json:"-"`
-				Values map[string]interface{} `json:"-"`
-			}
-
 			parameters := replicationprotectioncontainermappings.CreateProtectionContainerMappingInput{
 				Properties: &replicationprotectioncontainermappings.CreateProtectionContainerMappingInputProperties{
-					TargetProtectionContainerId: utils.String(SiteRecoveryReplicationPolicyVMWareAssociationTargetContainerId),
+					TargetProtectionContainerId: pointer.To(SiteRecoveryReplicationPolicyVMWareAssociationTargetContainerId),
 					PolicyId:                    &model.RecoveryReplicationPolicyId,
-					ProviderSpecificInput:       &RawProviderSpecificInput{},
+					ProviderSpecificInput:       replicationprotectioncontainermappings.BaseReplicationProviderSpecificContainerMappingInputImpl{},
 				},
 			}
 
@@ -166,7 +161,6 @@ func (s VMWareReplicationPolicyAssociationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if prop := model.Properties; prop != nil {
-
 					policyId := ""
 					// tracked on https://github.com/Azure/azure-rest-api-specs/issues/24751
 					if prop.PolicyId != nil && *prop.PolicyId != "" {

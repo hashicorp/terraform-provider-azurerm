@@ -17,10 +17,12 @@ type ExperimentProperties struct {
 var _ json.Unmarshaler = &ExperimentProperties{}
 
 func (s *ExperimentProperties) UnmarshalJSON(bytes []byte) error {
-	type alias ExperimentProperties
-	var decoded alias
+	var decoded struct {
+		ProvisioningState *ProvisioningState `json:"provisioningState,omitempty"`
+		Steps             []Step             `json:"steps"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into ExperimentProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.ProvisioningState = decoded.ProvisioningState
@@ -39,7 +41,7 @@ func (s *ExperimentProperties) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]Selector, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalSelectorImplementation(val)
+			impl, err := UnmarshalSelectorImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'Selectors' for 'ExperimentProperties': %+v", i, err)
 			}
@@ -47,5 +49,6 @@ func (s *ExperimentProperties) UnmarshalJSON(bytes []byte) error {
 		}
 		s.Selectors = output
 	}
+
 	return nil
 }

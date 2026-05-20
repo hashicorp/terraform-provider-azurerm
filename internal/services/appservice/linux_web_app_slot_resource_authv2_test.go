@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -200,7 +200,6 @@ resource "azurerm_linux_web_app_slot" "test" {
 }
 
 func (r LinuxWebAppSlotResource) authV2AzureActiveDirectoryNoSecretName(data acceptance.TestData) string {
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

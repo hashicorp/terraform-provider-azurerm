@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -16,17 +16,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WorkspaceSku string
@@ -36,7 +34,7 @@ const (
 )
 
 func resourceMachineLearningWorkspace() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMachineLearningWorkspaceCreate,
 		Read:   resourceMachineLearningWorkspaceRead,
 		Update: resourceMachineLearningWorkspaceUpdate,
@@ -196,6 +194,12 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 							Computed:     true,
 							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
 						},
+						"provision_on_creation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -216,6 +220,14 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Optional:     true,
 				Default:      string(Basic),
 				ValidateFunc: validation.StringInSlice([]string{string(Basic)}, false),
+			},
+
+			"service_side_encryption_enabled": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      false,
+				RequiredWith: []string{"encryption"},
 			},
 
 			"v1_legacy_mode_enabled": {
@@ -257,27 +269,6 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		// For the time being we should just deprecate and remove this property since it's broken in the API - it doesn't
-		// actually set the property and also isn't returned by the API. Once https://github.com/Azure/azure-rest-api-specs/issues/18340
-		// is fixed we can reassess how to deal with this field.
-		resource.Schema["public_access_behind_virtual_network_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			ForceNew:      true,
-			Deprecated:    "`public_access_behind_virtual_network_enabled` will be removed in favour of the property `public_network_access_enabled` in version 4.0 of the AzureRM Provider.",
-			ConflictsWith: []string{"public_network_access_enabled"},
-		}
-		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"public_access_behind_virtual_network_enabled"},
-		}
-	}
-
-	return resource
 }
 
 func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -305,16 +296,12 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 
 	expandedEncryption := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{}))
 
+	managedNetwork, provisionNetworkNow := expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{}))
+
 	networkAccessBehindVnetEnabled := workspaces.PublicNetworkAccessDisabled
-	if !features.FourPointOhBeta() {
-		// nolint: staticcheck
-		if v, ok := d.GetOkExists("public_network_access_enabled"); ok && v.(bool) {
-			networkAccessBehindVnetEnabled = workspaces.PublicNetworkAccessEnabled
-		}
-	} else {
-		if v := d.Get("public_network_access_enabled").(bool); v {
-			networkAccessBehindVnetEnabled = workspaces.PublicNetworkAccessEnabled
-		}
+
+	if v := d.Get("public_network_access_enabled").(bool); v {
+		networkAccessBehindVnetEnabled = workspaces.PublicNetworkAccessEnabled
 	}
 
 	workspace := workspaces.Workspace{
@@ -329,13 +316,15 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
-			ApplicationInsights: pointer.To(d.Get("application_insights_id").(string)),
-			Encryption:          expandedEncryption,
-			KeyVault:            pointer.To(d.Get("key_vault_id").(string)),
-			ManagedNetwork:      expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{})),
-			PublicNetworkAccess: pointer.To(networkAccessBehindVnetEnabled),
-			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
-			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
+			ApplicationInsights:            pointer.To(d.Get("application_insights_id").(string)),
+			Encryption:                     expandedEncryption,
+			KeyVault:                       pointer.To(d.Get("key_vault_id").(string)),
+			ManagedNetwork:                 managedNetwork,
+			ProvisionNetworkNow:            pointer.To(provisionNetworkNow),
+			PublicNetworkAccess:            pointer.To(networkAccessBehindVnetEnabled),
+			EnableServiceSideCMKEncryption: pointer.To(d.Get("service_side_encryption_enabled").(bool)),
+			StorageAccount:                 pointer.To(d.Get("storage_account_id").(string)),
+			V1LegacyMode:                   pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
 		},
 	}
 
@@ -361,7 +350,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("high_business_impact"); ok {
-		workspace.Properties.HbiWorkspace = utils.Bool(v.(bool))
+		workspace.Properties.HbiWorkspace = pointer.To(v.(bool))
 	}
 
 	if v, ok := d.GetOk("image_build_compute_name"); ok {
@@ -468,7 +457,7 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("managed_network") {
-		payload.Properties.ManagedNetwork = expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{}))
+		payload.Properties.ManagedNetwork, _ = expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{}))
 	}
 
 	if d.HasChange("sku_name") {
@@ -569,12 +558,13 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("friendly_name", props.FriendlyName)
 			d.Set("high_business_impact", props.HbiWorkspace)
 			d.Set("image_build_compute_name", props.ImageBuildCompute)
-			d.Set("discovery_url", props.DiscoveryUrl)
+			d.Set("discovery_url", props.DiscoveryURL)
 			d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
+			d.Set("service_side_encryption_enabled", props.EnableServiceSideCMKEncryption)
 			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
 			d.Set("workspace_id", props.WorkspaceId)
-			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork))
+			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork, props.ProvisionNetworkNow))
 			d.Set("serverless_compute", flattenMachineLearningWorkspaceServerlessCompute(props.ServerlessComputeSettings))
 
 			kvId, err := commonids.ParseKeyVaultIDInsensitively(*props.KeyVault)
@@ -582,10 +572,6 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 				return err
 			}
 			d.Set("key_vault_id", kvId.ID())
-
-			if !features.FourPointOhBeta() {
-				d.Set("public_access_behind_virtual_network_enabled", props.AllowPublicAccessWhenBehindVnet)
-			}
 
 			featureStoreSettings := flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)
 			if err := d.Set("feature_store", featureStoreSettings); err != nil {
@@ -600,7 +586,9 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `encryption`: %+v", err)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -799,19 +787,19 @@ func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreS
 	}
 }
 
-func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) *workspaces.ManagedNetworkSettings {
+func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) (*workspaces.ManagedNetworkSettings, bool) {
 	if len(i) == 0 || i[0] == nil {
-		return nil
+		return nil, false
 	}
 
 	v := i[0].(map[string]interface{})
 
 	return &workspaces.ManagedNetworkSettings{
 		IsolationMode: pointer.To(workspaces.IsolationMode(v["isolation_mode"].(string))),
-	}
+	}, v["provision_on_creation_enabled"].(bool)
 }
 
-func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkSettings) *[]interface{} {
+func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkSettings, provisionNetworkNow *bool) *[]interface{} {
 	if i == nil {
 		return &[]interface{}{}
 	}
@@ -821,6 +809,7 @@ func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkS
 	if i.IsolationMode != nil {
 		out["isolation_mode"] = *i.IsolationMode
 	}
+	out["provision_on_creation_enabled"] = pointer.From(provisionNetworkNow)
 
 	return &[]interface{}{out}
 }

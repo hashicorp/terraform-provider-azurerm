@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -28,10 +29,10 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorRouteDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -62,10 +63,10 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 
 			// NOTE: These are not sent to the API, they are only here so Terraform
 			// can provision/destroy the resources in the correct order.
+			// Made this field optional to address comments in Issue #29063
 			"cdn_frontdoor_origin_ids": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
-
+				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validate.FrontDoorOriginID,
@@ -225,9 +226,6 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_route", id.ID())
 	}
 
-	var origins []interface{}
-	var originGroup *cdn.ResourceReference
-
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
 	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
 	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
@@ -262,6 +260,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	var originGroup *cdn.ResourceReference
 	if originGroupRaw != "" {
 		id, err := parse.FrontDoorOriginGroupID(originGroupRaw)
 		if err != nil {
@@ -292,7 +291,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if originPath := d.Get("cdn_frontdoor_origin_path").(string); originPath != "" {
-		props.RouteProperties.OriginPath = utils.String(originPath)
+		props.OriginPath = pointer.To(originPath)
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, props)
@@ -308,6 +307,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
+	origins := make([]string, 0, len(originsRaw))
 	for _, origin := range originsRaw {
 		id, err := parse.FrontDoorOriginID(origin.(string))
 		if err != nil {
@@ -347,7 +347,7 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
 	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
-		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
+		d.Set("cdn_frontdoor_origin_ids", originIds)
 	}
 
 	d.Set("name", id.RouteName)
@@ -458,9 +458,9 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// NOTE: You need to always pass these three on update else you will
 	// disable your cache, disassociate your custom domains or remove your origin path...
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains:      existing.RouteProperties.CustomDomains,
-		CacheConfiguration: existing.RouteProperties.CacheConfiguration,
-		OriginPath:         existing.RouteProperties.OriginPath,
+		CustomDomains:      existing.CustomDomains,
+		CacheConfiguration: existing.CacheConfiguration,
+		OriginPath:         existing.OriginPath,
 	}
 
 	if d.HasChange("cache") {
@@ -496,7 +496,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		originPath := d.Get("cdn_frontdoor_origin_path").(string)
 		if originPath != "" {
-			updateProps.OriginPath = utils.String(originPath)
+			updateProps.OriginPath = pointer.To(originPath)
 		}
 	}
 
@@ -533,7 +533,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
 	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
-		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
+		d.Set("cdn_frontdoor_origin_ids", originIds)
 	}
 
 	return resourceCdnFrontDoorRouteRead(d, meta)
@@ -583,7 +583,7 @@ func expandRuleSetReferenceArray(input []interface{}) *[]cdn.ResourceReference {
 
 	for _, item := range input {
 		results = append(results, cdn.ResourceReference{
-			ID: utils.String(item.(string)),
+			ID: pointer.To(item.(string)),
 		})
 	}
 
@@ -605,7 +605,7 @@ func expandCdnFrontdoorRouteCacheConfiguration(input []interface{}) *cdn.AfdRout
 
 	cacheConfiguration := &cdn.AfdRouteCacheConfiguration{
 		CompressionSettings: &cdn.CompressionSettings{
-			IsCompressionEnabled: utils.Bool(compressionEnabled),
+			IsCompressionEnabled: pointer.To(compressionEnabled),
 		},
 		QueryParameters:            expandStringSliceToCsvFormat(v["query_strings"].([]interface{})),
 		QueryStringCachingBehavior: queryStringCachingBehaviorValue,

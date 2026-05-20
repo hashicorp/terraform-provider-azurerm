@@ -45,7 +45,6 @@ func (c ManagedCassandrasClient) CassandraClustersGet(ctx context.Context, id Ca
 
 	var model ClusterResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

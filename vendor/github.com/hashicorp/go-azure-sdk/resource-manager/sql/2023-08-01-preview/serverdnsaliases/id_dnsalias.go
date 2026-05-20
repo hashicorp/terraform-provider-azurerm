@@ -44,7 +44,7 @@ func ParseDnsAliasID(input string) (*DnsAliasId, error) {
 	}
 
 	id := DnsAliasId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDnsAliasIDInsensitively(input string) (*DnsAliasId, error) {
 	}
 
 	id := DnsAliasId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DnsAliasId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSql", "Microsoft.Sql", "Microsoft.Sql"),
 		resourceids.StaticSegment("staticServers", "servers", "servers"),
-		resourceids.UserSpecifiedSegment("serverName", "serverValue"),
+		resourceids.UserSpecifiedSegment("serverName", "serverName"),
 		resourceids.StaticSegment("staticDnsAliases", "dnsAliases", "dnsAliases"),
-		resourceids.UserSpecifiedSegment("dnsAliasName", "dnsAliasValue"),
+		resourceids.UserSpecifiedSegment("dnsAliasName", "dnsAliasName"),
 	}
 }
 

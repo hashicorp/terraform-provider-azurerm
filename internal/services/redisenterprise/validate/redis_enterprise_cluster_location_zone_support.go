@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -25,9 +25,10 @@ func RedisEnterpriseClusterLocationZoneSupport(input string) error {
 }
 
 func invalidRedisEnterpriseClusterZoneLocations() []string {
-	var invalidZone []string
+	locations := friendlyInvalidRedisEnterpriseClusterZoneLocations()
+	invalidZone := make([]string, 0, len(locations))
 
-	for _, v := range friendlyInvalidRedisEnterpriseClusterZoneLocations() {
+	for _, v := range locations {
 		invalidZone = append(invalidZone, location.Normalize(v))
 	}
 

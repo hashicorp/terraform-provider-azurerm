@@ -15,7 +15,7 @@ type VaultsClient struct {
 }
 
 func NewVaultsClientWithBaseURI(sdkApi sdkEnv.Api) (*VaultsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "vaults", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "vaults", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VaultsClient: %+v", err)
 	}

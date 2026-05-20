@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -15,9 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServicePlanDataSource struct{}
@@ -109,7 +107,7 @@ func (r ServicePlanDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 	}
 }
 
@@ -158,15 +156,12 @@ func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 					}
 
 					if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.Id != nil {
-						servicePlan.AppServiceEnvironmentId = utils.NormalizeNilableString(props.HostingEnvironmentProfile.Id)
+						servicePlan.AppServiceEnvironmentId = pointer.From(props.HostingEnvironmentProfile.Id)
 					}
 
-					servicePlan.PerSiteScaling = utils.NormaliseNilableBool(props.PerSiteScaling)
-
-					servicePlan.Reserved = utils.NormaliseNilableBool(props.Reserved)
-
-					servicePlan.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
-
+					servicePlan.PerSiteScaling = pointer.From(props.PerSiteScaling)
+					servicePlan.Reserved = pointer.From(props.Reserved)
+					servicePlan.ZoneBalancing = pointer.From(props.ZoneRedundant)
 					servicePlan.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
 				}
 				servicePlan.Tags = pointer.From(model.Tags)

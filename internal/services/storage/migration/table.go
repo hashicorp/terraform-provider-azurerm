@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -68,7 +68,7 @@ func (TableV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	}
 }
 
-// the schema schema was used for both V0 and V1
+// the schema was used for both V0 and V1
 func tableSchemaV0AndV1() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {

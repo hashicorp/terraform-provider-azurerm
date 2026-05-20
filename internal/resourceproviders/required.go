@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resourceproviders
@@ -179,7 +179,6 @@ func Legacy() ResourceProviders {
 		"Microsoft.Management":              {},
 		"Microsoft.Maps":                    {},
 		"Microsoft.MarketplaceOrdering":     {},
-		"Microsoft.Media":                   {},
 		"Microsoft.MixedReality":            {},
 		"Microsoft.Network":                 {},
 		"Microsoft.NotificationHubs":        {},
@@ -199,7 +198,6 @@ func Legacy() ResourceProviders {
 		"Microsoft.Sql":                     {},
 		"Microsoft.Storage":                 {},
 		"Microsoft.StreamAnalytics":         {},
-		"Microsoft.TimeSeriesInsights":      {},
 		"Microsoft.Web":                     {},
 		"microsoft.insights":                {},
 	}

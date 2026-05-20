@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package features
@@ -8,6 +8,7 @@ type UserFeatures struct {
 	AppConfiguration         AppConfigurationFeatures
 	ApplicationInsights      ApplicationInsightFeatures
 	CognitiveAccount         CognitiveAccountFeatures
+	EnhancedValidation       EnhancedValidationFeatures
 	VirtualMachine           VirtualMachineFeatures
 	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
 	KeyVault                 KeyVaultFeatures
@@ -16,20 +17,28 @@ type UserFeatures struct {
 	ResourceGroup            ResourceGroupFeatures
 	RecoveryServicesVault    RecoveryServicesVault
 	ManagedDisk              ManagedDiskFeatures
+	Storage                  StorageFeatures
 	Subscription             SubscriptionFeatures
 	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
 	MachineLearning          MachineLearningFeatures
 	RecoveryService          RecoveryServiceFeatures
+	NetApp                   NetAppFeatures
+	DatabricksWorkspace      DatabricksWorkspaceFeatures
 }
 
 type CognitiveAccountFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
 }
 
+type EnhancedValidationFeatures struct {
+	Locations         bool
+	ResourceProviders bool
+}
+
 type VirtualMachineFeatures struct {
 	DetachImplicitDataDiskOnDeletion bool
 	DeleteOSDiskOnDeletion           bool
-	GracefulShutdown                 bool
+	GracefulShutdown                 bool // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 	SkipShutdownAndForceDelete       bool
 }
 
@@ -84,6 +93,10 @@ type AppConfigurationFeatures struct {
 	RecoverSoftDeleted       bool
 }
 
+type StorageFeatures struct {
+	DataPlaneAvailable bool
+}
+
 type SubscriptionFeatures struct {
 	PreventCancellationOnDestroy bool
 }
@@ -101,6 +114,16 @@ type MachineLearningFeatures struct {
 }
 
 type RecoveryServiceFeatures struct {
-	VMBackupStopProtectionAndRetainDataOnDestroy bool
-	PurgeProtectedItemsFromVaultOnDestroy        bool
+	VMBackupStopProtectionAndRetainDataOnDestroy    bool
+	VMBackupSuspendProtectionAndRetainDataOnDestroy bool
+	PurgeProtectedItemsFromVaultOnDestroy           bool
+}
+
+type NetAppFeatures struct {
+	DeleteBackupsOnBackupVaultDestroy bool
+	PreventVolumeDestruction          bool
+}
+
+type DatabricksWorkspaceFeatures struct {
+	ForceDelete bool
 }

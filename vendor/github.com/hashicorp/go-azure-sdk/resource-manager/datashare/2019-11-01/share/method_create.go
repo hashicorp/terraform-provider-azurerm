@@ -50,7 +50,6 @@ func (c ShareClient) Create(ctx context.Context, id ShareId, input Share) (resul
 
 	var model Share
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

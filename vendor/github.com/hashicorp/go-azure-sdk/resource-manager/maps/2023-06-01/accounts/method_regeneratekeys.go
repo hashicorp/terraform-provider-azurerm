@@ -50,7 +50,6 @@ func (c AccountsClient) RegenerateKeys(ctx context.Context, id AccountId, input 
 
 	var model MapsAccountKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

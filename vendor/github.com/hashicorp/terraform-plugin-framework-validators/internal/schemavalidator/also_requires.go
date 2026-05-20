@@ -7,18 +7,21 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 )
 
 // This type of validator must satisfy all types.
 var (
 	_ validator.Bool    = AlsoRequiresValidator{}
+	_ validator.Float32 = AlsoRequiresValidator{}
 	_ validator.Float64 = AlsoRequiresValidator{}
+	_ validator.Int32   = AlsoRequiresValidator{}
 	_ validator.Int64   = AlsoRequiresValidator{}
 	_ validator.List    = AlsoRequiresValidator{}
 	_ validator.Map     = AlsoRequiresValidator{}
@@ -26,6 +29,7 @@ var (
 	_ validator.Object  = AlsoRequiresValidator{}
 	_ validator.Set     = AlsoRequiresValidator{}
 	_ validator.String  = AlsoRequiresValidator{}
+	_ validator.Dynamic = AlsoRequiresValidator{}
 )
 
 // AlsoRequiresValidator is the underlying struct implementing AlsoRequires.
@@ -54,7 +58,8 @@ func (av AlsoRequiresValidator) MarkdownDescription(_ context.Context) string {
 
 func (av AlsoRequiresValidator) Validate(ctx context.Context, req AlsoRequiresValidatorRequest, res *AlsoRequiresValidatorResponse) {
 	// If attribute configuration is null, there is nothing else to validate
-	if req.ConfigValue.IsNull() {
+	// If attribute configuration is unknown, delay the validation until it is known.
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
 
@@ -115,7 +120,35 @@ func (av AlsoRequiresValidator) ValidateBool(ctx context.Context, req validator.
 	resp.Diagnostics.Append(validateResp.Diagnostics...)
 }
 
+func (av AlsoRequiresValidator) ValidateFloat32(ctx context.Context, req validator.Float32Request, resp *validator.Float32Response) {
+	validateReq := AlsoRequiresValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &AlsoRequiresValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
 func (av AlsoRequiresValidator) ValidateFloat64(ctx context.Context, req validator.Float64Request, resp *validator.Float64Response) {
+	validateReq := AlsoRequiresValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &AlsoRequiresValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
+func (av AlsoRequiresValidator) ValidateInt32(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
 	validateReq := AlsoRequiresValidatorRequest{
 		Config:         req.Config,
 		ConfigValue:    req.ConfigValue,
@@ -214,6 +247,20 @@ func (av AlsoRequiresValidator) ValidateSet(ctx context.Context, req validator.S
 }
 
 func (av AlsoRequiresValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	validateReq := AlsoRequiresValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &AlsoRequiresValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
+func (av AlsoRequiresValidator) ValidateDynamic(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
 	validateReq := AlsoRequiresValidatorRequest{
 		Config:         req.Config,
 		ConfigValue:    req.ConfigValue,

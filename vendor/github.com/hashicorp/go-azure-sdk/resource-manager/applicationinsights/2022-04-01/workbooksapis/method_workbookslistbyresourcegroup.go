@@ -43,6 +43,7 @@ func (o WorkbooksListByResourceGroupOperationOptions) ToHeaders() *client.Header
 
 func (o WorkbooksListByResourceGroupOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

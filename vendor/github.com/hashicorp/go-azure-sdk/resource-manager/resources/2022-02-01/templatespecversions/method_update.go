@@ -49,7 +49,6 @@ func (c TemplateSpecVersionsClient) Update(ctx context.Context, id TemplateSpecV
 
 	var model TemplateSpecVersion
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

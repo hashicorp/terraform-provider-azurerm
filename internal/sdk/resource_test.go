@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -8,7 +8,7 @@ package sdk
 type ExampleObj struct {
 	Name        string            `tfschema:"name"`
 	Number      int               `tfschema:"number"`
-	Output      string            `tfschema:"output" computed:"true"`
+	Output      string            `tfschema:"output"       computed:"true"`
 	Enabled     bool              `tfschema:"enabled"`
 	Networks    []string          `tfschema:"networks"`
 	NetworksSet []string          `tfschema:"networks_set"`

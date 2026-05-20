@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 // NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
@@ -48,11 +48,13 @@ var services = mapOf(
         "devtestlabs" to "Dev Test",
         "digitaltwins" to "Digital Twins",
         "domainservices" to "DomainServices",
+        "dynatrace" to "Dynatrace",
         "elastic" to "Elastic",
         "elasticsan" to "ElasticSan",
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
         "extendedlocation" to "ExtendedLocation",
+        "fabric" to "Fabric",
         "firewall" to "Firewall",
         "fluidrelay" to "Fluid Relay",
         "frontdoor" to "FrontDoor",
@@ -74,14 +76,15 @@ var services = mapOf(
         "machinelearning" to "Machine Learning",
         "maintenance" to "Maintenance",
         "managedapplications" to "Managed Applications",
+        "manageddevopspools" to "Managed DevOps Pools",
         "managedhsm" to "Managed HSM",
+        "managedredis" to "Managed Redis",
         "managedidentity" to "ManagedIdentity",
         "managementgroup" to "Management Group",
         "maps" to "Maps",
         "mssql" to "Microsoft SQL Server / Azure SQL",
         "mssqlmanagedinstance" to "Microsoft SQL Server Managed Instances",
-        "mixedreality" to "Mixed Reality",
-        "mobilenetwork" to "Mobile Network",
+        "mongocluster" to "Mongo Cluster",
         "monitor" to "Monitor",
         "mysql" to "MySQL",
         "netapp" to "NetApp",
@@ -90,6 +93,7 @@ var services = mapOf(
         "newrelic" to "New Relic",
         "nginx" to "Nginx",
         "notificationhub" to "Notification Hub",
+        "oracle" to "Oracle",
         "orbital" to "Orbital",
         "paloalto" to "Palo Alto",
         "policy" to "Policy",
@@ -99,6 +103,7 @@ var services = mapOf(
         "privatedns" to "Private DNS",
         "privatednsresolver" to "Private DNS Resolver",
         "purview" to "Purview",
+        "qumulo" to "Qumulo",
         "recoveryservices" to "Recovery Services",
         "redhatopenshift" to "Red Hat OpenShift",
         "redis" to "Redis",
@@ -123,7 +128,9 @@ var services = mapOf(
         "synapse" to "Synapse",
         "systemcentervirtualmachinemanager" to "System Center Virtual Machine Manager",
         "trafficmanager" to "Traffic Manager",
+        "codesigning" to "Trusted Signing",
         "vmware" to "VMware",
+        "videoindexer" to "VideoIndexer",
         "voiceservices" to "Voice Services",
         "web" to "Web",
         "workloads" to "Workloads"

@@ -14,6 +14,14 @@ type LogToMetricAction struct {
 	Criteria []Criteria `json:"criteria"`
 
 	// Fields inherited from Action
+
+	OdataType string `json:"odata.type"`
+}
+
+func (s LogToMetricAction) Action() BaseActionImpl {
+	return BaseActionImpl{
+		OdataType: s.OdataType,
+	}
 }
 
 var _ json.Marshaler = LogToMetricAction{}
@@ -27,9 +35,10 @@ func (s LogToMetricAction) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling LogToMetricAction: %+v", err)
 	}
+
 	decoded["odata.type"] = "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.LogToMetricAction"
 
 	encoded, err = json.Marshal(decoded)

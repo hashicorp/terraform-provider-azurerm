@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -161,7 +161,6 @@ func (r ReplicationPolicyHyperVResource) Read() sdk.ResourceFunc {
 					if detail.RecoveryPointHistoryDurationInHours != nil {
 						state.RecoveryPointRetentionInHours = *detail.RecoveryPointHistoryDurationInHours
 					}
-
 				}
 			}
 			return metadata.Encode(&state)

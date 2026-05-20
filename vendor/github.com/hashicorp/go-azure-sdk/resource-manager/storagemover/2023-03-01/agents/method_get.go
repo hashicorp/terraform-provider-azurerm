@@ -45,7 +45,6 @@ func (c AgentsClient) Get(ctx context.Context, id AgentId) (result GetOperationR
 
 	var model Agent
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -5,5 +5,5 @@ package restorepointcollections
 
 type VaultCertificate struct {
 	CertificateStore *string `json:"certificateStore,omitempty"`
-	CertificateUrl   *string `json:"certificateUrl,omitempty"`
+	CertificateURL   *string `json:"certificateUrl,omitempty"`
 }

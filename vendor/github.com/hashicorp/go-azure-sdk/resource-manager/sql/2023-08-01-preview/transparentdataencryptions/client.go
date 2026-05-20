@@ -15,7 +15,7 @@ type TransparentDataEncryptionsClient struct {
 }
 
 func NewTransparentDataEncryptionsClientWithBaseURI(sdkApi sdkEnv.Api) (*TransparentDataEncryptionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "transparentdataencryptions", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "transparentdataencryptions", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TransparentDataEncryptionsClient: %+v", err)
 	}

@@ -14,6 +14,14 @@ type ConfluentBootstrapServer struct {
 	Endpoint *string `json:"endpoint,omitempty"`
 
 	// Fields inherited from TargetServiceBase
+
+	Type TargetServiceType `json:"type"`
+}
+
+func (s ConfluentBootstrapServer) TargetServiceBase() BaseTargetServiceBaseImpl {
+	return BaseTargetServiceBaseImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = ConfluentBootstrapServer{}
@@ -27,9 +35,10 @@ func (s ConfluentBootstrapServer) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ConfluentBootstrapServer: %+v", err)
 	}
+
 	decoded["type"] = "ConfluentBootstrapServer"
 
 	encoded, err = json.Marshal(decoded)

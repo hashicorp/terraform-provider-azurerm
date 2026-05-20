@@ -50,7 +50,6 @@ func (c IntegrationAccountsClient) RegenerateAccessKey(ctx context.Context, id I
 
 	var model IntegrationAccount
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

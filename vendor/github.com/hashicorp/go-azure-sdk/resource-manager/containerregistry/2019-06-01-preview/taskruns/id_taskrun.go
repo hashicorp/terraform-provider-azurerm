@@ -44,7 +44,7 @@ func ParseTaskRunID(input string) (*TaskRunId, error) {
 	}
 
 	id := TaskRunId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseTaskRunIDInsensitively(input string) (*TaskRunId, error) {
 	}
 
 	id := TaskRunId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id TaskRunId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerRegistry", "Microsoft.ContainerRegistry", "Microsoft.ContainerRegistry"),
 		resourceids.StaticSegment("staticRegistries", "registries", "registries"),
-		resourceids.UserSpecifiedSegment("registryName", "registryValue"),
+		resourceids.UserSpecifiedSegment("registryName", "registryName"),
 		resourceids.StaticSegment("staticTaskRuns", "taskRuns", "taskRuns"),
-		resourceids.UserSpecifiedSegment("taskRunName", "taskRunValue"),
+		resourceids.UserSpecifiedSegment("taskRunName", "taskRunName"),
 	}
 }
 

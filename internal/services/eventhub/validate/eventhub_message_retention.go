@@ -1,16 +1,16 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
-import "fmt"
+import "errors"
 
-func ValidateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []string, errors []error) {
+func ValidateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []string, errs []error) {
 	value := v.(int)
 
-	if !(90 >= value && value >= 1) {
-		errors = append(errors, fmt.Errorf("EventHub Retention Count has to be between 1 and 7 or between 1 and 90 if using a dedicated Event Hubs Cluster"))
+	if 90 < value || value < 1 {
+		errs = append(errs, errors.New("EventHub Retention Count has to be between 1 and 7 or between 1 and 90 if using a dedicated Event Hubs Cluster"))
 	}
 
-	return warnings, errors
+	return warnings, errs
 }

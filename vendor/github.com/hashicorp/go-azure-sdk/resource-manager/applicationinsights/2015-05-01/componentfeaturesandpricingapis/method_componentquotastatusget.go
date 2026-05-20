@@ -46,7 +46,6 @@ func (c ComponentFeaturesAndPricingAPIsClient) ComponentQuotaStatusGet(ctx conte
 
 	var model ApplicationInsightsComponentQuotaStatus
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

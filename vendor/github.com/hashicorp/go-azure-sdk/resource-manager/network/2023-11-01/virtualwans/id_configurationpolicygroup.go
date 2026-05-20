@@ -44,7 +44,7 @@ func ParseConfigurationPolicyGroupID(input string) (*ConfigurationPolicyGroupId,
 	}
 
 	id := ConfigurationPolicyGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseConfigurationPolicyGroupIDInsensitively(input string) (*ConfigurationP
 	}
 
 	id := ConfigurationPolicyGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ConfigurationPolicyGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVpnServerConfigurations", "vpnServerConfigurations", "vpnServerConfigurations"),
-		resourceids.UserSpecifiedSegment("vpnServerConfigurationName", "vpnServerConfigurationValue"),
+		resourceids.UserSpecifiedSegment("vpnServerConfigurationName", "vpnServerConfigurationName"),
 		resourceids.StaticSegment("staticConfigurationPolicyGroups", "configurationPolicyGroups", "configurationPolicyGroups"),
-		resourceids.UserSpecifiedSegment("configurationPolicyGroupName", "configurationPolicyGroupValue"),
+		resourceids.UserSpecifiedSegment("configurationPolicyGroupName", "configurationPolicyGroupName"),
 	}
 }
 

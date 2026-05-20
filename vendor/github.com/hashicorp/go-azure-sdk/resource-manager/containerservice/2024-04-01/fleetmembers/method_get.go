@@ -45,7 +45,6 @@ func (c FleetMembersClient) Get(ctx context.Context, id MemberId) (result GetOpe
 
 	var model FleetMember
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

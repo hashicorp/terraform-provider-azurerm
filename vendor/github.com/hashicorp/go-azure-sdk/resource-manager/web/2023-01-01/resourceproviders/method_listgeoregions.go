@@ -43,6 +43,7 @@ func (o ListGeoRegionsOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListGeoRegionsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -18,7 +18,7 @@ resource "azurerm_storage_account" "example" {
   account_tier                    = "Standard"
   account_kind                    = "StorageV2"
   account_replication_type        = "LRS"
-  enable_https_traffic_only       = true
+  https_traffic_only_enabled      = true
   access_tier                     = "Hot"
   allow_nested_items_to_be_public = true
 }
@@ -37,7 +37,7 @@ resource "azurerm_storage_account" "example2" {
   account_tier                    = "Standard"
   account_kind                    = "StorageV2"
   account_replication_type        = "LRS"
-  enable_https_traffic_only       = true
+  https_traffic_only_enabled      = true
   access_tier                     = "Hot"
   allow_nested_items_to_be_public = true
 }

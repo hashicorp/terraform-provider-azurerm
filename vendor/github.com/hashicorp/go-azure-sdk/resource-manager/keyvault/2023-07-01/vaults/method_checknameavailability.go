@@ -51,7 +51,6 @@ func (c VaultsClient) CheckNameAvailability(ctx context.Context, id commonids.Su
 
 	var model CheckNameAvailabilityResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

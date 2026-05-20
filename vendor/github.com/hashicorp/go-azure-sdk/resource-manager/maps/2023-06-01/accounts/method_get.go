@@ -45,7 +45,6 @@ func (c AccountsClient) Get(ctx context.Context, id AccountId) (result GetOperat
 
 	var model MapsAccount
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

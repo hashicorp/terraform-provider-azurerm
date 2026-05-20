@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/extensions` Documentation
 
-The `extensions` SDK allows for interaction with the Azure Resource Manager Service `azurestackhci` (API Version `2024-01-01`).
+The `extensions` SDK allows for interaction with Azure Resource Manager `azurestackhci` (API Version `2024-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := extensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue", "extensionValue")
+id := extensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName", "extensionName")
 
 payload := extensions.Extension{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue", "extensionValue")
+id := extensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName", "extensionName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue", "extensionValue")
+id := extensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName", "extensionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue")
+id := extensions.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName")
 
 // alternatively `client.ListByArcSetting(ctx, id)` can be used to do batched pagination
 items, err := client.ListByArcSettingComplete(ctx, id)
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue", "extensionValue")
+id := extensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName", "extensionName")
 
 payload := extensions.ExtensionPatch{
 	// ...
@@ -103,7 +103,7 @@ if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue", "extensionValue")
+id := extensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "arcSettingName", "extensionName")
 
 payload := extensions.ExtensionUpgradeParameters{
 	// ...

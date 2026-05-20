@@ -14,8 +14,18 @@ type MonthlyRecurrence struct {
 	DaysOfMonth []int64 `json:"daysOfMonth"`
 
 	// Fields inherited from Recurrence
-	EndTime   *string `json:"endTime,omitempty"`
-	StartTime *string `json:"startTime,omitempty"`
+
+	EndTime        *string        `json:"endTime,omitempty"`
+	RecurrenceType RecurrenceType `json:"recurrenceType"`
+	StartTime      *string        `json:"startTime,omitempty"`
+}
+
+func (s MonthlyRecurrence) Recurrence() BaseRecurrenceImpl {
+	return BaseRecurrenceImpl{
+		EndTime:        s.EndTime,
+		RecurrenceType: s.RecurrenceType,
+		StartTime:      s.StartTime,
+	}
 }
 
 var _ json.Marshaler = MonthlyRecurrence{}
@@ -29,9 +39,10 @@ func (s MonthlyRecurrence) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling MonthlyRecurrence: %+v", err)
 	}
+
 	decoded["recurrenceType"] = "Monthly"
 
 	encoded, err = json.Marshal(decoded)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AlertProcessingRuleConditionModel struct {
@@ -71,7 +71,7 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ActionRuleName,
+			ValidateFunc: validate.AlertProcessingRuleName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -105,31 +105,39 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"alert_context": schemaAlertProcessingRuleCondition(
 						alertprocessingrules.PossibleValuesForOperator(), nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"alert_rule_id": schemaAlertProcessingRuleCondition(
 						alertprocessingrules.PossibleValuesForOperator(), nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"alert_rule_name": schemaAlertProcessingRuleCondition(
 						alertprocessingrules.PossibleValuesForOperator(), nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"description": schemaAlertProcessingRuleCondition(
 						alertprocessingrules.PossibleValuesForOperator(), nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"monitor_condition": schemaAlertProcessingRuleCondition(
 						[]string{
@@ -140,10 +148,12 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 							"Fired",
 							"Resolved",
 						},
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"monitor_service": schemaAlertProcessingRuleCondition(
 						[]string{
@@ -174,10 +184,12 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 							"Smart Detector",
 							"VM Insights - Health",
 						},
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"severity": schemaAlertProcessingRuleCondition(
 						[]string{
@@ -191,10 +203,12 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 							"Sev3",
 							"Sev4",
 						},
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"signal_type": schemaAlertProcessingRuleCondition(
 						[]string{
@@ -207,24 +221,30 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 							"Unknown",
 							"Health",
 						},
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"target_resource": schemaAlertProcessingRuleCondition(
 						alertprocessingrules.PossibleValuesForOperator(), nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"target_resource_group": schemaAlertProcessingRuleCondition(
 						alertprocessingrules.PossibleValuesForOperator(), nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"target_resource_type": schemaAlertProcessingRuleCondition(
 						[]string{
@@ -232,10 +252,12 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 							string(alertprocessingrules.OperatorNotEquals),
 						},
 						nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 				},
 			},
@@ -435,18 +457,18 @@ func expandAlertProcessingRuleSchedule(input []AlertProcessingRuleScheduleModel)
 	var effectiveFrom, effectiveUntil *string
 
 	if v.EffectiveFrom != "" {
-		effectiveFrom = utils.String(v.EffectiveFrom)
+		effectiveFrom = pointer.To(v.EffectiveFrom)
 	}
 
 	if v.EffectiveUntil != "" {
-		effectiveUntil = utils.String(v.EffectiveUntil)
+		effectiveUntil = pointer.To(v.EffectiveUntil)
 	}
 
 	schedule := alertprocessingrules.Schedule{
 		EffectiveFrom:  effectiveFrom,
 		EffectiveUntil: effectiveUntil,
 		Recurrences:    expandAlertProcessingRuleScheduleRecurrences(v.Recurrence),
-		TimeZone:       utils.String(v.TimeZone),
+		TimeZone:       pointer.To(v.TimeZone),
 	}
 
 	return &schedule
@@ -463,10 +485,10 @@ func expandAlertProcessingRuleScheduleRecurrences(input []AlertProcessingRuleRec
 	for _, item := range v.Daily {
 		var startTime, endTime *string
 		if item.StartTime != "" {
-			startTime = utils.String(item.StartTime)
+			startTime = pointer.To(item.StartTime)
 		}
 		if item.EndTime != "" {
-			endTime = utils.String(item.EndTime)
+			endTime = pointer.To(item.EndTime)
 		}
 
 		recurrences = append(recurrences, alertprocessingrules.DailyRecurrence{
@@ -478,10 +500,10 @@ func expandAlertProcessingRuleScheduleRecurrences(input []AlertProcessingRuleRec
 	for _, item := range v.Weekly {
 		var startTime, endTime *string
 		if item.StartTime != "" {
-			startTime = utils.String(item.StartTime)
+			startTime = pointer.To(item.StartTime)
 		}
 		if item.EndTime != "" {
-			endTime = utils.String(item.EndTime)
+			endTime = pointer.To(item.EndTime)
 		}
 
 		recurrences = append(recurrences, alertprocessingrules.WeeklyRecurrence{
@@ -494,10 +516,10 @@ func expandAlertProcessingRuleScheduleRecurrences(input []AlertProcessingRuleRec
 	for _, item := range v.Monthly {
 		var startTime, endTime *string
 		if item.StartTime != "" {
-			startTime = utils.String(item.StartTime)
+			startTime = pointer.To(item.StartTime)
 		}
 		if item.EndTime != "" {
-			endTime = utils.String(item.EndTime)
+			endTime = pointer.To(item.EndTime)
 		}
 
 		recurrences = append(recurrences, alertprocessingrules.MonthlyRecurrence{
