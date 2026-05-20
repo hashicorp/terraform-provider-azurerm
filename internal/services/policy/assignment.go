@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -31,7 +31,7 @@ func waitForPolicyAssignmentToStabilize(ctx context.Context, client *assignments
 		Pending: []string{"404"},
 		Target:  []string{"200"},
 		Refresh: func() (interface{}, string, error) {
-			resp, err := client.Get(ctx, id)
+			resp, err := client.Get(ctx, id, assignments.DefaultGetOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil

@@ -2,6 +2,7 @@ package policyassignments
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -17,15 +18,44 @@ type GetOperationResponse struct {
 	Model        *PolicyAssignment
 }
 
+type GetOperationOptions struct {
+	Expand *string
+}
+
+func DefaultGetOperationOptions() GetOperationOptions {
+	return GetOperationOptions{}
+}
+
+func (o GetOperationOptions) ToHeaders() *client.Headers {
+	out := client.Headers{}
+
+	return &out
+}
+
+func (o GetOperationOptions) ToOData() *odata.Query {
+	out := odata.Query{}
+
+	return &out
+}
+
+func (o GetOperationOptions) ToQuery() *client.QueryParams {
+	out := client.QueryParams{}
+	if o.Expand != nil {
+		out.Append("$expand", fmt.Sprintf("%v", *o.Expand))
+	}
+	return &out
+}
+
 // Get ...
-func (c PolicyAssignmentsClient) Get(ctx context.Context, id ScopedPolicyAssignmentId) (result GetOperationResponse, err error) {
+func (c PolicyAssignmentsClient) Get(ctx context.Context, id ScopedPolicyAssignmentId, options GetOperationOptions) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
-		Path:       id.ID(),
+		HttpMethod:    http.MethodGet,
+		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

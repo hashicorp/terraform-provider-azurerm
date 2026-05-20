@@ -69,6 +69,10 @@ The following arguments are supported:
 
 ---
 
+* `definition_version` - (Optional) The version of the policy definition to use. This allows you to pin a specific version of a policy definition (e.g., `1.2.3`), use a wildcard to pin to the latest patch version (e.g., `1.2.*`), or pin to the latest minor version (e.g., `1.*.*`). If not specified, the latest version of the policy definition will be used.
+
+~> **Note:** `definition_version` is a preview feature.
+
 * `description` - (Optional) A description which should be used for this Policy Assignment.
 
 * `display_name` - (Optional) The Display Name for this Policy Assignment.
@@ -183,4 +187,4 @@ terraform import azurerm_resource_group_policy_assignment.example /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Authorization` - 2022-06-01
+* `Microsoft.Authorization` - 2025-01-01
