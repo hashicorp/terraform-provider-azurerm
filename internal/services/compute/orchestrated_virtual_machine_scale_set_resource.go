@@ -390,7 +390,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					}
 
 					if auxiliaryMode != "" {
-						networkApiVersion := (virtualmachinescalesets.NetworkApiVersion)(diff.Get("network_api_version").(string))
+						networkApiVersion := virtualmachinescalesets.NetworkApiVersion(diff.Get("network_api_version").(string))
 						if networkApiVersion == virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne {
 							return fmt.Errorf("`auxiliary_mode` and `auxiliary_sku` can be set only when `network_api_version` is later than `2020-11-01`")
 						}
@@ -469,7 +469,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	networkProfile := &virtualmachinescalesets.VirtualMachineScaleSetNetworkProfile{
-		NetworkApiVersion: pointer.To((virtualmachinescalesets.NetworkApiVersion)(d.Get("network_api_version").(string))),
+		NetworkApiVersion: pointer.To(virtualmachinescalesets.NetworkApiVersion(d.Get("network_api_version").(string))),
 	}
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
@@ -1572,7 +1572,7 @@ func expandOrchestratedVirtualMachineScaleSetSkuProfile(input []interface{}) *vi
 	}
 
 	return &virtualmachinescalesets.SkuProfile{
-		AllocationStrategy: pointer.To((virtualmachinescalesets.AllocationStrategy)(v["allocation_strategy"].(string))),
+		AllocationStrategy: pointer.To(virtualmachinescalesets.AllocationStrategy(v["allocation_strategy"].(string))),
 		VMSizes:            pointer.To(vmSizes),
 	}
 }

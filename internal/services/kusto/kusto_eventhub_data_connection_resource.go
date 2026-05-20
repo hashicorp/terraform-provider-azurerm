@@ -106,7 +106,8 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					eventhubValidate.ValidateEventHubConsumerName(),
-					validation.StringInSlice([]string{"$Default"}, false)),
+					validation.StringInSlice([]string{"$Default"}, false),
+				),
 			},
 
 			"table_name": {

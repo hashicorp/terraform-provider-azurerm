@@ -507,7 +507,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 			d.Set("os_type", string(props.OsType))
 
-			architecture := string((galleryimages.ArchitectureXSixFour))
+			architecture := string(galleryimages.ArchitectureXSixFour)
 			if props.Architecture != nil {
 				architecture = string(*props.Architecture)
 			}

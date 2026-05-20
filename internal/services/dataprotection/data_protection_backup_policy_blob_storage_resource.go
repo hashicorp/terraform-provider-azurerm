@@ -119,7 +119,8 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 										Optional: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice(
-											basebackuppolicyresources.PossibleValuesForAbsoluteMarker(), false),
+											basebackuppolicyresources.PossibleValuesForAbsoluteMarker(), false,
+										),
 									},
 
 									"days_of_month": {
@@ -533,8 +534,8 @@ func flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(input []baseback
 	for _, item := range input {
 		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
 			if len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
-					if (retentionRule.Lifecycles)[0].SourceDataStore.DataStoreType == dsType {
+				if deleteOption, ok := retentionRule.Lifecycles[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
+					if retentionRule.Lifecycles[0].SourceDataStore.DataStoreType == dsType {
 						return deleteOption.Duration
 					}
 				}
@@ -662,28 +663,28 @@ func flattenBackupPolicyBlobStorageBackupCriteriaArray(input *[]basebackuppolicy
 			if criteria.DaysOfTheWeek != nil {
 				daysOfWeek = make([]string, 0)
 				for _, item := range *criteria.DaysOfTheWeek {
-					daysOfWeek = append(daysOfWeek, (string)(item))
+					daysOfWeek = append(daysOfWeek, string(item))
 				}
 			}
 			var daysOfMonth []int
 			if criteria.DaysOfMonth != nil {
 				daysOfMonth = make([]int, 0)
 				for _, item := range *criteria.DaysOfMonth {
-					daysOfMonth = append(daysOfMonth, (int)(pointer.From(item.Date)))
+					daysOfMonth = append(daysOfMonth, int(pointer.From(item.Date)))
 				}
 			}
 			var monthsOfYear []string
 			if criteria.MonthsOfYear != nil {
 				monthsOfYear = make([]string, 0)
 				for _, item := range *criteria.MonthsOfYear {
-					monthsOfYear = append(monthsOfYear, (string)(item))
+					monthsOfYear = append(monthsOfYear, string(item))
 				}
 			}
 			var weeksOfMonth []string
 			if criteria.WeeksOfTheMonth != nil {
 				weeksOfMonth = make([]string, 0)
 				for _, item := range *criteria.WeeksOfTheMonth {
-					weeksOfMonth = append(weeksOfMonth, (string)(item))
+					weeksOfMonth = append(weeksOfMonth, string(item))
 				}
 			}
 			var scheduleTimes []string

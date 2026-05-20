@@ -56,7 +56,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			func(id string) error {
 				_, err := commonids.ParseKubernetesClusterID(id)
 				return err
-			}),
+			},
+		),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
@@ -555,7 +556,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									string(managedclusters.NginxIngressControllerTypeInternal),
 									string(managedclusters.NginxIngressControllerTypeExternal),
 									string(managedclusters.NginxIngressControllerTypeNone),
-								}, false),
+								}, false,
+							),
 						},
 
 						"web_app_routing_identity": {
@@ -881,7 +883,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForWeekDay(),
-								false),
+								false,
+							),
 						},
 
 						"duration": {
@@ -895,7 +898,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForType(),
-								false),
+								false,
+							),
 						},
 
 						"day_of_month": {
@@ -972,7 +976,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForWeekDay(),
-								false),
+								false,
+							),
 						},
 
 						"duration": {
@@ -986,7 +991,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForType(),
-								false),
+								false,
+							),
 						},
 
 						"day_of_month": {
@@ -1153,7 +1159,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Default:  string(managedclusters.NetworkDataplaneAzure),
 							ValidateFunc: validation.StringInSlice(
 								managedclusters.PossibleValuesForNetworkDataplane(),
-								false),
+								false,
+							),
 						},
 
 						"network_plugin_mode": {

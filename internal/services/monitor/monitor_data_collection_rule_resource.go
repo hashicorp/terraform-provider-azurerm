@@ -766,7 +766,8 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 										Type: pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(
 											datacollectionrules.PossibleValuesForKnownSyslogDataSourceFacilityNames(),
-											false),
+											false,
+										),
 									},
 								},
 								"log_levels": {
@@ -776,7 +777,8 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(
-											datacollectionrules.PossibleValuesForKnownSyslogDataSourceLogLevels(), false),
+											datacollectionrules.PossibleValuesForKnownSyslogDataSourceLogLevels(), false,
+										),
 									},
 								},
 								// lintignore:S013
@@ -866,7 +868,8 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 					"AgentDirectToStore",
 					"WorkspaceTransforms",
 				},
-				false),
+				false,
+			),
 		},
 
 		"stream_declaration": {

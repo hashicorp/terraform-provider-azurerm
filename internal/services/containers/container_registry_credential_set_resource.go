@@ -121,7 +121,8 @@ func (r ContainerRegistryCredentialSetResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := credentialsets.NewCredentialSetID(subscriptionId,
+			id := credentialsets.NewCredentialSetID(
+				subscriptionId,
 				registryId.ResourceGroupName,
 				registryId.RegistryName,
 				config.Name,

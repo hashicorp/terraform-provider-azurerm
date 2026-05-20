@@ -208,7 +208,7 @@ func (r NetAppAccountEncryptionResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.AccountClient
 
-			id, err := netappaccounts.ParseNetAppAccountID((metadata.ResourceData.Id()))
+			id, err := netappaccounts.ParseNetAppAccountID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

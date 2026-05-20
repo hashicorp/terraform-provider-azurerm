@@ -97,7 +97,8 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					eventhubValidate.ValidateEventHubConsumerName(),
-					validation.StringInSlice([]string{"$Default"}, false)),
+					validation.StringInSlice([]string{"$Default"}, false),
+				),
 			},
 
 			"blob_storage_event_type": {
