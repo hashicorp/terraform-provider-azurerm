@@ -1,3 +1,9 @@
+## 4.72.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_machine_learning_compute_cluster` - make `vm_size` comparison case-insensitive to prevent perpetual diffs when Azure normalises casing ([#32288](https://github.com/hashicorp/terraform-provider-azurerm/pull/32288))
+
 ## 4.71.0 (April 30, 2026)
 
 FEATURES:
