@@ -1,6 +1,7 @@
 ## 4.74.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - update to `v0.20260520.1145341` [GH-32420]
 * `azurerm_data_factory_integration_runtime_azure` - add support for the `interactive_authoring_time_to_live_in_minutes` property [GH-32316]
 * `azurerm_advisor_recommendations` - add support for the `filter_by_resource_ids` and `filter_by_recommendation_type_guids` properties [GH-26220]
 * `azurerm_windows_web_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
