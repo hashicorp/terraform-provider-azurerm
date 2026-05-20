@@ -826,7 +826,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("tags") {
-		updateParameters := containerinstance.Resource{
+		updateParameters := containerinstance.ContainerGroupUpdate{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
 
@@ -910,7 +910,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("ip_address", address.IP)
 			exposedPorts := make([]interface{}, len(address.Ports))
 			for i := range address.Ports {
-				exposedPorts[i] = (address.Ports)[i]
+				exposedPorts[i] = address.Ports[i]
 			}
 			d.Set("exposed_port", flattenPorts(exposedPorts))
 			d.Set("dns_name_label", address.DnsNameLabel)
