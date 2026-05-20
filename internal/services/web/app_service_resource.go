@@ -804,8 +804,6 @@ func resourceAppServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting App Service %q (resource group %q)", id.SiteName, id.ResourceGroup)
-
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm)

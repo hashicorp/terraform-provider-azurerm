@@ -139,8 +139,6 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData
 		return err
 	}
 
-	log.Printf("[DEBUG] Reading AzureRM Application Insights Smart Detection Rule %s", id)
-
 	resp, err := client.ProactiveDetectionConfigurationsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

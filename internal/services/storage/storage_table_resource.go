@@ -286,7 +286,6 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("acl") {
-		log.Printf("[DEBUG] Updating ACLs for %s", id)
 
 		aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 		acls := expandStorageTableACLs(aclsRaw)

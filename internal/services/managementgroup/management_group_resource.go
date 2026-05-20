@@ -130,8 +130,6 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	log.Printf("[INFO] Creating Management Group %q", groupName)
-
 	properties := managementgroups.CreateManagementGroupRequest{
 		Name: pointer.To(groupName),
 		Properties: &managementgroups.CreateManagementGroupProperties{

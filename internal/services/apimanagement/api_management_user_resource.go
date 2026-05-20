@@ -207,7 +207,6 @@ func resourceApiManagementUserDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
 	resp, err := client.Delete(ctx, *id, user.DeleteOperationOptions{AppType: pointer.To(user.AppTypeDeveloperPortal), DeleteSubscriptions: pointer.To(true), Notify: pointer.To(false)})
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {

@@ -259,8 +259,6 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	log.Printf("[DEBUG] Reading %s", *id)
-
 	resp, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -302,8 +300,6 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting %s", *id)
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

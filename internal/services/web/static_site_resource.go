@@ -258,8 +258,6 @@ func resourceStaticSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting Static Site %q (resource group %q)", id.Name, id.ResourceGroup)
-
 	future, err := client.DeleteStaticSite(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {

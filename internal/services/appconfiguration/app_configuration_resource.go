@@ -1021,7 +1021,6 @@ func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, 
 
 func deleteReplicas(ctx context.Context, replicaClient *replicas.ReplicasClient, operationClient *operations.OperationsClient, configurationStoreReplicaIds []replicas.ReplicaId) error {
 	for _, configurationStoreReplicaId := range configurationStoreReplicaIds {
-		log.Printf("[DEBUG] Deleting Replica %q", configurationStoreReplicaId)
 		if err := replicaClient.DeleteThenPoll(ctx, configurationStoreReplicaId); err != nil {
 			return fmt.Errorf("deleting replica %q: %+v", configurationStoreReplicaId, err)
 		}

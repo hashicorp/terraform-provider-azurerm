@@ -340,7 +340,6 @@ func tenantTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta inte
 	// at this time unfortunately the Resources RP doesn't expose a means of deleting top-level objects
 	// so we're unable to delete these during deletion - this'll need to be detailed in the docs
 
-	log.Printf("[DEBUG] Deleting Tenant Template Deployment %q..", id.DeploymentName)
 	future, err := client.DeleteAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("deleting Tenant Template Deployment %q: %+v", id.DeploymentName, err)

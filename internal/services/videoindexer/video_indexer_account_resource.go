@@ -247,7 +247,6 @@ func (r AccountResource) Delete() sdk.ResourceFunc {
 			client := metadata.Client.VideoIndexer.AccountClient
 
 			id, err := accounts.ParseAccountID(metadata.ResourceData.Id())
-			metadata.Logger.Infof("deleting %s", id)
 
 			if err != nil {
 				return err

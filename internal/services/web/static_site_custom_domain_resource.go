@@ -210,8 +210,6 @@ func resourceStaticSiteCustomDomainDelete(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting Static Site Custom Domain %q (resource group %q)", id.CustomDomainName, id.ResourceGroup)
-
 	future, err := client.DeleteStaticSiteCustomDomain(ctx, id.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

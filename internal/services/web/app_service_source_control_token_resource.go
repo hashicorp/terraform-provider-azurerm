@@ -140,8 +140,6 @@ func resourceAppServiceSourceControlTokenDelete(d *pluginsdk.ResourceData, meta 
 	locks.ByName(scmType, appServiceSourceControlTokenResourceName)
 	defer locks.UnlockByName(scmType, appServiceSourceControlTokenResourceName)
 
-	log.Printf("[DEBUG] Deleting App Service Source Control Token (Type %q)", scmType)
-
 	properties := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{
 			Token:       pointer.To(token),

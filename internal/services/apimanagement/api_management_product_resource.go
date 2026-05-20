@@ -204,7 +204,6 @@ func resourceApiManagementProductDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
 	if resp, err := client.Delete(ctx, *id, product.DeleteOperationOptions{DeleteSubscriptions: pointer.To(true)}); err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)

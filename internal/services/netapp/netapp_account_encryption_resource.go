@@ -116,8 +116,6 @@ func (r NetAppAccountEncryptionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("error parsing account id %s: %+v", model.NetAppAccountID, err)
 			}
 
-			metadata.Logger.Infof("Import check for %s", accountID.ID())
-
 			locks.ByID(accountID.ID())
 			defer locks.UnlockByID(accountID.ID())
 
@@ -172,13 +170,10 @@ func (r NetAppAccountEncryptionResource) Update() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppAccountEncryption
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-
-			metadata.Logger.Infof("Updating %s", id)
 
 			update := netappaccounts.NetAppAccountPatch{
 				Properties: &netappaccounts.AccountProperties{},
@@ -213,7 +208,6 @@ func (r NetAppAccountEncryptionResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppAccountEncryption
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -285,13 +279,10 @@ func (r NetAppAccountEncryptionResource) Delete() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppAccountEncryption
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-
-			metadata.Logger.Infof("Updating %s", id)
 
 			update := netappaccounts.NetAppAccountPatch{
 				Properties: pointer.To(netappaccounts.AccountProperties{}),

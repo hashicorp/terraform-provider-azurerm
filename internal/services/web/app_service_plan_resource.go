@@ -320,8 +320,6 @@ func resourceAppServicePlanDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting App Service Plan %q (Resource Group %q)", id.ServerFarmName, id.ResourceGroup)
-
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServerFarmName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {

@@ -474,7 +474,6 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 			}
 			log.Printf("[DEBUG] Reset the Existing Network Rule Set associated with %s", id)
 		} else {
-			log.Printf("[DEBUG] Updating the Network Rule Set associated with %s..", id)
 			if err = createNetworkRuleSetForNamespace(ctx, client, *id, newNetworkRuleSet.([]interface{})); err != nil {
 				return err
 			}
@@ -725,8 +724,6 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 	if len(input) < 1 || input[0] == nil {
 		return nil
 	}
-
-	log.Printf("[DEBUG] Creating/updating the Network Rule Set associated with %s..", id)
 
 	item := input[0].(map[string]interface{})
 

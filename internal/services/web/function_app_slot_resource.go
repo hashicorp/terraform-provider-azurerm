@@ -617,8 +617,6 @@ func resourceFunctionAppSlotDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting Function App Slot %q (Function App %q / Resource Group %q)", id.SlotName, id.SiteName, id.ResourceGroup)
-
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
 	resp, err := client.DeleteSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, &deleteMetrics, &deleteEmptyServerFarm)

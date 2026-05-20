@@ -298,8 +298,6 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	log.Printf("[DEBUG] Reading AzureRM Application Insights %q", *id)
-
 	resp, err := client.WebTestsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

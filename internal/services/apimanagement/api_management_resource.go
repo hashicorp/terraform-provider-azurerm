@@ -940,7 +940,6 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 			if err != nil {
 				return fmt.Errorf("parsing API ID: %+v", err)
 			}
-			log.Printf("[DEBUG] Deleting %s", apiId)
 			if delResp, err := apiClient.Delete(ctx, *apiId, api.DeleteOperationOptions{DeleteRevisions: pointer.To(true)}); err != nil {
 				if !response.WasNotFound(delResp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", *apiId, err)
@@ -963,7 +962,6 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 			if err != nil {
 				return fmt.Errorf("parsing product ID: %+v", err)
 			}
-			log.Printf("[DEBUG] Deleting %s", productId)
 			if delResp, err := productsClient.Delete(ctx, *productId, product.DeleteOperationOptions{DeleteSubscriptions: pointer.To(true)}); err != nil {
 				if !response.WasNotFound(delResp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", *productId, err)
@@ -1431,7 +1429,6 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
 	resp, err := client.Delete(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %v", *id, err)

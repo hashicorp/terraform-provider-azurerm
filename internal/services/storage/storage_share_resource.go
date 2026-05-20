@@ -275,7 +275,6 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
 			}
 
-			log.Printf("[INFO] Creating Share %q in Storage Account %q", shareName, accountName)
 			input := shares.CreateInput{
 				QuotaInGB:       quota,
 				MetaData:        metaData,
@@ -517,7 +516,6 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if d.HasChange("quota") {
-			log.Printf("[DEBUG] Updating the Quota for %s", id)
 			quota := d.Get("quota").(int)
 
 			if err = client.UpdateQuota(ctx, id.ShareName, quota); err != nil {
@@ -528,7 +526,6 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if d.HasChange("metadata") {
-			log.Printf("[DEBUG] Updating the MetaData for %s", id)
 
 			metaDataRaw := d.Get("metadata").(map[string]interface{})
 			metaData := ExpandMetaData(metaDataRaw)
@@ -541,7 +538,6 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if d.HasChange("acl") {
-			log.Printf("[DEBUG] Updating the ACLs for %s", id)
 
 			aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 			acls := expandStorageShareACLsDeprecated(aclsRaw)

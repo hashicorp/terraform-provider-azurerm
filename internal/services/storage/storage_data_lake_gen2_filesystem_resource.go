@@ -213,7 +213,6 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 		return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_filesystem", id.ID())
 	}
 
-	log.Printf("[INFO] Creating %s...", id)
 	input := filesystems.CreateInput{
 		Properties: properties,
 	}
@@ -239,7 +238,6 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 	if acl != nil || owner != nil || group != nil {
 		var aclString *string
 		if acl != nil {
-			log.Printf("[INFO] Creating ACL %q for %s", acl, id)
 			v := acl.String()
 			aclString = &v
 		}
@@ -301,7 +299,6 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 	propertiesRaw := d.Get("properties").(map[string]interface{})
 	properties := ExpandMetaData(propertiesRaw)
 
-	log.Printf("[INFO] Updating Properties for %s...", id)
 	input := filesystems.SetPropertiesInput{
 		Properties: properties,
 	}
@@ -323,7 +320,6 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 	if acl != nil || owner != nil || group != nil {
 		var aclString *string
 		if acl != nil {
-			log.Printf("[INFO] Creating ACL %q for %s...", acl, id)
 			v := acl.String()
 			aclString = &v
 		}

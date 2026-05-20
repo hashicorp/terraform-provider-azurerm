@@ -777,8 +777,6 @@ func resourceFunctionAppDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting Function App %q (resource group %q)", id.SiteName, id.ResourceGroup)
-
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm)

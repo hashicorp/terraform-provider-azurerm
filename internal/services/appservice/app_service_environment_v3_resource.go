@@ -449,7 +449,6 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state AppServiceEnvironmentV3Model
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -464,8 +463,6 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 			if model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
-
-			metadata.Logger.Infof("updating %s", id)
 
 			if metadata.ResourceData.HasChange("cluster_setting") {
 				model.Properties.ClusterSettings = expandClusterSettingsModel(state.ClusterSetting)
