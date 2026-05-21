@@ -121,6 +121,10 @@ Please follow the format in the example below for adding removed resources:
 This deprecated resource has been superseded/retired and has been removed from the Azure Provider.
 ```
 
+### `azurerm_ai_services`
+
+* This deprecated resource has been superseded by `azurerm_cognitive_account` and has been removed from the Azure Provider. See the [migration guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/ai_services#migration-to-azurerm_cognitive_account) for attribute mapping.
+
 ### `azurerm_app_service`
 
 * This deprecated resource has been superseded by `azurerm_linux_web_app` and `azurerm_windows_web_app` and has been removed from the AzureRM Provider.

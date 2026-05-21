@@ -6,3 +6,7 @@ package managedhsms
 type MHSMPrivateLinkResourceListResult struct {
 	Value *[]MHSMPrivateLinkResource `json:"value,omitempty"`
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

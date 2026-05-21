@@ -621,7 +621,6 @@ func forceUnlinkDatabase(d *pluginsdk.ResourceData, meta interface{}, unlinkedDb
 	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO]Preparing to unlink a linked database")
 
 	id, err := databases.ParseDatabaseID(d.Id())
 	if err != nil {

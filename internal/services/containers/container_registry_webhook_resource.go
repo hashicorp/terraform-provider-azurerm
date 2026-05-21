@@ -122,7 +122,6 @@ func resourceContainerRegistryWebhookCreate(d *pluginsdk.ResourceData, meta inte
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Container Registry Webhook creation.")
 
 	id := webhooks.NewWebHookID(subscriptionId, d.Get("resource_group_name").(string), d.Get("registry_name").(string), d.Get("name").(string))
 
@@ -158,8 +157,6 @@ func resourceContainerRegistryWebhookUpdate(d *pluginsdk.ResourceData, meta inte
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.WebHooks
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Container Registry Webhook update.")
 
 	id, err := webhooks.ParseWebHookID(d.Id())
 	if err != nil {

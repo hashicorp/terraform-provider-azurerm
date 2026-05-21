@@ -56,13 +56,15 @@ func TestAccAzureRMServiceBusNamespace_updateSku(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.standardSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -92,13 +94,17 @@ func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestMatchResourceAttr(
-					data.ResourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
+					data.ResourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+"),
+				),
 				acceptance.TestMatchResourceAttr(
-					data.ResourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
+					data.ResourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+"),
+				),
 				acceptance.TestMatchResourceAttr(
-					data.ResourceName, "default_primary_key", regexp.MustCompile(".+")),
+					data.ResourceName, "default_primary_key", regexp.MustCompile(".+"),
+				),
 				acceptance.TestMatchResourceAttr(
-					data.ResourceName, "default_secondary_key", regexp.MustCompile(".+")),
+					data.ResourceName, "default_secondary_key", regexp.MustCompile(".+"),
+				),
 			),
 		},
 	})
@@ -262,7 +268,8 @@ func TestAccAzureRMServiceBusNamespace_endpoint(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestMatchResourceAttr(
-					data.ResourceName, "endpoint", regexp.MustCompile(`https://.+`)),
+					data.ResourceName, "endpoint", regexp.MustCompile(`https://.+`),
+				),
 			),
 		},
 		data.ImportStep(),

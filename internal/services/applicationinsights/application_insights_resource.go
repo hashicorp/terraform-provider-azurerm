@@ -523,7 +523,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("daily_data_cap_in_gb") {
-		billingProps.DataVolumeCap.Cap = pointer.To(d.Get(("daily_data_cap_in_gb")).(float64))
+		billingProps.DataVolumeCap.Cap = pointer.To(d.Get("daily_data_cap_in_gb").(float64))
 	}
 
 	if d.HasChange("daily_data_cap_notifications_disabled") {

@@ -75,8 +75,6 @@ func resourceAppServiceSourceControlTokenCreateUpdate(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for App Service Source Control Token creation.")
-
 	token := d.Get("token").(string)
 	tokenSecret := d.Get("token_secret").(string)
 	id := parse.NewAppServiceSourceControlTokenID(d.Get("type").(string))
@@ -139,8 +137,6 @@ func resourceAppServiceSourceControlTokenDelete(d *pluginsdk.ResourceData, meta 
 
 	locks.ByName(scmType, appServiceSourceControlTokenResourceName)
 	defer locks.UnlockByName(scmType, appServiceSourceControlTokenResourceName)
-
-	log.Printf("[DEBUG] Deleting App Service Source Control Token (Type %q)", scmType)
 
 	properties := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{
