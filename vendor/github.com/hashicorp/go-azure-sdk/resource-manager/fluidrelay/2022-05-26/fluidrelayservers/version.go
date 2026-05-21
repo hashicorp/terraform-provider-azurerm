@@ -8,3 +8,7 @@ const defaultApiVersion = "2022-05-26"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/fluidrelayservers/2022-05-26"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

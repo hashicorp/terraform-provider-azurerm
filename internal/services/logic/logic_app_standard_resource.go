@@ -693,8 +693,6 @@ func (r LogicAppResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting Linux %s", *id)
-
 			delOptions := webapps.DeleteOperationOptions{
 				DeleteMetrics:         pointer.To(true),
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -958,6 +956,7 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []helpers.Logi
 	result.PreWarmedInstanceCount = pointer.From(input.PreWarmedInstanceCount)
 	result.IpRestriction = helpers.FlattenIpRestrictions(input.IPSecurityRestrictions)
 	result.SCMIPRestriction = helpers.FlattenIpRestrictions(input.ScmIPSecurityRestrictions)
+	result.SCMIpRestrictionDefaultAction = pointer.FromEnum(input.ScmIPSecurityRestrictionsDefaultAction)
 
 	result.SCMUseMainIpRestriction = pointer.From(input.ScmIPSecurityRestrictionsUseMain)
 
@@ -982,6 +981,8 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []helpers.Logi
 	result.DotnetFrameworkVersion = pointer.From(input.NetFrameworkVersion)
 
 	result.VNETRouteAllEnabled = pointer.From(input.VnetRouteAllEnabled)
+
+	result.IpRestrictionDefaultAction = pointer.FromEnum(input.IPSecurityRestrictionsDefaultAction)
 
 	if !features.FivePointOh() {
 		result.PublicNetworkAccessEnabled = strings.EqualFold(pointer.From(input.PublicNetworkAccess), helpers.PublicNetworkAccessEnabled)
@@ -1060,6 +1061,7 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	siteConfig.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(config.RuntimeScaleMonitoringEnabled)
 	siteConfig.Use32BitWorkerProcess = pointer.To(config.Use32BitWorkerProcess)
 	siteConfig.WebSocketsEnabled = pointer.To(config.WebSocketsEnabled)
+	siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(config.SCMIpRestrictionDefaultAction))
 
 	if config.LinuxFxVersion != "" {
 		siteConfig.LinuxFxVersion = pointer.To(config.LinuxFxVersion)
@@ -1109,6 +1111,8 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	if !features.FivePointOh() {
 		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(metadata))
 	}
+
+	siteConfig.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.IpRestrictionDefaultAction)
 
 	return siteConfig, nil
 }
@@ -1161,6 +1165,10 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.ScmIPSecurityRestrictions = ipr
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
+		siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(config.SCMIpRestrictionDefaultAction))
+	}
+
 	if metadata.ResourceData.HasChange("site_config.0.scm_min_tls_version") {
 		siteConfig.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](config.SCMMinTLSVersion)
 	}
@@ -1210,6 +1218,10 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		}
 
 		siteConfig.AppSettings = mergeAppSettings(appSettings, o.(map[string]interface{}), n.(map[string]interface{}), metadata)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
+		siteConfig.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.IpRestrictionDefaultAction)
 	}
 
 	return siteConfig, nil

@@ -6,7 +6,6 @@ package automation
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -219,8 +218,6 @@ func resourceAutomationScheduleCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Schedule creation.")
-
 	id := schedule.NewScheduleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id)
@@ -297,8 +294,6 @@ func resourceAutomationScheduleUpdate(d *pluginsdk.ResourceData, meta interface{
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Schedule update.")
 
 	id := schedule.NewScheduleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 

@@ -44,6 +44,7 @@ type MsSqlManagedInstanceModel struct {
 	DnsZone                           string                              `tfschema:"dns_zone"`
 	Fqdn                              string                              `tfschema:"fqdn"`
 	Identity                          []identity.SystemOrUserAssignedList `tfschema:"identity"`
+	GeneralPurposeV2Enabled           bool                                `tfschema:"general_purpose_v2_enabled"`
 	LicenseType                       string                              `tfschema:"license_type"`
 	Location                          string                              `tfschema:"location"`
 	MaintenanceConfigurationName      string                              `tfschema:"maintenance_configuration_name"`
@@ -256,6 +257,12 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
+		"general_purpose_v2_enabled": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"maintenance_configuration_name": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -407,6 +414,10 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("`administrator_login` and `administrator_login_password` are required when `azuread_authentication_only_enabled` is false")
 			}
 
+			if sku := rd.Get("sku_name").(string); strings.HasPrefix(sku, "BC_") && rd.Get("general_purpose_v2_enabled").(bool) {
+				return fmt.Errorf("`general_purpose_v2_enabled` cannot be set to `true` on Business Critical SKUs, got SKU `%s`", sku)
+			}
+
 			return nil
 		},
 	}
@@ -426,7 +437,6 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewSqlManagedInstanceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id, managedinstances.GetOperationOptions{})
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -459,6 +469,7 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 					AdministratorLoginPassword:       pointer.To(model.AdministratorLoginPassword),
 					Collation:                        pointer.To(model.Collation),
 					DnsZonePartner:                   pointer.To(model.DnsZonePartnerId),
+					IsGeneralPurposeV2:               expandMsSqlManagedInstanceGeneralPurposeV2Enabled(model.GeneralPurposeV2Enabled, model.SkuName),
 					LicenseType:                      pointer.To(managedinstances.ManagedInstanceLicenseType(model.LicenseType)),
 					MaintenanceConfigurationId:       pointer.To(maintenanceConfigId.ID()),
 					MinimalTlsVersion:                pointer.To(model.MinimumTlsVersion),
@@ -491,8 +502,6 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.Logger.Infof("Creating %s", id)
-
 			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -517,7 +526,6 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", *id)
 			var state MsSqlManagedInstanceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -541,6 +549,9 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			// This not ideal, but matches previous behaviour (when the request body was built from scratch rather than modifying a returned one)
 			// Without this, we receive this error: `Invalid value given for parameter AzureADOnlyAuthentication`
 			props.Administrators = nil
+
+			// The API does not allow `storageThroughputMBps` in the PUT request
+			props.StorageThroughputMBps = nil
 
 			if metadata.ResourceData.HasChange("sku_name") {
 				sku, err := r.expandSkuName(state.SkuName)
@@ -688,8 +699,16 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				props.HybridSecondaryUsage = pointer.To(managedinstances.HybridSecondaryUsage(state.HybridSecondaryUsage))
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
-			if err != nil {
+			if metadata.ResourceData.HasChange("general_purpose_v2_enabled") {
+				props.IsGeneralPurposeV2 = expandMsSqlManagedInstanceGeneralPurposeV2Enabled(state.GeneralPurposeV2Enabled, state.SkuName)
+
+				// when `general_purpose_v2_enabled` is `nil` or `false`, ensure `storageIOps is not in the request as this is not supported
+				if !pointer.From(props.IsGeneralPurposeV2) {
+					props.StorageIOps = nil
+				}
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -709,7 +728,6 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -780,6 +798,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					}
 					model.DatabaseFormat = string(pointer.From(props.DatabaseFormat))
 					model.HybridSecondaryUsage = string(pointer.From(props.HybridSecondaryUsage))
+					model.GeneralPurposeV2Enabled = pointer.From(props.IsGeneralPurposeV2)
 				}
 			}
 			return metadata.Encode(&model)
@@ -974,4 +993,12 @@ func expandMsSqlManagedInstanceAdministrators(input []AzureActiveDirectoryAdmini
 	}
 
 	return pointer.To(adminProps)
+}
+
+func expandMsSqlManagedInstanceGeneralPurposeV2Enabled(input bool, sku string) *bool {
+	// The API returns an error when `isGeneralPurposeV2` is set on a non-general purpose SKU regardless of the value
+	if strings.HasPrefix(sku, "BC_") {
+		return nil
+	}
+	return &input
 }

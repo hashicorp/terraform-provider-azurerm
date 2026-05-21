@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatednszonegroups"
@@ -33,7 +34,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -295,6 +295,24 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			privateServiceConnections := d.Get("private_service_connection").([]interface{})
+			for _, psc := range privateServiceConnections {
+				privateServiceConnection := psc.(map[string]interface{})
+				name := privateServiceConnection["name"].(string)
+
+				// If this is not a manual connection and the message is set return an error since this does not make sense.
+				if !privateServiceConnection["is_manual_connection"].(bool) && privateServiceConnection["request_message"].(string) != "" {
+					return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`, name)
+				}
+
+				// If this is a manual connection and the message isn't set return an error.
+				if privateServiceConnection["is_manual_connection"].(bool) && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
+					return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
+				}
+			}
+			return nil
+		},
 	}
 }
 
@@ -306,10 +324,6 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	defer cancel()
 
 	id := privateendpoints.NewPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	if err := validatePrivateEndpointSettings(d); err != nil {
-		return fmt.Errorf("validating the configuration for %s: %+v", id, err)
-	}
 
 	existing, err := client.Get(ctx, id, privateendpoints.DefaultGetOperationOptions())
 	if err != nil {
@@ -410,11 +424,9 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// 1 Private Endpoint can have 1 Private DNS Zone Group
 	// since this is a new resource, there shouldn't be an existing one - so there's no need to delete it
 	if len(privateDnsZoneGroup) > 0 {
-		log.Printf("[DEBUG] Creating Private DNS Zone Group associated with %s..", id)
 		if err := createPrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, id, privateDnsZoneGroup); err != nil {
 			return err
 		}
-		log.Printf("[DEBUG] Created the Existing Private DNS Zone Group associated with %s", id)
 	}
 
 	return resourcePrivateEndpointRead(d, meta)
@@ -446,7 +458,7 @@ func getCosmosDbResIdInPrivateServiceConnections(p *privateendpoints.PrivateEndp
 			continue
 		}
 		id := *l.Properties.PrivateLinkServiceId
-		if _, err := cosmosParse.DatabaseAccountID(id); err == nil {
+		if _, err := cosmosdb.ParseDatabaseAccountID(id); err == nil {
 			_, ok := exists[id]
 			if !ok {
 				ids = append(ids, id)
@@ -459,7 +471,7 @@ func getCosmosDbResIdInPrivateServiceConnections(p *privateendpoints.PrivateEndp
 			continue
 		}
 		id := *l.Properties.PrivateLinkServiceId
-		if _, err := cosmosParse.DatabaseAccountID(id); err == nil {
+		if _, err := cosmosdb.ParseDatabaseAccountID(id); err == nil {
 			_, ok := exists[id]
 			if !ok {
 				ids = append(ids, id)
@@ -481,10 +493,6 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	id, err := privateendpoints.ParsePrivateEndpointID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	if err := validatePrivateEndpointSettings(d); err != nil {
-		return fmt.Errorf("validating the configuration for %s: %+v", id, err)
 	}
 
 	// Ensure we don't overwrite the existing ApplicationSecurityGroups
@@ -601,19 +609,15 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if needToRemove || nameHasChanged || idHasBeenChanged {
-			log.Printf("[DEBUG] Deleting the Existing Private DNS Zone Group associated with %s..", id)
 			if err := deletePrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, *id); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Deleted the Existing Private DNS Zone Group associated with %s.", id)
 		}
 
 		if len(privateDnsZoneGroup) > 0 {
-			log.Printf("[DEBUG] Creating Private DNS Zone Group associated with %s..", id)
 			if err := createPrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, *id, privateDnsZoneGroup); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Created the Existing Private DNS Zone Group associated with %s", id)
 		}
 	}
 
@@ -745,11 +749,9 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting the Private DNS Zone Group associated with %s", id)
 	if err := deletePrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsZoneGroupsClient, *id); err != nil {
 		return err
 	}
-	log.Printf("[DEBUG] Deleted the Private DNS Zone Group associated with %s.", id)
 
 	existing, err := client.Get(ctx, *id, privateendpoints.DefaultGetOperationOptions())
 	if err != nil {
@@ -778,12 +780,9 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
 	}
 
-	log.Printf("[DEBUG] Deleting %s", id)
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
-
-	log.Printf("[DEBUG] Deleted %s", id)
 
 	return nil
 }
@@ -1015,7 +1014,6 @@ func deletePrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *pr
 	}
 
 	for _, privateDnsZoneId := range *privateDnsZoneIds {
-		log.Printf("[DEBUG] Deleting %s..", privateDnsZoneId)
 		if err := client.DeleteThenPoll(ctx, privateDnsZoneId); err != nil {
 			return fmt.Errorf("deleting %s: %+v", privateDnsZoneId, err)
 		}
@@ -1147,27 +1145,6 @@ func flattenPrivateDnsZoneGroupRecordSets(input *[]privatednszonegroups.RecordSe
 	}
 
 	return output
-}
-
-func validatePrivateEndpointSettings(d *pluginsdk.ResourceData) error {
-	privateServiceConnections := d.Get("private_service_connection").([]interface{})
-
-	for _, psc := range privateServiceConnections {
-		privateServiceConnection := psc.(map[string]interface{})
-		name := privateServiceConnection["name"].(string)
-
-		// If this is not a manual connection and the message is set return an error since this does not make sense.
-		if !privateServiceConnection["is_manual_connection"].(bool) && privateServiceConnection["request_message"].(string) != "" {
-			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`, name)
-		}
-
-		// If this is a manual connection and the message isn't set return an error.
-		if privateServiceConnection["is_manual_connection"].(bool) && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
-			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
-		}
-	}
-
-	return nil
 }
 
 // normalize the PrivateConnectionId due to the casing change at service side

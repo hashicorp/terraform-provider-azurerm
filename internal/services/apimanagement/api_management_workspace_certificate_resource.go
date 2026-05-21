@@ -59,7 +59,8 @@ func (r ApiManagementWorkspaceCertificateResource) Arguments() map[string]*plugi
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,78}[a-zA-Z0-9])?$`),
-				"The `name` must be 1–80 characters, using only letters, numbers, or hyphens, and not starting or ending with a hyphen."),
+				"The `name` must be 1–80 characters, using only letters, numbers, or hyphens, and not starting or ending with a hyphen.",
+			),
 		},
 
 		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),

@@ -61,8 +61,6 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Subnet <-> Route Table Association creation.")
-
 	id, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
 	if err != nil {
 		return err

@@ -48,7 +48,7 @@ class buildCacheConfiguration(environment: String, vcsRootId: String) {
                 feature(BuildCacheFeature {
                     name = "terraform-provider-azurerm-build-cache"
                     publish = true
-                    use = true
+                    use = false
                     rules = """
                         %env.GOCACHE%
                         %env.GOMODCACHE%

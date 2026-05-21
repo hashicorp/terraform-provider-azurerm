@@ -8,3 +8,7 @@ const defaultApiVersion = "2025-07-25"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/openshiftclusters/2025-07-25"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

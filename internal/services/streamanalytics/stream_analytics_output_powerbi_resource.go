@@ -318,8 +318,6 @@ func (r OutputPowerBIResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s", *id)
-
 			if resp, err := client.Delete(ctx, *id); err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", *id, err)

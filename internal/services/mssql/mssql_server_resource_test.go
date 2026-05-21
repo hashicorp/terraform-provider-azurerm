@@ -280,6 +280,35 @@ func TestAccMsSqlServer_azureadAuthenticationOnlyWithIdentityUpdate(t *testing.T
 	})
 }
 
+func TestAccMsSqlServer_azureadAuthenticationOnlyWithPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MssqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureadAuthenticationOnlyWithPolicy(data, false, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.azureadAuthenticationOnlyWithPolicy(data, false, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.azureadAuthenticationOnlyWithPolicy(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func TestAccMsSqlServer_TDECMKServerDeployment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MssqlServerResource{}
@@ -699,7 +728,7 @@ func (r MssqlServerResource) userAssignedIdentity(data acceptance.TestData) stri
 resource "azurerm_user_assigned_identity" "test1" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  name                = "test_identity_1"
+  name                = "acctest_identity_1"
 }
 
 resource "azurerm_user_assigned_identity" "test2" {
@@ -811,7 +840,7 @@ data "azurerm_client_config" "test" {}
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  name                = "test_identity_1"
+  name                = "acctest_identity_1"
 }
 
 resource "azurerm_mssql_server" "test" {
@@ -837,6 +866,63 @@ resource "azurerm_mssql_server" "test" {
   primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
 }
 `, r.template(data), data.RandomInteger, enableAzureadAuthenticationOnly)
+}
+
+func (r MssqlServerResource) azureadAuthenticationOnlyWithPolicy(data acceptance.TestData, enableAzureadAuthenticationOnly bool, enablePolicy bool) string {
+	policyAssignment := ""
+	if enablePolicy {
+		policyAssignment = `
+data "azurerm_policy_definition_built_in" "test" {
+  # Azure SQL built-in policy definition: https://learn.microsoft.com/azure/azure-sql/database/policy-reference
+  name = "abda6d70-9778-44e7-84a8-06713e6db027"
+}
+
+resource "azurerm_resource_group_policy_assignment" "test" {
+  name                 = "acctestpa-mssql"
+  resource_group_id    = azurerm_resource_group.test.id
+  policy_definition_id = data.azurerm_policy_definition_built_in.test.id
+}
+`
+	}
+
+	return fmt.Sprintf(`
+%s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest_identity_1"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  minimum_tls_version          = "1.2"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
+
+  azuread_administrator {
+    login_username              = "AzureAD Admin"
+    object_id                   = data.azurerm_client_config.test.object_id
+    azuread_authentication_only = %[3]t
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+}
+
+%[4]s
+`, r.template(data), data.RandomInteger, enableAzureadAuthenticationOnly, policyAssignment)
 }
 
 func (r MssqlServerResource) tdeCMKServerDeployment(data acceptance.TestData) string {

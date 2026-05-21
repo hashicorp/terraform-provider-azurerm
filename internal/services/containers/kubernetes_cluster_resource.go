@@ -56,7 +56,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			func(id string) error {
 				_, err := commonids.ParseKubernetesClusterID(id)
 				return err
-			}),
+			},
+		),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
@@ -65,6 +66,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			}),
 			pluginsdk.ForceNewIfChange("default_node_pool.0.upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != "" && new == ""
+			}),
+			pluginsdk.ForceNewIfChange("oidc_issuer_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+				// The API does not allow disabling OIDC after it has been enabled
+				return old.(bool) && !new.(bool)
 			}),
 			// Migration of `identity` to `service_principal` is not allowed, the other way around is
 			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -171,11 +176,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				if len(d.Get("network_profile.0.advanced_networking").([]interface{})) == 1 {
-					if d.Get("network_profile.0.network_data_plane").(string) != string(managedclusters.NetworkDataplaneCilium) {
-						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_data_plane` must be set to `%s`", managedclusters.NetworkDataplaneCilium)
-					}
-					if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
-						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
+					securityEnabled := d.Get("network_profile.0.advanced_networking.0.security_enabled").(bool)
+
+					if securityEnabled {
+						if d.Get("network_profile.0.network_data_plane").(string) != string(managedclusters.NetworkDataplaneCilium) {
+							return fmt.Errorf("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_data_plane` must be set to `%s`", managedclusters.NetworkDataplaneCilium)
+						}
+						if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
+							return fmt.Errorf("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
+						}
 					}
 				}
 				return nil
@@ -547,7 +556,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									string(managedclusters.NginxIngressControllerTypeInternal),
 									string(managedclusters.NginxIngressControllerTypeExternal),
 									string(managedclusters.NginxIngressControllerTypeNone),
-								}, false),
+								}, false,
+							),
 						},
 
 						"web_app_routing_identity": {
@@ -873,7 +883,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForWeekDay(),
-								false),
+								false,
+							),
 						},
 
 						"duration": {
@@ -887,7 +898,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForType(),
-								false),
+								false,
+							),
 						},
 
 						"day_of_month": {
@@ -964,7 +976,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForWeekDay(),
-								false),
+								false,
+							),
 						},
 
 						"duration": {
@@ -978,7 +991,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForType(),
-								false),
+								false,
+							),
 						},
 
 						"day_of_month": {
@@ -1145,7 +1159,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Default:  string(managedclusters.NetworkDataplaneAzure),
 							ValidateFunc: validation.StringInSlice(
 								managedclusters.PossibleValuesForNetworkDataplane(),
-								false),
+								false,
+							),
 						},
 
 						"network_plugin_mode": {
@@ -1397,6 +1412,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"oidc_issuer_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"oidc_issuer_url": {
@@ -1756,6 +1772,31 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		}
 
 		resource.Schema["key_management_service"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+
+		resource.Schema["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["kubelet_config"].Elem.(*pluginsdk.Resource).Schema["container_log_max_line"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"default_node_pool.0.kubelet_config.0.container_log_max_files"},
+			Deprecated:    "`container_log_max_line` has been renamed to `container_log_max_files` to align with the API property name and will be removed in v5.0 of the AzureRM Provider",
+			ValidateFunc:  validation.IntAtLeast(2),
+		}
+		resource.Schema["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["kubelet_config"].Elem.(*pluginsdk.Resource).Schema["container_log_max_files"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"default_node_pool.0.kubelet_config.0.container_log_max_line"},
+			ValidateFunc:  validation.IntAtLeast(2),
+		}
+
+		resource.Schema["oidc_issuer_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// Note: O+C because the default value depends on the version
+			// in 5.0 this will default to `true` given that is the default on later AKS versions (1.34+)
+			// and presumably will stay that way.
+			Computed: true,
+		}
 	}
 
 	return resource
@@ -1768,8 +1809,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
 
 	id := commonids.NewKubernetesClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	existing, err := client.Get(ctx, id)
@@ -1866,11 +1905,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
-	enableOidcIssuer := false
-	var oidcIssuerProfile *managedclusters.ManagedClusterOIDCIssuerProfile
-	if v, ok := d.GetOk("oidc_issuer_enabled"); ok {
-		enableOidcIssuer = v.(bool)
-		oidcIssuerProfile = expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+	enableOidcIssuer := d.Get("oidc_issuer_enabled").(bool)
+	oidcIssuerProfile := expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+	if !features.FivePointOh() {
+		oidcIssuerProfile = nil // preserves 4.x default of `nil`, meaning Azure decides
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "oidc_issuer_enabled") {
+			oidcIssuerProfile = expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+		}
 	}
 
 	storageProfileRaw := d.Get("storage_profile").([]interface{})
@@ -2121,7 +2162,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("service_principal") && !d.HasChange("identity") {
-		log.Printf("[DEBUG] Updating the Service Principal for %s..", *id)
 		servicePrincipals := d.Get("service_principal").([]interface{})
 		// we'll be rotating the Service Principal - removing the SP block is handled by the validate function
 		servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
@@ -2137,7 +2177,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if err != nil {
 			return fmt.Errorf("updating Service Principal for %s: %+v", *id, err)
 		}
-		log.Printf("[DEBUG] Updated the Service Principal for %s.", *id)
 
 		// since we're patching it, re-retrieve the latest version of the cluster
 		existing, err = clusterClient.Get(ctx, *id)
@@ -2174,7 +2213,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		props.AadProfile = azureADProfile
 		if props.AadProfile == nil || (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
-			log.Printf("[DEBUG] Updating the RBAC AAD profile")
 			props.AadProfile = &managedclusters.ManagedClusterAADProfile{}
 			err = clusterClient.ResetAADProfileThenPoll(ctx, *id, *props.AadProfile)
 			if err != nil {
@@ -2627,13 +2665,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.SecurityProfile.Defender = nil
 		}
 
-		log.Printf("[DEBUG] Updating %s..", *id)
 		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
-
-		log.Printf("[DEBUG] Updated %s..", *id)
 	}
 
 	// then roll the version of Kubernetes if necessary
@@ -2781,13 +2816,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			log.Printf("[DEBUG] Cycled Default Node Pool..")
 		} else {
-			log.Printf("[DEBUG] Updating of Default Node Pool..")
-
 			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
 			}
-
-			log.Printf("[DEBUG] Updated Default Node Pool.")
 		}
 	}
 

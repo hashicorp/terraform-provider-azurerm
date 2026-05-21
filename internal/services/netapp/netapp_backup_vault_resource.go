@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/backupvaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -81,7 +81,6 @@ func (r NetAppBackupVaultResource) Create() sdk.ResourceFunc {
 
 			id := backupvaults.NewBackupVaultID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -121,15 +120,12 @@ func (r NetAppBackupVaultResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				metadata.Logger.Infof("Updating %s", id)
-
 				update := backupvaults.BackupVaultPatch{
 					Tags: pointer.To(state.Tags),
 				}
@@ -155,7 +151,6 @@ func (r NetAppBackupVaultResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
