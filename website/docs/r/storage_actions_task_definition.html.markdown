@@ -49,11 +49,11 @@ resource "azurerm_storage_actions_task_definition" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Storage Actions Task Definition. The name must be between 3 and 18 characters in length and may contain lowercase letters and numbers only. Changing this forces a new Storage Actions Task Definition to be created.
+* `name` - (Required) The name which should be used for this Storage Actions Task Definition. The name must be between 3 and 18 characters in length and may contain lowercase letters and numbers only. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Storage Actions Task Definition should exist. Changing this forces a new Storage Actions Task Definition to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Storage Actions Task Definition should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the Storage Actions Task Definition should exist. Changing this forces a new Storage Actions Task Definition to be created.
+* `location` - (Required) The Azure Region where the Storage Actions Task Definition should exist. Changing this forces a new resource to be created.
 
 * `action` - (Required) An `action` block as defined below.
 

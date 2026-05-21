@@ -35,10 +35,10 @@ type StorageActionsTaskDefinitionModel struct {
 	Name              string                                     `tfschema:"name"`
 	ResourceGroupName string                                     `tfschema:"resource_group_name"`
 	Location          string                                     `tfschema:"location"`
-	Description       string                                     `tfschema:"description"`
 	Action            []StorageActionsTaskDefinitionActionModel  `tfschema:"action"`
-	Enabled           bool                                       `tfschema:"enabled"`
+	Description       string                                     `tfschema:"description"`
 	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Enabled           bool                                       `tfschema:"enabled"`
 	Tags              map[string]string                          `tfschema:"tags"`
 }
 
@@ -156,13 +156,13 @@ func (StorageActionsTaskDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"identity": commonschema.SystemOrUserAssignedIdentityRequired(),
+
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
 		},
-
-		"identity": commonschema.SystemOrUserAssignedIdentityRequired(),
 
 		"tags": commonschema.Tags(),
 	}
