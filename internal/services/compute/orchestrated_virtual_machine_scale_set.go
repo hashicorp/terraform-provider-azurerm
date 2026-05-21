@@ -1499,7 +1499,7 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 		}
 
 		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVaultVMSS(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
-		extensionProps.ProtectedSettingsFromKeyVault = (protectedSettingsFromKeyVault)
+		extensionProps.ProtectedSettingsFromKeyVault = protectedSettingsFromKeyVault
 
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
 			if protectedSettingsFromKeyVault != nil {

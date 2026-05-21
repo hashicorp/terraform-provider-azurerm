@@ -348,8 +348,6 @@ func (r FunctionAppFunctionResource) Delete() sdk.ResourceFunc {
 			}
 			appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
 
-			metadata.Logger.Infof("deleting %s", *id)
-
 			deadline, ok := ctx.Deadline()
 			if !ok {
 				return fmt.Errorf("internal-error: context had no deadline")

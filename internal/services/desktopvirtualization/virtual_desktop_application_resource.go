@@ -123,8 +123,6 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Application creation")
-
 	applicationGroup, _ := applicationgroup.ParseApplicationGroupID(d.Get("application_group_id").(string))
 	id := application.NewApplicationID(subscriptionId, applicationGroup.ResourceGroupName, applicationGroup.ApplicationGroupName, d.Get("name").(string))
 

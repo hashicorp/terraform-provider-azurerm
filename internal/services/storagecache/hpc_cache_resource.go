@@ -60,7 +60,6 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure HPC Cache creation.")
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 

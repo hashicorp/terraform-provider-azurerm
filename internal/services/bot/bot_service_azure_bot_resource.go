@@ -152,7 +152,7 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"microsoft_app_type": {
 			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(botservice.MsaAppTypeMultiTenant),
@@ -207,6 +207,19 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 
 	if !features.FivePointOh() {
 		output["cmk_key_vault_key_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+
+		output["microsoft_app_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because Azure sets a value for this if omitted
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(botservice.MsaAppTypeMultiTenant),
+				string(botservice.MsaAppTypeSingleTenant),
+				string(botservice.MsaAppTypeUserAssignedMSI),
+			}, false),
+		}
 	}
 
 	return output

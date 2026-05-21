@@ -114,11 +114,11 @@ func TestAccDatabricksVirtualNetworkPeering_completeUpdate(t *testing.T) {
 // without the tests knowledge causing the delete to fail...
 func checkAzSecPackOverride() string {
 	if os.Getenv("ARM_TEST_AZSECPACK_OVERRIDE") != "" {
-		return (`
+		return `
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
-  `)
+  `
 	}
 
 	return ""

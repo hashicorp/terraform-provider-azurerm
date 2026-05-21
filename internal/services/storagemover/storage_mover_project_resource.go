@@ -11,12 +11,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/projects"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_mover_project -service-package-name storagemover -properties "name" -compare-values "subscription_id:storage_mover_id,resource_group_name:storage_mover_id,storage_mover_name:storage_mover_id"
 
 type StorageMoverProjectResourceModel struct {
 	Name           string `tfschema:"name"`
@@ -26,7 +29,14 @@ type StorageMoverProjectResourceModel struct {
 
 type StorageMoverProjectResource struct{}
 
-var _ sdk.ResourceWithUpdate = StorageMoverProjectResource{}
+var (
+	_ sdk.ResourceWithIdentity = StorageMoverProjectResource{}
+	_ sdk.ResourceWithUpdate   = StorageMoverProjectResource{}
+)
+
+func (r StorageMoverProjectResource) Identity() resourceids.ResourceId {
+	return &projects.ProjectId{}
+}
 
 func (r StorageMoverProjectResource) ResourceType() string {
 	return "azurerm_storage_mover_project"
@@ -109,6 +119,9 @@ func (r StorageMoverProjectResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -173,20 +186,28 @@ func (r StorageMoverProjectResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := StorageMoverProjectResourceModel{
-				Name:           id.ProjectName,
-				StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
-			}
-
-			if resp.Model != nil {
-				if properties := resp.Model.Properties; properties != nil {
-					state.Description = pointer.From(properties.Description)
-				}
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r StorageMoverProjectResource) flatten(metadata sdk.ResourceMetaData, id *projects.ProjectId, model *projects.Project) error {
+	state := StorageMoverProjectResourceModel{
+		Name:           id.ProjectName,
+		StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
+	}
+
+	if model != nil {
+		if properties := model.Properties; properties != nil {
+			state.Description = pointer.From(properties.Description)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r StorageMoverProjectResource) Delete() sdk.ResourceFunc {

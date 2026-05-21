@@ -284,7 +284,6 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state CustomIpPrefixModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -435,8 +434,6 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 
 	initialState := existing.Model.Properties.CommissionedState
 
-	log.Printf("[DEBUG] Updating CommissionedState for %s from current value %q to desired value %q..", id, *initialState, desiredState)
-
 	// stateTree is a map of desired state, to a map of current state, to the list of transition states needed to get there
 	stateTree := map[customipprefixes.CommissionedState]map[customipprefixes.CommissionedState][]customipprefixes.CommissionedState{
 		customipprefixes.CommissionedStateDeprovisioned: {
@@ -582,7 +579,6 @@ func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id cus
 	existing.Model.Properties.CommissionedState = pointer.To(desiredState)
 	existing.Model.Properties.NoInternetAdvertise = noInternetAdvertise
 
-	log.Printf("[DEBUG] Updating the CommissionedState field to %q for %s..", desiredState, id)
 	if err := r.client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
 		return fmt.Errorf("updating CommissionedState to %q for %s: %+v", desiredState, id, err)
 	}

@@ -68,7 +68,6 @@ func resourceServiceBusTopicAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 	client := meta.(*clients.Client).ServiceBus.TopicsAuthClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Topic Authorization Rule creation.")
 
 	var id topicsauthorizationrule.TopicAuthorizationRuleId
 	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
