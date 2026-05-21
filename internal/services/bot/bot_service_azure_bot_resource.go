@@ -243,14 +243,16 @@ func (r AzureBotServiceResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewBotServiceID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+				if err != nil {
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			displayName := config.DisplayName
