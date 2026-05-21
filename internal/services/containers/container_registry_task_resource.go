@@ -1578,7 +1578,7 @@ func patchRegistryTaskTriggerSourceTrigger(triggers []tasks.SourceTrigger, model
 
 	result := make([]tasks.SourceTrigger, len(triggers))
 	for i, trigger := range model.SourceTrigger {
-		t := (triggers)[i]
+		t := triggers[i]
 		if len(trigger.Auth) == 0 {
 			result[i] = t
 			continue

@@ -693,8 +693,6 @@ func (r LogicAppResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting Linux %s", *id)
-
 			delOptions := webapps.DeleteOperationOptions{
 				DeleteMetrics:         pointer.To(true),
 				DeleteEmptyServerFarm: pointer.To(false),
