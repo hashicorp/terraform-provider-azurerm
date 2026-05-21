@@ -27,7 +27,7 @@ const (
 func ManagedIdentityHeadersFromEnvironment() map[string][]string {
 	if identityHeaderValue := os.Getenv(managedIdentityHeaderEnvironmentVariable); identityHeaderValue != "" {
 		return map[string][]string{
-			managedIdentityHeaderName: []string{identityHeaderValue},
+			managedIdentityHeaderName: {identityHeaderValue},
 		}
 	}
 
