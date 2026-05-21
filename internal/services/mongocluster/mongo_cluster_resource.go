@@ -265,7 +265,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_size_in_gb": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(32, 16384),
+			ValidateFunc: validation.IntBetween(32, 32768),
 		},
 
 		"storage_type": {
