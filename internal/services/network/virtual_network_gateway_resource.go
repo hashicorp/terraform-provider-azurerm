@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"math"
 	"time"
 
@@ -488,6 +487,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"radius_server_secret": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Sensitive:    true,
 							RequiredWith: []string{"vpn_client_configuration.0.radius_server_address"},
 						},
 
@@ -697,8 +697,6 @@ func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway creation.")
-
 	id := virtualnetworkgateways.NewVirtualNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id)
@@ -830,8 +828,6 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).Network.VirtualNetworkGateways
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway update.")
 
 	id, err := virtualnetworkgateways.ParseVirtualNetworkGatewayID(d.Id())
 	if err != nil {

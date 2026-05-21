@@ -259,7 +259,6 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking for existence and region of Managed Instance for %s: %+v", id, err)
 			}
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -286,8 +285,6 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 					parameters.Properties.SourceDatabaseId = pointer.To(restorePointInTime.SourceDatabaseId)
 				}
 			}
-
-			metadata.Logger.Infof("Creating %s", id)
 
 			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 			if err != nil {
@@ -401,7 +398,6 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedDatabaseModel
 			if err := metadata.Decode(&state); err != nil {
 				return err

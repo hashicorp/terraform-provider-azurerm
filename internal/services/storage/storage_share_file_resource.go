@@ -324,7 +324,6 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	props, err := client.GetProperties(ctx, id.ShareName, id.DirectoryPath, id.FileName)
 	if err != nil {
-		log.Printf("retrieving %s: %s", id, err)
 		d.SetId("")
 		return nil
 	}
