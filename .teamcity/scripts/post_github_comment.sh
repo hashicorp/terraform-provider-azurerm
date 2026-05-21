@@ -147,6 +147,14 @@ if [ "$FAIL_COUNT" -gt 0 ]; then
   fi
 fi
 
+# Add an indication that this run was in 5.0 beta mode
+BETA="%env.ARM_FIVEPOINTZERO_BETA%"
+BETA_MODE_MESSAGE=""
+if [ "${BETA}" == "true" ]; then
+  BETA_MODE_MESSAGE="**Beta enabled**
+  "
+fi
+
 # Add a unique identifier to track comments from this script
 # Include tracking ID (hidden in HTML comment) to prevent minimizing current run's comments
 COMMENT_IDENTIFIER="<!-- teamcity-test-results -->"
@@ -159,6 +167,7 @@ fi
 COMMENT="${COMMENT_IDENTIFIER}
 ${TRACKING_COMMENT}
 ${AUTHOR_MESSAGE}
+${BETA_MODE_MESSAGE}
 ${COMMENT}"
 
 echo "Fetching existing comments..."

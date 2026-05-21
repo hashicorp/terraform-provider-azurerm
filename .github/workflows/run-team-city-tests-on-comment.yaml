@@ -114,9 +114,16 @@ jobs:
           PR_NUMBER=${{ github.event.issue.number }}
           COMMENT_BODY="${{ github.event.comment.body }}"
           PR_SHA="${{ steps.get-pr-sha.outputs.sha }}"
+          PROPERTIES="TRACKING_ID=${PR_SHA}"
+          
           echo "Running tctest for PR #${PR_NUMBER}"
           echo "PR commit SHA: ${PR_SHA}"
-          tctest pr ${PR_NUMBER} -c --properties "TRACKING_ID=${PR_SHA}"
+          
+          if [[ "${COMMENT_BODY}" == *"beta"* ]]; then
+            PROPERTIES+=";env.ARM_FIVEPOINTZERO_BETA=true"
+          fi
+          
+          tctest pr ${PR_NUMBER} -c --properties "${PROPERTIES}"
       - name: Comment on success
         if: success()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
