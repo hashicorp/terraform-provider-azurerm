@@ -75,6 +75,7 @@ type LinuxFunctionAppModel struct {
 	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	VnetContentShareEnabled            bool                                       `tfschema:"vnet_content_share_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -319,6 +320,13 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
 		},
 
+		"vnet_content_share_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the traffic for the content share be routed over virtual network? Defaults to `false`. Required for cross-stamp scaling on Elastic Premium and Dedicated plans when storage is restricted to virtual network.",
+		},
+
 		"zip_deploy_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -556,6 +564,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					DailyMemoryTimeQuota:     pointer.To(functionApp.DailyMemoryTimeQuota), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
 					VnetBackupRestoreEnabled: pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
 					VnetImagePullEnabled:     pointer.To(functionApp.VnetImagePullEnabled),
+					VnetContentShareEnabled:  pointer.To(functionApp.VnetContentShareEnabled),
 					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
 				},
 			}
@@ -800,6 +809,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+					state.VnetContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
 					if err != nil {
@@ -972,6 +982,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
 				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("vnet_content_share_enabled") {
+				model.Properties.VnetContentShareEnabled = pointer.To(state.VnetContentShareEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {

@@ -149,6 +149,10 @@ The following arguments are supported:
 
 ~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. Must be set to `true` when running in an App Service Environment.
 
+* `vnet_content_share_enabled` - (Optional) Should the traffic for the content share be routed over virtual network. Defaults to `false`. This is required for cross-stamp scaling when restricting your storage account to a virtual network in Elastic Premium and Dedicated hosting plans. Replaces the legacy `WEBSITE_CONTENTOVERVNET` app setting.
+
+~> **Note:** For more information, see [Consistent routing through virtual networks](https://docs.microsoft.com/en-us/azure/azure-functions/functions-networking-options#routes).
+
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 ~> **Note:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
