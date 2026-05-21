@@ -63,9 +63,20 @@ func (c CognitiveServicesAccountsClient) AccountsCreate(ctx context.Context, id 
 
 // AccountsCreateThenPoll performs AccountsCreate then polls until it's completed
 func (c CognitiveServicesAccountsClient) AccountsCreateThenPoll(ctx context.Context, id AccountId, input Account) error {
+	return c.AccountsCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AccountsCreateCallbackThenPoll performs AccountsCreate, runs the optional callback function, then polls until it's completed
+func (c CognitiveServicesAccountsClient) AccountsCreateCallbackThenPoll(ctx context.Context, id AccountId, input Account, callback func() error) error {
 	result, err := c.AccountsCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AccountsCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
