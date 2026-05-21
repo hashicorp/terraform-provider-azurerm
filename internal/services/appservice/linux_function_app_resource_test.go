@@ -5181,8 +5181,6 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-
-
 func (r LinuxFunctionAppResource) tlsCipherSuiteConfigured(data acceptance.TestData, planSku string, tlsCipherSuiteValue string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
