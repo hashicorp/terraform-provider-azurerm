@@ -195,7 +195,16 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) == string(vaults.ImmutabilityStateLocked)
 			}),
-			resourceRecoveryServicesVaultSoftDeleteCustomizeDiff,
+			func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				if !features.FivePointOh() {
+					old, new := diff.GetChange("soft_delete_enabled")
+					oldVal, newVal := old.(bool), new.(bool)
+					if !newVal && (oldVal || diff.Id() == "") {
+						return errors.New("soft_delete_enabled cannot be false initially or changed from true to false. Soft Delete is a required security feature and cannot be disabled for Recovery Services Vaults. For more information, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default#disable-soft-delete-for-vault")
+					}
+				}
+				return nil
+			},
 		),
 	}
 
@@ -211,29 +220,6 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 	}
 
 	return resource
-}
-
-func resourceRecoveryServicesVaultSoftDeleteCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-	if diff.Id() == "" {
-		_, new := diff.GetChange("soft_delete_enabled")
-		newVal := new.(bool)
-		if !newVal {
-			return errors.New("soft_delete_enabled cannot be set to false. Soft Delete is a required security feature for Recovery Services Vaults. For more information, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default#disable-soft-delete-for-vault")
-		}
-	} else {
-		old, new := diff.GetChange("soft_delete_enabled")
-		oldVal, newVal := old.(bool), new.(bool)
-
-		if !oldVal {
-			log.Printf("[WARN] This Recovery Services Vault has soft_delete_enabled = false. As Security by Default gradually GA, Soft Delete is now a required security feature. For details, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default#disable-soft-delete-for-vault")
-		}
-
-		if oldVal && !newVal {
-			return errors.New("soft_delete_enabled cannot be changed from true to false. Soft Delete is a required security feature and cannot be disabled for Recovery Services Vaults. For more information, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default#disable-soft-delete-for-vault")
-		}
-	}
-
-	return nil
 }
 
 func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -970,20 +956,15 @@ func flattenRecoveryServicesVaultMonitorSettings(input *vaults.MonitoringSetting
 	emailNotification := false
 
 	if input != nil {
-		if input.AzureMonitorAlertSettings != nil && input.AzureMonitorAlertSettings.AlertsForAllJobFailures != nil {
-			allJobAlert = *input.AzureMonitorAlertSettings.AlertsForAllJobFailures == vaults.AlertsStateEnabled
+		if input.AzureMonitorAlertSettings != nil {
+			allJobAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllJobFailures) == vaults.AlertsStateEnabled
+			allFailoverAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllFailoverIssues) == vaults.AlertsStateEnabled
+			allReplicationAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllReplicationIssues) == vaults.AlertsStateEnabled
 		}
-		if input.AzureMonitorAlertSettings != nil && input.AzureMonitorAlertSettings.AlertsForAllFailoverIssues != nil {
-			allFailoverAlert = *input.AzureMonitorAlertSettings.AlertsForAllFailoverIssues == vaults.AlertsStateEnabled
-		}
-		if input.AzureMonitorAlertSettings != nil && input.AzureMonitorAlertSettings.AlertsForAllReplicationIssues != nil {
-			allReplicationAlert = *input.AzureMonitorAlertSettings.AlertsForAllReplicationIssues == vaults.AlertsStateEnabled
-		}
-		if input.ClassicAlertSettings != nil && input.ClassicAlertSettings.AlertsForCriticalOperations != nil {
-			criticalAlert = *input.ClassicAlertSettings.AlertsForCriticalOperations == vaults.AlertsStateEnabled
-		}
-		if input.ClassicAlertSettings != nil && input.ClassicAlertSettings.EmailNotificationsForSiteRecovery != nil {
-			emailNotification = *input.ClassicAlertSettings.EmailNotificationsForSiteRecovery == vaults.AlertsStateEnabled
+
+		if input.ClassicAlertSettings != nil {
+			criticalAlert = pointer.From(input.ClassicAlertSettings.AlertsForCriticalOperations) == vaults.AlertsStateEnabled
+			emailNotification = pointer.From(input.ClassicAlertSettings.EmailNotificationsForSiteRecovery) == vaults.AlertsStateEnabled
 		}
 	}
 
