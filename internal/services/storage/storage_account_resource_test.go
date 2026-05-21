@@ -1616,7 +1616,7 @@ func TestAccStorageAccount_customerManagedKeySystemAssignedIdentity(t *testing.T
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 			),
 		},
-    data.ImportStep(),
+		data.ImportStep(),
 		{
 			Config: r.customerManagedKeySystemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1658,7 +1658,7 @@ resource "azurerm_key_vault_access_policy" "storage_client" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "unlikely23exst2acct%s"
+  name                     = "acctestsa%s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -1685,7 +1685,7 @@ resource "azurerm_key_vault_access_policy" "storage_system" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "first"
+  name         = "acctest%s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -1706,7 +1706,7 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
     azurerm_key_vault_key.test
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func TestAccStorageAccount_edgeZone(t *testing.T) {

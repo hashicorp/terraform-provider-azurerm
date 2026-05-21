@@ -1128,6 +1128,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					}
 				}
 
+				if err := validateCustomerManagedKeyUserAssignedIdentity(d); err != nil {
+					return err
+				}
+
 				if !features.FivePointOh() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
 					rawQueueProperties, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("queue_properties"))
 					if diags.HasError() {
@@ -1247,7 +1251,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 					"user_assigned_identity_id": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 				},
@@ -2465,6 +2469,31 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	// remove this from the cache
 	storageUtils.RemoveAccountFromCache(*id)
+
+	return nil
+}
+
+func validateCustomerManagedKeyUserAssignedIdentity(d *pluginsdk.ResourceDiff) error {
+	identityRaw := d.Get("identity").([]interface{})
+	if len(identityRaw) == 0 || identityRaw[0] == nil {
+		return nil
+	}
+
+	identityMap := identityRaw[0].(map[string]interface{})
+	identityType := identityMap["type"].(string)
+	if !strings.Contains(identityType, string(identity.TypeUserAssigned)) {
+		return nil
+	}
+
+	customerManagedKeyRaw := d.Get("customer_managed_key").([]interface{})
+	if len(customerManagedKeyRaw) == 0 || customerManagedKeyRaw[0] == nil {
+		return nil
+	}
+
+	customerManagedKey := customerManagedKeyRaw[0].(map[string]interface{})
+	if customerManagedKey["user_assigned_identity_id"].(string) == "" {
+		return fmt.Errorf("`customer_managed_key.0.user_assigned_identity_id` must be specified when `identity` is `UserAssigned`")
+	}
 
 	return nil
 }
