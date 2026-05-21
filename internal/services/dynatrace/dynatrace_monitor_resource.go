@@ -218,12 +218,14 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 
 			id := monitors.NewMonitorID(subscriptionId, model.ResourceGroup, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			monitoringStatus := monitors.MonitoringStatusEnabled
@@ -251,7 +253,7 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 				Tags:       pointer.To(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, monitor); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, monitor, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
