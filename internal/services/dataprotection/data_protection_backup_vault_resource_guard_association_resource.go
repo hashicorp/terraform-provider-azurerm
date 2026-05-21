@@ -35,10 +35,7 @@ type DataProtectionBackupVaultResourceGuardAssociationModel struct {
 
 type DataProtectionBackupVaultResourceGuardAssociationResource struct{}
 
-var (
-	_ sdk.Resource             = DataProtectionBackupVaultResourceGuardAssociationResource{}
-	_ sdk.ResourceWithIdentity = DataProtectionBackupVaultResourceGuardAssociationResource{}
-)
+var _ sdk.ResourceWithIdentity = DataProtectionBackupVaultResourceGuardAssociationResource{}
 
 func (r DataProtectionBackupVaultResourceGuardAssociationResource) Identity() resourceids.ResourceId {
 	return &resourceguardproxy.BackupResourceGuardProxyId{}
