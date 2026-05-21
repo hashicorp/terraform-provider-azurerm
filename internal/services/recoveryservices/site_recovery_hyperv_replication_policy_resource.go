@@ -91,16 +91,18 @@ func (r ReplicationPolicyHyperVResource) Create() sdk.ResourceFunc {
 
 			id := replicationpolicies.NewReplicationPolicyID(parsedVaultId.SubscriptionId, parsedVaultId.ResourceGroupName, parsedVaultId.VaultName, plan.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
-				if !response.WasNotFound(existing.HttpResponse) && !wasBadRequestWithNotExist(existing.HttpResponse, err) {
-					return fmt.Errorf("checking presence %s: %+v", plan.Name, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
+					if !response.WasNotFound(existing.HttpResponse) && !wasBadRequestWithNotExist(existing.HttpResponse, err) {
+						return fmt.Errorf("checking presence %s: %+v", plan.Name, err)
+					}
 				}
-			}
 
-			if existing.Model != nil {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if existing.Model != nil {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := replicationpolicies.CreatePolicyInput{
@@ -112,11 +114,9 @@ func (r ReplicationPolicyHyperVResource) Create() sdk.ResourceFunc {
 					},
 				},
 			}
-			err = client.CreateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil
