@@ -138,8 +138,6 @@ In addition to the Arguments listed above the following Attributes are exported:
 
 * `remote_disaster_recovery_type` - Type of recovery.
 
-* `virtual_network_id` - The ID of the virtual network associated with this database.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:

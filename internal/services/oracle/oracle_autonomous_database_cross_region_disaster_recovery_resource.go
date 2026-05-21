@@ -46,7 +46,6 @@ type AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel struct {
 	MtlsConnectionRequired           bool              `tfschema:"mtls_connection_required"`
 	NationalCharacterSet             string            `tfschema:"national_character_set"`
 	RemoteDisasterRecoveryType       string            `tfschema:"remote_disaster_recovery_type"`
-	VnetId                           string            `tfschema:"virtual_network_id"`
 }
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[string]*pluginsdk.Schema {
@@ -146,10 +145,6 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Attributes() map[st
 			Computed: true,
 		},
 		"remote_disaster_recovery_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"virtual_network_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -305,15 +300,6 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
-				state.VnetId = pointer.From(props.VnetId)
-				if state.VnetId == "" && state.SubnetId != "" {
-					subnetId, err := commonids.ParseSubnetIDInsensitively(state.SubnetId)
-					if err != nil {
-						return err
-					}
-					vnetId := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
-					state.VnetId = vnetId.ID()
-				}
 			}
 			return metadata.Encode(&state)
 		},

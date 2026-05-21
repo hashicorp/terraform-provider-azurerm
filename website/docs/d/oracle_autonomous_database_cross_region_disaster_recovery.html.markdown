@@ -71,13 +71,13 @@ In addition to the Arguments listed above the following Attributes are exported:
 
 * `in_memory_area_in_gb` - The area assigned to in-memory tables in the Autonomous Database.
 
+* `license_model` - The Oracle license model that applies to the Autonomous Database.
+
 * `lifecycle_details` - Information about the current lifecycle state.
 
-* `local_adg_auto_failover_max_data_loss_limit` - The maximum data loss limit in seconds for local ADG automatic failover.
+* `local_adg_auto_failover_max_data_loss_limit_in_seconds` - The maximum data loss limit in seconds for local ADG automatic failover.
 
 * `local_data_guard_enabled` - Indicates whether local (in-region) Data Guard is enabled.
-
-* `license_model` - The Oracle license model that applies to the Autonomous Database.
 
 * `location` - The Azure Region where the Cross Region Disaster Recovery Autonomous Database exists.
 
@@ -87,7 +87,7 @@ In addition to the Arguments listed above the following Attributes are exported:
 
 * `national_character_set` - The national character set for the Autonomous Database.
 
-* `next_long_term_backup_timestamp` - The timestamp when the next long-term backup would be created.
+* `next_long_term_backup_timestamp_in_utc` - The timestamp when the next long-term backup would be created.
 
 * `oci_url` - The URL of the resource in the OCI console.
 
@@ -155,7 +155,7 @@ In addition to the Arguments listed above the following Attributes are exported:
 
 * `used_data_storage_size_in_tb` - The amount of used data storage in terabytes.
 
-* `virtual_network_id` - The ID of the virtual network associated with this database.
+* `virtual_network_id` - The ID of an Azure Resource Manager virtual network resource.
 
 ## Timeouts
 

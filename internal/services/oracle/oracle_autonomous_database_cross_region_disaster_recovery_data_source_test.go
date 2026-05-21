@@ -15,7 +15,7 @@ import (
 type AutonomousDatabaseCrossRegionDisasterRecoveryDataSource struct{}
 
 func TestAccAutonomousDatabaseCrossRegionDisasterRecoveryDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{}.ResourceType(), "adbs_secondary_crdr")
+	data := acceptance.BuildTestData(t, fmt.Sprintf("data.%s", oracle.AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{}.ResourceType()), "adbs_secondary_crdr")
 	r := AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -23,10 +23,12 @@ func TestAccAutonomousDatabaseCrossRegionDisasterRecoveryDataSource_basic(t *tes
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("database_workload").Exists(),
 				check.That(data.ResourceName).Key("license_model").Exists(),
+				check.That(data.ResourceName).Key("local_adg_auto_failover_max_data_loss_limit_in_seconds").Exists(),
 				check.That(data.ResourceName).Key("remote_disaster_recovery_type").HasValue("Adg"),
 				check.That(data.ResourceName).Key("source_autonomous_database_id").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_id").Exists(),
 			),
 		},
 	})
