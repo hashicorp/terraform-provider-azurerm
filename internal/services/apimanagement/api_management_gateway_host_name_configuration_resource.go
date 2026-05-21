@@ -184,7 +184,6 @@ func resourceApiManagementGatewayHostNameConfigurationDelete(d *pluginsdk.Resour
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
 	if resp, err := client.Delete(ctx, *id, gatewayhostnameconfiguration.DeleteOperationOptions{}); err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)

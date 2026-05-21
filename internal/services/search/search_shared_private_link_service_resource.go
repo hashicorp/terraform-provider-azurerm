@@ -158,7 +158,6 @@ func (r SharedPrivateLinkServiceResource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, *id, sharedprivatelinkresources.GetOperationOptions{})
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					metadata.Logger.Infof("%q was not found - removing from state!", *id)
 					return metadata.MarkAsGone(id)
 				}
 

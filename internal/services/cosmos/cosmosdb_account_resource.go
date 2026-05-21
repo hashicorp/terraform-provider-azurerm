@@ -1221,7 +1221,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		// Looks like you have to always remove all the identities first before you can
 		// reassign/modify them, else it will append any new/changed identities
 		// resulting in a diff...
-		log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Setting 'Identity' to 'None'")
 
 		// can't set this back to account, because that will hit the bug...
 		identityVal := cosmosdb.DatabaseAccountUpdateParameters{
