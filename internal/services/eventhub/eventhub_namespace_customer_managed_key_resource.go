@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -117,8 +118,10 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if d.IsNewResource() {
-		if resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil {
-			return tf.ImportAsExistsError("azurerm_eventhub_namespace_customer_managed_key", id.ID())
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil {
+				return tf.ImportAsExistsError("azurerm_eventhub_namespace_customer_managed_key", id.ID())
+			}
 		}
 	}
 
@@ -171,11 +174,16 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	namespace.Properties.Encryption.KeyVaultProperties = keyVaultProps
 	namespace.Properties.Encryption.RequireInfrastructureEncryption = pointer.To(d.Get("infrastructure_encryption_enabled").(bool))
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, *namespace); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", *id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *namespace, sdk.SetIDCallback(meta, id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", *id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *namespace); err != nil {
+			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceEventHubNamespaceCustomerManagedKeyRead(d, meta)
 }
