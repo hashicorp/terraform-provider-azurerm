@@ -29,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -66,7 +67,7 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 }
 
 func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -297,19 +298,11 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 						Optional: true,
 					},
 
-					"service_endpoints": {
-						Type:       pluginsdk.TypeSet,
-						Optional:   true,
-						Deprecated: "The `service_endpoints` property has been superseded by the `service_endpoint` block and will be removed in a future version of the provider.",
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-						Set: pluginsdk.HashString,
-					},
-
 					"service_endpoint": {
-						Type:       pluginsdk.TypeList,
-						Optional:   true,
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
+						Computed:   true,
 						ConfigMode: pluginsdk.SchemaConfigModeAttr,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
@@ -353,6 +346,23 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		subnetSchema := schema["subnet"].Elem.(*pluginsdk.Resource).Schema
+		subnetSchema["service_endpoints"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
+			Computed:   true,
+			Deprecated: "The `service_endpoints` property has been superseded by the `service_endpoint` block and will be removed in v5.0 of the AzureRM Provider.",
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			Set: pluginsdk.HashString,
+		}
+	}
+
+	return schema
 }
 
 func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -495,10 +505,12 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 
 			configSubnets := d.Get("subnet").(*pluginsdk.Set).List()
 			oldFormatSubnets := make(map[string]bool)
-			for _, raw := range configSubnets {
-				s := raw.(map[string]interface{})
-				if endpoints := s["service_endpoints"].(*pluginsdk.Set).List(); len(endpoints) > 0 {
-					oldFormatSubnets[s["name"].(string)] = true
+			if !features.FivePointOh() {
+				for _, raw := range configSubnets {
+					s := raw.(map[string]interface{})
+					if endpoints := s["service_endpoints"].(*pluginsdk.Set).List(); len(endpoints) > 0 {
+						oldFormatSubnets[s["name"].(string)] = true
+					}
 				}
 			}
 
@@ -822,8 +834,12 @@ func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.Vir
 		}
 
 		subnetObj.Properties.ServiceEndpointPolicies = expandVirtualNetworkSubnetServiceEndpointPolicies(subnet["service_endpoint_policy_ids"].(*pluginsdk.Set).List())
-		if serviceEndpointsRaw := subnet["service_endpoints"].(*pluginsdk.Set).List(); len(serviceEndpointsRaw) > 0 {
-			subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoints(serviceEndpointsRaw)
+		if !features.FivePointOh() {
+			if serviceEndpointsRaw := subnet["service_endpoints"].(*pluginsdk.Set).List(); len(serviceEndpointsRaw) > 0 {
+				subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoints(serviceEndpointsRaw)
+			} else {
+				subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoint(subnet["service_endpoint"].([]interface{}))
+			}
 		} else {
 			subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoint(subnet["service_endpoint"].([]interface{}))
 		}
@@ -900,8 +916,12 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 			}
 
 			subnetObj.Properties.ServiceEndpointPolicies = expandVirtualNetworkSubnetServiceEndpointPolicies(subnet["service_endpoint_policy_ids"].(*pluginsdk.Set).List())
-			if serviceEndpointsRaw := subnet["service_endpoints"].(*pluginsdk.Set).List(); len(serviceEndpointsRaw) > 0 {
-				subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoints(serviceEndpointsRaw)
+			if !features.FivePointOh() {
+				if serviceEndpointsRaw := subnet["service_endpoints"].(*pluginsdk.Set).List(); len(serviceEndpointsRaw) > 0 {
+					subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoints(serviceEndpointsRaw)
+				} else {
+					subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoint(subnet["service_endpoint"].([]interface{}))
+				}
 			} else {
 				subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoint(subnet["service_endpoint"].([]interface{}))
 			}
@@ -1094,11 +1114,15 @@ func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet, oldFormatSubn
 					routeTableId = id.ID()
 				}
 				output["route_table_id"] = routeTableId
-				if oldFormatSubnets[pointer.From(subnet.Name)] {
-					output["service_endpoints"] = flattenVirtualNetworkSubnetServiceEndpoints(props.ServiceEndpoints)
-					output["service_endpoint"] = make([]interface{}, 0)
+				if !features.FivePointOh() {
+					if oldFormatSubnets[pointer.From(subnet.Name)] {
+						output["service_endpoints"] = flattenVirtualNetworkSubnetServiceEndpoints(props.ServiceEndpoints)
+						output["service_endpoint"] = make([]interface{}, 0)
+					} else {
+						output["service_endpoints"] = pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+						output["service_endpoint"] = flattenVirtualNetworkSubnetServiceEndpoint(props.ServiceEndpoints)
+					}
 				} else {
-					output["service_endpoints"] = pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 					output["service_endpoint"] = flattenVirtualNetworkSubnetServiceEndpoint(props.ServiceEndpoints)
 				}
 				output["service_endpoint_policy_ids"] = flattenVirtualNetworkSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)

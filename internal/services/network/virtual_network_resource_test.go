@@ -418,14 +418,13 @@ func TestAccVirtualNetwork_serviceEndpointBlock(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccVirtualNetwork_serviceEndpointWithNetworkIdentifier(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
-	r := VirtualNetworkResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceEndpointBlock(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.serviceEndpointWithNetworkIdentifier(data),
 			Check: acceptance.ComposeTestCheckFunc(

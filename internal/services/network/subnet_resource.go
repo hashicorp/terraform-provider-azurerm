@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -107,7 +108,7 @@ var subnetDelegationServiceNames = []string{
 }
 
 func resourceSubnet() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create:   resourceSubnetCreate,
 		Read:     resourceSubnetRead,
 		Update:   resourceSubnetUpdate,
@@ -172,18 +173,11 @@ func resourceSubnet() *pluginsdk.Resource {
 				},
 			},
 
-			"service_endpoints": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:           pluginsdk.HashString,
-				Deprecated:    "The `service_endpoints` property has been superseded by the `service_endpoint` block and will be removed in a future version of the provider.",
-				ConflictsWith: []string{"service_endpoint"},
-			},
-
 			"service_endpoint": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"service": {
@@ -198,7 +192,6 @@ func resourceSubnet() *pluginsdk.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{"service_endpoints"},
 			},
 
 			"service_endpoint_policy_ids": {
@@ -315,6 +308,22 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["service_endpoints"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
+			Computed:      true,
+			Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Set:           pluginsdk.HashString,
+			Deprecated:    "The `service_endpoints` property has been superseded by the `service_endpoint` block and will be removed in v5.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"service_endpoint"},
+		}
+		resource.Schema["service_endpoint"].ConflictsWith = []string{"service_endpoints"}
+	}
+
+	return resource
 }
 
 // TODO: refactor the create/flatten functions
@@ -374,9 +383,14 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()
 	properties.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
 
-	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
-	if len(serviceEndpointsRaw) > 0 {
-		properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+	if !features.FivePointOh() {
+		serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
+		if len(serviceEndpointsRaw) > 0 {
+			properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+		} else {
+			serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
+			properties.ServiceEndpoints = expandSubnetServiceEndpoint(serviceEndpointRaw)
+		}
 	} else {
 		serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
 		properties.ServiceEndpoints = expandSubnetServiceEndpoint(serviceEndpointRaw)
@@ -531,14 +545,19 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		props.SharingScope = pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string))
 	}
 
-	if d.HasChange("service_endpoints") {
-		serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
-		props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
-	}
-
-	if d.HasChange("service_endpoint") {
-		serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
-		props.ServiceEndpoints = expandSubnetServiceEndpoint(serviceEndpointRaw)
+	if !features.FivePointOh() {
+		if d.HasChange("service_endpoint") {
+			serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
+			props.ServiceEndpoints = expandSubnetServiceEndpoint(serviceEndpointRaw)
+		} else if d.HasChange("service_endpoints") {
+			serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
+			props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+		}
+	} else {
+		if d.HasChange("service_endpoint") {
+			serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
+			props.ServiceEndpoints = expandSubnetServiceEndpoint(serviceEndpointRaw)
+		}
 	}
 
 	if d.HasChange("service_endpoint_policy_ids") {
@@ -646,16 +665,16 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(pointer.From(props.PrivateLinkServiceNetworkPolicies))))
 			d.Set("sharing_scope", pointer.FromEnum(props.SharingScope))
 
-			if len(d.Get("service_endpoints").(*pluginsdk.Set).List()) > 0 {
+			if !features.FivePointOh() {
 				serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
 				if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 					return fmt.Errorf("setting `service_endpoints`: %+v", err)
 				}
-			} else {
-				serviceEndpoint := flattenSubnetServiceEndpoint(props.ServiceEndpoints)
-				if err := d.Set("service_endpoint", serviceEndpoint); err != nil {
-					return fmt.Errorf("setting `service_endpoint`: %+v", err)
-				}
+			}
+
+			serviceEndpoint := flattenSubnetServiceEndpoint(props.ServiceEndpoints)
+			if err := d.Set("service_endpoint", serviceEndpoint); err != nil {
+				return fmt.Errorf("setting `service_endpoint`: %+v", err)
 			}
 
 			serviceEndpointPolicies := flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)

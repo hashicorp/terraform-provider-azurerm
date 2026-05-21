@@ -400,7 +400,7 @@ func TestAccSubnet_serviceEndpointBlock(t *testing.T) {
 				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("1"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("service_endpoints"),
 		{
 			Config: r.serviceEndpointBlockUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -408,15 +408,16 @@ func TestAccSubnet_serviceEndpointBlock(t *testing.T) {
 				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("2"),
 			),
 		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccSubnet_serviceEndpointWithNetworkIdentifier(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	r := SubnetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.ImportStep("service_endpoints"),
+		{
+			Config: r.serviceEndpointBlock(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_endpoint.0.service").HasValue("Microsoft.Sql"),
+				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("1"),
+			),
+		},
+		data.ImportStep("service_endpoints"),
 		{
 			Config: r.serviceEndpointWithNetworkIdentifier(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -425,7 +426,7 @@ func TestAccSubnet_serviceEndpointWithNetworkIdentifier(t *testing.T) {
 				check.That(data.ResourceName).Key("service_endpoint.0.network_identifier").IsSet(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("service_endpoints"),
 	})
 }
 
