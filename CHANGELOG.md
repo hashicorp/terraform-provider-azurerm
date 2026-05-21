@@ -1,21 +1,21 @@
-## 4.74.0 (Unreleased)
+## 4.74.0 (May 21, 2026)
 
 ENHANCEMENTS:
-* `azurerm_logic_app_standard` - add support for `key_vault_reference_identity_id`  [GH-30010]
-* dependencies: `go-azure-sdk` - update to `v0.20260520.1145341` [GH-32420]
-* `azurerm_data_factory_integration_runtime_azure` - add support for the `interactive_authoring_time_to_live_in_minutes` property [GH-32316]
-* `azurerm_advisor_recommendations` - add support for the `filter_by_resource_ids` and `filter_by_recommendation_type_guids` properties [GH-26220]
-* `azurerm_windows_web_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
-* `azurerm_windows_function_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
-* `azurerm_linux_function_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
-* `azurerm_linux_web_app` - add support for `minimum_tls_cipher_suite` property  [GH-26584]
 
-FEATURES:
+* dependencies: `go-azure-sdk` - update to `v0.20260520.1145341` ([#32420](https://github.com/hashicorp/terraform-provider-azurerm/issues/32420))
+* `azurerm_advisor_recommendations` - add support for the `filter_by_resource_ids` and `filter_by_recommendation_type_guids` properties ([#26220](https://github.com/hashicorp/terraform-provider-azurerm/issues/26220))
+* `azurerm_data_factory_integration_runtime_azure` - add support for the `interactive_authoring_time_to_live_in_minutes` property ([#32316](https://github.com/hashicorp/terraform-provider-azurerm/issues/32316))
+* `azurerm_linux_function_app` - add support for `minimum_tls_cipher_suite` property  ([#26584](https://github.com/hashicorp/terraform-provider-azurerm/issues/26584))
+* `azurerm_linux_web_app` - add support for `minimum_tls_cipher_suite` property  ([#26584](https://github.com/hashicorp/terraform-provider-azurerm/issues/26584))
+* `azurerm_logic_app_standard` - add support for `key_vault_reference_identity_id`  ([#30010](https://github.com/hashicorp/terraform-provider-azurerm/issues/30010))
+* `azurerm_windows_function_app` - add support for `minimum_tls_cipher_suite` property  ([#26584](https://github.com/hashicorp/terraform-provider-azurerm/issues/26584))
+* `azurerm_windows_web_app` - add support for `minimum_tls_cipher_suite` property  ([#26584](https://github.com/hashicorp/terraform-provider-azurerm/issues/26584))
 
 BUG FIXES:
-* `azurerm_logic_app_standard` - fix the update path for the `app_service_plan_id` property [GH-32421]
-* `azurerm_virtual_network_gateway` set `radius_server_secret` to sensitive  [GH-32419]
-* `azurerm_container_app_environment` - allow names that start with a digit  [GH-32267]
+
+* `azurerm_container_app_environment` - allow names that start with a digit  ([#32267](https://github.com/hashicorp/terraform-provider-azurerm/issues/32267))
+* `azurerm_logic_app_standard` - fix the update path for the `app_service_plan_id` property ([#32421](https://github.com/hashicorp/terraform-provider-azurerm/issues/32421))
+* `azurerm_virtual_network_gateway` set `radius_server_secret` to sensitive  ([#32419](https://github.com/hashicorp/terraform-provider-azurerm/issues/32419))
 
 ## 4.73.0 (May 14, 2026)
 
