@@ -67,24 +67,20 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "example" {
+resource "azurerm_service_plan" "example" {
   name                = "example-service-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  kind                = "Linux"
-  reserved            = true
 
-  sku {
-    tier = "WorkflowStandard"
-    size = "WS1"
-  }
+  os_type  = "Linux"
+  sku_name = "WS1"
 }
 
 resource "azurerm_logic_app_standard" "example" {
   name                       = "example-logic-app"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
-  app_service_plan_id        = azurerm_app_service_plan.example.id
+  app_service_plan_id        = azurerm_service_plan.example.id
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
 
@@ -97,7 +93,6 @@ resource "azurerm_logic_app_standard" "example" {
     "DOCKER_REGISTRY_SERVER_USERNAME" = "username"
     "DOCKER_REGISTRY_SERVER_PASSWORD" = "password"
   }
-
 }
 ```
 
