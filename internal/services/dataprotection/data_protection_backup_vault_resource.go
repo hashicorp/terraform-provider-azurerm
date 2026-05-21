@@ -249,8 +249,8 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		props := model.Properties
 
 		if len(props.StorageSettings) > 0 {
-			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
-			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
+			d.Set("datastore_type", string(pointer.From(props.StorageSettings[0].DatastoreType)))
+			d.Set("redundancy", string(pointer.From(props.StorageSettings[0].Type)))
 		}
 
 		immutability := backupvaultresources.ImmutabilityStateDisabled

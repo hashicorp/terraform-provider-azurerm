@@ -77,8 +77,6 @@ func resourceMarketplaceAgreementCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := agreements.NewPlanID(subscriptionId, d.Get("publisher").(string), d.Get("offer").(string), d.Get("plan").(string))
 
-	log.Printf("[DEBUG] retrieving %s", id)
-
 	agreementId := agreements.NewOfferPlanID(id.SubscriptionId, id.PublisherId, id.OfferId, id.PlanId)
 	term, err := client.MarketplaceAgreementsGet(ctx, agreementId)
 	if err != nil {

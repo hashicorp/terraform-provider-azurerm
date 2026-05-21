@@ -331,7 +331,7 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 				state.Tags = tags.Flatten(model.Tags)
 				if model.Identity != nil {
 					if model.Identity != nil {
-						ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To((identity.SystemAndUserAssignedMap)(*model.Identity)))
+						ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
 						if err != nil {
 							return err
 						}

@@ -6,7 +6,6 @@ package loganalytics
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -69,8 +68,6 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Linked Services creation.")
 
 	var workspaceId string
 	resourceGroup := d.Get("resource_group_name").(string)

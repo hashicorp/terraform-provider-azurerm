@@ -66,7 +66,6 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *plugins
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Workspace <-> Application Group Association creation.")
 	workspaceId, err := workspace.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
 		return err

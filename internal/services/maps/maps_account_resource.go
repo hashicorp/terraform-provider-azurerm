@@ -5,7 +5,6 @@ package maps
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -140,8 +139,6 @@ func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
-
 	id := accounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id)
@@ -209,8 +206,6 @@ func resourceMapsAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	client := meta.(*clients.Client).Maps.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
 
 	id, err := accounts.ParseAccountID(d.Id())
 	if err != nil {

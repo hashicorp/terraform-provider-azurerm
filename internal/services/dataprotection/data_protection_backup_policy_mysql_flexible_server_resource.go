@@ -670,27 +670,27 @@ func flattenBackupPolicyMySQLFlexibleServerBackupCriteria(input *[]basebackuppol
 		if criteria, ok := item.(basebackuppolicyresources.ScheduleBasedBackupCriteria); ok {
 			var absoluteCriteria string
 			if criteria.AbsoluteCriteria != nil && len(pointer.From(criteria.AbsoluteCriteria)) > 0 {
-				absoluteCriteria = string((pointer.From(criteria.AbsoluteCriteria))[0])
+				absoluteCriteria = string(pointer.From(criteria.AbsoluteCriteria)[0])
 			}
 
 			daysOfWeek := make([]string, 0)
 			if criteria.DaysOfTheWeek != nil {
 				for _, item := range pointer.From(criteria.DaysOfTheWeek) {
-					daysOfWeek = append(daysOfWeek, (string)(item))
+					daysOfWeek = append(daysOfWeek, string(item))
 				}
 			}
 
 			monthsOfYear := make([]string, 0)
 			if criteria.MonthsOfYear != nil {
 				for _, item := range pointer.From(criteria.MonthsOfYear) {
-					monthsOfYear = append(monthsOfYear, (string)(item))
+					monthsOfYear = append(monthsOfYear, string(item))
 				}
 			}
 
 			weeksOfMonth := make([]string, 0)
 			if criteria.WeeksOfTheMonth != nil {
 				for _, item := range pointer.From(criteria.WeeksOfTheMonth) {
-					weeksOfMonth = append(weeksOfMonth, (string)(item))
+					weeksOfMonth = append(weeksOfMonth, string(item))
 				}
 			}
 
