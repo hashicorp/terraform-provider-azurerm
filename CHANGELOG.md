@@ -1,6 +1,7 @@
 ## 4.74.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_logic_app_standard` - add support for `key_vault_reference_identity_id`  [GH-30010]
 * dependencies: `go-azure-sdk` - update to `v0.20260520.1145341` [GH-32420]
 * `azurerm_data_factory_integration_runtime_azure` - add support for the `interactive_authoring_time_to_live_in_minutes` property [GH-32316]
 * `azurerm_advisor_recommendations` - add support for the `filter_by_resource_ids` and `filter_by_recommendation_type_guids` properties [GH-26220]
