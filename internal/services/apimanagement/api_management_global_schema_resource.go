@@ -9,6 +9,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -76,15 +78,17 @@ func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, me
 
 	id := schema.NewSchemaID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("schema_id").(string))
 	if d.IsNewResource() {
-		existing, err := client.GlobalSchemaGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GlobalSchemaGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_global_schema", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_global_schema", id.ID())
+			}
 		}
 	}
 
@@ -108,11 +112,17 @@ func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, me
 		payload.Properties.Value = &value
 	}
 
-	if err := client.GlobalSchemaCreateOrUpdateThenPoll(ctx, id, payload, schema.DefaultGlobalSchemaCreateOrUpdateOperationOptions()); err != nil {
-		return fmt.Errorf("creating/updating %s: %s", id, err)
+	if d.IsNewResource() {
+		if err := client.GlobalSchemaCreateOrUpdateCallbackThenPoll(ctx, id, payload, schema.DefaultGlobalSchemaCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %s", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.GlobalSchemaCreateOrUpdateThenPoll(ctx, id, payload, schema.DefaultGlobalSchemaCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating %s: %s", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceApiManagementGlobalSchemaRead(d, meta)
 }
 
