@@ -515,6 +515,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 
 			CustomManagedIdentityEndpoint:   d.Get("msi_endpoint").(string),
 			CustomManagedIdentityAPIVersion: d.Get("msi_api_version").(string),
+			CustomManagedIdentityHeaders:    clients.ManagedIdentityHeadersFromEnvironment(),
 
 			AzureCliSubscriptionIDHint: subscriptionId,
 

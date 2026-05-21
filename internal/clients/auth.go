@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
@@ -17,6 +18,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/graph"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
+
+const (
+	managedIdentityHeaderEnvironmentVariable = "IDENTITY_HEADER"
+	managedIdentityHeaderName                = "X-IDENTITY-HEADER"
+)
+
+func ManagedIdentityHeadersFromEnvironment() map[string][]string {
+	if identityHeaderValue := os.Getenv(managedIdentityHeaderEnvironmentVariable); identityHeaderValue != "" {
+		return map[string][]string{
+			managedIdentityHeaderName: []string{identityHeaderValue},
+		}
+	}
+
+	return nil
+}
 
 type ResourceManagerAccount struct {
 	Environment environments.Environment

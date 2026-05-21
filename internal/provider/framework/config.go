@@ -103,6 +103,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		CustomManagedIdentityEndpoint:   getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
 		CustomManagedIdentityAPIVersion: getEnvStringOrDefault(data.MSIAPIVersion, "ARM_MSI_API_VERSION", ""),
+		CustomManagedIdentityHeaders:    clients.ManagedIdentityHeadersFromEnvironment(),
 
 		AzureCliSubscriptionIDHint: subscriptionId,
 
