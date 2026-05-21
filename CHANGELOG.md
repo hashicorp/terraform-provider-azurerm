@@ -12,6 +12,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_logic_app_standard` - fix the update path for the `app_service_plan_id` property [GH-32421]
 * `azurerm_virtual_network_gateway` set `radius_server_secret` to sensitive  [GH-32419]
 * `azurerm_container_app_environment` - allow names that start with a digit  [GH-32267]
 
