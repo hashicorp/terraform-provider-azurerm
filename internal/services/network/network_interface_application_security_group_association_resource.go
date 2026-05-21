@@ -8,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
@@ -103,15 +105,21 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 	info := parseFieldsFromNetworkInterface(*props)
 	id := commonids.NewCompositeResourceID(networkInterfaceId, applicationSecurityGroupId)
 
+	exists := false
 	if utils.SliceContainsValue(info.applicationSecurityGroupIDs, applicationSecurityGroupId.ID()) {
-		return tf.ImportAsExistsError("azurerm_network_interface_application_security_group_association", id.ID())
+		exists = true
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			return tf.ImportAsExistsError("azurerm_network_interface_application_security_group_association", id.ID())
+		}
 	}
 
-	info.applicationSecurityGroupIDs = append(info.applicationSecurityGroupIDs, applicationSecurityGroupId.ID())
+	if !exists {
+		info.applicationSecurityGroupIDs = append(info.applicationSecurityGroupIDs, applicationSecurityGroupId.ID())
+	}
 
 	props.IPConfigurations = mapFieldsToNetworkInterface(props.IPConfigurations, info)
 
-	err = client.CreateOrUpdateThenPoll(ctx, *networkInterfaceId, *read.Model)
+	err = client.CreateOrUpdateCallbackThenPoll(ctx, *networkInterfaceId, *read.Model, sdk.SetIDCallback(meta, &id, d))
 	if err != nil {
 		return fmt.Errorf("updating Application Security Group Association for %s: %+v", *networkInterfaceId, err)
 	}
