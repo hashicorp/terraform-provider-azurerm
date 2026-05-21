@@ -217,7 +217,7 @@ func TestAccPublicIp_standard_withDDoS(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.standardDDoSEnabled(data),
+			Config: r.standardDDoSEnabled(data, data.Locations.Primary),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ddos_protection_mode").HasValue("Enabled"),
@@ -255,12 +255,11 @@ func TestAccPublicIp_ddosProtectionModeEnabledWithoutPlan(t *testing.T) {
 
 func TestAccPublicIp_ddosProtectionPlanRemoval(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	data.Locations.Primary = data.Locations.Secondary
 	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standardDDoSEnabled(data),
+			Config: r.standardDDoSEnabled(data, data.Locations.Secondary),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ddos_protection_mode").HasValue("Enabled"),
@@ -630,7 +629,8 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIpResource) standardDDoSEnabled(data acceptance.TestData) string {
+// location must be parameterised because only one DDoS protection plan can be created per subscription per location.
+func (PublicIpResource) standardDDoSEnabled(data acceptance.TestData, location string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -660,7 +660,7 @@ resource "azurerm_public_ip" "test" {
   ddos_protection_mode    = "Enabled"
   ddos_protection_plan_id = azurerm_network_ddos_protection_plan.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger)
 }
 
 func (PublicIpResource) standardPrefix(data acceptance.TestData) string {
