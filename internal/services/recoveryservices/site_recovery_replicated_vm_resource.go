@@ -911,8 +911,8 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					if nic.SourceNicArmId != nil {
 						nicOutput["source_network_interface_id"] = *nic.SourceNicArmId
 					}
-					if nic.IPConfigs != nil && len(*(nic.IPConfigs)) > 0 {
-						ipConfig := (*(nic.IPConfigs))[0]
+					if nic.IPConfigs != nil && len(*nic.IPConfigs) > 0 {
+						ipConfig := (*nic.IPConfigs)[0]
 						if ipConfig.RecoveryStaticIPAddress != nil {
 							nicOutput["target_static_ip"] = *ipConfig.RecoveryStaticIPAddress
 						}

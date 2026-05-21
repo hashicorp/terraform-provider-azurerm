@@ -122,7 +122,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 						"email": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.EmailAddress,
+							ValidateFunc: validation.IsEmailAddress,
 						},
 						"name": {
 							Type:         pluginsdk.TypeString,

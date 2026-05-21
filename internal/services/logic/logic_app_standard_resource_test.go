@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1127,18 +1126,22 @@ func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.C
 
 func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.LogicAppStandardID(state.ID)
+		id, err := commonids.ParseLogicAppId(state.ID)
 		if err != nil {
 			return err
 		}
 
-		appSettingsResp, err := clients.Web.AppServicesClient.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+		appSettingsResp, err := clients.AppService.WebAppsClient.ListApplicationSettings(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("listing AppSettings: %+v", err)
 		}
 
+		if appSettingsResp.Model == nil {
+			return fmt.Errorf("listing AppSettings for %s: `model` was nil", id)
+		}
+
 		exists := false
-		for k := range appSettingsResp.Properties {
+		for k := range pointer.From(appSettingsResp.Model.Properties) {
 			if strings.EqualFold("AzureFunctionsJobHost__extensionBundle__id", k) {
 				exists = true
 				break

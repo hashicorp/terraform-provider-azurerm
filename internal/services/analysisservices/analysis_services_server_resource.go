@@ -6,7 +6,6 @@ package analysisservices
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -151,8 +150,6 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
-
 	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	server, err := client.GetDetails(ctx, id)
@@ -262,8 +259,6 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 	client := meta.(*clients.Client).AnalysisServices.Servers
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server update.")
 
 	id, err := servers.ParseServerID(d.Id())
 	if err != nil {

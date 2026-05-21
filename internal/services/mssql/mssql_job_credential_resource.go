@@ -5,7 +5,6 @@ package mssql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -87,8 +86,6 @@ func resourceMsSqlJobCredentialCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Job Credential creation.")
-
 	jaId, err := jobcredentials.ParseJobAgentID(d.Get("job_agent_id").(string))
 	if err != nil {
 		return err
@@ -135,8 +132,6 @@ func resourceMsSqlJobCredentialUpdate(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Job Credential update.")
 
 	jaId, err := jobcredentials.ParseJobAgentID(d.Get("job_agent_id").(string))
 	if err != nil {

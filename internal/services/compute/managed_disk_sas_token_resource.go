@@ -85,7 +85,6 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Disk Export.")
 	durationInSeconds := int64(d.Get("duration_in_seconds").(int))
 	access := disks.AccessLevel(d.Get("access_level").(string))
 
