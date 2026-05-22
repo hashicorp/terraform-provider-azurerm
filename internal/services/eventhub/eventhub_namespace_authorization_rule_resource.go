@@ -73,8 +73,6 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace Authorization Rule creation.")
-
 	id := authorizationrulesnamespaces.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.NamespacesGetAuthorizationRule(ctx, id)

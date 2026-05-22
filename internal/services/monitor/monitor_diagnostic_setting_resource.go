@@ -229,7 +229,6 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
 	id := diagnosticsettings.NewScopedDiagnosticSettingID(d.Get("target_resource_id").(string), d.Get("name").(string))
 	resourceId := fmt.Sprintf("%s|%s", id.ResourceUri, id.DiagnosticSettingName)
@@ -351,7 +350,6 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
 	id, err := ParseMonitorDiagnosticId(d.Id())
 	if err != nil {

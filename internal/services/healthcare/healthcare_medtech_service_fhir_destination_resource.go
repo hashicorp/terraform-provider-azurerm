@@ -96,7 +96,6 @@ func resourceHealthcareApisMedTechServiceFhirDestinationCreate(d *pluginsdk.Reso
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Healthcare Med Tech Service Fhir Destination creation.")
 
 	medTechService, err := iotconnectors.ParseIotConnectorID(d.Get("medtech_service_id").(string))
 	if err != nil {

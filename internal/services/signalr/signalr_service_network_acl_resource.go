@@ -316,11 +316,11 @@ func expandSignalRServicePublicNetwork(input []interface{}) *signalr.NetworkACL 
 	if len(input) != 0 && input[0] != nil {
 		v := input[0].(map[string]interface{})
 
-		for _, item := range *(utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List())) {
+		for _, item := range *utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
 			allowedRTs = append(allowedRTs, signalr.SignalRRequestType(item))
 		}
 
-		for _, item := range *(utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List())) {
+		for _, item := range *utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
 			deniedRTs = append(deniedRTs, signalr.SignalRRequestType(item))
 		}
 	}
@@ -357,13 +357,13 @@ func expandSignalRServicePrivateEndpoint(input []interface{}, privateEndpointCon
 				}
 
 				allowedRTs := make([]signalr.SignalRRequestType, 0)
-				for _, item := range *(utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List())) {
+				for _, item := range *utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
 					allowedRTs = append(allowedRTs, signalr.SignalRRequestType(item))
 				}
 				result.Allow = &allowedRTs
 
 				deniedRTs := make([]signalr.SignalRRequestType, 0)
-				for _, item := range *(utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List())) {
+				for _, item := range *utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
 					deniedRTs = append(deniedRTs, signalr.SignalRRequestType(item))
 				}
 				result.Deny = &deniedRTs
@@ -386,7 +386,7 @@ func flattenSignalRServicePublicNetwork(input *signalr.NetworkACL) []interface{}
 	allowRequestTypes := make([]string, 0)
 	if input.Allow != nil {
 		for _, item := range *input.Allow {
-			allowRequestTypes = append(allowRequestTypes, (string)(item))
+			allowRequestTypes = append(allowRequestTypes, string(item))
 		}
 	}
 	allow := utils.FlattenStringSlice(&allowRequestTypes)
@@ -394,7 +394,7 @@ func flattenSignalRServicePublicNetwork(input *signalr.NetworkACL) []interface{}
 	deniedRequestTypes := make([]string, 0)
 	if input.Deny != nil {
 		for _, item := range *input.Deny {
-			deniedRequestTypes = append(deniedRequestTypes, (string)(item))
+			deniedRequestTypes = append(deniedRequestTypes, string(item))
 		}
 	}
 	deny := utils.FlattenStringSlice(&deniedRequestTypes)
@@ -430,7 +430,7 @@ func flattenSignalRServicePrivateEndpoint(input *[]signalr.PrivateEndpointACL, p
 				allowedRequestTypes := make([]string, 0)
 				if item.Allow != nil {
 					for _, item := range *item.Allow {
-						allowedRequestTypes = append(allowedRequestTypes, (string)(item))
+						allowedRequestTypes = append(allowedRequestTypes, string(item))
 					}
 				}
 				allow := utils.FlattenStringSlice(&allowedRequestTypes)
@@ -438,7 +438,7 @@ func flattenSignalRServicePrivateEndpoint(input *[]signalr.PrivateEndpointACL, p
 				deniedRequestTypes := make([]string, 0)
 				if item.Deny != nil {
 					for _, item := range *item.Deny {
-						deniedRequestTypes = append(deniedRequestTypes, (string)(item))
+						deniedRequestTypes = append(deniedRequestTypes, string(item))
 					}
 				}
 				deny := utils.FlattenStringSlice(&deniedRequestTypes)

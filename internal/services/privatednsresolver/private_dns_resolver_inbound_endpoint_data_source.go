@@ -108,7 +108,8 @@ func (r PrivateDNSResolverInboundEndpointDataSource) Read() sdk.ResourceFunc {
 				dnsForwardingRulesetId.SubscriptionId,
 				dnsForwardingRulesetId.ResourceGroupName,
 				dnsForwardingRulesetId.DnsResolverName,
-				state.Name)
+				state.Name,
+			)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
