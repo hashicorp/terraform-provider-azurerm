@@ -74,8 +74,6 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration creation.")
-
 	payload := configurations.Configuration{
 		Properties: &configurations.ConfigurationProperties{
 			Value: pointer.To(d.Get("value").(string)),
@@ -106,8 +104,6 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Configurations
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration update.")
 
 	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {

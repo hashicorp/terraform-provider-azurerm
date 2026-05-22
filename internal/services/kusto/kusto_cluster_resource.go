@@ -6,7 +6,6 @@ package kusto
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -337,8 +336,6 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure Kusto Cluster creation.")
 
 	id := commonids.NewKustoClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	existing, err := client.Get(ctx, id)

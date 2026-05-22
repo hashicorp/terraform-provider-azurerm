@@ -340,7 +340,12 @@ func (r BackupProtectedVmResource) Exists(ctx context.Context, clients *clients.
 func (BackupProtectedVmResource) base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    recovery_service {
+      vm_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy          = true
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -776,7 +781,12 @@ resource "azurerm_backup_policy_vm" "test" {
 func (BackupProtectedVmResource) baseWithoutVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    recovery_service {
+      vm_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy          = true
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1031,7 +1041,12 @@ resource "azurerm_backup_protected_vm" "test" {
 func (BackupProtectedVmResource) basePolicyTest(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    recovery_service {
+      vm_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy          = true
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {

@@ -6,7 +6,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -72,6 +71,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.LabServices/labplans",
 	"Microsoft.Logic/integrationServiceEnvironments",
 	"Microsoft.MachineLearningServices/workspaces",
+	"Microsoft.MessagingConnectors/connectors",
 	"Microsoft.Netapp/volumes",
 	"Microsoft.Network/applicationGateways",
 	"Microsoft.Network/dnsResolvers",
@@ -300,8 +300,6 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
 
 	id := commonids.NewSubnetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
 	existing, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())
@@ -570,12 +568,20 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	if err := resourceSubnetFlatten(d, *id, resp.Model); err != nil {
+		return fmt.Errorf("encoding %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, subnet *subnets.Subnet) error {
 	d.Set("name", id.SubnetName)
 	d.Set("virtual_network_name", id.VirtualNetworkName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
+	if subnet != nil {
+		if props := subnet.Properties; props != nil {
 			if props.AddressPrefixes == nil {
 				if props.AddressPrefix != nil && len(*props.AddressPrefix) > 0 {
 					d.Set("address_prefixes", []string{*props.AddressPrefix})
@@ -617,11 +623,7 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
-		return err
-	}
-
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, &id)
 }
 
 func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {

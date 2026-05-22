@@ -12,7 +12,8 @@ func ContainerRegistryCacheRuleName(v interface{}, k string) (warnings []string,
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
-			"alpha numeric characters optionally separated by '-' only are allowed in %q: %q", k, value))
+			"alpha numeric characters optionally separated by '-' only are allowed in %q: %q", k, value,
+		))
 	}
 
 	if 5 > len(value) {

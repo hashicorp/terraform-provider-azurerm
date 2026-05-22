@@ -806,8 +806,6 @@ func resourceServiceFabricClusterDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s", id.ID())
-
 	resp, err := client.Delete(ctx, *id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {

@@ -93,8 +93,6 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 	protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroupName, parsedVmId.VirtualMachineName)
 	containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroupName, parsedVmId.VirtualMachineName)
 
-	log.Printf("[DEBUG] Creating Azure Backup Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
-
 	id := protecteditems.NewProtectedItemID(subscriptionId, resourceGroup, vaultName, "Azure", containerName, protectedItemName)
 
 	existing, err := client.Get(ctx, id, protecteditems.GetOperationOptions{})
@@ -183,8 +181,6 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Reading %s", id)
 
 	resp, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
 	if err != nil {
@@ -364,9 +360,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 			}
 		}
 	}
-
-	log.Printf("[DEBUG] Deleting %s", id)
-
+	
 	if v, ok := resourceGuardOperationsMap[dataprotection.GuardOperationDeleteProtectedItem]; ok {
 		vaultProxyId := resourceguardproxy.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, VaultProxyName)
 

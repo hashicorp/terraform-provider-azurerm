@@ -5,7 +5,6 @@ package mssql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -88,8 +87,6 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for MsSql Server Microsoft Support Auditing Policy creation.")
 
 	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {

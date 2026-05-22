@@ -233,7 +233,6 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceFhirServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Healthcare Fhir Service creation.")
 
 	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {

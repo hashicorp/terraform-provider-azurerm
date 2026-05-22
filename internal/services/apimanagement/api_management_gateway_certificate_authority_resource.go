@@ -145,7 +145,6 @@ func resourceApiManagementGatewayCertificateAuthorityDelete(d *pluginsdk.Resourc
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
 	if resp, err := client.Delete(ctx, *id, gatewaycertificateauthority.DeleteOperationOptions{}); err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)

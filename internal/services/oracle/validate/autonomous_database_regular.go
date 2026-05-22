@@ -5,7 +5,6 @@ package validate
 
 import (
 	"fmt"
-	"net/mail"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -79,19 +78,6 @@ func AutonomousDatabasePassword(i interface{}, k string) (warnings []string, err
 	}
 	if strings.Contains(v, "admin") {
 		return []string{}, append(errors, fmt.Errorf("%v must not contain the username \"admin\"", k))
-	}
-
-	return []string{}, []error{}
-}
-
-func CustomerContactEmail(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
-	}
-
-	if _, err := mail.ParseAddress(v); err != nil {
-		return []string{}, append(errors, fmt.Errorf("%v must be a valid email address", k))
 	}
 
 	return []string{}, []error{}

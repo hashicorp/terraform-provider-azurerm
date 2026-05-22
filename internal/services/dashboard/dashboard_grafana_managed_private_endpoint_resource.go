@@ -242,8 +242,6 @@ func (r ManagedPrivateEndpointResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s", *id)
-
 			if err := client.ManagedPrivateEndpointsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
