@@ -1,6 +1,7 @@
 ## 4.75.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_application_gateway` - add support for `certificate_chain_validation_enabled`, `sni_validation_enabled`, and `sni_name` properties to `backend_http_settings` [GH-31206]
 * dependencies: `recoveryservices/vaults` - update to API Version `2025-08-01` [GH-31163]
 * `azurerm_mssql_managed_instance_transparent_data_encryption` - support versionless `key_vault_key_id` (#32399) [GH-32399]
 * `azurerm_mongo_cluster` - the `storage_size_in_gb` property now allows values of up to `32768` [GH-32428]
