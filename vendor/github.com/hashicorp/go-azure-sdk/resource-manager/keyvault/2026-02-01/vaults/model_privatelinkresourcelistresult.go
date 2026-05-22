@@ -6,3 +6,7 @@ package vaults
 type PrivateLinkResourceListResult struct {
 	Value *[]PrivateLinkResource `json:"value,omitempty"`
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

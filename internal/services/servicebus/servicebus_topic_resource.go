@@ -5,7 +5,6 @@ package servicebus
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -141,7 +140,6 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure ServiceBus Topic creation.")
 
 	var id topics.TopicId
 	if namespaceIdLit := d.Get("namespace_id").(string); namespaceIdLit != "" {

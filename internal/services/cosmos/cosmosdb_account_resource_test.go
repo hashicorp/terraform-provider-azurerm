@@ -111,15 +111,16 @@ func TestAccCosmosDBAccount_keyVaultUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.key_vault_uri(data, cosmosdb.DatabaseAccountKindMongoDB, cosmosdb.DefaultConsistencyLevelStrong),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.key_vault_uri(data, cosmosdb.DatabaseAccountKindMongoDB, cosmosdb.DefaultConsistencyLevelStrong),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
+				),
+			},
+			data.ImportStep(),
 		},
-		data.ImportStep(),
-	},
 	)
 }
 
@@ -151,10 +152,11 @@ func TestAccCosmosDBAccount_ManagedHSMUri(t *testing.T) {
 
 	if !features.FivePointOh() {
 		// remove cmkArgument parameter from `managedHSMKey` post 5.x
-		steps = append(steps, acceptance.TestStep{
-			// Tests migration path from `managed_hsm_key_id` to `key_vault_key_id` without replacing resource
-			Config: r.managedHSMKey(data, uuids, "key_vault_key_id"),
-		},
+		steps = append(
+			steps, acceptance.TestStep{
+				// Tests migration path from `managed_hsm_key_id` to `key_vault_key_id` without replacing resource
+				Config: r.managedHSMKey(data, uuids, "key_vault_key_id"),
+			},
 		)
 	}
 

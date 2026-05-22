@@ -406,8 +406,8 @@ func expandIntegrationAccountBatchConfigurationRecurrenceSchedule(input []interf
 
 	if rawWeekDays := v["week_days"].(*pluginsdk.Set).List(); len(rawWeekDays) != 0 {
 		weekDays := make([]integrationaccountbatchconfigurations.DaysOfWeek, 0)
-		for _, item := range *(utils.ExpandStringSlice(rawWeekDays)) {
-			weekDays = append(weekDays, (integrationaccountbatchconfigurations.DaysOfWeek)(item))
+		for _, item := range *utils.ExpandStringSlice(rawWeekDays) {
+			weekDays = append(weekDays, integrationaccountbatchconfigurations.DaysOfWeek(item))
 		}
 		result.WeekDays = &weekDays
 	}
@@ -510,7 +510,7 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceSchedule(input *integr
 	if input.WeekDays != nil {
 		weekDaysCast := make([]string, 0)
 		for _, item := range *input.WeekDays {
-			weekDaysCast = append(weekDaysCast, (string)(item))
+			weekDaysCast = append(weekDaysCast, string(item))
 		}
 		weekDays = utils.FlattenStringSlice(&weekDaysCast)
 	}

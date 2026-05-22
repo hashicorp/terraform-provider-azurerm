@@ -416,7 +416,6 @@ func iothubdpsStateStatusCodeRefreshFunc(ctx context.Context, client *iotdpsreso
 		if res.HttpResponse != nil {
 			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
 		}
-		log.Printf("Retrieving IoT Device Provisioning Service %q returned Status %q", id, statusCode)
 
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {

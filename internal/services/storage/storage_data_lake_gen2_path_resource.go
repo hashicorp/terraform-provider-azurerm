@@ -233,7 +233,6 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 		group = &sv
 	}
 
-	log.Printf("[INFO] Creating %s...", id)
 	input := paths.CreateInput{
 		Resource: resource,
 	}

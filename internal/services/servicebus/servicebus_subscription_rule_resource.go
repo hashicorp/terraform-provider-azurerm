@@ -5,7 +5,6 @@ package servicebus
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -190,14 +189,14 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 	subscriptionClient := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure Service Bus Subscription Rule creation.")
 
 	filterType := d.Get("filter_type").(string)
 
 	var id subscriptions.RuleId
 	if subscriptionIdLit := d.Get("subscription_id").(string); subscriptionIdLit != "" {
 		subscriptionId, _ := rules.ParseSubscriptions2ID(subscriptionIdLit)
-		id = subscriptions.NewRuleID(subscriptionId.SubscriptionId,
+		id = subscriptions.NewRuleID(
+			subscriptionId.SubscriptionId,
 			subscriptionId.ResourceGroupName,
 			subscriptionId.NamespaceName,
 			subscriptionId.TopicName,
