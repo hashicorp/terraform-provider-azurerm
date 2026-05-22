@@ -5,6 +5,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+`azurerm_api_management_backend` - the make `proxy.username` property is now optional [GH-32433]
 
 ## 4.74.0 (May 21, 2026)
 
