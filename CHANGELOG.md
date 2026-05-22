@@ -1,6 +1,7 @@
 ## 4.75.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_mongo_cluster` - the `storage_size_in_gb` property now allows values of up to `32768` [GH-32428]
 
 FEATURES:
 
