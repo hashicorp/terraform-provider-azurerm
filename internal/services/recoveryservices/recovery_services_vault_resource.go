@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupresourcevaultconfigs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
@@ -154,7 +154,25 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 							Default:  true,
 						},
 
+						"alerts_for_all_failover_issues_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"alerts_for_all_replication_issues_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						"alerts_for_critical_operation_failures_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"email_notifications_for_site_recovery_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
@@ -177,6 +195,16 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) == string(vaults.ImmutabilityStateLocked)
 			}),
+			func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				if !features.FivePointOh() {
+					old, new := diff.GetChange("soft_delete_enabled")
+					oldVal, newVal := old.(bool), new.(bool)
+					if !newVal && (oldVal || diff.Id() == "") {
+						return errors.New("soft_delete_enabled cannot be false initially or changed from true to false. Soft Delete is a required security feature and cannot be disabled for Recovery Services Vaults. For more information, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default#disable-soft-delete-for-vault")
+					}
+				}
+				return nil
+			},
 		),
 	}
 
@@ -294,13 +322,13 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, vault)
+	err = client.CreateOrUpdateThenPoll(ctx, id, vault, vaults.DefaultCreateOrUpdateOperationOptions())
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id.String(), err)
 	}
 
 	if requireAdditionalUpdate {
-		err := client.UpdateThenPoll(ctx, id, updatePatch)
+		err := client.UpdateThenPoll(ctx, id, updatePatch, vaults.DefaultUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
@@ -333,7 +361,6 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 
 			var StateRefreshPendingStrings []string
 			var StateRefreshTargetStrings []string
-
 			if sd := d.Get("soft_delete_enabled").(bool); sd {
 				state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
 				cfg.Properties.SoftDeleteFeatureState = &state
@@ -466,7 +493,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 			vault.Sku.Tier = pointer.To("Standard")
 		}
 
-		err = client.CreateOrUpdateThenPoll(ctx, id, vault)
+		err = client.CreateOrUpdateThenPoll(ctx, id, vault, vaults.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v", id.String(), err)
 		}
@@ -532,13 +559,13 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	err = client.UpdateThenPoll(ctx, id, vault)
+	err = client.UpdateThenPoll(ctx, id, vault, vaults.DefaultUpdateOperationOptions())
 	if err != nil {
 		return fmt.Errorf("updating  %s: %+v", id, err)
 	}
 
 	if requireAdditionalUpdate {
-		err := client.UpdateThenPoll(ctx, id, additionalUpdatePatch)
+		err := client.UpdateThenPoll(ctx, id, additionalUpdatePatch, vaults.DefaultUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
@@ -747,7 +774,8 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if _, err = client.Delete(ctx, *id); err != nil {
+	err = client.DeleteThenPoll(ctx, *id)
+	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id.String(), err)
 	}
 
@@ -883,17 +911,35 @@ func expandRecoveryServicesVaultMonitorSettings(input []interface{}) *vaults.Mon
 		allJobAlert = vaults.AlertsStateEnabled
 	}
 
+	allFailoverAlert := vaults.AlertsStateDisabled
+	if v["alerts_for_all_failover_issues_enabled"].(bool) {
+		allFailoverAlert = vaults.AlertsStateEnabled
+	}
+
+	allReplicationAlert := vaults.AlertsStateDisabled
+	if v["alerts_for_all_replication_issues_enabled"].(bool) {
+		allReplicationAlert = vaults.AlertsStateEnabled
+	}
+
 	criticalOperation := vaults.AlertsStateDisabled
 	if v["alerts_for_critical_operation_failures_enabled"].(bool) {
 		criticalOperation = vaults.AlertsStateEnabled
 	}
 
+	emailNotification := vaults.AlertsStateDisabled
+	if v["email_notifications_for_site_recovery_enabled"].(bool) {
+		emailNotification = vaults.AlertsStateEnabled
+	}
+
 	return pointer.To(vaults.MonitoringSettings{
 		AzureMonitorAlertSettings: pointer.To(vaults.AzureMonitorAlertSettings{
-			AlertsForAllJobFailures: pointer.To(allJobAlert),
+			AlertsForAllJobFailures:       pointer.To(allJobAlert),
+			AlertsForAllFailoverIssues:    pointer.To(allFailoverAlert),
+			AlertsForAllReplicationIssues: pointer.To(allReplicationAlert),
 		}),
 		ClassicAlertSettings: pointer.To(vaults.ClassicAlertSettings{
-			AlertsForCriticalOperations: pointer.To(criticalOperation),
+			AlertsForCriticalOperations:       pointer.To(criticalOperation),
+			EmailNotificationsForSiteRecovery: pointer.To(emailNotification),
 		}),
 	})
 }
@@ -904,21 +950,31 @@ func flattenRecoveryServicesVaultMonitorSettings(input *vaults.MonitoringSetting
 		return []interface{}{}
 	}
 	allJobAlert := false
+	allFailoverAlert := false
+	allReplicationAlert := false
 	criticalAlert := false
+	emailNotification := false
 
 	if input != nil {
-		if input.AzureMonitorAlertSettings != nil && input.AzureMonitorAlertSettings.AlertsForAllJobFailures != nil {
-			allJobAlert = *input.AzureMonitorAlertSettings.AlertsForAllJobFailures == vaults.AlertsStateEnabled
+		if input.AzureMonitorAlertSettings != nil {
+			allJobAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllJobFailures) == vaults.AlertsStateEnabled
+			allFailoverAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllFailoverIssues) == vaults.AlertsStateEnabled
+			allReplicationAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllReplicationIssues) == vaults.AlertsStateEnabled
 		}
-		if input.ClassicAlertSettings != nil && input.ClassicAlertSettings.AlertsForCriticalOperations != nil {
-			criticalAlert = *input.ClassicAlertSettings.AlertsForCriticalOperations == vaults.AlertsStateEnabled
+
+		if input.ClassicAlertSettings != nil {
+			criticalAlert = pointer.From(input.ClassicAlertSettings.AlertsForCriticalOperations) == vaults.AlertsStateEnabled
+			emailNotification = pointer.From(input.ClassicAlertSettings.EmailNotificationsForSiteRecovery) == vaults.AlertsStateEnabled
 		}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"alerts_for_all_job_failures_enabled":            allJobAlert,
+			"alerts_for_all_failover_issues_enabled":         allFailoverAlert,
+			"alerts_for_all_replication_issues_enabled":      allReplicationAlert,
 			"alerts_for_critical_operation_failures_enabled": criticalAlert,
+			"email_notifications_for_site_recovery_enabled":  emailNotification,
 		},
 	}
 }

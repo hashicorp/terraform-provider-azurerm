@@ -11,17 +11,17 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type DeleteOperationResponse struct {
+type RegisteredIdentitiesDeleteOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 }
 
-// Delete ...
-func (c VaultsClient) Delete(ctx context.Context, id VaultId) (result DeleteOperationResponse, err error) {
+// RegisteredIdentitiesDelete ...
+func (c VaultsClient) RegisteredIdentitiesDelete(ctx context.Context, id RegisteredIdentityId) (result RegisteredIdentitiesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusOK,
+			http.StatusNoContent,
 		},
 		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),
