@@ -100,6 +100,7 @@ var (
 	// Type constants.
 	tBool       = types.Typ[types.Bool]
 	tByte       = types.Typ[types.Byte]
+	tRune       = types.Universe.Lookup("rune").Type() // prints as "rune" (Typ[Rune] is same as Int32)
 	tInt        = types.Typ[types.Int]
 	tInvalid    = types.Typ[types.Invalid]
 	tString     = types.Typ[types.String]
@@ -892,6 +893,10 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 			bound := createBound(fn.Prog, obj)
 			b.enqueue(bound)
 
+			// The assignment may widen a type parameter to its
+			// interface bound (case #3 of go.dev/issue.78110).
+			v = emitConv(fn, v, bound.FreeVars[0].Type())
+
 			c := &MakeClosure{
 				Fn:       bound,
 				Bindings: []Value{v},
@@ -1270,7 +1275,7 @@ func (b *builder) arrayLen(fn *Function, elts []ast.Expr) int64 {
 //	x := T{a: 1}
 //	x = T{a: x.a}
 //
-// all the reads must occur before all the writes.  Thus all stores to
+// all the reads must occur before all the writes. Thus all stores to
 // loc are emitted to the storebuf sb for later execution.
 //
 // A CompositeLit may have pointer type only in the recursive (nested)
@@ -1287,28 +1292,35 @@ func (b *builder) compLit(fn *Function, addr Value, e *ast.CompositeLit, isZero 
 			sb.store(&address{addr, e.Lbrace, nil}, zeroConst(zt))
 			isZero = true
 		}
+		var fIndices []int
 		for i, e := range e.Elts {
-			fieldIndex := i
-			pos := e.Pos()
-			if kv, ok := e.(*ast.KeyValueExpr); ok {
+			var (
+				pos   token.Pos
+				fType types.Type
+			)
+
+			if kv, ok := e.(*ast.KeyValueExpr); ok { // tagged field
 				fname := kv.Key.(*ast.Ident).Name
-				for i, n := 0, t.NumFields(); i < n; i++ {
-					sf := t.Field(i)
-					if sf.Name() == fname {
-						fieldIndex = i
-						pos = kv.Colon
-						e = kv.Value
-						break
-					}
-				}
+				obj, index, _ := types.LookupFieldOrMethod(t, true, fn.declaredPackage().Pkg, fname)
+				fIndices = append(fIndices[:0], index...)
+				pos = kv.Colon
+				e = kv.Value
+				fType = obj.Type()
+			} else { // untagged field
+				fIndices = append(fIndices[:0], i)
+				pos = e.Pos()
+				fType = t.Field(i).Type()
 			}
-			sf := t.Field(fieldIndex)
+
+			last := len(fIndices) - 1
+			v := emitImplicitSelections(fn, addr, fIndices[:last], pos)
+
 			faddr := &FieldAddr{
-				X:     addr,
-				Field: fieldIndex,
+				X:     v,
+				Field: fIndices[last],
 			}
 			faddr.setPos(pos)
-			faddr.setType(types.NewPointer(sf.Type()))
+			faddr.setType(types.NewPointer(fType))
 			fn.emit(faddr)
 			b.assign(fn, &address{addr: faddr, pos: pos, expr: e}, e, isZero, sb)
 		}
@@ -2150,13 +2162,6 @@ func (b *builder) rangeIter(fn *Function, x Value, tk, tv types.Type, pos token.
 	// done:                                   (target of break)
 	//
 
-	if tk == nil {
-		tk = tInvalid
-	}
-	if tv == nil {
-		tv = tInvalid
-	}
-
 	rng := &Range{X: x}
 	rng.setPos(pos)
 	rng.setType(tRangeIter)
@@ -2166,14 +2171,29 @@ func (b *builder) rangeIter(fn *Function, x Value, tk, tv types.Type, pos token.
 	emitJump(fn, loop)
 	fn.currentBlock = loop
 
+	var ak, av types.Type
+	isString := false
+	if m, ok := typeparams.CoreType(x.Type()).(*types.Map); ok {
+		ak, av = m.Key(), m.Elem()
+	} else {
+		isString = true
+		ak, av = tInt, tRune
+	}
+	if tk == nil {
+		ak = tInvalid
+	}
+	if tv == nil {
+		av = tInvalid
+	}
+
 	okv := &Next{
 		Iter:     it,
-		IsString: isBasic(typeparams.CoreType(x.Type())),
+		IsString: isString,
 	}
 	okv.setType(types.NewTuple(
 		varOk,
-		newVar("k", tk),
-		newVar("v", tv),
+		newVar("k", ak),
+		newVar("v", av),
 	))
 	fn.emit(okv)
 
@@ -2182,11 +2202,14 @@ func (b *builder) rangeIter(fn *Function, x Value, tk, tv types.Type, pos token.
 	emitIf(fn, emitExtract(fn, okv, 0), body, done)
 	fn.currentBlock = body
 
-	if tk != tInvalid {
-		k = emitExtract(fn, okv, 1)
+	// The assignment may widen a map or string
+	// key/value to a variable's interface type
+	// (cases #1 and #2 of go.dev/issue/78110).
+	if tk != nil {
+		k = emitConv(fn, emitExtract(fn, okv, 1), tk)
 	}
-	if tv != tInvalid {
-		v = emitExtract(fn, okv, 2)
+	if tv != nil {
+		v = emitConv(fn, emitExtract(fn, okv, 2), tv)
 	}
 	return
 }
