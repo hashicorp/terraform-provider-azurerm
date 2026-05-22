@@ -6054,20 +6054,22 @@ locals {
 }
 
 resource "azurerm_storage_account" "errors" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "acctestsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
 
-  static_website {
-    index_document = "index.html"
-  }
+resource "azurerm_storage_account_static_website" "errors" {
+  storage_account_id = azurerm_storage_account.errors.id
+  index_document     = "index.html"
 }
 
 resource "azurerm_storage_container" "errors" {
   name                  = "errors"
-  storage_account_name  = azurerm_storage_account.errors.name
+  storage_account_id    = azurerm_storage_account.errors.id
   container_access_type = "blob"
 }
 
@@ -7902,8 +7904,8 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_profile {
-    name                         = local.ssl_profile_name
-    verify_client_cert_issuer_dn = false
+    name                                = local.ssl_profile_name
+    verify_client_certificate_issuer_dn = false
 
     ssl_policy {
       policy_type = "Predefined"
