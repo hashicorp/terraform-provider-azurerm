@@ -88,7 +88,6 @@ func (r DataCollectionRuleAssociationResource) ModelObject() interface{} {
 func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			metadata.Logger.Info("Decoding state..")
 			var model DataCollectionRuleAssociationModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
@@ -97,7 +96,6 @@ func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Monitor.DataCollectionRuleAssociationsClient
 
 			id := datacollectionruleassociations.NewScopedDataCollectionRuleAssociationID(model.TargetResourceId, model.Name)
-			metadata.Logger.Infof("creating %s", id)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -181,7 +179,6 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Monitor.DataCollectionRuleAssociationsClient
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
@@ -238,7 +235,6 @@ func (r DataCollectionRuleAssociationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s..", *id)
 			resp, err := client.Delete(ctx, *id)
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

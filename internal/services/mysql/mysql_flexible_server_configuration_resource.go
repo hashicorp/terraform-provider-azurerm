@@ -76,8 +76,6 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration creation.")
-
 	// NOTE: this resource intentionally doesn't support Requires Import
 	//       since a fallback route is created by default
 
@@ -114,8 +112,6 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Configurations
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration update.")
 
 	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {

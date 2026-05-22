@@ -5,7 +5,6 @@ package network
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -244,8 +243,6 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta in
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Express Route Peering create.")
-
 	id := commonids.NewExpressRouteCircuitPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("peering_type").(string))
 
 	locks.ByName(id.CircuitName, expressRouteCircuitResourceName)
@@ -352,8 +349,6 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta in
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitPeerings
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Express Route Peering update.")
 
 	id, err := commonids.ParseExpressRouteCircuitPeeringID(d.Id())
 	if err != nil {

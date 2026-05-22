@@ -300,8 +300,6 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration creation.")
-
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	resourceId := configurationstores.NewConfigurationStoreID(subscriptionId, resourceGroup, name)
@@ -330,7 +328,6 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 			}
 			// if the soft deleted is not found, skip the recovering
 		} else {
-			log.Printf("[DEBUG] Soft Deleted App Configuration exists, marked for recover")
 			recoverSoftDeleted = true
 		}
 	}
@@ -415,7 +412,6 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration update.")
 	id, err := configurationstores.ParseConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
@@ -1021,7 +1017,6 @@ func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, 
 
 func deleteReplicas(ctx context.Context, replicaClient *replicas.ReplicasClient, operationClient *operations.OperationsClient, configurationStoreReplicaIds []replicas.ReplicaId) error {
 	for _, configurationStoreReplicaId := range configurationStoreReplicaIds {
-		log.Printf("[DEBUG] Deleting Replica %q", configurationStoreReplicaId)
 		if err := replicaClient.DeleteThenPoll(ctx, configurationStoreReplicaId); err != nil {
 			return fmt.Errorf("deleting replica %q: %+v", configurationStoreReplicaId, err)
 		}

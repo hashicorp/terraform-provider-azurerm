@@ -56,7 +56,8 @@ func (m TrustedSigningAccountResource) Arguments() map[string]*pluginsdk.Schema 
 			Required: true,
 			ValidateFunc: validation.StringInSlice(
 				codesigningaccounts.PossibleValuesForSkuName(),
-				false),
+				false,
+			),
 		},
 
 		"tags": commonschema.Tags(),
