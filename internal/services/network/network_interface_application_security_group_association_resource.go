@@ -65,8 +65,6 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Network Interface <-> Application Security Group Association creation.")
-
 	applicationSecurityGroupId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(d.Get("application_security_group_id").(string))
 	if err != nil {
 		return err

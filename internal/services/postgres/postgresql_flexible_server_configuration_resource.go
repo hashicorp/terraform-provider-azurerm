@@ -68,8 +68,6 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Postgresql Flexible Server configuration creation.")
-
 	serverId, err := servers.ParseFlexibleServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err

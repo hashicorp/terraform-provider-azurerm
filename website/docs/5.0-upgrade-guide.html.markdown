@@ -121,6 +121,34 @@ Please follow the format in the example below for adding removed resources:
 This deprecated resource has been superseded/retired and has been removed from the Azure Provider.
 ```
 
+### `azurerm_ai_services`
+
+* This deprecated resource has been superseded by `azurerm_cognitive_account` and has been removed from the Azure Provider. See the [migration guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/ai_services#migration-to-azurerm_cognitive_account) for attribute mapping.
+
+### `azurerm_app_service`
+
+* This deprecated resource has been superseded by `azurerm_linux_web_app` and `azurerm_windows_web_app` and has been removed from the AzureRM Provider.
+
+### `azurerm_app_service_active_slot`
+
+* This deprecated resource has been superseded by `azurerm_web_app_active_slot` and `azurerm_function_app_active_slot` and has been removed from the AzureRM Provider.
+
+### `azurerm_app_service_hybrid_connection`
+
+* This deprecated resource has been superseded by `azurerm_web_app_hybrid_connection` and `azurerm_function_app_hybrid_connection` and has been removed from the AzureRM Provider.
+
+### `azurerm_app_service_plan`
+
+* This deprecated resource has been superseded by `azurerm_service_plan` and has been removed from the AzureRM Provider.
+
+### `azurerm_app_service_slot`
+
+* This deprecated resource has been superseded by `azurerm_linux_web_app_slot` and `azurerm_windows_web_app_slot` and has been removed from the AzureRM Provider.
+
+### `azurerm_app_service_source_control_token`
+
+* This deprecated resource has been removed from the AzureRM Provider.
+
 ### `azurerm_automation_software_update_configuration`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
@@ -136,6 +164,14 @@ This deprecated resource has been superseded/retired and has been removed from t
 ### `azurerm_data_protection_backup_policy_postgresql`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_function_app`
+
+* This deprecated resource has been superseded by `azurerm_linux_function_app` and `azurerm_windows_function_app` and has been removed from the AzureRM Provider.
+ 
+### `azurerm_function_app_slot`
+
+* This deprecated resource has been superseded by `azurerm_linux_function_app_slot` and `azurerm_windows_function_app_slot` and has been removed from the AzureRM Provider.
 
 ### `azurerm_hpc_cache`
 
@@ -156,10 +192,6 @@ This deprecated resource has been superseded/retired and has been removed from t
 ### `azurerm_hpc_cache_nfs_target`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
-
-### `azurerm_logic_app_standard`
-
-* The `client_certificate_mode` property now defaults to `Required` aligning with the service default for this value.
 
 ### `azurerm_maps_creator`
 
@@ -209,10 +241,6 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
-### `azurerm_redis_enterprise_cluster`
-
-* The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-remove-tls-10-11).
-
 ### `azurerm_security_center_auto_provisioning`
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
@@ -220,6 +248,14 @@ This deprecated resource has been superseded/retired and has been removed from t
 ### `azurerm_spatial_anchors_account`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_static_site`
+
+* This deprecated resource has been superseded by `azurerm_static_web_app` and has been removed from the AzureRM Provider.
+
+### `azurerm_static_site_custom_domain`
+
+* This deprecated resource has been superseded by `azurerm_static_web_app_custom_domain` and has been removed from the AzureRM Provider.
 
 
 ## Removed Data Sources
@@ -231,6 +267,18 @@ Please follow the format in the example below for adding removed data sources:
 
 This deprecated data source has been superseded/retired and has been removed from the Azure Provider.
 ```
+
+### `azurerm_app_service`
+
+* This deprecated data source has been superseded by `azurerm_linux_web_app` and `azurerm_windows_web_app` and has been removed from the Azure Provider
+
+### `azurerm_app_service_plan`
+
+* This deprecated data source has been superseded by `azurerm_service_plan` and has been removed from the Azure Provider.
+
+### `azurerm_function_app`
+
+* This deprecated data source has been superseded by `azurerm_linux_function_app` and `azurerm_windows_function_app` and has been removed from the Azure Provider.
 
 ### `azurerm_batch_certificate`
 
@@ -323,7 +371,8 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_cdn_frontdoor_custom_domain`
 
-* The `tls.minimum_tls_version` property no longer accepts `TLS10` as a value.
+* The deprecated `tls.minimum_tls_version` property has been removed in favour of the `tls.minimum_version` property.
+* The `tls.minimum_version` property no longer accepts `TLS10` as a value.
 
 ### `azurerm_container_app`
 
@@ -337,7 +386,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_container_registry`
 
-* The `encryption` block is no longer Computed. It now defaults to empty, meaning encryption will be disabled.  
+* The `encryption` block is no longer Computed. It now defaults to empty, meaning encryption will be disabled.
 
 ### `azurerm_cosmosdb_account`
 
@@ -478,8 +527,9 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_logic_app_standard`
 
-* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+* The `app_service_plan_id` property now validates that the input is an App Service Plan ID. This validation is case-sensitive.
 * The `client_certificate_mode` property now defaults to `Required` to match API default value.
+* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 * The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 * The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 

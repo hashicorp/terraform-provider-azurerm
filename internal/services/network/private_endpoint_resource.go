@@ -424,11 +424,9 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// 1 Private Endpoint can have 1 Private DNS Zone Group
 	// since this is a new resource, there shouldn't be an existing one - so there's no need to delete it
 	if len(privateDnsZoneGroup) > 0 {
-		log.Printf("[DEBUG] Creating Private DNS Zone Group associated with %s..", id)
 		if err := createPrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, id, privateDnsZoneGroup); err != nil {
 			return err
 		}
-		log.Printf("[DEBUG] Created the Existing Private DNS Zone Group associated with %s", id)
 	}
 
 	return resourcePrivateEndpointRead(d, meta)
@@ -611,19 +609,15 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if needToRemove || nameHasChanged || idHasBeenChanged {
-			log.Printf("[DEBUG] Deleting the Existing Private DNS Zone Group associated with %s..", id)
 			if err := deletePrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, *id); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Deleted the Existing Private DNS Zone Group associated with %s.", id)
 		}
 
 		if len(privateDnsZoneGroup) > 0 {
-			log.Printf("[DEBUG] Creating Private DNS Zone Group associated with %s..", id)
 			if err := createPrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, *id, privateDnsZoneGroup); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Created the Existing Private DNS Zone Group associated with %s", id)
 		}
 	}
 
@@ -755,11 +749,9 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting the Private DNS Zone Group associated with %s", id)
 	if err := deletePrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsZoneGroupsClient, *id); err != nil {
 		return err
 	}
-	log.Printf("[DEBUG] Deleted the Private DNS Zone Group associated with %s.", id)
 
 	existing, err := client.Get(ctx, *id, privateendpoints.DefaultGetOperationOptions())
 	if err != nil {
@@ -788,12 +780,9 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
 	}
 
-	log.Printf("[DEBUG] Deleting %s", id)
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
-
-	log.Printf("[DEBUG] Deleted %s", id)
 
 	return nil
 }
@@ -1025,7 +1014,6 @@ func deletePrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *pr
 	}
 
 	for _, privateDnsZoneId := range *privateDnsZoneIds {
-		log.Printf("[DEBUG] Deleting %s..", privateDnsZoneId)
 		if err := client.DeleteThenPoll(ctx, privateDnsZoneId); err != nil {
 			return fmt.Errorf("deleting %s: %+v", privateDnsZoneId, err)
 		}

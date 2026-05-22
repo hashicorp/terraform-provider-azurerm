@@ -201,7 +201,8 @@ func resourceArmSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitForRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
+	if err := waitForRemediationToDelete(
+		ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
 			_, err := client.CancelAtSubscription(ctx, *id)
 			return err

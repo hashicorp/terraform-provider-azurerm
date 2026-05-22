@@ -106,7 +106,6 @@ func resourceHealthcareApisMedTechServiceCreate(d *pluginsdk.ResourceData, meta 
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Healthcare MedTech Service creation.")
 
 	workspace, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {

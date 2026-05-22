@@ -5,7 +5,6 @@ package eventhub
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -81,7 +80,6 @@ func resourceEventHubNamespaceSchemaRegistryCreate(d *pluginsdk.ResourceData, me
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace Schema Registry creation.")
 
 	namespaceId, err := namespaces.ParseNamespaceID(d.Get("namespace_id").(string))
 	if err != nil {

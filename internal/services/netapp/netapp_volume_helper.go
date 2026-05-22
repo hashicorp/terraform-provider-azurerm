@@ -493,7 +493,7 @@ func flattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volume
 		}
 
 		if item.Zones != nil && len(pointer.From(item.Zones)) > 0 {
-			volumeGroupVolume.Zone = (pointer.From(item.Zones))[0]
+			volumeGroupVolume.Zone = pointer.From(item.Zones)[0]
 		}
 
 		if props.EncryptionKeySource != nil {
@@ -576,7 +576,7 @@ func flattenNetAppVolumeGroupOracleVolumes(ctx context.Context, input *[]volumeg
 		}
 
 		if item.Zones != nil && len(pointer.From(item.Zones)) > 0 {
-			volumeGroupVolume.Zone = (pointer.From(item.Zones))[0]
+			volumeGroupVolume.Zone = pointer.From(item.Zones)[0]
 		}
 
 		if props.EncryptionKeySource != nil {
@@ -1165,7 +1165,8 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 				}
 
 				// This is a secondary volume, create its ID
-				secondaryId := volumes.NewVolumeID(subscriptionId,
+				secondaryId := volumes.NewVolumeID(
+					subscriptionId,
 					resourceGroupName,
 					accountName,
 					capacityPoolId.CapacityPoolName,
@@ -1199,7 +1200,8 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 			}
 
 			// Create the destination volume ID for status checking
-			destinationReplId := volumes.NewVolumeID(subscriptionId,
+			destinationReplId := volumes.NewVolumeID(
+				subscriptionId,
 				resourceGroupName,
 				accountName,
 				capacityPoolId.CapacityPoolName,

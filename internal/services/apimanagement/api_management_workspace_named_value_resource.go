@@ -60,7 +60,8 @@ func (r ApiManagementWorkspaceNamedValueResource) Arguments() map[string]*plugin
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z](?:[a-zA-Z0-9-]{0,254}[a-zA-Z0-9])?$`),
-				"`name` must be 1-256 characters, starting with a letter, and using only letters, numbers, or hyphens"),
+				"`name` must be 1-256 characters, starting with a letter, and using only letters, numbers, or hyphens",
+			),
 		},
 
 		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
@@ -70,7 +71,8 @@ func (r ApiManagementWorkspaceNamedValueResource) Arguments() map[string]*plugin
 			Required: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[A-Za-z0-9-._]{1,256}$`),
-				"`display_name` must be 1-256 characters and can only contain letters, numbers, hyphens, periods, and underscores"),
+				"`display_name` must be 1-256 characters and can only contain letters, numbers, hyphens, periods, and underscores",
+			),
 		},
 
 		"secret": {

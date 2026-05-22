@@ -5,7 +5,6 @@ package automation
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -79,8 +78,6 @@ func resourceAutomationCredentialCreate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Credential creation.")
-
 	id := credential.NewCredentialID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id)
@@ -118,8 +115,6 @@ func resourceAutomationCredentialUpdate(d *pluginsdk.ResourceData, meta interfac
 	client := meta.(*clients.Client).Automation.Credential
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Credential update.")
 
 	id, err := credential.ParseCredentialID(d.Id())
 	if err != nil {

@@ -83,11 +83,12 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 						"type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeNone),
-								string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeInternal),
-								string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeExternal),
-							},
+							ValidateFunc: validation.StringInSlice(
+								[]string{
+									string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeNone),
+									string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeInternal),
+									string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeExternal),
+								},
 								false,
 							),
 						},
@@ -95,11 +96,12 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 						"protocol": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(loadbalancers.GatewayLoadBalancerTunnelProtocolNone),
-								string(loadbalancers.GatewayLoadBalancerTunnelProtocolNative),
-								string(loadbalancers.GatewayLoadBalancerTunnelProtocolVXLAN),
-							},
+							ValidateFunc: validation.StringInSlice(
+								[]string{
+									string(loadbalancers.GatewayLoadBalancerTunnelProtocolNone),
+									string(loadbalancers.GatewayLoadBalancerTunnelProtocolNative),
+									string(loadbalancers.GatewayLoadBalancerTunnelProtocolVXLAN),
+								},
 								false,
 							),
 						},

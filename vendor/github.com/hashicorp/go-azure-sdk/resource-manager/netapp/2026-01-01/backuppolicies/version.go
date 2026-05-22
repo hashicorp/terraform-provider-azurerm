@@ -12,3 +12,7 @@ func userAgent() string {
 func AzureAPIVersion() string {
 	return defaultApiVersion
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

@@ -101,7 +101,6 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 
 			id := volumequotarules.NewVolumeQuotaRuleID(subscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -154,15 +153,12 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeQuotaRuleModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			if metadata.ResourceData.HasChange("quota_size_in_kib") {
-				metadata.Logger.Infof("Updating %s", id)
-
 				update := volumequotarules.VolumeQuotaRulePatch{
 					Properties: &volumequotarules.VolumeQuotaRulesProperties{},
 				}
@@ -195,7 +191,6 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeQuotaRuleModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)

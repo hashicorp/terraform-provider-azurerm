@@ -476,7 +476,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := redisresources.RedisCreateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: redisresources.RedisCreateProperties{
-			DisableAccessKeyAuthentication: pointer.To(!(d.Get("access_keys_authentication_enabled").(bool))),
+			DisableAccessKeyAuthentication: pointer.To(!d.Get("access_keys_authentication_enabled").(bool)),
 			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: redisresources.Sku{
 				Capacity: int64(d.Get("capacity").(int)),
@@ -590,7 +590,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	parameters := redisresources.RedisUpdateParameters{
 		Properties: &redisresources.RedisUpdateProperties{
-			DisableAccessKeyAuthentication: pointer.To(!(d.Get("access_keys_authentication_enabled").(bool))),
+			DisableAccessKeyAuthentication: pointer.To(!d.Get("access_keys_authentication_enabled").(bool)),
 			MinimumTlsVersion:              pointer.To(redisresources.TlsVersion(d.Get("minimum_tls_version").(string))),
 			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: &redisresources.Sku{

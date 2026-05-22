@@ -464,7 +464,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		props.Properties.ZoneBalance = pointer.To(v.(bool))
 	}
 
-	log.Printf("[DEBUG] Creating Linux %s", id)
 	if err := client.CreateOrUpdateThenPoll(ctx, id, props, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating Linux %s: %+v", id, err)
 	}
@@ -1140,15 +1139,12 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 		log.Printf("[DEBUG] Unable to scale instances to `0` since the `sku` block is nil - trying to delete anyway")
 	}
 
-	log.Printf("[DEBUG] Deleting Linux %s", id)
 	// @ArcturusZhang (mimicking from linux_virtual_machine_pluginsdk.go): sending `nil` here omits this value from being sent
 	// which matches the previous behaviour - we're only splitting this out so it's clear why
 	// TODO: support force deletion once it's out of Preview, if applicable
 	if err := client.DeleteThenPoll(ctx, *id, virtualmachinescalesets.DefaultDeleteOperationOptions()); err != nil {
 		return fmt.Errorf("deleting Linux %s: %+v", id, err)
 	}
-
-	log.Printf("[DEBUG] Deleted Linux %s", id)
 
 	return nil
 }
