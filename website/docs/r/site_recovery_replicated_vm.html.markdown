@@ -313,9 +313,9 @@ A `network_interface` block supports the following:
 
 The `ip_configuration` block supports the following:
 
-* `name` - (Optional) (Required when there are more than 1 `ip_configuration` block) Name of the IP configuration, must be consistent with the name of IP configuration of the source virtual machine.
+* `name` - (Optional) (Required when there are more than 1 `ip_configuration` block) Name of the IP configuration, must be consistent with the name of the IP configuration of the source virtual machine.
 
-* `is_primary` - (Optional) Whether this IP configuration is primary? Must be specified if there is more than 1 `ip_configuration`.
+* `primary` - (Optional) Whether this IP configuration is primary. If only one `ip_configuration` block is specified, it will be treated as primary when omitted. Must be specified if there is more than 1 `ip_configuration`.
 
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 

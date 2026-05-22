@@ -377,7 +377,7 @@ resource "azurerm_subnet" "test1" {
 resource "azurerm_virtual_network" "test2" {
   name                = "net2-%[1]d"
   resource_group_name = azurerm_resource_group.test2.name
-  address_space       = ["192.168.0.0/16"]
+  address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test2.location
 }
 
@@ -1623,6 +1623,14 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_resource_group_id   = azurerm_resource_group.test2.id
     target_disk_type           = "Premium_LRS"
     target_replica_disk_type   = "Premium_LRS"
+  }
+
+  network_interface {
+    source_network_interface_id = azurerm_network_interface.test.id
+    ip_configuration {
+      name               = "vm-%[1]d"
+      target_subnet_name = azurerm_subnet.test1.name
+    }
   }
 
   depends_on = [

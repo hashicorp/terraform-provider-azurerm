@@ -51,6 +51,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			_, err := parse.ReplicationProtectedItemID(id)
 			return err
 		}),
+		CustomizeDiff: resourceSiteRecoveryReplicatedVMCustomizeDiff,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
@@ -298,6 +299,52 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 	}
 
 	return resource
+}
+
+func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
+	if features.FivePointOh() {
+		return nil
+	}
+
+	rawConfig := diff.GetRawConfig()
+	if rawConfig.IsNull() || !rawConfig.IsKnown() {
+		return nil
+	}
+
+	networkInterfaces, ok := rawConfig.AsValueMap()["network_interface"]
+	if !ok || networkInterfaces.IsNull() || !networkInterfaces.IsKnown() {
+		return nil
+	}
+
+	deprecatedProperties := []string{
+		"failover_test_static_ip",
+		"target_static_ip",
+		"failover_test_subnet_name",
+		"target_subnet_name",
+		"failover_test_public_ip_address_id",
+		"recovery_load_balancer_backend_address_pool_ids",
+		"recovery_public_ip_address_id",
+	}
+
+	for networkInterfaceIndex, networkInterface := range networkInterfaces.AsValueSlice() {
+		if networkInterface.IsNull() || !networkInterface.IsKnown() {
+			continue
+		}
+
+		networkInterfaceConfig := networkInterface.AsValueMap()
+		ipConfigurations, ok := networkInterfaceConfig["ip_configuration"]
+		if !ok || ipConfigurations.IsNull() || !ipConfigurations.IsKnown() || len(ipConfigurations.AsValueSlice()) == 0 {
+			continue
+		}
+
+		for _, property := range deprecatedProperties {
+			if configuredValue, ok := networkInterfaceConfig[property]; ok && !configuredValue.IsNull() {
+				return fmt.Errorf("`network_interface.%d.%s` conflicts with `network_interface.%d.ip_configuration`; use `network_interface.%d.ip_configuration.%s` instead", networkInterfaceIndex, property, networkInterfaceIndex, networkInterfaceIndex, property)
+			}
+		}
+	}
+
+	return nil
 }
 
 func networkInterfaceResource() *pluginsdk.Resource {
@@ -1161,7 +1208,7 @@ func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []r
 			recoveryLoadBalancerBackendPoolIds = utils.ExpandStringSlice(ids.List())
 		}
 
-		if targetStaticIp != "" || targetSubnetName != "" || recoveryPublicIPAddressID != "" || testSubNetName != "" || testStaticIp != "" || testPublicIpAddressID != "" || (recoveryLoadBalancerBackendPoolIds != nil && len(*recoveryLoadBalancerBackendPoolIds) > 1) {
+		if targetStaticIp != "" || targetSubnetName != "" || recoveryPublicIPAddressID != "" || testSubNetName != "" || testStaticIp != "" || testPublicIpAddressID != "" || recoveryLoadBalancerBackendPoolIds != nil {
 			return append(output, replicationprotecteditems.IPConfigInputDetails{
 				RecoverySubnetName:              &targetSubnetName,
 				RecoveryStaticIPAddress:         &targetStaticIp,
