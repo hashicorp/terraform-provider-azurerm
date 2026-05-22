@@ -384,8 +384,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	properties.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
 
 	if !features.FivePointOh() {
-		serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
-		if len(serviceEndpointsRaw) > 0 {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "service_endpoints") {
+			serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 			properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 		} else {
 			serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
@@ -546,12 +546,12 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if !features.FivePointOh() {
-		if d.HasChange("service_endpoint") {
-			serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
-			props.ServiceEndpoints = expandSubnetServiceEndpoint(serviceEndpointRaw)
-		} else if d.HasChange("service_endpoints") {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "service_endpoints") {
 			serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 			props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+		} else if d.HasChange("service_endpoint") {
+			serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
+			props.ServiceEndpoints = expandSubnetServiceEndpoint(serviceEndpointRaw)
 		}
 	} else {
 		if d.HasChange("service_endpoint") {
