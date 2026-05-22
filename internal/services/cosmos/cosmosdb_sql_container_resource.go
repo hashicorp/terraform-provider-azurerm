@@ -339,15 +339,9 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 		if props := model.Properties; props != nil {
 			if res := props.Resource; res != nil {
 				if pk := res.PartitionKey; pk != nil {
-					d.Set("partition_key_kind", string(pointer.From(pk.Kind)))
-
-					if paths := pk.Paths; paths != nil {
-						d.Set("partition_key_paths", utils.FlattenStringSlice(paths))
-					}
-
-					if version := pk.Version; version != nil {
-						d.Set("partition_key_version", version)
-					}
+					d.Set("partition_key_kind", pointer.FromEnum(pk.Kind))
+					d.Set("partition_key_paths", utils.FlattenStringSlice(pk.Paths))
+					d.Set("partition_key_version", pk.Version)
 				}
 
 				if ukp := res.UniqueKeyPolicy; ukp != nil {
@@ -356,17 +350,9 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 					}
 				}
 
-				if analyticalStorageTTL := res.AnalyticalStorageTtl; analyticalStorageTTL != nil {
-					d.Set("analytical_storage_ttl", analyticalStorageTTL)
-				}
-
-				if defaultTTL := res.DefaultTtl; defaultTTL != nil {
-					d.Set("default_ttl", defaultTTL)
-				}
-
-				if indexingPolicy := res.IndexingPolicy; indexingPolicy != nil {
-					d.Set("indexing_policy", common.FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy))
-				}
+				d.Set("analytical_storage_ttl", res.AnalyticalStorageTtl)
+				d.Set("default_ttl", res.DefaultTtl)
+				d.Set("indexing_policy", common.FlattenAzureRmCosmosDbIndexingPolicy(res.IndexingPolicy))
 
 				if err := d.Set("conflict_resolution_policy", common.FlattenCosmosDbConflictResolutionPolicy(res.ConflictResolutionPolicy)); err != nil {
 					return fmt.Errorf("setting `conflict_resolution_policy`: %+v", err)
