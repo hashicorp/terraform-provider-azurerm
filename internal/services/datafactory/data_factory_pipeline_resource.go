@@ -115,16 +115,18 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["moniter_metrics_after_duration"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C as the value might be changed during read from renamed property
 			Computed:      true,
 			ValidateFunc:  validation.StringIsNotEmpty,
 			ConflictsWith: []string{"monitor_metrics_after_duration"},
 			Deprecated:    "`moniter_metrics_after_duration` has been deprecated in favour of `monitor_metrics_after_duration` and will be removed in v5.0 of the AzureRM Provider",
 		}
 		resource.Schema["monitor_metrics_after_duration"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C as the value might be changed during read from renamed property
 			Computed:      true,
 			ValidateFunc:  validation.StringIsNotEmpty,
 			ConflictsWith: []string{"moniter_metrics_after_duration"},
