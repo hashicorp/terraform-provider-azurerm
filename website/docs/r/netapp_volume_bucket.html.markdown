@@ -18,7 +18,7 @@ Manages a NetApp Files Volume Bucket. Buckets expose the contents of an Azure Ne
 
 ## Example Usage (inline certificate)
 
-This example generates a self-signed server certificate via the [`hashicorp/tls`](https://registry.terraform.io/providers/hashicorp/tls/latest/docs) provider and passes it directly to the bucket through `server.certificate_pem`. The generated S3 access keys are returned inline by `azurerm_netapp_volume_bucket_credentials` and persisted in Terraform state.
+This example generates a self-signed server certificate via the [`hashicorp/tls`](https://registry.terraform.io/providers/hashicorp/tls/latest/docs) provider and passes it directly to the bucket through `server.certificate_pem`. Bucket credentials are minted separately by the [`azurerm_netapp_volume_bucket_credentials`](../actions/netapp_volume_bucket_credentials.html.markdown) action and require the bucket to be configured with a `key_vault` block (see the Key Vault example below).
 
 ```hcl
 provider "azurerm" {
@@ -107,11 +107,9 @@ resource "azurerm_netapp_volume_bucket" "example" {
   name      = "example-bucket"
   volume_id = azurerm_netapp_volume.example.id
 
-  file_system_user {
-    nfs_user {
-      group_id = 1000
-      user_id  = 1000
-    }
+  file_system_nfs_user {
+    group_id = 1000
+    user_id  = 1000
   }
 
   server {
@@ -283,11 +281,9 @@ resource "azurerm_netapp_volume_bucket" "example" {
   name      = "example-bucket"
   volume_id = azurerm_netapp_volume.example.id
 
-  file_system_user {
-    nfs_user {
-      group_id = 1000
-      user_id  = 1000
-    }
+  file_system_nfs_user {
+    group_id = 1000
+    user_id  = 1000
   }
 
   server {
@@ -316,7 +312,9 @@ The following arguments are supported:
 
 * `volume_id` - (Required) The ARM ID of the parent NetApp Volume the bucket attaches to. Changing this forces a new resource to be created.
 
-* `file_system_user` - (Required) A `file_system_user` block as defined below. Exactly one of `nfs_user` or `cifs_user` must be specified.
+* `file_system_nfs_user` - (Optional) A `file_system_nfs_user` block as defined below. Exactly one of `file_system_nfs_user` or `file_system_cifs_user` must be specified.
+
+* `file_system_cifs_user` - (Optional) A `file_system_cifs_user` block as defined below. Exactly one of `file_system_nfs_user` or `file_system_cifs_user` must be specified.
 
 ---
 
@@ -330,15 +328,7 @@ The following arguments are supported:
 
 ---
 
-A `file_system_user` block supports the following:
-
-* `nfs_user` - (Optional) A `nfs_user` block as defined below.
-
-* `cifs_user` - (Optional) A `cifs_user` block as defined below.
-
----
-
-A `nfs_user` block supports the following:
+A `file_system_nfs_user` block supports the following:
 
 * `group_id` - (Required) The POSIX group ID used by the bucket when accessing volume data over NFS.
 
@@ -346,7 +336,7 @@ A `nfs_user` block supports the following:
 
 ---
 
-A `cifs_user` block supports the following:
+A `file_system_cifs_user` block supports the following:
 
 * `username` - (Required) The CIFS username used by the bucket when accessing volume data over SMB.
 

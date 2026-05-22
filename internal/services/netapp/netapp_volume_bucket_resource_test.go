@@ -127,11 +127,9 @@ resource "azurerm_netapp_volume_bucket" "test" {
   name      = "acctest-bucket-%[2]d"
   volume_id = azurerm_netapp_volume.test.id
 
-  file_system_user {
-    nfs_user {
-      group_id = 1000
-      user_id  = 1000
-    }
+  file_system_nfs_user {
+    group_id = 1000
+    user_id  = 1000
   }
 
   server {
@@ -150,14 +148,11 @@ func (NetAppVolumeBucketResource) complete(data acceptance.TestData) string {
 resource "azurerm_netapp_volume_bucket" "test" {
   name        = "acctest-bucket-%[2]d"
   volume_id   = azurerm_netapp_volume.test.id
-  path        = "/"
   permissions = "ReadWrite"
 
-  file_system_user {
-    nfs_user {
-      group_id = 2000
-      user_id  = 2000
-    }
+  file_system_nfs_user {
+    group_id = 2000
+    user_id  = 2000
   }
 
   server {
@@ -261,11 +256,9 @@ resource "azurerm_netapp_volume_bucket" "test" {
   name      = "acctest-bucket-kv-%[2]d"
   volume_id = azurerm_netapp_volume.test.id
 
-  file_system_user {
-    nfs_user {
-      group_id = 1000
-      user_id  = 1000
-    }
+  file_system_nfs_user {
+    group_id = 1000
+    user_id  = 1000
   }
 
   server {
@@ -295,11 +288,9 @@ resource "azurerm_netapp_volume_bucket" "import" {
   name      = azurerm_netapp_volume_bucket.test.name
   volume_id = azurerm_netapp_volume_bucket.test.volume_id
 
-  file_system_user {
-    nfs_user {
-      group_id = 1000
-      user_id  = 1000
-    }
+  file_system_nfs_user {
+    group_id = 1000
+    user_id  = 1000
   }
 
   server {

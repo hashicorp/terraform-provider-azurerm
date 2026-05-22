@@ -229,11 +229,9 @@ resource "azurerm_netapp_volume_bucket" "example" {
   name      = "${var.prefix}-bucket-kv"
   volume_id = azurerm_netapp_volume.example.id
 
-  file_system_user {
-    nfs_user {
-      group_id = 1000
-      user_id  = 1000
-    }
+  file_system_nfs_user {
+    group_id = 1000
+    user_id  = 1000
   }
 
   server {
@@ -254,18 +252,29 @@ resource "azurerm_netapp_volume_bucket" "example" {
 }
 
 # Generates the S3 access key / secret key pair used to authenticate against
-# the bucket. With `store_in_key_vault = true`, the Azure NetApp Files API
-# does NOT return the keys to Terraform - instead it writes them as a JSON
-# secret (`{"access_key_id": "...", "secret_access_key": "..."}`) into the
+# the bucket. The Azure NetApp Files API writes the keys as a JSON secret
+# (`{"access_key_id": "...", "secret_access_key": "..."}`) into the
 # credentials Key Vault configured on the parent bucket
 # (`key_vault.0.credentials_key_vault_uri` / `credentials_secret_name`).
 # Consumers fetch the keys from Key Vault (e.g. via `azurerm_key_vault_secret`).
 #
-# `key_pair_expiry_days` is `ForceNew` - changing it (or tainting this
-# resource) generates a new key pair and immediately invalidates the
-# previous one.
-resource "azurerm_netapp_volume_bucket_credentials" "example" {
-  bucket_id            = azurerm_netapp_volume_bucket.example.id
-  key_pair_expiry_days = 30
-  store_in_key_vault   = true
+# The action is invoked once on the lifecycle of the `terraform_data`
+# trigger below; to rotate credentials, taint the trigger (or change its
+# `input`) and re-apply.
+action "azurerm_netapp_volume_bucket_credentials" "example" {
+  config {
+    bucket_id            = azurerm_netapp_volume_bucket.example.id
+    key_pair_expiry_days = 30
+  }
+}
+
+resource "terraform_data" "bucket_credentials" {
+  input = azurerm_netapp_volume_bucket.example.id
+
+  lifecycle {
+    action_trigger {
+      events  = [after_create]
+      actions = [action.azurerm_netapp_volume_bucket_credentials.example]
+    }
+  }
 }

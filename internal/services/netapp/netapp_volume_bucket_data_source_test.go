@@ -34,11 +34,8 @@ func (d NetAppVolumeBucketDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_netapp_volume_bucket" "test" {
-  name                = azurerm_netapp_volume_bucket.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_name         = azurerm_netapp_volume.test.name
+  name             = azurerm_netapp_volume_bucket.test.name
+  netapp_volume_id = azurerm_netapp_volume.test.id
 }
 `, NetAppVolumeBucketResource{}.basic(data))
 }

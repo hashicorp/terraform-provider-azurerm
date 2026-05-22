@@ -9,7 +9,7 @@ data "azurerm_key_vault_secret" "bucket_credentials" {
   key_vault_id = azurerm_key_vault.credentials.id
 
   depends_on = [
-    azurerm_netapp_volume_bucket_credentials.example,
+    terraform_data.bucket_credentials,
   ]
 }
 
@@ -28,13 +28,6 @@ output "bucket_access_key" {
 output "bucket_secret_key" {
   value     = jsondecode(data.azurerm_key_vault_secret.bucket_credentials.value).secret_access_key
   sensitive = true
-}
-
-# The expiry date of the credential pair. After this date the keys stop
-# working and the bucket reports `status = "CredentialsExpired"`. Rotate by
-# tainting `azurerm_netapp_volume_bucket_credentials.example`.
-output "bucket_key_pair_expiry" {
-  value = azurerm_netapp_volume_bucket_credentials.example.key_pair_expiry
 }
 
 # The IP address that backs the bucket S3 endpoint. Combine this with the

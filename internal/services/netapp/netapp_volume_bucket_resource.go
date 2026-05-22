@@ -24,9 +24,8 @@ import (
 type NetAppVolumeBucketResource struct{}
 
 var (
-	_ sdk.Resource                  = NetAppVolumeBucketResource{}
-	_ sdk.ResourceWithCustomizeDiff = NetAppVolumeBucketResource{}
-	_ sdk.ResourceWithIdentity      = NetAppVolumeBucketResource{}
+	_ sdk.Resource             = NetAppVolumeBucketResource{}
+	_ sdk.ResourceWithIdentity = NetAppVolumeBucketResource{}
 )
 
 func (r NetAppVolumeBucketResource) Identity() resourceids.ResourceId {
@@ -61,50 +60,41 @@ func (r NetAppVolumeBucketResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: volumes.ValidateVolumeID,
 		},
 
-		"file_system_user": {
+		"file_system_nfs_user": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"nfs_user": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"group_id": {
-									Type:         pluginsdk.TypeInt,
-									Required:     true,
-									ValidateFunc: validation.IntAtLeast(0),
-								},
-								"user_id": {
-									Type:         pluginsdk.TypeInt,
-									Required:     true,
-									ValidateFunc: validation.IntAtLeast(0),
-								},
-							},
-						},
-						ConflictsWith: []string{"file_system_user.0.cifs_user"},
+					"group_id": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(0),
 					},
-
-					"cifs_user": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"username": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
-						ConflictsWith: []string{"file_system_user.0.nfs_user"},
+					"user_id": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(0),
 					},
 				},
 			},
+			ExactlyOneOf: []string{"file_system_nfs_user", "file_system_cifs_user"},
+		},
+
+		"file_system_cifs_user": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"username": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+			ExactlyOneOf: []string{"file_system_nfs_user", "file_system_cifs_user"},
 		},
 
 		"key_vault": {
@@ -207,30 +197,6 @@ func (r NetAppVolumeBucketResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r NetAppVolumeBucketResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			rd := metadata.ResourceDiff
-
-			// We need to enforce that at least one of nfs_user or cifs_user is set,
-			// since the API rejects an empty file_system_user block
-			fileSystemUser := rd.Get("file_system_user").([]interface{})
-			if len(fileSystemUser) > 0 && fileSystemUser[0] != nil {
-				fsu := fileSystemUser[0].(map[string]interface{})
-				nfsUser, _ := fsu["nfs_user"].([]interface{})
-				cifsUser, _ := fsu["cifs_user"].([]interface{})
-
-				if len(nfsUser) == 0 && len(cifsUser) == 0 {
-					return fmt.Errorf("`file_system_user` must specify exactly one of `nfs_user` or `cifs_user`")
-				}
-			}
-
-			return nil
-		},
-	}
-}
-
 func (r NetAppVolumeBucketResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
@@ -263,11 +229,14 @@ func (r NetAppVolumeBucketResource) Create() sdk.ResourceFunc {
 
 			payload := buckets.Bucket{
 				Properties: &buckets.BucketProperties{
-					Path:           pointer.To(model.Path),
-					Permissions:    pointer.To(buckets.BucketPermissions(model.Permissions)),
-					FileSystemUser: expandNetAppBucketFileSystemUser(model.FileSystemUser),
-					AkvDetails:     expandNetAppBucketAkvDetails(model.KeyVault),
-					Server:         expandNetAppBucketServer(model.Server),
+					Path:        pointer.To(model.Path),
+					Permissions: pointer.To(buckets.BucketPermissions(model.Permissions)),
+					FileSystemUser: &buckets.FileSystemUser{
+						NfsUser:  expandNetAppBucketNfsUser(model.FileSystemNfsUser),
+						CifsUser: expandNetAppBucketCifsUser(model.FileSystemCifsUser),
+					},
+					AkvDetails: expandNetAppBucketAkvDetails(model.KeyVault),
+					Server:     expandNetAppBucketServer(model.Server),
 				},
 			}
 
@@ -320,7 +289,10 @@ func (r NetAppVolumeBucketResource) flatten(metadata sdk.ResourceMetaData, id *b
 		model.Permissions = string(pointer.From(props.Permissions))
 		model.Status = string(pointer.From(props.Status))
 
-		model.FileSystemUser = flattenNetAppBucketFileSystemUser(props.FileSystemUser)
+		if props.FileSystemUser != nil {
+			model.FileSystemNfsUser = flattenNetAppBucketNfsUser(props.FileSystemUser.NfsUser)
+			model.FileSystemCifsUser = flattenNetAppBucketCifsUser(props.FileSystemUser.CifsUser)
+		}
 		model.KeyVault = flattenNetAppBucketAkvDetails(props.AkvDetails)
 		model.Server = flattenNetAppBucketServer(props.Server)
 
@@ -368,8 +340,11 @@ func (r NetAppVolumeBucketResource) Update() sdk.ResourceFunc {
 				patchProps.Permissions = pointer.To(buckets.BucketPatchPermissions(state.Permissions))
 			}
 
-			if metadata.ResourceData.HasChange("file_system_user") {
-				patchProps.FileSystemUser = expandNetAppBucketFileSystemUser(state.FileSystemUser)
+			if metadata.ResourceData.HasChange("file_system_nfs_user") || metadata.ResourceData.HasChange("file_system_cifs_user") {
+				patchProps.FileSystemUser = &buckets.FileSystemUser{
+					NfsUser:  expandNetAppBucketNfsUser(state.FileSystemNfsUser),
+					CifsUser: expandNetAppBucketCifsUser(state.FileSystemCifsUser),
+				}
 			}
 
 			if metadata.ResourceData.HasChange("key_vault") {
@@ -413,57 +388,50 @@ func (r NetAppVolumeBucketResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandNetAppBucketFileSystemUser(input []netAppModels.NetAppVolumeBucketFileSystemUser) *buckets.FileSystemUser {
+func expandNetAppBucketNfsUser(input []netAppModels.NetAppVolumeBucketNfsUser) *buckets.NfsUser {
 	if len(input) == 0 {
 		return nil
 	}
 
-	fsu := input[0]
-	out := &buckets.FileSystemUser{}
-
-	if len(fsu.NfsUser) > 0 {
-		nfs := fsu.NfsUser[0]
-		out.NfsUser = &buckets.NfsUser{
-			GroupId: pointer.To(nfs.GroupID),
-			UserId:  pointer.To(nfs.UserID),
-		}
+	return &buckets.NfsUser{
+		GroupId: pointer.To(input[0].GroupID),
+		UserId:  pointer.To(input[0].UserID),
 	}
-
-	if len(fsu.CifsUser) > 0 {
-		cifs := fsu.CifsUser[0]
-		out.CifsUser = &buckets.CifsUser{
-			Username: pointer.To(cifs.Username),
-		}
-	}
-
-	return out
 }
 
-func flattenNetAppBucketFileSystemUser(input *buckets.FileSystemUser) []netAppModels.NetAppVolumeBucketFileSystemUser {
+func expandNetAppBucketCifsUser(input []netAppModels.NetAppVolumeBucketCifsUser) *buckets.CifsUser {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &buckets.CifsUser{
+		Username: pointer.To(input[0].Username),
+	}
+}
+
+func flattenNetAppBucketNfsUser(input *buckets.NfsUser) []netAppModels.NetAppVolumeBucketNfsUser {
 	if input == nil {
-		return []netAppModels.NetAppVolumeBucketFileSystemUser{}
+		return nil
 	}
 
-	out := netAppModels.NetAppVolumeBucketFileSystemUser{}
+	return []netAppModels.NetAppVolumeBucketNfsUser{
+		{
+			GroupID: pointer.From(input.GroupId),
+			UserID:  pointer.From(input.UserId),
+		},
+	}
+}
 
-	if input.NfsUser != nil {
-		out.NfsUser = []netAppModels.NetAppVolumeBucketNfsUser{
-			{
-				GroupID: pointer.From(input.NfsUser.GroupId),
-				UserID:  pointer.From(input.NfsUser.UserId),
-			},
-		}
+func flattenNetAppBucketCifsUser(input *buckets.CifsUser) []netAppModels.NetAppVolumeBucketCifsUser {
+	if input == nil {
+		return nil
 	}
 
-	if input.CifsUser != nil {
-		out.CifsUser = []netAppModels.NetAppVolumeBucketCifsUser{
-			{
-				Username: pointer.From(input.CifsUser.Username),
-			},
-		}
+	return []netAppModels.NetAppVolumeBucketCifsUser{
+		{
+			Username: pointer.From(input.Username),
+		},
 	}
-
-	return []netAppModels.NetAppVolumeBucketFileSystemUser{out}
 }
 
 func expandNetAppBucketAkvDetails(input []netAppModels.NetAppVolumeBucketKeyVault) *buckets.AzureKeyVaultDetails {

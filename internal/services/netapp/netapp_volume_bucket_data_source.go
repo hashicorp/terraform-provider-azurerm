@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/buckets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -43,35 +42,16 @@ func (r NetAppVolumeBucketDataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: netAppValidate.BucketName,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"account_name": {
+		"netapp_volume_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: netAppValidate.AccountName,
-		},
-
-		"pool_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: netAppValidate.PoolName,
-		},
-
-		"volume_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: netAppValidate.VolumeName,
+			ValidateFunc: volumes.ValidateVolumeID,
 		},
 	}
 }
 
 func (r NetAppVolumeBucketDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"volume_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"path": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -82,38 +62,31 @@ func (r NetAppVolumeBucketDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Computed: true,
 		},
 
-		"file_system_user": {
+		"file_system_nfs_user": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"nfs_user": {
-						Type:     pluginsdk.TypeList,
+					"group_id": {
+						Type:     pluginsdk.TypeInt,
 						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"group_id": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
-								},
-								"user_id": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
-								},
-							},
-						},
 					},
-					"cifs_user": {
-						Type:     pluginsdk.TypeList,
+					"user_id": {
+						Type:     pluginsdk.TypeInt,
 						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"username": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
+					},
+				},
+			},
+		},
+
+		"file_system_cifs_user": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"username": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},
@@ -193,14 +166,18 @@ func (r NetAppVolumeBucketDataSource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.BucketsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state netAppModels.NetAppVolumeBucketDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := buckets.NewBucketID(subscriptionId, state.ResourceGroupName, state.AccountName, state.PoolName, state.VolumeName, state.Name)
+			volumeID, err := volumes.ParseVolumeID(state.NetAppVolumeID)
+			if err != nil {
+				return fmt.Errorf("parsing volume id %s: %+v", state.NetAppVolumeID, err)
+			}
+
+			id := buckets.NewBucketID(volumeID.SubscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -210,8 +187,7 @@ func (r NetAppVolumeBucketDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			volumeID := volumes.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
-			state.VolumeID = volumeID.ID()
+			state.NetAppVolumeID = volumeID.ID()
 
 			if resp.Model != nil && resp.Model.Properties != nil {
 				props := resp.Model.Properties
@@ -219,7 +195,10 @@ func (r NetAppVolumeBucketDataSource) Read() sdk.ResourceFunc {
 				state.Permissions = string(pointer.From(props.Permissions))
 				state.Status = string(pointer.From(props.Status))
 
-				state.FileSystemUser = flattenNetAppBucketFileSystemUser(props.FileSystemUser)
+				if props.FileSystemUser != nil {
+					state.FileSystemNfsUser = flattenNetAppBucketNfsUser(props.FileSystemUser.NfsUser)
+					state.FileSystemCifsUser = flattenNetAppBucketCifsUser(props.FileSystemUser.CifsUser)
+				}
 				state.KeyVault = flattenNetAppBucketAkvDetails(props.AkvDetails)
 				state.Server = flattenNetAppBucketServer(props.Server)
 

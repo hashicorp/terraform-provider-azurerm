@@ -75,12 +75,13 @@ func (r Registration) Resources() []sdk.Resource {
 		NetAppBackupPolicyResource{},
 		NetAppVolumeGroupOracleResource{},
 		NetAppVolumeBucketResource{},
-		NetAppVolumeBucketCredentialsResource{},
 	}
 }
 
 func (r Registration) Actions() []func() action.Action {
-	return []func() action.Action{}
+	return []func() action.Action{
+		newNetAppVolumeBucketCredentialsAction,
+	}
 }
 
 func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {

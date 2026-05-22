@@ -6,7 +6,3 @@ package volumes
 type SVMPeerCommandResponse struct {
 	Properties *SVMPeerCommandResponseProperties `json:"properties,omitempty"`
 }
-
-func AzureAPIVersion() string {
-	return defaultApiVersion
-}

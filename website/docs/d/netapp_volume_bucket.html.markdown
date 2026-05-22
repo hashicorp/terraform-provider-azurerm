@@ -18,11 +18,8 @@ provider "azurerm" {
 }
 
 data "azurerm_netapp_volume_bucket" "example" {
-  name                = "example-bucket"
-  resource_group_name = "example-resources"
-  account_name        = "example-anfaccount"
-  pool_name           = "example-anfpool"
-  volume_name         = "example-anfvolume"
+  name             = "example-bucket"
+  netapp_volume_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.NetApp/netAppAccounts/example-anfaccount/capacityPools/example-anfpool/volumes/example-anfvolume"
 }
 
 output "bucket_status" {
@@ -40,13 +37,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the NetApp Volume Bucket.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the parent NetApp account exists.
-
-* `account_name` - (Required) The name of the parent NetApp Account.
-
-* `pool_name` - (Required) The name of the parent NetApp Capacity Pool.
-
-* `volume_name` - (Required) The name of the parent NetApp Volume.
+* `netapp_volume_id` - (Required) The ARM ID of the parent NetApp Volume.
 
 ## Attributes Reference
 
@@ -54,13 +45,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the NetApp Volume Bucket.
 
-* `volume_id` - The ARM ID of the parent NetApp Volume.
-
 * `path` - The volume sub-path mounted inside the bucket.
 
 * `permissions` - The bucket permission level (`ReadOnly` or `ReadWrite`).
 
-* `file_system_user` - A `file_system_user` block as defined below.
+* `file_system_nfs_user` - A `file_system_nfs_user` block as defined below (only set when the bucket is configured for NFS).
+
+* `file_system_cifs_user` - A `file_system_cifs_user` block as defined below (only set when the bucket is configured for CIFS).
 
 * `server` - A `server` block as defined below.
 
@@ -76,15 +67,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `file_system_user` block exports the following:
-
-* `nfs_user` - A `nfs_user` block as defined below (only set when the bucket is configured for NFS).
-
-* `cifs_user` - A `cifs_user` block as defined below (only set when the bucket is configured for CIFS).
-
----
-
-A `nfs_user` block exports the following:
+A `file_system_nfs_user` block exports the following:
 
 * `group_id` - The POSIX group ID used by the bucket.
 
@@ -92,7 +75,7 @@ A `nfs_user` block exports the following:
 
 ---
 
-A `cifs_user` block exports the following:
+A `file_system_cifs_user` block exports the following:
 
 * `username` - The CIFS username used by the bucket.
 
