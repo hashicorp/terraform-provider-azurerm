@@ -251,13 +251,10 @@ func (r MsSqlFailoverGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state MsSqlFailoverGroupModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("updating %s", id)
 
 			readOnlyFailoverPolicy := failovergroups.ReadOnlyEndpointFailoverPolicyDisabled
 			if state.ReadonlyEndpointFailurePolicyEnabled {

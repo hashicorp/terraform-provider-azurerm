@@ -5,7 +5,6 @@ package automation
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -76,8 +75,6 @@ func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, met
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Node Configuration creation.")
 
 	id := dscnodeconfiguration.NewNodeConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 

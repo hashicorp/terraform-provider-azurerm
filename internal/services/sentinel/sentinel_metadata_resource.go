@@ -311,7 +311,8 @@ func (a MetadataResource) Arguments() map[string]*pluginsdk.Schema {
 						"Impact",
 						"ImpairProcessControl",
 						"InhibitResponseFunction",
-					}, false),
+					}, false,
+				),
 			},
 		},
 

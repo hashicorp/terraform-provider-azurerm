@@ -6,7 +6,6 @@ package loganalytics
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -114,7 +113,6 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.LogAnalytics.TablesClient
 
 			tableName := model.Name
-			log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace Table %s update.", tableName)
 
 			workspaceId, err := workspaces.ParseWorkspaceID(model.WorkspaceId)
 			if err != nil {

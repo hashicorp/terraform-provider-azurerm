@@ -453,7 +453,8 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 													Required: true,
 													ValidateFunc: validation.StringInSlice(
 														webapplicationfirewallpolicies.PossibleValuesForScrubbingRuleEntryMatchVariable(),
-														false),
+														false,
+													),
 												},
 
 												"selector_match_operator": {
@@ -462,7 +463,8 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 													Default:  "Equals",
 													ValidateFunc: validation.StringInSlice(
 														webapplicationfirewallpolicies.PossibleValuesForScrubbingRuleEntryMatchOperator(),
-														false),
+														false,
+													),
 												},
 
 												"selector": {
