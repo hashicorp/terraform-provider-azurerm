@@ -527,8 +527,9 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_logic_app_standard`
 
-* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+* The `app_service_plan_id` property now validates that the input is an App Service Plan ID. This validation is case-sensitive.
 * The `client_certificate_mode` property now defaults to `Required` to match API default value.
+* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 * The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 * The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 
