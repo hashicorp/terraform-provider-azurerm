@@ -81,7 +81,6 @@ func (r NetAppBackupVaultResource) Create() sdk.ResourceFunc {
 
 			id := backupvaults.NewBackupVaultID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -121,15 +120,12 @@ func (r NetAppBackupVaultResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				metadata.Logger.Infof("Updating %s", id)
-
 				update := backupvaults.BackupVaultPatch{
 					Tags: pointer.To(state.Tags),
 				}
@@ -155,7 +151,6 @@ func (r NetAppBackupVaultResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)

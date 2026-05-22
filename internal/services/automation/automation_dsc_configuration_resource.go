@@ -6,7 +6,6 @@ package automation
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -98,8 +97,6 @@ func resourceAutomationDscConfigurationCreate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Configuration creation.")
-
 	id := dscconfiguration.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id)
@@ -139,8 +136,6 @@ func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta in
 	client := meta.(*clients.Client).Automation.DscConfiguration
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Configuration update.")
 
 	id, err := dscconfiguration.ParseConfigurationID(d.Id())
 	if err != nil {

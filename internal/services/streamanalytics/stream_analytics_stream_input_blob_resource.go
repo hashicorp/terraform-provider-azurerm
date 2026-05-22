@@ -118,7 +118,6 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input Blob creation.")
 	id := inputs.NewInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {

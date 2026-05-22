@@ -5,7 +5,6 @@ package databricks
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -129,7 +128,6 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM databricks virtual network peering creation.")
 	var id vnetpeering.VirtualNetworkPeeringId
 
 	// I need to include the workspace ID in the properties because I need the name
@@ -263,8 +261,6 @@ func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, me
 	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM databricks virtual network peering update.")
 
 	id, err := vnetpeering.ParseVirtualNetworkPeeringID(d.Id())
 	if err != nil {

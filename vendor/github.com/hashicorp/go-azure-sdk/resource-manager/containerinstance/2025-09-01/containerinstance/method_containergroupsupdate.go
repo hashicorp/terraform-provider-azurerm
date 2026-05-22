@@ -18,7 +18,7 @@ type ContainerGroupsUpdateOperationResponse struct {
 }
 
 // ContainerGroupsUpdate ...
-func (c ContainerInstanceClient) ContainerGroupsUpdate(ctx context.Context, id ContainerGroupId, input Resource) (result ContainerGroupsUpdateOperationResponse, err error) {
+func (c ContainerInstanceClient) ContainerGroupsUpdate(ctx context.Context, id ContainerGroupId, input ContainerGroupUpdate) (result ContainerGroupsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

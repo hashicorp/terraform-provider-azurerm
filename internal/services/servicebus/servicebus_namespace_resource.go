@@ -289,8 +289,6 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for ServiceBus Namespace create")
-
 	location := location.Normalize(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -379,8 +377,6 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for ServiceBus Namespace update")
 
 	id, err := namespaces.ParseNamespaceID(d.Id())
 	if err != nil {
@@ -472,13 +468,10 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 			if err = resetNetworkRuleSetForNamespace(ctx, client, *id); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Reset the Existing Network Rule Set associated with %s", id)
 		} else {
-			log.Printf("[DEBUG] Updating the Network Rule Set associated with %s..", id)
 			if err = createNetworkRuleSetForNamespace(ctx, client, *id, newNetworkRuleSet.([]interface{})); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Updated the Network Rule Set associated with %s", id)
 		}
 	}
 
@@ -726,8 +719,6 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 		return nil
 	}
 
-	log.Printf("[DEBUG] Creating/updating the Network Rule Set associated with %s..", id)
-
 	item := input[0].(map[string]interface{})
 
 	defaultAction := namespaces.DefaultAction(item["default_action"].(string))
@@ -758,7 +749,6 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 	if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] Created/updated the Network Rule Set associated with %s", id)
 
 	return nil
 }
