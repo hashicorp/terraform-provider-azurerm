@@ -248,7 +248,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "time_sleep.wait_for_base_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -299,7 +300,8 @@ resource "azurerm_redhat_openshift_cluster" "import" {
   }
 
   depends_on = [
-    "time_sleep.wait_for_base_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
   ]
 }
   `, r.basic(data))
@@ -325,16 +327,6 @@ resource "azurerm_role_assignment" "role_network3" {
   scope                = azurerm_virtual_network.test.id
   role_definition_name = "Network Contributor"
   principal_id         = azuread_service_principal.test2.object_id
-}
-
-resource "time_sleep" "wait_for_updated_role_assignments" {
-  create_duration = "2m"
-
-  depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
-    "azurerm_role_assignment.role_network3",
-  ]
 }
 
 resource "azurerm_redhat_openshift_cluster" "test" {
@@ -382,7 +374,9 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "time_sleep.wait_for_updated_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+    "azurerm_role_assignment.role_network3",
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -436,7 +430,8 @@ SECRET
   }
 
   depends_on = [
-    "time_sleep.wait_for_base_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString, pullSecret)
@@ -488,7 +483,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "time_sleep.wait_for_base_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -539,7 +535,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "time_sleep.wait_for_base_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -591,7 +588,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "time_sleep.wait_for_base_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -657,17 +655,6 @@ resource "azurerm_role_assignment" "role_network4" {
   principal_id         = data.azuread_service_principal.redhatopenshift.object_id
 }
 
-resource "time_sleep" "wait_for_network_security_group_role_assignments" {
-  create_duration = "2m"
-
-  depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
-    "azurerm_role_assignment.role_network3",
-    "azurerm_role_assignment.role_network4",
-  ]
-}
-
 resource "azurerm_redhat_openshift_cluster" "test" {
   name                = "acctestaro%[2]d"
   location            = azurerm_resource_group.test.location
@@ -710,7 +697,10 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "time_sleep.wait_for_network_security_group_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+    "azurerm_role_assignment.role_network3",
+    "azurerm_role_assignment.role_network4",
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -801,17 +791,6 @@ resource "azurerm_role_assignment" "disk_encryption_reader2" {
   principal_id         = data.azuread_service_principal.redhatopenshift.object_id
 }
 
-resource "time_sleep" "wait_for_disk_encryption_role_assignments" {
-  create_duration = "2m"
-
-  depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
-    "azurerm_role_assignment.disk_encryption_reader1",
-    "azurerm_role_assignment.disk_encryption_reader2",
-  ]
-}
-
 resource "azurerm_redhat_openshift_cluster" "test" {
   name                = "acctestaro%[2]d"
   location            = azurerm_resource_group.test.location
@@ -858,7 +837,10 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   depends_on = [
     "azurerm_key_vault_access_policy.disk_encryption",
-    "time_sleep.wait_for_disk_encryption_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+    "azurerm_role_assignment.disk_encryption_reader1",
+    "azurerm_role_assignment.disk_encryption_reader2",
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -910,7 +892,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "time_sleep.wait_for_base_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -962,15 +945,6 @@ resource "azurerm_role_assignment" "role_network2" {
   scope                = azurerm_resource_group.test.id
   role_definition_name = "Network Contributor"
   principal_id         = data.azuread_service_principal.redhatopenshift.object_id
-}
-
-resource "time_sleep" "wait_for_base_role_assignments" {
-  create_duration = "2m"
-
-  depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
-  ]
 }
 
 resource "azurerm_resource_group" "test" {
