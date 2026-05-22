@@ -64,6 +64,12 @@ func TestAccCosmosDbSqlContainer_complete(t *testing.T) {
 }
 
 func TestAccCosmosDbSqlContainer_analyticalStorageTTL(t *testing.T) {
+	// The Azure Cosmos DB service no longer allows enabling Analytical Storage / Synapse Link
+	// on new accounts, so the prerequisite `azurerm_cosmosdb_account` with
+	// `analytical_storage_enabled = true` fails to provision. See the
+	// `analytical_storage_enabled` argument in the `azurerm_cosmosdb_account` documentation.
+	t.Skip("Skipped: Azure Cosmos DB no longer allows enabling Analytical Storage on new accounts for GlobalDocumentDB (BadRequest from the service)")
+
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 	r := CosmosSqlContainerResource{}
 

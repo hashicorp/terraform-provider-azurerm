@@ -150,6 +150,19 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				return old.(bool) && !new.(bool)
 			}),
 
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				// The Cosmos DB service no longer accepts `EnableAnalyticalStorage: true` during account
+				// creation for SQL API accounts (returns `BadRequest: Enabling Analytical Storage during
+				// account creation is no longer supported`). Existing accounts that already have it
+				// enabled continue to work, so this guard only fires on create for `GlobalDocumentDB`
+				// kinds.
+				if diff.Id() == "" && diff.Get("analytical_storage_enabled").(bool) &&
+					strings.EqualFold(diff.Get("kind").(string), string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)) {
+					return fmt.Errorf("`analytical_storage_enabled` cannot be set to `true` when creating a new `azurerm_cosmosdb_account` with `kind=\"GlobalDocumentDB\"`: the Azure Cosmos DB service no longer allows enabling Analytical Storage / Synapse Link on new SQL API accounts. See the `analytical_storage_enabled` argument in the resource documentation for migration guidance")
+				}
+				return nil
+			}),
+
 			pluginsdk.ForceNewIf("capabilities", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
 				kind := d.Get("kind").(string)
 				old, new := d.GetChange("capabilities")

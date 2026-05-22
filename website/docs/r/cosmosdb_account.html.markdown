@@ -148,6 +148,8 @@ The following arguments are supported:
 
 * `analytical_storage_enabled` - (Optional) Enable Analytical Storage option for this Cosmos DB account. Defaults to `false`. Enabling and then disabling analytical storage forces a new resource to be created.
 
+-> **Note:** For SQL API accounts (`kind="GlobalDocumentDB"`) the Azure Cosmos DB service no longer allows enabling Analytical Storage / Azure Synapse Link on new accounts, and existing SQL API accounts that have it disabled can no longer migrate to enable it. SQL API accounts that already have Analytical Storage enabled continue to be supported, including creating new containers with `analytical_storage_ttl` set. MongoDB API accounts (`kind = "MongoDB"`) are not affected by this restriction. For migration guidance see [Migrate from Azure Synapse Link to Microsoft Fabric mirroring](https://learn.microsoft.com/fabric/database/mirrored-database/azure-cosmos-db-migrate-synapse-link) and [Azure Synapse Link for Azure Cosmos DB](https://learn.microsoft.com/azure/cosmos-db/synapse-link).
+
 * `automatic_failover_enabled` - (Optional) Enable automatic failover for this Cosmos DB account.
 
 * `partition_merge_enabled` - (Optional) Is partition merge on the Cosmos DB account enabled? Defaults to `false`.
