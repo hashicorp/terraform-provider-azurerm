@@ -139,6 +139,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 			"rbac_authorization_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"network_acls": {
@@ -325,6 +326,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
+	rbacAuthorizationEnabled := d.Get("rbac_authorization_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	policies := d.Get("access_policy").([]interface{})
@@ -347,6 +349,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			EnabledForDeployment:         &enabledForDeployment,
 			EnabledForDiskEncryption:     &enabledForDiskEncryption,
 			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
+			EnableRbacAuthorization:      &rbacAuthorizationEnabled,
 			NetworkAcls:                  networkAcls,
 
 			// @tombuildsstuff: as of 2020-12-15 this is now defaulted on, and appears to be so in all regions
@@ -356,8 +359,6 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		},
 		Tags: tags.Expand(t),
 	}
-
-	parameters.Properties.EnableRbacAuthorization = pointer.To(d.Get("rbac_authorization_enabled").(bool))
 
 	if !features.FivePointOh() {
 		if v, ok := d.GetOk("enable_rbac_authorization"); ok {
