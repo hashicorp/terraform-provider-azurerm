@@ -360,7 +360,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 			}
 		}
 	}
-	
+
 	if v, ok := resourceGuardOperationsMap[dataprotection.GuardOperationDeleteProtectedItem]; ok {
 		vaultProxyId := resourceguardproxy.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, VaultProxyName)
 
