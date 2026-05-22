@@ -125,19 +125,19 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-hsm-%d"
-  location = "%s"
+  name     = "acctestRG-hsm-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
+  name                = "acctest-vnet-%[1]d"
   address_space       = ["10.2.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "acctest-hsmsubnet-%d"
+  name                 = "acctest-hsmsubnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.2.1.0/24"]
@@ -163,16 +163,8 @@ resource "azurerm_subnet" "test3" {
   address_prefixes     = ["10.2.255.0/26"]
 }
 
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-pip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-  allocation_method   = "Static"
-}
-
 resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctest-vnetgateway-%d"
+  name                = "acctest-vnetgateway-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -181,16 +173,14 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku      = "Standard"
 
   ip_configuration {
-    public_ip_address_id          = azurerm_public_ip.test.id
     private_ip_address_allocation = "Dynamic"
     subnet_id                     = azurerm_subnet.test3.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (DedicatedHardwareSecurityModuleResource) basic(data acceptance.TestData) string {
-	template := DedicatedHardwareSecurityModuleResource{}.template(data)
+func (r DedicatedHardwareSecurityModuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -209,11 +199,10 @@ resource "azurerm_dedicated_hardware_security_module" "test" {
 
   depends_on = [azurerm_virtual_network_gateway.test]
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
-func (DedicatedHardwareSecurityModuleResource) managementNetworkProfile(data acceptance.TestData) string {
-	template := DedicatedHardwareSecurityModuleResource{}.template(data)
+func (r DedicatedHardwareSecurityModuleResource) managementNetworkProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -237,11 +226,10 @@ resource "azurerm_dedicated_hardware_security_module" "test" {
 
   depends_on = [azurerm_virtual_network_gateway.test]
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
-func (DedicatedHardwareSecurityModuleResource) complete(data acceptance.TestData) string {
-	template := DedicatedHardwareSecurityModuleResource{}.template(data)
+func (r DedicatedHardwareSecurityModuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -269,5 +257,5 @@ resource "azurerm_dedicated_hardware_security_module" "test" {
 
   depends_on = [azurerm_virtual_network_gateway.test]
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
