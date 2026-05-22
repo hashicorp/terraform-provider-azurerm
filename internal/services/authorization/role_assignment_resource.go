@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -195,12 +195,15 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	principalId := d.Get("principal_id").(string)
 
 	if name == "" {
-		generatedUUID, err := uuid.GenerateUUID()
+		normalizedScope := strings.ToLower(scopeId.Scope)
+		normalizedPrincipalId := strings.ToLower(principalId)
+		normalizedRoleDefinitionId := strings.ToLower(roleDefinitionId)
+		str := fmt.Sprintf("%s-%s-%s", normalizedScope, normalizedPrincipalId, normalizedRoleDefinitionId)
+		namespace, err := uuid.FromString("11fb06fb-712d-4ddd-98c7-e71bbd588830")
 		if err != nil {
-			return fmt.Errorf("generating UUID for Role Assignment: %+v", err)
+			return fmt.Errorf("parsing namespace UUID for Role Assignment: %+v", err)
 		}
-
-		name = generatedUUID
+		name = uuid.NewV5(namespace, str).String()
 	}
 
 	tenantId := ""
