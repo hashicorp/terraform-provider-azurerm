@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type WebApplicationFirewallResource struct{}
+type WebApplicationFirewallPolicyResource struct{}
 
 func TestAccWebApplicationFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccWebApplicationFirewallPolicy_basic(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -122,7 +122,7 @@ func TestAccWebApplicationFirewallPolicy_complete(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -201,7 +201,7 @@ func TestAccWebApplicationFirewallPolicy_update(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_updateOverrideRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -230,7 +230,7 @@ func TestAccWebApplicationFirewallPolicy_updateOverrideRules(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_rateLimit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -259,7 +259,7 @@ func TestAccWebApplicationFirewallPolicy_rateLimit(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_knownCVEs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -274,7 +274,7 @@ func TestAccWebApplicationFirewallPolicy_knownCVEs(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_OperatorAny(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -289,7 +289,7 @@ func TestAccWebApplicationFirewallPolicy_OperatorAny(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_excludedRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -311,7 +311,7 @@ func TestAccWebApplicationFirewallPolicy_excludedRules(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_updateDisabledRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -333,7 +333,7 @@ func TestAccWebApplicationFirewallPolicy_updateDisabledRules(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_LogScrubbing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -348,7 +348,7 @@ func TestAccWebApplicationFirewallPolicy_LogScrubbing(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_ManagedRuleSetDRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -369,7 +369,7 @@ func TestAccWebApplicationFirewallPolicy_ManagedRuleSetDRS(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_updateCustomRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -391,7 +391,7 @@ func TestAccWebApplicationFirewallPolicy_updateCustomRules(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_BotManager(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -413,7 +413,7 @@ func TestAccWebApplicationFirewallPolicy_BotManager(t *testing.T) {
 
 func TestAccWebApplicationFirewallPolicy_fileUploadEnforcement(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-	r := WebApplicationFirewallResource{}
+	r := WebApplicationFirewallPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -440,7 +440,7 @@ func TestAccWebApplicationFirewallPolicy_fileUploadEnforcement(t *testing.T) {
 	})
 }
 
-func (t WebApplicationFirewallResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t WebApplicationFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -454,7 +454,7 @@ func (t WebApplicationFirewallResource) Exists(ctx context.Context, clients *cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (WebApplicationFirewallResource) basic(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -486,7 +486,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) complete(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -617,7 +617,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) rateLimit(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) rateLimit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -702,7 +702,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) rateLimitUpdate(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) rateLimitUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -787,7 +787,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) updateOverrideRules(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) updateOverrideRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -892,7 +892,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) knownCVEs(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) knownCVEs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -950,7 +950,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) excludedRules(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) excludedRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1059,7 +1059,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) operatorAny(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) operatorAny(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1120,7 +1120,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) updateExcludedRules(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) updateExcludedRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1237,7 +1237,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) disabledRules(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) disabledRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1341,7 +1341,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) updateDisabledRules(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) updateDisabledRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1453,7 +1453,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) withLogScrubbing(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) withLogScrubbing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1508,7 +1508,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (WebApplicationFirewallResource) withManagedRuleSetDRS(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) withManagedRuleSetDRS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1647,7 +1647,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (WebApplicationFirewallResource) withManagedRuleSetDRS22(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) withManagedRuleSetDRS22(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1794,7 +1794,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (WebApplicationFirewallResource) customRules(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) customRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1948,7 +1948,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) updateCustomRules(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) updateCustomRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2102,7 +2102,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) botManager(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) botManager(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2160,7 +2160,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) updateBotManager(data acceptance.TestData) string {
+func (WebApplicationFirewallPolicyResource) updateBotManager(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2218,7 +2218,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) fileUploadEnforcement(data acceptance.TestData, enforcement bool) string {
+func (WebApplicationFirewallPolicyResource) fileUploadEnforcement(data acceptance.TestData, enforcement bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

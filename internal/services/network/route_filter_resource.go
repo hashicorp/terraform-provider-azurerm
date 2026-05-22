@@ -5,7 +5,6 @@ package network
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -110,8 +109,6 @@ func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Route Filter create.")
-
 	id := routefilters.NewRouteFilterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
@@ -152,8 +149,6 @@ func resourceRouteFilterUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	client := meta.(*clients.Client).Network.RouteFilters
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Route Filter update.")
 
 	id, err := routefilters.ParseRouteFilterID(d.Id())
 	if err != nil {

@@ -6,7 +6,6 @@ package automation
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -295,7 +294,6 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
 	id := runbook.NewRunbookID(subscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
@@ -429,10 +427,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("retrieving content for Automation Runbook %s: %+v", id, err)
 		}
 	}
-
-	if v := contentResp.Model; v != nil && *v != nil {
-		d.Set("content", string(*v))
-	}
+	d.Set("content", string(pointer.From(contentResp.Model)))
 
 	jsMap := make(map[uuid.UUID]jobschedule.JobScheduleProperties)
 	automationAccountId := jobschedule.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)

@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -698,7 +697,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					state.ServicePlanId = serverFarmId.ID()
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-						hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(pointer.From(hostingEnv.Id))
+						hostingEnvId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(pointer.From(hostingEnv.Id))
 						if err != nil {
 							return err
 						}
@@ -775,8 +774,6 @@ func (r WindowsWebAppResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			delOptions := webapps.DeleteOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -1014,8 +1011,12 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2(ctx, *id, *authV2Update); err != nil {
-					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating AuthV2 Settings for Windows %s: %+v", id, err)
 				}
 				updateLogs = true
 			}

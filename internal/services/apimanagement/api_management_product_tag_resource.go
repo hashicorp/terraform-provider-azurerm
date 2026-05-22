@@ -124,7 +124,6 @@ func resourceApiManagementProductTagDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
 	resp, err := client.TagDetachFromProduct(ctx, *id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {

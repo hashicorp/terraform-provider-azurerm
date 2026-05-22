@@ -5,15 +5,14 @@ package databricks
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/vnetpeering"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/vnetpeering"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -129,7 +128,6 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM databricks virtual network peering creation.")
 	var id vnetpeering.VirtualNetworkPeeringId
 
 	// I need to include the workspace ID in the properties because I need the name
@@ -263,8 +261,6 @@ func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, me
 	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM databricks virtual network peering update.")
 
 	id, err := vnetpeering.ParseVirtualNetworkPeeringID(d.Id())
 	if err != nil {

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverfailover"
@@ -25,9 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
-	hsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -132,10 +131,9 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							ValidateFunc:  keyVaultValidate.NestedItemIdWithOptionalVersion,
-							ConflictsWith: []string{"customer_managed_key.0.managed_hsm_key_id"},
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.primary_user_assigned_identity_id",
@@ -149,7 +147,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 						"geo_backup_key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.geo_backup_user_assigned_identity_id",
@@ -159,16 +157,6 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-						},
-						"managed_hsm_key_id": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							ValidateFunc:  validation.Any(hsmValidate.ManagedHSMDataPlaneVersionedKeyID, hsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
-							ConflictsWith: []string{"customer_managed_key.0.key_vault_key_id"},
-							RequiredWith: []string{
-								"identity",
-								"customer_managed_key.0.primary_user_assigned_identity_id",
-							},
 						},
 					},
 				},
@@ -364,6 +352,83 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		}
+
+		resource.Schema["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema = map[string]*pluginsdk.Schema{
+			"key_vault_key_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
+				ConflictsWith: []string{"customer_managed_key.0.managed_hsm_key_id"},
+				RequiredWith: []string{
+					"identity",
+					"customer_managed_key.0.primary_user_assigned_identity_id",
+				},
+				DiffSuppressFunc: func(_, oldValue, newValue string, d *schema.ResourceData) bool {
+					if newValue == "" {
+						// If using `managed_hsm_key_id`, `key_vault_key_id` will also be set
+						// ignore diff if the 2 are equal.
+						raw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("customer_managed_key.0.managed_hsm_key_id"))
+						if diags != nil {
+							return false
+						}
+
+						if raw.IsKnown() && !raw.IsNull() {
+							return raw.AsString() == oldValue
+						}
+					}
+
+					return false
+				},
+				DiffSuppressOnRefresh: true,
+			},
+			"primary_user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
+			"geo_backup_key_vault_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
+				RequiredWith: []string{
+					"identity",
+					"customer_managed_key.0.geo_backup_user_assigned_identity_id",
+				},
+			},
+			"geo_backup_user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
+			"managed_hsm_key_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
+				ConflictsWith: []string{"customer_managed_key.0.key_vault_key_id"},
+				RequiredWith: []string{
+					"identity",
+					"customer_managed_key.0.primary_user_assigned_identity_id",
+				},
+				DiffSuppressFunc: func(_, oldValue, newValue string, d *schema.ResourceData) bool {
+					if newValue == "" {
+						// If using `key_vault_key_id` with MHSM key, `managed_hsm_key_id` will also be set
+						// ignore diff if the 2 are equal.
+						raw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("customer_managed_key.0.key_vault_key_id"))
+						if diags != nil {
+							return false
+						}
+
+						if raw.IsKnown() && !raw.IsNull() {
+							return raw.AsString() == oldValue
+						}
+					}
+
+					return false
+				},
+				DiffSuppressOnRefresh: true,
+				Deprecated:            "The `customer_managed_key.managed_hsm_key_id` property has been deprecated in favour of `customer_managed_key.key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
+			},
+		}
 	}
 
 	return resource
@@ -449,7 +514,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 			Network:          expandArmServerNetwork(d),
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{})),
 			Backup:           expandArmServerBackup(d),
-			DataEncryption:   expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{})),
+			DataEncryption:   expandFlexibleServerDataEncryption(d, d.Get("customer_managed_key").([]interface{})),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -564,10 +629,10 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return resourceMysqlFlexibleServerFlatten(d, id, resp.Model, meta)
+	return resourceMysqlFlexibleServerFlatten(d, id, resp.Model)
 }
 
-func resourceMysqlFlexibleServerFlatten(d *pluginsdk.ResourceData, id *servers.FlexibleServerId, server *servers.Server, meta interface{}) error {
+func resourceMysqlFlexibleServerFlatten(d *pluginsdk.ResourceData, id *servers.FlexibleServerId, server *servers.Server) error {
 	d.Set("name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -590,7 +655,7 @@ func resourceMysqlFlexibleServerFlatten(d *pluginsdk.ResourceData, id *servers.F
 				}
 			}
 
-			cmk, err := flattenFlexibleServerDataEncryption(props.DataEncryption, meta)
+			cmk, err := flattenFlexibleServerDataEncryption(props.DataEncryption)
 			if err != nil {
 				return fmt.Errorf("flattening `customer_managed_key`: %+v", err)
 			}
@@ -767,7 +832,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("customer_managed_key") {
-		parameters.Properties.DataEncryption = expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{}))
+		parameters.Properties.DataEncryption = expandFlexibleServerDataEncryption(d, d.Get("customer_managed_key").([]interface{}))
 	}
 
 	if d.HasChange("identity") {
@@ -1099,7 +1164,7 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 	}
 }
 
-func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryption {
+func expandFlexibleServerDataEncryption(d *pluginsdk.ResourceData, input []interface{}) *servers.DataEncryption {
 	if len(input) == 0 || input[0] == nil {
 		det := servers.DataEncryptionTypeSystemManaged
 		return &servers.DataEncryption{
@@ -1113,14 +1178,15 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 		Type: &det,
 	}
 
-	if keyVaultKeyId := v["key_vault_key_id"].(string); keyVaultKeyId != "" {
+	if keyVaultKeyId := v["key_vault_key_id"].(string); keyVaultKeyId != "" && setInConfig(d, "customer_managed_key.0.key_vault_key_id") {
 		dataEncryption.PrimaryKeyURI = pointer.To(keyVaultKeyId)
 	}
 
-	if hsmManagedKeyId := v["managed_hsm_key_id"].(string); hsmManagedKeyId != "" {
-		dataEncryption.PrimaryKeyURI = pointer.To(hsmManagedKeyId)
+	if !features.FivePointOh() {
+		if hsmManagedKeyId := v["managed_hsm_key_id"].(string); hsmManagedKeyId != "" && setInConfig(d, "customer_managed_key.0.managed_hsm_key_id") {
+			dataEncryption.PrimaryKeyURI = pointer.To(hsmManagedKeyId)
+		}
 	}
-
 	if primaryUserAssignedIdentityId := v["primary_user_assigned_identity_id"].(string); primaryUserAssignedIdentityId != "" {
 		dataEncryption.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityId)
 	}
@@ -1136,24 +1202,37 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 	return &dataEncryption
 }
 
-func flattenFlexibleServerDataEncryption(de *servers.DataEncryption, meta interface{}) ([]interface{}, error) {
+func setInConfig(d *pluginsdk.ResourceData, address string) bool {
+	// remove function in 5.0
+	if features.FivePointOh() {
+		// No need to check RawConfig in 5.0 as `key_vault_key_id` is no longer computed
+		// so the existing check will suffice
+		return true
+	}
+
+	raw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath(address))
+	return !diags.HasError() && !raw.IsNull()
+}
+
+func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interface{}, error) {
 	if de == nil || *de.Type == servers.DataEncryptionTypeSystemManaged {
 		return []interface{}{}, nil
 	}
 
-	env := meta.(*clients.Client).Account.Environment
-
 	item := map[string]interface{}{}
 	if de.PrimaryKeyURI != nil {
-		isHsmKey, _, _, err := managedHsmHelpers.IsManagedHSMURI(env, pointer.From(de.PrimaryKeyURI))
+		nestedItemType := keyvault.NestedItemTypeKey
+		if !features.FivePointOh() {
+			nestedItemType = keyvault.NestedItemTypeAny
+		}
+		keyID, err := keyvault.ParseNestedItemID(*de.PrimaryKeyURI, keyvault.VersionTypeAny, nestedItemType)
 		if err != nil {
 			return nil, err
 		}
 
-		if isHsmKey {
-			item["managed_hsm_key_id"] = pointer.From(de.PrimaryKeyURI)
-		} else {
-			item["key_vault_key_id"] = pointer.From(de.PrimaryKeyURI)
+		item["key_vault_key_id"] = keyID.ID()
+		if !features.FivePointOh() && keyID.IsManagedHSM() {
+			item["managed_hsm_key_id"] = keyID.ID()
 		}
 	}
 

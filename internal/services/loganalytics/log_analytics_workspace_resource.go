@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	sharedKeyWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -133,6 +133,9 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 					int(workspaces.CapacityReservationLevelOneThousand),
 					int(workspaces.CapacityReservationLevelTwoThousand),
 					int(workspaces.CapacityReservationLevelFiveThousand),
+					int(workspaces.CapacityReservationLevelOneZeroThousand),
+					int(workspaces.CapacityReservationLevelTwoFiveThousand),
+					int(workspaces.CapacityReservationLevelFiveZeroThousand),
 				}),
 			},
 
@@ -230,6 +233,17 @@ func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.Res
 		}
 	}
 
+	// if local_authentication_enabled/local_authentication_enabled is not defined in config, check if local_authentication_enabled is set to the default value of true, and if not, set it to retain the default
+	if !features.FivePointOh() && d.GetRawConfig().AsValueMap()["local_authentication_disabled"].IsNull() && d.GetRawConfig().AsValueMap()["local_authentication_enabled"].IsNull() {
+		_, n := d.GetChange("local_authentication_enabled")
+		if !n.(bool) {
+			err := d.SetNew("local_authentication_enabled", true)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -239,7 +253,6 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace creation.")
 
 	var isLACluster bool
 
@@ -415,7 +428,6 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).LogAnalytics.WorkspaceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace update.")
 
 	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {

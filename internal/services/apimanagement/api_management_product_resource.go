@@ -91,8 +91,6 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for API Management Product creation.")
-
 	id := product.NewProductID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string))
 
 	displayName := d.Get("display_name").(string)
@@ -204,7 +202,6 @@ func resourceApiManagementProductDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
 	if resp, err := client.Delete(ctx, *id, product.DeleteOperationOptions{DeleteSubscriptions: pointer.To(true)}); err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)

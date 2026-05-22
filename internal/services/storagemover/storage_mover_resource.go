@@ -11,11 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_mover -service-package-name storagemover -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type StorageMoverModel struct {
 	Name              string            `tfschema:"name"`
@@ -27,7 +30,14 @@ type StorageMoverModel struct {
 
 type StorageMoverResource struct{}
 
-var _ sdk.ResourceWithUpdate = StorageMoverResource{}
+var (
+	_ sdk.ResourceWithIdentity = StorageMoverResource{}
+	_ sdk.ResourceWithUpdate   = StorageMoverResource{}
+)
+
+func (r StorageMoverResource) Identity() resourceids.ResourceId {
+	return &storagemovers.StorageMoverId{}
+}
 
 func (r StorageMoverResource) ResourceType() string {
 	return "azurerm_storage_mover"
@@ -106,6 +116,9 @@ func (r StorageMoverResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -180,27 +193,35 @@ func (r StorageMoverResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			state := StorageMoverModel{
-				Name:              id.StorageMoverName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
-			}
-
-			description := ""
-			if properties := model.Properties; properties != nil {
-				if properties.Description != nil {
-					description = *properties.Description
-				}
-			}
-			state.Description = description
-
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, model)
 		},
 	}
+}
+
+func (r StorageMoverResource) flatten(metadata sdk.ResourceMetaData, id *storagemovers.StorageMoverId, model *storagemovers.StorageMover) error {
+	state := StorageMoverModel{
+		Name:              id.StorageMoverName,
+		ResourceGroupName: id.ResourceGroupName,
+		Location:          location.Normalize(model.Location),
+	}
+
+	description := ""
+	if properties := model.Properties; properties != nil {
+		if properties.Description != nil {
+			description = *properties.Description
+		}
+	}
+	state.Description = description
+
+	if model.Tags != nil {
+		state.Tags = *model.Tags
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r StorageMoverResource) Delete() sdk.ResourceFunc {

@@ -1076,7 +1076,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				}
 				osManagedDiskId := ""
 				if profile.OsDisk != nil && profile.OsDisk.ManagedDisk != nil && profile.OsDisk.ManagedDisk.Id != nil {
-					osDiskId, err := commonids.ParseManagedDiskID(*profile.OsDisk.ManagedDisk.Id)
+					osDiskId, err := commonids.ParseManagedDiskIDInsensitively(*profile.OsDisk.ManagedDisk.Id)
 					if err != nil {
 						return err
 					}
@@ -1163,7 +1163,6 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	log.Printf("[DEBUG] Retrieving Linux %s", id)
 	options := virtualmachines.DefaultGetOperationOptions()
 	options.Expand = pointer.To(virtualmachines.InstanceViewTypesUserData)
 	existing, err := client.Get(ctx, *id, options)
@@ -1171,7 +1170,6 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving Linux %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving InstanceView for Linux %s.", id)
 	instanceView, err := client.InstanceView(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving InstanceView for Linux %s: %+v", id, err)
@@ -1712,7 +1710,6 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("os_disk.0.disk_encryption_set_id") {
 		if diskEncryptionSetId := d.Get("os_disk.0.disk_encryption_set_id").(string); diskEncryptionSetId != "" {
 			diskName := d.Get("os_disk.0.name").(string)
-			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Linux %s to %q..", diskName, id, diskEncryptionSetId)
 
 			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
 			if err != nil {
@@ -1736,20 +1733,15 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			if err != nil {
 				return fmt.Errorf("updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 			}
-
-			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %q.", diskName, id.DiskName, id.ResourceGroupName, diskEncryptionSetId)
 		} else {
 			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
 
 	if shouldUpdate {
-		log.Printf("[DEBUG] Updating Linux %s", id)
 		if err := client.UpdateThenPoll(ctx, *id, update, virtualmachines.DefaultUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating Linux %s: %+v", id, err)
 		}
-
-		log.Printf("[DEBUG] Updated Linux %s", id)
 	}
 
 	// if we've shut it down and it was turned off, let's boot it back up
@@ -1778,7 +1770,6 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	log.Printf("[DEBUG] Retrieving Linux %s", id)
 	options := virtualmachines.DefaultGetOperationOptions()
 	options.Expand = pointer.To(virtualmachines.InstanceViewTypesUserData)
 	existing, err := client.Get(ctx, *id, options)
@@ -1789,8 +1780,6 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 
 		return fmt.Errorf("retrieving Linux %s: %+v", id, err)
 	}
-
-	log.Printf("[DEBUG] Deleting Linux %s", id)
 
 	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
 	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
@@ -1805,11 +1794,8 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("deleting Linux %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Deleted Linux %s", id)
-
 	deleteOSDisk := meta.(*clients.Client).Features.VirtualMachine.DeleteOSDiskOnDeletion
 	if deleteOSDisk {
-		log.Printf("[DEBUG] Deleting OS Disk from Linux %s", id)
 		disksClient := meta.(*clients.Client).Compute.DisksClient
 		managedDiskId := ""
 		if props := existing.Model.Properties; props != nil && props.StorageProfile != nil && props.StorageProfile.OsDisk != nil {
@@ -1827,8 +1813,6 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 			if err := disksClient.DeleteThenPoll(ctx, *diskId); err != nil {
 				return fmt.Errorf("deleting %s for Linux %s: %+v", diskId, id, err)
 			}
-
-			log.Printf("[DEBUG] Deleted %s for Linux %s", diskId, id)
 		} else {
 			log.Printf("[DEBUG] Skipping Deleting OS Disk from Linux %s - cannot determine OS Disk ID.", id)
 		}
@@ -1843,7 +1827,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 			}
 		}
 		if managedDiskId != "" {
-			diskId, err := commonids.ParseManagedDiskID(managedDiskId)
+			diskId, err := commonids.ParseManagedDiskIDInsensitively(managedDiskId)
 			if err != nil {
 				return err
 			}

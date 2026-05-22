@@ -531,7 +531,6 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			siteEnvelope := webapps.Site{
 				Location: location.Normalize(functionApp.Model.Location),
 				Tags:     pointer.To(functionAppSlot.Tags),
-				Kind:     pointer.To("functionapp,linux"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
 					ServerFarmId:             pointer.To(servicePlanId.ID()),
@@ -832,7 +831,6 @@ func (r LinuxFunctionAppSlotResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting Linux %s", *id)
 			delOpts := webapps.DeleteSlotOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
 				DeleteMetrics:         pointer.To(false),
@@ -1078,6 +1076,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
 				}
@@ -1235,7 +1237,7 @@ func (r LinuxFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("retrieving %s: %+v", functionAppId, err)
 				}
 				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
-					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
+					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *ase.Id != "" && !newValue.(bool) {
 						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
 					}
 				}

@@ -22,10 +22,12 @@ resource "azurerm_dashboard_grafana" "example" {
   name                              = "example-dg"
   resource_group_name               = azurerm_resource_group.example.name
   location                          = "West Europe"
-  grafana_major_version             = 11
+  grafana_major_version             = 12
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
+  sku                               = "Standard"
+  sku_size                          = "X1"
 
   identity {
     type = "SystemAssigned"
@@ -47,7 +49,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Dashboard Grafana should exist. Changing this forces a new Dashboard Grafana to be created.
 
-* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `10`, `11`.
+* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `11`, `12`.
 
 * `api_key_enabled` - (Optional) Whether to enable the api key setting of the Grafana instance. Defaults to `false`.
 
@@ -64,6 +66,8 @@ The following arguments are supported:
 * `public_network_access_enabled` - (Optional) Whether to enable traffic over the public interface. Defaults to `true`.
 
 * `sku` - (Optional) The name of the SKU used for the Grafana instance. Possible values are `Standard` and `Essential`. Defaults to `Standard`. Changing this forces a new Dashboard Grafana to be created.
+
+* `sku_size` - (Optional) The size of the SKU used for the Grafana instance. Possible values are `X1` and `X2`. Defaults to `X1`. Changing this forces a new Dashboard Grafana to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana.
 

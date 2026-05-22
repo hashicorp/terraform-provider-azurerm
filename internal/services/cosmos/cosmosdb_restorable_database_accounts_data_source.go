@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/restorables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceCosmosDbRestorableDatabaseAccounts() *pluginsdk.Resource {
@@ -94,28 +95,30 @@ func dataSourceCosmosDbRestorableDatabaseAccounts() *pluginsdk.Resource {
 }
 
 func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.RestorableDatabaseAccountsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Cosmos.RestorablesClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewRestorableDatabaseAccountID(subscriptionId, d.Get("location").(string), "read")
+	locationName := d.Get("location").(string)
+	id := restorables.NewRestorableDatabaseAccountID(meta.(*clients.Client).Account.SubscriptionId, locationName, "read")
 
-	name := d.Get("name").(string)
-	location := d.Get("location").(string)
-	resp, err := client.ListByLocation(ctx, location)
+	locationID := restorables.NewLocationID(id.SubscriptionId, location.Normalize(locationName))
+	resp, err := client.RestorableDatabaseAccountsListByLocation(ctx, locationID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("location", location)
+	d.Set("location", locationName)
 
-	if props := resp.Value; props != nil {
-		if err := d.Set("accounts", flattenCosmosDbRestorableDatabaseAccounts(props, name)); err != nil {
-			return fmt.Errorf("flattening `accounts`: %+v", err)
+	if resp.Model != nil {
+		if v := resp.Model.Value; v != nil {
+			if err := d.Set("accounts", flattenCosmosDbRestorableDatabaseAccounts(v, d.Get("name").(string))); err != nil {
+				return fmt.Errorf("flattening `accounts`: %+v", err)
+			}
 		}
 	}
 
@@ -124,39 +127,20 @@ func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func flattenCosmosDbRestorableDatabaseAccounts(input *[]documentdb.RestorableDatabaseAccountGetResult, accountName string) []interface{} {
+func flattenCosmosDbRestorableDatabaseAccounts(input *[]restorables.RestorableDatabaseAccountGetResult, accountName string) []interface{} {
 	result := make([]interface{}, 0)
 
-	if len(*input) == 0 {
+	if input == nil {
 		return result
 	}
 
 	for _, item := range *input {
-		if props := item.RestorableDatabaseAccountProperties; props != nil && props.AccountName != nil && *props.AccountName == accountName {
-			var id, creationTime, deletionTime string
-			var apiType documentdb.APIType
-
-			if item.ID != nil {
-				id = *item.ID
-			}
-
-			if props.APIType != "" {
-				apiType = props.APIType
-			}
-
-			if props.CreationTime != nil {
-				creationTime = props.CreationTime.Format(time.RFC3339)
-			}
-
-			if props.DeletionTime != nil {
-				deletionTime = props.DeletionTime.Format(time.RFC3339)
-			}
-
+		if props := item.Properties; props != nil && pointer.From(props.AccountName) == accountName {
 			result = append(result, map[string]interface{}{
-				"id":                   id,
-				"api_type":             string(apiType),
-				"creation_time":        creationTime,
-				"deletion_time":        deletionTime,
+				"id":                   pointer.From(item.Id),
+				"api_type":             pointer.From(props.ApiType),
+				"creation_time":        pointer.From(props.CreationTime),
+				"deletion_time":        pointer.From(props.DeletionTime),
 				"restorable_locations": flattenCosmosDbRestorableDatabaseAccountsRestorableLocations(props.RestorableLocations),
 			})
 		}
@@ -165,37 +149,19 @@ func flattenCosmosDbRestorableDatabaseAccounts(input *[]documentdb.RestorableDat
 	return result
 }
 
-func flattenCosmosDbRestorableDatabaseAccountsRestorableLocations(input *[]documentdb.RestorableLocationResource) []interface{} {
+func flattenCosmosDbRestorableDatabaseAccountsRestorableLocations(input *[]restorables.RestorableLocationResource) []interface{} {
 	result := make([]interface{}, 0)
 
-	if len(*input) == 0 {
+	if input == nil {
 		return result
 	}
 
 	for _, item := range *input {
-		var location, regionalDatabaseAccountInstanceId, creationTime, deletionTime string
-
-		if item.LocationName != nil {
-			location = *item.LocationName
-		}
-
-		if item.RegionalDatabaseAccountInstanceID != nil {
-			regionalDatabaseAccountInstanceId = *item.RegionalDatabaseAccountInstanceID
-		}
-
-		if item.CreationTime != nil {
-			creationTime = item.CreationTime.Format(time.RFC3339)
-		}
-
-		if item.DeletionTime != nil {
-			deletionTime = item.DeletionTime.Format(time.RFC3339)
-		}
-
 		result = append(result, map[string]interface{}{
-			"creation_time":                         creationTime,
-			"deletion_time":                         deletionTime,
-			"location":                              location,
-			"regional_database_account_instance_id": regionalDatabaseAccountInstanceId,
+			"creation_time":                         pointer.From(item.CreationTime),
+			"deletion_time":                         pointer.From(item.DeletionTime),
+			"location":                              pointer.From(item.LocationName),
+			"regional_database_account_instance_id": pointer.From(item.RegionalDatabaseAccountInstanceId),
 		})
 	}
 

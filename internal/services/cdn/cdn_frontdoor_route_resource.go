@@ -29,10 +29,10 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorRouteDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -63,10 +63,10 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 
 			// NOTE: These are not sent to the API, they are only here so Terraform
 			// can provision/destroy the resources in the correct order.
+			// Made this field optional to address comments in Issue #29063
 			"cdn_frontdoor_origin_ids": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
-
+				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validate.FrontDoorOriginID,
@@ -347,7 +347,7 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
 	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
-		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
+		d.Set("cdn_frontdoor_origin_ids", originIds)
 	}
 
 	d.Set("name", id.RouteName)
@@ -533,7 +533,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
 	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
-		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
+		d.Set("cdn_frontdoor_origin_ids", originIds)
 	}
 
 	return resourceCdnFrontDoorRouteRead(d, meta)

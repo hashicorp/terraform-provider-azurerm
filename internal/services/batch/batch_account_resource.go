@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
@@ -21,8 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -175,7 +176,7 @@ func resourceBatchAccount() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						},
 					},
 				},
@@ -189,6 +190,10 @@ func resourceBatchAccount() *pluginsdk.Resource {
 		},
 	}
 
+	if !features.FivePointOh() {
+		resource.Schema["encryption"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	}
+
 	return resource
 }
 
@@ -197,8 +202,6 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure Batch account creation.")
 
 	id := batchaccount.NewBatchAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := location.Normalize(d.Get("location").(string))
@@ -395,8 +398,6 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	client := meta.(*clients.Client).Batch.AccountClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure Batch account update.")
 
 	id, err := batchaccount.ParseBatchAccountID(d.Id())
 	if err != nil {

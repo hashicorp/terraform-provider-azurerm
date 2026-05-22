@@ -44,6 +44,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_database -service-package-name mssql -properties "name" -compare-values "resource_group_name:server_id,server_name:server_id"
+
 func resourceMsSqlDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMsSqlDatabaseCreate,
@@ -51,10 +53,11 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 		Update: resourceMsSqlDatabaseUpdate,
 		Delete: resourceMsSqlDatabaseDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := commonids.ParseSqlDatabaseID(id)
-			return err
-		}, resourceMsSqlDatabaseImporter),
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&commonids.SqlDatabaseId{}, resourceMsSqlDatabaseImporter),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SqlDatabaseId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -194,8 +197,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for MsSql Database creation")
 
 	if strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && d.Get("license_type").(string) != "" {
 		return fmt.Errorf("serverless databases do not support license type")
@@ -592,6 +593,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	// For Data Warehouse SKUs only
 	if isDwSku {
@@ -678,8 +682,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for MsSql Database update")
-
 	name := d.Get("name").(string)
 	skuName := d.Get("sku_name").(string)
 	elasticPoolId := d.Get("elastic_pool_id").(string)
@@ -705,8 +707,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+q", id, err)
 	}
 
-	_, err = serversClient.Get(ctx, pointer.From(serverId), servers.DefaultGetOperationOptions())
-	if err != nil {
+	if _, err = serversClient.Get(ctx, pointer.From(serverId), servers.DefaultGetOperationOptions()); err != nil {
 		return fmt.Errorf("retrieving %s: %q", serverId, err)
 	}
 
@@ -887,7 +888,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 				// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
-					log.Printf("[INFO] Updating SKU of Replication Partner Database from %q to %q", partnerDatabase.Sku.Name, skuName)
 					err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 						Sku: &databases.Sku{
 							Name: skuName,
@@ -896,8 +896,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 					if err != nil {
 						return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 					}
-
-					log.Printf("[INFO] SKU of Replication Partner Database updated successfully to %q", skuName)
 				}
 			}
 		}
@@ -1148,12 +1146,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
-
-	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
-	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
-	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1175,13 +1167,26 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceMssqlDatabaseSetFlatten(d, id, resp.Model, meta.(*clients.Client))
+}
+
+func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.SqlDatabaseId, model *databases.Database, metaClient *clients.Client) error {
+	securityAlertPoliciesClient := metaClient.MSSQL.DatabaseSecurityAlertPoliciesClient
+
+	longTermRetentionClient := metaClient.MSSQL.LongTermRetentionPoliciesClient
+	shortTermRetentionClient := metaClient.MSSQL.BackupShortTermRetentionPoliciesClient
+	geoBackupPoliciesClient := metaClient.MSSQL.GeoBackupPoliciesClient
+	transparentEncryptionClient := metaClient.MSSQL.TransparentDataEncryptionsClient
+	ctx, cancel := timeouts.ForRead(metaClient.StopContext, d)
+	defer cancel()
+
 	geoBackupPolicy := true
 	skuName := ""
 	elasticPoolId := ""
 	ledgerEnabled := false
 	enclaveType := ""
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
@@ -1219,7 +1224,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 			// when `max_size_gb` is below 1GB, the API only accepts 100MB and 500MB. 100MB is 104857600, and 500MB is 524288000.
 			// directly set `max_size_gb` when API returns `104857600` or `524288000`.
-			size := float64((pointer.From(props.MaxSizeBytes)) / int64(1073741824))
+			size := float64(pointer.From(props.MaxSizeBytes) / int64(1073741824))
 			switch pointer.From(props.MaxSizeBytes) {
 			case 104857600:
 				size = 0.1
@@ -1352,7 +1357,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 	d.Set("transparent_data_encryption_enabled", tdeState)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {

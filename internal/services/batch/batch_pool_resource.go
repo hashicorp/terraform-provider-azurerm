@@ -669,7 +669,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						string(pool.DiffDiskPlacementCacheDisk),
-					}, false),
+					}, false,
+				),
 			},
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,
@@ -984,8 +985,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(v.(string)))
 	}
 
-	_, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{})
-	if err != nil {
+	if _, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -1115,7 +1115,6 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating the MetaData for %s", *id)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 
 		parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)

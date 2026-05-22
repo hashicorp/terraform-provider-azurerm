@@ -9,7 +9,7 @@ function runGraduallyDeprecatedFunctions {
   IFS=$'\n' read -r -d '' -a flist < <(git diff --diff-filter=AMRC origin/main --name-only --merge-base)
 
   for f in "${flist[@]}"; do
-    # require resources to be imported is now hard-coded on - but only checking for additions
+    # require resources to be imported is now hard-coded on - but only checking for additions
     grep -H -n "features\.ShouldResourcesBeImported" "$f" && {
         echo "The Feature Flag for 'ShouldResourcesBeImported' will be deprecated in the future"
         echo "and shouldn't be used in new resources - please remove new usages of the"
@@ -21,7 +21,7 @@ function runGraduallyDeprecatedFunctions {
         exit 1
     }
 
-    # using Resource ID Formatters/Parsers
+    # using Resource ID Formatters/Parsers
     grep -H -n "d\.SetId(\\*" "$f" && {
         echo "Due to the Azure API returning the Resource ID's inconsistently - Terraform"
         echo "now manages it's own Resource ID's, all new resources should use a generated"
@@ -76,7 +76,7 @@ function runGraduallyDeprecatedFunctions {
     fi
 
     # exceptions to avoid false positives and legacy resources should have their original behaviour preserved
-    exceptions=("run-gradually-deprecated" "/legacy/" "network/ip_group_cidr_resource.go" "network/network_security_group_resource.go" "internal/provider" "vendor/")
+    exceptions=("run-gradually-deprecated" "/legacy/" "network/ip_group_cidr_resource.go" "network/network_security_group_resource.go" "internal/provider" "vendor/" "internal/acceptance/testing.go")
     toSkip=false
     for e in "${exceptions[@]}"; do
       isThisException=$(echo "$f" | grep "$e")
@@ -111,7 +111,7 @@ function runGraduallyDeprecatedFunctions {
           fi
         fi
 
-        # require Azure SDK clients are created with the resource manager endpoint specified
+        # require Azure SDK clients are created with the resource manager endpoint specified
         grep -H -n "Client(o.SubscriptionId)" "$f" && {
             echo "The Azure SDK (track1 & kermit) clients should be created with the function NewFoosClientWithBaseURI() "
             echo "that has the resource manager endpoint explicitly specified. These can be found in:"
@@ -142,7 +142,7 @@ function runGraduallyDeprecatedFunctions {
         ## Instead a User Assigned Identity should be created as a part of the Test Configuration with as
         ## minimal permissions as possible - which can then be cleaned up as a part of the test.
 
-        # Ensure the Test Configuration doesn't use the Client ID
+        # Ensure the Test Configuration doesn't use the Client ID
         grep -H -n "os.Getenv(\"ARM_CLIENT_ID\")" "$f" && {
             echo "A usage of 'os.Getenv('ARM_CLIENT_ID') has been detected in:"
             echo "* $f"
@@ -153,7 +153,7 @@ function runGraduallyDeprecatedFunctions {
             exit 1
         }
 
-        # Ensure the Test Configuration doesn't use the Client Secret
+        # Ensure the Test Configuration doesn't use the Client Secret
         grep -H -n "os.Getenv(\"ARM_CLIENT_SECRET\")" "$f" && {
             echo "A usage of 'os.Getenv('ARM_CLIENT_SECRET') has been detected in:"
             echo "* $f"
@@ -164,7 +164,7 @@ function runGraduallyDeprecatedFunctions {
             exit 1
         }
 
-        # Ensure the Test Configuration doesn't use the Client Secret
+        # Ensure the Test Configuration doesn't use the Client Secret
         grep -H -n "os.Getenv(\"ARM_CLIENT_SECRET_ALT\")" "$f" && {
             echo "A usage of 'os.Getenv('ARM_CLIENT_SECRET_ALT') has been detected in:"
             echo "* $f"

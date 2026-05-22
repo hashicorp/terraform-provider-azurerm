@@ -12,16 +12,16 @@ var _ CopySource = CosmosDbSqlApiSource{}
 
 type CosmosDbSqlApiSource struct {
 	AdditionalColumns *interface{} `json:"additionalColumns,omitempty"`
-	DetectDatetime    *bool        `json:"detectDatetime,omitempty"`
-	PageSize          *int64       `json:"pageSize,omitempty"`
-	PreferredRegions  *[]string    `json:"preferredRegions,omitempty"`
+	DetectDatetime    *interface{} `json:"detectDatetime,omitempty"`
+	PageSize          *interface{} `json:"pageSize,omitempty"`
+	PreferredRegions  *interface{} `json:"preferredRegions,omitempty"`
 	Query             *interface{} `json:"query,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *interface{} `json:"sourceRetryCount,omitempty"`
 	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
 	Type                     string       `json:"type"`
 }

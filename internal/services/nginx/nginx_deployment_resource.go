@@ -77,7 +77,7 @@ type DeploymentModel struct {
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
 	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
-	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
+	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled, removedInNextMajorVersion"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
 	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account,removedInNextMajorVersion"`
@@ -188,12 +188,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"diagnose_support_enabled": {
-			Type:         pluginsdk.TypeBool,
-			Optional:     true,
-			ValidateFunc: nil,
-		},
-
 		"email": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -265,7 +259,8 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				[]string{
 					"stable",
 					"preview",
-				}, false),
+				}, false,
+			),
 		},
 
 		"web_application_firewall": {
@@ -323,6 +318,12 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		}
+
+		resource["diagnose_support_enabled"] = &pluginsdk.Schema{
+			Deprecated: "this property is deprecated and will be removed in v5.0, metrics are enabled by default.",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
 		}
 	}
 	return resource
@@ -397,9 +398,9 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 						},
 					}
 				}
+				prop.EnableDiagnosticsSupport = pointer.To(model.DiagnoseSupportEnabled)
 			}
 
-			prop.EnableDiagnosticsSupport = pointer.To(model.DiagnoseSupportEnabled)
 			prop.NetworkProfile = expandNetworkProfile(model.FrontendPublic, model.FrontendPrivate, model.NetworkInterface)
 
 			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
@@ -512,7 +513,6 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 					output.IpAddress = pointer.From(props.IPAddress)
 					output.NginxVersion = pointer.From(props.NginxVersion)
 					output.DataplaneAPIEndpoint = pointer.From(props.DataplaneApiEndpoint)
-					output.DiagnoseSupportEnabled = pointer.From(props.EnableDiagnosticsSupport)
 
 					if !features.FivePointOh() {
 						if props.Logging != nil && props.Logging.StorageAccount != nil {
@@ -523,6 +523,7 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 								},
 							}
 						}
+						output.DiagnoseSupportEnabled = pointer.From(props.EnableDiagnosticsSupport)
 					}
 
 					if profile := props.NetworkProfile; profile != nil {

@@ -21,6 +21,10 @@
   service: synapse
   version: v2.0
 
+- module: github.com/hashicorp/go-azure-sdk/data-plane
+  service: synapse
+  version: 2021-06-01-preview
+
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: aadb2c
   version: 2021-04-01-preview
@@ -48,14 +52,6 @@
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: customproviders
   version: 2018-09-01-preview
-
-- module: github.com/hashicorp/go-azure-sdk/resource-manager
-  service: databricks
-  version: 2022-04-01-preview
-
-- module: github.com/hashicorp/go-azure-sdk/resource-manager
-  service: databricks
-  version: 2022-10-01-preview
 
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: eventgrid
@@ -102,10 +98,6 @@
   version: 2019-01-01-preview
 
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
-  service: security
-  version: 2022-12-01-preview
-
-- module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: securityinsights
   version: 2022-10-01-preview
 
@@ -140,10 +132,6 @@
 - module: github.com/jackofallops/kermit/sdk
   service: securityinsights
   version: 2022-10-01-preview
-
-- module: github.com/jackofallops/kermit/sdk
-  service: synapse
-  version: 2019-06-01-preview
 
 - module: github.com/jackofallops/kermit/sdk
   service: synapse

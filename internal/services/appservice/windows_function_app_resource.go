@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -787,7 +786,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-						hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
+						hostingEnvId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
 						if err != nil {
 							return err
 						}
@@ -870,8 +869,6 @@ func (r WindowsFunctionAppResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting Windows %s", *id)
 
 			delOptions := webapps.DeleteOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -1172,6 +1169,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Windows %s: %+v", id, err)
 				}
@@ -1273,7 +1274,7 @@ func (r WindowsFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 				if aspModel := asp.Model; aspModel != nil {
 					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
-						aspModel.Properties.HostingEnvironmentProfile.Id != nil && *(aspModel.Properties.HostingEnvironmentProfile.Id) != "" && !newValue.(bool) {
+						aspModel.Properties.HostingEnvironmentProfile.Id != nil && *aspModel.Properties.HostingEnvironmentProfile.Id != "" && !newValue.(bool) {
 						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 					}
 					if sku := aspModel.Sku; sku != nil {

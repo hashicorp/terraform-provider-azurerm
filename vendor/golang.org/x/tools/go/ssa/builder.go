@@ -110,10 +110,11 @@ var (
 	tEface      = types.NewInterfaceType(nil, nil).Complete()
 
 	// SSA Value constants.
-	vZero  = intConst(0)
-	vOne   = intConst(1)
-	vTrue  = NewConst(constant.MakeBool(true), tBool)
-	vFalse = NewConst(constant.MakeBool(false), tBool)
+	vZero     = intConst(0)
+	vOne      = intConst(1)
+	vTrue     = NewConst(constant.MakeBool(true), tBool)
+	vFalse    = NewConst(constant.MakeBool(false), tBool)
+	vNoReturn = NewConst(constant.MakeString("noreturn"), tString)
 
 	jReady = intConst(0)  // range-over-func jump is READY
 	jBusy  = intConst(-1) // range-over-func jump is BUSY
@@ -291,7 +292,7 @@ func (b *builder) exprN(fn *Function, e ast.Expr) Value {
 		var c Call
 		b.setCall(fn, e, &c.Call)
 		c.typ = typ
-		return fn.emit(&c)
+		return emitCall(fn, &c)
 
 	case *ast.IndexExpr:
 		mapt := typeparams.CoreType(fn.typeOf(e.X)).(*types.Map) // ,ok must be a map.
@@ -723,7 +724,7 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 		var v Call
 		b.setCall(fn, e, &v.Call)
 		v.setType(fn.typ(tv.Type))
-		return fn.emit(&v)
+		return emitCall(fn, &v)
 
 	case *ast.UnaryExpr:
 		switch e.Op {
@@ -1466,13 +1467,14 @@ func (b *builder) switchStmt(fn *Function, s *ast.SwitchStmt, label *lblock) {
 		var nextCond *BasicBlock
 		for _, cond := range cc.List {
 			nextCond = fn.newBasicBlock("switch.next")
-			// TODO(adonovan): opt: when tag==vTrue, we'd
-			// get better code if we use b.cond(cond)
-			// instead of BinOp(EQL, tag, b.expr(cond))
-			// followed by If.  Don't forget conversions
-			// though.
-			cond := emitCompare(fn, token.EQL, tag, b.expr(fn, cond), cond.Pos())
-			emitIf(fn, cond, body, nextCond)
+			// For boolean switches, emit short-circuit control flow,
+			// just like an if/else-chain.
+			if tag == vTrue && !isNonTypeParamInterface(fn.info.Types[cond].Type) {
+				b.cond(fn, cond, body, nextCond)
+			} else {
+				c := emitCompare(fn, token.EQL, tag, b.expr(fn, cond), cond.Pos())
+				emitIf(fn, c, body, nextCond)
+			}
 			fn.currentBlock = nextCond
 		}
 		fn.currentBlock = body
@@ -2343,7 +2345,7 @@ func (b *builder) rangeStmt(fn *Function, s *ast.RangeStmt, label *lblock) {
 		// 	for x := range f { ... }
 		// into
 		// 	f(func(x T) bool { ... })
-		b.rangeFunc(fn, x, tk, tv, s, label)
+		b.rangeFunc(fn, x, s, label)
 		return
 
 	default:
@@ -2389,7 +2391,7 @@ func (b *builder) rangeStmt(fn *Function, s *ast.RangeStmt, label *lblock) {
 // rangeFunc emits to fn code for the range-over-func rng.Body of the iterator
 // function x, optionally labelled by label. It creates a new anonymous function
 // yield for rng and builds the function.
-func (b *builder) rangeFunc(fn *Function, x Value, tk, tv types.Type, rng *ast.RangeStmt, label *lblock) {
+func (b *builder) rangeFunc(fn *Function, x Value, rng *ast.RangeStmt, label *lblock) {
 	// Consider the SSA code for the outermost range-over-func in fn:
 	//
 	//   func fn(...) (ret R) {
@@ -2993,8 +2995,8 @@ func (b *builder) buildYieldFunc(fn *Function) {
 	fn.source = fn.parent.source
 	fn.startBody()
 	params := fn.Signature.Params()
-	for i := 0; i < params.Len(); i++ {
-		fn.addParamVar(params.At(i))
+	for v := range params.Variables() {
+		fn.addParamVar(v)
 	}
 
 	// Initial targets
