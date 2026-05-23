@@ -167,6 +167,8 @@ The following arguments are supported:
 
 * `content_share_force_enabled` - (Optional) Should the content share settings (`WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` and `WEBSITE_CONTENTSHARE`) be enabled? Defaults to `true`. Set this to `false` when deploying the Logic App to an App Service Environment (ASE) where the recommendation is to use the ASE internal storage account.
 
+~> **Note:** When `content_share_force_enabled` is set to `false`, any value supplied for `storage_account_share_name` is ignored, since the `WEBSITE_CONTENTSHARE` app setting is intentionally suppressed.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

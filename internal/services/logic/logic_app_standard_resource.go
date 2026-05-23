@@ -244,7 +244,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Should the content share settings (`WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` and `WEBSITE_CONTENTSHARE`) be enabled? Defaults to `true`. Set to `false` when deploying the Logic App to an App Service Environment (ASE) that uses the internal storage account.",
+			Description: "Should the content share settings (`WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` and `WEBSITE_CONTENTSHARE`) be enabled? Defaults to `true`. Set to `false` when deploying the Logic App to an App Service Environment (ASE) that uses the internal storage account. Note: when set to `false`, any value supplied for `storage_account_share_name` is ignored.",
 		},
 
 		"virtual_network_subnet_id": {
