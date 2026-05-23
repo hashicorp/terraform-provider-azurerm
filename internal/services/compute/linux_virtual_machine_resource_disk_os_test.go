@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccLinuxVirtualMachine_diskOSBasic(t *testing.T) {
@@ -364,6 +365,28 @@ func TestAccLinuxVirtualMachine_diskOSConfidentialVmWithGuestStateOnlySecureBoot
 			Config: r.diskOSConfidentialVmWithGuestStateOnly(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxVirtualMachine_diskOSConfidentialSecurityProfileBlock(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSSecurityProfileBlock(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.security_type").HasValue("ConfidentialVM"),
+				check.That(data.ResourceName).Key("security_profile.0.secure_boot_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("security_profile.0.vtpm_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("encryption_at_host_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("secure_boot_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("vtpm_enabled").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -1111,6 +1134,48 @@ resource "azurerm_linux_virtual_machine" "test" {
 func (r LinuxVirtualMachineResource) diskOSConfidentialVmWithGuestStateOnly(data acceptance.TestData, vtpm, secureBoot bool) string {
 	// Confidential VM has limited region support
 	data.Locations.Primary = "northeurope"
+
+	if features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DC2as_v5"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching                  = "ReadWrite"
+    storage_account_type     = "Standard_LRS"
+    security_encryption_type = "VMGuestStateOnly"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-confidential-vm-jammy"
+    sku       = "22_04-lts-cvm"
+    version   = "latest"
+  }
+
+  security_profile {
+    security_type       = "ConfidentialVM"
+    vtpm_enabled        = %t
+    secure_boot_enabled = %t
+  }
+}
+`, r.template(data), data.RandomInteger, vtpm, secureBoot)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -1146,6 +1211,45 @@ resource "azurerm_linux_virtual_machine" "test" {
   secure_boot_enabled = %t
 }
 `, r.template(data), data.RandomInteger, vtpm, secureBoot)
+}
+
+func (r LinuxVirtualMachineResource) diskOSSecurityProfileBlock(data acceptance.TestData) string {
+	data.Locations.Primary = "northeurope"
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctestVM-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_DC2as_v5"
+  admin_username                  = "adminuser"
+  admin_password                  = "P@$$w0rd1234!"
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching                  = "ReadWrite"
+    storage_account_type     = "Standard_LRS"
+    security_encryption_type = "VMGuestStateOnly"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-confidential-vm-focal"
+    sku       = "20_04-lts-cvm"
+    version   = "latest"
+  }
+
+  security_profile {
+    security_type       = "ConfidentialVM"
+    secure_boot_enabled = true
+    vtpm_enabled        = true
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineResource) diskOSConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData) string {
