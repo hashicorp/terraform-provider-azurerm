@@ -38,9 +38,9 @@ resource "azurerm_logic_app_standard" "example" {
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
 
-  # When deploying to an ASE with internal storage, set this to true
+  # When deploying to an ASE with internal storage, set this to false
   # to suppress WEBSITE_CONTENTAZUREFILECONNECTIONSTRING and WEBSITE_CONTENTSHARE app settings
-  content_share_force_disabled = true
+  content_share_force_enabled = false
 
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME" = "dotnet"

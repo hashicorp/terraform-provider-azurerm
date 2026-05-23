@@ -165,7 +165,7 @@ The following arguments are supported:
 
 * `vnet_content_share_enabled` - (Optional) Specifies whether allow routing traffic between the Logic App and Storage Account content share through a virtual network. Defaults to `false`.
 
-* `content_share_force_disabled` - (Optional) Should the settings for linking the Logic App to storage (`WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` and `WEBSITE_CONTENTSHARE`) be suppressed? Defaults to `false`. This is useful when deploying the Logic App to an App Service Environment (ASE) where the recommendation is to use the ASE internal storage account.
+* `content_share_force_enabled` - (Optional) Should the content share settings (`WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` and `WEBSITE_CONTENTSHARE`) be enabled? Defaults to `true`. Set this to `false` when deploying the Logic App to an App Service Environment (ASE) where the recommendation is to use the ASE internal storage account.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
