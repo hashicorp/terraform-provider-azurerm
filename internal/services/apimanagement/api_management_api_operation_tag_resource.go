@@ -13,17 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tag"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiOperationTagCreateUpdate,
+	resource := &pluginsdk.Resource{
+		Create: resourceApiManagementApiOperationTagCreate,
 		Read:   resourceApiManagementApiOperationTagRead,
-		Update: resourceApiManagementApiOperationTagCreateUpdate,
+		Update: resourceApiManagementApiOperationTagUpdate,
 		Delete: resourceApiManagementApiOperationTagDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -52,17 +52,22 @@ func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.ApiManagementChildName,
 			},
-
-			"display_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["display_name"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "This property has been deprecated and will be removed in v5.0 of the provider. Use display_name property of azurerm_api_management_tag resource.",
+		}
+	}
+
+	return resource
 }
 
-func resourceApiManagementApiOperationTagCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiOperationTagCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	tagClient := meta.(*clients.Client).ApiManagement.TagClient
 	client := meta.(*clients.Client).ApiManagement.ApiOperationTagClient
@@ -77,29 +82,51 @@ func resourceApiManagementApiOperationTagCreateUpdate(d *pluginsdk.ResourceData,
 	apiName := getApiName(apiOperationId.ApiId)
 
 	id := apioperationtag.NewOperationTagID(subscriptionId, apiOperationId.ResourceGroupName, apiOperationId.ServiceName, apiName, apiOperationId.OperationId, d.Get("name").(string))
+	tagId := tag.NewTagID(subscriptionId, apiOperationId.ResourceGroupName, apiOperationId.ServiceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.TagGetByOperation(ctx, id)
-		if err != nil {
+	// For 4.0 we continue to create the tag if display_name is set (backward compatibility)
+	displayName := d.Get("display_name").(string)
+	if !features.FivePointOhBeta() && len(displayName) > 0 {
+		if d.IsNewResource() {
+			existing, err := client.TagGetByOperation(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Tag %q: %s", id, err)
+				}
+			}
+
 			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Tag %q: %s", id, err)
+				return tf.ImportAsExistsError("azurerm_api_management_api_operation_tag", id.ID())
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		parameters := tag.TagCreateUpdateParameters{
+			Properties: &tag.TagContractProperties{
+				DisplayName: d.Get("display_name").(string),
+			},
+		}
+
+		if _, err := tagClient.CreateOrUpdate(ctx, tagId, parameters, tag.CreateOrUpdateOperationOptions{}); err != nil {
+			return fmt.Errorf("creating/updating %q: %+v", id, err)
+		}
+	} else {
+		tagAssignmentExist, err := client.TagGetByOperation(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(tagAssignmentExist.HttpResponse) {
+				return fmt.Errorf("checking for presence of Tag Assignment %q: %s", id, err)
+			}
+		}
+
+		if !response.WasNotFound(tagAssignmentExist.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_api_operation_tag", id.ID())
 		}
-	}
 
-	parameters := tag.TagCreateUpdateParameters{
-		Properties: &tag.TagContractProperties{
-			DisplayName: d.Get("display_name").(string),
-		},
-	}
-
-	tagId := tag.NewTagID(subscriptionId, apiOperationId.ResourceGroupName, apiOperationId.ServiceName, d.Get("name").(string))
-	if _, err := tagClient.CreateOrUpdate(ctx, tagId, parameters, tag.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %q: %+v", id, err)
+		tagExists, err := tagClient.Get(ctx, tagId)
+		if err != nil {
+			if !response.WasNotFound(tagExists.HttpResponse) {
+				return fmt.Errorf("checking for presence of Tag %q: %s", id, err)
+			}
+		}
 	}
 
 	if _, err := client.TagAssignToOperation(ctx, id); err != nil {
@@ -139,13 +166,23 @@ func resourceApiManagementApiOperationTagRead(d *pluginsdk.ResourceData, meta in
 	d.Set("api_operation_id", apioperationtag.NewOperationID(subscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId, id.OperationId).ID())
 	d.Set("name", id.TagId)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("display_name", props.DisplayName)
+	if !features.FivePointOhBeta() {
+		if model := resp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				d.Set("display_name", props.DisplayName)
+			}
 		}
 	}
 
 	return nil
+}
+
+func resourceApiManagementApiOperationTagUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	if features.FivePointOhBeta() {
+		return nil
+	}
+
+	return resourceApiManagementApiOperationTagCreate(d, meta)
 }
 
 func resourceApiManagementApiOperationTagDelete(d *pluginsdk.ResourceData, meta interface{}) error {
