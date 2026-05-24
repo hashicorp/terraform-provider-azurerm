@@ -26,56 +26,58 @@ type CloudVmClusterDataModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 
 	// CloudVMClusterProperties
-	BackupSubnetCidr             string                         `tfschema:"backup_subnet_cidr"`
-	CloudExadataInfrastructureId string                         `tfschema:"cloud_exadata_infrastructure_id"`
-	ClusterName                  string                         `tfschema:"cluster_name"`
-	CompartmentId                string                         `tfschema:"compartment_id"`
-	ComputeModel                 string                         `tfschema:"compute_model"`
-	ComputeNodes                 []string                       `tfschema:"compute_nodes"`
-	CpuCoreCount                 int64                          `tfschema:"cpu_core_count"`
-	DataCollectionOptions        []DataCollectionOptionsModel   `tfschema:"data_collection_options"`
-	DataStoragePercentage        int64                          `tfschema:"data_storage_percentage"`
-	DataStorageSizeInTbs         float64                        `tfschema:"data_storage_size_in_tbs"`
-	DbNodeStorageSizeInGbs       int64                          `tfschema:"db_node_storage_size_in_gbs"`
-	DbServers                    []string                       `tfschema:"db_servers"`
-	DiskRedundancy               string                         `tfschema:"disk_redundancy"`
-	DisplayName                  string                         `tfschema:"display_name"`
-	Domain                       string                         `tfschema:"domain"`
-	FileSystemConfiguration      []FileSystemConfigurationModel `tfschema:"file_system_configuration"`
-	GiVersion                    string                         `tfschema:"gi_version"`
-	Hostname                     string                         `tfschema:"hostname"`
-	HostnameActual               string                         `tfschema:"hostname_actual"`
-	IormConfigCache              []ExadataIormConfigModel       `tfschema:"iorm_config_cache"`
-	IsLocalBackupEnabled         bool                           `tfschema:"local_backup_enabled"`
-	IsSparseDiskgroupEnabled     bool                           `tfschema:"sparse_diskgroup_enabled"`
-	LastUpdateHistoryEntryId     string                         `tfschema:"last_update_history_entry_id"`
-	LicenseModel                 string                         `tfschema:"license_model"`
-	LifecycleDetails             string                         `tfschema:"lifecycle_details"`
-	LifecycleState               string                         `tfschema:"lifecycle_state"`
-	ListenerPort                 int64                          `tfschema:"listener_port"`
-	Location                     string                         `tfschema:"location"`
-	MemorySizeInGbs              int64                          `tfschema:"memory_size_in_gbs"`
-	NodeCount                    int64                          `tfschema:"node_count"`
-	NsgUrl                       string                         `tfschema:"nsg_url"`
-	OciUrl                       string                         `tfschema:"oci_url"`
-	Ocid                         string                         `tfschema:"ocid"`
-	OcpuCount                    float64                        `tfschema:"ocpu_count"`
-	ScanDnsName                  string                         `tfschema:"scan_dns_name"`
-	ScanDnsRecordId              string                         `tfschema:"scan_dns_record_id"`
-	ScanIPIds                    []string                       `tfschema:"scan_ip_ids"`
-	ScanListenerPortTcp          int64                          `tfschema:"scan_listener_port_tcp"`
-	ScanListenerPortTcpSsl       int64                          `tfschema:"scan_listener_port_tcp_ssl"`
-	Shape                        string                         `tfschema:"shape"`
-	SshPublicKeys                []string                       `tfschema:"ssh_public_keys"`
-	StorageSizeInGbs             int64                          `tfschema:"storage_size_in_gbs"`
-	SubnetId                     string                         `tfschema:"subnet_id"`
-	SubnetOcid                   string                         `tfschema:"subnet_ocid"`
-	SystemVersion                string                         `tfschema:"system_version"`
-	TimeCreated                  string                         `tfschema:"time_created"`
-	TimeZone                     string                         `tfschema:"time_zone"`
-	VipIds                       []string                       `tfschema:"vip_ods"`
-	VnetId                       string                         `tfschema:"virtual_network_id"`
-	ZoneId                       string                         `tfschema:"zone_id"`
+	BackupSubnetCidr               string                         `tfschema:"backup_subnet_cidr"`
+	CloudExadataInfrastructureId   string                         `tfschema:"cloud_exadata_infrastructure_id"`
+	ClusterName                    string                         `tfschema:"cluster_name"`
+	CompartmentId                  string                         `tfschema:"compartment_id"`
+	ComputeModel                   string                         `tfschema:"compute_model"`
+	ComputeNodes                   []string                       `tfschema:"compute_nodes"`
+	CpuCoreCount                   int64                          `tfschema:"cpu_core_count"`
+	DataCollectionOptions          []DataCollectionOptionsModel   `tfschema:"data_collection_options"`
+	DataStoragePercentage          int64                          `tfschema:"data_storage_percentage"`
+	DataStorageSizeInTbs           float64                        `tfschema:"data_storage_size_in_tbs"`
+	DbNodeStorageSizeInGbs         int64                          `tfschema:"db_node_storage_size_in_gbs"`
+	DbServers                      []string                       `tfschema:"db_servers"`
+	DiskRedundancy                 string                         `tfschema:"disk_redundancy"`
+	DisplayName                    string                         `tfschema:"display_name"`
+	Domain                         string                         `tfschema:"domain"`
+	ExascaleDatabaseStorageVaultId string                         `tfschema:"exascale_database_storage_vault_id"`
+	FileSystemConfiguration        []FileSystemConfigurationModel `tfschema:"file_system_configuration"`
+	GiVersion                      string                         `tfschema:"gi_version"`
+	Hostname                       string                         `tfschema:"hostname"`
+	HostnameActual                 string                         `tfschema:"hostname_actual"`
+	IormConfigCache                []ExadataIormConfigModel       `tfschema:"iorm_config_cache"`
+	IsLocalBackupEnabled           bool                           `tfschema:"local_backup_enabled"`
+	IsSparseDiskgroupEnabled       bool                           `tfschema:"sparse_diskgroup_enabled"`
+	LastUpdateHistoryEntryId       string                         `tfschema:"last_update_history_entry_id"`
+	LicenseModel                   string                         `tfschema:"license_model"`
+	LifecycleDetails               string                         `tfschema:"lifecycle_details"`
+	LifecycleState                 string                         `tfschema:"lifecycle_state"`
+	ListenerPort                   int64                          `tfschema:"listener_port"`
+	Location                       string                         `tfschema:"location"`
+	MemorySizeInGbs                int64                          `tfschema:"memory_size_in_gbs"`
+	NodeCount                      int64                          `tfschema:"node_count"`
+	NsgUrl                         string                         `tfschema:"nsg_url"`
+	OciUrl                         string                         `tfschema:"oci_url"`
+	Ocid                           string                         `tfschema:"ocid"`
+	OcpuCount                      float64                        `tfschema:"ocpu_count"`
+	ScanDnsName                    string                         `tfschema:"scan_dns_name"`
+	ScanDnsRecordId                string                         `tfschema:"scan_dns_record_id"`
+	ScanIPIds                      []string                       `tfschema:"scan_ip_ids"`
+	ScanListenerPortTcp            int64                          `tfschema:"scan_listener_port_tcp"`
+	ScanListenerPortTcpSsl         int64                          `tfschema:"scan_listener_port_tcp_ssl"`
+	Shape                          string                         `tfschema:"shape"`
+	SshPublicKeys                  []string                       `tfschema:"ssh_public_keys"`
+	StorageManagementType          string                         `tfschema:"storage_management_type"`
+	StorageSizeInGbs               int64                          `tfschema:"storage_size_in_gbs"`
+	SubnetId                       string                         `tfschema:"subnet_id"`
+	SubnetOcid                     string                         `tfschema:"subnet_ocid"`
+	SystemVersion                  string                         `tfschema:"system_version"`
+	TimeCreated                    string                         `tfschema:"time_created"`
+	TimeZone                       string                         `tfschema:"time_zone"`
+	VipIds                         []string                       `tfschema:"vip_ods"`
+	VnetId                         string                         `tfschema:"virtual_network_id"`
+	ZoneId                         string                         `tfschema:"zone_id"`
 }
 
 type FileSystemConfigurationModel struct {
@@ -118,7 +120,6 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
-		// CloudVMClusterProperties
 		"backup_subnet_cidr": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -214,6 +215,11 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"domain": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"exascale_database_storage_vault_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -403,6 +409,11 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"storage_management_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"storage_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
@@ -507,6 +518,7 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 					state.DiskRedundancy = string(pointer.From(props.DiskRedundancy))
 					state.DisplayName = props.DisplayName
 					state.Domain = pointer.From(props.Domain)
+					state.ExascaleDatabaseStorageVaultId = pointer.From(props.ExascaleDbStorageVaultId)
 					state.FileSystemConfiguration = FlattenFileSystemConfigurationDetails(props.FileSystemConfigurationDetails)
 					state.GiVersion = props.GiVersion
 					state.Hostname = removeHostnameSuffix(props.Hostname)
@@ -528,6 +540,7 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 					state.StorageSizeInGbs = pointer.From(props.StorageSizeInGbs)
 					state.SubnetId = props.SubnetId
 					state.SubnetOcid = pointer.From(props.SubnetOcid)
+					state.StorageManagementType = pointer.FromEnum(props.StorageManagementType)
 					state.SystemVersion = pointer.From(props.SystemVersion)
 					state.TimeCreated = pointer.From(props.TimeCreated)
 					state.TimeZone = pointer.From(props.TimeZone)

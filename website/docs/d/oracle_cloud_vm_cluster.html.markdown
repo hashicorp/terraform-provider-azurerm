@@ -67,6 +67,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `domain` - The domain name for the Cloud VM Cluster.
 
+`* `exascale_database_storage_vault_id` - Identifier of the Cloud Exadata Database Storage Vault in Azure.`
+
 * `file_system_configuration` - A `file_system_configuration` block as defined below.
 
 * `gi_version` - A valid Oracle Grid Infrastructure (GI) software version.
@@ -115,6 +117,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `scan_listener_port_tcp` -  The TCP Single Client Access Name (SCAN) port. The default port is 1521.
 
 * `scan_listener_port_tcp_ssl` - The TCPS Single Client Access Name (SCAN) port. The default port is 2484.
+
+* `storage_management_type` - Specifies whether the type of storage management for the VM cluster is `ASM` or `Exascale`.
 
 * `system_version` - (Optional) Operating system version of the Exadata image.
 
