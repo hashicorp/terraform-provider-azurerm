@@ -4,6 +4,7 @@
 package firewall
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/firewallpolicyrulecollectiongroups"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -29,10 +31,16 @@ import (
 
 func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
-		Read:   resourceFirewallPolicyRuleCollectionGroupRead,
-		Update: resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
-		Delete: resourceFirewallPolicyRuleCollectionGroupDelete,
+		// NOTE: Using *WithoutTimeout variants because Azure enforces serial processing on firewall
+		// policy rule collection groups within the same policy, responding with 409
+		// AnotherOperationInProgress for concurrent requests. The provider serializes these operations
+		// using a mutex (locks.ByName), and the timeout must only start after the lock is acquired so
+		// that time spent waiting for the lock does not consume the timeout budget. The *WithoutTimeout
+		// variants allow the resource to manage its own timeout context after acquiring the lock.
+		CreateWithoutTimeout: resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
+		ReadWithoutTimeout:   resourceFirewallPolicyRuleCollectionGroupRead,
+		UpdateWithoutTimeout: resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
+		DeleteWithoutTimeout: resourceFirewallPolicyRuleCollectionGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&firewallpolicyrulecollectiongroups.RuleCollectionGroupId{}),
 
@@ -458,33 +466,39 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	policyId, err := firewallpolicies.ParseFirewallPolicyID(d.Get("firewall_policy_id").(string))
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	id := firewallpolicyrulecollectiongroups.NewRuleCollectionGroupID(policyId.SubscriptionId, policyId.ResourceGroupName, policyId.FirewallPolicyName, d.Get("name").(string))
+
+	// NOTE: Acquire the lock before creating the timeout context. Azure enforces serial processing
+	// on firewall policy rule collection groups within the same policy, responding with 409
+	// AnotherOperationInProgress for concurrent requests. The timeout context is created after
+	// the lock is acquired so that time spent waiting for the lock does not consume the timeout
+	// budget. This is why this resource uses *WithoutTimeout CRUD registration.
+	locks.ByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
+	defer locks.UnlockByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
+
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
 	if d.IsNewResource() {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+				return diag.FromErr(fmt.Errorf("checking for existing %s: %+v", id, err))
 			}
 		}
 
 		if resp.Model != nil {
-			return tf.ImportAsExistsError("azurerm_firewall_policy_rule_collection_group", id.ID())
+			return diag.FromErr(tf.ImportAsExistsError("azurerm_firewall_policy_rule_collection_group", id.ID()))
 		}
 	}
-
-	locks.ByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
-	defer locks.UnlockByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
 
 	param := firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollectionGroup{
 		Properties: &firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollectionGroupProperties{
@@ -497,32 +511,32 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 
 	natRules, err := expandFirewallPolicyRuleCollectionNat(d.Get("nat_rule_collection").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("expanding NAT rule collection: %w", err)
+		return diag.FromErr(fmt.Errorf("expanding NAT rule collection: %w", err))
 	}
 	rulesCollections = append(rulesCollections, natRules...)
 
 	param.Properties.RuleCollections = &rulesCollections
 
 	if err = client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+		return diag.FromErr(fmt.Errorf("creating %s: %+v", id, err))
 	}
 
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return resourceFirewallPolicyRuleCollectionGroupRead(d, meta)
+	return resourceFirewallPolicyRuleCollectionGroupRead(ctx, d, meta)
 }
 
-func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyRuleCollectionGroupRead(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := firewallpolicyrulecollectiongroups.ParseRuleCollectionGroupID(d.Id())
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	resp, err := client.Get(ctx, *id)
@@ -533,9 +547,12 @@ func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, me
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return diag.FromErr(fmt.Errorf("retrieving %s: %+v", id, err))
 	}
-	return resourceFirewallPolicyRuleCollectionGroupSetFlatten(d, id, resp.Model)
+	if err := resourceFirewallPolicyRuleCollectionGroupSetFlatten(d, id, resp.Model); err != nil {
+		return diag.FromErr(err)
+	}
+	return nil
 }
 
 func resourceFirewallPolicyRuleCollectionGroupSetFlatten(d *pluginsdk.ResourceData, id *firewallpolicyrulecollectiongroups.RuleCollectionGroupId, model *firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollectionGroup) error {
@@ -566,21 +583,27 @@ func resourceFirewallPolicyRuleCollectionGroupSetFlatten(d *pluginsdk.ResourceDa
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceFirewallPolicyRuleCollectionGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyRuleCollectionGroupDelete(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	id, err := firewallpolicyrulecollectiongroups.ParseRuleCollectionGroupID(d.Id())
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
+	// NOTE: Acquire the lock before creating the timeout context. Azure enforces serial processing
+	// on firewall policy rule collection groups within the same policy, responding with 409
+	// AnotherOperationInProgress for concurrent requests. The timeout context is created after
+	// the lock is acquired so that time spent waiting for the lock does not consume the timeout
+	// budget. This is why this resource uses *WithoutTimeout CRUD registration.
 	locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 	defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+		return diag.FromErr(fmt.Errorf("deleting %s: %+v", id, err))
 	}
 	return nil
 }
