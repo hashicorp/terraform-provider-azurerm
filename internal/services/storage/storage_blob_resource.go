@@ -225,7 +225,6 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	log.Printf("[DEBUG] Creating %s..", id)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	blobInput := BlobUpload{
 		AccountName:   accountName,
@@ -252,7 +251,6 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err = blobInput.Create(ctx); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
-	log.Printf("[DEBUG] Created %s.", id)
 
 	d.SetId(id.ID())
 
@@ -283,7 +281,6 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("building Blobs Client: %v", err)
 	}
 
-	log.Printf("[INFO] Retrieving %s", id)
 	input := blobs.GetPropertiesInput{}
 	props, err := blobsClient.GetProperties(ctx, id.ContainerName, id.BlobName, input)
 	if err != nil {
@@ -297,7 +294,6 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("content_type") || d.HasChange("cache_control") {
-		log.Printf("[DEBUG] Updating Properties for %s...", id)
 		input := blobs.SetPropertiesInput{
 			ContentType:  pointer.To(d.Get("content_type").(string)),
 			CacheControl: pointer.To(d.Get("cache_control").(string)),
@@ -314,11 +310,9 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if _, err = blobsClient.SetProperties(ctx, id.ContainerName, id.BlobName, input); err != nil {
 			return fmt.Errorf("updating Properties for %s: %v", id, err)
 		}
-		log.Printf("[DEBUG] Updated Properties for %s", id)
 	}
 
 	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating MetaData for %s...", id)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 		input := blobs.SetMetaDataInput{
 			MetaData: ExpandMetaData(metaDataRaw),
@@ -330,19 +324,15 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if _, err = blobsClient.SetMetaData(ctx, id.ContainerName, id.BlobName, input); err != nil {
 			return fmt.Errorf("updating MetaData for %s: %v", id, err)
 		}
-		log.Printf("[DEBUG] Updated MetaData for %s", id)
 	}
 
 	if d.HasChange("access_tier") {
 		// this is only applicable for Gen2/BlobStorage accounts
-		log.Printf("[DEBUG] Updating Access Tier for %s...", id)
 		accessTier := blobs.AccessTier(d.Get("access_tier").(string))
 
 		if _, err := blobsClient.SetTier(ctx, id.ContainerName, id.BlobName, blobs.SetTierInput{Tier: accessTier}); err != nil {
 			return fmt.Errorf("updating Access Tier for %s: %v", id, err)
 		}
-
-		log.Printf("[DEBUG] Updated Access Tier for %s", id)
 	}
 
 	return resourceStorageBlobRead(d, meta)
@@ -374,7 +364,6 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("building Blobs Client: %v", err)
 	}
 
-	log.Printf("[INFO] Retrieving %s", id)
 	input := blobs.GetPropertiesInput{}
 	props, err := blobsClient.GetProperties(ctx, id.ContainerName, id.BlobName, input)
 	if err != nil {

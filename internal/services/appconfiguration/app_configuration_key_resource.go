@@ -173,7 +173,6 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
 			// allow some time for role permission to be propagated
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be propagated", model.Key)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Forbidden"},
 				Target:                    []string{"Error", "Exists", "NotFound"},
@@ -230,7 +229,6 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			// https://github.com/Azure/AppConfiguration/issues/763
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q to be provisioned", model.Key)
 			stateConf = &pluginsdk.StateChangeConf{
 				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},

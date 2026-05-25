@@ -260,8 +260,6 @@ func (r JobScheduleResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s", *id)
-
 			streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingJobName)
 			if err := client.StopThenPoll(ctx, streamingJobId); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

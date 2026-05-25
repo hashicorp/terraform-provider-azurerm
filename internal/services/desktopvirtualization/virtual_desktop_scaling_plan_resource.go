@@ -254,8 +254,6 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan create")
-
 	id := scalingplan.NewScalingPlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -302,8 +300,6 @@ func resourceVirtualDesktopScalingPlanUpdate(d *pluginsdk.ResourceData, meta int
 	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan update")
 
 	id, err := scalingplan.ParseScalingPlanID(d.Id())
 	if err != nil {

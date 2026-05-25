@@ -6,7 +6,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -72,6 +71,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.LabServices/labplans",
 	"Microsoft.Logic/integrationServiceEnvironments",
 	"Microsoft.MachineLearningServices/workspaces",
+	"Microsoft.MessagingConnectors/connectors",
 	"Microsoft.Netapp/volumes",
 	"Microsoft.Network/applicationGateways",
 	"Microsoft.Network/dnsResolvers",
@@ -300,8 +300,6 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
 
 	id := commonids.NewSubnetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
 	existing, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())

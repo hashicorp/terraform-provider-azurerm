@@ -245,8 +245,6 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for %s to become ready: %+v", *id, err)
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
-
 	if resp.Model != nil {
 		resp.Model.Properties.HostnameConfigurations = nil
 	}

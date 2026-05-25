@@ -169,7 +169,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 	if v, ok := d.GetOk("categories"); ok {
 		categories := make([]assessmentsmetadata.Categories, 0)
 		for _, item := range v.(*pluginsdk.Set).List() {
-			categories = append(categories, (assessmentsmetadata.Categories)(item.(string)))
+			categories = append(categories, assessmentsmetadata.Categories(item.(string)))
 		}
 		params.Properties.Categories = &categories
 	}
@@ -296,7 +296,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 	if d.HasChange("threats") {
 		threats := make([]assessmentsmetadata.Threats, 0)
 		for _, item := range d.Get("threats").(*pluginsdk.Set).List() {
-			threats = append(threats, (assessmentsmetadata.Threats)(item.(string)))
+			threats = append(threats, assessmentsmetadata.Threats(item.(string)))
 		}
 		existing.Model.Properties.Threats = &threats
 	}

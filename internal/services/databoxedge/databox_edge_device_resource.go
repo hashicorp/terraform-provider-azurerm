@@ -339,7 +339,7 @@ func flattenDeviceProperties(input *devices.DataBoxEdgeDeviceProperties) []Devic
 		o := DevicePropertiesModel{}
 		if input.ConfiguredRoleTypes != nil {
 			for _, item := range *input.ConfiguredRoleTypes {
-				configuredRoleTypes = append(configuredRoleTypes, (string)(item))
+				configuredRoleTypes = append(configuredRoleTypes, string(item))
 			}
 			o.ConfiguredRoleTypes = configuredRoleTypes
 		}

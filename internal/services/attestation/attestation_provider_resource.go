@@ -372,12 +372,12 @@ func resourceAttestationProviderDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandArmAttestationProviderJSONWebKeySet(pem string) *attestationproviders.JsonWebKeySet {
+func expandArmAttestationProviderJSONWebKeySet(pem string) *attestationproviders.JSONWebKeySet {
 	if len(pem) == 0 {
 		return nil
 	}
 
-	result := attestationproviders.JsonWebKeySet{
+	result := attestationproviders.JSONWebKeySet{
 		Keys: expandArmAttestationProviderJSONWebKeyArray(pem),
 	}
 
