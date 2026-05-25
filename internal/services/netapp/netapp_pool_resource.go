@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -153,7 +154,7 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	defer cancel()
 
 	id := capacitypools.NewCapacityPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.PoolsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -191,13 +192,8 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		capacityPoolParameters.Properties.CustomThroughputMibps = pointer.To(int64(customThroughputMibps.(int)))
 	}
 
-	if err := client.PoolsCreateOrUpdateThenPoll(ctx, id, capacityPoolParameters); err != nil {
+	if err := client.PoolsCreateOrUpdateCallbackThenPoll(ctx, id, capacityPoolParameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	// Wait for pool to complete create
-	if err := waitForPoolCreateOrUpdate(ctx, client, id); err != nil {
-		return err
 	}
 
 	d.SetId(id.ID())
@@ -248,11 +244,6 @@ func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if err = client.PoolsUpdateThenPoll(ctx, *id, update); err != nil {
 		return fmt.Errorf("updating %s: %+v", id.ID(), err)
-	}
-
-	// Wait for pool to complete update
-	if err = waitForPoolCreateOrUpdate(ctx, client, *id); err != nil {
-		return err
 	}
 
 	return resourceNetAppPoolRead(d, meta)
@@ -356,45 +347,6 @@ func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *capacitypools
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {
 				return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-		}
-
-		statusCode := "dropped connection"
-		if res.HttpResponse != nil {
-			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-		return res, statusCode, nil
-	}
-}
-
-func waitForPoolCreateOrUpdate(ctx context.Context, client *capacitypools.CapacityPoolsClient, id capacitypools.CapacityPoolId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     10 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"204", "404"},
-		Target:                    []string{"200", "202"},
-		Refresh:                   netappPoolStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
-	}
-
-	return nil
-}
-
-func netappPoolStateRefreshFunc(ctx context.Context, client *capacitypools.CapacityPoolsClient, id capacitypools.CapacityPoolId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.PoolsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(res.HttpResponse) {
-				return nil, "", fmt.Errorf("retrieving %s: %s", id.ID(), err)
 			}
 		}
 
