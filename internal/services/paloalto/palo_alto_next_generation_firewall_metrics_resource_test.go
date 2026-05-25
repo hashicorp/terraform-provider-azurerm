@@ -33,7 +33,7 @@ func (r NextGenerationFirewallMetricsResourceTest) Exists(ctx context.Context, c
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Metrics for %s: %+v", metricsFirewallId, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", metricsFirewallId, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
@@ -93,6 +93,14 @@ func TestAccPaloAltoNextGenerationFirewallMetrics_update(t *testing.T) {
 
 func (r NextGenerationFirewallMetricsResourceTest) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_metrics" "test" {
@@ -119,6 +127,14 @@ resource "azurerm_palo_alto_next_generation_firewall_metrics" "import" {
 
 func (r NextGenerationFirewallMetricsResourceTest) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_metrics" "test" {
@@ -133,14 +149,6 @@ resource "azurerm_palo_alto_next_generation_firewall_metrics" "test" {
 
 func (r NextGenerationFirewallMetricsResourceTest) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PANGFWMETRICS-%[1]d"
   location = "%[2]s"
