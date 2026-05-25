@@ -1448,8 +1448,9 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"7",   // Deprecated / not available in the portal
-						"7.2", // preview LTS Support
-						"7.4", // current LTS Support
+						"7.2", // Deprecated
+						"7.4", // Deprecated
+						"7.6", // current LTS Support
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1460,7 +1461,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of PowerShell Core to use. Possibles values are `7`, `7.2`, and `7.4`",
+					Description: "The version of PowerShell Core to use. Possibles values are `7`, `7.2`, `7.4`, and `7.6`",
 				},
 
 				"java_version": {
