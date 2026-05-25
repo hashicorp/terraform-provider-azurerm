@@ -341,12 +341,15 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			HighAvailabilityReplicaCount:     pointer.To(int64(d.Get("read_replica_count").(int))),
 			SampleName:                       pointer.To(databases.SampleName(d.Get("sample_name").(string))),
 			RequestedBackupStorageRedundancy: pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string))),
-			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       pointer.To(ledgerEnabled),
 			SecondaryType:                    pointer.To(databases.SecondaryType(d.Get("secondary_type").(string))),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "zone_redundant") {
+		input.Properties.ZoneRedundant = pointer.To(d.Get("zone_redundant").(bool))
 	}
 
 	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...

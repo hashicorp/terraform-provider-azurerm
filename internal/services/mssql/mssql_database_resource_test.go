@@ -255,7 +255,7 @@ func TestAccMsSqlDatabase_bc(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("read_scale").HasValue("true"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("BC_Gen5_2"),
-				check.That(data.ResourceName).Key("zone_redundant").HasValue("true"),
+				check.That(data.ResourceName).Key("zone_redundant").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1812,11 +1812,10 @@ func (r MssqlDatabaseResource) bc(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name           = "acctest-db-%[2]d"
-  server_id      = azurerm_mssql_server.test.id
-  read_scale     = true
-  sku_name       = "BC_Gen5_2"
-  zone_redundant = true
+	name       = "acctest-db-%[2]d"
+	server_id  = azurerm_mssql_server.test.id
+	read_scale = true
+	sku_name   = "BC_Gen5_2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1826,11 +1825,10 @@ func (r MssqlDatabaseResource) bcUpdate(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name           = "acctest-db-%[2]d"
-  server_id      = azurerm_mssql_server.test.id
-  read_scale     = false
-  sku_name       = "BC_Gen5_2"
-  zone_redundant = false
+	name       = "acctest-db-%[2]d"
+	server_id  = azurerm_mssql_server.test.id
+	read_scale = false
+	sku_name   = "BC_Gen5_2"
 }
 `, r.template(data), data.RandomInteger)
 }
