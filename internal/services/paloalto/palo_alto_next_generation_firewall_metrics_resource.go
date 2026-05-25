@@ -79,7 +79,7 @@ func (r NextGenerationFirewallMetricsResource) Create() sdk.ResourceFunc {
 
 			var model NextGenerationFirewallMetricsModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			firewallId, err := firewalls.ParseFirewallID(model.FirewallID)
@@ -166,7 +166,7 @@ func (r NextGenerationFirewallMetricsResource) Update() sdk.ResourceFunc {
 
 			var model NextGenerationFirewallMetricsModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			firewallId, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
