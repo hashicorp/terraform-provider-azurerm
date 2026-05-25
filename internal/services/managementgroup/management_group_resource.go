@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managementgroups/2020-05-01/managementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
@@ -130,8 +130,6 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	log.Printf("[INFO] Creating Management Group %q", groupName)
-
 	properties := managementgroups.CreateManagementGroupRequest{
 		Name: pointer.To(groupName),
 		Properties: &managementgroups.CreateManagementGroupProperties{
@@ -213,7 +211,6 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// then add the new ones
-	log.Printf("[DEBUG] Preparing to assign Subscriptions to Management Group %q", groupName)
 	for _, subscriptionId := range subscriptionIds {
 		log.Printf("[DEBUG] Assigning Subscription ID %q to management group %q", subscriptionId, groupName)
 		if _, err := client.SubscriptionsCreate(ctx, managementgroups.NewSubscriptionID(groupName, subscriptionId), managementgroups.SubscriptionsCreateOperationOptions{

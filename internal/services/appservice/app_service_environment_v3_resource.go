@@ -435,7 +435,7 @@ func (r AppServiceEnvironmentV3Resource) Delete() sdk.ResourceFunc {
 }
 
 func (r AppServiceEnvironmentV3Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AppServiceEnvironmentID
+	return commonids.ValidateAppServiceEnvironmentID
 }
 
 func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
@@ -449,7 +449,6 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state AppServiceEnvironmentV3Model
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -464,8 +463,6 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 			if model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
-
-			metadata.Logger.Infof("updating %s", id)
 
 			if metadata.ResourceData.HasChange("cluster_setting") {
 				model.Properties.ClusterSettings = expandClusterSettingsModel(state.ClusterSetting)

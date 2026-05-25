@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -423,8 +422,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			siteConfigUpdate := webapps.SiteConfigResource{
 				Properties: siteConfig,
 			}
-			_, err = client.UpdateConfigurationSlot(ctx, id, siteConfigUpdate)
-			if err != nil {
+			if _, err = client.UpdateConfigurationSlot(ctx, id, siteConfigUpdate); err != nil {
 				return fmt.Errorf("updating %s site config: %+v", id, err)
 			}
 
@@ -488,9 +486,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			storageConfig := helpers.ExpandStorageConfig(webAppSlot.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id, *storageConfig); err != nil {
-					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
-					}
+					return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -669,7 +665,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 					state.VirtualNetworkImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-						hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
+						hostingEnvId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
 						if err != nil {
 							return err
 						}
@@ -749,8 +745,6 @@ func (r WindowsWebAppSlotResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			delOpts := webapps.DeleteSlotOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -920,8 +914,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			siteConfigUpdate := webapps.SiteConfigResource{
 				Properties: model.Properties.SiteConfig,
 			}
-			_, err = client.UpdateConfigurationSlot(ctx, *id, siteConfigUpdate)
-			if err != nil {
+			if _, err = client.UpdateConfigurationSlot(ctx, *id, siteConfigUpdate); err != nil {
 				return fmt.Errorf("updating %s site config: %+v", *id, err)
 			}
 
@@ -978,6 +971,10 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", *id, err)
 				}

@@ -286,8 +286,7 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 		params.Properties.TriggeringLogic.SetExpirationTimeUtcAsTime(t)
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id, params)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -362,8 +361,7 @@ func resourceSentinelAutomationRuleDelete(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	_, err = client.Delete(ctx, *id)
-	if err != nil {
+	if _, err = client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

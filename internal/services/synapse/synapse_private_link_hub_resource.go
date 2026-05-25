@@ -82,8 +82,7 @@ func resourceSynapsePrivateLinkHubCreate(d *pluginsdk.ResourceData, meta interfa
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	_, err = client.CreateOrUpdate(ctx, privateLinkHubInfo, id.ResourceGroup, id.Name)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, privateLinkHubInfo, id.ResourceGroup, id.Name); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -134,8 +133,7 @@ func resourceSynapsePrivateLinkHubUpdate(d *pluginsdk.ResourceData, meta interfa
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
 
-		_, err := client.Update(ctx, privateLinkHubPatchInfo, id.ResourceGroup, id.Name)
-		if err != nil {
+		if _, err := client.Update(ctx, privateLinkHubPatchInfo, id.ResourceGroup, id.Name); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}

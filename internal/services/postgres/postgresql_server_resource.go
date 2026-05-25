@@ -387,8 +387,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server creation.")
-
 	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -549,7 +547,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	// Issue tracking the REST API update failure: https://github.com/Azure/azure-rest-api-specs/issues/14117
 	if mode == servers.CreateModeReplica {
-		log.Printf("[INFO] updating `public_network_access_enabled` and `identity` for %s", id)
 		properties := servers.ServerUpdateParameters{
 			Identity: expandedIdentity,
 			Properties: &servers.ServerUpdateParametersProperties{
@@ -563,7 +560,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if mode == servers.CreateModePointInTimeRestore {
-		log.Printf("[INFO] updating `public_network_access_enabled` for %s", id)
 		properties := servers.ServerUpdateParameters{
 			Properties: &servers.ServerUpdateParametersProperties{
 				PublicNetworkAccess: &publicAccess,
@@ -852,7 +848,9 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

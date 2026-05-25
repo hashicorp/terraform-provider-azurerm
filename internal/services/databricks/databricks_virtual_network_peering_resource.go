@@ -5,15 +5,15 @@ package databricks
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/vnetpeering"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/vnetpeering"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -23,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_virtual_network_peering -service-package-name databricks -properties "name" -compare-values "subscription_id:workspace_id,resource_group_name:workspace_id,workspace_name:workspace_id"
+
 const databricksVnetPeeringsResourceType string = "azurerm_databricks_virtual_network_peering"
 
 func resourceDatabricksVirtualNetworkPeering() *pluginsdk.Resource {
@@ -31,10 +33,11 @@ func resourceDatabricksVirtualNetworkPeering() *pluginsdk.Resource {
 		Read:   resourceDatabricksVirtualNetworkPeeringRead,
 		Update: resourceDatabricksVirtualNetworkPeeringUpdate,
 		Delete: resourceDatabricksVirtualNetworkPeeringDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := vnetpeering.ParseVirtualNetworkPeeringID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&vnetpeering.VirtualNetworkPeeringId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&vnetpeering.VirtualNetworkPeeringId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -125,7 +128,6 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM databricks virtual network peering creation.")
 	var id vnetpeering.VirtualNetworkPeeringId
 
 	// I need to include the workspace ID in the properties because I need the name
@@ -190,6 +192,9 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceDatabricksVirtualNetworkPeeringRead(d, meta)
 }
@@ -249,15 +254,13 @@ func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta
 		d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM databricks virtual network peering update.")
 
 	id, err := vnetpeering.ParseVirtualNetworkPeeringID(d.Id())
 	if err != nil {

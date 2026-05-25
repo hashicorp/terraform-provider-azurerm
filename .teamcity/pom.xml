@@ -9,10 +9,11 @@
   <name>Terraform-Provider-Azurerm Config DSL Script</name>
   <groupId>TerraformProviderAzureRM</groupId>
   <artifactId>TerraformProviderAzureRM</artifactId>
-  <version>1.0-SNAPSHOT</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <kotlin.version>2.0.21</kotlin.version>
+    <teamcity.dsl.version>2025.11.3-1</teamcity.dsl.version>
   </properties>
 
   <parent>
@@ -52,7 +53,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.22.2</version>
+        <version>3.5.2</version>
         <configuration>
           <includes>
             <include>tests/*.class</include>
@@ -130,6 +131,7 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.13.2</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>

@@ -321,8 +321,6 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
-
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
@@ -607,8 +605,6 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk update.")
-
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	maxShares := d.Get("max_shares").(int)
@@ -769,10 +765,11 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
+		networkAccessPolicy := disks.NetworkAccessPolicy(d.Get("network_access_policy").(string))
 		switch {
-		case *diskUpdate.Properties.NetworkAccessPolicy == disks.NetworkAccessPolicyAllowPrivate:
+		case networkAccessPolicy == disks.NetworkAccessPolicyAllowPrivate:
 			diskUpdate.Properties.DiskAccessId = pointer.To(diskAccessID)
-		case diskAccessID != "" && *diskUpdate.Properties.NetworkAccessPolicy != disks.NetworkAccessPolicyAllowPrivate:
+		case diskAccessID != "" && networkAccessPolicy != disks.NetworkAccessPolicyAllowPrivate:
 			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
 		default:
 			diskUpdate.Properties.DiskAccessId = nil

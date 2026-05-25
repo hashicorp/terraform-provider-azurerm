@@ -38,10 +38,10 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -125,6 +125,16 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 					405,
 					406,
 					429,
+					990,
+					991,
+					992,
+					993,
+					994,
+					995,
+					996,
+					997,
+					998,
+					999,
 				}),
 			},
 
@@ -579,8 +589,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			// Verify that the scrubbing_rule's are valid...
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				if v, ok := diff.GetOk("log_scrubbing"); ok {
-					_, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(v.([]interface{}))
-					if err != nil {
+					if _, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(v.([]interface{})); err != nil {
 						return err
 					}
 				}

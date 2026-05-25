@@ -5,7 +5,6 @@ package servicebus
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -174,7 +173,6 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for ServiceBus Subscription creation.")
 
 	var id subscriptions.Subscriptions2Id
 	name := d.Get("name").(string)

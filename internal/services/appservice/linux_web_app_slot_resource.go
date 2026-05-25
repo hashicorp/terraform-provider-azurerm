@@ -446,9 +446,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 			storageConfig := helpers.ExpandStorageConfig(webAppSlot.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id, *storageConfig); err != nil {
-					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
-					}
+					return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
 				}
 			}
 
@@ -689,8 +687,6 @@ func (r LinuxWebAppSlotResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s", *id)
-
 			delOpts := webapps.DeleteSlotOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
 				DeleteMetrics:         pointer.To(false),
@@ -893,6 +889,10 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
 				}
@@ -999,7 +999,7 @@ func (r LinuxWebAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("retrieving %s: %+v", functionAppId, err)
 				}
 				if webAppModel := webApp.Model; webAppModel != nil && webAppModel.Properties != nil {
-					if ase := webAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
+					if ase := webAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *ase.Id != "" && !newValue.(bool) {
 						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
 					}
 				}

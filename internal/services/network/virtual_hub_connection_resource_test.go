@@ -137,7 +137,7 @@ func TestAccVirtualHubConnection_recreateWithSameConnectionName(t *testing.T) {
 		data.Subscriptions.Primary,
 		fmt.Sprintf("acctestRG-vhub-%d", data.RandomInteger),
 		fmt.Sprintf("acctest-VHUB-%d", data.RandomInteger),
-		fmt.Sprintf("acctestvhubconn-%d", data.RandomInteger),
+		fmt.Sprintf("acctest-vhubconn-%d", data.RandomInteger),
 	)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -336,7 +336,7 @@ func (r VirtualHubConnectionResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestvhubconn-%[2]d"
+  name                      = "acctest-vhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 }
@@ -385,14 +385,14 @@ resource "azurerm_subnet_network_security_group_association" "test2" {
 }
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestvhubconn-%[2]d"
+  name                      = "acctest-vhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
   internet_security_enabled = false
 }
 
 resource "azurerm_virtual_hub_connection" "test2" {
-  name                      = "acctestvhubconn2-%[2]d"
+  name                      = "acctest-vhubconn2-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test2.id
   internet_security_enabled = true
@@ -405,7 +405,7 @@ func (r VirtualHubConnectionResource) enableInternetSecurity(data acceptance.Tes
 %[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestvhubconn-%[2]d"
+  name                      = "acctest-vhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
   internet_security_enabled = %t
@@ -525,7 +525,7 @@ resource "azurerm_virtual_hub" "test" {
 }
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestvhubconn-%[1]d"
+  name                      = "acctest-vhubconn-%[1]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 }

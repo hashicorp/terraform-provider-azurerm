@@ -3,6 +3,8 @@
 
 package workloads
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name workloads_sap_three_tier_virtual_instance -service-package-name workloads -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-params "10+(data.RandomInteger%90)" -test-expect-non-empty true
+
 import (
 	"context"
 	"errors"
@@ -16,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -154,7 +157,14 @@ type SharedStorage struct {
 
 type WorkloadsSAPThreeTierVirtualInstanceResource struct{}
 
-var _ sdk.ResourceWithUpdate = WorkloadsSAPThreeTierVirtualInstanceResource{}
+var (
+	_ sdk.ResourceWithUpdate   = WorkloadsSAPThreeTierVirtualInstanceResource{}
+	_ sdk.ResourceWithIdentity = WorkloadsSAPThreeTierVirtualInstanceResource{}
+)
+
+func (WorkloadsSAPThreeTierVirtualInstanceResource) Identity() resourceids.ResourceId {
+	return &sapvirtualinstances.SapVirtualInstanceId{}
+}
 
 func (r WorkloadsSAPThreeTierVirtualInstanceResource) ResourceType() string {
 	return "azurerm_workloads_sap_three_tier_virtual_instance"
@@ -1154,6 +1164,10 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
@@ -1209,7 +1223,6 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Workloads.SAPVirtualInstances
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := sapvirtualinstances.ParseSapVirtualInstanceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -1225,53 +1238,65 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := WorkloadsSAPThreeTierVirtualInstanceModel{}
-			if model := resp.Model; model != nil {
-				state.Name = id.SapVirtualInstanceName
-				state.ResourceGroupName = id.ResourceGroupName
-				state.Location = location.Normalize(model.Location)
+			return r.flatten(metadata, id, resp.Model)
+		},
+	}
+}
 
-				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-				state.Identity = pointer.From(identity)
+func (WorkloadsSAPThreeTierVirtualInstanceResource) flatten(metadata sdk.ResourceMetaData, id *sapvirtualinstances.SapVirtualInstanceId, model *sapvirtualinstances.SAPVirtualInstance) error {
+	subscriptionId := metadata.Client.Account.SubscriptionId
 
-				if props := model.Properties; props != nil {
-					state.Environment = string(props.Environment)
-					state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
-					state.SapProduct = string(props.SapProduct)
-					state.Tags = pointer.From(model.Tags)
+	state := WorkloadsSAPThreeTierVirtualInstanceModel{
+		Name:              id.SapVirtualInstanceName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
 
-					if config := props.Configuration; config != nil {
-						if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
-							state.AppLocation = location.Normalize(pointer.From(v.AppLocation))
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
 
-							if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
-								state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)
-							}
+		identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		state.Identity = pointer.From(identity)
 
-							if configuration := v.InfrastructureConfiguration; configuration != nil {
-								if threeTierConfiguration, threeTierConfigurationExists := configuration.(sapvirtualinstances.ThreeTierConfiguration); threeTierConfigurationExists {
-									threeTierConfig, err := flattenThreeTierConfiguration(threeTierConfiguration, metadata.ResourceData, subscriptionId)
-									if err != nil {
-										return err
-									}
-									state.ThreeTierConfiguration = threeTierConfig
-								}
-							}
-						}
+		if props := model.Properties; props != nil {
+			state.Environment = string(props.Environment)
+			state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+			state.SapProduct = string(props.SapProduct)
+			state.Tags = pointer.From(model.Tags)
+
+			if config := props.Configuration; config != nil {
+				if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
+					state.AppLocation = location.Normalize(pointer.From(v.AppLocation))
+
+					if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
+						state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)
 					}
 
-					if v := props.ManagedResourceGroupConfiguration; v != nil {
-						state.ManagedResourceGroupName = pointer.From(v.Name)
+					if configuration := v.InfrastructureConfiguration; configuration != nil {
+						if threeTierConfiguration, threeTierConfigurationExists := configuration.(sapvirtualinstances.ThreeTierConfiguration); threeTierConfigurationExists {
+							threeTierConfig, err := flattenThreeTierConfiguration(threeTierConfiguration, metadata.ResourceData, subscriptionId)
+							if err != nil {
+								return err
+							}
+							state.ThreeTierConfiguration = threeTierConfig
+						}
 					}
 				}
 			}
 
-			return metadata.Encode(&state)
-		},
+			if v := props.ManagedResourceGroupConfiguration; v != nil {
+				state.ManagedResourceGroupName = pointer.From(v.Name)
+			}
+		}
 	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r WorkloadsSAPThreeTierVirtualInstanceResource) Delete() sdk.ResourceFunc {

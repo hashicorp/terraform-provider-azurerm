@@ -51,7 +51,8 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{3,24}$`),
-					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 3 and 24 characters in length."),
+					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 3 and 24 characters in length.",
+				),
 			},
 
 			"machine_learning_workspace_id": {
@@ -326,7 +327,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		d.Set("node_public_ip_enabled", props.Properties.ConnectivityEndpoints != nil && props.Properties.ConnectivityEndpoints.PublicIPAddress != nil)
+		d.Set("node_public_ip_enabled", pointer.From(props.Properties.EnableNodePublicIP))
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)

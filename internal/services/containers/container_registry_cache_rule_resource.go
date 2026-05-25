@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/cacherules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/credentialsets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -93,14 +93,13 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			log.Printf("[INFO] preparing arguments for Container Registry Cache Rule creation.")
-
 			registryId, err := registries.ParseRegistryID(metadata.ResourceData.Get("container_registry_id").(string))
 			if err != nil {
 				return err
 			}
 
-			id := cacherules.NewCacheRuleID(subscriptionId,
+			id := cacherules.NewCacheRuleID(
+				subscriptionId,
 				registryId.ResourceGroupName,
 				registryId.RegistryName,
 				metadata.ResourceData.Get("name").(string),
@@ -195,8 +194,6 @@ func (r ContainerRegistryCacheRule) Update() sdk.ResourceFunc {
 			if err := metadata.Decode(&config); err != nil {
 				return err
 			}
-
-			log.Printf("[INFO] preparing arguments for Container Registry Cache Rule update.")
 
 			id, err := cacherules.ParseCacheRuleID(metadata.ResourceData.Id())
 			if err != nil {

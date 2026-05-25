@@ -5,7 +5,6 @@ package healthcare
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -79,7 +78,6 @@ func resourceHealthcareApisWorkspaceCreate(d *pluginsdk.ResourceData, meta inter
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Healthcare Workspace creation.")
 
 	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
@@ -140,7 +138,9 @@ func resourceHealthcareApisWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("private_endpoint_connection", flattenWorkspacePrivateEndpoint(props.PrivateEndpointConnections))
 		}
 
-		return tags.FlattenAndSet(d, m.Tags)
+		if err := tags.FlattenAndSet(d, m.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

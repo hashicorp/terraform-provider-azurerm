@@ -108,8 +108,6 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceDat
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Application Group creation")
-
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
@@ -236,7 +234,9 @@ func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta 
 		}
 		d.Set("host_pool_id", hostPoolId.ID())
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

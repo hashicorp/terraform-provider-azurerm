@@ -238,8 +238,6 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Azure Firewall creation")
-
 	id := azurefirewalls.NewAzureFirewallID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id)
@@ -417,11 +415,14 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		return fmt.Errorf("making Read request on Azure Firewall %s : %+v", *id, err)
 	}
+	return resourceFirewallSetFlatten(d, id, read.Model)
+}
 
+func resourceFirewallSetFlatten(d *pluginsdk.ResourceData, id *azurefirewalls.AzureFirewallId, model *azurefirewalls.AzureFirewall) error {
 	d.Set("name", id.AzureFirewallName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := read.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 

@@ -788,7 +788,9 @@ func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -803,8 +805,6 @@ func resourceServiceFabricClusterDelete(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting %s", id.ID())
 
 	resp, err := client.Delete(ctx, *id)
 	if err != nil {

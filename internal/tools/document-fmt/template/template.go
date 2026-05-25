@@ -9,7 +9,6 @@ import (
 	"text/template"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
-
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

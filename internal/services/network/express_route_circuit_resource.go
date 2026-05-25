@@ -173,8 +173,6 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM ExpressRoute Circuit creation.")
-
 	id := expressroutecircuits.NewExpressRouteCircuitID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
@@ -261,8 +259,6 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 	client := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM ExpressRoute Circuit update.")
 
 	id, err := expressroutecircuits.ParseExpressRouteCircuitID(d.Id())
 	if err != nil {
@@ -402,7 +398,9 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("bandwidth_in_mbps", serviceProviderProps.BandwidthInMbps)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

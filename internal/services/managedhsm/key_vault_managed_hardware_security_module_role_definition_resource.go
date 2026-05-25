@@ -381,8 +381,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName, payload)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName, payload); err != nil {
 				return fmt.Errorf("updating %s: %v", id.ID(), err)
 			}
 

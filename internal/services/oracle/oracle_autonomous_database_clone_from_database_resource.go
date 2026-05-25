@@ -197,7 +197,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.CustomerContactEmail,
+				ValidateFunc: validation.IsEmailAddress,
 			},
 		},
 		"allowed_ip_addresses": {
@@ -261,7 +261,8 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Create() sdk.ResourceFunc {
 			id := autonomousdatabases.NewAutonomousDatabaseID(
 				subscriptionId,
 				model.ResourceGroupName,
-				model.Name)
+				model.Name,
+			)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {

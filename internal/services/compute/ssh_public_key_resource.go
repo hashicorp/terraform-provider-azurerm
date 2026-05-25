@@ -153,8 +153,7 @@ func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	_, err = client.Get(ctx, *id)
-	if err != nil {
+	if _, err = client.Get(ctx, *id); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 

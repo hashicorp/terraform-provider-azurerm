@@ -241,7 +241,9 @@ func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 			d.Set("scale_units", scaleUnits)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -226,8 +226,6 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Job creation.")
-
 	id := streamingjobs.NewStreamingJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	locks.ByID(id.ID())
@@ -413,7 +411,9 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 					d.Set("transformation_query", pointer.From(transformProps.Query))
 				}
 			}
-			return tags.FlattenAndSet(d, model.Tags)
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -425,8 +425,6 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Job update.")
 
 	id, err := streamingjobs.ParseStreamingJobID(d.Id())
 	if err != nil {

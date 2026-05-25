@@ -94,7 +94,6 @@ func (r ManagerDeploymentResource) Attributes() map[string]*pluginsdk.Schema {
 func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			metadata.Logger.Info("Decoding state..")
 			var state ManagerDeploymentModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -112,8 +111,6 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
-
-			metadata.Logger.Infof("creating %s", *id)
 
 			listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
 				Regions:         &[]string{normalizedLocation},
@@ -168,8 +165,6 @@ func (r ManagerDeploymentResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving %s", *id)
-
 			listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
 				Regions:         &[]string{id.Location},
 				DeploymentTypes: &[]networkmanagers.ConfigurationType{networkmanagers.ConfigurationType(id.ScopeAccess)},
@@ -180,7 +175,6 @@ func (r ManagerDeploymentResource) Read() sdk.ResourceFunc {
 			resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					metadata.Logger.Infof("%s was not found - removing from state!", *id)
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -191,7 +185,6 @@ func (r ManagerDeploymentResource) Read() sdk.ResourceFunc {
 			}
 
 			if resp.Model.Value == nil || len(*resp.Model.Value) == 0 || (*resp.Model.Value)[0].ConfigurationIds == nil || len(*(*resp.Model.Value)[0].ConfigurationIds) == 0 {
-				metadata.Logger.Infof("%s was not found - removing from state!", *id)
 				return metadata.MarkAsGone(id)
 			}
 
@@ -222,7 +215,6 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Network.NetworkManagers
 
 			listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
@@ -235,7 +227,6 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 			resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					metadata.Logger.Infof("%s was not found - removing from state!", *id)
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -246,7 +237,6 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			if resp.Model.Value == nil || len(*resp.Model.Value) == 0 || *(*resp.Model.Value)[0].ConfigurationIds == nil || len(*(*resp.Model.Value)[0].ConfigurationIds) == 0 {
-				metadata.Logger.Infof("%s was not found - removing from state!", *id)
 				return metadata.MarkAsGone(id)
 			}
 
@@ -305,7 +295,6 @@ func (r ManagerDeploymentResource) Delete() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			metadata.Logger.Infof("deleting %s..", *id)
 			input := networkmanagers.NetworkManagerCommit{
 				ConfigurationIds: &[]string{},
 				TargetLocations:  []string{id.Location},
@@ -344,8 +333,7 @@ func resourceManagerDeploymentWaitForDeleted(ctx context.Context, client *networ
 		Timeout:    d,
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for the %s: %+v", *managerDeploymentId, err)
 	}
 
@@ -371,8 +359,7 @@ func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *netwo
 		},
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for the %s: %+v", *managerDeploymentId, err)
 	}
 

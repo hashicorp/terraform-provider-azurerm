@@ -5,7 +5,6 @@ package kusto
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -92,10 +91,13 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 			},
 
 			"eventhub_consumer_group_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: eventhubValidate.ValidateEventHubConsumerName(),
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					eventhubValidate.ValidateEventHubConsumerName(),
+					validation.StringInSlice([]string{"$Default"}, false),
+				),
 			},
 
 			"blob_storage_event_type": {
@@ -189,8 +191,6 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure Kusto Event Grid Data Connection creation.")
 
 	id := dataconnections.NewDataConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {

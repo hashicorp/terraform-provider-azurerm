@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
 	sentinelmetadata "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -311,7 +311,8 @@ func (a MetadataResource) Arguments() map[string]*pluginsdk.Schema {
 						"Impact",
 						"ImpairProcessControl",
 						"InhibitResponseFunction",
-					}, false),
+					}, false,
+				),
 			},
 		},
 
@@ -569,8 +570,7 @@ func (a MetadataResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
 			}
 
-			_, err = client.Get(ctx, *id)
-			if err != nil {
+			if _, err = client.Get(ctx, *id); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
@@ -651,8 +651,7 @@ func (a MetadataResource) Update() sdk.ResourceFunc {
 				update.Properties.Version = &plan.Version
 			}
 
-			_, err = client.Update(ctx, *id, update)
-			if err != nil {
+			if _, err = client.Update(ctx, *id, update); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

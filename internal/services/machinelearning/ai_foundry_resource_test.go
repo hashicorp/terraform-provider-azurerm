@@ -144,7 +144,7 @@ provider "azurerm" {
 
 resource "azurerm_ai_foundry" "test" {
   name                = "acctestaihub-%[2]d"
-  location            = azurerm_ai_services.test.location
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   storage_account_id  = azurerm_storage_account.test.id
   key_vault_id        = azurerm_key_vault.test.id
@@ -160,6 +160,9 @@ func (r AIFoundry) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -192,7 +195,7 @@ resource "azurerm_user_assigned_identity" "test" {
 
 resource "azurerm_ai_foundry" "test" {
   name                = "acctestaihub-%[2]d"
-  location            = azurerm_ai_services.test.location
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   storage_account_id  = azurerm_storage_account.test.id
   key_vault_id        = azurerm_key_vault.test.id
@@ -227,6 +230,9 @@ func (r AIFoundry) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -264,7 +270,7 @@ resource "azurerm_user_assigned_identity" "test2" {
 
 resource "azurerm_ai_foundry" "test" {
   name                = "acctestaihub-%[2]d"
-  location            = azurerm_ai_services.test.location
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   storage_account_id  = azurerm_storage_account.test.id
   key_vault_id        = azurerm_key_vault.test.id
@@ -352,7 +358,7 @@ resource "azurerm_role_assignment" "test_kv" {
 
 resource "azurerm_ai_foundry" "test" {
   name                = "acctestaihub-%[2]d"
-  location            = azurerm_ai_services.test.location
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   storage_account_id  = azurerm_storage_account.test.id
   key_vault_id        = azurerm_key_vault.test.id
@@ -411,7 +417,7 @@ resource "azurerm_key_vault_key" "test" {
 
 resource "azurerm_ai_foundry" "test" {
   name                = "acctestaihub-%[2]d"
-  location            = azurerm_ai_services.test.location
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   storage_account_id  = azurerm_storage_account.test.id
   key_vault_id        = azurerm_key_vault.test.id
@@ -490,11 +496,5 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_ai_services" "test" {
-  name                = "acctestaiservices-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "S0"
-}
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
