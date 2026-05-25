@@ -62,9 +62,20 @@ func (c TopicsClient) RegenerateKey(ctx context.Context, id TopicId, input Topic
 
 // RegenerateKeyThenPoll performs RegenerateKey then polls until it's completed
 func (c TopicsClient) RegenerateKeyThenPoll(ctx context.Context, id TopicId, input TopicRegenerateKeyRequest) error {
+	return c.RegenerateKeyCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RegenerateKeyCallbackThenPoll performs RegenerateKey, runs the optional callback function, then polls until it's completed
+func (c TopicsClient) RegenerateKeyCallbackThenPoll(ctx context.Context, id TopicId, input TopicRegenerateKeyRequest, callback func() error) error {
 	result, err := c.RegenerateKey(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RegenerateKey: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
