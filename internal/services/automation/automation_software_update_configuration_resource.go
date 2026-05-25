@@ -191,7 +191,8 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice(
 						softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses(),
-						false),
+						false,
+					),
 				},
 			},
 

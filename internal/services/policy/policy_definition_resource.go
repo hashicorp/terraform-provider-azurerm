@@ -215,7 +215,6 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Policy Definition %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}

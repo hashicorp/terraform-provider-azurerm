@@ -330,6 +330,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -338,7 +339,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   resource_group_name = azurerm_resource_group.test.name
   type                = "Vpn"
   vpn_type            = "RouteBased"
-  sku                 = "VpnGw1"
+  sku                 = "VpnGw1AZ"
 
   ip_configuration {
     name                          = "vnetGatewayConfig"
