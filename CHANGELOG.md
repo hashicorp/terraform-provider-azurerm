@@ -1,6 +1,8 @@
 ## 4.75.0 (Unreleased)
 
 ENHANCEMENTS:
+* provider: adds support for the `features.persist_id_on_create_before_polling_for_completion` feature [GH-32318]
+* provider: adds support for the `features.skip_import_check_on_create_and_allow_overwriting_existing_resources` feature [GH-32318]
 * `azurerm_redhat_openshift_cluster` - update API version to `2025-07-25` [GH-32029]
 * `azurerm_application_gateway` - add support for `certificate_chain_validation_enabled`, `sni_validation_enabled`, and `sni_name` properties to `backend_http_settings` [GH-31206]
 * dependencies: `recoveryservices/vaults` - update to API Version `2025-08-01` [GH-31163]
