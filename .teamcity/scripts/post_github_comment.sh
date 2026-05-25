@@ -156,9 +156,19 @@ if [ "$TRACKING_ID" != "0" ]; then
   TRACKING_COMMENT="<!-- tracking-id:${TRACKING_ID} -->"
 fi
 
+BETA_ENV_VAR_FULL="%env.BETA_VERSION_ENV_VAR%"
+BETA_ENV_VAR_NAME="${BETA_ENV_VAR_FULL#env.}"
+BETA_MODE_MESSAGE=""
+
+if [ "${!BETA_ENV_VAR_NAME}" == "true" ]; then
+  BETA_MODE_MESSAGE="**Testing in Beta version enabled**
+  "
+fi
+
 COMMENT="${COMMENT_IDENTIFIER}
 ${TRACKING_COMMENT}
 ${AUTHOR_MESSAGE}
+${BETA_MODE_MESSAGE}
 ${COMMENT}"
 
 echo "Fetching existing comments..."

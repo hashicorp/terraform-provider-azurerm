@@ -233,7 +233,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 						},
 						"username": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},

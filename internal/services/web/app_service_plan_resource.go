@@ -158,8 +158,6 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
-
 	id := parse.NewAppServicePlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
@@ -319,8 +317,6 @@ func resourceAppServicePlanDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting App Service Plan %q (Resource Group %q)", id.ServerFarmName, id.ResourceGroup)
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServerFarmName)
 	if err != nil {

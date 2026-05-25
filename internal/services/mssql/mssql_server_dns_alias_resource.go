@@ -136,7 +136,6 @@ func (m ServerDNSAliasResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			metadata.Logger.Infof("deleting %s", id)
 			client := metadata.Client.MSSQL.ServerDNSAliasClient
 			err = client.DeleteThenPoll(ctx, *id)
 			if err != nil {

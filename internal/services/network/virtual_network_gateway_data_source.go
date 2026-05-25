@@ -284,10 +284,14 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 
 		props := model.Properties
 		d.Set("type", string(pointer.From(props.GatewayType)))
-		d.Set("enable_bgp", props.EnableBgp)
+		d.Set("bgp_enabled", props.EnableBgp)
 		d.Set("private_ip_address_enabled", props.EnablePrivateIPAddress)
 		d.Set("active_active", props.ActiveActive)
 		d.Set("generation", string(pointer.From(props.VpnGatewayGeneration)))
+
+		if !features.FivePointOh() {
+			d.Set("enable_bgp", props.EnableBgp)
+		}
 
 		if props.VpnType != nil {
 			d.Set("vpn_type", string(pointer.From(props.VpnType)))
