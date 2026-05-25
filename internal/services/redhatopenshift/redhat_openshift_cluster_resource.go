@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2023-09-04/openshiftclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2025-07-25/openshiftclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -374,7 +374,7 @@ func (r RedHatOpenShiftCluster) ResourceType() string {
 }
 
 func (r RedHatOpenShiftCluster) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return openshiftclusters.ValidateProviderOpenShiftClusterID
+	return openshiftclusters.ValidateOpenShiftClusterID
 }
 
 func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
@@ -389,7 +389,7 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			id := openshiftclusters.NewProviderOpenShiftClusterID(subscriptionId, config.ResourceGroup, config.Name)
+			id := openshiftclusters.NewOpenShiftClusterID(subscriptionId, config.ResourceGroup, config.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -434,7 +434,7 @@ func (r RedHatOpenShiftCluster) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.RedHatOpenShift.OpenShiftClustersClient
 
-			id, err := openshiftclusters.ParseProviderOpenShiftClusterID(metadata.ResourceData.Id())
+			id, err := openshiftclusters.ParseOpenShiftClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -471,7 +471,7 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.RedHatOpenShift.OpenShiftClustersClient
 
-			id, err := openshiftclusters.ParseProviderOpenShiftClusterID(metadata.ResourceData.Id())
+			id, err := openshiftclusters.ParseOpenShiftClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -533,7 +533,7 @@ func (r RedHatOpenShiftCluster) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := openshiftclusters.ParseProviderOpenShiftClusterID(metadata.ResourceData.Id())
+			id, err := openshiftclusters.ParseOpenShiftClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}

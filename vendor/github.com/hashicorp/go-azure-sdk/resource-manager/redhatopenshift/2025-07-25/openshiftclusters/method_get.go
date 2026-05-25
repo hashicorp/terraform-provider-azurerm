@@ -2,7 +2,6 @@ package openshiftclusters
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -12,21 +11,21 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListAdminCredentialsOperationResponse struct {
+type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *OpenShiftClusterAdminKubeconfig
+	Model        *OpenShiftCluster
 }
 
-// ListAdminCredentials ...
-func (c OpenShiftClustersClient) ListAdminCredentials(ctx context.Context, id ProviderOpenShiftClusterId) (result ListAdminCredentialsOperationResponse, err error) {
+// Get ...
+func (c OpenShiftClustersClient) Get(ctx context.Context, id OpenShiftClusterId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPost,
-		Path:       fmt.Sprintf("%s/listAdminCredentials", id.ID()),
+		HttpMethod: http.MethodGet,
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -44,7 +43,7 @@ func (c OpenShiftClustersClient) ListAdminCredentials(ctx context.Context, id Pr
 		return
 	}
 
-	var model OpenShiftClusterAdminKubeconfig
+	var model OpenShiftCluster
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

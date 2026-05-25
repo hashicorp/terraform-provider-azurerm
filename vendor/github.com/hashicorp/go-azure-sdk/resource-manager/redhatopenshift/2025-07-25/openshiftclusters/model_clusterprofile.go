@@ -6,6 +6,7 @@ package openshiftclusters
 type ClusterProfile struct {
 	Domain               *string               `json:"domain,omitempty"`
 	FipsValidatedModules *FipsValidatedModules `json:"fipsValidatedModules,omitempty"`
+	OidcIssuer           *string               `json:"oidcIssuer,omitempty"`
 	PullSecret           *string               `json:"pullSecret,omitempty"`
 	ResourceGroupId      *string               `json:"resourceGroupId,omitempty"`
 	Version              *string               `json:"version,omitempty"`
