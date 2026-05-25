@@ -118,7 +118,6 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry scope map update.")
 	id, err := scopemaps.ParseScopeMapID(d.Id())
 	if err != nil {
 		return err

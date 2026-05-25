@@ -234,7 +234,6 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
 	id := parse.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
@@ -803,8 +802,6 @@ func resourceAppServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting App Service %q (resource group %q)", id.SiteName, id.ResourceGroup)
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false

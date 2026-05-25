@@ -56,7 +56,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			func(id string) error {
 				_, err := commonids.ParseKubernetesClusterID(id)
 				return err
-			}),
+			},
+		),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
@@ -555,7 +556,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									string(managedclusters.NginxIngressControllerTypeInternal),
 									string(managedclusters.NginxIngressControllerTypeExternal),
 									string(managedclusters.NginxIngressControllerTypeNone),
-								}, false),
+								}, false,
+							),
 						},
 
 						"web_app_routing_identity": {
@@ -881,7 +883,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForWeekDay(),
-								false),
+								false,
+							),
 						},
 
 						"duration": {
@@ -895,7 +898,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForType(),
-								false),
+								false,
+							),
 						},
 
 						"day_of_month": {
@@ -972,7 +976,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForWeekDay(),
-								false),
+								false,
+							),
 						},
 
 						"duration": {
@@ -986,7 +991,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForType(),
-								false),
+								false,
+							),
 						},
 
 						"day_of_month": {
@@ -1153,7 +1159,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Default:  string(managedclusters.NetworkDataplaneAzure),
 							ValidateFunc: validation.StringInSlice(
 								managedclusters.PossibleValuesForNetworkDataplane(),
-								false),
+								false,
+							),
 						},
 
 						"network_plugin_mode": {
@@ -1803,8 +1810,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
-
 	id := commonids.NewKubernetesClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -2157,7 +2162,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("service_principal") && !d.HasChange("identity") {
-		log.Printf("[DEBUG] Updating the Service Principal for %s..", *id)
 		servicePrincipals := d.Get("service_principal").([]interface{})
 		// we'll be rotating the Service Principal - removing the SP block is handled by the validate function
 		servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
@@ -2173,7 +2177,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if err != nil {
 			return fmt.Errorf("updating Service Principal for %s: %+v", *id, err)
 		}
-		log.Printf("[DEBUG] Updated the Service Principal for %s.", *id)
 
 		// since we're patching it, re-retrieve the latest version of the cluster
 		existing, err = clusterClient.Get(ctx, *id)
@@ -2210,7 +2213,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		props.AadProfile = azureADProfile
 		if props.AadProfile == nil || (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
-			log.Printf("[DEBUG] Updating the RBAC AAD profile")
 			props.AadProfile = &managedclusters.ManagedClusterAADProfile{}
 			err = clusterClient.ResetAADProfileThenPoll(ctx, *id, *props.AadProfile)
 			if err != nil {
@@ -2663,13 +2665,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.SecurityProfile.Defender = nil
 		}
 
-		log.Printf("[DEBUG] Updating %s..", *id)
 		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
-
-		log.Printf("[DEBUG] Updated %s..", *id)
 	}
 
 	// then roll the version of Kubernetes if necessary
@@ -2817,13 +2816,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			log.Printf("[DEBUG] Cycled Default Node Pool..")
 		} else {
-			log.Printf("[DEBUG] Updating of Default Node Pool..")
-
 			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
 			}
-
-			log.Printf("[DEBUG] Updated Default Node Pool.")
 		}
 	}
 

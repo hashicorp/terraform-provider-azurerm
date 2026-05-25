@@ -227,7 +227,6 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 				return tf.ImportAsExistsError("azurerm_storage_container", id.ID())
 			}
 
-			log.Printf("[INFO] Creating %s", id)
 			input := containers.CreateInput{
 				AccessLevel: accessLevel,
 				MetaData:    metaData,
@@ -314,8 +313,6 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
 		}
 		if d.HasChange("container_access_type") {
-			log.Printf("[DEBUG] Updating Access Level for %s...", id)
-
 			// Updating metadata does not work with AAD authentication, returns a cryptic 404
 			client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
 			if err != nil {
@@ -328,13 +325,9 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if err = client.UpdateAccessLevel(ctx, id.ContainerName, accessLevel); err != nil {
 				return fmt.Errorf("updating Access Level for %s: %v", id, err)
 			}
-
-			log.Printf("[DEBUG] Updated Access Level for %s", id)
 		}
 
 		if d.HasChange("metadata") {
-			log.Printf("[DEBUG] Updating Metadata for %s...", id)
-
 			client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 			if err != nil {
 				return fmt.Errorf("building Containers Client: %v", err)
@@ -346,8 +339,6 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if err = client.UpdateMetaData(ctx, id.ContainerName, metaData); err != nil {
 				return fmt.Errorf("updating Metadata for %s: %v", id, err)
 			}
-
-			log.Printf("[DEBUG] Updated Metadata for %s", id)
 		}
 
 		return resourceStorageContainerRead(d, meta)

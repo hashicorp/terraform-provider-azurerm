@@ -95,7 +95,8 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 						string(smartdetectoralertrules.SeveritySevTwo),
 						string(smartdetectoralertrules.SeveritySevThree),
 						string(smartdetectoralertrules.SeveritySevFour),
-					}, false),
+					}, false,
+				),
 			},
 
 			"frequency": {

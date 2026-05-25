@@ -445,7 +445,6 @@ func (r GalleryApplicationVersionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			metadata.Logger.Infof("Waiting for %s to be eventually deleted", *id)
 			timeout, _ := ctx.Deadline()
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{"Exists"},

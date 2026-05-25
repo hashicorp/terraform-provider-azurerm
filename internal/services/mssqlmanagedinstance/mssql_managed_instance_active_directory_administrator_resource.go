@@ -106,7 +106,6 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 			id := parse.NewManagedInstanceAzureActiveDirectoryAdministratorID(managedInstanceId.SubscriptionId,
 				managedInstanceId.ResourceGroupName, managedInstanceId.ManagedInstanceName, string(managedinstanceadministrators.ManagedInstanceAdministratorTypeActiveDirectory))
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, *managedInstanceId)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -124,8 +123,6 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 					TenantId:          &model.TenantId,
 				},
 			}
-
-			metadata.Logger.Infof("Creating %s", id)
 
 			err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters)
 			if err != nil {
@@ -162,7 +159,6 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceActiveDirectoryAdministratorModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -181,8 +177,6 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 					TenantId:          &state.TenantId,
 				},
 			}
-
-			metadata.Logger.Infof("Updating %s", id)
 
 			err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters)
 			if err != nil {
@@ -217,7 +211,6 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceActiveDirectoryAdministratorModel
 			if err := metadata.Decode(&state); err != nil {
 				return err

@@ -125,7 +125,6 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry token update.")
 	id, err := tokens.ParseTokenID(d.Id())
 	if err != nil {
 		return err
