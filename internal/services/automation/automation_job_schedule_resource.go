@@ -133,7 +133,7 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 		Second: &runbookID,
 	}
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := GetJobScheduleFromTFID(ctx, client, tfID)
 		if err != nil {
 			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
