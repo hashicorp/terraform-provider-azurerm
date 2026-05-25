@@ -229,7 +229,7 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 
 	resp, model, err := getPolicyDefinitionByID(ctx, client, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
