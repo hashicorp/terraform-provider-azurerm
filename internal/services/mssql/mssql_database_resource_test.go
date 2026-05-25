@@ -1812,10 +1812,10 @@ func (r MssqlDatabaseResource) bc(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-	name       = "acctest-db-%[2]d"
-	server_id  = azurerm_mssql_server.test.id
-	read_scale = true
-	sku_name   = "BC_Gen5_2"
+  name       = "acctest-db-%[2]d"
+  server_id  = azurerm_mssql_server.test.id
+  read_scale = true
+  sku_name   = "BC_Gen5_2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1825,10 +1825,10 @@ func (r MssqlDatabaseResource) bcUpdate(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-	name       = "acctest-db-%[2]d"
-	server_id  = azurerm_mssql_server.test.id
-	read_scale = false
-	sku_name   = "BC_Gen5_2"
+  name       = "acctest-db-%[2]d"
+  server_id  = azurerm_mssql_server.test.id
+  read_scale = false
+  sku_name   = "BC_Gen5_2"
 }
 `, r.template(data), data.RandomInteger)
 }
