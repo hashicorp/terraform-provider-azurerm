@@ -15,6 +15,7 @@ import (
 	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -118,6 +119,11 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 	defer cancel()
 	id := pricings_v2023_01_01.NewPricingID(subscriptionId, d.Get("resource_type").(string))
 
+	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,
+	// as the API only allows one pricing update per subscription at a time.
+	locks.ByName(subscriptionId, "azurerm_security_center_subscription_pricing")
+	defer locks.UnlockByName(subscriptionId, "azurerm_security_center_subscription_pricing")
+
 	pricing := pricings_v2023_01_01.Pricing{
 		Properties: &pricings_v2023_01_01.PricingProperties{
 			PricingTier: pricings_v2023_01_01.PricingTier(d.Get("tier").(string)),
@@ -198,6 +204,11 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	if err != nil {
 		return err
 	}
+
+	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,
+	// as the API only allows one pricing update per subscription at a time.
+	locks.ByName(id.SubscriptionId, "azurerm_security_center_subscription_pricing")
+	defer locks.UnlockByName(id.SubscriptionId, "azurerm_security_center_subscription_pricing")
 
 	apiResponse, err := client.Get(ctx, *id)
 	if err != nil {
@@ -313,6 +324,11 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 	if err != nil {
 		return fmt.Errorf("parsing %s: %+v", d.Id(), err)
 	}
+
+	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,
+	// as the API only allows one pricing update per subscription at a time.
+	locks.ByName(id.SubscriptionId, "azurerm_security_center_subscription_pricing")
+	defer locks.UnlockByName(id.SubscriptionId, "azurerm_security_center_subscription_pricing")
 
 	pricing := pricings_v2023_01_01.Pricing{
 		Properties: &pricings_v2023_01_01.PricingProperties{
