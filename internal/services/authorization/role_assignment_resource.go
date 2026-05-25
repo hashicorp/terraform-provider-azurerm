@@ -99,9 +99,10 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			},
 
 			"principal_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"principal_type": {
@@ -195,14 +196,20 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	principalId := d.Get("principal_id").(string)
 
 	if name == "" {
-		normalizedScope := strings.ToLower(scopeId.Scope)
+		normalizedScope := strings.TrimSuffix(strings.ToLower(scopeId.Scope), "/")
 		normalizedPrincipalId := strings.ToLower(principalId)
-		normalizedRoleDefinitionId := strings.ToLower(roleDefinitionId)
+		parts := strings.Split(roleDefinitionId, "/")
+		normalizedRoleDefinitionId, err := uuid.FromString(parts[len(parts)-1])
+		if err != nil {
+			return fmt.Errorf("parsing role definition UUID from `role_definition_id` %q: %+v", roleDefinitionId, err)
+		}
 		str := fmt.Sprintf("%s-%s-%s", normalizedScope, normalizedPrincipalId, normalizedRoleDefinitionId)
+
 		namespace, err := uuid.FromString("11fb06fb-712d-4ddd-98c7-e71bbd588830")
 		if err != nil {
 			return fmt.Errorf("parsing namespace UUID for Role Assignment: %+v", err)
 		}
+
 		name = uuid.NewV5(namespace, str).String()
 	}
 
