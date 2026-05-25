@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2023, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 # This python script is used to install a Helm client on the cluster.
