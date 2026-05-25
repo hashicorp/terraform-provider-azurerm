@@ -265,7 +265,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_size_in_gb": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(32, 16384),
+			ValidateFunc: validation.IntBetween(32, 32768),
 		},
 
 		"storage_type": {
@@ -472,7 +472,6 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state MongoClusterResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -490,8 +489,6 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 			payload := existing.Model
-
-			metadata.Logger.Infof("updating %s", *id)
 
 			// Set SystemData to nil as the API returns `The property '#/systemData' of type null did not match the following type: object in schema 25debcc2-6915-5536-9566-a2ecd765b755"}}` error.
 			// https://github.com/Azure/azure-rest-api-specs/issues/31377 has been filed to track it.
@@ -516,14 +513,12 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				}
 				oldComputeTier, newComputeTier := metadata.ResourceData.GetChange("compute_tier")
 				if (oldComputeTier == "Free" || oldComputeTier == "M25") && newComputeTier != "Free" && newComputeTier != "M25" {
-					metadata.Logger.Infof("updating compute tier for %s", *id)
 					if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 						return fmt.Errorf("updating %s: %+v", *id, err)
 					}
 				}
 			}
 
-			metadata.Logger.Infof("updating other configurations for %s", *id)
 			if metadata.ResourceData.HasChange("administrator_password") {
 				payload.Properties.Administrator = &mongoclusters.AdministratorProperties{
 					UserName: pointer.To(state.AdministratorUserName),

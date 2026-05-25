@@ -183,7 +183,6 @@ func subscriptionTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Subscription Template Deployment %q..", id.DeploymentName)
 	template, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("retrieving Subscription Template Deployment %q: %+v", id.DeploymentName, err)
@@ -339,7 +338,6 @@ func subscriptionTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, met
 	// at this time unfortunately the Resources RP doesn't expose a means of deleting top-level objects
 	// so we're unable to delete these during deletion - this'll need to be detailed in the docs
 
-	log.Printf("[DEBUG] Deleting Subscription Template Deployment %q..", id.DeploymentName)
 	future, err := client.DeleteAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("deleting Subscription Template Deployment %q: %+v", id.DeploymentName, err)
@@ -349,7 +347,6 @@ func subscriptionTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, met
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Deleted Subscription Template Deployment %q.", id.DeploymentName)
 
 	return nil
 }

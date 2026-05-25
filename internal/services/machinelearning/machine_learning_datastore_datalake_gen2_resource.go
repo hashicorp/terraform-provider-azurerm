@@ -313,16 +313,26 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 				serviceDataIdentity = string(*v)
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
+
 			var storageAccount *storageAccountHelper.AccountDetails
-			// try to get storage account from the storage subscription if subscription exists otherwise delegate to the default subscription
-			if data.SubscriptionId != nil && *data.SubscriptionId != "" {
-				storageAccount, err = storageClient.FindAccount(ctx, *data.SubscriptionId, data.AccountName)
+			if containerIdRaw := metadata.ResourceData.Get("storage_container_id").(string); containerIdRaw != "" {
+				containerId, err := commonids.ParseStorageContainerID(containerIdRaw)
+				if err != nil {
+					return err
+				}
+
+				storageAccount, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+				if err != nil {
+					return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
+				}
 			} else {
+				// In the case of import, we cannot rely on having a value for `storage_container_id` so we need to fallback on listing the accounts to search.
 				storageAccount, err = storageClient.FindAccount(ctx, subscriptionId, data.AccountName)
+				if err != nil {
+					return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
+				}
 			}
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
-			}
+
 			if storageAccount == nil {
 				return fmt.Errorf("unable to locate Storage Account %q", data.AccountName)
 			}

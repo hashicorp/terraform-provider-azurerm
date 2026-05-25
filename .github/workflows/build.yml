@@ -15,7 +15,11 @@ name: build
 #
 #   https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onpushbranchestagsbranches-ignoretags-ignore
 #
-on: [workflow_dispatch, push]
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - automated-changelog
 
 env:
   PKG_NAME: "terraform-provider-azurerm"
@@ -166,7 +170,7 @@ jobs:
               -o "$BIN_PATH" \
               -trimpath \
               -buildvcs=false \
-              -ldflags "-s -w -X 'main.version=${{ needs.set-product-version.outputs.product-version }}'"
+              -ldflags "-s -w -X 'github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=${{ needs.set-product-version.outputs.product-version }}'"
             cp LICENSE "$TARGET_DIR/LICENSE.txt"
 
   whats-next:

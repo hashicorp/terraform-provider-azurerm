@@ -93,14 +93,13 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			log.Printf("[INFO] preparing arguments for Container Registry Cache Rule creation.")
-
 			registryId, err := registries.ParseRegistryID(metadata.ResourceData.Get("container_registry_id").(string))
 			if err != nil {
 				return err
 			}
 
-			id := cacherules.NewCacheRuleID(subscriptionId,
+			id := cacherules.NewCacheRuleID(
+				subscriptionId,
 				registryId.ResourceGroupName,
 				registryId.RegistryName,
 				metadata.ResourceData.Get("name").(string),
@@ -195,8 +194,6 @@ func (r ContainerRegistryCacheRule) Update() sdk.ResourceFunc {
 			if err := metadata.Decode(&config); err != nil {
 				return err
 			}
-
-			log.Printf("[INFO] preparing arguments for Container Registry Cache Rule update.")
 
 			id, err := cacherules.ParseCacheRuleID(metadata.ResourceData.Id())
 			if err != nil {

@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/rbacs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -78,37 +80,35 @@ func dataSourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 }
 
 func dataSourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.SqlResourceClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Cosmos.RbacsClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	roleDefinitionId := d.Get("role_definition_id").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
+	id := rbacs.NewSqlRoleDefinitionID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("role_definition_id").(string))
 
-	id := parse.NewSqlRoleDefinitionID(subscriptionId, resourceGroup, accountName, roleDefinitionId)
-
-	resp, err := client.GetSQLRoleDefinition(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName)
+	resp, err := client.SqlResourcesGetSqlRoleDefinition(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	d.Set("role_definition_id", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("role_definition_id", id.RoleDefinitionId)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("account_name", id.DatabaseAccountName)
 
-	if props := resp.SQLRoleDefinitionResource; props != nil {
-		d.Set("assignable_scopes", utils.FlattenStringSlice(props.AssignableScopes))
-		d.Set("name", props.RoleName)
-		d.Set("type", props.Type)
+	if resp.Model != nil {
+		if props := resp.Model.Properties; props != nil {
+			d.Set("assignable_scopes", utils.FlattenStringSlice(props.AssignableScopes))
+			d.Set("name", props.RoleName)
+			d.Set("type", pointer.FromEnum(props.Type))
 
-		if err := d.Set("permissions", flattenSqlRoleDefinitionPermissions(props.Permissions)); err != nil {
-			return fmt.Errorf("setting `permissions`: %+v", err)
+			if err := d.Set("permissions", flattenSqlRoleDefinitionPermissions(props.Permissions)); err != nil {
+				return fmt.Errorf("setting `permissions`: %+v", err)
+			}
 		}
 	}
 

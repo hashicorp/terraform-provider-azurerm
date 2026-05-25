@@ -82,7 +82,8 @@ func (client ThreatIntelligenceIndicatorClient) GetPreparer(ctx context.Context,
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/threatIntelligence/main/indicators/{name}", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
+		autorest.WithQueryParameters(queryParameters),
+	)
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -95,7 +96,8 @@ func (client ThreatIntelligenceIndicatorClient) GetResponder(resp *http.Response
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
+		autorest.ByClosing(),
+	)
 	result.Response = autorest.Response{Response: resp}
 	return
 }
@@ -166,7 +168,8 @@ func (client ThreatIntelligenceIndicatorClient) CreateIndicatorPreparer(ctx cont
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/threatIntelligence/main/createIndicator", pathParameters),
 		autorest.WithJSON(threatIntelligenceProperties),
-		autorest.WithQueryParameters(queryParameters))
+		autorest.WithQueryParameters(queryParameters),
+	)
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -179,7 +182,8 @@ func (client ThreatIntelligenceIndicatorClient) CreateIndicatorResponder(resp *h
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
+		autorest.ByClosing(),
+	)
 	result.Response = autorest.Response{Response: resp}
 	return
 }
@@ -284,7 +288,8 @@ func (client ThreatIntelligenceIndicatorClient) QueryIndicatorsPreparer(ctx cont
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/threatIntelligence/main/queryIndicators", pathParameters),
 		autorest.WithJSON(threatIntelligenceFilteringCriteria),
-		autorest.WithQueryParameters(queryParameters))
+		autorest.WithQueryParameters(queryParameters),
+	)
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -301,7 +306,8 @@ func (client ThreatIntelligenceIndicatorClient) QueryIndicatorsResponder(resp *h
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
+		autorest.ByClosing(),
+	)
 	result.Response = autorest.Response{Response: resp}
 	return
 }
@@ -372,7 +378,8 @@ func (client ThreatIntelligenceIndicatorClient) CreatePreparer(ctx context.Conte
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/threatIntelligence/main/indicators/{name}", pathParameters),
 		autorest.WithJSON(threatIntelligenceProperties),
-		autorest.WithQueryParameters(queryParameters))
+		autorest.WithQueryParameters(queryParameters),
+	)
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -385,7 +392,8 @@ func (client ThreatIntelligenceIndicatorClient) CreateResponder(resp *http.Respo
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
+		autorest.ByClosing(),
+	)
 	result.Response = autorest.Response{Response: resp}
 	return
 }

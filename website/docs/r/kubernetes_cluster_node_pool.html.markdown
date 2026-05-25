@@ -188,7 +188,7 @@ A `kubelet_config` block supports the following:
 
 * `allowed_unsafe_sysctls` - (Optional) Specifies the allow list of unsafe sysctls command or patterns (ending in `*`). 
 
-* `container_log_max_line` - (Optional) Specifies the maximum number of container log files that can be present for a container. must be at least 2. 
+* `container_log_max_files` - (Optional) Specifies the maximum number of container log files that can be present for a container. Must be at least 2.
 
 * `container_log_max_size_mb` - (Optional) Specifies the maximum size (e.g. 10MB) of container log file before it is rotated. 
 
@@ -333,6 +333,8 @@ A `windows_profile` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kubernetes Cluster Node Pool.
+
+* `node_image_version` - The current node image version running on this Node Pool.
 
 ## Timeouts
 
