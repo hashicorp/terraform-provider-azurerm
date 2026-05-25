@@ -213,6 +213,8 @@ func TestAccMsSqlElasticPool_resizeVCore(t *testing.T) {
 }
 
 func TestAccMsSqlElasticPool_fsv2FamilyVCore(t *testing.T) {
+	t.Skip("Skipping since Azure SQL no longer allows creating FSv2 elastic pools.")
+
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MssqlElasticpoolResource{}
 
