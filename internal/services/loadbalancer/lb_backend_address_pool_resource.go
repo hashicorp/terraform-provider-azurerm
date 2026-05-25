@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -169,15 +170,17 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 	id := loadbalancers.NewLoadBalancerBackendAddressPoolID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroupName, loadBalancerId.LoadBalancerName, name)
 
 	if d.IsNewResource() {
-		existing, err := lbClient.LoadBalancerBackendAddressPoolsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := lbClient.LoadBalancerBackendAddressPoolsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_lb_backend_address_pool", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_lb_backend_address_pool", id.ID())
+			}
 		}
 	}
 
@@ -261,9 +264,14 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 
 			properties.BackendAddressPools = &backendAddressPools
 
-			err := lbClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
-			if err != nil {
-				return fmt.Errorf("updating %s: %+v", *loadBalancerId, err)
+			if d.IsNewResource() {
+				if err := lbClient.CreateOrUpdateCallbackThenPoll(ctx, plbId, *lb.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+			} else {
+				if err := lbClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 		case loadbalancers.LoadBalancerSkuNameStandard:
 			if param.Properties == nil {
@@ -272,9 +280,14 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 				}
 			}
 
-			err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, id, param)
-			if err != nil {
-				return fmt.Errorf("creating/updating Load Balancer Backend Address Pool %q: %+v", id, err)
+			if d.IsNewResource() {
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDCallback(meta, &id, d)); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+			} else {
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, id, param); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 		case loadbalancers.LoadBalancerSkuNameGateway:
 			if param.Properties == nil {
@@ -282,13 +295,20 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 			}
 			param.Properties.TunnelInterfaces = expandGatewayLoadBalancerTunnelInterfaces(d.Get("tunnel_interface").([]interface{}))
 
-			err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, id, param)
-			if err != nil {
-				return fmt.Errorf("creating/updating %q: %+v", id, err)
+			if d.IsNewResource() {
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDCallback(meta, &id, d)); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+			} else {
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, id, param); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 		}
 
-		d.SetId(id.ID())
+		if d.IsNewResource() {
+			d.SetId(id.ID())
+		}
 	}
 
 	return resourceArmLoadBalancerBackendAddressPoolRead(d, meta)
