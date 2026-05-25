@@ -314,6 +314,9 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
 	} else {
 		if err := client.CreateOrUpdateThenPoll(ctx, id, elasticPool); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
