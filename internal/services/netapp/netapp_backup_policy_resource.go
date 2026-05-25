@@ -114,7 +114,6 @@ func (r NetAppBackupPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
 			}
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -160,7 +159,6 @@ func (r NetAppBackupPolicyResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppBackupPolicyModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -191,8 +189,6 @@ func (r NetAppBackupPolicyResource) Update() sdk.ResourceFunc {
 				update.Properties.Enabled = pointer.To(state.Enabled)
 			}
 
-			metadata.Logger.Infof("Updating %s", id)
-
 			if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -213,7 +209,6 @@ func (r NetAppBackupPolicyResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppBackupPolicyModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)

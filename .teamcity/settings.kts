@@ -15,12 +15,14 @@ var tenantIdAlt = DslContext.getParameter("tenantIdAlt", "")
 var subscriptionIdAltTenant = DslContext.getParameter("subscriptionIdAltTenant", "")
 var principalIdAltTenant = DslContext.getParameter("principalIdAltTenant", "")
 var vcsRootId = DslContext.getParameter("vcsRootId", "TF_HashiCorp_AzureRM_Repository")
+var runBetaVersion = DslContext.getParameter("runBetaVersion", "true").equals("true", ignoreCase = true)
 var enableTestTriggersGlobally = DslContext.getParameter("enableTestTriggersGlobally", "true").equals("true", ignoreCase = true)
 var emailAddressAccTests = DslContext.getParameter("emailAddressAccTests", "")
 var gitHubRepo = DslContext.getParameter("gitHubRepo", "hashicorp/terraform-provider-azurerm")
 var gitPat = DslContext.getParameter("gitPat", "")
+var betaVersionEnvVar = DslContext.getParameter("betaVersionEnvVar", "env.ARM_FIVEPOINTZERO_BETA")
 
 
-var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt, subscriptionIdDevTest, tenantIdAlt, subscriptionIdAltTenant, principalIdAltTenant, vcsRootId, enableTestTriggersGlobally, emailAddressAccTests, gitHubRepo, gitPat)
+var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt, subscriptionIdDevTest, tenantIdAlt, subscriptionIdAltTenant, principalIdAltTenant, vcsRootId, runBetaVersion, enableTestTriggersGlobally, emailAddressAccTests, gitHubRepo, gitPat, betaVersionEnvVar)
 
 project(AzureRM(environment, clientConfig))

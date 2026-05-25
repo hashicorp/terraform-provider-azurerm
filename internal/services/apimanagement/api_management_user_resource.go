@@ -104,8 +104,6 @@ func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for API Management User creation.")
-
 	id := user.NewUserID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("user_id").(string))
 
 	firstName := d.Get("first_name").(string)
@@ -207,7 +205,6 @@ func resourceApiManagementUserDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
 	resp, err := client.Delete(ctx, *id, user.DeleteOperationOptions{AppType: pointer.To(user.AppTypeDeveloperPortal), DeleteSubscriptions: pointer.To(true), Notify: pointer.To(false)})
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {

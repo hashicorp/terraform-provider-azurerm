@@ -97,7 +97,6 @@ func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta in
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Container Registry Agent Pool creation.")
 
 	id := agentpools.NewAgentPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("container_registry_name").(string), d.Get("name").(string))
 
@@ -143,7 +142,6 @@ func resourceContainerRegistryAgentPoolUpdate(d *pluginsdk.ResourceData, meta in
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Container Registry Agent Pool creation.")
 
 	id, err := agentpools.ParseAgentPoolID(d.Id())
 	if err != nil {

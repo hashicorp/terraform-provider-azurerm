@@ -259,7 +259,8 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				[]string{
 					"stable",
 					"preview",
-				}, false),
+				}, false,
+			),
 		},
 
 		"web_application_firewall": {
