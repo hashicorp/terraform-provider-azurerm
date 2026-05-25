@@ -384,7 +384,7 @@ func flattenBackupPolicyDiskDefaultRetentionRuleDuration(input *[]basebackuppoli
 	for _, item := range *input {
 		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
 			if len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
+				if deleteOption, ok := retentionRule.Lifecycles[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
 					return deleteOption.Duration
 				}
 			}
@@ -423,7 +423,7 @@ func flattenBackupPolicyDiskRetentionRuleArray(input *[]basebackuppolicyresource
 			}
 			var duration string
 			if len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
+				if deleteOption, ok := retentionRule.Lifecycles[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
 					duration = deleteOption.Duration
 				}
 			}

@@ -6,7 +6,6 @@ package recoveryservices
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -108,7 +107,6 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroupName, parsedStorageAccountID.StorageAccountName)
-	log.Printf("[DEBUG] creating/updating Recovery Service Protected File Share %q (Container Name %q)", fileShareName, containerName)
 
 	// the fileshare has a user defined name, but its system name (fileShareSystemName) is only known to Azure Backup
 	fileShareSystemName := ""
@@ -259,8 +257,6 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	log.Printf("[DEBUG] Reading %s", *id)
-
 	resp, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -336,8 +332,6 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 	}
-
-	log.Printf("[DEBUG] Deleting %s", *id)
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

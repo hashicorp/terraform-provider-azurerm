@@ -270,8 +270,6 @@ func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Load Balancer creation.")
-
 	id := loadbalancers.NewLoadBalancerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	// Casting because of a bug in provider ID generation due to a data issue that needs investigation.

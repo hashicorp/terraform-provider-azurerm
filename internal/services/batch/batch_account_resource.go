@@ -203,8 +203,6 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Batch account creation.")
-
 	id := batchaccount.NewBatchAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := location.Normalize(d.Get("location").(string))
 	storageAccountId := d.Get("storage_account_id").(string)
@@ -400,8 +398,6 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	client := meta.(*clients.Client).Batch.AccountClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure Batch account update.")
 
 	id, err := batchaccount.ParseBatchAccountID(d.Id())
 	if err != nil {

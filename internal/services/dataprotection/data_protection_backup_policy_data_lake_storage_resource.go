@@ -509,13 +509,13 @@ func flattenBackupPolicyDataLakeStorageCriteriaIntoRule(input *[]basebackuppolic
 	for _, item := range pointer.From(input) {
 		if criteria, ok := item.(basebackuppolicyresources.ScheduleBasedBackupCriteria); ok {
 			if criteria.AbsoluteCriteria != nil && len(pointer.From(criteria.AbsoluteCriteria)) > 0 {
-				rule.AbsoluteCriteria = string((pointer.From(criteria.AbsoluteCriteria))[0])
+				rule.AbsoluteCriteria = string(pointer.From(criteria.AbsoluteCriteria)[0])
 			}
 
 			if criteria.DaysOfTheWeek != nil {
 				daysOfWeek := make([]string, 0)
 				for _, item := range pointer.From(criteria.DaysOfTheWeek) {
-					daysOfWeek = append(daysOfWeek, (string)(item))
+					daysOfWeek = append(daysOfWeek, string(item))
 				}
 				rule.DaysOfWeek = daysOfWeek
 			}
@@ -523,7 +523,7 @@ func flattenBackupPolicyDataLakeStorageCriteriaIntoRule(input *[]basebackuppolic
 			if criteria.MonthsOfYear != nil {
 				monthsOfYear := make([]string, 0)
 				for _, item := range pointer.From(criteria.MonthsOfYear) {
-					monthsOfYear = append(monthsOfYear, (string)(item))
+					monthsOfYear = append(monthsOfYear, string(item))
 				}
 				rule.MonthsOfYear = monthsOfYear
 			}
@@ -531,7 +531,7 @@ func flattenBackupPolicyDataLakeStorageCriteriaIntoRule(input *[]basebackuppolic
 			if criteria.WeeksOfTheMonth != nil {
 				weeksOfMonth := make([]string, 0)
 				for _, item := range pointer.From(criteria.WeeksOfTheMonth) {
-					weeksOfMonth = append(weeksOfMonth, (string)(item))
+					weeksOfMonth = append(weeksOfMonth, string(item))
 				}
 				rule.WeeksOfMonth = weeksOfMonth
 			}

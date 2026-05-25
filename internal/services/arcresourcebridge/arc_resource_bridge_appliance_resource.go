@@ -167,7 +167,6 @@ func (r ArcResourceBridgeApplianceResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", *id)
 			var model ApplianceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)

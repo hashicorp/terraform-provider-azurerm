@@ -321,8 +321,6 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
-
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
@@ -606,8 +604,6 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	skusClient := meta.(*clients.Client).Compute.SkusClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk update.")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)

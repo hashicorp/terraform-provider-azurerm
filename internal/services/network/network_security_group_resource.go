@@ -540,19 +540,23 @@ func validateSecurityRule(sgRule map[string]interface{}) error {
 
 	if sourcePortRange != "" && sourcePortRanges.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"source_port_range\" and \"source_port_ranges\" can be used per security rule"))
+			"only one of \"source_port_range\" and \"source_port_ranges\" can be used per security rule",
+		))
 	}
 	if destinationPortRange != "" && destinationPortRanges.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"destination_port_range\" and \"destination_port_ranges\" can be used per security rule"))
+			"only one of \"destination_port_range\" and \"destination_port_ranges\" can be used per security rule",
+		))
 	}
 	if sourceAddressPrefix != "" && sourceAddressPrefixes.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"source_address_prefix\" and \"source_address_prefixes\" can be used per security rule"))
+			"only one of \"source_address_prefix\" and \"source_address_prefixes\" can be used per security rule",
+		))
 	}
 	if destinationAddressPrefix != "" && destinationAddressPrefixes.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"destination_address_prefix\" and \"destination_address_prefixes\" can be used per security rule"))
+			"only one of \"destination_address_prefix\" and \"destination_address_prefixes\" can be used per security rule",
+		))
 	}
 
 	return err.ErrorOrNil()
