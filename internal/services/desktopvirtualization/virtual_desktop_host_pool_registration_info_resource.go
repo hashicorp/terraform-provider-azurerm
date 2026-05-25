@@ -112,7 +112,9 @@ func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.Res
 		return fmt.Errorf("updating registration token for %s: %+v", hostPoolId, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceVirtualDesktopHostPoolRegistrationInfoRead(d, meta)
 }

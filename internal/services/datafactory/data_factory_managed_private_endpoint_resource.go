@@ -107,12 +107,15 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	}
 
 	id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, *managedVirtualNetworkName, d.Get("name").(string))
-	existing, err := getManagedPrivateEndpoint(ctx, client, id.SubscriptionId, id.ResourceGroupName, id.FactoryName, id.ManagedVirtualNetworkName, id.ManagedPrivateEndpointName)
-	if err != nil {
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-	}
-	if existing != nil {
-		return tf.ImportAsExistsError("azurerm_data_factory_managed_private_endpoint", id.ID())
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := getManagedPrivateEndpoint(ctx, client, id.SubscriptionId, id.ResourceGroupName, id.FactoryName, id.ManagedVirtualNetworkName, id.ManagedPrivateEndpointName)
+		if err != nil {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
+		if existing != nil {
+			return tf.ImportAsExistsError("azurerm_data_factory_managed_private_endpoint", id.ID())
+		}
 	}
 
 	targetResourceId := d.Get("target_resource_id").(string)
@@ -155,6 +158,8 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Provisioning"},
 		Target:     []string{"Succeeded"},
@@ -165,8 +170,6 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be created: %+v", id.ID(), err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceDataFactoryManagedPrivateEndpointRead(d, meta)
 }
