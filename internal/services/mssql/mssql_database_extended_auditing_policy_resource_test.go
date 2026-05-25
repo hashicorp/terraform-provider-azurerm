@@ -311,7 +311,7 @@ resource "azurerm_mssql_database_extended_auditing_policy" "import" {
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r MsSqlDatabaseExtendedAuditingPolicyResource) complete(data acceptance.TestData) string {
