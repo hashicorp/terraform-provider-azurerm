@@ -27,7 +27,7 @@ import (
 
 func resourceStaticSite() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: "This resource has been deprecated in favour of `azurerm_static_web_app` and will be removed in a future release.",
+		DeprecationMessage: "This resource has been deprecated in favour of `azurerm_static_web_app` and will be removed in v5.0 of the AzureRM provider.",
 		Create:             resourceStaticSiteCreateOrUpdate,
 		Read:               resourceStaticSiteRead,
 		Update:             resourceStaticSiteCreateOrUpdate,
@@ -103,7 +103,7 @@ func resourceStaticSite() *pluginsdk.Resource {
 }
 
 func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.StaticSitesClient
+	client := meta.(*clients.Client).Web.StaticSitesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,7 +174,7 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.StaticSitesClient
+	client := meta.(*clients.Client).Web.StaticSitesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -249,7 +249,7 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceStaticSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.StaticSitesClient
+	client := meta.(*clients.Client).Web.StaticSitesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

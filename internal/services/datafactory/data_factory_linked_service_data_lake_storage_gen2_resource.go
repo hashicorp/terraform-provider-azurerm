@@ -80,6 +80,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *pluginsdk.Resource {
 			"service_principal_key": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
+				Sensitive:     true,
 				ValidateFunc:  validation.StringIsNotEmpty,
 				RequiredWith:  []string{"service_principal_id", "tenant"},
 				ConflictsWith: []string{"storage_account_key", "use_managed_identity"},
@@ -89,6 +90,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *pluginsdk.Resource {
 			"storage_account_key": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
+				Sensitive:     true,
 				ConflictsWith: []string{"service_principal_id", "service_principal_key", "use_managed_identity", "tenant"},
 				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "tenant", "storage_account_key", "use_managed_identity"},
 			},
