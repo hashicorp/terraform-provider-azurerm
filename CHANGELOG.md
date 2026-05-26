@@ -12,6 +12,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_cosmosdb_sql_container` - fix Read function to ensure the resource is able to track drift [GH-32443]
 * Data Source: `azurerm_virtual_network_gateway` - fixed issue returning correct value for deprecated `enable_bgp` property [GH-32422]
 `azurerm_api_management_backend` - the make `proxy.username` property is now optional [GH-32433]
 
