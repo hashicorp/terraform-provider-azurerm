@@ -1,6 +1,7 @@
 ## 4.75.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `cognitive` - update API version to `2026-03-01` [GH-32427]
 * provider: adds support for the `features.persist_id_on_create_before_polling_for_completion` feature [GH-32318]
 * provider: adds support for the `features.skip_import_check_on_create_and_allow_overwriting_existing_resources` feature [GH-32318]
 * `azurerm_redhat_openshift_cluster` - update API version to `2025-07-25` [GH-32029]
