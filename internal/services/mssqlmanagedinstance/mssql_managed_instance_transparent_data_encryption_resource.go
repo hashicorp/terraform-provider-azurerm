@@ -202,6 +202,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 		payload.Properties.ServerKeyType = managedinstanceencryptionprotectors.ServerKeyTypeAzureKeyVault
 	}
 
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}

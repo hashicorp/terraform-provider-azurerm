@@ -21,7 +21,7 @@ type DeleteOperationResponse struct {
 }
 
 // Delete ...
-func (c OpenShiftClustersClient) Delete(ctx context.Context, id ProviderOpenShiftClusterId) (result DeleteOperationResponse, err error) {
+func (c OpenShiftClustersClient) Delete(ctx context.Context, id OpenShiftClusterId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -56,7 +56,7 @@ func (c OpenShiftClustersClient) Delete(ctx context.Context, id ProviderOpenShif
 }
 
 // DeleteThenPoll performs Delete then polls until it's completed
-func (c OpenShiftClustersClient) DeleteThenPoll(ctx context.Context, id ProviderOpenShiftClusterId) error {
+func (c OpenShiftClustersClient) DeleteThenPoll(ctx context.Context, id OpenShiftClusterId) error {
 	result, err := c.Delete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Delete: %+v", err)

@@ -12,21 +12,21 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListCredentialsOperationResponse struct {
+type ListAdminCredentialsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *OpenShiftClusterCredentials
+	Model        *OpenShiftClusterAdminKubeconfig
 }
 
-// ListCredentials ...
-func (c OpenShiftClustersClient) ListCredentials(ctx context.Context, id ProviderOpenShiftClusterId) (result ListCredentialsOperationResponse, err error) {
+// ListAdminCredentials ...
+func (c OpenShiftClustersClient) ListAdminCredentials(ctx context.Context, id OpenShiftClusterId) (result ListAdminCredentialsOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
-		Path:       fmt.Sprintf("%s/listCredentials", id.ID()),
+		Path:       fmt.Sprintf("%s/listAdminCredentials", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -44,7 +44,7 @@ func (c OpenShiftClustersClient) ListCredentials(ctx context.Context, id Provide
 		return
 	}
 
-	var model OpenShiftClusterCredentials
+	var model OpenShiftClusterAdminKubeconfig
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

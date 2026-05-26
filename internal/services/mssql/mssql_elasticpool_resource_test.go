@@ -212,35 +212,6 @@ func TestAccMsSqlElasticPool_resizeVCore(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlElasticPool_fsv2FamilyVCore(t *testing.T) {
-	t.Skip("Skipping since Azure SQL no longer allows creating FSv2 elastic pools.")
-
-	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MssqlElasticpoolResource{}
-
-	// Limited regional availability for Fsv2 family
-	data.Locations.Primary = "westeurope"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.fsv2VCore(data, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.fsv2VCore(data, `enclave_type = "VBS"`),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccMsSqlElasticPool_dcFamilyVCore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MssqlElasticpoolResource{}
@@ -529,10 +500,6 @@ func (r MssqlElasticpoolResource) updateToStandardDTU(data acceptance.TestData, 
 
 func (r MssqlElasticpoolResource) basicVCore(data acceptance.TestData, enclaveType string) string {
 	return r.templateVCore(data, "GP_Gen5", "GeneralPurpose", 4, "Gen5", 0.25, 4, enclaveType)
-}
-
-func (r MssqlElasticpoolResource) fsv2VCore(data acceptance.TestData, enclaveType string) string {
-	return r.templateVCore(data, "GP_Fsv2", "GeneralPurpose", 8, "Fsv2", 0, 8, enclaveType)
 }
 
 func (r MssqlElasticpoolResource) dcVCore(data acceptance.TestData, enclaveType string) string {

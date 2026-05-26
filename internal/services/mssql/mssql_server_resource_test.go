@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -63,24 +62,6 @@ func TestAccMsSqlServer_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"),
-	})
-}
-
-func TestAccMsSqlServer_minimumTLSVersionDisabled(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("The service require minimum TLS version to be 1.2+, skip the `disabled` testing.")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MssqlServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicWithMinimumTLSVersionDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -467,26 +448,6 @@ resource "azurerm_mssql_server" "test" {
   administrator_login_password = "thisIsKat11"
 
   outbound_network_restriction_enabled = true
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r MssqlServerResource) basicWithMinimumTLSVersionDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  version                      = "12.0"
-  administrator_login          = "missadministrator"
-  administrator_login_password = "thisIsKat11"
-  minimum_tls_version          = "Disabled"
-
-  identity {
-    type = "SystemAssigned"
-  }
 }
 `, r.template(data), data.RandomInteger)
 }

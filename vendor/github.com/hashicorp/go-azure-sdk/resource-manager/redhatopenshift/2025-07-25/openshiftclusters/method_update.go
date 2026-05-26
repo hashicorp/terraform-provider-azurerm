@@ -14,22 +14,22 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CreateOrUpdateOperationResponse struct {
+type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *OpenShiftCluster
 }
 
-// CreateOrUpdate ...
-func (c OpenShiftClustersClient) CreateOrUpdate(ctx context.Context, id ProviderOpenShiftClusterId, input OpenShiftCluster) (result CreateOrUpdateOperationResponse, err error) {
+// Update ...
+func (c OpenShiftClustersClient) Update(ctx context.Context, id OpenShiftClusterId, input OpenShiftClusterUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPut,
+		HttpMethod: http.MethodPatch,
 		Path:       id.ID(),
 	}
 
@@ -60,15 +60,26 @@ func (c OpenShiftClustersClient) CreateOrUpdate(ctx context.Context, id Provider
 	return
 }
 
-// CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c OpenShiftClustersClient) CreateOrUpdateThenPoll(ctx context.Context, id ProviderOpenShiftClusterId, input OpenShiftCluster) error {
-	result, err := c.CreateOrUpdate(ctx, id, input)
+// UpdateThenPoll performs Update then polls until it's completed
+func (c OpenShiftClustersClient) UpdateThenPoll(ctx context.Context, id OpenShiftClusterId, input OpenShiftClusterUpdate) error {
+	return c.UpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed
+func (c OpenShiftClustersClient) UpdateCallbackThenPoll(ctx context.Context, id OpenShiftClusterId, input OpenShiftClusterUpdate, callback func() error) error {
+	result, err := c.Update(ctx, id, input)
 	if err != nil {
-		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+		return fmt.Errorf("performing Update: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after CreateOrUpdate: %+v", err)
+		return fmt.Errorf("polling after Update: %+v", err)
 	}
 
 	return nil

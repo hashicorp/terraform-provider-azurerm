@@ -12,36 +12,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 func init() {
-	recaser.RegisterResourceId(&ProviderOpenShiftClusterId{})
+	recaser.RegisterResourceId(&OpenShiftClusterId{})
 }
 
-var _ resourceids.ResourceId = &ProviderOpenShiftClusterId{}
+var _ resourceids.ResourceId = &OpenShiftClusterId{}
 
-// ProviderOpenShiftClusterId is a struct representing the Resource ID for a Provider Open Shift Cluster
-type ProviderOpenShiftClusterId struct {
+// OpenShiftClusterId is a struct representing the Resource ID for a Open Shift Cluster
+type OpenShiftClusterId struct {
 	SubscriptionId       string
 	ResourceGroupName    string
 	OpenShiftClusterName string
 }
 
-// NewProviderOpenShiftClusterID returns a new ProviderOpenShiftClusterId struct
-func NewProviderOpenShiftClusterID(subscriptionId string, resourceGroupName string, openShiftClusterName string) ProviderOpenShiftClusterId {
-	return ProviderOpenShiftClusterId{
+// NewOpenShiftClusterID returns a new OpenShiftClusterId struct
+func NewOpenShiftClusterID(subscriptionId string, resourceGroupName string, openShiftClusterName string) OpenShiftClusterId {
+	return OpenShiftClusterId{
 		SubscriptionId:       subscriptionId,
 		ResourceGroupName:    resourceGroupName,
 		OpenShiftClusterName: openShiftClusterName,
 	}
 }
 
-// ParseProviderOpenShiftClusterID parses 'input' into a ProviderOpenShiftClusterId
-func ParseProviderOpenShiftClusterID(input string) (*ProviderOpenShiftClusterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&ProviderOpenShiftClusterId{})
+// ParseOpenShiftClusterID parses 'input' into a OpenShiftClusterId
+func ParseOpenShiftClusterID(input string) (*OpenShiftClusterId, error) {
+	parser := resourceids.NewParserFromResourceIdType(&OpenShiftClusterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	id := ProviderOpenShiftClusterId{}
+	id := OpenShiftClusterId{}
 	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
@@ -49,16 +49,16 @@ func ParseProviderOpenShiftClusterID(input string) (*ProviderOpenShiftClusterId,
 	return &id, nil
 }
 
-// ParseProviderOpenShiftClusterIDInsensitively parses 'input' case-insensitively into a ProviderOpenShiftClusterId
+// ParseOpenShiftClusterIDInsensitively parses 'input' case-insensitively into a OpenShiftClusterId
 // note: this method should only be used for API response data and not user input
-func ParseProviderOpenShiftClusterIDInsensitively(input string) (*ProviderOpenShiftClusterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&ProviderOpenShiftClusterId{})
+func ParseOpenShiftClusterIDInsensitively(input string) (*OpenShiftClusterId, error) {
+	parser := resourceids.NewParserFromResourceIdType(&OpenShiftClusterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	id := ProviderOpenShiftClusterId{}
+	id := OpenShiftClusterId{}
 	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func ParseProviderOpenShiftClusterIDInsensitively(input string) (*ProviderOpenSh
 	return &id, nil
 }
 
-func (id *ProviderOpenShiftClusterId) FromParseResult(input resourceids.ParseResult) error {
+func (id *OpenShiftClusterId) FromParseResult(input resourceids.ParseResult) error {
 	var ok bool
 
 	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
@@ -84,29 +84,29 @@ func (id *ProviderOpenShiftClusterId) FromParseResult(input resourceids.ParseRes
 	return nil
 }
 
-// ValidateProviderOpenShiftClusterID checks that 'input' can be parsed as a Provider Open Shift Cluster ID
-func ValidateProviderOpenShiftClusterID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateOpenShiftClusterID checks that 'input' can be parsed as a Open Shift Cluster ID
+func ValidateOpenShiftClusterID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseProviderOpenShiftClusterID(v); err != nil {
+	if _, err := ParseOpenShiftClusterID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Provider Open Shift Cluster ID
-func (id ProviderOpenShiftClusterId) ID() string {
+// ID returns the formatted Open Shift Cluster ID
+func (id OpenShiftClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.RedHatOpenShift/openShiftClusters/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.OpenShiftClusterName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Provider Open Shift Cluster ID
-func (id ProviderOpenShiftClusterId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Open Shift Cluster ID
+func (id OpenShiftClusterId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -119,12 +119,12 @@ func (id ProviderOpenShiftClusterId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Provider Open Shift Cluster ID
-func (id ProviderOpenShiftClusterId) String() string {
+// String returns a human-readable description of this Open Shift Cluster ID
+func (id OpenShiftClusterId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Open Shift Cluster Name: %q", id.OpenShiftClusterName),
 	}
-	return fmt.Sprintf("Provider Open Shift Cluster (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Open Shift Cluster (%s)", strings.Join(components, "\n"))
 }
