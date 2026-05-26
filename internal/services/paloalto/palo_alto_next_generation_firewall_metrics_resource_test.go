@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	metricsobjectfirewall "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/metricsobjectfirewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -30,9 +29,6 @@ func (r NextGenerationFirewallMetricsResourceTest) Exists(ctx context.Context, c
 
 	resp, err := client.PaloAlto.MetricsObjectFirewallResources.MetricsObjectFirewallGet(ctx, metricsFirewallId)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return pointer.To(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", metricsFirewallId, err)
 	}
 
