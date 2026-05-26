@@ -530,6 +530,22 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.DatabricksWorkspace.ForceDelete = false
 		}
 
+		if !features.ServiceBus.IsNull() && !features.ServiceBus.IsUnknown() {
+			var feature []ServiceBus
+			d := features.ServiceBus.ElementsAs(ctx, &feature, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+
+			f.ServiceBus.AutoDeleteSubscriptionDefaultRule = false
+			if !feature[0].AutoDeleteSubscriptionDefaultRule.IsNull() && !feature[0].AutoDeleteSubscriptionDefaultRule.IsUnknown() {
+				f.ServiceBus.AutoDeleteSubscriptionDefaultRule = feature[0].AutoDeleteSubscriptionDefaultRule.ValueBool()
+			}
+		} else {
+			f.ServiceBus.AutoDeleteSubscriptionDefaultRule = false
+		}
+
 		f.EnhancedValidation.Locations = providerfeatures.EnhancedValidationLocationsEnabled()
 		f.EnhancedValidation.ResourceProviders = providerfeatures.EnhancedValidationResourceProvidersEnabled()
 		f.EnhancedValidation.PreflightEnabled = providerfeatures.EnhancedValidationPreflightEnabled()
