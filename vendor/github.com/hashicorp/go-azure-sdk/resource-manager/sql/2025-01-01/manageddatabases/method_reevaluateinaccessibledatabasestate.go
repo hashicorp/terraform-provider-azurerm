@@ -59,9 +59,20 @@ func (c ManagedDatabasesClient) ReevaluateInaccessibleDatabaseState(ctx context.
 
 // ReevaluateInaccessibleDatabaseStateThenPoll performs ReevaluateInaccessibleDatabaseState then polls until it's completed
 func (c ManagedDatabasesClient) ReevaluateInaccessibleDatabaseStateThenPoll(ctx context.Context, id commonids.SqlManagedInstanceDatabaseId) error {
+	return c.ReevaluateInaccessibleDatabaseStateCallbackThenPoll(ctx, id, nil)
+}
+
+// ReevaluateInaccessibleDatabaseStateCallbackThenPoll performs ReevaluateInaccessibleDatabaseState, runs the optional callback function, then polls until it's completed
+func (c ManagedDatabasesClient) ReevaluateInaccessibleDatabaseStateCallbackThenPoll(ctx context.Context, id commonids.SqlManagedInstanceDatabaseId, callback func() error) error {
 	result, err := c.ReevaluateInaccessibleDatabaseState(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ReevaluateInaccessibleDatabaseState: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

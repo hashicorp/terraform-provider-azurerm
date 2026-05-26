@@ -62,9 +62,20 @@ func (c ManagedInstancesClient) ValidateAzureKeyVaultEncryptionKey(ctx context.C
 
 // ValidateAzureKeyVaultEncryptionKeyThenPoll performs ValidateAzureKeyVaultEncryptionKey then polls until it's completed
 func (c ManagedInstancesClient) ValidateAzureKeyVaultEncryptionKeyThenPoll(ctx context.Context, id commonids.SqlManagedInstanceId, input ManagedInstanceValidateAzureKeyVaultEncryptionKeyRequest) error {
+	return c.ValidateAzureKeyVaultEncryptionKeyCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ValidateAzureKeyVaultEncryptionKeyCallbackThenPoll performs ValidateAzureKeyVaultEncryptionKey, runs the optional callback function, then polls until it's completed
+func (c ManagedInstancesClient) ValidateAzureKeyVaultEncryptionKeyCallbackThenPoll(ctx context.Context, id commonids.SqlManagedInstanceId, input ManagedInstanceValidateAzureKeyVaultEncryptionKeyRequest, callback func() error) error {
 	result, err := c.ValidateAzureKeyVaultEncryptionKey(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ValidateAzureKeyVaultEncryptionKey: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
