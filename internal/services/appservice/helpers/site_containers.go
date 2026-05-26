@@ -20,7 +20,7 @@ import (
 type SiteContainer struct {
 	Name                        string                             `tfschema:"name"`
 	Image                       string                             `tfschema:"image"`
-	IsMain                      bool                               `tfschema:"is_main"`
+	Primary                     bool                               `tfschema:"primary"`
 	TargetPort                  int64                              `tfschema:"target_port"`
 	AuthenticationType          string                             `tfschema:"authentication_type"`
 	StartUpCommand              string                             `tfschema:"startup_command"`
@@ -62,7 +62,7 @@ func SiteContainerSchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"is_main": {
+				"primary": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -162,11 +162,11 @@ func ValidateSiteContainers(containers []SiteContainer, hasApplicationStack bool
 		return errors.New("`site_container` cannot be used when `site_config.0.application_stack` is specified")
 	}
 
-	mainCount := 0
+	primaryCount := 0
 	names := make(map[string]struct{}, len(containers))
 	for _, container := range containers {
-		if container.IsMain {
-			mainCount++
+		if container.Primary {
+			primaryCount++
 		}
 		if _, exists := names[container.Name]; exists {
 			return fmt.Errorf("`site_container` names must be unique; duplicate `%s` found", container.Name)
@@ -184,8 +184,8 @@ func ValidateSiteContainers(containers []SiteContainer, hasApplicationStack bool
 			}
 		}
 	}
-	if mainCount != 1 {
-		return errors.New("exactly one `site_container` must have `is_main` set to `true`")
+	if primaryCount != 1 {
+		return errors.New("exactly one `site_container` must have `primary` set to `true`")
 	}
 
 	return nil
@@ -269,7 +269,7 @@ func ExpandSiteContainers(input []SiteContainer) ([]webapps.SiteContainer, error
 			AuthType:             pointer.To(authType),
 			EnvironmentVariables: expandSiteContainerEnvVars(container.EnvironmentVariables),
 			Image:                container.Image,
-			IsMain:               container.IsMain,
+			IsMain:               container.Primary,
 			VolumeMounts:         expandSiteContainerVolumeMounts(container.VolumeMounts),
 		}
 
@@ -367,7 +367,7 @@ func FlattenSiteContainers(input []webapps.SiteContainer, existing []SiteContain
 		flattened := SiteContainer{
 			Name:       name,
 			Image:      props.Image,
-			IsMain:     props.IsMain,
+			Primary:    props.IsMain,
 			TargetPort: targetPort,
 			AuthenticationType: func() string {
 				if props.AuthType == nil {

@@ -836,13 +836,13 @@ A `site_container` block supports the following:
 
 * `environment_variable` - (Optional) One or more `environment_variable` blocks as defined below.
 
-* `is_main` - (Optional) Should this container serve the primary slot traffic? Defaults to `false`.
-
-~> **Note:** Exactly one `site_container` must have `is_main` set to `true`.
-
 * `password_secret` - (Optional) The password to use when `authentication_type` is set to `UserCredentials`.
 
 -> **Note:** Azure does not return values supplied to `password_secret`, so Terraform cannot detect drift for this property.
+
+* `primary` - (Optional) Should this container serve the primary slot traffic? Defaults to `false`.
+
+~> **Note:** Exactly one `site_container` must have `primary` set to `true`.
 
 * `startup_command` - (Optional) The command that should be executed when the container starts.
 
