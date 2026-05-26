@@ -2586,7 +2586,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   dns_prefix              = "acctestaks%d"
-  private_cluster_enabled = "true"
+
+  private_cluster {
+	public_fully_qualified_domain_name_enabled = %t
+  }
+
   default_node_pool {
     name       = "default"
     node_count = 1
@@ -2601,7 +2605,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   network_profile {
     load_balancer_sku = "standard"
   }
-  private_cluster_public_fqdn_enabled = %t
+ 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, privateClusterPublicFqdnEnabled)
 }
