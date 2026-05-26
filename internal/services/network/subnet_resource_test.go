@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -351,6 +352,10 @@ func TestAccSubnet_enablePrivateLinkServiceNetworkPolicies(t *testing.T) {
 }
 
 func TestAccSubnet_serviceEndpoints(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as `service_endpoints` is removed in v5.0 of the provider")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
 
@@ -391,6 +396,11 @@ func TestAccSubnet_serviceEndpointBlock(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
 
+	ignoreFields := []string{}
+	if !features.FivePointOh() {
+		ignoreFields = append(ignoreFields, "service_endpoints")
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.serviceEndpointBlock(data),
@@ -400,7 +410,7 @@ func TestAccSubnet_serviceEndpointBlock(t *testing.T) {
 				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("1"),
 			),
 		},
-		data.ImportStep("service_endpoints"),
+		data.ImportStep(ignoreFields...),
 		{
 			Config: r.serviceEndpointBlockUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -408,7 +418,7 @@ func TestAccSubnet_serviceEndpointBlock(t *testing.T) {
 				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("2"),
 			),
 		},
-		data.ImportStep("service_endpoints"),
+		data.ImportStep(ignoreFields...),
 		{
 			Config: r.serviceEndpointBlock(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -417,7 +427,7 @@ func TestAccSubnet_serviceEndpointBlock(t *testing.T) {
 				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("1"),
 			),
 		},
-		data.ImportStep("service_endpoints"),
+		data.ImportStep(ignoreFields...),
 		{
 			Config: r.serviceEndpointWithNetworkIdentifier(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -426,11 +436,15 @@ func TestAccSubnet_serviceEndpointBlock(t *testing.T) {
 				check.That(data.ResourceName).Key("service_endpoint.0.network_identifier").IsSet(),
 			),
 		},
-		data.ImportStep("service_endpoints"),
+		data.ImportStep(ignoreFields...),
 	})
 }
 
 func TestAccSubnet_serviceEndpointPolicy(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as `service_endpoints` is removed in v5.0 of the provider")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
 

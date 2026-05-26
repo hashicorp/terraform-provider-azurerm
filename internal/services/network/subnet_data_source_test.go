@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type SubnetDataSource struct{}
@@ -101,18 +102,67 @@ func TestAccDataSourceSubnet_serviceEndpoints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 	r := SubnetDataSource{}
 
+	var checks []acceptance.TestCheckFunc
+	checks = append(checks,
+		check.That(data.ResourceName).Key("name").Exists(),
+		check.That(data.ResourceName).Key("resource_group_name").Exists(),
+		check.That(data.ResourceName).Key("virtual_network_name").Exists(),
+		check.That(data.ResourceName).Key("address_prefix").Exists(),
+		check.That(data.ResourceName).Key("network_security_group_id").HasValue(""),
+		check.That(data.ResourceName).Key("route_table_id").HasValue(""),
+	)
+
+	if !features.FivePointOh() {
+		checks = append(checks,
+			check.That(data.ResourceName).Key("service_endpoints.#").HasValue("2"),
+			check.That(data.ResourceName).Key("service_endpoint.#").HasValue("2"),
+			check.That(data.ResourceName).Key("service_endpoint.0.service").Exists(),
+		)
+	} else {
+		checks = append(checks,
+			check.That(data.ResourceName).Key("service_endpoints.#").HasValue("2"),
+			check.That(data.ResourceName).Key("service_endpoints.0.service").Exists(),
+		)
+	}
+
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.serviceEndpoint(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("virtual_network_name").Exists(),
-				check.That(data.ResourceName).Key("address_prefix").Exists(),
-				check.That(data.ResourceName).Key("network_security_group_id").HasValue(""),
-				check.That(data.ResourceName).Key("route_table_id").HasValue(""),
-				check.That(data.ResourceName).Key("service_endpoints.#").HasValue("2"),
-			),
+			Check:  acceptance.ComposeTestCheckFunc(checks...),
+		},
+	})
+}
+
+func TestAccDataSourceSubnet_serviceEndpointWithNetworkIdentifier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
+	r := SubnetDataSource{}
+
+	var checks []acceptance.TestCheckFunc
+	checks = append(checks,
+		check.That(data.ResourceName).Key("name").Exists(),
+		check.That(data.ResourceName).Key("resource_group_name").Exists(),
+		check.That(data.ResourceName).Key("virtual_network_name").Exists(),
+		check.That(data.ResourceName).Key("address_prefix").Exists(),
+	)
+
+	if !features.FivePointOh() {
+		checks = append(checks,
+			check.That(data.ResourceName).Key("service_endpoint.#").HasValue("1"),
+			check.That(data.ResourceName).Key("service_endpoint.0.service").HasValue("Microsoft.Storage"),
+			check.That(data.ResourceName).Key("service_endpoint.0.network_identifier").IsSet(),
+		)
+	} else {
+		checks = append(checks,
+			check.That(data.ResourceName).Key("service_endpoints.#").HasValue("1"),
+			check.That(data.ResourceName).Key("service_endpoints.0.service").HasValue("Microsoft.Storage"),
+			check.That(data.ResourceName).Key("service_endpoints.0.network_identifier").IsSet(),
+		)
+	}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.serviceEndpointWithNetworkIdentifier(data),
+			Check:  acceptance.ComposeTestCheckFunc(checks...),
 		},
 	})
 }
@@ -257,7 +307,8 @@ data "azurerm_subnet" "test" {
 }
 
 func (SubnetDataSource) serviceEndpoint(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 data "azurerm_subnet" "test" {
@@ -266,6 +317,29 @@ data "azurerm_subnet" "test" {
   resource_group_name  = azurerm_subnet.test.resource_group_name
 }
 `, SubnetResource{}.serviceEndpointsUpdated(data))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_subnet" "test" {
+  name                 = azurerm_subnet.test.name
+  virtual_network_name = azurerm_subnet.test.virtual_network_name
+  resource_group_name  = azurerm_subnet.test.resource_group_name
+}
+`, SubnetResource{}.serviceEndpointBlockUpdated(data))
+}
+
+func (SubnetDataSource) serviceEndpointWithNetworkIdentifier(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_subnet" "test" {
+  name                 = azurerm_subnet.test.name
+  virtual_network_name = azurerm_subnet.test.virtual_network_name
+  resource_group_name  = azurerm_subnet.test.resource_group_name
+}
+`, SubnetResource{}.serviceEndpointWithNetworkIdentifier(data))
 }
 
 func (SubnetDataSource) template(data acceptance.TestData) string {
