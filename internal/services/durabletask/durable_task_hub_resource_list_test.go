@@ -59,13 +59,13 @@ resource "azurerm_durable_task_scheduler" "test" {
 }
 
 resource "azurerm_durable_task_hub" "test" {
-  name         = "acctest%s"
-  scheduler_id = azurerm_durable_task_scheduler.test.id
+  name                      = "acctest%s"
+  durable_task_scheduler_id = azurerm_durable_task_scheduler.test.id
 }
 
 resource "azurerm_durable_task_hub" "test2" {
-  name         = "acctest%s2"
-  scheduler_id = azurerm_durable_task_scheduler.test.id
+  name                      = "acctest%s2"
+  durable_task_scheduler_id = azurerm_durable_task_scheduler.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
@@ -75,7 +75,7 @@ func (r DurableTaskHubResource) basicListQuery(data acceptance.TestData) string 
 list "azurerm_durable_task_hub" "list" {
   provider = azurerm
   config {
-    scheduler_id = "/subscriptions/%s/resourceGroups/acctestRG-durabletask-%d/providers/Microsoft.DurableTask/schedulers/acctestdts%s"
+    durable_task_scheduler_id = "/subscriptions/%s/resourceGroups/acctestRG-durabletask-%d/providers/Microsoft.DurableTask/schedulers/acctestdts%s"
   }
 }
 `, data.Subscriptions.Primary, data.RandomInteger, data.RandomString)

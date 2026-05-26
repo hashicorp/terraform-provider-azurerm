@@ -18,7 +18,7 @@ Lists Durable Task Hub resources.
 list "azurerm_durable_task_hub" "example" {
   provider = azurerm
   config {
-    scheduler_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DurableTask/schedulers/scheduler1"
+    durable_task_scheduler_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DurableTask/schedulers/scheduler1"
   }
 }
 ```
@@ -27,4 +27,4 @@ list "azurerm_durable_task_hub" "example" {
 
 This list resource supports the following arguments:
 
-* `scheduler_id` - (Required) The ID of the Durable Task Scheduler to query.
+* `durable_task_scheduler_id` - (Required) The ID of the Durable Task Scheduler to query.

@@ -3,7 +3,7 @@
 
 package durabletask
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name durable_task_retention_policy -service-package-name durabletask -compare-values "subscription_id:scheduler_id,resource_group_name:scheduler_id,scheduler_name:scheduler_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name durable_task_retention_policy -service-package-name durabletask -compare-values "subscription_id:durable_task_scheduler_id,resource_group_name:durable_task_scheduler_id,scheduler_name:durable_task_scheduler_id"
 
 import (
 	"context"
@@ -20,13 +20,16 @@ import (
 )
 
 type RetentionPolicyResourceModel struct {
-	SchedulerId     string                     `tfschema:"scheduler_id"`
-	RetentionPolicy []RetentionPolicyItemModel `tfschema:"retention_policy"`
+	DurableTaskSchedulerId string                 `tfschema:"durable_task_scheduler_id"`
+	RetentionPolicy        []RetentionPolicyModel `tfschema:"retention_policy"`
 }
 
-type RetentionPolicyItemModel struct {
-	RetentionPeriodInDays int64  `tfschema:"retention_period_in_days"`
-	OrchestrationState    string `tfschema:"orchestration_state"`
+type RetentionPolicyModel struct {
+	CanceledRetentionPeriodInDays   int64 `tfschema:"canceled_retention_period_in_days"`
+	CompletedRetentionPeriodInDays  int64 `tfschema:"completed_retention_period_in_days"`
+	DefaultRetentionPeriodInDays    int64 `tfschema:"default_retention_period_in_days"`
+	FailedRetentionPeriodInDays     int64 `tfschema:"failed_retention_period_in_days"`
+	TerminatedRetentionPeriodInDays int64 `tfschema:"terminated_retention_period_in_days"`
 }
 
 type RetentionPolicyResource struct{}
@@ -54,8 +57,22 @@ func (r RetentionPolicyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 }
 
 func (r RetentionPolicyResource) Arguments() map[string]*pluginsdk.Schema {
+	retentionPolicyAtLeastOneOf := []string{
+		"retention_policy.0.canceled_retention_period_in_days",
+		"retention_policy.0.completed_retention_period_in_days",
+		"retention_policy.0.default_retention_period_in_days",
+		"retention_policy.0.failed_retention_period_in_days",
+		"retention_policy.0.terminated_retention_period_in_days",
+	}
+	defaultRetentionConflictsWith := []string{
+		"retention_policy.0.canceled_retention_period_in_days",
+		"retention_policy.0.completed_retention_period_in_days",
+		"retention_policy.0.failed_retention_period_in_days",
+		"retention_policy.0.terminated_retention_period_in_days",
+	}
+
 	return map[string]*pluginsdk.Schema{
-		"scheduler_id": {
+		"durable_task_scheduler_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -65,18 +82,47 @@ func (r RetentionPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 		"retention_policy": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"retention_period_in_days": {
-						Type:         pluginsdk.TypeInt,
-						Required:     true,
-						ValidateFunc: validation.IntBetween(1, 90),
+					"canceled_retention_period_in_days": {
+						Type:          pluginsdk.TypeInt,
+						Optional:      true,
+						ValidateFunc:  validation.IntBetween(1, 90),
+						AtLeastOneOf:  retentionPolicyAtLeastOneOf,
+						ConflictsWith: []string{"retention_policy.0.default_retention_period_in_days"},
 					},
 
-					"orchestration_state": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringInSlice(retentionpolicies.PossibleValuesForPurgeableOrchestrationState(), false),
+					"completed_retention_period_in_days": {
+						Type:          pluginsdk.TypeInt,
+						Optional:      true,
+						ValidateFunc:  validation.IntBetween(1, 90),
+						AtLeastOneOf:  retentionPolicyAtLeastOneOf,
+						ConflictsWith: []string{"retention_policy.0.default_retention_period_in_days"},
+					},
+
+					"default_retention_period_in_days": {
+						Type:          pluginsdk.TypeInt,
+						Optional:      true,
+						ValidateFunc:  validation.IntBetween(1, 90),
+						AtLeastOneOf:  retentionPolicyAtLeastOneOf,
+						ConflictsWith: defaultRetentionConflictsWith,
+					},
+
+					"failed_retention_period_in_days": {
+						Type:          pluginsdk.TypeInt,
+						Optional:      true,
+						ValidateFunc:  validation.IntBetween(1, 90),
+						AtLeastOneOf:  retentionPolicyAtLeastOneOf,
+						ConflictsWith: []string{"retention_policy.0.default_retention_period_in_days"},
+					},
+
+					"terminated_retention_period_in_days": {
+						Type:          pluginsdk.TypeInt,
+						Optional:      true,
+						ValidateFunc:  validation.IntBetween(1, 90),
+						AtLeastOneOf:  retentionPolicyAtLeastOneOf,
+						ConflictsWith: []string{"retention_policy.0.default_retention_period_in_days"},
 					},
 				},
 			},
@@ -99,7 +145,7 @@ func (r RetentionPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parsedId, err := schedulers.ParseSchedulerID(model.SchedulerId)
+			parsedId, err := schedulers.ParseSchedulerID(model.DurableTaskSchedulerId)
 			if err != nil {
 				return fmt.Errorf("parsing scheduler ID: %+v", err)
 			}
@@ -123,23 +169,9 @@ func (r RetentionPolicyResource) Create() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("Creating retention policy on %s", schedulerId.ID())
 
-			policies := make([]retentionpolicies.RetentionPolicyDetails, 0)
-			for _, item := range model.RetentionPolicy {
-				policy := retentionpolicies.RetentionPolicyDetails{
-					RetentionPeriodInDays: item.RetentionPeriodInDays,
-				}
-
-				if item.OrchestrationState != "" {
-					state := retentionpolicies.PurgeableOrchestrationState(item.OrchestrationState)
-					policy.OrchestrationState = &state
-				}
-
-				policies = append(policies, policy)
-			}
-
 			properties := retentionpolicies.RetentionPolicy{
 				Properties: &retentionpolicies.RetentionPolicyProperties{
-					RetentionPolicies: &policies,
+					RetentionPolicies: expandRetentionPolicyDetails(model.RetentionPolicy),
 				},
 			}
 
@@ -184,20 +216,12 @@ func (r RetentionPolicyResource) Read() sdk.ResourceFunc {
 			}
 
 			state := RetentionPolicyResourceModel{
-				SchedulerId:     schedulerId.ID(),
-				RetentionPolicy: make([]RetentionPolicyItemModel, 0),
+				DurableTaskSchedulerId: schedulerId.ID(),
+				RetentionPolicy:        make([]RetentionPolicyModel, 0),
 			}
 
 			if props := model.Properties; props != nil && props.RetentionPolicies != nil {
-				for _, policy := range *props.RetentionPolicies {
-					item := RetentionPolicyItemModel{
-						RetentionPeriodInDays: policy.RetentionPeriodInDays,
-					}
-					if policy.OrchestrationState != nil {
-						item.OrchestrationState = string(*policy.OrchestrationState)
-					}
-					state.RetentionPolicy = append(state.RetentionPolicy, item)
-				}
+				state.RetentionPolicy = flattenRetentionPolicyDetails(props.RetentionPolicies)
 			}
 
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -234,23 +258,9 @@ func (r RetentionPolicyResource) Update() sdk.ResourceFunc {
 				return nil
 			}
 
-			policies := make([]retentionpolicies.RetentionPolicyDetails, 0)
-			for _, item := range model.RetentionPolicy {
-				policy := retentionpolicies.RetentionPolicyDetails{
-					RetentionPeriodInDays: item.RetentionPeriodInDays,
-				}
-
-				if item.OrchestrationState != "" {
-					state := retentionpolicies.PurgeableOrchestrationState(item.OrchestrationState)
-					policy.OrchestrationState = &state
-				}
-
-				policies = append(policies, policy)
-			}
-
 			properties := retentionpolicies.RetentionPolicyUpdate{
 				Properties: &retentionpolicies.RetentionPolicyProperties{
-					RetentionPolicies: &policies,
+					RetentionPolicies: expandRetentionPolicyDetails(model.RetentionPolicy),
 				},
 			}
 
@@ -261,6 +271,73 @@ func (r RetentionPolicyResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandRetentionPolicyDetails(input []RetentionPolicyModel) *[]retentionpolicies.RetentionPolicyDetails {
+	policies := make([]retentionpolicies.RetentionPolicyDetails, 0)
+	if len(input) == 0 {
+		return &policies
+	}
+
+	policy := input[0]
+	appendPolicy := func(retentionPeriodInDays int64, orchestrationState *retentionpolicies.PurgeableOrchestrationState) {
+		if retentionPeriodInDays == 0 {
+			return
+		}
+
+		detail := retentionpolicies.RetentionPolicyDetails{
+			RetentionPeriodInDays: retentionPeriodInDays,
+		}
+		if orchestrationState != nil {
+			detail.OrchestrationState = orchestrationState
+		}
+
+		policies = append(policies, detail)
+	}
+
+	stateCanceled := retentionpolicies.PurgeableOrchestrationStateCanceled
+	stateCompleted := retentionpolicies.PurgeableOrchestrationStateCompleted
+	stateFailed := retentionpolicies.PurgeableOrchestrationStateFailed
+	stateTerminated := retentionpolicies.PurgeableOrchestrationStateTerminated
+
+	appendPolicy(policy.CanceledRetentionPeriodInDays, &stateCanceled)
+	appendPolicy(policy.CompletedRetentionPeriodInDays, &stateCompleted)
+	appendPolicy(policy.DefaultRetentionPeriodInDays, nil)
+	appendPolicy(policy.FailedRetentionPeriodInDays, &stateFailed)
+	appendPolicy(policy.TerminatedRetentionPeriodInDays, &stateTerminated)
+
+	return &policies
+}
+
+func flattenRetentionPolicyDetails(input *[]retentionpolicies.RetentionPolicyDetails) []RetentionPolicyModel {
+	if input == nil {
+		return make([]RetentionPolicyModel, 0)
+	}
+
+	policy := RetentionPolicyModel{}
+	for _, item := range *input {
+		if item.OrchestrationState == nil {
+			policy.DefaultRetentionPeriodInDays = item.RetentionPeriodInDays
+			continue
+		}
+
+		switch *item.OrchestrationState {
+		case retentionpolicies.PurgeableOrchestrationStateCanceled:
+			policy.CanceledRetentionPeriodInDays = item.RetentionPeriodInDays
+		case retentionpolicies.PurgeableOrchestrationStateCompleted:
+			policy.CompletedRetentionPeriodInDays = item.RetentionPeriodInDays
+		case retentionpolicies.PurgeableOrchestrationStateFailed:
+			policy.FailedRetentionPeriodInDays = item.RetentionPeriodInDays
+		case retentionpolicies.PurgeableOrchestrationStateTerminated:
+			policy.TerminatedRetentionPeriodInDays = item.RetentionPeriodInDays
+		}
+	}
+
+	if policy == (RetentionPolicyModel{}) {
+		return make([]RetentionPolicyModel, 0)
+	}
+
+	return []RetentionPolicyModel{policy}
 }
 
 func (r RetentionPolicyResource) Delete() sdk.ResourceFunc {

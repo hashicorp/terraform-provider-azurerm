@@ -3,7 +3,7 @@
 
 package durabletask
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name durable_task_hub -service-package-name durabletask -properties "name" -compare-values "subscription_id:scheduler_id,resource_group_name:scheduler_id,scheduler_name:scheduler_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name durable_task_hub -service-package-name durabletask -properties "name" -compare-values "subscription_id:durable_task_scheduler_id,resource_group_name:durable_task_scheduler_id,scheduler_name:durable_task_scheduler_id"
 
 import (
 	"context"
@@ -21,9 +21,9 @@ import (
 )
 
 type TaskHubResourceModel struct {
-	Name         string `tfschema:"name"`
-	SchedulerId  string `tfschema:"scheduler_id"`
-	DashboardUrl string `tfschema:"dashboard_url"`
+	Name                   string `tfschema:"name"`
+	DurableTaskSchedulerId string `tfschema:"durable_task_scheduler_id"`
+	DashboardUrl           string `tfschema:"dashboard_url"`
 }
 
 type TaskHubResource struct{}
@@ -58,7 +58,7 @@ func (r TaskHubResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.TaskHubName,
 		},
 
-		"scheduler_id": {
+		"durable_task_scheduler_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -87,7 +87,7 @@ func (r TaskHubResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			schedulerId, err := schedulers.ParseSchedulerID(model.SchedulerId)
+			schedulerId, err := schedulers.ParseSchedulerID(model.DurableTaskSchedulerId)
 			if err != nil {
 				return fmt.Errorf("parsing scheduler ID: %+v", err)
 			}
@@ -151,8 +151,8 @@ func (r TaskHubResource) Read() sdk.ResourceFunc {
 			schedulerId := schedulers.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
 
 			state := TaskHubResourceModel{
-				Name:        id.TaskHubName,
-				SchedulerId: schedulerId.ID(),
+				Name:                   id.TaskHubName,
+				DurableTaskSchedulerId: schedulerId.ID(),
 			}
 
 			if props := model.Properties; props != nil {

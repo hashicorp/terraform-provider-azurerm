@@ -27,16 +27,13 @@ resource "azurerm_durable_task_scheduler" "example" {
 }
 
 resource "azurerm_durable_task_retention_policy" "example" {
-  scheduler_id = azurerm_durable_task_scheduler.example.id
+  durable_task_scheduler_id = azurerm_durable_task_scheduler.example.id
 
   retention_policy {
-    retention_period_in_days = 30
-    orchestration_state      = "Completed"
-  }
-
-  retention_policy {
-    retention_period_in_days = 7
-    orchestration_state      = "Failed"
+      canceled_retention_period_in_days   = 21
+      completed_retention_period_in_days  = 30
+      failed_retention_period_in_days     = 7
+      terminated_retention_period_in_days = 14
   }
 }
 ```
@@ -45,17 +42,25 @@ resource "azurerm_durable_task_retention_policy" "example" {
 
 The following arguments are supported:
 
-* `scheduler_id` - (Required) The ID of the Durable Task Scheduler where the Retention Policy should be applied. Changing this forces a new resource to be created.
+* `durable_task_scheduler_id` - (Required) The ID of the Durable Task Scheduler where the Retention Policy should be applied. Changing this forces a new resource to be created.
 
-* `retention_policy` - (Required) One or more `retention_policy` blocks as defined below.
+* `retention_policy` - (Required) A `retention_policy` block as defined below.
 
 ---
 
 A `retention_policy` block supports the following:
 
-* `retention_period_in_days` - (Required) The number of days to retain orchestration data. Possible values range between `1` and `90`.
+* `canceled_retention_period_in_days` - (Optional) The number of days to retain canceled orchestration data. Possible values range between `1` and `90`.
 
-* `orchestration_state` - (Optional) The orchestration state to which this retention policy applies. Possible values are `Canceled`, `Completed`, `Failed`, and `Terminated`.
+* `completed_retention_period_in_days` - (Optional) The number of days to retain completed orchestration data. Possible values range between `1` and `90`.
+
+* `default_retention_period_in_days` - (Optional) The default number of days to retain orchestration data. Possible values range between `1` and `90`.
+
+-> **Note:** `default_retention_period_in_days` cannot be configured together with the state-specific retention period fields.
+
+* `failed_retention_period_in_days` - (Optional) The number of days to retain failed orchestration data. Possible values range between `1` and `90`.
+
+* `terminated_retention_period_in_days` - (Optional) The number of days to retain terminated orchestration data. Possible values range between `1` and `90`.
 
 ## Attributes Reference
 

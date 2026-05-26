@@ -22,7 +22,7 @@ import (
 type (
 	RetentionPolicyListResource struct{}
 	RetentionPolicyListModel    struct {
-		SchedulerId types.String `tfsdk:"scheduler_id"`
+		DurableTaskSchedulerId types.String `tfsdk:"durable_task_scheduler_id"`
 	}
 )
 
@@ -39,7 +39,7 @@ func (RetentionPolicyListResource) ResourceFunc() *pluginsdk.Resource {
 func (RetentionPolicyListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"scheduler_id": schema.StringAttribute{
+			"durable_task_scheduler_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
@@ -60,7 +60,7 @@ func (RetentionPolicyListResource) List(ctx context.Context, request list.ListRe
 		return
 	}
 
-	schedulerId, err := schedulers.ParseSchedulerID(data.SchedulerId.ValueString())
+	schedulerId, err := schedulers.ParseSchedulerID(data.DurableTaskSchedulerId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Scheduler ID for `%s`", RetentionPolicyResource{}.ResourceType()), err)
 		return
@@ -86,22 +86,12 @@ func (RetentionPolicyListResource) List(ctx context.Context, request list.ListRe
 			meta.SetID(id)
 
 			state := RetentionPolicyResourceModel{
-				SchedulerId:     schedulerId.ID(),
-				RetentionPolicy: make([]RetentionPolicyItemModel, 0),
+				DurableTaskSchedulerId: schedulerId.ID(),
+				RetentionPolicy:        make([]RetentionPolicyModel, 0),
 			}
 
 			if props := item.Properties; props != nil && props.RetentionPolicies != nil {
-				for _, policy := range *props.RetentionPolicies {
-					entry := RetentionPolicyItemModel{
-						RetentionPeriodInDays: policy.RetentionPeriodInDays,
-					}
-
-					if policy.OrchestrationState != nil {
-						entry.OrchestrationState = string(*policy.OrchestrationState)
-					}
-
-					state.RetentionPolicy = append(state.RetentionPolicy, entry)
-				}
+				state.RetentionPolicy = flattenRetentionPolicyDetails(props.RetentionPolicies)
 			}
 
 			if err := meta.Encode(&state); err != nil {

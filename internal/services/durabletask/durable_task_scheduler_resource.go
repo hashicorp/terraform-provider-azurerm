@@ -254,30 +254,8 @@ func (r SchedulerResource) Update() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("Updating %s", id)
-			hasCapacityChange := metadata.ResourceData.HasChange("capacity")
-
-			if hasCapacityChange {
-				rawCapacity := metadata.ResourceData.GetRawConfig().AsValueMap()["capacity"]
-				if rawCapacity.IsNull() {
-					// Use PUT when clearing capacity because the PATCH model omits nil fields
-					// and would otherwise preserve the existing remote value.
-					properties := schedulers.Scheduler{
-						Location: location.Normalize(model.Location),
-						Properties: &schedulers.SchedulerProperties{
-							Sku: schedulers.SchedulerSku{
-								Name: schedulers.SchedulerSkuName(model.SkuName),
-							},
-							IPAllowlist: model.IpAllowList,
-						},
-						Tags: &model.Tags,
-					}
-
-					if err := client.CreateOrUpdateThenPoll(ctx, *id, properties); err != nil {
-						return fmt.Errorf("updating %s: %+v", id, err)
-					}
-
-					return nil
-				}
+			if !metadata.ResourceData.HasChanges("capacity", "ip_allow_list", "tags") {
+				return nil
 			}
 
 			properties := schedulers.SchedulerUpdate{
@@ -288,12 +266,10 @@ func (r SchedulerResource) Update() sdk.ResourceFunc {
 				properties.Properties.IPAllowlist = &model.IpAllowList
 			}
 
-			if hasCapacityChange {
+			if metadata.ResourceData.HasChange("capacity") {
 				if properties.Properties.Sku == nil {
 					properties.Properties.Sku = &schedulers.SchedulerSkuUpdate{}
 				}
-				// Use PATCH for ordinary capacity updates so other unchanged properties
-				// can continue to rely on partial update semantics.
 				properties.Properties.Sku.Capacity = pointer.To(model.Capacity)
 			}
 

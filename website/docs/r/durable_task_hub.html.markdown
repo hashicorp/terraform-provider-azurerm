@@ -27,8 +27,8 @@ resource "azurerm_durable_task_scheduler" "example" {
 }
 
 resource "azurerm_durable_task_hub" "example" {
-  name         = "example-durable-task-hub"
-  scheduler_id = azurerm_durable_task_scheduler.example.id
+  name                      = "example-durable-task-hub"
+  durable_task_scheduler_id = azurerm_durable_task_scheduler.example.id
 }
 ```
 
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 -> **Note:** `name` must be between `3` and `63` characters, start and end with an alphanumeric character, and only contain alphanumeric characters and hyphens.
 
-* `scheduler_id` - (Required) The ID of the Durable Task Scheduler where the Task Hub should be created. Changing this forces a new resource to be created.
+* `durable_task_scheduler_id` - (Required) The ID of the Durable Task Scheduler where the Task Hub should be created. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

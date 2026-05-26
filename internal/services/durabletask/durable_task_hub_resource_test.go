@@ -88,8 +88,8 @@ func (r DurableTaskHubResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_durable_task_hub" "test" {
-  name         = "acctestdth%s"
-  scheduler_id = azurerm_durable_task_scheduler.test.id
+  name                      = "acctestdth%s"
+  durable_task_scheduler_id = azurerm_durable_task_scheduler.test.id
 }
 `, template, data.RandomString)
 }
@@ -100,8 +100,8 @@ func (r DurableTaskHubResource) requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_durable_task_hub" "import" {
-  name         = azurerm_durable_task_hub.test.name
-  scheduler_id = azurerm_durable_task_hub.test.scheduler_id
+  name                      = azurerm_durable_task_hub.test.name
+  durable_task_scheduler_id = azurerm_durable_task_hub.test.durable_task_scheduler_id
 }
 `, template)
 }

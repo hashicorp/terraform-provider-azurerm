@@ -23,7 +23,7 @@ import (
 type (
 	TaskHubListResource struct{}
 	TaskHubListModel    struct {
-		SchedulerId types.String `tfsdk:"scheduler_id"`
+		DurableTaskSchedulerId types.String `tfsdk:"durable_task_scheduler_id"`
 	}
 )
 
@@ -40,7 +40,7 @@ func (TaskHubListResource) ResourceFunc() *pluginsdk.Resource {
 func (TaskHubListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"scheduler_id": schema.StringAttribute{
+			"durable_task_scheduler_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
@@ -61,7 +61,7 @@ func (TaskHubListResource) List(ctx context.Context, request list.ListRequest, s
 		return
 	}
 
-	schedulerId, err := schedulers.ParseSchedulerID(data.SchedulerId.ValueString())
+	schedulerId, err := schedulers.ParseSchedulerID(data.DurableTaskSchedulerId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Scheduler ID for `%s`", TaskHubResource{}.ResourceType()), err)
 		return
@@ -92,8 +92,8 @@ func (TaskHubListResource) List(ctx context.Context, request list.ListRequest, s
 			meta.SetID(id)
 
 			state := TaskHubResourceModel{
-				Name:        id.TaskHubName,
-				SchedulerId: schedulerId.ID(),
+				Name:                   id.TaskHubName,
+				DurableTaskSchedulerId: schedulerId.ID(),
 			}
 
 			if props := item.Properties; props != nil {

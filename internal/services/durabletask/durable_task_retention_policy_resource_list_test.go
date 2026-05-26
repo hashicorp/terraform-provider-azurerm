@@ -44,7 +44,7 @@ func (r DurableTaskRetentionPolicyResource) basicListQuery(data acceptance.TestD
 list "azurerm_durable_task_retention_policy" "list" {
   provider = azurerm
   config {
-    scheduler_id = "/subscriptions/%s/resourceGroups/acctestRG-durabletask-%d/providers/Microsoft.DurableTask/schedulers/acctestdts%s"
+    durable_task_scheduler_id = "/subscriptions/%s/resourceGroups/acctestRG-durabletask-%d/providers/Microsoft.DurableTask/schedulers/acctestdts%s"
   }
 }
 `, data.Subscriptions.Primary, data.RandomInteger, data.RandomString)
