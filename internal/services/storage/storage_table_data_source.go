@@ -31,11 +31,9 @@ type TableDataSourceModel struct {
 	Id               string     `tfschema:"id"`
 	URL              string     `tfschema:"url"`
 
-	// TODO 5.0: Remove this
-	StorageAccountName string `tfschema:"storage_account_name"`
+	StorageAccountName string `tfschema:"storage_account_name,removedInNextMajorVersion"`
 
-	// TODO 5.0: Remove this
-	ResourceManagerId string `tfschema:"resource_manager_id"`
+	ResourceManagerId string `tfschema:"resource_manager_id,removedInNextMajorVersion"`
 }
 
 type ACLModel struct {
@@ -238,7 +236,7 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 			// Parse the table endpoint as a data plane account ID
 			accountDpId, err := accounts.ParseAccountID(*endpoint, metadata.Client.Storage.StorageDomainSuffix)
 			if err != nil {
-				return fmt.Errorf("parsing Account ID: %v", err)
+				return err
 			}
 			model.URL = tables.NewTableID(*accountDpId, id.TableName).ID()
 
