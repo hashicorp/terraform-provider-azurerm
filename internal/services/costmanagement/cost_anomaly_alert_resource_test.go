@@ -17,10 +17,22 @@ import (
 
 type AnomalyAlertResource struct{}
 
-func TestAccResourceAnomalyAlert_update(t *testing.T) {
+func TestAccResourceAnomalyAlertSequential(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to all below TCs sharing same sp
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"anomalyAlert": {
+			"update":             testAccResourceAnomalyAlert_update,
+			"complete":           testAccResourceAnomalyAlert_complete,
+			"requiresImport":     testAccResourceAnomalyAlert_requiresImport,
+			"emailAddressSender": testAccResourceAnomalyAlert_emailAddressSender,
+		},
+	})
+}
+
+func testAccResourceAnomalyAlert_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
 	testResource := AnomalyAlertResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, testResource, []acceptance.TestStep{
 		data.ApplyStep(testResource.basicConfig, testResource),
 		data.ImportStep(),
 		data.ApplyStep(testResource.updateConfig, testResource),
@@ -30,10 +42,10 @@ func TestAccResourceAnomalyAlert_update(t *testing.T) {
 	})
 }
 
-func TestAccResourceAnomalyAlert_complete(t *testing.T) {
+func testAccResourceAnomalyAlert_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
 	testResource := AnomalyAlertResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, testResource, []acceptance.TestStep{
 		data.ApplyStep(testResource.completeConfig, testResource),
 		data.ImportStep(),
 		data.ApplyStep(testResource.updateConfig, testResource),
@@ -41,19 +53,19 @@ func TestAccResourceAnomalyAlert_complete(t *testing.T) {
 	})
 }
 
-func TestAccResourceAnomalyAlert_requiresImport(t *testing.T) {
+func testAccResourceAnomalyAlert_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
 	testResource := AnomalyAlertResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, testResource, []acceptance.TestStep{
 		data.ApplyStep(testResource.basicConfig, testResource),
 		data.RequiresImportErrorStep(testResource.requiresImportConfig),
 	})
 }
 
-func TestAccResourceAnomalyAlert_emailAddressSender(t *testing.T) {
+func testAccResourceAnomalyAlert_emailAddressSender(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
 	testResource := AnomalyAlertResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, testResource, []acceptance.TestStep{
 		data.ApplyStep(testResource.notificationEmailConfig, testResource),
 		data.ImportStep(),
 		data.ApplyStep(testResource.updateConfig, testResource),

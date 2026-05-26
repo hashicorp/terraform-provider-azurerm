@@ -25,7 +25,7 @@ func TestAccCostManagementScheduledAction_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.daily(data),
+			Config: r.daily(data, "ms:CostByResource"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -40,28 +40,28 @@ func TestAccCostManagementScheduledAction_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.daily(data),
+			Config: r.daily(data, "ms:DailyCosts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.monthDay(data),
+			Config: r.monthDay(data, "ms:DailyCosts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.weekly(data),
+			Config: r.weekly(data, "ms:DailyCosts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.monthWeekDay(data),
+			Config: r.monthWeekDay(data, "ms:DailyCosts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -76,13 +76,13 @@ func TestAccCostManagementScheduledAction_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.daily(data),
+			Config: r.daily(data, "ms:CostByService"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config:      r.requiresImport(data),
+			Config:      r.requiresImport(data, "ms:CostByService"),
 			ExpectError: acceptance.RequiresImportError("azurerm_cost_management_scheduled_action"),
 		},
 	})
@@ -94,14 +94,14 @@ func TestAccCostManagementScheduledAction_emailAddressSender(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.emailAddressSender(data, "test@test.com"),
+			Config: r.emailAddressSender(data, "test@test.com", "ms:CostByResource"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.emailAddressSender(data, "test2@test2.com"),
+			Config: r.emailAddressSender(data, "test2@test2.com", "ms:CostByResource"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -124,7 +124,7 @@ func (t CostManagementScheduledAction) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (CostManagementScheduledAction) daily(data acceptance.TestData) string {
+func (CostManagementScheduledAction) daily(data acceptance.TestData, viewName string) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -138,10 +138,10 @@ data "azurerm_subscription" "test" {}
 resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
-  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/%s"
 
-  display_name         = "CostByService%s"
-  email_subject        = substr("Cost Report for ${data.azurerm_subscription.test.display_name}", 0, 50)
+  display_name         = "CostByServiceView%s"
+  email_subject        = substr("Cost Management Report for ${data.azurerm_subscription.test.display_name} Subscription", 0, 70)
   email_addresses      = ["test@test.com", "hashicorp@test.com"]
   email_address_sender = "test@test.com"
 
@@ -149,10 +149,10 @@ resource "azurerm_cost_management_scheduled_action" "test" {
   start_date = "%s"
   end_date   = "%s"
 }
-`, data.RandomString, data.RandomString, start, end)
+`, data.RandomString, viewName, data.RandomString, start, end)
 }
 
-func (CostManagementScheduledAction) monthWeekDay(data acceptance.TestData) string {
+func (CostManagementScheduledAction) monthWeekDay(data acceptance.TestData, viewName string) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -166,11 +166,11 @@ data "azurerm_subscription" "test" {}
 resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
-  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/%s"
 
-  display_name         = "CostByService%s"
+  display_name         = "CostByServiceView%s"
   message              = "Hi"
-  email_subject        = substr("Cost Report for ${data.azurerm_subscription.test.display_name}", 0, 50)
+  email_subject        = substr("Cost Management Report for ${data.azurerm_subscription.test.display_name} Subscription", 0, 70)
   email_addresses      = ["test@test.com", "hashicorp@test.com"]
   email_address_sender = "test@test.com"
 
@@ -180,10 +180,10 @@ resource "azurerm_cost_management_scheduled_action" "test" {
   start_date     = "%s"
   end_date       = "%s"
 }
-`, data.RandomString, data.RandomString, start, end)
+`, data.RandomString, viewName, data.RandomString, start, end)
 }
 
-func (CostManagementScheduledAction) monthDay(data acceptance.TestData) string {
+func (CostManagementScheduledAction) monthDay(data acceptance.TestData, viewName string) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -197,11 +197,11 @@ data "azurerm_subscription" "test" {}
 resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
-  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/%s"
 
-  display_name         = "CostByService%s"
+  display_name         = "CostByServiceView%s"
   message              = "Hi"
-  email_subject        = substr("Cost Report for ${data.azurerm_subscription.test.display_name}", 0, 50)
+  email_subject        = substr("Cost Management Report for ${data.azurerm_subscription.test.display_name} Subscription", 0, 70)
   email_addresses      = ["test@test.com", "hashicorp@test.com"]
   email_address_sender = "test@test.com"
 
@@ -211,10 +211,10 @@ resource "azurerm_cost_management_scheduled_action" "test" {
   start_date   = "%s"
   end_date     = "%s"
 }
-`, data.RandomString, data.RandomString, start, end)
+`, data.RandomString, viewName, data.RandomString, start, end)
 }
 
-func (CostManagementScheduledAction) weekly(data acceptance.TestData) string {
+func (CostManagementScheduledAction) weekly(data acceptance.TestData, viewName string) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -228,11 +228,11 @@ data "azurerm_subscription" "test" {}
 resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
-  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/%s"
 
-  display_name         = "CostByService%s"
+  display_name         = "CostByServiceView%s"
   message              = "Hi"
-  email_subject        = substr("Cost Report for ${data.azurerm_subscription.test.display_name}", 0, 50)
+  email_subject        = substr("Cost Management Report for ${data.azurerm_subscription.test.display_name} Subscription", 0, 70)
   email_addresses      = ["test@test.com", "hashicorp@test.com"]
   email_address_sender = "test@test.com"
 
@@ -242,11 +242,11 @@ resource "azurerm_cost_management_scheduled_action" "test" {
   start_date   = "%s"
   end_date     = "%s"
 }
-`, data.RandomString, data.RandomString, start, end)
+`, data.RandomString, viewName, data.RandomString, start, end)
 }
 
-func (CostManagementScheduledAction) requiresImport(data acceptance.TestData) string {
-	template := CostManagementScheduledAction{}.daily(data)
+func (CostManagementScheduledAction) requiresImport(data acceptance.TestData, viewName string) string {
+	template := CostManagementScheduledAction{}.daily(data, viewName)
 	return fmt.Sprintf(`
 %s
 
@@ -267,7 +267,7 @@ resource "azurerm_cost_management_scheduled_action" "import" {
 `, template)
 }
 
-func (CostManagementScheduledAction) emailAddressSender(data acceptance.TestData, emailAddressSender string) string {
+func (CostManagementScheduledAction) emailAddressSender(data acceptance.TestData, emailAddressSender string, viewName string) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -281,10 +281,10 @@ data "azurerm_subscription" "test" {}
 resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
-  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/%s"
 
-  display_name         = "CostByService%s"
-  email_subject        = substr("Cost Report for ${data.azurerm_subscription.test.display_name}", 0, 50)
+  display_name         = "CostByServiceView%s"
+  email_subject        = substr("Cost Management Report for ${data.azurerm_subscription.test.display_name} Subscription", 0, 70)
   email_addresses      = ["test@test.com", "hashicorp@test.com"]
   email_address_sender = "%s"
 
@@ -292,5 +292,5 @@ resource "azurerm_cost_management_scheduled_action" "test" {
   start_date = "%s"
   end_date   = "%s"
 }
-`, data.RandomString, data.RandomString, emailAddressSender, start, end)
+`, data.RandomString, viewName, data.RandomString, emailAddressSender, start, end)
 }
