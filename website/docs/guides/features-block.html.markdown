@@ -52,6 +52,10 @@ provider "azurerm" {
       force_delete = false
     }
 
+    servicebus {
+      auto_delete_subscription_default_rule = false
+    }
+
     key_vault {
       purge_soft_delete_on_destroy    = true
       recover_soft_deleted_key_vaults = true
@@ -142,6 +146,8 @@ The `features` block supports the following:
 
 * `databricks_workspace` - (Optional) A `databricks_workspace` block as defined below.
 
+* `servicebus` - (Optional) A `servicebus` block as defined below.
+
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
@@ -203,6 +209,12 @@ The `cognitive_account` block supports the following:
 The `databricks_workspace` block supports the following:
 
 * `force_delete` - (Optional) Should the managed resource group that contains the Unity Catalog data be forcibly deleted when the `azurerm_databricks_workspace` is destroyed? Defaults to `false`.
+
+---
+
+The `servicebus` block supports the following:
+
+* `auto_delete_subscription_default_rule` - (Optional) Should the `$Default` rule be automatically deleted after creating an `azurerm_servicebus_subscription`? This prevents unfiltered messages from being delivered during the window between subscription creation and custom rule application. Defaults to `false`.
 
 ---
 

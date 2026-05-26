@@ -66,6 +66,7 @@ type Features struct {
 	RecoveryServicesVaults   types.List `tfsdk:"recovery_services_vaults"`
 	NetApp                   types.List `tfsdk:"netapp"`
 	DatabricksWorkspace      types.List `tfsdk:"databricks_workspace"`
+	ServiceBus               types.List `tfsdk:"servicebus"`
 }
 
 // FeaturesAttributes and the other block attribute vars are required for unit testing on the Load func
@@ -93,6 +94,7 @@ var FeaturesAttributes = map[string]attr.Type{
 	"recovery_services_vaults":   types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceVaultsAttributes)),
 	"netapp":                     types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(NetAppAttributes)),
 	"databricks_workspace":       types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes)),
+	"servicebus":                 types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ServiceBusAttributes)),
 }
 
 type APIManagement struct {
@@ -287,6 +289,14 @@ type DatabricksWorkspace struct {
 
 var DatabricksWorkspaceAttributes = map[string]attr.Type{
 	"force_delete": types.BoolType,
+}
+
+type ServiceBus struct {
+	AutoDeleteSubscriptionDefaultRule types.Bool `tfsdk:"auto_delete_subscription_default_rule"`
+}
+
+var ServiceBusAttributes = map[string]attr.Type{
+	"auto_delete_subscription_default_rule": types.BoolType,
 }
 
 type EnhancedValidationModel struct {

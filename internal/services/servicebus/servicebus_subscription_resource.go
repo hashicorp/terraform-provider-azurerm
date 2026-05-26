@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -260,6 +261,17 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	if d.IsNewResource() {
 		d.SetId(id.ID())
+	}
+
+	if d.IsNewResource() && meta.(*clients.Client).Features.ServiceBus.AutoDeleteSubscriptionDefaultRule {
+		rulesClient := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
+		defaultRuleId := rules.NewRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName, id.SubscriptionName, "$Default")
+
+		if resp, err := rulesClient.Delete(ctx, defaultRuleId); err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("deleting default rule for %s: %+v", id, err)
+			}
+		}
 	}
 
 	return resourceServiceBusSubscriptionRead(d, meta)

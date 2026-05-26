@@ -7,8 +7,10 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -388,6 +390,156 @@ func (ServiceBusSubscriptionResource) status(data acceptance.TestData, status st
 func (ServiceBusSubscriptionResource) updateDeadLetteringOnFilterEvaluationExceptions(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"dead_lettering_on_filter_evaluation_error = false\n")
+}
+
+func TestAccServiceBusSubscription_defaultRuleFeatureFlagEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	r := ServiceBusSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultRuleFeatureFlagEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.defaultRuleAbsent),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusSubscription_defaultRuleFeatureFlagDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	r := ServiceBusSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultRuleFeatureFlagDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.defaultRuleExists),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r ServiceBusSubscriptionResource) defaultRuleAbsent(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	id, err := subscriptions.ParseSubscriptions2ID(state.ID)
+	if err != nil {
+		return err
+	}
+
+	rulesId := rules.NewSubscriptions2ID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName, id.SubscriptionName)
+	resp, err := client.ServiceBus.SubscriptionRulesClient.ListBySubscriptions(ctx, rulesId, rules.DefaultListBySubscriptionsOperationOptions())
+	if err != nil {
+		return fmt.Errorf("listing rules for %s: %+v", id, err)
+	}
+
+	if resp.Model != nil {
+		for _, rule := range *resp.Model {
+			if rule.Name != nil && *rule.Name == "$Default" {
+				return fmt.Errorf("expected $Default rule to be absent for %s, but it still exists", id)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (r ServiceBusSubscriptionResource) defaultRuleExists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	id, err := subscriptions.ParseSubscriptions2ID(state.ID)
+	if err != nil {
+		return err
+	}
+
+	rulesId := rules.NewSubscriptions2ID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName, id.SubscriptionName)
+	resp, err := client.ServiceBus.SubscriptionRulesClient.ListBySubscriptions(ctx, rulesId, rules.DefaultListBySubscriptionsOperationOptions())
+	if err != nil {
+		return fmt.Errorf("listing rules for %s: %+v", id, err)
+	}
+
+	if resp.Model != nil {
+		for _, rule := range *resp.Model {
+			if rule.Name != nil && *rule.Name == "$Default" {
+				return nil
+			}
+		}
+	}
+
+	return fmt.Errorf("expected $Default rule to exist for %s, but it was not found", id)
+}
+
+func (ServiceBusSubscriptionResource) defaultRuleFeatureFlagEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    servicebus {
+      auto_delete_subscription_default_rule = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name         = "acctestservicebustopic-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+}
+
+resource "azurerm_servicebus_subscription" "test" {
+  name               = "_acctestservicebussubscription-%[1]d_"
+  topic_id           = azurerm_servicebus_topic.test.id
+  max_delivery_count = 10
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ServiceBusSubscriptionResource) defaultRuleFeatureFlagDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name         = "acctestservicebustopic-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+}
+
+resource "azurerm_servicebus_subscription" "test" {
+  name               = "_acctestservicebussubscription-%[1]d_"
+  topic_id           = azurerm_servicebus_topic.test.id
+  max_delivery_count = 10
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ServiceBusSubscriptionResource) clientScopedSubscriptionEnabled(data acceptance.TestData) string {

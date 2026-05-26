@@ -27,6 +27,7 @@ type UserFeatures struct {
 	RecoveryService          RecoveryServiceFeatures
 	NetApp                   NetAppFeatures
 	DatabricksWorkspace      DatabricksWorkspaceFeatures
+	ServiceBus               ServiceBusFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -129,4 +130,8 @@ type NetAppFeatures struct {
 
 type DatabricksWorkspaceFeatures struct {
 	ForceDelete bool
+}
+
+type ServiceBusFeatures struct {
+	AutoDeleteSubscriptionDefaultRule bool
 }

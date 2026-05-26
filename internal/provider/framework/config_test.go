@@ -230,6 +230,10 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	if features.DatabricksWorkspace.ForceDelete {
 		t.Errorf("expected databricks_workspace.ForceDelete to be false")
 	}
+
+	if features.ServiceBus.AutoDeleteSubscriptionDefaultRule {
+		t.Errorf("expected servicebus.AutoDeleteSubscriptionDefaultRule to be false")
+	}
 }
 
 // TODO - helper functions to make setting up test date more easily so we can add more configuration coverage
@@ -349,6 +353,11 @@ func defaultFeaturesList() types.List {
 	})
 	databricksWorkspaceList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes), []attr.Value{databricksWorkspace})
 
+	servicebus, _ := basetypes.NewObjectValueFrom(context.Background(), ServiceBusAttributes, map[string]attr.Value{
+		"auto_delete_subscription_default_rule": basetypes.NewBoolNull(),
+	})
+	servicebusList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(ServiceBusAttributes), []attr.Value{servicebus})
+
 	fData, d := basetypes.NewObjectValue(FeaturesAttributes, map[string]attr.Value{
 		"persist_id_on_create_before_polling_for_completion":                   basetypes.NewBoolNull(),
 		"skip_import_check_on_create_and_allow_overwriting_existing_resources": basetypes.NewBoolNull(),
@@ -372,6 +381,7 @@ func defaultFeaturesList() types.List {
 		"recovery_services_vaults":   recoveryServicesVaultsList,
 		"netapp":                     netappList,
 		"databricks_workspace":       databricksWorkspaceList,
+		"servicebus":                 servicebusList,
 	})
 
 	fmt.Printf("%+v", d)
