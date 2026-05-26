@@ -1247,19 +1247,26 @@ func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool)
 
 func (r LogicAppStandardResource) hasContentShareAppSettings(shouldExist bool) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.LogicAppStandardID(state.ID)
+		id, err := commonids.ParseLogicAppId(state.ID)
 		if err != nil {
 			return err
 		}
 
-		appSettingsResp, err := clients.Web.AppServicesClient.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+		ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
+		defer cancel()
+
+		appSettingsResp, err := clients.AppService.WebAppsClient.ListApplicationSettings(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("listing AppSettings: %+v", err)
 		}
 
+		if appSettingsResp.Model == nil {
+			return fmt.Errorf("listing AppSettings for %s: `model` was nil", id)
+		}
+
 		connStringExists := false
 		contentShareExists := false
-		for k := range appSettingsResp.Properties {
+		for k := range pointer.From(appSettingsResp.Model.Properties) {
 			if strings.EqualFold("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING", k) {
 				connStringExists = true
 			}
