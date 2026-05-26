@@ -562,19 +562,15 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "SQLSecurityAuditEvents"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
   // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [enabled_log, metric]
+    ignore_changes = [enabled_log, enabled_metric]
   }
 }
 
@@ -596,19 +592,15 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "SQLSecurityAuditEvents"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
   // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [enabled_log, metric]
+    ignore_changes = [enabled_log, enabled_metric]
   }
 }
 
@@ -631,22 +623,17 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-
   enabled_log {
     category = "SQLSecurityAuditEvents"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
   // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [enabled_log, metric]
+    ignore_changes = [enabled_log, enabled_metric]
   }
 
 }
@@ -668,22 +655,17 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-
   enabled_log {
     category = "SQLSecurityAuditEvents"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
   // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [enabled_log, metric]
+    ignore_changes = [enabled_log, enabled_metric]
   }
 
 }
