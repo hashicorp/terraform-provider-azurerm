@@ -88,7 +88,7 @@ resource "azurerm_cost_anomaly_alert" "test" {
   email_addresses = ["admin@example.com", "ops@example.com"]
   message         = "Please review the daily spending summary"
 }
-`, data.RandomStringOfLength(8))
+`, data.RandomString)
 }
 
 func (AnomalyAlertResource) completeConfig(data acceptance.TestData) string {
@@ -107,7 +107,7 @@ resource "azurerm_cost_anomaly_alert" "test" {
   email_addresses = ["admin@example.com", "ops@example.com"]
   message         = "Please review the daily spending summary"
 }
-`, data.RandomStringOfLength(8))
+`, data.RandomString)
 }
 
 func (r AnomalyAlertResource) requiresImportConfig(data acceptance.TestData) string {
@@ -138,7 +138,7 @@ resource "azurerm_cost_anomaly_alert" "test" {
   email_addresses = ["ops@example.com", "finance@example.com"]
   message         = "Please review the weekly spending summary"
 }
-`, data.RandomStringOfLength(8))
+`, data.RandomString)
 }
 
 func (AnomalyAlertResource) notificationEmailConfig(data acceptance.TestData) string {
@@ -155,5 +155,5 @@ resource "azurerm_cost_anomaly_alert" "test" {
   notification_email = "finance@example.com"
   message            = "Please review the daily spending summary"
 }
-`, data.RandomStringOfLength(8))
+`, data.RandomString)
 }

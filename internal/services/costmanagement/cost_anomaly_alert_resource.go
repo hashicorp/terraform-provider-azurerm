@@ -273,10 +273,11 @@ func (AnomalyAlertResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := AnomalyAlertModel{}
+			state := AnomalyAlertModel{
+				Name: id.ScheduledActionName,
+			}
 
 			if model := resp.Model; model != nil {
-				state.Name = pointer.From(model.Name)
 				if props := model.Properties; props != nil {
 					state.DisplayName = props.DisplayName
 					if props.Scope != nil {
