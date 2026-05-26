@@ -12,15 +12,17 @@ class ClientConfiguration(var clientId: String,
                           val subscriptionIdAltTenant : String,
                           val principalIdAltTenant : String,
                           val vcsRootId : String,
+                          val runBetaVersion : Boolean,
                           val enableTestTriggersGlobally : Boolean,
                           val emailAddressAccTests : String,
                           val gitHubRepo : String,
                           val gitPat : String,
+                          val betaVersionEnvVar : String,
                           )
 
 class LocationConfiguration(var primary : String, var secondary : String, var tertiary : String, var rotate : Boolean)
 
-fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: String, config: ClientConfiguration, locationsForEnv: LocationConfiguration, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false) {
+fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: String, config: ClientConfiguration, locationsForEnv: LocationConfiguration, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false, enableBetaVersion: Boolean = false) {
     hiddenPasswordVariable("env.ARM_CLIENT_ID", config.clientId, "The Client ID of the Application used for Testing")
     hiddenPasswordVariable("env.ARM_CLIENT_ID_ALT", config.clientIdAlt, "The Client ID of the Alternate Application used for Testing")
     hiddenPasswordVariable("env.ARM_CLIENT_SECRET", config.clientSecret, "The Client Secret of the Application used for Testing")
@@ -44,7 +46,8 @@ fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: Strin
     hiddenVariable("env.ARM_TEST_LOCATION", locationsForEnv.primary, "The Primary region which should be used for testing")
     hiddenVariable("env.ARM_TEST_LOCATION_ALT", locationsForEnv.secondary, "The Secondary region which should be used for testing")
     hiddenVariable("env.ARM_TEST_LOCATION_ALT2", locationsForEnv.tertiary, "The Tertiary region which should be used for testing")
-    hiddenVariable("env.ARM_FIVEPOINTZERO_BETA", "false", "Opt into the 5.0 beta")
+    hiddenVariable(config.betaVersionEnvVar, enableBetaVersion.toString(), "Opt into the beta version")
+    hiddenVariable("env.BETA_VERSION_ENV_VAR", config.betaVersionEnvVar, "Name of the beta version env variable")
     hiddenVariable("env.ARM_TEST_ACC_EMAIL_ADDRESS", config.emailAddressAccTests, "email address for the Acceptance Tests User")
     hiddenPasswordVariable("env.GIT_PAT", config.gitPat, "Personal Access Token for GitHub")
     hiddenVariable("env.GITHUB_REPO", config.gitHubRepo, "GitHub Repository")

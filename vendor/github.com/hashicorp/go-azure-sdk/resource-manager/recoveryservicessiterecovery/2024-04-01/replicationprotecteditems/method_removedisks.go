@@ -62,9 +62,20 @@ func (c ReplicationProtectedItemsClient) RemoveDisks(ctx context.Context, id Rep
 
 // RemoveDisksThenPoll performs RemoveDisks then polls until it's completed
 func (c ReplicationProtectedItemsClient) RemoveDisksThenPoll(ctx context.Context, id ReplicationProtectedItemId, input RemoveDisksInput) error {
+	return c.RemoveDisksCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RemoveDisksCallbackThenPoll performs RemoveDisks, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectedItemsClient) RemoveDisksCallbackThenPoll(ctx context.Context, id ReplicationProtectedItemId, input RemoveDisksInput, callback func() error) error {
 	result, err := c.RemoveDisks(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RemoveDisks: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
