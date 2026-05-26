@@ -115,14 +115,16 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewUserAssignedIdentityID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.UserAssignedIdentitiesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.UserAssignedIdentitiesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := identities.Identity{

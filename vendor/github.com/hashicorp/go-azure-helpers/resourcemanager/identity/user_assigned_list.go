@@ -18,16 +18,14 @@ type UserAssignedList struct {
 	IdentityIds []string `json:"userAssignedIdentities" tfschema:"identity_ids"`
 }
 
-func (s *UserAssignedList) MarshalJSON() ([]byte, error) {
+func (s UserAssignedList) MarshalJSON() ([]byte, error) {
 	// we use a custom marshal function here since we can only send the Type / UserAssignedIdentities field
 	identityType := TypeNone
 	userAssignedIdentityIds := []string{}
 
-	if s != nil {
-		if s.Type == TypeUserAssigned {
-			identityType = TypeUserAssigned
-			userAssignedIdentityIds = s.IdentityIds
-		}
+	if s.Type == TypeUserAssigned {
+		identityType = TypeUserAssigned
+		userAssignedIdentityIds = s.IdentityIds
 	}
 
 	out := map[string]interface{}{

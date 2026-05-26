@@ -62,9 +62,20 @@ func (c CognitiveServicesProjectsClient) ProjectsUpdate(ctx context.Context, id 
 
 // ProjectsUpdateThenPoll performs ProjectsUpdate then polls until it's completed
 func (c CognitiveServicesProjectsClient) ProjectsUpdateThenPoll(ctx context.Context, id ProjectId, input Project) error {
+	return c.ProjectsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ProjectsUpdateCallbackThenPoll performs ProjectsUpdate, runs the optional callback function, then polls until it's completed
+func (c CognitiveServicesProjectsClient) ProjectsUpdateCallbackThenPoll(ctx context.Context, id ProjectId, input Project, callback func() error) error {
 	result, err := c.ProjectsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ProjectsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

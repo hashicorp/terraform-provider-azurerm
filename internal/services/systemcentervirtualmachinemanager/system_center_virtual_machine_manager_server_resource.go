@@ -126,14 +126,16 @@ func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFu
 
 			id := vmmservers.NewVMmServerID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := &vmmservers.VMmServer{
@@ -156,9 +158,10 @@ func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFu
 				parameters.Properties.Port = pointer.To(v)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *parameters); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			// After System Center Virtual Machine Manager Server is created, it needs some time to sync the Inventory Items. And service team confirmed that the sync would definitely be completed within 10 minutes. In case, so we need to set a timeout of 120 minutes and check the inventory quantity continuously every minute for 10 times. If the quantity doesn't change, then we consider the sync to be complete.
 			stateConf := &pluginsdk.StateChangeConf{
@@ -170,7 +173,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFu
 				Timeout:      120 * time.Minute,
 			}
 
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to become available: %s", id, err)
 			}
 

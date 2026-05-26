@@ -32,7 +32,7 @@ func resourceAppServiceSlot() *pluginsdk.Resource {
 		Update: resourceAppServiceSlotCreateUpdate,
 		Delete: resourceAppServiceSlotDelete,
 
-		DeprecationMessage: "The `azurerm_app_service_slot` resource has been superseded by the `azurerm_linux_web_app_slot` and `azurerm_windows_web_app_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_app_service_slot` resource has been superseded by the `azurerm_linux_web_app_slot` and `azurerm_windows_web_app_slot` resources. This resource will be removed in v5.0 of the AzureRM Provider.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AppServiceSlotID(id)
@@ -181,7 +181,7 @@ func resourceAppServiceSlot() *pluginsdk.Resource {
 }
 
 func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,15 +189,17 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	id := parse.NewAppServiceSlotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_app_service_slot", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_app_service_slot", id.ID())
+			}
 		}
 	}
 
@@ -241,18 +243,20 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("creating %s: %s", id, err)
 	}
 
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("waiting for creation of %s: %s", id, err)
 	}
 
-	d.SetId(id.ID())
-
 	return resourceAppServiceSlotUpdate(d, meta)
 }
 
 func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -399,7 +403,7 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceAppServiceSlotRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -549,7 +553,7 @@ func resourceAppServiceSlotRead(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceAppServiceSlotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -557,8 +561,6 @@ func resourceAppServiceSlotDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting Slot %q (App Service %q / Resource Group %q)", id.SlotName, id.SiteName, id.ResourceGroup)
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false

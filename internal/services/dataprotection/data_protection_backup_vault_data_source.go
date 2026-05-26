@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -88,8 +88,8 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 
 		props := model.Properties
 		if len(props.StorageSettings) > 0 {
-			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
-			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
+			d.Set("datastore_type", string(pointer.From(props.StorageSettings[0].DatastoreType)))
+			d.Set("redundancy", string(pointer.From(props.StorageSettings[0].Type)))
 		}
 
 		identity, err := dataSourceFlattenBackupVaultDppIdentityDetails(model.Identity)

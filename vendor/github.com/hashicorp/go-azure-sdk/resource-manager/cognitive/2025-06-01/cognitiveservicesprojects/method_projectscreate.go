@@ -63,9 +63,20 @@ func (c CognitiveServicesProjectsClient) ProjectsCreate(ctx context.Context, id 
 
 // ProjectsCreateThenPoll performs ProjectsCreate then polls until it's completed
 func (c CognitiveServicesProjectsClient) ProjectsCreateThenPoll(ctx context.Context, id ProjectId, input Project) error {
+	return c.ProjectsCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ProjectsCreateCallbackThenPoll performs ProjectsCreate, runs the optional callback function, then polls until it's completed
+func (c CognitiveServicesProjectsClient) ProjectsCreateCallbackThenPoll(ctx context.Context, id ProjectId, input Project, callback func() error) error {
 	result, err := c.ProjectsCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ProjectsCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

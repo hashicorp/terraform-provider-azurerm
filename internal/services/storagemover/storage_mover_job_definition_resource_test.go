@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StorageMoverJobDefinitionTestResource struct{}
+type StorageMoverJobDefinitionResource struct{}
 
 func TestAccStorageMoverJobDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_job_definition", "test")
-	r := StorageMoverJobDefinitionTestResource{}
+	r := StorageMoverJobDefinitionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccStorageMoverJobDefinition_basic(t *testing.T) {
 
 func TestAccStorageMoverJobDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_job_definition", "test")
-	r := StorageMoverJobDefinitionTestResource{}
+	r := StorageMoverJobDefinitionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccStorageMoverJobDefinition_requiresImport(t *testing.T) {
 
 func TestAccStorageMoverJobDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_job_definition", "test")
-	r := StorageMoverJobDefinitionTestResource{}
+	r := StorageMoverJobDefinitionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func TestAccStorageMoverJobDefinition_complete(t *testing.T) {
 
 func TestAccStorageMoverJobDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_job_definition", "test")
-	r := StorageMoverJobDefinitionTestResource{}
+	r := StorageMoverJobDefinitionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -82,7 +82,7 @@ func TestAccStorageMoverJobDefinition_update(t *testing.T) {
 	})
 }
 
-func (r StorageMoverJobDefinitionTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageMoverJobDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := jobdefinitions.ParseJobDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r StorageMoverJobDefinitionTestResource) Exists(ctx context.Context, clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r StorageMoverJobDefinitionTestResource) template(data acceptance.TestData) string {
+func (r StorageMoverJobDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -147,10 +147,10 @@ resource "azurerm_storage_mover_project" "test" {
   name             = "acctest-sp-%[2]d"
   storage_mover_id = azurerm_storage_mover.test.id
 }
-`, StorageMoverAgentTestResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, StorageMoverAgentResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageMoverJobDefinitionTestResource) basic(data acceptance.TestData) string {
+func (r StorageMoverJobDefinitionResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -174,7 +174,7 @@ resource "azurerm_storage_mover_job_definition" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageMoverJobDefinitionTestResource) requiresImport(data acceptance.TestData) string {
+func (r StorageMoverJobDefinitionResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -190,7 +190,7 @@ resource "azurerm_storage_mover_job_definition" "import" {
 `, config)
 }
 
-func (r StorageMoverJobDefinitionTestResource) complete(data acceptance.TestData) string {
+func (r StorageMoverJobDefinitionResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -217,7 +217,7 @@ resource "azurerm_storage_mover_job_definition" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageMoverJobDefinitionTestResource) update(data acceptance.TestData) string {
+func (r StorageMoverJobDefinitionResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
