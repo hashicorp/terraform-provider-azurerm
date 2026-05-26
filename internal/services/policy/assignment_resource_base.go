@@ -26,11 +26,60 @@ import (
 
 type assignmentBaseResource struct{}
 
+type assignmentIdentityModel struct {
+	Type        string   `tfschema:"type"`
+	IdentityIds []string `tfschema:"identity_ids"`
+	PrincipalId string   `tfschema:"principal_id"`
+	TenantId    string   `tfschema:"tenant_id"`
+}
+
+type assignmentNonComplianceMessageModel struct {
+	Content                     string `tfschema:"content"`
+	PolicyDefinitionReferenceId string `tfschema:"policy_definition_reference_id"`
+}
+
+type assignmentOverrideModel struct {
+	Value     string                            `tfschema:"value"`
+	Selectors []assignmentOverrideSelectorModel `tfschema:"selectors"`
+}
+
+type assignmentOverrideSelectorModel struct {
+	In    []string `tfschema:"in"`
+	NotIn []string `tfschema:"not_in"`
+	Kind  string   `tfschema:"kind"`
+}
+
+type assignmentResourceSelectorModel struct {
+	Name      string                            `tfschema:"name"`
+	Selectors []assignmentOverrideSelectorModel `tfschema:"selectors"`
+}
+
+// assignmentBaseModel contains only the simple fields shared across all policy assignment resources.
+// Complex nested fields (identity, non_compliance_message, overrides, resource_selectors) remain
+// on ResourceData as they use expand/flatten helpers that expect []interface{}.
+type assignmentBaseModel struct {
+	Name               string   `tfschema:"name"`
+	PolicyDefinitionId string   `tfschema:"policy_definition_id"`
+	Description        string   `tfschema:"description"`
+	DisplayName        string   `tfschema:"display_name"`
+	Location           string   `tfschema:"location"`
+	Enforce            bool     `tfschema:"enforce"`
+	Metadata           string   `tfschema:"metadata"`
+	Parameters         string   `tfschema:"parameters"`
+	NotScopes          []string `tfschema:"not_scopes"`
+}
+
 func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string) sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
-			id := policyassignments.NewScopedPolicyAssignmentID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
+
+			var config assignmentBaseModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := policyassignments.NewScopedPolicyAssignmentID(metadata.ResourceData.Get(scopeFieldName).(string), config.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
@@ -47,19 +96,19 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 
 			assignment := policyassignments.PolicyAssignment{
 				Properties: &policyassignments.PolicyAssignmentProperties{
-					PolicyDefinitionId: pointer.To(metadata.ResourceData.Get("policy_definition_id").(string)),
-					DisplayName:        pointer.To(metadata.ResourceData.Get("display_name").(string)),
+					PolicyDefinitionId: pointer.To(config.PolicyDefinitionId),
+					DisplayName:        pointer.To(config.DisplayName),
 					Scope:              pointer.To(id.Scope),
-					EnforcementMode:    convertEnforcementMode(metadata.ResourceData.Get("enforce").(bool)),
+					EnforcementMode:    convertEnforcementMode(config.Enforce),
 				},
 			}
 
-			if v := metadata.ResourceData.Get("description").(string); v != "" {
-				assignment.Properties.Description = pointer.To(v)
+			if config.Description != "" {
+				assignment.Properties.Description = pointer.To(config.Description)
 			}
 
-			if v := metadata.ResourceData.Get("location").(string); v != "" {
-				assignment.Location = pointer.To(location.Normalize(v))
+			if config.Location != "" {
+				assignment.Location = pointer.To(location.Normalize(config.Location))
 			}
 
 			if v, ok := metadata.ResourceData.GetOk("identity"); ok {
@@ -73,10 +122,10 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				assignment.Identity = identityIns
 			}
 
-			if v := metadata.ResourceData.Get("parameters").(string); v != "" {
-				expandedParams, err := expandParameterValuesValueFromString(v)
+			if config.Parameters != "" {
+				expandedParams, err := expandParameterValuesValueFromString(config.Parameters)
 				if err != nil {
-					return fmt.Errorf("expanding JSON for `parameters` %q: %+v", v, err)
+					return fmt.Errorf("expanding JSON for `parameters` %q: %+v", config.Parameters, err)
 				}
 
 				if expandedParams != nil {
@@ -84,8 +133,8 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				}
 			}
 
-			if metaDataString := metadata.ResourceData.Get("metadata").(string); metaDataString != "" {
-				metaData, err := pluginsdk.ExpandJsonFromString(metaDataString)
+			if config.Metadata != "" {
+				metaData, err := pluginsdk.ExpandJsonFromString(config.Metadata)
 				if err != nil {
 					return fmt.Errorf("unable to parse metadata: %s", err)
 				}
@@ -95,8 +144,8 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				}
 			}
 
-			if v, ok := metadata.ResourceData.GetOk("not_scopes"); ok {
-				assignment.Properties.NotScopes = expandAzureRmPolicyNotScopes(v.([]interface{}))
+			if len(config.NotScopes) > 0 {
+				assignment.Properties.NotScopes = &config.NotScopes
 			}
 
 			if msgs := metadata.ResourceData.Get("non_compliance_message").([]interface{}); len(msgs) > 0 {
@@ -177,13 +226,16 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 				return fmt.Errorf("reading nil model")
 			}
 
-			model := resp.Model
-			metadata.ResourceData.Set("name", id.PolicyAssignmentName)
-			metadata.ResourceData.Set("location", location.NormalizeNilable(model.Location))
+			respModel := resp.Model
+			state := assignmentBaseModel{
+				Name:     id.PolicyAssignmentName,
+				Location: location.NormalizeNilable(respModel.Location),
+			}
+
 			// lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
-			identityIns, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+			identityIns, err := identity.FlattenSystemOrUserAssignedMap(respModel.Identity)
 			if err != nil {
 				return fmt.Errorf("FlattenSystemOrUserAssignedMap: %+v", err)
 			}
@@ -191,36 +243,32 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
-			if props := model.Properties; props != nil {
-				metadata.ResourceData.Set("description", props.Description)
-				metadata.ResourceData.Set("display_name", props.DisplayName)
-				var enforce bool
+			if props := respModel.Properties; props != nil {
+				state.Description = pointer.From(props.Description)
+				state.DisplayName = pointer.From(props.DisplayName)
 				if mode := props.EnforcementMode; mode != nil {
-					enforce = (*props.EnforcementMode) == policyassignments.EnforcementModeDefault
+					state.Enforce = (*props.EnforcementMode) == policyassignments.EnforcementModeDefault
 				}
-				metadata.ResourceData.Set("enforce", enforce)
-				metadata.ResourceData.Set("not_scopes", props.NotScopes)
-				metadata.ResourceData.Set("policy_definition_id", props.PolicyDefinitionId)
+				if props.NotScopes != nil {
+					state.NotScopes = *props.NotScopes
+				}
+				state.PolicyDefinitionId = pointer.From(props.PolicyDefinitionId)
 
 				metadata.ResourceData.Set("non_compliance_message", br.flattenNonComplianceMessages(props.NonComplianceMessages))
 
-				flattenedMetaData := flattenJSON(pointer.From(props.Metadata))
-				metadata.ResourceData.Set("metadata", flattenedMetaData)
+				state.Metadata = flattenJSON(pointer.From(props.Metadata))
 
 				flattenedParameters, err := flattenParameterValuesValueToStringV2(props.Parameters)
 				if err != nil {
 					return fmt.Errorf("serializing JSON from `parameters`: %+v", err)
 				}
-				metadata.ResourceData.Set("parameters", flattenedParameters)
+				state.Parameters = flattenedParameters
 
-				overrides := br.flattenOverrides(props.Overrides)
-				metadata.ResourceData.Set("overrides", overrides)
-
-				resourceSel := br.flattenResourceSelectors(props.ResourceSelectors)
-				metadata.ResourceData.Set("resource_selectors", resourceSel)
+				metadata.ResourceData.Set("overrides", br.flattenOverrides(props.Overrides))
+				metadata.ResourceData.Set("resource_selectors", br.flattenResourceSelectors(props.ResourceSelectors))
 			}
 
-			return nil
+			return metadata.Encode(&state)
 		},
 		Timeout: 5 * time.Minute,
 	}
@@ -234,6 +282,11 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
+			}
+
+			var config assignmentBaseModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			getResp, err := client.Get(ctx, *id)
@@ -255,19 +308,19 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				update.Properties.Description = pointer.To(metadata.ResourceData.Get("description").(string))
+				update.Properties.Description = pointer.To(config.Description)
 			}
 			if metadata.ResourceData.HasChange("display_name") {
-				update.Properties.DisplayName = pointer.To(metadata.ResourceData.Get("display_name").(string))
+				update.Properties.DisplayName = pointer.To(config.DisplayName)
 			}
 			if metadata.ResourceData.HasChange("enforce") {
-				update.Properties.EnforcementMode = convertEnforcementMode(metadata.ResourceData.Get("enforce").(bool))
+				update.Properties.EnforcementMode = convertEnforcementMode(config.Enforce)
 			}
 			if metadata.ResourceData.HasChange("location") {
-				update.Location = pointer.To(metadata.ResourceData.Get("location").(string))
+				update.Location = pointer.To(config.Location)
 			}
 			if metadata.ResourceData.HasChange("policy_definition_id") {
-				update.Properties.PolicyDefinitionId = pointer.To(metadata.ResourceData.Get("policy_definition_id").(string))
+				update.Properties.PolicyDefinitionId = pointer.To(config.PolicyDefinitionId)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -283,10 +336,9 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("metadata") {
-				v := metadata.ResourceData.Get("metadata").(string)
 				m := map[string]interface{}{}
-				if v != "" {
-					m, err = pluginsdk.ExpandJsonFromString(v)
+				if config.Metadata != "" {
+					m, err = pluginsdk.ExpandJsonFromString(config.Metadata)
 					if err != nil {
 						return fmt.Errorf("parsing metadata: %+v", err)
 					}
@@ -296,7 +348,11 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("not_scopes") {
-				update.Properties.NotScopes = expandAzureRmPolicyNotScopes(metadata.ResourceData.Get("not_scopes").([]interface{}))
+				notScopes := config.NotScopes
+				if notScopes == nil {
+					notScopes = make([]string, 0)
+				}
+				update.Properties.NotScopes = &notScopes
 			}
 
 			if metadata.ResourceData.HasChange("non_compliance_message") {
@@ -306,10 +362,10 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("parameters") {
 				m := map[string]policyassignments.ParameterValuesValue{}
 
-				if v := metadata.ResourceData.Get("parameters").(string); v != "" {
-					m, err = expandParameterValuesValueFromString(v)
+				if config.Parameters != "" {
+					m, err = expandParameterValuesValueFromString(config.Parameters)
 					if err != nil {
-						return fmt.Errorf("expanding JSON for `parameters` %q: %+v", v, err)
+						return fmt.Errorf("expanding JSON for `parameters` %q: %+v", config.Parameters, err)
 					}
 				}
 				update.Properties.Parameters = &m
@@ -686,17 +742,4 @@ func (br assignmentBaseResource) flattenResourceSelectors(selectors *[]policyass
 	}
 
 	return res
-}
-
-func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
-	notScopesRes := make([]string, 0)
-
-	for _, notScope := range input {
-		s, ok := notScope.(string)
-		if ok {
-			notScopesRes = append(notScopesRes, s)
-		}
-	}
-
-	return &notScopesRes
 }
