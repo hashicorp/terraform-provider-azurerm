@@ -165,6 +165,22 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 							return fmt.Errorf("`free_limit_enabled` can only be set to `true` when `sku_name` is a serverless General Purpose SKU (for example `GP_S_Gen5_2`)")
 						}
 					}
+
+					minCapacityVal, hasMinCapacity := rawConfig["min_capacity"]
+					if !hasMinCapacity {
+						return fmt.Errorf("`min_capacity` must be set to `0.5` when `free_limit_enabled` is set to `true`.")
+					}
+					if !minCapacityVal.IsKnown() {
+						return nil
+					}
+					if minCapacityVal.IsNull() {
+						return fmt.Errorf("`min_capacity` must be set to `0.5` when `free_limit_enabled` is set to `true`.")
+					}
+
+					minCapacity, _ := minCapacityVal.AsBigFloat().Float64()
+					if minCapacity != 0.5 {
+						return fmt.Errorf("`min_capacity` must be set to `0.5` when `free_limit_enabled` is set to `true`.")
+					}
 				}
 
 				return nil
@@ -1395,7 +1411,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			// TODO 5.0: remove this branch together with `mssqlDatabaseFreeSkuName`.
 			isFreeSku = true
 		}
-		if model != nil && model.Properties != nil && pointer.From(model.Properties.UseFreeLimit) {
+		if model.Properties != nil && pointer.From(model.Properties.UseFreeLimit) {
 			isFreeSku = true
 		}
 

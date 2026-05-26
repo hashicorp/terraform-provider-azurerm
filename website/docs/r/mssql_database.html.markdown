@@ -207,6 +207,7 @@ The following arguments are supported:
 ~> **Note:** This value should not be configured when the `create_mode` is `Secondary` or `OnlineSecondary`, as the sizing of the primary is then used as per [Azure documentation](https://docs.microsoft.com/azure/azure-sql/database/single-database-scale#geo-replicated-database). The value of `max_size_gb` accepts `0.1`, `0.5` and positive integers greater than or equal to 1. `0.1` means `100MB`, and `0.5` means `500MB`.
 
 * `min_capacity` - (Optional) Minimal capacity that database will always have allocated, if not paused. This property is only settable for Serverless databases.
+~> **Note:** When `free_limit_enabled` is set to `true`, `min_capacity` must be set to `0.5`.
 
 * `restore_point_in_time` - (Optional) Specifies the point in time (ISO8601 format) of the source database that will be restored to create the new database. This property is only settable for `create_mode`= `PointInTimeRestore` databases.
 
@@ -238,7 +239,7 @@ The following arguments are supported:
 
 -> **Note:** When enabled, the database receives a monthly free allocation of vCore-seconds and storage. Once the allocation is exhausted, the behavior is controlled by `free_limit_exhaustion_behavior`.
 
-* `free_limit_exhaustion_behavior` - (Optional) Specifies the behavior of the database when the monthly free offer allocation is exhausted. Possible values are `AutoPause` and `BillOverUsage`. Defaults to `AutoPause`.
+* `free_limit_exhaustion_behavior` - (Optional) Specifies the behavior of the database when the monthly free offer allocation is exhausted. Possible values are `AutoPause` and `BillOverUsage`.
 
 ~> **Note:** `free_limit_exhaustion_behavior` can only be set when `free_limit_enabled` is `true`.
 
