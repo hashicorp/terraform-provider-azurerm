@@ -60,7 +60,7 @@ func (k storageTableDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.StorageAccountName,
+			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 	}
 
