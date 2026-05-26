@@ -1383,10 +1383,12 @@ func (r MssqlDatabaseResource) freeTier(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name               = "acctest-db-%[2]d"
-  server_id          = azurerm_mssql_server.test.id
-  sku_name           = "GP_S_Gen5_2"
-  free_limit_enabled = true
+	name                        = "acctest-db-%[2]d"
+	server_id                   = azurerm_mssql_server.test.id
+	auto_pause_delay_in_minutes = 42
+	min_capacity                = 0.75
+	sku_name                    = "GP_S_Gen5_2"
+	free_limit_enabled          = true
 }
 `, r.template(data), data.RandomInteger)
 }
