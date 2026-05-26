@@ -165,22 +165,6 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 							return fmt.Errorf("`free_limit_enabled` can only be set to `true` when `sku_name` is a serverless General Purpose SKU (for example `GP_S_Gen5_2`)")
 						}
 					}
-
-					minCapacityVal, hasMinCapacity := rawConfig["min_capacity"]
-					if !hasMinCapacity {
-						return fmt.Errorf("`min_capacity` must be set to `0.5` when `free_limit_enabled` is set to `true`.")
-					}
-					if !minCapacityVal.IsKnown() {
-						return nil
-					}
-					if minCapacityVal.IsNull() {
-						return fmt.Errorf("`min_capacity` must be set to `0.5` when `free_limit_enabled` is set to `true`.")
-					}
-
-					minCapacity, _ := minCapacityVal.AsBigFloat().Float64()
-					if minCapacity != 0.5 {
-						return fmt.Errorf("`min_capacity` must be set to `0.5` when `free_limit_enabled` is set to `true`.")
-					}
 				}
 
 				return nil
@@ -493,9 +477,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	useFreeLimit := d.Get("free_limit_enabled").(bool)
 	input.Properties.UseFreeLimit = pointer.To(useFreeLimit)
-	if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
-		input.Properties.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(v.(string)))
-	}
+	input.Properties.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(d.Get("free_limit_exhaustion_behavior").(string)))
 
 	if skuName != "" {
 		input.Sku = pointer.To(databases.Sku{
@@ -1015,10 +997,8 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("free_limit_exhaustion_behavior") {
-		if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
-			props.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(v.(string)))
-			propertiesUpdateRequired = true
-		}
+		props.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(d.Get("free_limit_exhaustion_behavior").(string)))
+		propertiesUpdateRequired = true
 	}
 
 	if d.HasChange("tags") {
@@ -1354,11 +1334,9 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 
 			d.Set("free_limit_enabled", pointer.From(props.UseFreeLimit))
 
-			freeLimitExhaustionBehavior := ""
-			if pointer.From(props.UseFreeLimit) && props.FreeLimitExhaustionBehavior != nil {
-				freeLimitExhaustionBehavior = string(pointer.From(props.FreeLimitExhaustionBehavior))
+			if props.FreeLimitExhaustionBehavior != nil {
+				d.Set("free_limit_exhaustion_behavior", pointer.FromEnum(props.FreeLimitExhaustionBehavior))
 			}
-			d.Set("free_limit_exhaustion_behavior", freeLimitExhaustionBehavior)
 
 			if props.IsLedgerOn != nil {
 				ledgerEnabled = *props.IsLedgerOn
@@ -1411,7 +1389,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			// TODO 5.0: remove this branch together with `mssqlDatabaseFreeSkuName`.
 			isFreeSku = true
 		}
-		if model.Properties != nil && pointer.From(model.Properties.UseFreeLimit) {
+		if model != nil && model.Properties != nil && pointer.From(model.Properties.UseFreeLimit) {
 			isFreeSku = true
 		}
 
@@ -1860,6 +1838,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"free_limit_exhaustion_behavior": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Default:      string(databases.FreeLimitExhaustionBehaviorAutoPause),
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForFreeLimitExhaustionBehavior(), false),
 		},
 

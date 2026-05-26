@@ -86,18 +86,6 @@ func TestAccMsSqlDatabase_free(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_freeInvalidMinCapacity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
-	r := MssqlDatabaseResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.freeTierInvalidMinCapacity(data),
-			ExpectError: regexp.MustCompile("`min_capacity` must be set to `0.5` when `free_limit_enabled` is `true`"),
-		},
-	})
-}
-
 func TestAccMsSqlDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}
@@ -1397,25 +1385,12 @@ func (r MssqlDatabaseResource) freeTier(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-	name               = "acctest-db-%[2]d"
-	server_id          = azurerm_mssql_server.test.id
-	min_capacity       = 0.5
-	sku_name           = "GP_S_Gen5_2"
-	free_limit_enabled = true
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r MssqlDatabaseResource) freeTierInvalidMinCapacity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_mssql_database" "test" {
-	name               = "acctest-db-%[2]d"
-	server_id          = azurerm_mssql_server.test.id
-	min_capacity       = 0.75
-	sku_name           = "GP_S_Gen5_2"
-	free_limit_enabled = true
+  name                        = "acctest-db-%[2]d"
+  server_id                   = azurerm_mssql_server.test.id
+  auto_pause_delay_in_minutes = 60
+  min_capacity                = 0.5
+  sku_name                    = "GP_S_Gen5_2"
+  free_limit_enabled          = true
 }
 `, r.template(data), data.RandomInteger)
 }

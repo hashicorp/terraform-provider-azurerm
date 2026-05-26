@@ -168,6 +168,8 @@ The following arguments are supported:
 
 * `auto_pause_delay_in_minutes` - (Optional) Time in minutes after which database is automatically paused. A value of `-1` means that automatic pause is disabled. This property is only settable for Serverless databases.
 
+~> **Note:** When `free_limit_enabled` is `true`, `auto_pause_delay_in_minutes` must be set to a value other than `0`.
+
 * `create_mode` - (Optional) The create mode of the database. Possible values are `Copy`, `Default`, `OnlineSecondary`, `PointInTimeRestore`, `Recovery`, `Restore`, `RestoreExternalBackup`, `RestoreExternalBackupSecondary`, `RestoreLongTermRetentionBackup` and `Secondary`. Mutually exclusive with `import`. Changing this forces a new resource to be created. Defaults to `Default`.
 
 * `import` - (Optional) A `import` block as documented below. Mutually exclusive with `create_mode`.
@@ -207,7 +209,8 @@ The following arguments are supported:
 ~> **Note:** This value should not be configured when the `create_mode` is `Secondary` or `OnlineSecondary`, as the sizing of the primary is then used as per [Azure documentation](https://docs.microsoft.com/azure/azure-sql/database/single-database-scale#geo-replicated-database). The value of `max_size_gb` accepts `0.1`, `0.5` and positive integers greater than or equal to 1. `0.1` means `100MB`, and `0.5` means `500MB`.
 
 * `min_capacity` - (Optional) Minimal capacity that database will always have allocated, if not paused. This property is only settable for Serverless databases.
-~> **Note:** When `free_limit_enabled` is set to `true`, `min_capacity` must be set to `0.5`.
+
+~> **Note:** When `free_limit_enabled` is `true`, `min_capacity` must be set to `0.5`.
 
 * `restore_point_in_time` - (Optional) Specifies the point in time (ISO8601 format) of the source database that will be restored to create the new database. This property is only settable for `create_mode`= `PointInTimeRestore` databases.
 
