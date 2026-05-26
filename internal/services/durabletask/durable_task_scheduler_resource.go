@@ -148,7 +148,6 @@ func (r SchedulerResource) Create() sdk.ResourceFunc {
 
 			id := schedulers.NewSchedulerID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -157,8 +156,6 @@ func (r SchedulerResource) Create() sdk.ResourceFunc {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
-
-			metadata.Logger.Infof("Creating %s", id)
 
 			properties := schedulers.Scheduler{
 				Location: location.Normalize(model.Location),
@@ -199,7 +196,6 @@ func (r SchedulerResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Reading %s", id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -253,7 +249,6 @@ func (r SchedulerResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			metadata.Logger.Infof("Updating %s", id)
 			if !metadata.ResourceData.HasChanges("capacity", "ip_allow_list", "tags") {
 				return nil
 			}
@@ -296,8 +291,6 @@ func (r SchedulerResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("Deleting %s", id)
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

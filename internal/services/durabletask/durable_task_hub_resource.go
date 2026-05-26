@@ -94,7 +94,6 @@ func (r TaskHubResource) Create() sdk.ResourceFunc {
 
 			id := taskhubs.NewTaskHubID(schedulerId.SubscriptionId, schedulerId.ResourceGroupName, schedulerId.SchedulerName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -103,8 +102,6 @@ func (r TaskHubResource) Create() sdk.ResourceFunc {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
-
-			metadata.Logger.Infof("Creating %s", id)
 
 			properties := taskhubs.TaskHub{
 				Properties: &taskhubs.TaskHubProperties{},
@@ -134,7 +131,6 @@ func (r TaskHubResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Reading %s", id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -178,8 +174,6 @@ func (r TaskHubResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("Deleting %s", id)
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

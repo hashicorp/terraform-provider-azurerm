@@ -29,12 +29,10 @@ resource "azurerm_durable_task_scheduler" "example" {
 resource "azurerm_durable_task_retention_policy" "example" {
   durable_task_scheduler_id = azurerm_durable_task_scheduler.example.id
 
-  retention_policy {
-    canceled_retention_period_in_days   = 21
-    completed_retention_period_in_days  = 30
-    failed_retention_period_in_days     = 7
-    terminated_retention_period_in_days = 14
-  }
+  canceled_retention_period_in_days   = 21
+  completed_retention_period_in_days  = 30
+  failed_retention_period_in_days     = 7
+  terminated_retention_period_in_days = 14
 }
 ```
 
@@ -43,12 +41,6 @@ resource "azurerm_durable_task_retention_policy" "example" {
 The following arguments are supported:
 
 * `durable_task_scheduler_id` - (Required) The ID of the Durable Task Scheduler where the Retention Policy should be applied. Changing this forces a new resource to be created.
-
-* `retention_policy` - (Required) A `retention_policy` block as defined below.
-
----
-
-A `retention_policy` block supports the following:
 
 * `canceled_retention_period_in_days` - (Optional) The number of days to retain canceled orchestration data. Possible values range between `1` and `90`.
 

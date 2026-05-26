@@ -87,11 +87,11 @@ func (RetentionPolicyListResource) List(ctx context.Context, request list.ListRe
 
 			state := RetentionPolicyResourceModel{
 				DurableTaskSchedulerId: schedulerId.ID(),
-				RetentionPolicy:        make([]RetentionPolicyModel, 0),
 			}
 
 			if props := item.Properties; props != nil && props.RetentionPolicies != nil {
-				state.RetentionPolicy = flattenRetentionPolicyDetails(props.RetentionPolicies)
+				state = flattenRetentionPolicyDetails(props.RetentionPolicies)
+				state.DurableTaskSchedulerId = schedulerId.ID()
 			}
 
 			if err := meta.Encode(&state); err != nil {
