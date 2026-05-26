@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/tableservice"
+	tableservice "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
@@ -204,7 +204,7 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			tableClient := metadata.Client.Storage.ResourceManager.TableService
+			tableClient := metadata.Client.Storage.ResourceManager.Tables
 			accountId, err := commonids.ParseStorageAccountID(model.StorageAccountId)
 			if err != nil {
 				return err

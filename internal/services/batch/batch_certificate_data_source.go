@@ -18,6 +18,8 @@ import (
 
 func dataSourceBatchCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_batch_certificate` datasource has been deprecated and will be removed in v5.0 of the AzureRM provider.",
+
 		Read: dataSourceBatchCertificateRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{

@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/tableservice"
+	tableservice "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -248,7 +248,7 @@ func (r StorageTableResource) Exists(ctx context.Context, client *clients.Client
 	if err != nil {
 		return nil, err
 	}
-	existing, err := client.Storage.ResourceManager.TableService.TableGet(ctx, *id)
+	existing, err := client.Storage.ResourceManager.Tables.TableGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -291,7 +291,7 @@ func (r StorageTableResource) Destroy(ctx context.Context, client *clients.Clien
 	if err != nil {
 		return nil, err
 	}
-	if _, err := client.Storage.ResourceManager.TableService.TableDelete(ctx, *id); err != nil {
+	if _, err := client.Storage.ResourceManager.Tables.TableDelete(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 

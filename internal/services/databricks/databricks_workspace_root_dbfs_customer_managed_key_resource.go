@@ -14,13 +14,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_workspace_root_dbfs_customer_managed_key -service-package-name databricks -compare-values "subscription_id:workspace_id,resource_group_name:workspace_id,name:workspace_id"
 
 func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -36,10 +40,7 @@ func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := workspaces.ParseWorkspaceID(id)
-			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&workspaces.WorkspaceId{}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			// validate that the passed ID is a valid CMK configuration ID
 			id, err := workspaces.ParseWorkspaceID(d.Id())
 			if err != nil {
@@ -52,6 +53,9 @@ func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource
 
 			return []*pluginsdk.ResourceData{d}, nil
 		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&workspaces.WorkspaceId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"workspace_id": {
@@ -113,8 +117,10 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("%s: `customer_managed_key_enabled` must be set to `true`", *id)
 	}
 
-	if params.Encryption != nil && params.Encryption.Value != nil && pointer.From(params.Encryption.Value.KeySource) != workspaces.KeySourceDefault {
-		return tf.ImportAsExistsError("azurerm_databricks_workspace_root_dbfs_customer_managed_key", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if params.Encryption != nil && params.Encryption.Value != nil && pointer.From(params.Encryption.Value.KeySource) != workspaces.KeySourceDefault {
+			return tf.ImportAsExistsError("azurerm_databricks_workspace_root_dbfs_customer_managed_key", id.ID())
+		}
 	}
 
 	key, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
@@ -152,11 +158,14 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		},
 	}
 
-	if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
+	if err = workspaceClient.CreateOrUpdateCallbackThenPoll(ctx, *id, *existing.Model, sdk.SetIDAndIdentityCallback(meta, id, d)); err != nil {
 		return fmt.Errorf("creating Root DBFS Customer Managed Key for %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
+	}
 
 	// Always set this even if it's empty to keep the state file
 	// consistent with the configuration file...
@@ -208,7 +217,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData
 	d.Set("workspace_id", id.ID())
 	d.Set("key_vault_id", d.Get("key_vault_id").(string))
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

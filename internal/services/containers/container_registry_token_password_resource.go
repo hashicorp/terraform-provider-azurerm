@@ -12,9 +12,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	containerregistry_v2025_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/tokens"
+	containerregistry_v2025_11_01 "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
@@ -132,13 +132,15 @@ func (r ContainerRegistryTokenPasswordResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewContainerRegistryTokenPasswordID(tokenId.SubscriptionId, tokenId.ResourceGroupName, tokenId.RegistryName, tokenId.TokenName, "password")
 
-			pwds, _, err := r.readPassword(ctx, client, *tokenId)
-			if err != nil {
-				return err
-			}
-			// ACR token with no password returns a empty array for ".password"
-			if len(pwds) != 0 {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				pwds, _, err := r.readPassword(ctx, client, *tokenId)
+				if err != nil {
+					return err
+				}
+				// ACR token with no password returns an empty array for ".password"
+				if len(pwds) != 0 {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			passwords, err := r.expandContainerRegistryTokenPassword(plan)
@@ -149,6 +151,7 @@ func (r ContainerRegistryTokenPasswordResource) Create() sdk.ResourceFunc {
 			locks.ByID(tokenId.ID())
 			defer locks.UnlockByID(tokenId.ID())
 
+			// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 			genPasswords, err := r.generatePassword(ctx, *metadata.Client.Containers, *tokenId, *passwords)
 			if err != nil {
 				return err
@@ -372,7 +375,7 @@ func (r ContainerRegistryTokenPasswordResource) flattenContainerRegistryTokenPas
 	return
 }
 
-func (r ContainerRegistryTokenPasswordResource) readPassword(ctx context.Context, client *containerregistry_v2025_04_01.Client, id tokens.TokenId) ([]tokens.TokenPassword, bool, error) {
+func (r ContainerRegistryTokenPasswordResource) readPassword(ctx context.Context, client *containerregistry_v2025_11_01.Client, id tokens.TokenId) ([]tokens.TokenPassword, bool, error) {
 	existing, err := client.Tokens.Get(ctx, id)
 	if err != nil {
 		return nil, response.WasNotFound(existing.HttpResponse), fmt.Errorf("retrieving %s: %+v", id, err)

@@ -11,13 +11,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	cdnFrontDoorsecretparams "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorsecretparams"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyValutValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -30,9 +30,9 @@ func resourceCdnFrontDoorSecret() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorSecretDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -73,7 +73,7 @@ func resourceCdnFrontDoorSecret() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: keyValutValidation.KeyVaultChildIDWithOptionalVersion,
+										ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate),
 									},
 
 									"subject_alternative_names": {
@@ -110,15 +110,17 @@ func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta interface{
 
 	id := parse.NewFrontDoorSecretID(profile.SubscriptionId, profile.ResourceGroup, profile.ProfileName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecretName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecretName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_secret", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_secret", id.ID())
+		}
 	}
 
 	secretParams, err := expandCdnFrontDoorBasicSecretParameters(ctx, d.Get("secret").([]interface{}), meta.(*clients.Client))
@@ -262,7 +264,7 @@ func flattenSecretParametersResource(ctx context.Context, input cdn.BasicSecretP
 			return nil, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", secretSourceId.SecretName, keyVaultId, err)
 		}
 
-		keyVaultCertificateId, err := keyVaultParse.NewNestedItemID(*keyVaultBaseUri, keyVaultParse.NestedItemTypeCertificate, secretSourceId.SecretName, certificateVersion)
+		keyVaultCertificateId, err := keyvault.NewNestedItemID(*keyVaultBaseUri, keyvault.NestedItemTypeCertificate, secretSourceId.SecretName, certificateVersion)
 		if err != nil {
 			return nil, err
 		}
@@ -326,7 +328,7 @@ func flattenSecretParametersDataSource(ctx context.Context, input cdn.BasicSecre
 			return nil, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", secretSourceId.SecretName, keyVaultId, err)
 		}
 
-		keyVaultCertificateId, err := keyVaultParse.NewNestedItemID(*keyVaultBaseUri, "certificates", secretSourceId.SecretName, certificateVersion)
+		keyVaultCertificateId, err := keyvault.NewNestedItemID(*keyVaultBaseUri, keyvault.NestedItemTypeCertificate, secretSourceId.SecretName, certificateVersion)
 		if err != nil {
 			return nil, err
 		}

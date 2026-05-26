@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -212,7 +212,8 @@ func TestAccStorageAccount_blobConnectionString(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(check.That(data.ResourceName).ExistsInAzure(r),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("primary_blob_connection_string").Exists(),
 			),
 		},
@@ -1202,6 +1203,10 @@ func TestAccStorageAccount_sharedKeyAccess(t *testing.T) {
 }
 
 func TestAccStorageAccount_sharedKeyAccessUnsupported(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as this test is no longer relevant in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1583,7 +1588,14 @@ func TestAccStorageAccount_customerManagedKeyForHSM(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.customerManagedKeyForHSM(data),
+			Config: r.customerManagedKeyForHSM(data, "id"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customerManagedKeyForHSM(data, "versioned_id"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1842,7 +1854,7 @@ func TestAccStorageAccount_invalidAccountKindForAccessTier(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.invalidAccountKindForAccessTier(data),
-			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts of kind set to one of:"),
+			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts where `kind` is set to one of:"),
 		},
 	})
 }
@@ -4015,14 +4027,14 @@ func (r StorageAccountResource) shareSoftDeleteWithShareFile(data acceptance.Tes
 %s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "testshare%s"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "dir"
-  storage_share_id = azurerm_storage_share.test.id
+  name              = "dir"
+  storage_share_url = azurerm_storage_share.test.url
 
   source = "%s"
 
@@ -4624,7 +4636,7 @@ resource "azurerm_storage_account" "test" {
 `, r.cmkTemplate(data), data.RandomString)
 }
 
-func (r StorageAccountResource) customerManagedKeyForHSM(data acceptance.TestData) string {
+func (r StorageAccountResource) customerManagedKeyForHSM(data acceptance.TestData, keyAttribute string) string {
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
@@ -4645,7 +4657,7 @@ resource "azurerm_storage_account" "test" {
   }
 
   customer_managed_key {
-    managed_hsm_key_id        = azurerm_key_vault_managed_hardware_security_module_key.test.id
+    managed_hsm_key_id        = azurerm_key_vault_managed_hardware_security_module_key.test.%[3]s
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
@@ -4653,7 +4665,7 @@ resource "azurerm_storage_account" "test" {
     azurerm_key_vault_managed_hardware_security_module_role_assignment.user,
   ]
 }
-`, r.hsmKeyTemplate(data), data.RandomString)
+`, r.hsmKeyTemplate(data), data.RandomString, keyAttribute)
 	}
 
 	return fmt.Sprintf(`
@@ -4675,7 +4687,7 @@ resource "azurerm_storage_account" "test" {
   }
 
   customer_managed_key {
-    key_vault_key_id          = azurerm_key_vault_managed_hardware_security_module_key.test.id
+    key_vault_key_id          = azurerm_key_vault_managed_hardware_security_module_key.test.%[3]s
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
@@ -4683,7 +4695,7 @@ resource "azurerm_storage_account" "test" {
     azurerm_key_vault_managed_hardware_security_module_role_assignment.user,
   ]
 }
-`, r.hsmKeyTemplate(data), data.RandomString)
+`, r.hsmKeyTemplate(data), data.RandomString, keyAttribute)
 }
 
 func (r StorageAccountResource) customerManagedKeyRemoteKeyVault(data acceptance.TestData) string {
@@ -5437,6 +5449,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Production"
   }
 }
+
 resource "azurerm_key_vault_certificate" "cert" {
   count        = 3
   name         = "acchsmcert${count.index}"
@@ -5477,6 +5490,7 @@ resource "azurerm_key_vault_certificate" "cert" {
     }
   }
 }
+
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   name                       = "kvHsm%[3]d"
   resource_group_name        = azurerm_resource_group.test.name

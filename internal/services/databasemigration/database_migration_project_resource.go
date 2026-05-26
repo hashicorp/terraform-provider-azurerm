@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/projectresource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/validate"
@@ -22,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name database_migration_project -service-package-name databasemigration -properties "name,resource_group_name,service_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+
 func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceDatabaseMigrationProjectCreateUpdate,
@@ -29,10 +32,10 @@ func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 		Update: resourceDatabaseMigrationProjectCreateUpdate,
 		Delete: resourceDatabaseMigrationProjectDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := projectresource.ParseProjectID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&projectresource.ProjectId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&projectresource.ProjectId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -100,14 +103,16 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 
 	id := projectresource.NewProjectID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.ProjectsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.ProjectsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_database_migration_project", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_database_migration_project", id.ID())
+			}
 		}
 	}
 
@@ -130,6 +135,9 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceDatabaseMigrationProjectRead(d, meta)
 }
 
@@ -167,7 +175,7 @@ func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta interf
 			return err
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDatabaseMigrationProjectDelete(d *pluginsdk.ResourceData, meta interface{}) error {

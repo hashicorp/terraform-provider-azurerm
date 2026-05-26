@@ -14,12 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name dashboard_grafana -service-package-name dashboard -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type DashboardGrafanaModel struct {
 	Name                              string                                            `tfschema:"name"`
@@ -32,6 +35,7 @@ type DashboardGrafanaModel struct {
 	Location                          string                                            `tfschema:"location"`
 	PublicNetworkAccessEnabled        bool                                              `tfschema:"public_network_access_enabled"`
 	Sku                               string                                            `tfschema:"sku"`
+	SkuSize                           string                                            `tfschema:"sku_size"`
 	Tags                              map[string]string                                 `tfschema:"tags"`
 	ZoneRedundancyEnabled             bool                                              `tfschema:"zone_redundancy_enabled"`
 	Endpoint                          string                                            `tfschema:"endpoint"`
@@ -57,7 +61,14 @@ type SMTPConfigurationModel struct {
 
 type DashboardGrafanaResource struct{}
 
-var _ sdk.ResourceWithUpdate = DashboardGrafanaResource{}
+var (
+	_ sdk.ResourceWithUpdate   = DashboardGrafanaResource{}
+	_ sdk.ResourceWithIdentity = DashboardGrafanaResource{}
+)
+
+func (r DashboardGrafanaResource) Identity() resourceids.ResourceId {
+	return &managedgrafanas.GrafanaId{}
+}
 
 func (r DashboardGrafanaResource) ResourceType() string {
 	return "azurerm_dashboard_grafana"
@@ -189,7 +200,7 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				"10", "11",
+				"11", "12",
 			}, false),
 		},
 
@@ -202,6 +213,14 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 				"Standard",
 				"Essential",
 			}, false),
+		},
+
+		"sku_size": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      managedgrafanas.SizeXOne,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(managedgrafanas.PossibleValuesForSize(), false),
 		},
 
 		"tags": commonschema.Tags(),
@@ -251,13 +270,16 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Dashboard.GrafanaResourceClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := managedgrafanas.NewGrafanaID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.GrafanaGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GrafanaGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identityValue := expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -301,11 +323,18 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.GrafanaCreateThenPoll(ctx, id, *properties); err != nil {
+			if model.SkuSize != "" {
+				properties.Sku.Size = pointer.To(managedgrafanas.Size(model.SkuSize))
+			}
+
+			if err := client.GrafanaCreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -494,10 +523,17 @@ func (r DashboardGrafanaResource) Read() sdk.ResourceFunc {
 
 			if model.Sku != nil {
 				state.Sku = model.Sku.Name
+				if model.Sku.Size != nil {
+					state.SkuSize = pointer.FromEnum(model.Sku.Size)
+				}
 			}
 
 			if model.Tags != nil {
 				state.Tags = *model.Tags
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)
@@ -545,7 +581,8 @@ func expandSMTPConfigurationModel(input []SMTPConfigurationModel) *managedgrafan
 	return pointer.To(
 		managedgrafanas.GrafanaConfigurations{
 			Smtp: pointer.To(smtp),
-		})
+		},
+	)
 }
 
 func expandGrafanaIntegrationsModel(inputList []AzureMonitorWorkspaceIntegrationModel) *managedgrafanas.GrafanaIntegrations {

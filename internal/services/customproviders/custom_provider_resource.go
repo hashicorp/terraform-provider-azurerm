@@ -3,6 +3,8 @@
 
 package customproviders
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name custom_provider -service-package-name customproviders -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 import (
 	"fmt"
 	"time"
@@ -13,8 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/customproviders/2018-09-01-preview/customresourceprovider"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/customproviders/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,10 +31,11 @@ func resourceCustomProvider() *pluginsdk.Resource {
 		Read:   resourceCustomProviderRead,
 		Update: resourceCustomProviderCreateUpdate,
 		Delete: resourceCustomProviderDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := customresourceprovider.ParseResourceProviderID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&customresourceprovider.ResourceProviderId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&customresourceprovider.ResourceProviderId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -129,15 +134,17 @@ func resourceCustomProviderCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	id := customresourceprovider.NewResourceProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_custom_resource_provider", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_custom_resource_provider", id.ID())
+			}
 		}
 	}
 
@@ -151,11 +158,21 @@ func resourceCustomProviderCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, provider); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, provider, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, provider); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceCustomProviderRead(d, meta)
 }
 
@@ -202,7 +219,8 @@ func resourceCustomProviderRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return err
 		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCustomProviderDelete(d *pluginsdk.ResourceData, meta interface{}) error {

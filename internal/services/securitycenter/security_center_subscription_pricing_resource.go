@@ -124,15 +124,22 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	apiResponse, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(apiResponse.HttpResponse) {
-			return fmt.Errorf("checking for presence of apiResponse %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		apiResponse, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(apiResponse.HttpResponse) {
+				return fmt.Errorf("checking for presence of apiResponse %s: %+v", id, err)
+			}
+		}
+
+		if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil && apiResponse.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree {
+			return fmt.Errorf("the pricing tier of this subscription is not Free \r %+v", tf.ImportAsExistsError("azurerm_security_center_subscription_pricing", id.ID()))
 		}
 	}
 
-	if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil && apiResponse.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree {
-		return fmt.Errorf("the pricing tier of this subscription is not Free \r %+v", tf.ImportAsExistsError("azurerm_security_center_subscription_pricing", id.ID()))
+	apiResponse, err := client.Get(ctx, id)
+	if err != nil && !response.WasNotFound(apiResponse.HttpResponse) {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
@@ -259,8 +266,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	if requiredAdditionalUpdate {
 		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 		update.Properties.Extensions = extensions
-		_, err := client.Update(ctx, *id, update)
-		if err != nil {
+		if _, err := client.Update(ctx, *id, update); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -339,7 +345,7 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 			// set the default value to false, then turn on the extension that appear in the template
 			extensionStatuses[backendExtension.Name] = false
 			if backendExtension.AdditionalExtensionProperties != nil {
-				extensionProperties[backendExtension.Name] = *(backendExtension.AdditionalExtensionProperties)
+				extensionProperties[backendExtension.Name] = *backendExtension.AdditionalExtensionProperties
 			}
 		}
 	}

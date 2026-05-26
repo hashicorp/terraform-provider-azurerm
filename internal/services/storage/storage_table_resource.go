@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/tableservice"
+	tableservice "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -173,7 +173,7 @@ func resourceStorageTable() *pluginsdk.Resource {
 }
 
 func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	tableClient := meta.(*clients.Client).Storage.ResourceManager.TableService
+	tableClient := meta.(*clients.Client).Storage.ResourceManager.Tables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -214,12 +214,14 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 			id := tables.NewTableID(*accountId, tableName)
 
-			exists, err := tablesDataPlaneClient.Exists(ctx, tableName)
-			if err != nil {
-				return fmt.Errorf("checking for existing %s: %v", id, err)
-			}
-			if exists != nil && *exists {
-				return tf.ImportAsExistsError("azurerm_storage_table", id.ID())
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				exists, err := tablesDataPlaneClient.Exists(ctx, tableName)
+				if err != nil {
+					return fmt.Errorf("checking for existing %s: %v", id, err)
+				}
+				if exists != nil && *exists {
+					return tf.ImportAsExistsError("azurerm_storage_table", id.ID())
+				}
 			}
 
 			if err = tablesDataPlaneClient.Create(ctx, tableName); err != nil {
@@ -275,7 +277,7 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	tableClient := meta.(*clients.Client).Storage.ResourceManager.TableService
+	tableClient := meta.(*clients.Client).Storage.ResourceManager.Tables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -410,7 +412,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	tableClient := meta.(*clients.Client).Storage.ResourceManager.TableService
+	tableClient := meta.(*clients.Client).Storage.ResourceManager.Tables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -460,7 +462,7 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	tableClient := meta.(*clients.Client).Storage.ResourceManager.TableService
+	tableClient := meta.(*clients.Client).Storage.ResourceManager.Tables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -495,7 +497,6 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			if err = aclClient.UpdateACLs(ctx, id.TableName, acls); err != nil {
 				return fmt.Errorf("updating ACLs for %s: %v", id, err)
 			}
-
 			log.Printf("[DEBUG] Updated ACLs for %s", id)
 		}
 

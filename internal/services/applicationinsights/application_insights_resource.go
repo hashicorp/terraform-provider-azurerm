@@ -187,13 +187,14 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := components.NewComponentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.ComponentsGet(ctx, id)
-
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ComponentsGet(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_application_insights", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_application_insights", id.ID())
 	}
 
 	internetIngestionEnabled := components.PublicNetworkAccessTypeDisabled
@@ -239,6 +240,11 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 
 	if _, err := client.ComponentsCreateOrUpdate(ctx, id, insightProperties); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	read, err := client.ComponentsGet(ctx, id)
@@ -322,11 +328,6 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		if err != nil {
 			return err
 		}
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
 	}
 
 	return resourceApplicationInsightsRead(d, meta)
@@ -523,7 +524,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("daily_data_cap_in_gb") {
-		billingProps.DataVolumeCap.Cap = pointer.To(d.Get(("daily_data_cap_in_gb")).(float64))
+		billingProps.DataVolumeCap.Cap = pointer.To(d.Get("daily_data_cap_in_gb").(float64))
 	}
 
 	if d.HasChange("daily_data_cap_notifications_disabled") {
