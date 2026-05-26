@@ -58,9 +58,20 @@ func (c CloudExadataInfrastructuresClient) AddStorageCapacity(ctx context.Contex
 
 // AddStorageCapacityThenPoll performs AddStorageCapacity then polls until it's completed
 func (c CloudExadataInfrastructuresClient) AddStorageCapacityThenPoll(ctx context.Context, id CloudExadataInfrastructureId) error {
+	return c.AddStorageCapacityCallbackThenPoll(ctx, id, nil)
+}
+
+// AddStorageCapacityCallbackThenPoll performs AddStorageCapacity, runs the optional callback function, then polls until it's completed
+func (c CloudExadataInfrastructuresClient) AddStorageCapacityCallbackThenPoll(ctx context.Context, id CloudExadataInfrastructureId, callback func() error) error {
 	result, err := c.AddStorageCapacity(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing AddStorageCapacity: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

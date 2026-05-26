@@ -33,31 +33,32 @@ import (
 type LogicAppResource struct{}
 
 type LogicAppResourceModel struct {
-	Name                       string                                     `tfschema:"name"`
-	ResourceGroupName          string                                     `tfschema:"resource_group_name"`
-	Location                   string                                     `tfschema:"location"`
-	AppServicePlanId           string                                     `tfschema:"app_service_plan_id"`
-	AppSettings                map[string]string                          `tfschema:"app_settings"`
-	UseExtensionBundle         bool                                       `tfschema:"use_extension_bundle"`
-	BundleVersion              string                                     `tfschema:"bundle_version"`
-	ClientAffinityEnabled      bool                                       `tfschema:"client_affinity_enabled"`
-	ClientCertificateMode      string                                     `tfschema:"client_certificate_mode"`
-	Enabled                    bool                                       `tfschema:"enabled"`
-	FtpPublishBasicAuthEnabled bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	HTTPSOnly                  bool                                       `tfschema:"https_only"`
-	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	SCMPublishBasicAuthEnabled bool                                       `tfschema:"scm_publish_basic_authentication_enabled"`
-	SiteConfig                 []helpers.LogicAppSiteConfig               `tfschema:"site_config"`
-	ConnectionStrings          []helpers.ConnectionString                 `tfschema:"connection_string"`
-	StorageAccountName         string                                     `tfschema:"storage_account_name"`
-	StorageAccountAccessKey    string                                     `tfschema:"storage_account_access_key"`
-	PublicNetworkAccess        string                                     `tfschema:"public_network_access"`
-	StorageAccountShareName    string                                     `tfschema:"storage_account_share_name"`
-	Version                    string                                     `tfschema:"version"`
-	VNETContentShareEnabled    bool                                       `tfschema:"vnet_content_share_enabled"`
-	ContentShareForceEnabled   bool                                       `tfschema:"content_share_force_enabled"`
-	VirtualNetworkSubnetId     string                                     `tfschema:"virtual_network_subnet_id"`
-	Tags                       map[string]string                          `tfschema:"tags"`
+	Name                        string                                     `tfschema:"name"`
+	ResourceGroupName           string                                     `tfschema:"resource_group_name"`
+	Location                    string                                     `tfschema:"location"`
+	AppServicePlanId            string                                     `tfschema:"app_service_plan_id"`
+	AppSettings                 map[string]string                          `tfschema:"app_settings"`
+	UseExtensionBundle          bool                                       `tfschema:"use_extension_bundle"`
+	BundleVersion               string                                     `tfschema:"bundle_version"`
+	ClientAffinityEnabled       bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertificateMode       string                                     `tfschema:"client_certificate_mode"`
+	Enabled                     bool                                       `tfschema:"enabled"`
+	FtpPublishBasicAuthEnabled  bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	HTTPSOnly                   bool                                       `tfschema:"https_only"`
+	Identity                    []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	KeyvaultReferenceIdentityId string                                     `tfschema:"key_vault_reference_identity_id"`
+	SCMPublishBasicAuthEnabled  bool                                       `tfschema:"scm_publish_basic_authentication_enabled"`
+	SiteConfig                  []helpers.LogicAppSiteConfig               `tfschema:"site_config"`
+	ConnectionStrings           []helpers.ConnectionString                 `tfschema:"connection_string"`
+	StorageAccountName          string                                     `tfschema:"storage_account_name"`
+	StorageAccountAccessKey     string                                     `tfschema:"storage_account_access_key"`
+	PublicNetworkAccess         string                                     `tfschema:"public_network_access"`
+	StorageAccountShareName     string                                     `tfschema:"storage_account_share_name"`
+	Version                     string                                     `tfschema:"version"`
+	VNETContentShareEnabled     bool                                       `tfschema:"vnet_content_share_enabled"`
+	ContentShareForceEnabled    bool                                       `tfschema:"content_share_force_enabled"`
+	VirtualNetworkSubnetId      string                                     `tfschema:"virtual_network_subnet_id"`
+	Tags                        map[string]string                          `tfschema:"tags"`
 
 	CustomDomainVerificationId  string                           `tfschema:"custom_domain_verification_id"`
 	DefaultHostname             string                           `tfschema:"default_hostname"`
@@ -95,8 +96,9 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"app_service_plan_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: commonids.ValidateAppServicePlanID,
 		},
 
 		"app_settings": {
@@ -213,6 +215,14 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.NoZeroValues,
 		},
 
+		// Once this property is set, it can not be removed while identity is UserAssigned.
+		// tracked on https://github.com/Azure/azure-rest-api-specs/issues/37553
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		},
+
 		"public_network_access": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -257,6 +267,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FivePointOh() {
+		s["app_service_plan_id"].ValidateFunc = nil
 		s["client_certificate_mode"].Default = nil
 		s["public_network_access"].Default = nil
 		s["public_network_access"].Computed = true
@@ -326,6 +337,45 @@ func (r LogicAppResource) ResourceType() string {
 	return "azurerm_logic_app_standard"
 }
 
+func (r LogicAppResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			// If `key_vault_reference_identity_id` is not set in config, check if ForceNew is needed
+			if metadata.ResourceDiff.GetRawConfig().GetAttr("key_vault_reference_identity_id").IsNull() {
+				// If it was previously set and identity is purely UserAssigned, ForceNew is required
+				// because the API does not support unsetting this property
+				old, _ := metadata.ResourceDiff.GetChange("key_vault_reference_identity_id")
+				if old.(string) != "" {
+					identityType := metadata.ResourceDiff.Get("identity.0.type").(string)
+					if strings.EqualFold(identityType, "UserAssigned") {
+						if err := metadata.ResourceDiff.ForceNew("key_vault_reference_identity_id"); err != nil {
+							return err
+						}
+					}
+				}
+				return nil
+			}
+
+			keyVaultReferenceIdentityId := metadata.ResourceDiff.Get("key_vault_reference_identity_id").(string)
+			if keyVaultReferenceIdentityId == "" {
+				return nil
+			}
+
+			identityIdsRaw := metadata.ResourceDiff.Get("identity.0.identity_ids").(*pluginsdk.Set)
+			identityIds := identityIdsRaw.List()
+
+			for _, id := range identityIds {
+				if strings.EqualFold(id.(string), keyVaultReferenceIdentityId) {
+					return nil
+				}
+			}
+
+			return fmt.Errorf("`key_vault_reference_identity_id` must be an identity assigned to this resource in the `identity` block, got `%s`", keyVaultReferenceIdentityId)
+		},
+	}
+}
+
 func (r LogicAppResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -349,15 +399,18 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 			}
 
 			id := commonids.NewAppServiceID(subscriptionId, data.ResourceGroupName, data.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_logic_app_standard", id.ID())
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_logic_app_standard", id.ID())
+				}
 			}
 
 			servicePlanId, err := commonids.ParseAppServicePlanID(data.AppServicePlanId)
@@ -487,10 +540,13 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(data.VirtualNetworkSubnetId)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			if data.KeyvaultReferenceIdentityId != "" {
+				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(data.KeyvaultReferenceIdentityId)
 			}
 
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 			metadata.SetID(id)
 
 			if !data.FtpPublishBasicAuthEnabled {
@@ -579,6 +635,9 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 					state.VirtualNetworkSubnetId = pointer.From(props.VirtualNetworkSubnetId)
 					state.VNETContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.PublicNetworkAccess = pointer.From(props.PublicNetworkAccess)
+					if kvRefId := pointer.From(props.KeyVaultReferenceIdentity); !strings.EqualFold(kvRefId, "SystemAssigned") {
+						state.KeyvaultReferenceIdentityId = kvRefId
+					}
 					// Note this is a bug - the Service defaults to `Required` regardless of the Enabled value
 					if !features.FivePointOh() {
 						if pointer.From(props.ClientCertEnabled) {
@@ -707,8 +766,6 @@ func (r LogicAppResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting Linux %s", *id)
-
 			delOptions := webapps.DeleteOperationOptions{
 				DeleteMetrics:         pointer.To(true),
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -790,12 +847,7 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("app_service_plan_id") {
-				planId, err := commonids.ParseLogicAppIdInsensitively(metadata.ResourceData.Id())
-				if err != nil {
-					return err
-				}
-
-				siteEnvelope.ServerFarmId = pointer.To(planId.ID())
+				siteEnvelope.ServerFarmId = pointer.To(data.AppServicePlanId)
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
@@ -853,6 +905,10 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 				}
 
 				existing.Model.Identity = expandedIdentity
+			}
+
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") && data.KeyvaultReferenceIdentityId != "" {
+				siteEnvelope.KeyVaultReferenceIdentity = pointer.To(data.KeyvaultReferenceIdentityId)
 			}
 
 			existing.Model.Properties = pointer.To(siteEnvelope)
@@ -938,7 +994,10 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 	}
 }
 
-var _ sdk.ResourceWithUpdate = &LogicAppResource{}
+var (
+	_ sdk.ResourceWithUpdate        = LogicAppResource{}
+	_ sdk.ResourceWithCustomizeDiff = LogicAppResource{}
+)
 
 func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([]webapps.NameValuePair, error) {
 	appKindPropName := "APP_KIND"

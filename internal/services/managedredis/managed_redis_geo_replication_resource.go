@@ -94,7 +94,7 @@ func (r ManagedRedisGeoReplicationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := linkUnlinkGeoReplication(ctx, client, model, id); err != nil {
+			if err := linkUnlinkGeoReplication(ctx, metadata, client, model, id, true); err != nil {
 				return err
 			}
 
@@ -167,7 +167,7 @@ func (r ManagedRedisGeoReplicationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			if err := linkUnlinkGeoReplication(ctx, client, model, clusterId); err != nil {
+			if err := linkUnlinkGeoReplication(ctx, metadata, client, model, clusterId, false); err != nil {
 				return err
 			}
 
@@ -245,7 +245,7 @@ func (r ManagedRedisGeoReplicationResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesClient, model ManagedRedisGeoReplicationResourceModel, clusterId *redisenterprise.RedisEnterpriseId) error {
+func linkUnlinkGeoReplication(ctx context.Context, metadata sdk.ResourceMetaData, client *databases.DatabasesClient, model ManagedRedisGeoReplicationResourceModel, clusterId *redisenterprise.RedisEnterpriseId, create bool) error {
 	primaryId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
 	existing, err := client.Get(ctx, primaryId)
@@ -304,9 +304,14 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 			},
 		}
 
-		err = client.ForceLinkToReplicationGroupThenPoll(ctx, *id, params)
-		if err != nil {
-			return fmt.Errorf("force link %s: %+v", *id, err)
+		if create {
+			if err := client.ForceLinkToReplicationGroupCallbackThenPoll(ctx, *id, params, metadata.SetIDCallback(id)); err != nil {
+				return fmt.Errorf("force link %s: %+v", *id, err)
+			}
+		} else {
+			if err := client.ForceLinkToReplicationGroupThenPoll(ctx, *id, params); err != nil {
+				return fmt.Errorf("force link %s: %+v", *id, err)
+			}
 		}
 
 		// Workaround for race-condition bug after force-linking

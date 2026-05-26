@@ -63,9 +63,20 @@ func (c DisksClient) GrantAccess(ctx context.Context, id commonids.ManagedDiskId
 
 // GrantAccessThenPoll performs GrantAccess then polls until it's completed
 func (c DisksClient) GrantAccessThenPoll(ctx context.Context, id commonids.ManagedDiskId, input GrantAccessData) error {
+	return c.GrantAccessCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GrantAccessCallbackThenPoll performs GrantAccess, runs the optional callback function, then polls until it's completed
+func (c DisksClient) GrantAccessCallbackThenPoll(ctx context.Context, id commonids.ManagedDiskId, input GrantAccessData, callback func() error) error {
 	result, err := c.GrantAccess(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GrantAccess: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

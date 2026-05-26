@@ -62,9 +62,20 @@ func (c NetworkVirtualAppliancesClient) GetBootDiagnosticLogs(ctx context.Contex
 
 // GetBootDiagnosticLogsThenPoll performs GetBootDiagnosticLogs then polls until it's completed
 func (c NetworkVirtualAppliancesClient) GetBootDiagnosticLogsThenPoll(ctx context.Context, id NetworkVirtualApplianceId, input NetworkVirtualApplianceBootDiagnosticParameters) error {
+	return c.GetBootDiagnosticLogsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GetBootDiagnosticLogsCallbackThenPoll performs GetBootDiagnosticLogs, runs the optional callback function, then polls until it's completed
+func (c NetworkVirtualAppliancesClient) GetBootDiagnosticLogsCallbackThenPoll(ctx context.Context, id NetworkVirtualApplianceId, input NetworkVirtualApplianceBootDiagnosticParameters, callback func() error) error {
 	result, err := c.GetBootDiagnosticLogs(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GetBootDiagnosticLogs: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
