@@ -30,10 +30,10 @@ resource "azurerm_durable_task_retention_policy" "example" {
   durable_task_scheduler_id = azurerm_durable_task_scheduler.example.id
 
   retention_policy {
-      canceled_retention_period_in_days   = 21
-      completed_retention_period_in_days  = 30
-      failed_retention_period_in_days     = 7
-      terminated_retention_period_in_days = 14
+    canceled_retention_period_in_days   = 21
+    completed_retention_period_in_days  = 30
+    failed_retention_period_in_days     = 7
+    terminated_retention_period_in_days = 14
   }
 }
 ```
