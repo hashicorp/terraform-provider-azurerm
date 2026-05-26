@@ -141,6 +141,15 @@ func resourceApiManagementLogger() *pluginsdk.Resource {
 								"application_insights.0.connection_string",
 							},
 						},
+
+						"user_assigned_identity_client_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+							RequiredWith: []string{
+								"application_insights.0.connection_string",
+							},
+						},
 					},
 				},
 			},
@@ -340,6 +349,9 @@ func expandApiManagementLoggerApplicationInsights(input []interface{}) *map[stri
 	}
 	if ai["connection_string"].(string) != "" {
 		credentials["connectionString"] = ai["connection_string"].(string)
+	}
+	if ai["user_assigned_identity_client_id"].(string) != "" {
+		credentials["identityClientId"] = ai["user_assigned_identity_client_id"].(string)
 	}
 	return &credentials
 }
