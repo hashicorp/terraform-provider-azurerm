@@ -105,7 +105,8 @@ func TestAccDataSourceStorageAccountBlobContainerSas_noPermissions(t *testing.T)
 		{
 			Config: StorageAccountBlobContainerSASDataSource{}.noPermissions(data, startDate, endDate),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sas").Exists()),
+				check.That(data.ResourceName).Key("sas").Exists(),
+			),
 		},
 	})
 }

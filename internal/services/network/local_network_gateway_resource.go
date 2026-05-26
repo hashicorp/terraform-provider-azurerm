@@ -7,17 +7,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/localnetworkgateways"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -113,15 +113,17 @@ func resourceLocalNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := localnetworkgateways.NewLocalNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_local_network_gateway", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_local_network_gateway", id.ID())
+		}
 	}
 
 	gateway := localnetworkgateways.LocalNetworkGateway{
@@ -142,18 +144,10 @@ func resourceLocalNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface
 		gateway.Properties.Fqdn = &fqdn
 	}
 
-	// This custompoller can be removed once https://github.com/hashicorp/go-azure-sdk/issues/989 has been fixed
-	pollerType := custompollers.NewLocalNetworkGatewayPoller(client, id)
-	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-
 	gateway.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
 
-	if _, err := client.CreateOrUpdate(ctx, id, gateway); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, gateway, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err := poller.PollUntilDone(ctx); err != nil {
-		return err
 	}
 
 	d.SetId(id.ID())
@@ -201,10 +195,6 @@ func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	// This custompoller can be removed once https://github.com/hashicorp/go-azure-sdk/issues/989 has been fixed
-	pollerType := custompollers.NewLocalNetworkGatewayPoller(client, *id)
-	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-
 	// There is a bug in the provider where the address space ordering doesn't change as expected.
 	// In the UI we have to remove the current list of addresses in the address space and re-add them in the new order and we'll copy that here.
 	if d.HasChange("address_space") {
@@ -216,26 +206,16 @@ func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 			}
 		}
 
-		// This can be switched back over to CreateOrUpdateThenPoll once https://github.com/hashicorp/go-azure-sdk/issues/989 has been fixed
-		if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 			return fmt.Errorf("removing %s: %+v", id, err)
-		}
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return err
 		}
 	}
 
 	payload.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
 
-	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
-
-	if err := poller.PollUntilDone(ctx); err != nil {
-		return err
-	}
-
-	d.SetId(id.ID())
 
 	return resourceLocalNetworkGatewayRead(d, meta)
 }

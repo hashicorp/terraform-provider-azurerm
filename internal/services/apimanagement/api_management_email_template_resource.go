@@ -96,17 +96,19 @@ func resourceApiManagementEmailTemplateCreateUpdate(d *pluginsdk.ResourceData, m
 
 	id := emailtemplates.NewTemplateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), emailtemplates.TemplateName(d.Get("template_name").(string)))
 	if d.IsNewResource() {
-		existing, err := client.EmailTemplateGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.EmailTemplateGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		// in case the template has been edited (is not default anymore) this errors and the resource should be imported manually into the state (terraform import).
-		if !response.WasNotFound(existing.HttpResponse) {
-			if model := existing.Model; model != nil && model.Properties != nil && model.Properties.IsDefault != nil && !*model.Properties.IsDefault {
-				return tf.ImportAsExistsError("azurerm_api_management_email_template", id.ID())
+			// in case the template has been edited (is not default anymore) this errors and the resource should be imported manually into the state (terraform import).
+			if !response.WasNotFound(existing.HttpResponse) {
+				if model := existing.Model; model != nil && model.Properties != nil && model.Properties.IsDefault != nil && !*model.Properties.IsDefault {
+					return tf.ImportAsExistsError("azurerm_api_management_email_template", id.ID())
+				}
 			}
 		}
 	}

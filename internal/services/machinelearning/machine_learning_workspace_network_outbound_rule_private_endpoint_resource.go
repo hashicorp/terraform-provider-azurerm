@@ -121,14 +121,17 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Create() sdk.ResourceFunc {
 				return err
 			}
 			id := managednetwork.NewOutboundRuleID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, model.Name)
-			existing, err := client.SettingsRuleGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.SettingsRuleGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", id.ID())
+				}
 			}
 
 			resId, err := resourceids.ParseAzureResourceID(model.ServiceResourceId)
@@ -165,7 +168,7 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.SettingsRuleCreateOrUpdateThenPoll(ctx, id, outboundRule); err != nil {
+			if err = client.SettingsRuleCreateOrUpdateCallbackThenPoll(ctx, id, outboundRule, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

@@ -63,9 +63,20 @@ func (c ManagedClustersClient) RunCommand(ctx context.Context, id commonids.Kube
 
 // RunCommandThenPoll performs RunCommand then polls until it's completed
 func (c ManagedClustersClient) RunCommandThenPoll(ctx context.Context, id commonids.KubernetesClusterId, input RunCommandRequest) error {
+	return c.RunCommandCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RunCommandCallbackThenPoll performs RunCommand, runs the optional callback function, then polls until it's completed
+func (c ManagedClustersClient) RunCommandCallbackThenPoll(ctx context.Context, id commonids.KubernetesClusterId, input RunCommandRequest, callback func() error) error {
 	result, err := c.RunCommand(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RunCommand: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

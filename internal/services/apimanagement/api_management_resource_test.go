@@ -207,7 +207,8 @@ func TestAccApiManagement_completeUpdateAdditionalLocations(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("certificate", // not returned from API, sensitive
+		data.ImportStep(
+			"certificate", // not returned from API, sensitive
 			"hostname_configuration.0.portal.0.certificate",                    // not returned from API, sensitive
 			"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
@@ -223,7 +224,8 @@ func TestAccApiManagement_completeUpdateAdditionalLocations(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("certificate", // not returned from API, sensitive
+		data.ImportStep(
+			"certificate", // not returned from API, sensitive
 			"hostname_configuration.0.portal.0.certificate",                    // not returned from API, sensitive
 			"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
@@ -239,7 +241,8 @@ func TestAccApiManagement_completeUpdateAdditionalLocations(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("certificate", // not returned from API, sensitive
+		data.ImportStep(
+			"certificate", // not returned from API, sensitive
 			"hostname_configuration.0.portal.0.certificate",                    // not returned from API, sensitive
 			"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
@@ -979,7 +982,8 @@ func TestAccApiManagement_additionalLocationGateway(t *testing.T) {
 		{
 			Config: r.additionalLocationGateway(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})

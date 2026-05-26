@@ -12,9 +12,13 @@ import (
 type Registration struct{}
 
 var (
-	_ sdk.FrameworkServiceRegistration = Registration{}
-	_ sdk.TypedServiceRegistration     = Registration{}
+	_ sdk.FrameworkServiceRegistration             = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/oracle"
+}
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{

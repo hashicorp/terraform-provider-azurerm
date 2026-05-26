@@ -61,9 +61,20 @@ func (c SnapshotsClient) RestoreFiles(ctx context.Context, id SnapshotId, input 
 
 // RestoreFilesThenPoll performs RestoreFiles then polls until it's completed
 func (c SnapshotsClient) RestoreFilesThenPoll(ctx context.Context, id SnapshotId, input SnapshotRestoreFiles) error {
+	return c.RestoreFilesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RestoreFilesCallbackThenPoll performs RestoreFiles, runs the optional callback function, then polls until it's completed
+func (c SnapshotsClient) RestoreFilesCallbackThenPoll(ctx context.Context, id SnapshotId, input SnapshotRestoreFiles, callback func() error) error {
 	result, err := c.RestoreFiles(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RestoreFiles: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

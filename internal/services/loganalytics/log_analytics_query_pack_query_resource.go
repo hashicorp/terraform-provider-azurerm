@@ -361,13 +361,15 @@ func (r LogAnalyticsQueryPackQueryResource) Create() sdk.ResourceFunc {
 
 			id := querypackqueries.NewQueryID(subscriptionId, queryPackId.ResourceGroupName, queryPackId.QueryPackName, model.Name)
 
-			existing, err := client.QueriesGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.QueriesGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := &querypackqueries.LogAnalyticsQueryPackQuery{

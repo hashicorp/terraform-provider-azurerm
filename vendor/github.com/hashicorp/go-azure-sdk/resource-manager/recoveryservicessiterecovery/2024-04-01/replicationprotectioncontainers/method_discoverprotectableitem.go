@@ -62,9 +62,20 @@ func (c ReplicationProtectionContainersClient) DiscoverProtectableItem(ctx conte
 
 // DiscoverProtectableItemThenPoll performs DiscoverProtectableItem then polls until it's completed
 func (c ReplicationProtectionContainersClient) DiscoverProtectableItemThenPoll(ctx context.Context, id ReplicationProtectionContainerId, input DiscoverProtectableItemRequest) error {
+	return c.DiscoverProtectableItemCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DiscoverProtectableItemCallbackThenPoll performs DiscoverProtectableItem, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectionContainersClient) DiscoverProtectableItemCallbackThenPoll(ctx context.Context, id ReplicationProtectionContainerId, input DiscoverProtectableItemRequest, callback func() error) error {
 	result, err := c.DiscoverProtectableItem(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DiscoverProtectableItem: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

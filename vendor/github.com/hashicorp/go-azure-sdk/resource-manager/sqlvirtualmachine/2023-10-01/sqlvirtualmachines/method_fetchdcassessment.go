@@ -60,9 +60,20 @@ func (c SqlVirtualMachinesClient) FetchDCAssessment(ctx context.Context, id SqlV
 
 // FetchDCAssessmentThenPoll performs FetchDCAssessment then polls until it's completed
 func (c SqlVirtualMachinesClient) FetchDCAssessmentThenPoll(ctx context.Context, id SqlVirtualMachineId, input DiskConfigAssessmentRequest) error {
+	return c.FetchDCAssessmentCallbackThenPoll(ctx, id, input, nil)
+}
+
+// FetchDCAssessmentCallbackThenPoll performs FetchDCAssessment, runs the optional callback function, then polls until it's completed
+func (c SqlVirtualMachinesClient) FetchDCAssessmentCallbackThenPoll(ctx context.Context, id SqlVirtualMachineId, input DiskConfigAssessmentRequest, callback func() error) error {
 	result, err := c.FetchDCAssessment(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing FetchDCAssessment: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
