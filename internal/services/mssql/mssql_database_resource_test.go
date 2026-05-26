@@ -1044,6 +1044,9 @@ func TestAccMsSqlDatabase_namedReplicationZoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}
 
+	// Limited regional availability for ZRS
+	data.Locations.Primary = "westeurope"
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.namedReplicationZoneRedundant(data),
