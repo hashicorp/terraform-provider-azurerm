@@ -477,7 +477,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	useFreeLimit := d.Get("free_limit_enabled").(bool)
 	input.Properties.UseFreeLimit = pointer.To(useFreeLimit)
-	input.Properties.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(d.Get("free_limit_exhaustion_behavior").(string)))
+	if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
+		input.Properties.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(v.(string)))
+	}
 
 	if skuName != "" {
 		input.Sku = pointer.To(databases.Sku{
@@ -997,8 +999,10 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("free_limit_exhaustion_behavior") {
-		props.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(d.Get("free_limit_exhaustion_behavior").(string)))
-		propertiesUpdateRequired = true
+		if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
+			props.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(v.(string)))
+			propertiesUpdateRequired = true
+		}
 	}
 
 	if d.HasChange("tags") {
@@ -1334,9 +1338,11 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 
 			d.Set("free_limit_enabled", pointer.From(props.UseFreeLimit))
 
-			if props.FreeLimitExhaustionBehavior != nil {
-				d.Set("free_limit_exhaustion_behavior", pointer.FromEnum(props.FreeLimitExhaustionBehavior))
+			freeLimitExhaustionBehavior := ""
+			if pointer.From(props.UseFreeLimit) && props.FreeLimitExhaustionBehavior != nil {
+				freeLimitExhaustionBehavior = string(pointer.From(props.FreeLimitExhaustionBehavior))
 			}
+			d.Set("free_limit_exhaustion_behavior", freeLimitExhaustionBehavior)
 
 			if props.IsLedgerOn != nil {
 				ledgerEnabled = *props.IsLedgerOn
@@ -1838,7 +1844,6 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"free_limit_exhaustion_behavior": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      string(databases.FreeLimitExhaustionBehaviorAutoPause),
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForFreeLimitExhaustionBehavior(), false),
 		},
 
