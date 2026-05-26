@@ -260,9 +260,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
   }
 
-  network_profile {
-
-  }
 
   identity {
     type = "SystemAssigned"
@@ -293,10 +290,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                    = "default"
     node_count              = 1
     host_encryption_enabled = true
-    upgrade_settings {
-      max_surge = "10%%"
-    }
+    upgrade_settings {}
   }
+	network_profile {
+		load_balancer_profile {}
+		nat_gateway_profile {}
+		web_app_routing {}
+	}
 
   identity {
     type = "SystemAssigned"

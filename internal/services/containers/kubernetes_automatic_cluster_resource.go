@@ -41,10 +41,10 @@ type KubernetesAutomaticClusterModel struct {
 	Name                            string                              `tfschema:"name"`
 	Location                        string                              `tfschema:"location"`
 	ResourceGroupName               string                              `tfschema:"resource_group_name"`
-	APIServerAccessProfile          []APIServerAccessProfileModel       `tfschema:"api_server_access_profile"`
-	AutoScalerProfile               []AutoScalerProfileModel            `tfschema:"auto_scaler_profile"`
+	APIServerAccessProfile          []APIServerAccessProfileModel       `tfschema:"api_server_access"`
+	AutoScalerProfile               []AutoScalerProfileModel            `tfschema:"auto_scaler"`
 	AzureActiveDirectoryRBAC        []AzureActiveDirectoryRBACModel     `tfschema:"azure_active_directory_role_based_access_control"`
-	BootstrapProfile                []BootstrapProfileModel             `tfschema:"bootstrap_profile"`
+	BootstrapProfile                []BootstrapProfileModel             `tfschema:"bootstrap"`
 	CostAnalysisEnabled             bool                                `tfschema:"cost_analysis_enabled"`
 	CustomCATrustCertificatesBase64 []string                            `tfschema:"custom_ca_trust_certificates_base64"`
 	DefaultNodePool                 []DefaultNodePoolModel              `tfschema:"default_node_pool"`
@@ -61,22 +61,20 @@ type KubernetesAutomaticClusterModel struct {
 	// MaintenanceWindow               []MaintenanceWindowModel            `tfschema:"maintenance_window"`
 	// MaintenanceWindowAutoUpgrade    []MaintenanceWindowAutoUpgradeModel `tfschema:"maintenance_window_auto_upgrade"`
 	// MaintenanceWindowNodeOS         []MaintenanceWindowNodeOSModel      `tfschema:"maintenance_window_node_os"`
-	MicrosoftDefender               []MicrosoftDefenderModel  `tfschema:"microsoft_defender"`
-	MonitorMetrics                  []MonitorMetricsModel     `tfschema:"monitor_metrics"`
-	NetworkProfile                  []NetworkProfileModel     `tfschema:"network_profile"`
-	NodeResourceGroup               string                    `tfschema:"node_resource_group_name"`
-	PrivateClusterEnabled           bool                      `tfschema:"private_cluster_enabled"`
-	PrivateClusterPublicFQDNEnabled bool                      `tfschema:"private_cluster_public_fully_qualified_domain_name_enabled"`
-	PrivateDNSZoneID                string                    `tfschema:"private_dns_zone_id"`
-	RunCommandEnabled               bool                      `tfschema:"run_command_enabled"`
-	ServiceMeshProfile              []ServiceMeshProfileModel `tfschema:"service_mesh_profile"`
-	StorageProfile                  []StorageProfileModel     `tfschema:"storage_profile"`
-	SupportPlan                     string                    `tfschema:"support_plan"`
-	Tags                            map[string]interface{}    `tfschema:"tags"`
-	UpgradeOverride                 []UpgradeOverrideModel    `tfschema:"upgrade_override"`
-	WebAppRouting                   []WebAppRoutingModel      `tfschema:"web_app_routing"`
-	WindowsProfile                  []WindowsProfileModel     `tfschema:"windows_profile"`
-	AIToolchainOperatorEnabled      bool                      `tfschema:"ai_toolchain_operator_enabled"`
+	MicrosoftDefender          []MicrosoftDefenderModel  `tfschema:"microsoft_defender"`
+	MonitorMetrics             []MonitorMetricsModel     `tfschema:"monitor_metrics"`
+	NetworkProfile             []NetworkProfileModel     `tfschema:"network"`
+	NodeResourceGroup          string                    `tfschema:"node_resource_group_name"`
+	PrivateCluster             []PrivateClusterModel     `tfschema:"private_cluster"`
+	RunCommandEnabled          bool                      `tfschema:"run_command_enabled"`
+	ServiceMeshProfile         []ServiceMeshProfileModel `tfschema:"service_mesh"`
+	StorageProfile             []StorageProfileModel     `tfschema:"storage"`
+	SupportPlan                string                    `tfschema:"support_plan"`
+	Tags                       map[string]interface{}    `tfschema:"tags"`
+	UpgradeOverride            []UpgradeOverrideModel    `tfschema:"upgrade_override"`
+	WebAppRouting              []WebAppRoutingModel      `tfschema:"web_app_routing"`
+	WindowsProfile             []WindowsProfileModel     `tfschema:"windows_profile"`
+	AIToolchainOperatorEnabled bool                      `tfschema:"ai_toolchain_operator_enabled"`
 
 	// Addon fields
 	ACIConnectorLinux             []ACIConnectorLinuxModel         `tfschema:"aci_connector_linux"`
@@ -105,16 +103,21 @@ type APIServerAccessProfileModel struct {
 	SubnetID           string   `tfschema:"subnet_id"`
 }
 
+type PrivateClusterModel struct {
+	PrivateClusterPublicFQDNEnabled bool   `tfschema:"public_fully_qualified_domain_name_enabled"`
+	PrivateDNSZoneID                string `tfschema:"private_dns_zone_id"`
+}
+
 type AutoScalerProfileModel struct {
-	BalanceSimilarNodeGroups                 bool    `tfschema:"balance_similar_node_groups"`
+	BalanceSimilarNodeGroups                 bool    `tfschema:"balance_similar_node_groups_enabled"`
 	DaemonsetEvictionForEmptyNodesEnabled    bool    `tfschema:"daemonset_eviction_for_empty_nodes_enabled"`
 	DaemonsetEvictionForOccupiedNodesEnabled bool    `tfschema:"daemonset_eviction_for_occupied_nodes_enabled"`
 	Expander                                 string  `tfschema:"expander"`
-	IgnoreDaemonsetsUtilizationEnabled       bool    `tfschema:"ignore_daemonsets_utilization_enabled"`
-	MaxGracefulTerminationSec                string  `tfschema:"max_graceful_termination_sec"`
-	MaxNodeProvisioningTime                  string  `tfschema:"max_node_provisioning_time"`
-	MaxUnreadyNodes                          int64   `tfschema:"max_unready_nodes"`
-	MaxUnreadyPercentage                     float64 `tfschema:"max_unready_percentage"`
+	IgnoreDaemonsetsUtilizationEnabled       bool    `tfschema:"daemonset_ignore_utilization_enabled"`
+	MaxGracefulTerminationSec                string  `tfschema:"maximum_graceful_termination_in_seconds"`
+	MaxNodeProvisioningTime                  string  `tfschema:"maximum_node_provisioning_time"`
+	MaxUnreadyNodes                          int64   `tfschema:"maximum_unready_nodes"`
+	MaxUnreadyPercentage                     float64 `tfschema:"maximum_unready_percentage"`
 	NewPodScaleUpDelay                       string  `tfschema:"new_pod_scale_up_delay"`
 	ScanInterval                             string  `tfschema:"scan_interval"`
 	ScaleDownDelayAfterAdd                   string  `tfschema:"scale_down_delay_after_add"`
@@ -123,9 +126,9 @@ type AutoScalerProfileModel struct {
 	ScaleDownUnneeded                        string  `tfschema:"scale_down_unneeded"`
 	ScaleDownUnready                         string  `tfschema:"scale_down_unready"`
 	ScaleDownUtilizationThreshold            string  `tfschema:"scale_down_utilization_threshold"`
-	EmptyBulkDeleteMax                       string  `tfschema:"empty_bulk_delete_max"`
-	SkipNodesWithLocalStorage                bool    `tfschema:"skip_nodes_with_local_storage"`
-	SkipNodesWithSystemPods                  bool    `tfschema:"skip_nodes_with_system_pods"`
+	EmptyBulkDeleteMax                       string  `tfschema:"maximum_empty_bulk_delete"`
+	SkipNodesWithLocalStorage                bool    `tfschema:"skip_nodes_with_local_storage_enabled"`
+	SkipNodesWithSystemPods                  bool    `tfschema:"skip_nodes_with_system_pods_enabled"`
 }
 
 type AzureActiveDirectoryRBACModel struct {
@@ -225,8 +228,8 @@ type NetworkProfileModel struct {
 	// IPVersions          []string                   `tfschema:"ip_versions"`
 	OutboundType        string                     `tfschema:"outbound_type"`
 	LoadBalancerSKU     string                     `tfschema:"load_balancer_sku"`
-	LoadBalancerProfile []LoadBalancerProfileModel `tfschema:"load_balancer_profile"`
-	NATGatewayProfile   []NATGatewayProfileModel   `tfschema:"nat_gateway_profile"`
+	LoadBalancerProfile []LoadBalancerProfileModel `tfschema:"load_balancer"`
+	NATGatewayProfile   []NATGatewayProfileModel   `tfschema:"nat_gateway"`
 	AdvancedNetworking  []AdvancedNetworkingModel  `tfschema:"advanced_networking"`
 }
 
@@ -367,8 +370,9 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				if rd.HasChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes") {
 					old, new := rd.GetChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes")
 					if old.(int) != 0 && new.(int) == 0 {
-						metadata.ResourceDiff.ForceNew("efault_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes")
-						return fmt.Errorf("changing `default_node_pool.upgrade_settings.drain_timeout_in_minutes` from a non-zero value to zero requires recreation")
+						if err := metadata.ResourceDiff.ForceNew("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes"); err != nil {
+							return err
+						}
 					}
 				}
 
@@ -382,10 +386,14 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					// we should not try to recreate the cluster, another apply will attempt the resize again
 					if oldName != "" && oldName == tempName {
 						if newName != defaultName {
-							return fmt.Errorf("changing `default_node_pool.name` requires recreation")
+							if err := metadata.ResourceDiff.ForceNew("default_node_pool.0.name"); err != nil {
+								return err
+							}
 						}
 					} else {
-						return fmt.Errorf("changing `default_node_pool.name` requires recreation")
+						if err := metadata.ResourceDiff.ForceNew("default_node_pool.0.name"); err != nil {
+							return err
+						}
 					}
 				}
 
@@ -395,38 +403,46 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					oldList := old.([]interface{})
 					newList := new.([]interface{})
 					if len(oldList) > 0 && len(newList) == 0 {
-						return fmt.Errorf("removing `windows_profile.gmsa` requires recreation")
+						if err := metadata.ResourceDiff.ForceNew("windows_profile.gmsa"); err != nil {
+							return err
+						}
 					}
 				}
 
 				if rd.HasChange("windows_profile.0.gmsa.0.dns_server") {
 					old, new := rd.GetChange("windows_profile.0.gmsa.0.dns_server")
 					if old.(string) != "" && new.(string) == "" {
-						return fmt.Errorf("changing `windows_profile.gmsa.dns_server` from a non-empty value to empty requires recreation")
+						if err := metadata.ResourceDiff.ForceNew("windows_profile.gmsa.dns_server"); err != nil {
+							return err
+						}
 					}
 				}
 
 				if rd.HasChange("windows_profile.0.gmsa.0.root_domain") {
 					old, new := rd.GetChange("windows_profile.0.gmsa.0.root_domain")
 					if old.(string) != "" && new.(string) == "" {
-						return fmt.Errorf("changing `windows_profile.gmsa.root_domain` from a non-empty value to empty requires recreation")
+						if err := metadata.ResourceDiff.ForceNew("windows_profile.gmsa.root_domain"); err != nil {
+							return err
+						}
 					}
 				}
 
-				// Check api_server_access_profile subnet_id changes
-				if rd.HasChange("api_server_access_profile.0.subnet_id") {
-					old, new := rd.GetChange("api_server_access_profile.0.subnet_id")
+				// Check api_server_access subnet_id changes
+				if rd.HasChange("api_server_access.0.subnet_id") {
+					old, new := rd.GetChange("api_server_access.0.subnet_id")
 					if old.(string) != "" && new.(string) == "" {
-						return fmt.Errorf("changing `api_server_access_profile.subnet_id` from a non-empty value to empty requires recreation")
+						if err := metadata.ResourceDiff.ForceNew("api_server_access.0.subnet_id"); err != nil {
+							return err
+						}
 					}
 				}
 			}
 
-			// Validate outbound_type and bootstrap_profile artifact_source
-			outboundType := rd.Get("network_profile.0.outbound_type").(string)
-			artifactSource := rd.Get("bootstrap_profile.0.artifact_source").(string)
+			// Validate outbound_type and bootstrap artifact_source
+			outboundType := rd.Get("network.0.outbound_type").(string)
+			artifactSource := rd.Get("bootstrap.0.artifact_source").(string)
 			if outboundType == string(managedclusters.OutboundTypeNone) && artifactSource != string(managedclusters.ArtifactSourceCache) {
-				return fmt.Errorf("when `network_profile.outbound_type` is set to `none`, `bootstrap_profile.artifact_source` must be set to `Cache`")
+				return fmt.Errorf("when `network.outbound_type` is set to `none`, `bootstrap.artifact_source` must be set to `Cache`")
 			}
 
 			return nil
@@ -523,31 +539,39 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: resourcegroups.ValidateName,
 		},
 
-		"private_cluster_enabled": {
-			Type:     pluginsdk.TypeBool,
+		"private_cluster": {
+			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
-			Default:  true,
-		},
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
 
-		"private_cluster_public_fully_qualified_domain_name_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
+					"public_fully_qualified_domain_name_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
 
-		"private_dns_zone_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "None",
-			ForceNew: true,
-			ValidateFunc: validation.Any(
-				privatezones.ValidatePrivateDnsZoneID,
-				validation.StringInSlice([]string{
-					"System",
-					"None",
-				}, false),
-			),
+					"private_dns_zone_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "System",
+						ForceNew: true,
+						ValidateFunc: validation.Any(
+							privatezones.ValidatePrivateDnsZoneID,
+							validation.StringInSlice([]string{
+								"System",
+								"None",
+							}, false),
+						),
+					},
+				},
+			},
 		},
 
 		"run_command_enabled": {
@@ -568,7 +592,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 
 		"tags": commonschema.Tags(),
 
-		"api_server_access_profile": {
+		"api_server_access": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -578,8 +602,8 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						AtLeastOneOf: []string{
-							"api_server_access_profile.0.authorized_ip_ranges",
-							"api_server_access_profile.0.subnet_id",
+							"api_server_access.0.authorized_ip_ranges",
+							"api_server_access.0.subnet_id",
 						},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
@@ -590,8 +614,8 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						AtLeastOneOf: []string{
-							"api_server_access_profile.0.authorized_ip_ranges",
-							"api_server_access_profile.0.subnet_id",
+							"api_server_access.0.authorized_ip_ranges",
+							"api_server_access.0.subnet_id",
 						},
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
@@ -599,13 +623,13 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"auto_scaler_profile": {
+		"auto_scaler": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"balance_similar_node_groups": {
+					"balance_similar_node_groups_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -631,29 +655,29 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							string(managedclusters.ExpanderRandom),
 						}, false),
 					},
-					"ignore_daemonsets_utilization_enabled": {
+					"daemonset_ignore_utilization_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
-					"max_graceful_termination_sec": {
+					"maximum_graceful_termination_in_seconds": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						Default:  "600",
 					},
-					"max_node_provisioning_time": {
+					"maximum_node_provisioning_time": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "15m",
 						ValidateFunc: containerValidate.Duration,
 					},
-					"max_unready_nodes": {
+					"maximum_unready_nodes": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      3,
 						ValidateFunc: validation.IntAtLeast(0),
 					},
-					"max_unready_percentage": {
+					"maximum_unready_percentage": {
 						Type:         pluginsdk.TypeFloat,
 						Optional:     true,
 						Default:      45,
@@ -665,7 +689,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Default:      "0s",
 						ValidateFunc: containerValidate.Duration,
 					},
-					"scan_interval": {
+					"scan_interval_in_seconds": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "10",
@@ -706,16 +730,17 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Optional: true,
 						Default:  "0.5",
 					},
-					"empty_bulk_delete_max": {
+					"maximum_empty_bulk_delete": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						Default:  "10",
 					},
-					"skip_nodes_with_local_storage": {
+					"skip_nodes_with_local_storage_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Default:  true,
 					},
-					"skip_nodes_with_system_pods": {
+					"skip_nodes_with_system_pods_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  true,
@@ -758,9 +783,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"bootstrap_profile": {
+		"bootstrap": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -910,224 +936,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		//"maintenance_window": {
-		//	Type:     pluginsdk.TypeList,
-		//	Optional: true,
-		//	MaxItems: 1,
-		//	Elem: &pluginsdk.Resource{
-		//		Schema: map[string]*pluginsdk.Schema{
-		//			"allowed": {
-		//				Type:         pluginsdk.TypeSet,
-		//				Optional:     true,
-		//				AtLeastOneOf: []string{"maintenance_window.0.allowed", "maintenance_window.0.not_allowed"},
-		//				Elem: &pluginsdk.Resource{
-		//					Schema: map[string]*pluginsdk.Schema{
-		//						"day": {
-		//							Type:     pluginsdk.TypeString,
-		//							Required: true,
-		//							ValidateFunc: validation.StringInSlice([]string{
-		//								string(maintenanceconfigurations.WeekDaySunday),
-		//								string(maintenanceconfigurations.WeekDayMonday),
-		//								string(maintenanceconfigurations.WeekDayTuesday),
-		//								string(maintenanceconfigurations.WeekDayWednesday),
-		//								string(maintenanceconfigurations.WeekDayThursday),
-		//								string(maintenanceconfigurations.WeekDayFriday),
-		//								string(maintenanceconfigurations.WeekDaySaturday),
-		//							}, false),
-		//						},
-		//						"hours": {
-		//							Type:     pluginsdk.TypeSet,
-		//							Required: true,
-		//							MinItems: 1,
-		//							Elem: &pluginsdk.Schema{
-		//								Type:         pluginsdk.TypeInt,
-		//								ValidateFunc: validation.IntBetween(0, 23),
-		//							},
-		//						},
-		//					},
-		//				},
-		//			},
-		//			"not_allowed": {
-		//				Type:         pluginsdk.TypeSet,
-		//				Optional:     true,
-		//				AtLeastOneOf: []string{"maintenance_window.0.allowed", "maintenance_window.0.not_allowed"},
-		//				Elem: &pluginsdk.Resource{
-		//					Schema: map[string]*pluginsdk.Schema{
-		//						"end": {
-		//							Type:             pluginsdk.TypeString,
-		//							Required:         true,
-		//							DiffSuppressFunc: suppress.RFC3339Time,
-		//							ValidateFunc:     validation.IsRFC3339Time,
-		//						},
-		//						"start": {
-		//							Type:             pluginsdk.TypeString,
-		//							Required:         true,
-		//							DiffSuppressFunc: suppress.RFC3339Time,
-		//							ValidateFunc:     validation.IsRFC3339Time,
-		//						},
-		//					},
-		//				},
-		//			},
-		//		},
-		//	},
-		//},
-		//
-		//"maintenance_window_auto_upgrade": {
-		//	Type:     pluginsdk.TypeList,
-		//	Optional: true,
-		//	MaxItems: 1,
-		//	Elem: &pluginsdk.Resource{
-		//		Schema: map[string]*pluginsdk.Schema{
-		//			"frequency": {
-		//				Type:     pluginsdk.TypeString,
-		//				Required: true,
-		//				ValidateFunc: validation.StringInSlice([]string{
-		//					"Daily",
-		//					"Weekly",
-		//					"RelativeMonthly",
-		//					"AbsoluteMonthly",
-		//				}, false),
-		//			},
-		//			"interval": {
-		//				Type:     pluginsdk.TypeInt,
-		//				Required: true,
-		//			},
-		//			"day_of_week": {
-		//				Type:         pluginsdk.TypeString,
-		//				Optional:     true,
-		//				ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForWeekDay(), false),
-		//			},
-		//			"duration": {
-		//				Type:         pluginsdk.TypeInt,
-		//				Required:     true,
-		//				ValidateFunc: validation.IntBetween(4, 24),
-		//			},
-		//			"week_index": {
-		//				Type:         pluginsdk.TypeString,
-		//				Optional:     true,
-		//				ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForType(), false),
-		//			},
-		//			"day_of_month": {
-		//				Type:         pluginsdk.TypeInt,
-		//				Optional:     true,
-		//				ValidateFunc: validation.IntBetween(0, 31),
-		//			},
-		//			"start_date": {
-		//				Type:     pluginsdk.TypeString,
-		//				Optional: true,
-		//				Computed: true,
-		//			},
-		//			"start_time": {
-		//				Type:     pluginsdk.TypeString,
-		//				Optional: true,
-		//			},
-		//			"utc_offset": {
-		//				Type:     pluginsdk.TypeString,
-		//				Optional: true,
-		//			},
-		//			"not_allowed": {
-		//				Type:     pluginsdk.TypeSet,
-		//				Optional: true,
-		//				Elem: &pluginsdk.Resource{
-		//					Schema: map[string]*pluginsdk.Schema{
-		//						"end": {
-		//							Type:             pluginsdk.TypeString,
-		//							Required:         true,
-		//							DiffSuppressFunc: suppress.RFC3339Time,
-		//							ValidateFunc:     validation.IsRFC3339Time,
-		//						},
-		//						"start": {
-		//							Type:             pluginsdk.TypeString,
-		//							Required:         true,
-		//							DiffSuppressFunc: suppress.RFC3339Time,
-		//							ValidateFunc:     validation.IsRFC3339Time,
-		//						},
-		//					},
-		//				},
-		//			},
-		//		},
-		//	},
-		//},
-		//
-		//"maintenance_window_node_os": {
-		//	Type:     pluginsdk.TypeList,
-		//	Optional: true,
-		//	MaxItems: 1,
-		//	Elem: &pluginsdk.Resource{
-		//		Schema: map[string]*pluginsdk.Schema{
-		//			"frequency": {
-		//				Type:     pluginsdk.TypeString,
-		//				Required: true,
-		//				ValidateFunc: validation.StringInSlice([]string{
-		//					"Weekly",
-		//					"RelativeMonthly",
-		//					"AbsoluteMonthly",
-		//					"Daily",
-		//				}, false),
-		//			},
-		//			"interval": {
-		//				Type:     pluginsdk.TypeInt,
-		//				Required: true,
-		//			},
-		//			"day_of_week": {
-		//				Type:         pluginsdk.TypeString,
-		//				Optional:     true,
-		//				ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForWeekDay(), false),
-		//			},
-		//			"duration": {
-		//				Type:         pluginsdk.TypeInt,
-		//				Required:     true,
-		//				ValidateFunc: validation.IntBetween(4, 24),
-		//			},
-		//			"week_index": {
-		//				Type:         pluginsdk.TypeString,
-		//				Optional:     true,
-		//				ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForType(), false),
-		//			},
-		//			"day_of_month": {
-		//				Type:         pluginsdk.TypeInt,
-		//				Optional:     true,
-		//				ValidateFunc: validation.IntBetween(0, 31),
-		//			},
-		//			"start_date": {
-		//				Type:             pluginsdk.TypeString,
-		//				Optional:         true,
-		//				Computed:         true,
-		//				DiffSuppressFunc: suppress.RFC3339Time,
-		//				ValidateFunc:     validation.IsRFC3339Time,
-		//			},
-		//			"start_time": {
-		//				Type:     pluginsdk.TypeString,
-		//				Optional: true,
-		//			},
-		//			"utc_offset": {
-		//				Type:     pluginsdk.TypeString,
-		//				Optional: true,
-		//			},
-		//			"not_allowed": {
-		//				Type:     pluginsdk.TypeSet,
-		//				Optional: true,
-		//				Elem: &pluginsdk.Resource{
-		//					Schema: map[string]*pluginsdk.Schema{
-		//						"end": {
-		//							Type:             pluginsdk.TypeString,
-		//							Required:         true,
-		//							DiffSuppressFunc: suppress.RFC3339Time,
-		//							ValidateFunc:     validation.IsRFC3339Time,
-		//						},
-		//						"start": {
-		//							Type:             pluginsdk.TypeString,
-		//							Required:         true,
-		//							DiffSuppressFunc: suppress.RFC3339Time,
-		//							ValidateFunc:     validation.IsRFC3339Time,
-		//						},
-		//					},
-		//				},
-		//			},
-		//		},
-		//	},
-		//},
-
 		"microsoft_defender": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -1168,7 +976,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"network_profile": {
+		"network": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true,
@@ -1239,7 +1047,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							string(managedclusters.OutboundTypeNone),
 						}, false),
 					},
-					"load_balancer_profile": {
+					"load_balancer": {
 						Type:     pluginsdk.TypeList,
 						MaxItems: 1,
 						ForceNew: true,
@@ -1264,19 +1072,12 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									Optional:      true,
 									Computed:      true,
 									ValidateFunc:  validation.IntBetween(1, 100),
-									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+									ConflictsWith: []string{"network.0.load_balancer.0.outbound_ip_prefix_ids", "network.0.load_balancer.0.outbound_ip_address_ids"},
 								},
-								//"managed_outbound_ipv6_count": {
-								//	Type:          pluginsdk.TypeInt,
-								//	Optional:      true,
-								//	Computed:      true,
-								//	ValidateFunc:  validation.IntBetween(1, 100),
-								//	ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
-								//},
 								"outbound_ip_prefix_ids": {
 									Type:          pluginsdk.TypeSet,
 									Optional:      true,
-									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+									ConflictsWith: []string{"network.0.load_balancer.0.managed_outbound_ip_count", "network.0.load_balancer.0.outbound_ip_address_ids"},
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: azure.ValidateResourceID,
@@ -1285,7 +1086,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 								"outbound_ip_address_ids": {
 									Type:          pluginsdk.TypeSet,
 									Optional:      true,
-									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
+									ConflictsWith: []string{"network.0.load_balancer.0.managed_outbound_ip_count", "network.0.load_balancer.0.outbound_ip_prefix_ids"},
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: azure.ValidateResourceID,
@@ -1310,7 +1111,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							},
 						},
 					},
-					"nat_gateway_profile": {
+					"nat_gateway": {
 						Type:     pluginsdk.TypeList,
 						MaxItems: 1,
 						ForceNew: true,
@@ -1340,19 +1141,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							},
 						},
 					},
-					//"ip_versions": {
-					//	Type:     pluginsdk.TypeList,
-					//	Optional: true,
-					//	ForceNew: true,
-					//	Computed: true,
-					//	Elem: &pluginsdk.Schema{
-					//		Type: pluginsdk.TypeString,
-					//		ValidateFunc: validation.StringInSlice([]string{
-					//			string(managedclusters.IPFamilyIPvFour),
-					//			string(managedclusters.IPFamilyIPvSix),
-					//		}, false),
-					//	},
-					//},
 					"advanced_networking": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -1363,13 +1151,13 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									Type:         pluginsdk.TypeBool,
 									Optional:     true,
 									Default:      false,
-									AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
+									AtLeastOneOf: []string{"network.0.advanced_networking.0.observability_enabled", "network.0.advanced_networking.0.security_enabled"},
 								},
 								"security_enabled": {
 									Type:         pluginsdk.TypeBool,
 									Optional:     true,
 									Default:      false,
-									AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
+									AtLeastOneOf: []string{"network.0.advanced_networking.0.observability_enabled", "network.0.advanced_networking.0.security_enabled"},
 								},
 							},
 						},
@@ -1378,7 +1166,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"service_mesh_profile": {
+		"service_mesh": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -1443,9 +1231,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"storage_profile": {
+		"storage": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -1501,7 +1290,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_zone_ids": {
 						Type:     pluginsdk.TypeList,
-						Required: true,
+						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.Any(
@@ -1891,11 +1680,11 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				parameters.Properties.IdentityProfile = expandKubernetesAutomaticClusterIdentityProfile(model.KubeletIdentity)
 			}
 
-			if model.PrivateDNSZoneID != "" {
-				if (parameters.Identity == nil) || (model.PrivateDNSZoneID != "System" && model.PrivateDNSZoneID != "None" && (parameters.Identity.Type != identity.TypeUserAssigned)) {
-					return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
+			if len(model.PrivateCluster) > 0 && model.PrivateCluster[0].PrivateDNSZoneID != "" {
+				privateDNSZoneID := model.PrivateCluster[0].PrivateDNSZoneID
+				if (parameters.Identity == nil) || (privateDNSZoneID != "System" && privateDNSZoneID != "None" && (parameters.Identity.Type != identity.TypeUserAssigned)) {
+					return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
 				}
-				apiAccessProfile.PrivateDNSZone = pointer.To(model.PrivateDNSZoneID)
 			}
 
 			if model.DNSPrefixPrivateCluster != "" {
@@ -2035,36 +1824,9 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 				state.CustomCATrustCertificatesBase64 = *props.SecurityProfile.CustomCATrustCertificates
 			}
 
-			enablePrivateCluster := false
-			enablePrivateClusterPublicFQDN := false
-			runCommandEnabled := true
-			privateDnsZoneId := ""
-
-			apiServerAccessProfile := flattenKubernetesAutomaticClusterAPIAccessProfile(props.ApiServerAccessProfile)
+			apiServerAccessProfile, privateCluster, runCommandEnabled := flattenKubernetesAutomaticClusterAPIAccessProfile(props.ApiServerAccessProfile)
 			state.APIServerAccessProfile = apiServerAccessProfile
-
-			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
-				if accessProfile.EnablePrivateCluster != nil {
-					enablePrivateCluster = *accessProfile.EnablePrivateCluster
-				}
-				if accessProfile.EnablePrivateClusterPublicFQDN != nil {
-					enablePrivateClusterPublicFQDN = pointer.From(accessProfile.EnablePrivateClusterPublicFQDN)
-				}
-				if accessProfile.DisableRunCommand != nil {
-					runCommandEnabled = !pointer.From(accessProfile.DisableRunCommand)
-				}
-				switch {
-				case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
-					privateDnsZoneId = "System"
-				case accessProfile.PrivateDNSZone != nil && strings.EqualFold("None", *accessProfile.PrivateDNSZone):
-					privateDnsZoneId = "None"
-				default:
-					privateDnsZoneId = pointer.From(accessProfile.PrivateDNSZone)
-				}
-			}
-			state.PrivateDNSZoneID = privateDnsZoneId
-			state.PrivateClusterEnabled = enablePrivateCluster
-			state.PrivateClusterPublicFQDNEnabled = enablePrivateClusterPublicFQDN
+			state.PrivateCluster = privateCluster
 			state.RunCommandEnabled = runCommandEnabled
 
 			if props.AddonProfiles != nil {
@@ -2080,7 +1842,7 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 			state.AutoScalerProfile, err = flattenKubernetesAutomaticClusterAutoScalerProfile(props.AutoScalerProfile)
 			if err != nil {
-				return fmt.Errorf("flattening `auto_scaler_profile`: %+v", err)
+				return fmt.Errorf("flattening `auto_scaler`: %+v", err)
 			}
 
 			state.MonitorMetrics = flattenKubernetesAutomaticClusterAzureMonitorProfile(props.AzureMonitorProfile)
@@ -2251,7 +2013,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			if metadata.ResourceData.HasChange("auto_scaler_profile") {
+			if metadata.ResourceData.HasChange("auto_scaler") {
 				props.AutoScalerProfile = expandKubernetesAutomaticClusterAutoScalerProfile(model.AutoScalerProfile)
 				updateCluster = true
 			}
@@ -2261,7 +2023,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			if metadata.ResourceData.HasChange("service_mesh_profile") {
+			if metadata.ResourceData.HasChange("service_mesh") {
 				props.ServiceMeshProfile = expandKubernetesAutomaticClusterServiceMeshProfile(model.ServiceMeshProfile, props.ServiceMeshProfile)
 				updateCluster = true
 			}
@@ -2301,7 +2063,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 					"default_node_pool.0.kubelet_config",
 					"default_node_pool.0.kubelet_disk_type",
 					"default_node_pool.0.linux_os_config",
-					"default_node_pool.0.max_pods",
+					"default_node_pool.0.maximum_pods",
 					"default_node_pool.0.os_disk_size_gb",
 					"default_node_pool.0.pod_subnet_id",
 					"default_node_pool.0.snapshot_id",
@@ -2403,9 +2165,8 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			if metadata.ResourceData.HasChange("api_server_access_profile") ||
-				metadata.ResourceData.HasChange("private_cluster_enabled") ||
-				metadata.ResourceData.HasChange("private_cluster_public_fully_qualified_domain_name_enabled") ||
+			if metadata.ResourceData.HasChange("api_server_access") ||
+				metadata.ResourceData.HasChange("private_cluster") ||
 				metadata.ResourceData.HasChange("run_command_enabled") {
 				props.ApiServerAccessProfile = expandKubernetesAutomaticClusterAPIAccessProfile(model)
 				updateCluster = true
@@ -2436,7 +2197,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("network_profile") {
+			if metadata.ResourceData.HasChange("network") {
 				networkProfile, err := expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile)
 				if err != nil {
 					return fmt.Errorf("expanding network profile: %w", err)
@@ -2450,7 +2211,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			if metadata.ResourceData.HasChange("storage_profile") {
+			if metadata.ResourceData.HasChange("storage") {
 				props.StorageProfile = expandKubernetesAutomaticClusterStorageProfile(model.StorageProfile)
 				updateCluster = true
 			}
@@ -2465,7 +2226,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			if metadata.ResourceData.HasChange("bootstrap_profile") {
+			if metadata.ResourceData.HasChange("bootstrap") {
 				props.BootstrapProfile = expandKubernetesAutomaticClusterBootstrapProfile(model.BootstrapProfile)
 				updateCluster = true
 			}
@@ -2642,10 +2403,16 @@ func (r KubernetesAutomaticClusterResource) Delete() sdk.ResourceFunc {
 }
 
 func expandKubernetesAutomaticClusterAPIAccessProfile(model KubernetesAutomaticClusterModel) *managedclusters.ManagedClusterAPIServerAccessProfile {
+	enablePrivateCluster, enablePrivateClusterPublicFQDN, privateDNSZoneID := expandKubernetesAutomaticClusterPrivateCluster(model.PrivateCluster)
+
 	apiAccessProfile := &managedclusters.ManagedClusterAPIServerAccessProfile{
-		EnablePrivateCluster:           pointer.To(model.PrivateClusterEnabled),
-		EnablePrivateClusterPublicFQDN: pointer.To(model.PrivateClusterPublicFQDNEnabled),
+		EnablePrivateCluster:           pointer.To(enablePrivateCluster),
+		EnablePrivateClusterPublicFQDN: pointer.To(enablePrivateClusterPublicFQDN),
 		DisableRunCommand:              pointer.To(!model.RunCommandEnabled),
+	}
+
+	if privateDNSZoneID != "" {
+		apiAccessProfile.PrivateDNSZone = pointer.To(privateDNSZoneID)
 	}
 
 	if len(model.APIServerAccessProfile) == 0 {
@@ -2662,19 +2429,47 @@ func expandKubernetesAutomaticClusterAPIAccessProfile(model KubernetesAutomaticC
 	return apiAccessProfile
 }
 
-func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) []APIServerAccessProfileModel {
+func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) ([]APIServerAccessProfileModel, []PrivateClusterModel, bool) {
 	apiServerAccessProfile := make([]APIServerAccessProfileModel, 0)
+	runCommandEnabled := true
 
 	if profile == nil {
-		return apiServerAccessProfile
+		return apiServerAccessProfile, []PrivateClusterModel{}, runCommandEnabled
 	}
+
+	// Extract private cluster settings
+	enablePrivateCluster := false
+	enablePrivateClusterPublicFQDN := false
+	privateDNSZoneID := ""
+
+	if profile.EnablePrivateCluster != nil {
+		enablePrivateCluster = *profile.EnablePrivateCluster
+	}
+	if profile.EnablePrivateClusterPublicFQDN != nil {
+		enablePrivateClusterPublicFQDN = *profile.EnablePrivateClusterPublicFQDN
+	}
+	if profile.DisableRunCommand != nil {
+		runCommandEnabled = !*profile.DisableRunCommand
+	}
+
+	// Handle PrivateDNSZone normalization
+	switch {
+	case profile.PrivateDNSZone != nil && strings.EqualFold("System", *profile.PrivateDNSZone):
+		privateDNSZoneID = "System"
+	case profile.PrivateDNSZone != nil && strings.EqualFold("None", *profile.PrivateDNSZone):
+		privateDNSZoneID = "None"
+	default:
+		privateDNSZoneID = pointer.From(profile.PrivateDNSZone)
+	}
+
+	privateCluster := flattenKubernetesAutomaticClusterPrivateCluster(enablePrivateCluster, enablePrivateClusterPublicFQDN, privateDNSZoneID)
 
 	// API access profile can be managed by other properties, only return it if one of the properties has been set
 	hasAuthorizedIPRanges := profile.AuthorizedIPRanges != nil && len(*profile.AuthorizedIPRanges) > 0
 	hasSubnetId := profile.SubnetId != nil && *profile.SubnetId != ""
 
 	if !hasAuthorizedIPRanges && !hasSubnetId {
-		return apiServerAccessProfile
+		return apiServerAccessProfile, privateCluster, runCommandEnabled
 	}
 
 	apiServerAccessProfile = append(apiServerAccessProfile, APIServerAccessProfileModel{
@@ -2682,7 +2477,29 @@ func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.
 		SubnetID:           pointer.From(profile.SubnetId),
 	})
 
-	return apiServerAccessProfile
+	return apiServerAccessProfile, privateCluster, runCommandEnabled
+}
+
+func expandKubernetesAutomaticClusterPrivateCluster(model []PrivateClusterModel) (bool, bool, string) {
+	if len(model) == 0 {
+		return false, false, ""
+	}
+
+	config := model[0]
+	return true, config.PrivateClusterPublicFQDNEnabled, config.PrivateDNSZoneID
+}
+
+func flattenKubernetesAutomaticClusterPrivateCluster(enablePrivateCluster bool, enablePrivateClusterPublicFQDN bool, privateDNSZoneID string) []PrivateClusterModel {
+	if !enablePrivateCluster {
+		return []PrivateClusterModel{}
+	}
+
+	return []PrivateClusterModel{
+		{
+			PrivateClusterPublicFQDNEnabled: enablePrivateClusterPublicFQDN,
+			PrivateDNSZoneID:                privateDNSZoneID,
+		},
+	}
 }
 
 func expandKubernetesAutomaticClusterBootstrapProfile(input []BootstrapProfileModel) *managedclusters.ManagedClusterBootstrapProfile {

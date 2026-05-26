@@ -36,7 +36,7 @@ type DefaultNodePoolModel struct {
 	GPUInstance                string                    `tfschema:"gpu_instance"`
 	GPUDriver                  string                    `tfschema:"gpu_driver"`
 	KubeletDiskType            string                    `tfschema:"kubelet_disk_type"`
-	MaxPods                    int64                     `tfschema:"max_pods"`
+	MaxPods                    int64                     `tfschema:"maximum_pods"`
 	NodeNetworkProfile         []NodeNetworkProfileModel `tfschema:"node_network_profile"`
 	NodeCount                  int64                     `tfschema:"node_count"`
 	NodeLabels                 map[string]string         `tfschema:"node_labels"`
@@ -64,9 +64,9 @@ type KubeletConfigModel struct {
 	ImageGcLowThreshold   int64    `tfschema:"image_gc_low_threshold"`
 	TopologyManagerPolicy string   `tfschema:"topology_manager_policy"`
 	AllowedUnsafeSysctls  []string `tfschema:"allowed_unsafe_sysctls"`
-	ContainerLogMaxSizeMB int64    `tfschema:"container_log_max_size_mb"`
-	ContainerLogMaxFiles  int64    `tfschema:"container_log_max_files"`
-	PodMaxPid             int64    `tfschema:"pod_max_pid"`
+	ContainerLogMaxSizeMB int64    `tfschema:"container_log_maximumimum_size_mb"`
+	ContainerLogMaxFiles  int64    `tfschema:"container_log_maximumimum_files"`
+	PodMaxPid             int64    `tfschema:"pod_maximumimum_pid"`
 }
 
 type LinuxOSConfigModel struct {
@@ -77,20 +77,20 @@ type LinuxOSConfigModel struct {
 }
 
 type SysctlConfigModel struct {
-	FsAioMaxNr                     int64 `tfschema:"fs_aio_max_nr"`
-	FsFileMax                      int64 `tfschema:"fs_file_max"`
-	FsInotifyMaxUserWatches        int64 `tfschema:"fs_inotify_max_user_watches"`
+	FsAioMaxNr                     int64 `tfschema:"fs_aio_maximumimum_nr"`
+	FsFileMax                      int64 `tfschema:"fs_file_maximum"`
+	FsInotifyMaxUserWatches        int64 `tfschema:"fs_inotify_maximumimum_user_watches"`
 	FsNrOpen                       int64 `tfschema:"fs_nr_open"`
-	KernelThreadsMax               int64 `tfschema:"kernel_threads_max"`
-	NetCoreNetdevMaxBacklog        int64 `tfschema:"net_core_netdev_max_backlog"`
-	NetCoreOptmemMax               int64 `tfschema:"net_core_optmem_max"`
+	KernelThreadsMax               int64 `tfschema:"kernel_threads_maximum"`
+	NetCoreNetdevMaxBacklog        int64 `tfschema:"net_core_netdev_maximumimum_backlog"`
+	NetCoreOptmemMax               int64 `tfschema:"net_core_optmem_maximum"`
 	NetCoreRmemDefault             int64 `tfschema:"net_core_rmem_default"`
-	NetCoreRmemMax                 int64 `tfschema:"net_core_rmem_max"`
+	NetCoreRmemMax                 int64 `tfschema:"net_core_rmem_maximum"`
 	NetCoreSomaxconn               int64 `tfschema:"net_core_somaxconn"`
 	NetCoreWmemDefault             int64 `tfschema:"net_core_wmem_default"`
-	NetCoreWmemMax                 int64 `tfschema:"net_core_wmem_max"`
-	NetIPv4IPLocalPortRangeMin     int64 `tfschema:"net_ipv4_ip_local_port_range_min"`
-	NetIPv4IPLocalPortRangeMax     int64 `tfschema:"net_ipv4_ip_local_port_range_max"`
+	NetCoreWmemMax                 int64 `tfschema:"net_core_wmem_maximum"`
+	NetIPv4IPLocalPortRangeMin     int64 `tfschema:"net_ipv4_ip_local_port_range_minimum"`
+	NetIPv4IPLocalPortRangeMax     int64 `tfschema:"net_ipv4_ip_local_port_range_maximum"`
 	NetIPv4NeighDefaultGcThresh1   int64 `tfschema:"net_ipv4_neigh_default_gc_thresh1"`
 	NetIPv4NeighDefaultGcThresh2   int64 `tfschema:"net_ipv4_neigh_default_gc_thresh2"`
 	NetIPv4NeighDefaultGcThresh3   int64 `tfschema:"net_ipv4_neigh_default_gc_thresh3"`
@@ -98,12 +98,12 @@ type SysctlConfigModel struct {
 	NetIPv4TCPKeepaliveIntvl       int64 `tfschema:"net_ipv4_tcp_keepalive_intvl"`
 	NetIPv4TCPKeepaliveProbes      int64 `tfschema:"net_ipv4_tcp_keepalive_probes"`
 	NetIPv4TCPKeepaliveTime        int64 `tfschema:"net_ipv4_tcp_keepalive_time"`
-	NetIPv4TCPMaxSynBacklog        int64 `tfschema:"net_ipv4_tcp_max_syn_backlog"`
-	NetIPv4TCPMaxTwBuckets         int64 `tfschema:"net_ipv4_tcp_max_tw_buckets"`
+	NetIPv4TCPMaxSynBacklog        int64 `tfschema:"net_ipv4_tcp_maximumimum_syn_backlog"`
+	NetIPv4TCPMaxTwBuckets         int64 `tfschema:"net_ipv4_tcp_maximumimum_tw_buckets"`
 	NetIPv4TCPTwReuse              bool  `tfschema:"net_ipv4_tcp_tw_reuse"`
 	NetNetfilterNfConntrackBuckets int64 `tfschema:"net_netfilter_nf_conntrack_buckets"`
-	NetNetfilterNfConntrackMax     int64 `tfschema:"net_netfilter_nf_conntrack_max"`
-	VMMaxMapCount                  int64 `tfschema:"vm_max_map_count"`
+	NetNetfilterNfConntrackMax     int64 `tfschema:"net_netfilter_nf_conntrack_maximum"`
+	VMMaxMapCount                  int64 `tfschema:"vm_maximumimum_map_count"`
 	VMSwappiness                   int64 `tfschema:"vm_swappiness"`
 	VMVfsCachePressure             int64 `tfschema:"vm_vfs_cache_pressure"`
 }
@@ -121,7 +121,7 @@ type AllowedHostPortsModel struct {
 }
 
 type UpgradeSettingsModel struct {
-	MaxSurge                  string `tfschema:"max_surge"`
+	MaxSurge                  string `tfschema:"maximum_surge"`
 	DrainTimeoutInMinutes     int64  `tfschema:"drain_timeout_in_minutes"`
 	NodeSoakDurationInMinutes int64  `tfschema:"node_soak_duration_in_minutes"`
 	UndrainableNodeBehavior   string `tfschema:"undrainable_node_behavior"`
@@ -186,7 +186,81 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					ValidateFunc: computeValidate.HostGroupID,
 				},
 
-				"kubelet_config": schemaAutomaticNodePoolKubeletConfig(),
+				"kubelet_config": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"cpu_manager_policy": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									"none",
+									"static",
+								}, false),
+							},
+
+							"cpu_cfs_quota_enabled": {
+								Type:     pluginsdk.TypeBool,
+								Default:  true,
+								Optional: true,
+							},
+
+							"cpu_cfs_quota_period": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+							},
+
+							"image_gc_high_threshold": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntBetween(0, 100),
+							},
+
+							"image_gc_low_threshold": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntBetween(0, 100),
+							},
+
+							"topology_manager_policy": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									"none",
+									"best-effort",
+									"restricted",
+									"single-numa-node",
+								}, false),
+							},
+
+							"allowed_unsafe_sysctls": {
+								Type:     pluginsdk.TypeSet,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"container_log_maximumimum_size_mb": {
+								Type:     pluginsdk.TypeInt,
+								Optional: true,
+							},
+
+							"container_log_maximumimum_files": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntAtLeast(2),
+							},
+
+							"pod_maximumimum_pid": {
+								Type:     pluginsdk.TypeInt,
+								Optional: true,
+							},
+						},
+					},
+				},
 
 				"kubelet_disk_type": {
 					Type:     pluginsdk.TypeString,
@@ -197,9 +271,225 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 						string(managedclusters.KubeletDiskTypeTemporary),
 					}, false),
 				},
-				"linux_os_config": schemaAutomaticNodePoolLinuxOSConfig(),
+				"linux_os_config": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"sysctl_config": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"fs_aio_maximumimum_nr": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(65536, 6553500),
+										},
 
-				"max_pods": {
+										"fs_file_maximum": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(8192, 12000500),
+										},
+
+										"fs_inotify_maximumimum_user_watches": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(781250, 2097152),
+										},
+
+										"fs_nr_open": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(8192, 20000500),
+										},
+
+										"kernel_threads_maximum": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(20, 513785),
+										},
+
+										"net_core_netdev_maximumimum_backlog": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(1000, 3240000),
+										},
+
+										"net_core_optmem_maximum": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(20480, 4194304),
+										},
+
+										"net_core_rmem_default": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(212992, 134217728),
+										},
+
+										"net_core_rmem_maximum": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(212992, 134217728),
+										},
+
+										"net_core_somaxconn": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(4096, 3240000),
+										},
+
+										"net_core_wmem_default": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(212992, 134217728),
+										},
+
+										"net_core_wmem_maximum": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(212992, 134217728),
+										},
+
+										"net_ipv4_ip_local_port_range_minimum": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(1024, 60999),
+										},
+
+										"net_ipv4_ip_local_port_range_maximum": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(32768, 65535),
+										},
+
+										"net_ipv4_neigh_default_gc_thresh1": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(128, 80000),
+										},
+
+										"net_ipv4_neigh_default_gc_thresh2": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(512, 90000),
+										},
+
+										"net_ipv4_neigh_default_gc_thresh3": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(1024, 100000),
+										},
+
+										"net_ipv4_tcp_fin_timeout": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(5, 120),
+										},
+
+										"net_ipv4_tcp_keepalive_intvl": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(10, 90),
+										},
+
+										"net_ipv4_tcp_keepalive_probes": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(1, 15),
+										},
+
+										"net_ipv4_tcp_keepalive_time": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(30, 432000),
+										},
+
+										"net_ipv4_tcp_maximumimum_syn_backlog": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(128, 3240000),
+										},
+
+										"net_ipv4_tcp_maximumimum_tw_buckets": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(8000, 1440000),
+										},
+
+										"net_ipv4_tcp_tw_reuse": {
+											Type:     pluginsdk.TypeBool,
+											Optional: true,
+										},
+
+										"net_netfilter_nf_conntrack_buckets": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(65536, 524288),
+										},
+
+										"net_netfilter_nf_conntrack_maximum": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(131072, 2097152),
+										},
+
+										"vm_maximumimum_map_count": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(65530, 262144),
+										},
+
+										"vm_swappiness": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(0, 100),
+										},
+
+										"vm_vfs_cache_pressure": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(0, 100),
+										},
+									},
+								},
+							},
+
+							"transparent_huge_page": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									"always",
+									"madvise",
+									"never",
+								}, false),
+							},
+
+							"transparent_huge_page_defrag": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									"always",
+									"defer",
+									"defer+madvise",
+									"madvise",
+									"never",
+								}, false),
+							},
+
+							"swap_file_size_mb": {
+								Type:     pluginsdk.TypeInt,
+								Optional: true,
+							},
+						},
+					},
+				},
+
+				"maximum_pods": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					Computed: true,
@@ -221,7 +511,61 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					},
 				},
 
-				"node_network_profile": schemaAutomaticNodePoolNetworkProfile(),
+				"node_network_profile": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"allowed_host_ports": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"port_start": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(1, 65535),
+										},
+
+										"port_end": {
+											Type:         pluginsdk.TypeInt,
+											Optional:     true,
+											ValidateFunc: validation.IntBetween(1, 65535),
+										},
+
+										"protocol": {
+											Type:     pluginsdk.TypeString,
+											Optional: true,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(agentpools.ProtocolTCP),
+												string(agentpools.ProtocolUDP),
+											}, false),
+										},
+									},
+								},
+							},
+
+							"application_security_group_ids": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
+								},
+							},
+
+							"node_public_ip_tags": {
+								Type:     pluginsdk.TypeMap,
+								Optional: true,
+								ForceNew: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+				},
 
 				"node_public_ip_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -298,7 +642,37 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					Optional: true,
 				},
 
-				"upgrade_settings": upgradeSettingsSchemaAutomaticClusterDefaultNodePool(),
+				"upgrade_settings": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Computed: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"maximum_surge": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								Default:  "10%%",
+							},
+							"drain_timeout_in_minutes": {
+								Type:     pluginsdk.TypeInt,
+								Optional: true,
+								Default:  0,
+							},
+							"node_soak_duration_in_minutes": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								Default:      0,
+								ValidateFunc: validation.IntBetween(0, 30),
+							},
+							"undrainable_node_behavior": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
+							},
+						},
+					},
+				},
 
 				"vm_size": {
 					Type:         pluginsdk.TypeString,
@@ -320,217 +694,6 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(managedclusters.WorkloadRuntimeOCIContainer),
 					}, false),
-				},
-			},
-		},
-	}
-}
-
-func upgradeSettingsSchemaAutomaticClusterDefaultNodePool() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"max_surge": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "10%%",
-				},
-				"drain_timeout_in_minutes": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  0,
-				},
-				"node_soak_duration_in_minutes": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      0,
-					ValidateFunc: validation.IntBetween(0, 30),
-				},
-				"undrainable_node_behavior": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
-				},
-			},
-		},
-	}
-}
-
-func schemaAutomaticNodePoolKubeletConfig() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"cpu_manager_policy": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"none",
-						"static",
-					}, false),
-				},
-
-				"cpu_cfs_quota_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Default:  true,
-					Optional: true,
-				},
-
-				"cpu_cfs_quota_period": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				},
-
-				"image_gc_high_threshold": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 100),
-				},
-
-				"image_gc_low_threshold": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 100),
-				},
-
-				"topology_manager_policy": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"none",
-						"best-effort",
-						"restricted",
-						"single-numa-node",
-					}, false),
-				},
-
-				"allowed_unsafe_sysctls": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"container_log_max_size_mb": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-				},
-
-				"container_log_max_files": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntAtLeast(2),
-				},
-
-				"pod_max_pid": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-				},
-			},
-		},
-	}
-}
-
-func schemaAutomaticNodePoolLinuxOSConfig() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"sysctl_config": schemaNodePoolSysctlConfig(),
-
-				"transparent_huge_page": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"always",
-						"madvise",
-						"never",
-					}, false),
-				},
-
-				"transparent_huge_page_defrag": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"always",
-						"defer",
-						"defer+madvise",
-						"madvise",
-						"never",
-					}, false),
-				},
-
-				"swap_file_size_mb": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-				},
-			},
-		},
-	}
-	return s
-}
-
-func schemaAutomaticNodePoolNetworkProfile() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"allowed_host_ports": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"port_start": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								ValidateFunc: validation.IntBetween(1, 65535),
-							},
-
-							"port_end": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								ValidateFunc: validation.IntBetween(1, 65535),
-							},
-
-							"protocol": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(agentpools.ProtocolTCP),
-									string(agentpools.ProtocolUDP),
-								}, false),
-							},
-						},
-					},
-				},
-
-				"application_security_group_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
-					},
-				},
-
-				"node_public_ip_tags": {
-					Type:     pluginsdk.TypeMap,
-					Optional: true,
-					ForceNew: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
 				},
 			},
 		},
@@ -659,10 +822,10 @@ func expandClusterNodePoolSysctlConfigTyped(input []SysctlConfigModel) (*managed
 
 	if (config.NetIPv4IPLocalPortRangeMin != 0 && config.NetIPv4IPLocalPortRangeMax == 0) ||
 		(config.NetIPv4IPLocalPortRangeMin == 0 && config.NetIPv4IPLocalPortRangeMax != 0) {
-		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` and `net_ipv4_ip_local_port_range_max` should both be set or unset")
+		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_minimum` and `net_ipv4_ip_local_port_range_maximum` should both be set or unset")
 	}
 	if config.NetIPv4IPLocalPortRangeMin > config.NetIPv4IPLocalPortRangeMax {
-		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` should be no larger than `net_ipv4_ip_local_port_range_max`")
+		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_minimum` should be no larger than `net_ipv4_ip_local_port_range_maximum`")
 	}
 	if config.NetIPv4IPLocalPortRangeMin != 0 && config.NetIPv4IPLocalPortRangeMax != 0 {
 		result.NetIPv4IPLocalPortRange = pointer.To(fmt.Sprintf("%d %d", config.NetIPv4IPLocalPortRangeMin, config.NetIPv4IPLocalPortRangeMax))
