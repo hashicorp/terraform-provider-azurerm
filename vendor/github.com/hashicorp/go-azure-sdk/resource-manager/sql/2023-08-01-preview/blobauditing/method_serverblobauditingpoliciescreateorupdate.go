@@ -63,9 +63,20 @@ func (c BlobAuditingClient) ServerBlobAuditingPoliciesCreateOrUpdate(ctx context
 
 // ServerBlobAuditingPoliciesCreateOrUpdateThenPoll performs ServerBlobAuditingPoliciesCreateOrUpdate then polls until it's completed
 func (c BlobAuditingClient) ServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx context.Context, id commonids.SqlServerId, input ServerBlobAuditingPolicy) error {
+	return c.ServerBlobAuditingPoliciesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ServerBlobAuditingPoliciesCreateOrUpdateCallbackThenPoll performs ServerBlobAuditingPoliciesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c BlobAuditingClient) ServerBlobAuditingPoliciesCreateOrUpdateCallbackThenPoll(ctx context.Context, id commonids.SqlServerId, input ServerBlobAuditingPolicy, callback func() error) error {
 	result, err := c.ServerBlobAuditingPoliciesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ServerBlobAuditingPoliciesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

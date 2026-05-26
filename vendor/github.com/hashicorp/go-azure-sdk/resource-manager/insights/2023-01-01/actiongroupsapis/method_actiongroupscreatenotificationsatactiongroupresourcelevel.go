@@ -62,9 +62,20 @@ func (c ActionGroupsAPIsClient) ActionGroupsCreateNotificationsAtActionGroupReso
 
 // ActionGroupsCreateNotificationsAtActionGroupResourceLevelThenPoll performs ActionGroupsCreateNotificationsAtActionGroupResourceLevel then polls until it's completed
 func (c ActionGroupsAPIsClient) ActionGroupsCreateNotificationsAtActionGroupResourceLevelThenPoll(ctx context.Context, id ActionGroupId, input NotificationRequestBody) error {
+	return c.ActionGroupsCreateNotificationsAtActionGroupResourceLevelCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ActionGroupsCreateNotificationsAtActionGroupResourceLevelCallbackThenPoll performs ActionGroupsCreateNotificationsAtActionGroupResourceLevel, runs the optional callback function, then polls until it's completed
+func (c ActionGroupsAPIsClient) ActionGroupsCreateNotificationsAtActionGroupResourceLevelCallbackThenPoll(ctx context.Context, id ActionGroupId, input NotificationRequestBody, callback func() error) error {
 	result, err := c.ActionGroupsCreateNotificationsAtActionGroupResourceLevel(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ActionGroupsCreateNotificationsAtActionGroupResourceLevel: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -62,9 +62,20 @@ func (c RedisEnterpriseClient) DatabasesCreate(ctx context.Context, id DatabaseI
 
 // DatabasesCreateThenPoll performs DatabasesCreate then polls until it's completed
 func (c RedisEnterpriseClient) DatabasesCreateThenPoll(ctx context.Context, id DatabaseId, input Database) error {
+	return c.DatabasesCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DatabasesCreateCallbackThenPoll performs DatabasesCreate, runs the optional callback function, then polls until it's completed
+func (c RedisEnterpriseClient) DatabasesCreateCallbackThenPoll(ctx context.Context, id DatabaseId, input Database, callback func() error) error {
 	result, err := c.DatabasesCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DatabasesCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
