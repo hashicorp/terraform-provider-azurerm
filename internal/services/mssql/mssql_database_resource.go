@@ -47,6 +47,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_database -service-package-name mssql -properties "name" -compare-values "resource_group_name:server_id,server_name:server_id"
 
+const mssqlDatabaseFreeSkuName = "Free"
+
 func resourceMsSqlDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMsSqlDatabaseCreate,
@@ -137,6 +139,34 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 						}
 					}
 				}
+				return nil
+			},
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				rawConfig := d.GetRawConfig().AsValueMap()
+
+				behaviorVal, hasBehavior := rawConfig["free_limit_exhaustion_behavior"]
+				behaviorSet := hasBehavior && behaviorVal.IsKnown() && !behaviorVal.IsNull()
+
+				enabledVal, hasEnabled := rawConfig["free_limit_enabled"]
+				enabledSet := hasEnabled && enabledVal.IsKnown() && !enabledVal.IsNull() && enabledVal.True()
+
+				if behaviorSet && !enabledSet {
+					return fmt.Errorf("`free_limit_exhaustion_behavior` can only be set when `free_limit_enabled` is `true`")
+				}
+
+				if enabledSet {
+					skuVal, hasSku := rawConfig["sku_name"]
+					if hasSku && skuVal.IsKnown() && !skuVal.IsNull() {
+						sku := skuVal.AsString()
+						if sku != "" && !strings.HasPrefix(sku, "GP_S_") {
+							if !features.FivePointOh() && strings.EqualFold(sku, mssqlDatabaseFreeSkuName) {
+								return nil
+							}
+							return fmt.Errorf("`free_limit_enabled` can only be set to `true` when `sku_name` is a serverless General Purpose SKU (for example `GP_S_Gen5_2`)")
+						}
+					}
+				}
+
 				return nil
 			},
 		),
@@ -444,6 +474,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		input.Properties.RestorePointInTime = pointer.To(v.(string))
 	}
+
+	useFreeLimit := d.Get("free_limit_enabled").(bool)
+	input.Properties.UseFreeLimit = pointer.To(useFreeLimit)
+	input.Properties.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(d.Get("free_limit_exhaustion_behavior").(string)))
 
 	if skuName != "" {
 		input.Sku = pointer.To(databases.Sku{
@@ -957,6 +991,16 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		propertiesUpdateRequired = true
 	}
 
+	if d.HasChange("free_limit_enabled") {
+		props.UseFreeLimit = pointer.To(d.Get("free_limit_enabled").(bool))
+		propertiesUpdateRequired = true
+	}
+
+	if d.HasChange("free_limit_exhaustion_behavior") {
+		props.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(d.Get("free_limit_exhaustion_behavior").(string)))
+		propertiesUpdateRequired = true
+	}
+
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 		databaseUpdateRequired = true
@@ -1288,6 +1332,12 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 				skuName = *props.CurrentServiceObjectiveName
 			}
 
+			d.Set("free_limit_enabled", pointer.From(props.UseFreeLimit))
+
+			if props.FreeLimitExhaustionBehavior != nil {
+				d.Set("free_limit_exhaustion_behavior", pointer.FromEnum(props.FreeLimitExhaustionBehavior))
+			}
+
 			if props.IsLedgerOn != nil {
 				ledgerEnabled = *props.IsLedgerOn
 			}
@@ -1333,8 +1383,15 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 		// Determine whether the SKU is for SQL Data Warehouse
 		isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
 
-		// Determine whether the SKU is for SQL Database Free tier
-		isFreeSku := strings.EqualFold(skuName, "free")
+		// Determine whether the SKU is for SQL Database Free tier.
+		isFreeSku := false
+		if !features.FivePointOh() && strings.EqualFold(skuName, mssqlDatabaseFreeSkuName) {
+			// TODO 5.0: remove this branch together with `mssqlDatabaseFreeSkuName`.
+			isFreeSku = true
+		}
+		if model != nil && model.Properties != nil && pointer.From(model.Properties.UseFreeLimit) {
+			isFreeSku = true
+		}
 
 		// DW SKUs and SQL Database Free tier do not currently support LRP and do not honour normal SRP operations
 		if !isDwSku && !isFreeSku {
@@ -1770,7 +1827,19 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: validate.DatabaseSkuName(),
+			ValidateFunc: validate.DatabaseSkuNameWithoutFree(),
+		},
+
+		"free_limit_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"free_limit_exhaustion_behavior": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(databases.FreeLimitExhaustionBehaviorAutoPause),
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForFreeLimitExhaustionBehavior(), false),
 		},
 
 		"creation_source_database_id": {
@@ -1925,6 +1994,13 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FivePointOh() {
+		resource["sku_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.DatabaseSkuName(),
+		}
+
 		atLeastOneOf := []string{
 			"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
 			"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
