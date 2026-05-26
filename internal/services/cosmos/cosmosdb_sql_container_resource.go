@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -167,14 +168,16 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := cosmosdb.NewContainerID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
-	existing, err := client.SqlResourcesGetSqlContainer(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.SqlResourcesGetSqlContainer(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_container", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cosmosdb_sql_container", id.ID())
+		}
 	}
 
 	indexingPolicy := common.ExpandAzureRmCosmosDbIndexingPolicy(d)
@@ -229,8 +232,7 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 		db.Properties.Options.AutoScaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
-	err = client.SqlResourcesCreateUpdateSqlContainerThenPoll(ctx, id, db)
-	if err != nil {
+	if err := client.SqlResourcesCreateUpdateSqlContainerCallbackThenPoll(ctx, id, db, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 

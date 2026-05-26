@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
@@ -520,7 +521,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
 
-	log.Printf("[DEBUG] Retrieving %s...", *clusterId)
 	cluster, err := clustersClient.Get(ctx, *clusterId)
 	if err != nil {
 		if response.WasNotFound(cluster.HttpResponse) {
@@ -547,15 +547,17 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("multiple node pools are only supported when the Default Node Pool uses a VMScaleSet (but %s doesn't)", *clusterId)
 	}
 
-	existing, err := poolsClient.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := poolsClient.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", id.ID())
+		}
 	}
 
 	count := d.Get("node_count").(int)
@@ -751,10 +753,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Properties: &profile,
 	}
 
-	err = poolsClient.CreateOrUpdateThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions())
-	if err != nil {
+	if err := poolsClient.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
 	timeout, ok := ctx.Deadline()
@@ -777,7 +779,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
@@ -794,7 +795,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	d.Partial(true)
 
-	log.Printf("[DEBUG] Retrieving existing %s..", *id)
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
@@ -1092,7 +1092,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 		log.Printf("[DEBUG] Cycled Node Pool..")
 	} else {
-		log.Printf("[DEBUG] Updating existing %s..", *id)
 		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Node Pool %s: %+v", *id, err)

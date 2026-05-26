@@ -58,9 +58,20 @@ func (c ManagedClustersClient) RotateClusterCertificates(ctx context.Context, id
 
 // RotateClusterCertificatesThenPoll performs RotateClusterCertificates then polls until it's completed
 func (c ManagedClustersClient) RotateClusterCertificatesThenPoll(ctx context.Context, id commonids.KubernetesClusterId) error {
+	return c.RotateClusterCertificatesCallbackThenPoll(ctx, id, nil)
+}
+
+// RotateClusterCertificatesCallbackThenPoll performs RotateClusterCertificates, runs the optional callback function, then polls until it's completed
+func (c ManagedClustersClient) RotateClusterCertificatesCallbackThenPoll(ctx context.Context, id commonids.KubernetesClusterId, callback func() error) error {
 	result, err := c.RotateClusterCertificates(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RotateClusterCertificates: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

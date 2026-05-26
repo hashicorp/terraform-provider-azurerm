@@ -147,13 +147,16 @@ func (r ApplicationInsightsWorkbookResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.AppInsights.WorkbookClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := workbooks.NewWorkbookID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.WorkbooksGet(ctx, id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: pointer.To(true)})
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WorkbooksGet(ctx, id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: pointer.To(true)})
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))

@@ -62,9 +62,20 @@ func (c ClustersClient) UpdateAutoScaleConfiguration(ctx context.Context, id com
 
 // UpdateAutoScaleConfigurationThenPoll performs UpdateAutoScaleConfiguration then polls until it's completed
 func (c ClustersClient) UpdateAutoScaleConfigurationThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input AutoscaleConfigurationUpdateParameter) error {
+	return c.UpdateAutoScaleConfigurationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateAutoScaleConfigurationCallbackThenPoll performs UpdateAutoScaleConfiguration, runs the optional callback function, then polls until it's completed
+func (c ClustersClient) UpdateAutoScaleConfigurationCallbackThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input AutoscaleConfigurationUpdateParameter, callback func() error) error {
 	result, err := c.UpdateAutoScaleConfiguration(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateAutoScaleConfiguration: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

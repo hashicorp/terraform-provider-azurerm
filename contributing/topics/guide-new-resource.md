@@ -209,14 +209,17 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
             id := resources.NewResourceGroupID(subscriptionId, config.Name)
 
             // then we want to check for the presence of an existing resource with the resource's ID
-            // this is because the Azure API uses the `name` as a unique idenfitier and Upserts
+            // this is because the Azure API uses the `name` as a unique identifier and Upserts
             // so we don't want to unintentionally adopt this resource by using the same name
-            existing, err := client.Get(ctx, id)
-            if err != nil && !response.WasNotFound(existing.HttpResponse) {
-                return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-            }
-            if !response.WasNotFound(existing.HttpResponse) {
-                return metadata.ResourceRequiresImport(r.ResourceType(), id)
+            // unless the user has opted into doing so by setting the `skip_import_check_on_create_and_allow_overwriting_existing_resources` flag
+            if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+                existing, err := client.Get(ctx, id)
+                if err != nil && !response.WasNotFound(existing.HttpResponse) {
+                    return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+                }
+                if !response.WasNotFound(existing.HttpResponse) {
+                    return metadata.ResourceRequiresImport(r.ResourceType(), id)
+                }
             }
 
             // create the Resource Group
@@ -224,9 +227,17 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
                 Location: pointer.To(location.Normalize(config.Location)),
                 Tags:     pointer.To(config.Tags),
             }
+
+            // For synchronous operations (as indicated by the lack of a `{Operation}ThenPoll` method in the SDK)
             if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
                 return fmt.Errorf("creating %s: %+v", id, err)
             }
+
+            // For asynchronous operations, use the `{Operation}CallbackThenPoll` method, this allows users to opt in to setting
+            // the Resource ID before polling the asynchronous operation for completion using the `persist_id_on_create_before_polling_for_completion` feature.
+            // if _, err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)) {
+            //    return fmt.Errorf("creating %s: %+v", id, err)
+            // }
 
             // set the Resource ID, meaning that we track this resource
             metadata.SetID(id)

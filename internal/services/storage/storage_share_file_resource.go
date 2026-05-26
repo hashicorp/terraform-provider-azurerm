@@ -178,15 +178,17 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("building File Share Directories Client: %s", err)
 	}
 
-	existing, err := client.GetProperties(ctx, storageShareId.ShareName, path, fileName)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetProperties(ctx, storageShareId.ShareName, path, fileName)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_share_file", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_share_file", id.ID())
+		}
 	}
 
 	input := files.CreateInput{
@@ -324,7 +326,6 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	props, err := client.GetProperties(ctx, id.ShareName, id.DirectoryPath, id.FileName)
 	if err != nil {
-		log.Printf("retrieving %s: %s", id, err)
 		d.SetId("")
 		return nil
 	}
