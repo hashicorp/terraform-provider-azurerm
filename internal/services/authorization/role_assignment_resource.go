@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -86,6 +85,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				ForceNew:         true,
 				ExactlyOneOf:     []string{"role_definition_id", "role_definition_name"},
 				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     validation.StringMatch(regexp.MustCompile("(?i)^.*/providers/Microsoft.Authorization/roleDefinitions/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"), "should be in the format {scope}/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000"),
 			},
 
 			"role_definition_name": {
@@ -196,21 +196,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	principalId := d.Get("principal_id").(string)
 
 	if name == "" {
-		normalizedScope := strings.TrimSuffix(strings.ToLower(scopeId.Scope), "/")
-		normalizedPrincipalId := strings.ToLower(principalId)
-		parts := strings.Split(roleDefinitionId, "/")
-		normalizedRoleDefinitionId, err := uuid.FromString(parts[len(parts)-1])
-		if err != nil {
-			return fmt.Errorf("parsing role definition UUID from `role_definition_id` %q: %+v", roleDefinitionId, err)
-		}
-		str := fmt.Sprintf("%s-%s-%s", normalizedScope, normalizedPrincipalId, normalizedRoleDefinitionId)
-
-		namespace, err := uuid.FromString("11fb06fb-712d-4ddd-98c7-e71bbd588830")
-		if err != nil {
-			return fmt.Errorf("parsing namespace UUID for Role Assignment: %+v", err)
-		}
-
-		name = uuid.NewV5(namespace, str).String()
+		name = parse.RoleAssignmentName(scopeId.Scope, principalId, roleDefinitionId)
 	}
 
 	tenantId := ""

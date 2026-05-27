@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
@@ -211,4 +212,15 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 	}
 
 	return &roleAssignmentId, nil
+}
+
+func RoleAssignmentName(scope string, principalId string, roleDefinitionId string) string {
+	namespace := uuid.Must(uuid.FromString("11fb06fb-712d-4ddd-98c7-e71bbd588830"))
+
+	normalizedScope := strings.TrimSuffix(strings.ToLower(scope), "/")
+	normalizedPrincipalId := strings.ToLower(principalId)
+	normalizedRoleDefinitionId := strings.ToLower(roleDefinitionId)
+	str := fmt.Sprintf("%s-%s-%s", normalizedScope, normalizedPrincipalId, normalizedRoleDefinitionId)
+
+	return uuid.NewV5(namespace, str).String()
 }
