@@ -37,7 +37,7 @@ func NewManagedInstanceCreatePoller(client ManagedInstancesClient, id commonids.
 }
 
 func (p *ManagedInstanceCreatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
-	resp, err := p.client.Get(ctx, p.id, managedinstances.GetOperationOptions{})
+	resp, err := p.client.Get(ctx, p.id, managedinstances.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			p.successCount = 0

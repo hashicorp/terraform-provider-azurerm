@@ -5,6 +5,7 @@ package mssql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -153,7 +154,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				enabledSet := hasEnabled && enabledVal.IsKnown() && !enabledVal.IsNull() && enabledVal.True()
 
 				if behaviorSet && !enabledSet {
-					return fmt.Errorf("`free_limit_exhaustion_behavior` can only be set when `free_limit_enabled` is `true`")
+					return errors.New("`free_limit_exhaustion_behavior` can only be set when `free_limit_enabled` is `true`")
 				}
 
 				if enabledSet {
@@ -164,7 +165,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 							if !features.FivePointOh() && strings.EqualFold(sku, mssqlDatabaseFreeSkuName) {
 								return nil
 							}
-							return fmt.Errorf("`free_limit_enabled` can only be set to `true` when `sku_name` is a serverless General Purpose SKU (for example `GP_S_Gen5_2`)")
+							return errors.New("`free_limit_enabled` can only be set to `true` when `sku_name` is a serverless General Purpose SKU (for example `GP_S_Gen5_2`)")
 						}
 					}
 
@@ -174,7 +175,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 					}
 
 					if behavior == string(databases.FreeLimitExhaustionBehaviorAutoPause) && d.Get("storage_account_type").(string) != string(databases.BackupStorageRedundancyLocal) {
-						return fmt.Errorf("`storage_account_type` must be `Local` when `free_limit_enabled` is `true`.")
+						return errors.New("`storage_account_type` must be `Local` when `free_limit_enabled` is `true`")
 					}
 				}
 
@@ -493,7 +494,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	useFreeLimit := d.Get("free_limit_enabled").(bool)
 	input.Properties.UseFreeLimit = pointer.To(useFreeLimit)
 	if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
-		input.Properties.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(v.(string)))
+		input.Properties.FreeLimitExhaustionBehavior = pointer.ToEnum[databases.FreeLimitExhaustionBehavior](v.(string))
 	}
 
 	if skuName != "" {
@@ -981,7 +982,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if d.HasChange("free_limit_exhaustion_behavior") {
 		if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
-			props.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(v.(string)))
+			props.FreeLimitExhaustionBehavior = pointer.ToEnum[databases.FreeLimitExhaustionBehavior](v.(string))
 			propertiesUpdateRequired = true
 		}
 	}
@@ -1791,8 +1792,9 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"free_limit_exhaustion_behavior": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C - API returns a default exhaustion behavior when free limit is enabled and this is omitted
 			Computed:     true,
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForFreeLimitExhaustionBehavior(), false),
 		},
