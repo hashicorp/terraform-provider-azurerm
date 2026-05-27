@@ -2323,7 +2323,7 @@ resource "azurerm_application_gateway" "test" {
     name      = "ip-config-private"
     subnet_id = azurerm_subnet.gwtest.id
 
-    private_ip_address_allocation = "Static"
+    private_ip_address_allocation = "Dynamic"
   }
 
   frontend_port {
