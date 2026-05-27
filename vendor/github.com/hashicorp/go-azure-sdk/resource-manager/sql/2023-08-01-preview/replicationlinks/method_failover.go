@@ -58,9 +58,20 @@ func (c ReplicationLinksClient) Failover(ctx context.Context, id ReplicationLink
 
 // FailoverThenPoll performs Failover then polls until it's completed
 func (c ReplicationLinksClient) FailoverThenPoll(ctx context.Context, id ReplicationLinkId) error {
+	return c.FailoverCallbackThenPoll(ctx, id, nil)
+}
+
+// FailoverCallbackThenPoll performs Failover, runs the optional callback function, then polls until it's completed
+func (c ReplicationLinksClient) FailoverCallbackThenPoll(ctx context.Context, id ReplicationLinkId, callback func() error) error {
 	result, err := c.Failover(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Failover: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

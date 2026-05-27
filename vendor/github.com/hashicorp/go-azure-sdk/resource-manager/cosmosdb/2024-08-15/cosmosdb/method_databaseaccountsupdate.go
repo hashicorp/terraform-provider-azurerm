@@ -61,9 +61,20 @@ func (c CosmosDBClient) DatabaseAccountsUpdate(ctx context.Context, id DatabaseA
 
 // DatabaseAccountsUpdateThenPoll performs DatabaseAccountsUpdate then polls until it's completed
 func (c CosmosDBClient) DatabaseAccountsUpdateThenPoll(ctx context.Context, id DatabaseAccountId, input DatabaseAccountUpdateParameters) error {
+	return c.DatabaseAccountsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DatabaseAccountsUpdateCallbackThenPoll performs DatabaseAccountsUpdate, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) DatabaseAccountsUpdateCallbackThenPoll(ctx context.Context, id DatabaseAccountId, input DatabaseAccountUpdateParameters, callback func() error) error {
 	result, err := c.DatabaseAccountsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DatabaseAccountsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

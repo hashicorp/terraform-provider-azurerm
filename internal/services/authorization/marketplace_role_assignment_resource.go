@@ -199,15 +199,17 @@ func (r RoleAssignmentMarketplaceResource) Create() sdk.ResourceFunc {
 				options.TenantId = &tenantId
 			}
 
-			existing, err := roleAssignmentsClient.Get(ctx, id.ScopedId, options)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := roleAssignmentsClient.Get(ctx, id.ScopedId, options)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			properties := roleassignments.RoleAssignmentCreateParameters{

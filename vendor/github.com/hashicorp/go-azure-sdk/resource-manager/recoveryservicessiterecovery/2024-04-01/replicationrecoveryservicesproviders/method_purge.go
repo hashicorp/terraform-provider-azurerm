@@ -57,9 +57,20 @@ func (c ReplicationRecoveryServicesProvidersClient) Purge(ctx context.Context, i
 
 // PurgeThenPoll performs Purge then polls until it's completed
 func (c ReplicationRecoveryServicesProvidersClient) PurgeThenPoll(ctx context.Context, id ReplicationRecoveryServicesProviderId) error {
+	return c.PurgeCallbackThenPoll(ctx, id, nil)
+}
+
+// PurgeCallbackThenPoll performs Purge, runs the optional callback function, then polls until it's completed
+func (c ReplicationRecoveryServicesProvidersClient) PurgeCallbackThenPoll(ctx context.Context, id ReplicationRecoveryServicesProviderId, callback func() error) error {
 	result, err := c.Purge(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Purge: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

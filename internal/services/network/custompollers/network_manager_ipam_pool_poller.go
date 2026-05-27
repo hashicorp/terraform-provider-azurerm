@@ -6,6 +6,7 @@ package custompollers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
@@ -27,6 +28,16 @@ func NewNetworkManagerIPAMPoolDeletePoller(client *ipampools.IPamPoolsClient, id
 }
 
 func (p networkManagerIPAMPoolDeletePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+	pollingInProgress := pollers.PollResult{
+		Status:       pollers.PollingStatusInProgress,
+		PollInterval: 10 * time.Second,
+	}
+
+	pollingSuccess := pollers.PollResult{
+		Status:       pollers.PollingStatusSucceeded,
+		PollInterval: 10 * time.Second,
+	}
+
 	resp, err := p.client.Get(ctx, p.id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

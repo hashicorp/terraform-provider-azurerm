@@ -391,15 +391,18 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 			}
 
 			id := commonids.NewAppServiceID(subscriptionId, data.ResourceGroupName, data.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_logic_app_standard", id.ID())
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_logic_app_standard", id.ID())
+				}
 			}
 
 			servicePlanId, err := commonids.ParseAppServicePlanID(data.AppServicePlanId)
@@ -533,10 +536,9 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(data.KeyvaultReferenceIdentityId)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			if !data.FtpPublishBasicAuthEnabled {

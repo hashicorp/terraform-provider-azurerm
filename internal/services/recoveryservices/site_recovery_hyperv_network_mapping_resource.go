@@ -128,29 +128,32 @@ func (s HyperVNetworkMappingResource) Create() sdk.ResourceFunc {
 			}
 
 			id := replicationnetworkmappings.NewReplicationNetworkMappingID(parsedNetworkId.SubscriptionId, parsedNetworkId.ResourceGroupName, parsedNetworkId.VaultName, parsedNetworkId.ReplicationFabricName, parsedNetworkId.ReplicationNetworkName, plan.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking presence of network mapping: %+v", err)
+					}
+				}
+
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking presence of network mapping: %+v", err)
+					return tf.ImportAsExistsError("azurerm_site_recovery_hyperv_network_mapping", id.ID())
 				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_site_recovery_hyperv_network_mapping", id.ID())
-			}
-
-			err = client.CreateThenPoll(ctx, id, replicationnetworkmappings.CreateNetworkMappingInput{
+			payload := replicationnetworkmappings.CreateNetworkMappingInput{
 				Properties: replicationnetworkmappings.CreateNetworkMappingInputProperties{
 					RecoveryNetworkId:     plan.TargetNetworkId,
 					RecoveryFabricName:    pointer.To(HyperVNetworkMappingRecoveryFabricName),
 					FabricSpecificDetails: replicationnetworkmappings.VMmToAzureCreateNetworkMappingInput{},
 				},
-			})
-			if err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			if err = client.CreateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

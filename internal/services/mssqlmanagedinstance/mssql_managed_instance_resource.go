@@ -476,13 +476,15 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 			locks.ByID(subnetId.ID())
 			defer locks.UnlockByID(subnetId.ID())
 
-			existing, err := client.Get(ctx, id, managedinstances.GetOperationOptions{})
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, managedinstances.GetOperationOptions{})
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			sku, err := r.expandSkuName(model.SkuName)
@@ -548,8 +550,7 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
