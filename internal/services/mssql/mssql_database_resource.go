@@ -29,6 +29,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -36,6 +37,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -334,6 +336,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				if err != nil {
 					return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 				}
+
+				if err := waitForMsSqlDatabaseOnline(ctx, client, *partnerDatabaseId); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -544,46 +550,8 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	// Wait for the ProvisioningState to become "Succeeded"
-	log.Printf("[DEBUG] Waiting for %s to become ready", id)
-	pendingStatuses := make([]string, 0)
-	for _, s := range databases.PossibleValuesForDatabaseStatus() {
-		if s != string(databases.DatabaseStatusOnline) {
-			pendingStatuses = append(pendingStatuses, s)
-		}
-	}
-
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-
-	// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: pendingStatuses,
-		Target:  []string{string(databases.DatabaseStatusOnline)},
-		Refresh: func() (interface{}, string, error) {
-			log.Printf("[DEBUG] Checking to see if %s is online...", id)
-
-			resp, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
-			if err != nil {
-				return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
-			}
-
-			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Status != nil {
-				return resp, string(pointer.From(resp.Model.Properties.Status)), nil
-			}
-
-			return resp, "", nil
-		},
-		ContinuousTargetOccurence: 2,
-		MinTimeout:                1 * time.Minute,
-		Timeout:                   time.Until(deadline),
-	}
-
-	// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+	if err := waitForMsSqlDatabaseOnline(ctx, client, id); err != nil {
+		return err
 	}
 
 	// Cannot set transparent data encryption for secondary databases
@@ -834,6 +802,10 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 					if err != nil {
 						return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 					}
+
+					if err := waitForMsSqlDatabaseOnline(ctx, client, *partnerDatabaseId); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -1066,48 +1038,8 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 
-		// Wait for the ProvisioningState to become "Succeeded"
-		log.Printf("[DEBUG] Waiting for %s to become ready", id)
-		pendingStatuses := make([]string, 0)
-		for _, s := range databases.PossibleValuesForDatabaseStatus() {
-			if s != string(databases.DatabaseStatusOnline) {
-				pendingStatuses = append(pendingStatuses, s)
-			}
-		}
-
-		deadline, ok := ctx.Deadline()
-		if !ok {
-			return fmt.Errorf("internal-error: context had no deadline")
-		}
-
-		// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending: pendingStatuses,
-			Target:  []string{string(databases.DatabaseStatusOnline)},
-			Refresh: func() (interface{}, string, error) {
-				log.Printf("[DEBUG] Checking to see if %s is online...", id)
-
-				resp, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
-				if err != nil {
-					return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
-				}
-
-				if model := resp.Model; model != nil {
-					if props := model.Properties; props != nil {
-						return resp, string(pointer.From(props.Status)), nil
-					}
-				}
-
-				return resp.Model, "", nil
-			},
-
-			ContinuousTargetOccurence: 2,
-			MinTimeout:                1 * time.Minute,
-			Timeout:                   time.Until(deadline),
-		}
-
-		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+		if err := waitForMsSqlDatabaseOnline(ctx, client, id); err != nil {
+			return err
 		}
 	}
 
@@ -1250,6 +1182,16 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	return resourceMsSqlDatabaseRead(d, meta)
+}
+
+func waitForMsSqlDatabaseOnline(ctx context.Context, client *databases.DatabasesClient, id commonids.SqlDatabaseId) error {
+	pollerType := custompollers.NewMsSqlDatabaseOnlinePoller(client, id)
+	poller := pollers.NewPoller(pollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+	}
+
+	return nil
 }
 
 func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
