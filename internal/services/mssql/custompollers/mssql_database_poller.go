@@ -22,9 +22,7 @@ const (
 	msSqlDatabaseOnlineTargetOccurrences = 2
 )
 
-var (
-	_ pollers.PollerType = &MsSqlDatabaseOnlinePoller{}
-)
+var _ pollers.PollerType = &MsSqlDatabaseOnlinePoller{}
 
 type MsSqlDatabaseOnlinePoller struct {
 	client                   *databases.DatabasesClient
