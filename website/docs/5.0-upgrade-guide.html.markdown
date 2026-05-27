@@ -393,6 +393,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
 
+### `azurerm_cost_management_scheduled_action`
+
+* Validation for `email_subject` has been changed to enforce a maximum length of 50 characters.
+
 ### `azurerm_container_app_environment`
 
 * The `logs_destination` property is no longer Computed and now must be set to `log-analytics` to be able to specify a value for `log_analytics_workspace_id`. It will now default to empty, meaning Streaming Only in the Azure Portal.
