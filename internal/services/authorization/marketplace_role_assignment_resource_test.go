@@ -396,7 +396,7 @@ func (r RoleAssignmentMarketplaceResource) deleteAssignedRole(t *testing.T, role
 		}
 
 		if roleDefinitions.Model == nil || len(*roleDefinitions.Model) != 1 || (*roleDefinitions.Model)[0].Id == nil {
-			return
+			t.Fatalf("loading Role Definition List: failed to find role '%s'", roleName)
 		}
 
 		roleAssignmentsClient := clientManager.Authorization.ScopedRoleAssignmentsClient
