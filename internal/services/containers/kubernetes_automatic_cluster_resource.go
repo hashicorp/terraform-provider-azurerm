@@ -3223,7 +3223,6 @@ func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.
 	// Extract private cluster settings
 	enablePrivateCluster := false
 	enablePrivateClusterPublicFQDN := false
-	privateDNSZoneID := ""
 
 	if profile.EnablePrivateCluster != nil {
 		enablePrivateCluster = *profile.EnablePrivateCluster
@@ -3236,13 +3235,13 @@ func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.
 	}
 
 	// Handle PrivateDNSZone normalization
+	privateDNSZoneID := pointer.From(profile.PrivateDNSZone)
 	switch {
 	case profile.PrivateDNSZone != nil && strings.EqualFold("System", *profile.PrivateDNSZone):
 		privateDNSZoneID = "System"
 	case profile.PrivateDNSZone != nil && strings.EqualFold("None", *profile.PrivateDNSZone):
 		privateDNSZoneID = "None"
-	default:
-		privateDNSZoneID = pointer.From(profile.PrivateDNSZone)
+
 	}
 
 	privateCluster := flattenKubernetesAutomaticClusterPrivateCluster(enablePrivateCluster, enablePrivateClusterPublicFQDN, privateDNSZoneID)
@@ -4632,16 +4631,6 @@ func flattenIdentityModel(input *identity.SystemOrUserAssignedMap) []identity.Sy
 			}
 		}
 	}
-
-	// principalId := ""
-	//if input.PrincipalId != "" {
-	//	principalId = input.PrincipalId
-	//}
-	//
-	//tenantId := ""
-	//if input.TenantId != "" {
-	//	tenantId = input.TenantId
-	//}
 
 	return []identity.SystemOrUserAssignedList{{
 		Type:        input.Type,
