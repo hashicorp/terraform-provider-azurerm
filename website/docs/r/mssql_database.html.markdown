@@ -248,6 +248,8 @@ The following arguments are supported:
 
 * `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Possible values are `Geo`, `GeoZone`, `Local` and `Zone`. Defaults to `Geo`.
 
+~> **Note:** `storage_account_type` must be `Local` when `free_limit_enabled` is `true`.
+
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 
 * `identity` - (Optional) An `identity` block as defined below.

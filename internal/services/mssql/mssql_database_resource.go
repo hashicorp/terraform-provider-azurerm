@@ -165,6 +165,15 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 							return fmt.Errorf("`free_limit_enabled` can only be set to `true` when `sku_name` is a serverless General Purpose SKU (for example `GP_S_Gen5_2`)")
 						}
 					}
+
+					behavior := string(databases.FreeLimitExhaustionBehaviorAutoPause)
+					if behaviorSet {
+						behavior = behaviorVal.AsString()
+					}
+
+					if behavior == string(databases.FreeLimitExhaustionBehaviorAutoPause) && d.Get("storage_account_type").(string) != string(databases.BackupStorageRedundancyLocal) {
+						return fmt.Errorf("`storage_account_type` must be `Local` when `free_limit_enabled` is `true`.")
+					}
 				}
 
 				return nil
@@ -1393,7 +1402,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			// TODO 5.0: remove this branch together with `mssqlDatabaseFreeSkuName`.
 			isFreeSku = true
 		}
-		if model != nil && model.Properties != nil && pointer.From(model.Properties.UseFreeLimit) {
+		if model.Properties != nil && pointer.From(model.Properties.UseFreeLimit) {
 			isFreeSku = true
 		}
 

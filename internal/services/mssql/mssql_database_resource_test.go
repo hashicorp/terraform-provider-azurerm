@@ -1391,6 +1391,8 @@ resource "azurerm_mssql_database" "test" {
   min_capacity                = 0.5
   sku_name                    = "GP_S_Gen5_2"
   free_limit_enabled          = true
+  storage_account_type        = "Local"
+  geo_backup_enabled          = false
 }
 `, r.template(data), data.RandomInteger)
 }
