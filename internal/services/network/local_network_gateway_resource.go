@@ -13,11 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/localnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -197,6 +199,9 @@ func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
+	pollerType := custompollers.NewLocalNetworkGatewayPoller(client, *id)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
 	if d.HasChange("address_space") {
 		if !features.FivePointOh() {
 			// There is a bug in the provider where the address space ordering doesn't change as expected.
@@ -209,16 +214,25 @@ func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 				}
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("removing %s: %+v", id, err)
+			}
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
 			}
 		}
 
 		payload.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+	// This requires a custom poller because the API sometimes returns an async operation URL
+	// that only returns 404s, causing the provider to poll until timeout when using the `ThenPoll` method.
+	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return err
 	}
 
 	return resourceLocalNetworkGatewayRead(d, meta)
