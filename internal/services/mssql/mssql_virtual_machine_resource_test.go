@@ -945,7 +945,7 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_application_password" "test" {
-  application_object_id = azuread_application.test.object_id
+  application_id = azuread_application.test.id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
