@@ -72,7 +72,7 @@ func TestAccRoleAssignmentMarketplace_requiresImport(t *testing.T) {
 	id := uuid.New().String()
 
 	r := RoleAssignmentMarketplaceResource{}
-	roleName := "Managed Applications Reader"
+	roleName := "ContainerApp Reader"
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
