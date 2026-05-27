@@ -226,7 +226,7 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 
 			account, err := metadata.Client.Storage.GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
 			if err != nil {
-				return fmt.Errorf("retrieving Account for Table %q: %v", id, err)
+				return fmt.Errorf("retrieving Account for %q: %v", id, err)
 			}
 			// Determine the table endpoint, so we can build a data plane ID
 			endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)
