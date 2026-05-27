@@ -4,12 +4,15 @@
 package datafactory
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,7 +23,7 @@ import (
 )
 
 func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
 		Read:   resourceDataFactoryLinkedServiceMySQLRead,
 		Update: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
@@ -95,8 +98,31 @@ func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+
+			"driver_version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "V2",
+				ValidateFunc: validation.StringInSlice([]string{"V1", "V2"}, false),
+			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			// No state yet, a new resource being created.
+			if d.GetRawState().IsNull() {
+				if d.Get("driver_version") == "V1" {
+					return errors.New("`driver_version` must be set to `V2` for new resources")
+				}
+			}
+			return nil
+		}),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["driver_version"].Default = "V1"
+	}
+
+	return resource
 }
 
 func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -135,6 +161,7 @@ func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData
 
 	mysqlProperties := &datafactory.MySQLLinkedServiceTypeProperties{
 		ConnectionString: &secureString,
+		DriverVersion:    d.Get("driver_version").(string),
 	}
 
 	description := d.Get("description").(string)
@@ -223,6 +250,9 @@ func resourceDataFactoryLinkedServiceMySQLRead(d *pluginsdk.ResourceData, meta i
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
 		}
 	}
+
+	driverVersion, _ := (mysql.DriverVersion).(string)
+	d.Set("driver_version", driverVersion)
 
 	return nil
 }

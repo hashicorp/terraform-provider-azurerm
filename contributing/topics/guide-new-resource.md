@@ -666,7 +666,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
             if existing.Model.Properties == nil {
                return fmt.Errorf("retrieving %s: `properties` was nil", id)
             }
-            
+
             ...
             return nil
         },
@@ -953,9 +953,10 @@ There's a more detailed breakdown of how this works [in the Acceptance Testing r
 
 1. Test Terraform Configurations are defined as methods on the struct `ResourceGroupExampleResource` so that they're easily accessible (this helps to avoid them being unintentionally used in other resources).
 2. The `acceptance.TestData` object contains a number of helpers, including both random integers, strings and the Azure Locations where resources should be provisioned - which are used to ensure when tests are run in parallel that we provision unique resources for testing purposes.
-3. The `ApplyStep`'s apply the Terraform Configuration specified and then assert there's no changes after (e.g. `terraform apply` and then checking that `terraform plan` shows no changes).
-4. The `ImportStep` takes the Resource ID for the Resource and runs `terraform import azurerm_resource_group_example.test {resourceId}`, checking that the fields defined in the state match the fields returned from the Read function.
-5. We append `_test` to the Go package name (e.g. `resource_test`) since we need to be able to access both the `resource` package and the `acceptance` package (which is a circular reference, otherwise).
+3. When one config helper is only used once inside `fmt.Sprintf`, pass it directly as the argument (for example `r.basic(data)`) instead of assigning a temporary variable first.
+4. The `ApplyStep`'s apply the Terraform Configuration specified and then assert there's no changes after (e.g. `terraform apply` and then checking that `terraform plan` shows no changes).
+5. The `ImportStep` takes the Resource ID for the Resource and runs `terraform import azurerm_resource_group_example.test {resourceId}`, checking that the fields defined in the state match the fields returned from the Read function.
+6. We append `_test` to the Go package name (e.g. `resource_test`) since we need to be able to access both the `resource` package and the `acceptance` package (which is a circular reference, otherwise).
 
 At this point we should be able to run this test.
 
