@@ -2479,19 +2479,25 @@ func validateCustomerManagedKeyUserAssignedIdentity(d *pluginsdk.ResourceDiff) e
 		return nil
 	}
 
-	identityMap := identityRaw[0].(map[string]interface{})
-	identityType := identityMap["type"].(string)
+	identityType := identityRaw[0].(map[string]interface{})["type"].(string)
 	if !strings.Contains(identityType, string(identity.TypeUserAssigned)) {
 		return nil
 	}
 
-	customerManagedKeyRaw := d.Get("customer_managed_key").([]interface{})
-	if len(customerManagedKeyRaw) == 0 || customerManagedKeyRaw[0] == nil {
+	cmkRaw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("customer_managed_key"))
+	if diags.HasError() || !cmkRaw.IsKnown() || cmkRaw.IsNull() || cmkRaw.LengthInt() == 0 {
 		return nil
 	}
 
-	customerManagedKey := customerManagedKeyRaw[0].(map[string]interface{})
-	if customerManagedKey["user_assigned_identity_id"].(string) == "" {
+	uaiRaw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("customer_managed_key.0.user_assigned_identity_id"))
+	if diags.HasError() {
+		return nil
+	}
+	// Defer to apply time when the value is unknown (e.g. a reference to another resource).
+	if !uaiRaw.IsKnown() {
+		return nil
+	}
+	if uaiRaw.IsNull() || uaiRaw.AsString() == "" {
 		return fmt.Errorf("`customer_managed_key.0.user_assigned_identity_id` must be specified when `identity` is `UserAssigned`")
 	}
 
