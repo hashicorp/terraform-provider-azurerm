@@ -292,11 +292,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     host_encryption_enabled = true
     upgrade_settings {}
   }
-	network_profile {
-		load_balancer_profile {}
-		nat_gateway_profile {}
-		web_app_routing {}
-	}
+  network_profile {
+    load_balancer_profile {}
+    nat_gateway_profile {}
+    web_app_routing {}
+  }
 
   identity {
     type = "SystemAssigned"
