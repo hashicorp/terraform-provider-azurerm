@@ -236,7 +236,7 @@ The following arguments are supported:
 
 -> **Note:** The default `sku_name` value may differ between Azure locations depending on local availability of Gen4/Gen5 capacity. When databases are replicated using the `creation_source_database_id` property, the source (primary) database cannot have a higher SKU service tier than any secondary databases. When changing the `sku_name` of a database having one or more secondary databases, this resource will first update any secondary databases as necessary. In such cases it's recommended to use the same `sku_name` in your configuration for all related databases, as not doing so may cause an unresolvable diff during subsequent plans.
 
-* `free_limit_enabled` - (Optional) Should the Azure SQL Database free offer be enabled for this database? Defaults to `false`.
+* `free_limit_enabled` - (Optional) Whether the Azure SQL Database free offer is enabled for this database. Defaults to `false`.
 
 ~> **Note:** `free_limit_enabled` can only be set to `true` when `sku_name` is a serverless General Purpose SKU (for example `GP_S_Gen5_2`).
 
@@ -244,7 +244,7 @@ The following arguments are supported:
 
 * `free_limit_exhaustion_behavior` - (Optional) Specifies the behavior of the database when the monthly free offer allocation is exhausted. Possible values are `AutoPause` and `BillOverUsage`.
 
-~> **Note:** `free_limit_exhaustion_behavior` can only be set when `free_limit_enabled` is `true`.
+~> **Note:** `free_limit_exhaustion_behavior` can only be configured when `free_limit_enabled` is set to `true`.
 
 * `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Possible values are `Geo`, `GeoZone`, `Local` and `Zone`. Defaults to `Geo`.
 
