@@ -58,9 +58,20 @@ func (c ManagedClustersClient) Start(ctx context.Context, id commonids.Kubernete
 
 // StartThenPoll performs Start then polls until it's completed
 func (c ManagedClustersClient) StartThenPoll(ctx context.Context, id commonids.KubernetesClusterId) error {
+	return c.StartCallbackThenPoll(ctx, id, nil)
+}
+
+// StartCallbackThenPoll performs Start, runs the optional callback function, then polls until it's completed
+func (c ManagedClustersClient) StartCallbackThenPoll(ctx context.Context, id commonids.KubernetesClusterId, callback func() error) error {
 	result, err := c.Start(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Start: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

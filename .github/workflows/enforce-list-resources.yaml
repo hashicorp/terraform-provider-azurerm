@@ -1,0 +1,54 @@
+---
+name: Enforce List Resource for New Resources
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    types: ['opened', 'synchronize', 'labeled', 'unlabeled']
+    paths:
+      - '.github/workflows/enforce-list-resources.yaml'
+      - 'scripts/enforce-list-for-new-resources.sh'
+      - 'internal/services/**/*_resource.go'
+
+concurrency:
+  group: 'enforce-list-${{ github.head_ref }}'
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'allow-without-list') && !contains(github.event.pull_request.labels.*.name, 'list-not-supported') }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - run: bash scripts/enforce-list-for-new-resources.sh
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::New resource(s) detected without a list implementation."
+          echo ""
+          echo "Every new resource must include a *_resource_list.go file and be"
+          echo "registered in the service's ListResources() method."
+          echo ""
+          echo "For detailed instructions, see the contributor guide:"
+          echo "  https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/guide-list-resource.md"
+          echo ""
+          echo "If this resource cannot support listing, please explain why in the PR"
+          echo "description and a maintainer will apply the 'allow-without-list' or"
+          echo "'list-not-supported' label to skip this check."
+  save-artifacts-on-fail:
+    needs: check
+    if: ${{ failure() }}
+    uses: ./.github/workflows/save-artifacts.yaml
+  comment-on-fail:
+    needs: check
+    if: ${{ failure() }}
+    uses: ./.github/workflows/comment-ci-failure.yaml
+  comment-outdated-on-pass:
+    needs: check
+    if: ${{ success() }}
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml

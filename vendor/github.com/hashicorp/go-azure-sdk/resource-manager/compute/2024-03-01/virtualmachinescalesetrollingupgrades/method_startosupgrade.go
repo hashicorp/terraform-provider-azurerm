@@ -57,9 +57,20 @@ func (c VirtualMachineScaleSetRollingUpgradesClient) StartOSUpgrade(ctx context.
 
 // StartOSUpgradeThenPoll performs StartOSUpgrade then polls until it's completed
 func (c VirtualMachineScaleSetRollingUpgradesClient) StartOSUpgradeThenPoll(ctx context.Context, id VirtualMachineScaleSetId) error {
+	return c.StartOSUpgradeCallbackThenPoll(ctx, id, nil)
+}
+
+// StartOSUpgradeCallbackThenPoll performs StartOSUpgrade, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineScaleSetRollingUpgradesClient) StartOSUpgradeCallbackThenPoll(ctx context.Context, id VirtualMachineScaleSetId, callback func() error) error {
 	result, err := c.StartOSUpgrade(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing StartOSUpgrade: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

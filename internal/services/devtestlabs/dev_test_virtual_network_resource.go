@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -150,19 +151,19 @@ func resourceArmDevTestVirtualNetworkCreate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
-
 	id := virtualnetworks.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, virtualnetworks.GetOperationOptions{})
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, virtualnetworks.GetOperationOptions{})
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_dev_test_virtual_network", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dev_test_virtual_network", id.ID())
+		}
 	}
 
 	description := d.Get("description").(string)
@@ -177,7 +178,7 @@ func resourceArmDevTestVirtualNetworkCreate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -236,7 +237,6 @@ func resourceArmDevTestVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
 	id, err := virtualnetworks.ParseVirtualNetworkID(d.Id())
 	if err != nil {
 		return err
@@ -308,7 +308,8 @@ func resourceArmDevTestVirtualNetworkDelete(d *pluginsdk.ResourceData, meta inte
 func ValidateDevTestVirtualNetworkName() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[A-Za-z0-9_-]+$"),
-		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.")
+		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.",
+	)
 }
 
 func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, resourceGroupName, virtualNetworkName string) *[]virtualnetworks.SubnetOverride {

@@ -396,6 +396,8 @@ A `rules` block supports the following:
 
 * `authentication` - (Optional) A `authentication` block as defined below.
 
+* `identity_id` - (Optional) The ID of the identity used to authenticate with the scale rule backend. This can either be the Resource ID of a User Assigned Identity, or `System` for the System Assigned Identity.
+
 ---
 
 A `authentication` block supports the following:
