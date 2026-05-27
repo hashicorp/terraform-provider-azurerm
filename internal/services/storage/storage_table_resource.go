@@ -378,11 +378,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 	if model := existing.Model; model != nil {
 		if prop := model.Properties; prop != nil {
 			if acls := prop.SignedIdentifiers; acls != nil {
-				acl, err := flattenStorageTableACLs(*acls)
-				if err != nil {
-					return fmt.Errorf("flattening `acl`: %v", err)
-				}
-				if err := d.Set("acl", acl); err != nil {
+				if err := d.Set("acl", flattenStorageTableACLs(*acls)); err != nil {
 					return fmt.Errorf("setting `acl`: %s", err)
 				}
 			}
@@ -578,24 +574,21 @@ func expandStorageTableACLsDeprecated(input []interface{}) []tables.SignedIdenti
 	return results
 }
 
-func flattenStorageTableACLs(input []tableservice.TableSignedIdentifier) ([]interface{}, error) {
+func flattenStorageTableACLs(input []tableservice.TableSignedIdentifier) []interface{} {
 	result := make([]interface{}, 0)
 	for _, v := range input {
 		var startTime, expiryTime string
-		var err error
 		if policy := v.AccessPolicy; policy != nil {
 			if policy.StartTime != nil {
 				startTime = *policy.StartTime
-				startTime, err = convertTimeFormat(startTime)
-				if err != nil {
-					return nil, err
+				if v, err := convertTimeFormat(startTime); err == nil {
+					startTime = v
 				}
 			}
 			if policy.ExpiryTime != nil {
 				expiryTime = *policy.ExpiryTime
-				expiryTime, err = convertTimeFormat(expiryTime)
-				if err != nil {
-					return nil, err
+				if v, err := convertTimeFormat(expiryTime); err == nil {
+					expiryTime = v
 				}
 			}
 		}
@@ -613,7 +606,7 @@ func flattenStorageTableACLs(input []tableservice.TableSignedIdentifier) ([]inte
 		result = append(result, output)
 	}
 
-	return result, nil
+	return result
 }
 
 func flattenStorageTableACLsDeprecated(input *[]tables.SignedIdentifier) []interface{} {

@@ -216,11 +216,7 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 
 			if respModel := resp.Model; respModel != nil {
 				if props := respModel.Properties; props != nil {
-					acl, err := flattenStorageTableACLsWithMetadata(props.SignedIdentifiers)
-					if err != nil {
-						return fmt.Errorf("flattening `acl`: %v", err)
-					}
-					model.ACL = acl
+					model.ACL = flattenStorageTableACLsWithMetadata(props.SignedIdentifiers)
 				}
 			}
 
@@ -251,28 +247,25 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenStorageTableACLsWithMetadata(acls *[]tableservice.TableSignedIdentifier) ([]ACLModel, error) {
+func flattenStorageTableACLsWithMetadata(acls *[]tableservice.TableSignedIdentifier) []ACLModel {
 	if acls == nil {
-		return []ACLModel{}, nil
+		return []ACLModel{}
 	}
 
 	output := make([]ACLModel, 0, len(*acls))
 	for _, acl := range *acls {
 		var startTime, expiryTime, permission string
-		var err error
 		if policy := acl.AccessPolicy; policy != nil {
 			if policy.StartTime != nil {
 				startTime = *policy.StartTime
-				startTime, err = convertTimeFormat(startTime)
-				if err != nil {
-					return nil, err
+				if v, err := convertTimeFormat(startTime); err == nil {
+					startTime = v
 				}
 			}
 			if policy.ExpiryTime != nil {
 				expiryTime = *policy.ExpiryTime
-				expiryTime, err = convertTimeFormat(expiryTime)
-				if err != nil {
-					return nil, err
+				if v, err := convertTimeFormat(expiryTime); err == nil {
+					expiryTime = v
 				}
 			}
 			permission = policy.Permission
@@ -291,7 +284,7 @@ func flattenStorageTableACLsWithMetadata(acls *[]tableservice.TableSignedIdentif
 		})
 	}
 
-	return output, nil
+	return output
 }
 
 func flattenStorageTableACLsWithMetadataDeprecated(acls *[]tables.SignedIdentifier) []ACLModel {
