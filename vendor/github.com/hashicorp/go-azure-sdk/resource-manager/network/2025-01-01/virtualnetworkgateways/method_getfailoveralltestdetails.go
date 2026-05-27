@@ -91,9 +91,20 @@ func (c VirtualNetworkGatewaysClient) GetFailoverAllTestDetails(ctx context.Cont
 
 // GetFailoverAllTestDetailsThenPoll performs GetFailoverAllTestDetails then polls until it's completed
 func (c VirtualNetworkGatewaysClient) GetFailoverAllTestDetailsThenPoll(ctx context.Context, id VirtualNetworkGatewayId, options GetFailoverAllTestDetailsOperationOptions) error {
+	return c.GetFailoverAllTestDetailsCallbackThenPoll(ctx, id, options, nil)
+}
+
+// GetFailoverAllTestDetailsCallbackThenPoll performs GetFailoverAllTestDetails, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) GetFailoverAllTestDetailsCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, options GetFailoverAllTestDetailsOperationOptions, callback func() error) error {
 	result, err := c.GetFailoverAllTestDetails(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing GetFailoverAllTestDetails: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

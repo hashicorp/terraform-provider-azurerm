@@ -269,18 +269,21 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 			}
 			cluster.Tags = &tagsMap
 
-			existing, err := clusterClient.Get(ctx, managedClusterId)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("while checking if cluster %q already exists: %+v", managedClusterId.String(), err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := clusterClient.Get(ctx, managedClusterId)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("while checking if cluster %q already exists: %+v", managedClusterId.String(), err)
+					}
+				} else {
+					return metadata.ResourceRequiresImport("azurerm_service_fabric_managed_cluster", managedClusterId)
 				}
-			} else {
-				return metadata.ResourceRequiresImport("azurerm_service_fabric_managed_cluster", managedClusterId)
 			}
 
-			if err := clusterClient.CreateOrUpdateThenPoll(ctx, managedClusterId, cluster); err != nil {
+			if err := clusterClient.CreateOrUpdateCallbackThenPoll(ctx, managedClusterId, cluster, metadata.SetIDCallback(&managedClusterId)); err != nil {
 				return fmt.Errorf("creating %s: %+v", managedClusterId, err)
 			}
+			metadata.SetID(managedClusterId)
 
 			toDelete := make([]string, 0)
 			if metadata.ResourceData.HasChange("node_type") {
@@ -331,7 +334,6 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(managedClusterId)
 			return nil
 		},
 

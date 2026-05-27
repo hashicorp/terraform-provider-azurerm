@@ -59,11 +59,11 @@ func (c VirtualMachineScaleSetsClient) ScaleOut(ctx context.Context, id VirtualM
 	return
 }
 
-// ScaleOutThenPoll performs ScaleOut then polls until it's completed
-func (c VirtualMachineScaleSetsClient) ScaleOutThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input VMScaleSetScaleOutInput) error {
-	result, err := c.ScaleOut(ctx, id, input)
+// CancelThenPoll performs Cancel then polls until it's completed
+func (c VirtualMachineScaleSetRollingUpgradesClient) CancelThenPoll(ctx context.Context, id VirtualMachineScaleSetId) error {
+	result, err := c.Cancel(ctx, id)
 	if err != nil {
-		return fmt.Errorf("performing ScaleOut: %+v", err)
+		return fmt.Errorf("performing Cancel: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

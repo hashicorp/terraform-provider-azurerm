@@ -358,23 +358,25 @@ func (m DeploymentResource) ResourceType() string {
 func (m DeploymentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxDeployment
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Nginx.NginxDeployment
 
 			var model DeploymentModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			id := nginxdeployment.NewNginxDeploymentID(subscriptionID, model.ResourceGroupName, model.Name)
-			existing, err := client.DeploymentsGet(ctx, id)
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.DeploymentsGet(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
 			req := nginxdeployment.NginxDeployment{}
@@ -463,17 +465,17 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			req.Properties = prop
 
-			req.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding identities: %+v", err)
 			}
+			req.Identity = expandedIdentity
 
-			err = client.DeploymentsCreateOrUpdateThenPoll(ctx, id, req)
-			if err != nil {
+			if err := client.DeploymentsCreateOrUpdateCallbackThenPoll(ctx, id, req, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}

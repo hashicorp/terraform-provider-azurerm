@@ -83,13 +83,15 @@ func (r ApiManagementWorkspacePolicyResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, *workspaceId, workspacepolicy.GetOperationOptions{})
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", *workspaceId, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, *workspaceId, workspacepolicy.GetOperationOptions{})
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", *workspaceId, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), *workspaceId)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), *workspaceId)
+				}
 			}
 
 			parameters := workspacepolicy.PolicyContract{}

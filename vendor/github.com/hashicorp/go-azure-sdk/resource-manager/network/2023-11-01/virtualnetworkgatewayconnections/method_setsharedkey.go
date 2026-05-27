@@ -62,9 +62,20 @@ func (c VirtualNetworkGatewayConnectionsClient) SetSharedKey(ctx context.Context
 
 // SetSharedKeyThenPoll performs SetSharedKey then polls until it's completed
 func (c VirtualNetworkGatewayConnectionsClient) SetSharedKeyThenPoll(ctx context.Context, id ConnectionId, input ConnectionSharedKey) error {
+	return c.SetSharedKeyCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SetSharedKeyCallbackThenPoll performs SetSharedKey, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewayConnectionsClient) SetSharedKeyCallbackThenPoll(ctx context.Context, id ConnectionId, input ConnectionSharedKey, callback func() error) error {
 	result, err := c.SetSharedKey(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SetSharedKey: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

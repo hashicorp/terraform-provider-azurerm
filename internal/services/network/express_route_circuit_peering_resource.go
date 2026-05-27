@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -248,15 +250,17 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta in
 	locks.ByName(id.CircuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(id.CircuitName, expressRouteCircuitResourceName)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_express_route_circuit_peering", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_express_route_circuit_peering", id.ID())
+		}
 	}
 
 	primaryPeerAddressPrefix := d.Get("primary_peer_address_prefix").(string)
@@ -336,7 +340,7 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta in
 	}
 	parameters.Properties.IPv6PeeringConfig = ipv6PeeringConfig
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
