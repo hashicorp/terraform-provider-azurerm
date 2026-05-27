@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
@@ -26,7 +25,6 @@ type NextGenerationFirewallMetricsModel struct {
 	FirewallID                          string `tfschema:"firewall_id"`
 	ApplicationInsightsConnectionString string `tfschema:"application_insights_connection_string"`
 	ApplicationInsightsResourceID       string `tfschema:"application_insights_resource_id"`
-	PanEtag                             string `tfschema:"pan_etag"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallMetricsResource{}
@@ -63,12 +61,7 @@ func (r NextGenerationFirewallMetricsResource) Arguments() map[string]*schema.Sc
 }
 
 func (r NextGenerationFirewallMetricsResource) Attributes() map[string]*schema.Schema {
-	return map[string]*pluginsdk.Schema{
-		"pan_etag": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r NextGenerationFirewallMetricsResource) Create() sdk.ResourceFunc {
@@ -92,7 +85,7 @@ func (r NextGenerationFirewallMetricsResource) Create() sdk.ResourceFunc {
 			existing, err := client.MetricsObjectFirewallGet(ctx, metricsFirewallId)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing Metrics for %s: %+v", metricsFirewallId, err)
+					return fmt.Errorf("checking for presence of existing %s: %+v", metricsFirewallId, err)
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -135,7 +128,7 @@ func (r NextGenerationFirewallMetricsResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(firewallId)
 				}
-				return fmt.Errorf("reading Metrics for %s: %+v", metricsFirewallId, err)
+				return fmt.Errorf("retrieving %s: %+v", metricsFirewallId, err)
 			}
 
 			state := NextGenerationFirewallMetricsModel{
@@ -150,7 +143,6 @@ func (r NextGenerationFirewallMetricsResource) Read() sdk.ResourceFunc {
 					state.ApplicationInsightsConnectionString = props.ApplicationInsightsConnectionString
 				}
 				state.ApplicationInsightsResourceID = props.ApplicationInsightsResourceId
-				state.PanEtag = pointer.From(props.PanEtag)
 			}
 
 			return metadata.Encode(&state)
@@ -178,11 +170,11 @@ func (r NextGenerationFirewallMetricsResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.MetricsObjectFirewallGet(ctx, metricsFirewallId)
 			if err != nil {
-				return fmt.Errorf("retrieving Metrics for %s: %+v", metricsFirewallId, err)
+				return fmt.Errorf("retrieving %s: %+v", metricsFirewallId, err)
 			}
 
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving Metrics for %s: `model` was nil", metricsFirewallId)
+				return fmt.Errorf("retrieving %s: `model` was nil", metricsFirewallId)
 			}
 
 			update := *existing.Model

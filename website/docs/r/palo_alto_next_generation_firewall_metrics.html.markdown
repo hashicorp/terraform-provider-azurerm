@@ -161,8 +161,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Palo Alto Next Generation Firewall Metrics configuration. This is the same as the `firewall_id`.
 
-* `pan_etag` - A read-only string representing the last create or update operation on this resource.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
