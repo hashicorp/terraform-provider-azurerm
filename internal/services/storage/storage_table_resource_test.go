@@ -224,7 +224,7 @@ func TestAccStorageTable_migrateFromStorageIDShouldFail(t *testing.T) {
 }
 
 func (r StorageTableResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	if !features.FivePointOh() && !strings.HasPrefix(state.ID, "/subscriptions") {
+	if !features.FivePointOh() && !strings.HasPrefix(state.ID, "/subscriptions/") {
 		id, err := tables.ParseTableID(state.ID, client.Storage.StorageDomainSuffix)
 		if err != nil {
 			return nil, err
@@ -257,7 +257,7 @@ func (r StorageTableResource) Exists(ctx context.Context, client *clients.Client
 }
 
 func (r StorageTableResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	if !features.FivePointOh() && !strings.HasPrefix(state.ID, "/subscriptions") {
+	if !features.FivePointOh() && !strings.HasPrefix(state.ID, "/subscriptions/") {
 		id, err := tables.ParseTableID(state.ID, client.Storage.StorageDomainSuffix)
 		if err != nil {
 			return nil, err
@@ -292,7 +292,7 @@ func (r StorageTableResource) Destroy(ctx context.Context, client *clients.Clien
 		return nil, err
 	}
 	if _, err := client.Storage.ResourceManager.Tables.TableDelete(ctx, *id); err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return pointer.To(true), nil

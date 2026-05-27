@@ -251,14 +251,16 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	id := tableservice.NewTableID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, tableName)
 
-	existing, err := tableClient.TableGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %q: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := tableClient.TableGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %q: %v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_table", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_table", id.ID())
+		}
 	}
 
 	payload := tableservice.Table{
@@ -577,8 +579,9 @@ func expandStorageTableACLsDeprecated(input []interface{}) []tables.SignedIdenti
 func flattenStorageTableACLs(input []tableservice.TableSignedIdentifier) []interface{} {
 	result := make([]interface{}, 0)
 	for _, v := range input {
-		var startTime, expiryTime string
+		var startTime, expiryTime, permission string
 		if policy := v.AccessPolicy; policy != nil {
+			permission = policy.Permission
 			if policy.StartTime != nil {
 				startTime = *policy.StartTime
 				if v, err := convertTimeFormat(startTime); err == nil {
@@ -598,7 +601,7 @@ func flattenStorageTableACLs(input []tableservice.TableSignedIdentifier) []inter
 				map[string]interface{}{
 					"start":       startTime,
 					"expiry":      expiryTime,
-					"permissions": v.AccessPolicy.Permission,
+					"permissions": permission,
 				},
 			},
 		}
