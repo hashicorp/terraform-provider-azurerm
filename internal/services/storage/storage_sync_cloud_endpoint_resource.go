@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -93,14 +94,17 @@ func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	id := cloudendpointresource.NewCloudEndpointID(groupId.SubscriptionId, groupId.ResourceGroupName, groupId.StorageSyncServiceName, groupId.SyncGroupName, d.Get("name").(string))
-	existing, err := client.CloudEndpointsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.CloudEndpointsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_sync_cloud_endpoint", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_sync_cloud_endpoint", id.ID())
+		}
 	}
 
 	parameters := cloudendpointresource.CloudEndpointCreateParameters{
@@ -116,7 +120,7 @@ func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta inte
 	}
 	parameters.Properties.StorageAccountTenantId = &tenantId
 
-	if err := client.CloudEndpointsCreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CloudEndpointsCreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

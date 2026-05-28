@@ -61,9 +61,20 @@ func (c VirtualMachineScaleSetsClient) ReimageAll(ctx context.Context, id Virtua
 
 // ReimageAllThenPoll performs ReimageAll then polls until it's completed
 func (c VirtualMachineScaleSetsClient) ReimageAllThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input VirtualMachineScaleSetVMInstanceIDs) error {
+	return c.ReimageAllCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ReimageAllCallbackThenPoll performs ReimageAll, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineScaleSetsClient) ReimageAllCallbackThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input VirtualMachineScaleSetVMInstanceIDs, callback func() error) error {
 	result, err := c.ReimageAll(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ReimageAll: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

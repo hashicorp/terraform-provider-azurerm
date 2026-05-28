@@ -145,14 +145,17 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 
 	id := parse.NewResourceGroupTemplateDeploymentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Template Deployment %q (Resource Group %q): %+v", id.ResourceGroup, id.DeploymentName, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Template Deployment %q (Resource Group %q): %+v", id.ResourceGroup, id.DeploymentName, err)
+			}
 		}
-	}
-	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID())
+
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID())
+		}
 	}
 
 	deployment := resources.Deployment{
@@ -197,12 +200,13 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("creating Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
 	}
 
+	d.SetId(id.ID())
+
 	log.Printf("[DEBUG] Waiting for deployment of Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceGroupTemplateDeploymentResourceRead(d, meta)
 }
 

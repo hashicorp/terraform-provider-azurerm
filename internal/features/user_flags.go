@@ -4,6 +4,9 @@
 package features
 
 type UserFeatures struct {
+	PersistIDOnCreateBeforePollingForCompletion                 bool
+	SkipImportCheckOnCreateAndAllowOverwritingExistingResources bool
+
 	ApiManagement            ApiManagementFeatures
 	AppConfiguration         AppConfigurationFeatures
 	ApplicationInsights      ApplicationInsightFeatures

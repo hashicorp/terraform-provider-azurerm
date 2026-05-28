@@ -126,8 +126,10 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("unexpected null model of %s", *id)
 			}
 
-			if !response.WasNotFound(resp.HttpResponse) && resp.Model.Value != nil && len(*resp.Model.Value) != 0 && *(*resp.Model.Value)[0].ConfigurationIds != nil && len(*(*resp.Model.Value)[0].ConfigurationIds) != 0 {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if !response.WasNotFound(resp.HttpResponse) && resp.Model.Value != nil && len(*resp.Model.Value) != 0 && *(*resp.Model.Value)[0].ConfigurationIds != nil && len(*(*resp.Model.Value)[0].ConfigurationIds) != 0 {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := networkmanagers.NetworkManagerCommit{
@@ -136,17 +138,9 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				CommitType:       networkmanagers.ConfigurationType(state.ScopeAccess),
 			}
 
-			if _, err := client.NetworkManagerCommitsPost(ctx, *networkManagerId, input); err != nil {
+			// TODO: implement callback, requires migrating to an ID implementing `resourceids.ResourceId`
+			if err := client.NetworkManagerCommitsPostThenPoll(ctx, *networkManagerId, input); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-
-			if err = resourceManagerDeploymentWaitForFinished(ctx, client, id, time.Until(deadline)); err != nil {
-				return err
 			}
 
 			metadata.SetID(id)

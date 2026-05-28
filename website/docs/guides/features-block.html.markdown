@@ -8,7 +8,7 @@ Azure Resource Manager: The Features Block
 
 # The Features Block
 
-The Azure Provider allows the behaviour of certain resources to be configured using the `features` block.
+The Azure Provider allows users to configure the behaviour of certain functionalities using the `features` block.
 
 This allows different users to select the behaviour they require, for example some users may wish for the OS Disks for a Virtual Machine to be removed automatically when the Virtual Machine is destroyed - whereas other users may wish for these OS Disks to be detached but not deleted.
 
@@ -27,6 +27,9 @@ Each of the blocks defined below can be optionally specified to configure the be
 ```hcl
 provider "azurerm" {
   features {
+    persist_id_on_create_before_polling_for_completion                   = true
+    skip_import_check_on_create_and_allow_overwriting_existing_resources = true
+
     api_management {
       purge_soft_delete_on_destroy = true
       recover_soft_deleted         = true
@@ -122,6 +125,14 @@ provider "azurerm" {
 ## Arguments Reference
 
 The `features` block supports the following:
+
+* `persist_id_on_create_before_polling_for_completion` - (Optional) Whether to set the resource ID into state before polling asynchronous operations for completion. Defaults to `false`.
+
+~> **Note:** A deployment failure taints the resource, and in most cases a subsequent run would replace it. However, in rare cases, this could lead to Terraform tracking failed resources in state that cannot be deleted via the API, which may require manual clean up and/or state manipulation.
+
+* `skip_import_check_on_create_and_allow_overwriting_existing_resources` - (Optional) Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.
+
+!> **Note:** The majority of the resources within this provider use `PUT` operations for creation, meaning enabling `skip_import_check_on_create_and_allow_overwriting_existing_resources` could lead to Terraform overwriting existing resources without any warning. Use this at your own risk.
 
 * `api_management` - (Optional) An `api_management` block as defined below.
 

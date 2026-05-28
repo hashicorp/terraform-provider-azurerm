@@ -62,9 +62,20 @@ func (c DeploymentsClient) WhatIf(ctx context.Context, id ResourceGroupProviderD
 
 // WhatIfThenPoll performs WhatIf then polls until it's completed
 func (c DeploymentsClient) WhatIfThenPoll(ctx context.Context, id ResourceGroupProviderDeploymentId, input DeploymentWhatIf) error {
+	return c.WhatIfCallbackThenPoll(ctx, id, input, nil)
+}
+
+// WhatIfCallbackThenPoll performs WhatIf, runs the optional callback function, then polls until it's completed
+func (c DeploymentsClient) WhatIfCallbackThenPoll(ctx context.Context, id ResourceGroupProviderDeploymentId, input DeploymentWhatIf, callback func() error) error {
 	result, err := c.WhatIf(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing WhatIf: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

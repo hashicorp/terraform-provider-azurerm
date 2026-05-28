@@ -101,7 +101,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Create() sdk.Resourc
 					Value: model.Value,
 				},
 			}
-			if err := client.UpdateOnCoordinatorThenPoll(ctx, id, parameters); err != nil {
+			if err := client.UpdateOnCoordinatorCallbackThenPoll(ctx, id, parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
