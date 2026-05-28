@@ -373,7 +373,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("storage_account_id", commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID())
 
 	if !features.FivePointOh() {
-		d.Set("resource_manager_id", id.String())
+		d.Set("resource_manager_id", id.ID())
 		d.Set("storage_account_name", "")
 	}
 
