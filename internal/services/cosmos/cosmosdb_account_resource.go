@@ -159,7 +159,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				// fires on creation for `kind = "GlobalDocumentDB"`.
 				if diff.Id() == "" && diff.Get("analytical_storage_enabled").(bool) &&
 					strings.EqualFold(kind, string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)) {
-					return fmt.Errorf("`analytical_storage_enabled` cannot be set to `true` when creating a new `azurerm_cosmosdb_account` with `kind = \"GlobalDocumentDB\"`: the Azure Cosmos DB service no longer allows enabling Analytical Storage / Synapse Link on new SQL API accounts. See the `analytical_storage_enabled` argument in the resource documentation for migration guidance")
+					return fmt.Errorf("`analytical_storage_enabled` cannot be set to `true` when creating a new `azurerm_cosmosdb_account` with `kind = %q`", kind)
 				}
 
 				// The Cosmos DB service also rejects enabling Analytical Storage / Synapse Link on an
@@ -170,7 +170,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 					strings.EqualFold(kind, string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)) {
 					oldVal, newVal := diff.GetChange("analytical_storage_enabled")
 					if !oldVal.(bool) && newVal.(bool) {
-						return fmt.Errorf("`analytical_storage_enabled` cannot be changed from `false` to `true` on an existing `azurerm_cosmosdb_account` with `kind = \"GlobalDocumentDB\"`: the Azure Cosmos DB service no longer allows enabling Analytical Storage / Synapse Link on SQL API accounts. See the `analytical_storage_enabled` argument in the resource documentation for migration guidance")
+						return fmt.Errorf("`analytical_storage_enabled` cannot be changed from `false` to `true` on an existing `azurerm_cosmosdb_account` with `kind = %q`", kind)
 					}
 				}
 				return nil
