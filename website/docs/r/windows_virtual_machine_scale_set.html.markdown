@@ -133,6 +133,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined below.
 
+* `disk_controller_type` - (Optional) Specifies the Disk Controller Type used for the Virtual Machines in this Scale Set. Possible values are `SCSI` and `NVMe`. Changing this forces a new resource to be created.
+
 * `do_not_run_extensions_on_overprovisioned_machines` - (Optional) Should Virtual Machine Extensions be run on Overprovisioned Virtual Machines in the Scale Set? Defaults to `false`.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Windows Virtual Machine Scale Set should exist. Changing this forces a new Windows Virtual Machine Scale Set to be created.

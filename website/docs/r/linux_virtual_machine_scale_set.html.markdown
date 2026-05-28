@@ -150,6 +150,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **Note:** When a `admin_password` is specified `disable_password_authentication` must be set to `false`.
 
+* `disk_controller_type` - (Optional) Specifies the Disk Controller Type used for the Virtual Machines in this Scale Set. Possible values are `SCSI` and `NVMe`. Changing this forces a new resource to be created.
+
 * `do_not_run_extensions_on_overprovisioned_machines` - (Optional) Should Virtual Machine Extensions be run on Overprovisioned Virtual Machines in the Scale Set? Defaults to `false`.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Linux Virtual Machine Scale Set should exist. Changing this forces a new Linux Virtual Machine Scale Set to be created.

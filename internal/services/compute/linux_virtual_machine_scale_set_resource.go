@@ -263,6 +263,10 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
+	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
+		virtualMachineProfile.StorageProfile.DiskControllerType = pointer.To(virtualmachinescalesets.DiskControllerTypes(diskControllerType.(string)))
+	}
+
 	hasHealthExtension := false
 	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
 		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.(*pluginsdk.Set).List())
@@ -958,6 +962,8 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				d.Set("priority", priority)
 
 				if storageProfile := profile.StorageProfile; storageProfile != nil {
+					d.Set("disk_controller_type", string(pointer.From(storageProfile.DiskControllerType)))
+
 					if err := d.Set("os_disk", FlattenVirtualMachineScaleSetOSDisk(storageProfile.OsDisk)); err != nil {
 						return fmt.Errorf("setting `os_disk`: %+v", err)
 					}
@@ -1235,6 +1241,18 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		},
+
+		"disk_controller_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C Azure may return a default value for some SKUs, so we need to mark this as computed to avoid diffs in that scenario
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(virtualmachinescalesets.DiskControllerTypesNVMe),
+				string(virtualmachinescalesets.DiskControllerTypesSCSI),
+			}, false),
 		},
 
 		"do_not_run_extensions_on_overprovisioned_machines": {
