@@ -508,11 +508,6 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				f.RecoveryService.FileShareBackupStopProtectionAndRetainDataOnDestroy = feature[0].FileShareBackupStopProtectionAndRetainDataOnDestroy.ValueBool()
 			}
 
-			f.RecoveryService.FileShareBackupSuspendProtectionAndRetainDataOnDestroy = false
-			if !feature[0].FileShareBackupSuspendProtectionAndRetainDataOnDestroy.IsNull() && !feature[0].FileShareBackupSuspendProtectionAndRetainDataOnDestroy.IsUnknown() {
-				f.RecoveryService.FileShareBackupSuspendProtectionAndRetainDataOnDestroy = feature[0].FileShareBackupSuspendProtectionAndRetainDataOnDestroy.ValueBool()
-			}
-
 			f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = false
 			if !feature[0].PurgeProtectedItemsFromVaultOnDestroy.IsNull() && !feature[0].PurgeProtectedItemsFromVaultOnDestroy.IsUnknown() {
 				f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = feature[0].PurgeProtectedItemsFromVaultOnDestroy.ValueBool()

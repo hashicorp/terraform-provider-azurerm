@@ -490,9 +490,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"vm_backup_suspend_protection_and_retain_data_on_destroy": schema.BoolAttribute{
 										Optional: true,
 									},
-									"file_share_backup_suspend_protection_and_retain_data_on_destroy": schema.BoolAttribute{
-										Optional: true,
-									},
 									"file_share_backup_stop_protection_and_retain_data_on_destroy": schema.BoolAttribute{
 										Optional: true,
 									},

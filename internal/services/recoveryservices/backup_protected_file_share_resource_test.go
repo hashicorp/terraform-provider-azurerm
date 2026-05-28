@@ -111,27 +111,6 @@ func TestAccBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
 	})
 }
 
-func TestAccBackupProtectedFileShare_suspendAndRetainData(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
-	r := BackupProtectedFileShareResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			// vault cannot be deleted unless we unregister all backups
-			Config: r.protectionSuspendOnDestroy(data),
-			Check:  data.CheckWithClientWithoutResource(r.checkRetainedProtectionStateAndDelete(data, protecteditems.ProtectionStateBackupsSuspended)),
-		},
-	})
-}
-
 func TestAccBackupProtectedFileShare_stopAndRetainData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
 	r := BackupProtectedFileShareResource{}
@@ -493,26 +472,6 @@ resource "azurerm_backup_protected_file_share" "test1" {
   backup_policy_id          = azurerm_backup_policy_file_share.test.id
 }
 `, r.baseMultiple(data), data.RandomInteger)
-}
-
-func (r BackupProtectedFileShareResource) protectionSuspendOnDestroy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    recovery_service {
-      file_share_backup_suspend_protection_and_retain_data_on_destroy = true
-    }
-  }
-}
-
-%s
-
-resource "azurerm_backup_container_storage_account" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-  storage_account_id  = azurerm_storage_account.test.id
-}
-`, r.baseWithoutProvider(data))
 }
 
 func (r BackupProtectedFileShareResource) protectionStopOnDestroy(data acceptance.TestData) string {

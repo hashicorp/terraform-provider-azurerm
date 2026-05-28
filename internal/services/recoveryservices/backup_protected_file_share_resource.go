@@ -310,7 +310,7 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 
 	features := meta.(*clients.Client).Features.RecoveryService
 
-	if features.FileShareBackupStopProtectionAndRetainDataOnDestroy || features.FileShareBackupSuspendProtectionAndRetainDataOnDestroy {
+	if features.FileShareBackupStopProtectionAndRetainDataOnDestroy {
 		existing, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
 		if err != nil {
 			if response.WasNotFound(existing.HttpResponse) {
@@ -319,10 +319,7 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
-		targetState := protecteditems.ProtectionStateBackupsSuspended
-		if features.FileShareBackupStopProtectionAndRetainDataOnDestroy {
-			targetState = protecteditems.ProtectionStateProtectionStopped
-		}
+		targetState := protecteditems.ProtectionStateProtectionStopped
 
 		if existing.Model != nil && existing.Model.Properties != nil {
 			if item, ok := existing.Model.Properties.(protecteditems.AzureFileshareProtectedItem); ok {
