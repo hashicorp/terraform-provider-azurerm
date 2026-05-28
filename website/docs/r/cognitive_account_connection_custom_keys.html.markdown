@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
 
-* `category` - (Required) The category of the connection. Possible values include `AzureBlob`, `AzureOpenAI`, `CustomKeys`, and other supported connection categories. Changing this forces a new resource to be created.
+* `category` - (Required) The category of the connection. Possible values include `CustomKeys`. Changing this forces a new resource to be created.
 
 * `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
 
@@ -106,4 +106,4 @@ terraform import azurerm_cognitive_account_connection_custom_keys.example /subsc
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CognitiveServices` - 2025-06-01
+* `Microsoft.CognitiveServices` - 2026-03-01

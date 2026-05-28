@@ -12,16 +12,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/accountconnectionresource"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = CognitiveAccountConnectionEntraIDResource{}
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_connection_entra_id -properties "name" -compare-values "subscription_id:cognitive_account_id,resource_group_name:cognitive_account_id,account_name:cognitive_account_id" -test-name "basic" -test-expect-non-empty
+
+var (
+	_ sdk.ResourceWithUpdate   = CognitiveAccountConnectionEntraIDResource{}
+	_ sdk.ResourceWithIdentity = CognitiveAccountConnectionEntraIDResource{}
+)
 
 type CognitiveAccountConnectionEntraIDResource struct{}
+
+func (r CognitiveAccountConnectionEntraIDResource) Identity() resourceids.ResourceId {
+	return new(accountconnectionresource.ConnectionId)
+}
 
 func (r CognitiveAccountConnectionEntraIDResource) ResourceType() string {
 	return "azurerm_cognitive_account_connection_entra_id"
@@ -58,10 +68,14 @@ func (r CognitiveAccountConnectionEntraIDResource) Arguments() map[string]*plugi
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			ValidateFunc: validation.StringInSlice(
-				accountconnectionresource.PossibleValuesForConnectionCategory(),
-				false,
-			),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(accountconnectionresource.ConnectionCategoryAIServices),
+				string(accountconnectionresource.ConnectionCategoryAzureStorageAccount),
+				string(accountconnectionresource.ConnectionCategoryAzureOpenAI),
+				string(accountconnectionresource.ConnectionCategoryCognitiveSearch),
+				string(accountconnectionresource.ConnectionCategoryCosmosDb),
+				string(accountconnectionresource.ConnectionCategoryDatabricks),
+			}, false),
 		},
 
 		"metadata": {
@@ -126,6 +140,9 @@ func (r CognitiveAccountConnectionEntraIDResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -159,6 +176,10 @@ func (r CognitiveAccountConnectionEntraIDResource) Read() sdk.ResourceFunc {
 			state := CognitiveAccountConnectionEntraIDModel{
 				CognitiveAccountId: accountconnectionresource.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
 				Name:               id.ConnectionName,
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			if model := resp.Model; model != nil {

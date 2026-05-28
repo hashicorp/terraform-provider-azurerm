@@ -12,16 +12,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/accountconnectionresource"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = CognitiveAccountConnectionCustomKeysResource{}
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_connection_custom_keys -properties "name" -compare-values "subscription_id:cognitive_account_id,resource_group_name:cognitive_account_id,account_name:cognitive_account_id" -test-name "basic" -test-expect-non-empty
+
+var (
+	_ sdk.ResourceWithUpdate   = CognitiveAccountConnectionCustomKeysResource{}
+	_ sdk.ResourceWithIdentity = CognitiveAccountConnectionCustomKeysResource{}
+)
 
 type CognitiveAccountConnectionCustomKeysResource struct{}
+
+func (r CognitiveAccountConnectionCustomKeysResource) Identity() resourceids.ResourceId {
+	return new(accountconnectionresource.ConnectionId)
+}
 
 func (r CognitiveAccountConnectionCustomKeysResource) ResourceType() string {
 	return "azurerm_cognitive_account_connection_custom_keys"
@@ -56,13 +66,10 @@ func (r CognitiveAccountConnectionCustomKeysResource) Arguments() map[string]*pl
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&accountconnectionresource.AccountId{}),
 
 		"category": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice(
-				accountconnectionresource.PossibleValuesForConnectionCategory(),
-				false,
-			),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice([]string{string(accountconnectionresource.ConnectionCategoryCustomKeys)}, false),
 		},
 
 		"metadata": {
@@ -139,6 +146,9 @@ func (r CognitiveAccountConnectionCustomKeysResource) Create() sdk.ResourceFunc 
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -173,6 +183,10 @@ func (r CognitiveAccountConnectionCustomKeysResource) Read() sdk.ResourceFunc {
 				CognitiveAccountId: accountconnectionresource.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
 				Name:               id.ConnectionName,
 				CustomKeys:         currentState.CustomKeys,
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			if model := resp.Model; model != nil {

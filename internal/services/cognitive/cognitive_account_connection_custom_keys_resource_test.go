@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/accountconnectionresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -104,19 +104,7 @@ resource "azurerm_cognitive_account" "test" {
     type = "SystemAssigned"
   }
 }
-
-resource "azurerm_cognitive_account" "openai" {
-  name                = "acctest-openai-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "OpenAI"
-  sku_name            = "S0"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "Australia East")
 }
 
 func (r CognitiveAccountConnectionCustomKeysResource) basic(data acceptance.TestData) string {
@@ -126,6 +114,18 @@ provider "azurerm" {
 }
 
 %[1]s
+
+resource "azurerm_cognitive_account" "openai" {
+  name                = "acctest-openai-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "OpenAI"
+  sku_name            = "S0"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
 
 resource "azurerm_cognitive_account_connection_custom_keys" "test" {
   name                 = "acctest-conn-%[2]d"

@@ -1,18 +1,20 @@
 ---
 subcategory: "Cognitive Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cognitive_account_connection_api_key"
+page_title: "Azure Resource Manager: azurerm_cognitive_account_connection_account_managed_identity"
 description: |-
-  Manages a Cognitive Services (Microsoft Foundry) Account Connection with API Key authentication.
+  Manages a Cognitive Services (Microsoft Foundry) Account Connection with Account Managed Identity authentication.
 ---
 
-# azurerm_cognitive_account_connection_api_key
+# azurerm_cognitive_account_connection_account_managed_identity
 
-Manages a Cognitive Services (Microsoft Foundry) Account Connection with API Key authentication.
+Manages a Cognitive Services (Microsoft Foundry) Account Connection with Account Managed Identity authentication.
 
 ## Example Usage
 
 ```hcl
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -32,29 +34,24 @@ resource "azurerm_cognitive_account" "example" {
   }
 }
 
-resource "azurerm_cognitive_account" "openai" {
-  name                = "example-openai"
+resource "azurerm_key_vault" "example" {
+  name                = "examplekeyvaultacct"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  kind                = "OpenAI"
-  sku_name            = "S0"
-
-  identity {
-    type = "SystemAssigned"
-  }
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
 }
 
-resource "azurerm_cognitive_account_connection_api_key" "example" {
+resource "azurerm_cognitive_account_connection_account_managed_identity" "example" {
   name                 = "example-connection"
   cognitive_account_id = azurerm_cognitive_account.example.id
-  category             = "AzureOpenAI"
-  target               = azurerm_cognitive_account.openai.endpoint
-  api_key              = azurerm_cognitive_account.openai.primary_access_key
+  category             = "AzureKeyVault"
+  target               = azurerm_key_vault.example.id
 
   metadata = {
     apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai.id
-    location   = azurerm_cognitive_account.openai.location
+    resourceId = azurerm_key_vault.example.id
+    location   = azurerm_key_vault.example.location
   }
 }
 ```
@@ -67,13 +64,13 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
 
-* `category` - (Required) The category of the connection. Possible values include `AIServices`, `ApiKey`, `AppInsights`, `AzureOpenAI`, `CognitiveSearch`, `GroundingWithCustomSearch`, `OpenAI`, `Serp`, and `Serverless`. Changing this forces a new resource to be created.
+* `category` - (Required) The category of the connection. Possible values include `AzureKeyVault`. Changing this forces a new resource to be created.
 
 * `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
 
 * `target` - (Required) The target endpoint or resource for the connection.
 
-* `api_key` - (Required) The API key for authentication. This field is sensitive.
+~> **Note:** This authentication mode is intended for scenarios where the Foundry account's managed identity is used to access the target resource. The target resource must grant the required permissions to that identity.
 
 ## Attributes Reference
 
@@ -95,7 +92,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Cognitive Services Account Connections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cognitive_account_connection_api_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
+terraform import azurerm_cognitive_account_connection_account_managed_identity.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
 ```
 
 ## API Providers

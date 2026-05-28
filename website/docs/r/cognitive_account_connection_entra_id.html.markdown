@@ -32,29 +32,28 @@ resource "azurerm_cognitive_account" "example" {
   }
 }
 
-resource "azurerm_storage_account" "example" {
-  name                     = "examplesa"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+resource "azurerm_cognitive_account" "openai" {
+  name                = "example-openai"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  kind                = "OpenAI"
+  sku_name            = "S0"
 
-resource "azurerm_storage_container" "example" {
-  name                  = "examplecsc"
-  storage_account_id    = azurerm_storage_account.example.id
-  container_access_type = "private"
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_cognitive_account_connection_entra_id" "example" {
   name                 = "example-connection"
   cognitive_account_id = azurerm_cognitive_account.example.id
-  category             = "AzureBlob"
-  target               = azurerm_storage_account.example.primary_blob_endpoint
+  category             = "AzureOpenAI"
+  target               = azurerm_cognitive_account.openai.endpoint
 
   metadata = {
-    accountName   = azurerm_storage_account.example.name
-    containerName = azurerm_storage_container.example.name
+    apiType    = "Azure"
+    resourceId = azurerm_cognitive_account.openai.id
+    location   = azurerm_cognitive_account.openai.location
   }
 }
 ```
@@ -67,7 +66,7 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
 
-* `category` - (Required) The category of the connection. Possible values include `AzureBlob`, `AzureOpenAI`, and other supported connection categories. Changing this forces a new resource to be created.
+* `category` - (Required) The category of the connection. Possible values include `AIServices`, `AzureOpenAI`, `AzureStorageAccount`, `CognitiveSearch`, `CosmosDb`, and `Databricks`. Changing this forces a new resource to be created.
 
 * `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
 
@@ -100,4 +99,4 @@ terraform import azurerm_cognitive_account_connection_entra_id.example /subscrip
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CognitiveServices` - 2025-06-01
+* `Microsoft.CognitiveServices` - 2026-03-01
