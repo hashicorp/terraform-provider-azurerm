@@ -3241,7 +3241,6 @@ func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.
 		privateDNSZoneID = "System"
 	case profile.PrivateDNSZone != nil && strings.EqualFold("None", *profile.PrivateDNSZone):
 		privateDNSZoneID = "None"
-
 	}
 
 	privateCluster := flattenKubernetesAutomaticClusterPrivateCluster(enablePrivateCluster, enablePrivateClusterPublicFQDN, privateDNSZoneID)
