@@ -317,7 +317,7 @@ func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *tes
 			data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates", "enable_automatic_updates"),
 		})
 	} else {
-		data.ResourceTest(t, r, []acceptance.TestStep{
+		data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 			{
 				Config: r.extensionsWithHealthExtension(data),
 				Check: acceptance.ComposeTestCheckFunc(

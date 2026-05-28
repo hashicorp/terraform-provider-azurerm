@@ -435,10 +435,10 @@ resource "azurerm_storage_blob" "test1" {
 }
 
 resource "azurerm_storage_blob" "test2" {
-  name                 = "output"
-  storage_account_name = azurerm_storage_account.test.name
-  storage_container_id = azurerm_storage_container.test.id
-  type                 = "Append"
+  name                   = "output"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Append"
 }
 
 resource "azurerm_storage_blob" "test3" {

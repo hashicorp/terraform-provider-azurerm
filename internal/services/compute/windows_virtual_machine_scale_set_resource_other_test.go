@@ -550,7 +550,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherUpgradeMode(t *testing.T) {
 		data.ImportStep(
 			"admin_password",
 			"enable_automatic_updates",
-			"automatic_updates_enabled",
 		),
 	})
 }
@@ -799,7 +798,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 		data.ImportStep(
 			"admin_password",
 			"enable_automatic_updates",
-			"automatic_updates_enabled",
 		),
 		{
 			Config: r.otherHealthProbeUpdated(data),
@@ -810,7 +808,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 		data.ImportStep(
 			"admin_password",
 			"enable_automatic_updates",
-			"automatic_updates_enabled",
 		),
 	})
 }
@@ -1484,14 +1481,14 @@ func (r WindowsVirtualMachineScaleSetResource) otherEnableAutomaticUpdatesDisabl
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                      = local.vm_name
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  sku                       = "Standard_F2"
-  instances                 = 1
-  admin_username            = "adminuser"
-  admin_password            = "P@ssword1234!"
-  automatic_updates_enabled = false
+  name                     = local.vm_name
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku                      = "Standard_F2"
+  instances                = 1
+  admin_username           = "adminuser"
+  admin_password           = "P@ssword1234!"
+  enable_automatic_updates = false
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -2618,7 +2615,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "internal"
@@ -2727,7 +2724,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "internal"
@@ -2838,7 +2835,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
   frontend_ip_configuration {
     name                 = "internal"
     public_ip_address_id = azurerm_public_ip.test.id
