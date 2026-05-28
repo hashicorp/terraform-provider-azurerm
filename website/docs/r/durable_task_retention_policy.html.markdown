@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `default_retention_period_in_days` - (Optional) The default number of days to retain orchestration data. Possible values range between `1` and `90`.
 
--> **Note:** `default_retention_period_in_days` cannot be configured together with the state-specific retention period fields.
+~> **Note:** At least one retention period field must be configured. `default_retention_period_in_days` cannot be configured together with the state-specific retention period fields.
 
 * `failed_retention_period_in_days` - (Optional) The number of days to retain failed orchestration data. Possible values range between `1` and `90`.
 
