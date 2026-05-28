@@ -59,13 +59,9 @@ The following arguments are supported:
 
 * `container_name` - (Required) The name of the Azure Blob Storage container from which to read data.
 
-* `connection_string` - (Optional) The connection string to the Azure Blob Storage account.
+* `connection_string_wo` - (Required, Write-Only) The connection string to the Azure Blob Storage account.
 
-* `connection_string_wo` - (Optional, Write-Only) The connection string to the Azure Blob Storage account.
-
-* `connection_string_wo_version` - (Optional) An integer value used to trigger an update for `connection_string_wo`. This property should be incremented when updating `connection_string_wo`.
-
-~> **Note:** Exactly one of `connection_string` or `connection_string_wo` must be specified. `connection_string_wo` and `connection_string_wo_version` must be specified together.
+* `connection_string_wo_version` - (Required) An integer value used to trigger an update for `connection_string_wo`. This property should be incremented when updating `connection_string_wo`.
 
 * `container_query` - (Optional) A query string that filters the set of blobs in the container.
 

@@ -29,7 +29,6 @@ type SearchServiceDatasourceBlobModel struct {
 	Name                      string                                            `tfschema:"name"`
 	SearchServiceEndpoint     string                                            `tfschema:"search_service_endpoint"`
 	ContainerName             string                                            `tfschema:"container_name"`
-	ConnectionString          string                                            `tfschema:"connection_string"`
 	ConnectionStringWOVersion int64                                             `tfschema:"connection_string_wo_version"`
 	Description               string                                            `tfschema:"description"`
 	ContainerQuery            string                                            `tfschema:"container_query"`
@@ -63,29 +62,16 @@ func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.S
 			ValidateFunc: storageValidate.StorageContainerName,
 		},
 
-		"connection_string": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Sensitive:     true,
-			ValidateFunc:  searchValidate.SearchDatasourceStorageConnectionString,
-			ConflictsWith: []string{"connection_string_wo"},
-			AtLeastOneOf:  []string{"connection_string", "connection_string_wo"},
-		},
-
 		"connection_string_wo": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			WriteOnly:     true,
-			ValidateFunc:  searchValidate.SearchDatasourceStorageConnectionString,
-			ConflictsWith: []string{"connection_string"},
-			RequiredWith:  []string{"connection_string_wo_version"},
-			AtLeastOneOf:  []string{"connection_string", "connection_string_wo"},
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			WriteOnly:    true,
+			ValidateFunc: searchValidate.SearchDatasourceStorageConnectionString,
 		},
 
 		"connection_string_wo_version": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			RequiredWith: []string{"connection_string_wo"},
+			Type:     pluginsdk.TypeInt,
+			Required: true,
 		},
 
 		"container_query": {
@@ -142,15 +128,13 @@ func (r SearchServiceDatasourceBlobResource) Create() sdk.ResourceFunc {
 			}
 
 			endpoint := model.SearchServiceEndpoint
-
 			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(endpoint)
-
 			id := datasources.NewDatasourceID(endpoint, model.Name)
-
 			existing, err := client.Get(ctx, id, datasources.DefaultGetOperationOptions())
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
+
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
@@ -160,11 +144,6 @@ func (r SearchServiceDatasourceBlobResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			connectionString := model.ConnectionString
-			if !woConnectionString.IsNull() {
-				connectionString = woConnectionString.AsString()
-			}
-
 			parameters := datasources.SearchIndexerDataSource{
 				Name: model.Name,
 				Type: datasources.SearchIndexerDataSourceTypeAzureblob,
@@ -172,7 +151,7 @@ func (r SearchServiceDatasourceBlobResource) Create() sdk.ResourceFunc {
 					Name: model.ContainerName,
 				},
 				Credentials: datasources.DataSourceCredentials{
-					ConnectionString: pointer.To(connectionString),
+					ConnectionString: pointer.To(woConnectionString.AsString()),
 				},
 				EncryptionKey: searchSchema.ExpandSearchDatasourceEncryptionKey(model.EncryptionKey),
 			}
@@ -212,9 +191,7 @@ func (r SearchServiceDatasourceBlobResource) Read() sdk.ResourceFunc {
 			}
 
 			endpoint := resourceId.BaseURI
-
 			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(endpoint)
-
 			resp, err := client.Get(ctx, *resourceId, datasources.DefaultGetOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -240,7 +217,6 @@ func (r SearchServiceDatasourceBlobResource) Read() sdk.ResourceFunc {
 				state.EncryptionKey = searchSchema.FlattenSearchDatasourceEncryptionKey(respModel.EncryptionKey, metadata.ResourceData)
 			}
 
-			state.ConnectionString = metadata.ResourceData.Get("connection_string").(string)
 			state.ConnectionStringWOVersion = int64(metadata.ResourceData.Get("connection_string_wo_version").(int))
 
 			return metadata.Encode(&state)
@@ -283,10 +259,6 @@ func (r SearchServiceDatasourceBlobResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("container_query") {
 				existing.Container.Query = pointer.To(state.ContainerQuery)
-			}
-
-			if metadata.ResourceData.HasChange("connection_string") {
-				existing.Credentials.ConnectionString = pointer.To(state.ConnectionString)
 			}
 
 			if metadata.ResourceData.HasChange("connection_string_wo_version") {

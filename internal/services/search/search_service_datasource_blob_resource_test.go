@@ -35,7 +35,7 @@ func TestAccSearchServiceDatasourceBlob_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("connection_string"),
+		data.ImportStep("connection_string_wo_version"),
 	})
 }
 
@@ -65,7 +65,7 @@ func TestAccSearchServiceDatasourceBlob_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("connection_string"),
+		data.ImportStep("connection_string_wo_version"),
 	})
 }
 
@@ -80,21 +80,21 @@ func TestAccSearchServiceDatasourceBlob_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("connection_string"),
+		data.ImportStep("connection_string_wo_version"),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("connection_string"),
+		data.ImportStep("connection_string_wo_version"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("connection_string"),
+		data.ImportStep("connection_string_wo_version"),
 	})
 }
 
@@ -109,7 +109,7 @@ func TestAccSearchServiceDatasourceBlob_encryptionKey(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("connection_string"),
+		data.ImportStep("connection_string_wo_version"),
 	})
 }
 
@@ -130,11 +130,11 @@ func TestAccSearchServiceDatasourceBlob_encryptionKeyWithAppCredentials(t *testi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("connection_string", "encryption_key.0.client_secret"),
+		data.ImportStep("connection_string_wo_version", "encryption_key.0.client_secret"),
 	})
 }
 
-func TestAccSearchServiceDatasourceBlob_writeOnlyConnectionString(t *testing.T) {
+func TestAccSearchServiceDatasourceBlob_writeOnlyConnectionStringUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
 	r := SearchServiceDatasourceBlobResource{}
 
@@ -154,35 +154,6 @@ func TestAccSearchServiceDatasourceBlob_writeOnlyConnectionString(t *testing.T) 
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
 			data.ImportStep("connection_string_wo_version"),
-		},
-	})
-}
-
-func TestAccSearchServiceDatasourceBlob_updateToWriteOnlyConnectionString(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
-	r := SearchServiceDatasourceBlobResource{}
-
-	resource.ParallelTest(t, resource.TestCase{
-		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
-		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
-		Steps: []resource.TestStep{
-			{
-				Config: r.basic(data),
-				Check:  check.That(data.ResourceName).ExistsInAzure(r),
-			},
-			data.ImportStep("connection_string"),
-			{
-				Config: r.writeOnlyConnectionString(data, 1),
-				Check:  check.That(data.ResourceName).ExistsInAzure(r),
-			},
-			data.ImportStep("connection_string", "connection_string_wo_version"),
-			{
-				Config: r.basic(data),
-				Check:  check.That(data.ResourceName).ExistsInAzure(r),
-			},
-			data.ImportStep("connection_string"),
 		},
 	})
 }
@@ -257,10 +228,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_search_service_datasource_blob" "test" {
-  name                    = "acctestds%d"
-  search_service_endpoint = azurerm_search_service.test.endpoint
-  container_name          = azurerm_storage_container.test.name
-  connection_string       = azurerm_storage_account.test.primary_connection_string
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  container_name               = azurerm_storage_container.test.name
+  connection_string_wo         = azurerm_storage_account.test.primary_connection_string
+  connection_string_wo_version = 1
 
   depends_on = [azurerm_role_assignment.current_user_search]
 }
@@ -272,10 +244,11 @@ func (r SearchServiceDatasourceBlobResource) requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_search_service_datasource_blob" "import" {
-  name                    = "acctestds%d"
-  search_service_endpoint = azurerm_search_service.test.endpoint
-  container_name          = azurerm_storage_container.test.name
-  connection_string       = azurerm_storage_account.test.primary_connection_string
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  container_name               = azurerm_storage_container.test.name
+  connection_string_wo         = azurerm_storage_account.test.primary_connection_string
+  connection_string_wo_version = 1
 }
 `, r.basic(data), data.RandomInteger)
 }
@@ -289,14 +262,15 @@ provider "azurerm" {
 %s
 
 resource "azurerm_search_service_datasource_blob" "test" {
-  name                     = "acctestds%d"
-  search_service_endpoint  = azurerm_search_service.test.endpoint
-  container_name           = azurerm_storage_container.test.name
-  container_query          = "/folder"
-  connection_string        = azurerm_storage_account.test.primary_connection_string
-  description              = "test description"
-  soft_delete_column_name  = "IsDeleted"
-  soft_delete_marker_value = "true"
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  container_name               = azurerm_storage_container.test.name
+  container_query              = "/folder"
+  connection_string_wo         = azurerm_storage_account.test.primary_connection_string
+  connection_string_wo_version = 1
+  description                  = "test description"
+  soft_delete_column_name      = "IsDeleted"
+  soft_delete_marker_value     = "true"
 
   depends_on = [azurerm_role_assignment.current_user_search]
 }
@@ -359,10 +333,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_search_service_datasource_blob" "test" {
-  name                    = "acctestds%d"
-  search_service_endpoint = azurerm_search_service.test.endpoint
-  container_name          = azurerm_storage_container.test.name
-  connection_string       = azurerm_storage_account.test.primary_connection_string
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  container_name               = azurerm_storage_container.test.name
+  connection_string_wo         = azurerm_storage_account.test.primary_connection_string
+  connection_string_wo_version = 1
 
   encryption_key {
     key_vault_key_id = azurerm_key_vault_key.test.id
@@ -388,10 +363,11 @@ resource "azurerm_role_assignment" "app_keyvault" {
 }
 
 resource "azurerm_search_service_datasource_blob" "test" {
-  name                    = "acctestds%d"
-  search_service_endpoint = azurerm_search_service.test.endpoint
-  container_name          = azurerm_storage_container.test.name
-  connection_string       = azurerm_storage_account.test.primary_connection_string
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  container_name               = azurerm_storage_container.test.name
+  connection_string_wo         = azurerm_storage_account.test.primary_connection_string
+  connection_string_wo_version = 1
 
   encryption_key {
     key_vault_key_id = azurerm_key_vault_key.test.id
