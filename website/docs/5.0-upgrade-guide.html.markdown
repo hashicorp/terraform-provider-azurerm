@@ -678,7 +678,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_storage_table`
 
-* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property Note that upgrading a `azurerm_storage_table` that uses the deprecated `storage_account_name` from v4 to v5 is not supported. In this case, update the resource to replace `storage_account_name` with `storage_account_id` in v4 before upgrading the provider to v5.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
 
 ### `azurerm_storage_share_directory`
