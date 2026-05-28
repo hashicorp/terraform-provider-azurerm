@@ -99,7 +99,7 @@ func (AnomalyAlertResource) Exists(ctx context.Context, client *clients.Client, 
 }
 
 func (AnomalyAlertResource) basic() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -111,11 +111,11 @@ resource "azurerm_cost_anomaly_alert" "test" {
   email_addresses = ["test@test.com", "test@hashicorp.developer"]
   message         = "Oops, cost anomaly"
 }
-`)
+`
 }
 
 func (AnomalyAlertResource) basicForImport() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -127,11 +127,11 @@ resource "azurerm_cost_anomaly_alert" "test" {
   email_addresses = ["test@test.com", "test@hashicorp.developer"]
   message         = "Oops, cost anomaly"
 }
-`)
+`
 }
 
 func (AnomalyAlertResource) complete() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -147,7 +147,7 @@ resource "azurerm_cost_anomaly_alert" "test" {
   notification_email = "othertest@hashicorp.developer"
   message            = "Cost anomaly complete test"
 }
-`)
+`
 }
 
 func (r AnomalyAlertResource) requiresImport() string {
@@ -165,7 +165,7 @@ resource "azurerm_cost_anomaly_alert" "import" {
 }
 
 func (AnomalyAlertResource) update() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -177,11 +177,11 @@ resource "azurerm_cost_anomaly_alert" "test" {
   email_addresses = ["tester@test.com", "test2@hashicorp.developer"]
   message         = "A cost anomaly for you"
 }
-`)
+`
 }
 
 func (AnomalyAlertResource) update2() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -196,5 +196,5 @@ resource "azurerm_cost_anomaly_alert" "test" {
   message         = "An updated cost anomaly for you"
   subscription_id = data.azurerm_subscription.test.id
 }
-`)
+`
 }
