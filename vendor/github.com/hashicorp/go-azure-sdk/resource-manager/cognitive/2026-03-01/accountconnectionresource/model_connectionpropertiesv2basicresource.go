@@ -3,6 +3,8 @@ package accountconnectionresource
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -12,6 +14,7 @@ type ConnectionPropertiesV2BasicResource struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
 	Properties ConnectionPropertiesV2 `json:"properties"`
+	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }
 
@@ -19,9 +22,10 @@ var _ json.Unmarshaler = &ConnectionPropertiesV2BasicResource{}
 
 func (s *ConnectionPropertiesV2BasicResource) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		Id   *string `json:"id,omitempty"`
-		Name *string `json:"name,omitempty"`
-		Type *string `json:"type,omitempty"`
+		Id         *string                `json:"id,omitempty"`
+		Name       *string                `json:"name,omitempty"`
+		SystemData *systemdata.SystemData `json:"systemData,omitempty"`
+		Type       *string                `json:"type,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
@@ -29,6 +33,7 @@ func (s *ConnectionPropertiesV2BasicResource) UnmarshalJSON(bytes []byte) error 
 
 	s.Id = decoded.Id
 	s.Name = decoded.Name
+	s.SystemData = decoded.SystemData
 	s.Type = decoded.Type
 
 	var temp map[string]json.RawMessage

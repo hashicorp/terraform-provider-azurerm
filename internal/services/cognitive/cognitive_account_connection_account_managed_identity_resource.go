@@ -5,6 +5,7 @@ package cognitive
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -20,33 +21,32 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_connection_api_key -properties "name" -compare-values "subscription_id:cognitive_account_id,resource_group_name:cognitive_account_id,account_name:cognitive_account_id" -test-name "basic" -test-expect-non-empty
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_connection_account_managed_identity -properties "name,resource_group_name,cognitive_account_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name "basic" -test-expect-non-empty
 
 var (
-	_ sdk.ResourceWithUpdate   = CognitiveAccountConnectionApiKeyResource{}
-	_ sdk.ResourceWithIdentity = CognitiveAccountConnectionApiKeyResource{}
+	_ sdk.ResourceWithUpdate   = CognitiveAccountConnectionAccountManagedIdentityResource{}
+	_ sdk.ResourceWithIdentity = CognitiveAccountConnectionAccountManagedIdentityResource{}
 )
 
-type CognitiveAccountConnectionApiKeyResource struct{}
+type CognitiveAccountConnectionAccountManagedIdentityResource struct{}
 
-func (r CognitiveAccountConnectionApiKeyResource) Identity() resourceids.ResourceId {
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) Identity() resourceids.ResourceId {
 	return new(accountconnectionresource.ConnectionId)
 }
 
-func (r CognitiveAccountConnectionApiKeyResource) ResourceType() string {
-	return "azurerm_cognitive_account_connection_api_key"
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) ResourceType() string {
+	return "azurerm_cognitive_account_connection_account_managed_identity"
 }
 
-func (r CognitiveAccountConnectionApiKeyResource) ModelObject() interface{} {
-	return &CognitiveAccountConnectionApiKeyModel{}
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) ModelObject() interface{} {
+	return &CognitiveAccountConnectionAccountManagedIdentityModel{}
 }
 
-func (r CognitiveAccountConnectionApiKeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return accountconnectionresource.ValidateConnectionID
 }
 
-type CognitiveAccountConnectionApiKeyModel struct {
-	ApiKey             string            `tfschema:"api_key"`
+type CognitiveAccountConnectionAccountManagedIdentityModel struct {
 	Category           string            `tfschema:"category"`
 	CognitiveAccountId string            `tfschema:"cognitive_account_id"`
 	Metadata           map[string]string `tfschema:"metadata"`
@@ -54,7 +54,58 @@ type CognitiveAccountConnectionApiKeyModel struct {
 	Target             string            `tfschema:"target"`
 }
 
-func (r CognitiveAccountConnectionApiKeyResource) Arguments() map[string]*pluginsdk.Schema {
+type accountManagedIdentityConnectionProperties struct {
+	Category                    *accountconnectionresource.ConnectionCategory   `json:"category,omitempty"`
+	Metadata                    *map[string]string                              `json:"metadata,omitempty"`
+	Target                      *string                                         `json:"target,omitempty"`
+	UseWorkspaceManagedIdentity *bool                                           `json:"useWorkspaceManagedIdentity,omitempty"`
+	CreatedByWorkspaceArmId     *string                                         `json:"createdByWorkspaceArmId,omitempty"`
+	Error                       *string                                         `json:"error,omitempty"`
+	ExpiryTime                  *string                                         `json:"expiryTime,omitempty"`
+	Group                       *accountconnectionresource.ConnectionGroup      `json:"group,omitempty"`
+	IsSharedToAll               *bool                                           `json:"isSharedToAll,omitempty"`
+	PeRequirement               *accountconnectionresource.ManagedPERequirement `json:"peRequirement,omitempty"`
+	PeStatus                    *accountconnectionresource.ManagedPEStatus      `json:"peStatus,omitempty"`
+	SharedUserList              *[]string                                       `json:"sharedUserList,omitempty"`
+}
+
+func (s accountManagedIdentityConnectionProperties) ConnectionPropertiesV2() accountconnectionresource.BaseConnectionPropertiesV2Impl {
+	return accountconnectionresource.BaseConnectionPropertiesV2Impl{
+		AuthType:                    accountconnectionresource.ConnectionAuthType("AccountManagedIdentity"),
+		Category:                    s.Category,
+		CreatedByWorkspaceArmId:     s.CreatedByWorkspaceArmId,
+		Error:                       s.Error,
+		ExpiryTime:                  s.ExpiryTime,
+		Group:                       s.Group,
+		IsSharedToAll:               s.IsSharedToAll,
+		Metadata:                    s.Metadata,
+		PeRequirement:               s.PeRequirement,
+		PeStatus:                    s.PeStatus,
+		SharedUserList:              s.SharedUserList,
+		Target:                      s.Target,
+		UseWorkspaceManagedIdentity: s.UseWorkspaceManagedIdentity,
+	}
+}
+
+func (s accountManagedIdentityConnectionProperties) MarshalJSON() ([]byte, error) {
+	type alias accountManagedIdentityConnectionProperties
+	wrapper := struct {
+		alias
+		AuthType string `json:"authType"`
+	}{
+		alias:    alias(s),
+		AuthType: "AccountManagedIdentity",
+	}
+
+	encoded, err := json.Marshal(wrapper)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling accountManagedIdentityConnectionProperties: %+v", err)
+	}
+
+	return encoded, nil
+}
+
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -66,20 +117,10 @@ func (r CognitiveAccountConnectionApiKeyResource) Arguments() map[string]*plugin
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&accountconnectionresource.AccountId{}),
 
 		"category": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(accountconnectionresource.ConnectionCategoryAIServices),
-				string(accountconnectionresource.ConnectionCategoryApiKey),
-				string(accountconnectionresource.ConnectionCategoryAppInsights),
-				string(accountconnectionresource.ConnectionCategoryAzureOpenAI),
-				string(accountconnectionresource.ConnectionCategoryCognitiveSearch),
-				string(accountconnectionresource.ConnectionCategoryGroundingWithCustomSearch),
-				string(accountconnectionresource.ConnectionCategoryOpenAI),
-				string(accountconnectionresource.ConnectionCategorySerp),
-				string(accountconnectionresource.ConnectionCategoryServerless),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice([]string{string(accountconnectionresource.ConnectionCategoryAzureKeyVault)}, false),
 		},
 
 		"metadata": {
@@ -95,27 +136,20 @@ func (r CognitiveAccountConnectionApiKeyResource) Arguments() map[string]*plugin
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-
-		"api_key": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
 	}
 }
 
-func (r CognitiveAccountConnectionApiKeyResource) Attributes() map[string]*pluginsdk.Schema {
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r CognitiveAccountConnectionApiKeyResource) Create() sdk.ResourceFunc {
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.AccountConnectionResourceClient
 
-			var model CognitiveAccountConnectionApiKeyModel
+			var model CognitiveAccountConnectionAccountManagedIdentityModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -135,14 +169,11 @@ func (r CognitiveAccountConnectionApiKeyResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := accountconnectionresource.ApiKeyAuthConnectionProperties{
-				AuthType: accountconnectionresource.ConnectionAuthTypeApiKey,
-				Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
-				Metadata: pointer.To(model.Metadata),
-				Target:   pointer.To(model.Target),
-				Credentials: &accountconnectionresource.ConnectionApiKey{
-					Key: pointer.To(model.ApiKey),
-				},
+			properties := accountManagedIdentityConnectionProperties{
+				Category:                    pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
+				Metadata:                    pointer.To(model.Metadata),
+				Target:                      pointer.To(model.Target),
+				UseWorkspaceManagedIdentity: pointer.To(true),
 			}
 
 			connection := accountconnectionresource.ConnectionPropertiesV2BasicResource{
@@ -163,7 +194,7 @@ func (r CognitiveAccountConnectionApiKeyResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r CognitiveAccountConnectionApiKeyResource) Read() sdk.ResourceFunc {
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -182,15 +213,14 @@ func (r CognitiveAccountConnectionApiKeyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var currentState CognitiveAccountConnectionApiKeyModel
+			var currentState CognitiveAccountConnectionAccountManagedIdentityModel
 			if err := metadata.Decode(&currentState); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			state := CognitiveAccountConnectionApiKeyModel{
+			state := CognitiveAccountConnectionAccountManagedIdentityModel{
 				CognitiveAccountId: accountconnectionresource.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
 				Name:               id.ConnectionName,
-				ApiKey:             currentState.ApiKey,
 			}
 
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -198,16 +228,11 @@ func (r CognitiveAccountConnectionApiKeyResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				props := model.Properties
-
-				base := props.ConnectionPropertiesV2()
+				base := model.Properties.ConnectionPropertiesV2()
 				state.Category = pointer.FromEnum(base.Category)
 				state.Target = pointer.From(base.Target)
 				state.Metadata = map[string]string{}
 
-				// Only include metadata fields that were in the original config.
-				// The API returns additional metadata fields beyond what was configured (e.g., `ApiVersion`,
-				// `DeploymentApiVersion`), which would cause unwanted diffs.
 				if len(currentState.Metadata) > 0 {
 					apiMetadata := pointer.From(base.Metadata)
 
@@ -227,7 +252,7 @@ func (r CognitiveAccountConnectionApiKeyResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r CognitiveAccountConnectionApiKeyResource) Update() sdk.ResourceFunc {
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -247,30 +272,20 @@ func (r CognitiveAccountConnectionApiKeyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			var model CognitiveAccountConnectionApiKeyModel
+			var model CognitiveAccountConnectionAccountManagedIdentityModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			props, ok := resp.Model.Properties.(accountconnectionresource.ApiKeyAuthConnectionProperties)
-			if !ok {
-				return fmt.Errorf("unexpected properties type for %s", *id)
-			}
-
-			props.Credentials = &accountconnectionresource.ConnectionApiKey{
-				Key: pointer.To(model.ApiKey),
-			}
-
-			if metadata.ResourceData.HasChange("target") {
-				props.Target = pointer.To(model.Target)
-			}
-
-			if metadata.ResourceData.HasChange("metadata") {
-				props.Metadata = pointer.To(model.Metadata)
+			properties := accountManagedIdentityConnectionProperties{
+				Category:                    pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
+				Metadata:                    pointer.To(model.Metadata),
+				Target:                      pointer.To(model.Target),
+				UseWorkspaceManagedIdentity: pointer.To(true),
 			}
 
 			connection := accountconnectionresource.ConnectionPropertiesV2BasicResource{
-				Properties: props,
+				Properties: properties,
 			}
 
 			if _, err := client.AccountConnectionsCreate(ctx, *id, connection); err != nil {
@@ -282,7 +297,7 @@ func (r CognitiveAccountConnectionApiKeyResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r CognitiveAccountConnectionApiKeyResource) Delete() sdk.ResourceFunc {
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

@@ -1,14 +1,14 @@
 ---
 subcategory: "Cognitive Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cognitive_account_connection_oauth2"
+page_title: "Azure Resource Manager: azurerm_cognitive_account_connection_account_key"
 description: |-
-  Manages a Cognitive Services (Microsoft Foundry) Account Connection with OAuth2 authentication.
+  Manages a Cognitive Services (Microsoft Foundry) Account Connection with Account Key authentication.
 ---
 
-# azurerm_cognitive_account_connection_oauth2
+# azurerm_cognitive_account_connection_account_key
 
-Manages a Cognitive Services (Microsoft Foundry) Account Connection with OAuth2 authentication.
+Manages a Cognitive Services (Microsoft Foundry) Account Connection with Account Key authentication.
 
 ## Example Usage
 
@@ -33,35 +33,24 @@ resource "azurerm_cognitive_account" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-  name                     = "examplesa"
+  name                     = "examplestorageacct"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_container" "example" {
-  name                  = "examplecsc"
-  storage_account_id    = azurerm_storage_account.example.id
-  container_access_type = "private"
-}
-
-resource "azurerm_cognitive_account_connection_oauth2" "example" {
+resource "azurerm_cognitive_account_connection_account_key" "example" {
   name                 = "example-connection"
   cognitive_account_id = azurerm_cognitive_account.example.id
-  category             = "AzureBlob"
-  target               = azurerm_storage_account.example.primary_blob_endpoint
+  category             = "AzureStorageAccount"
+  target               = azurerm_storage_account.example.id
+  account_key          = azurerm_storage_account.example.primary_access_key
 
   metadata = {
-    containerName = azurerm_storage_container.example.name
-    accountName   = azurerm_storage_account.example.name
-  }
-
-  oauth2 {
-    authentication_url = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token"
-    client_id          = "00000000-0000-0000-0000-000000000000"
-    client_secret      = "example-client-secret"
-    tenant_id          = "00000000-0000-0000-0000-000000000000"
+    apiType    = "Azure"
+    resourceId = azurerm_storage_account.example.id
+    location   = azurerm_storage_account.example.location
   }
 }
 ```
@@ -74,33 +63,13 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
 
-* `category` - (Required) The category of the connection. Possible values include `AzureBlob`, `AzureOpenAI`, and other supported connection categories. Changing this forces a new resource to be created.
+* `category` - (Required) The category of the connection. Possible values include `AzureStorageAccount`. Changing this forces a new resource to be created.
 
 * `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
 
 * `target` - (Required) The target endpoint or resource for the connection.
 
-* `oauth2` - (Required) An `oauth2` block as defined below.
-
----
-
-An `oauth2` block supports the following:
-
-* `authentication_url` - (Required) The OAuth2 authorization URL.
-
-* `client_id` - (Optional) The OAuth2 client ID.
-
-* `client_secret` - (Optional) The OAuth2 client secret. This field is sensitive.
-
-* `developer_token` - (Optional) The OAuth2 developer token. This field is sensitive.
-
-* `password` - (Optional) The OAuth2 password. This field is sensitive.
-
-* `refresh_token` - (Optional) The OAuth2 refresh token. This field is sensitive.
-
-* `tenant_id` - (Optional) The OAuth2 tenant ID.
-
-* `username` - (Optional) The OAuth2 username.
+* `account_key` - (Required) The account key used for authentication.
 
 ## Attributes Reference
 
@@ -122,11 +91,11 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Cognitive Services Account Connections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cognitive_account_connection_oauth2.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
+terraform import azurerm_cognitive_account_connection_account_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
 ```
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CognitiveServices` - 2025-06-01
+* `Microsoft.CognitiveServices` - 2026-03-01

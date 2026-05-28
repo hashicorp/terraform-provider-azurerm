@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/accountconnectionresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -70,6 +70,62 @@ func TestAccCognitiveAccountConnectionApiKey_update(t *testing.T) {
 	})
 }
 
+func TestAccCognitiveAccountConnectionApiKey_supportedCategories(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_api_key", "test")
+	r := CognitiveAccountConnectionApiKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aiServicesCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.appInsightsCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.cognitiveSearchCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.apiKeyCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.groundingWithCustomSearchCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.openAICategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.serpCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.serverlessCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (r CognitiveAccountConnectionApiKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := accountconnectionresource.ParseConnectionID(state.ID)
 	if err != nil {
@@ -104,19 +160,7 @@ resource "azurerm_cognitive_account" "test" {
     type = "SystemAssigned"
   }
 }
-
-resource "azurerm_cognitive_account" "openai" {
-  name                = "acctest-openai-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "OpenAI"
-  sku_name            = "S0"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "Australia East")
 }
 
 func (r CognitiveAccountConnectionApiKeyResource) basic(data acceptance.TestData) string {
@@ -126,6 +170,18 @@ provider "azurerm" {
 }
 
 %[1]s
+
+resource "azurerm_cognitive_account" "openai" {
+  name                = "acctest-openai-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "OpenAI"
+  sku_name            = "S0"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
 
 resource "azurerm_cognitive_account_connection_api_key" "test" {
   name                 = "acctest-conn-%[2]d"
@@ -195,6 +251,209 @@ resource "azurerm_cognitive_account_connection_api_key" "test" {
     resourceId = azurerm_cognitive_account.openai2.id
     location   = azurerm_cognitive_account.openai2.location
   }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionApiKeyResource) aiServicesCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account" "aiservices" {
+  name                       = "acctest-aisvc2-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  kind                       = "AIServices"
+  sku_name                   = "S0"
+  project_management_enabled = true
+  custom_subdomain_name      = "acctestaisvc2-%[2]d"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_cognitive_account_connection_api_key" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "AIServices"
+  target               = azurerm_cognitive_account.aiservices.endpoint
+  api_key              = azurerm_cognitive_account.aiservices.primary_access_key
+
+  metadata = {
+    apiType    = "Azure"
+    resourceId = azurerm_cognitive_account.aiservices.id
+    location   = azurerm_cognitive_account.aiservices.location
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionApiKeyResource) appInsightsCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappi-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_cognitive_account_connection_api_key" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "AppInsights"
+  target               = azurerm_application_insights.test.id
+  api_key              = azurerm_application_insights.test.connection_string
+
+  metadata = {
+    apiType    = "Azure"
+    resourceId = azurerm_application_insights.test.id
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionApiKeyResource) cognitiveSearchCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchsvc%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_cognitive_account_connection_api_key" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "CognitiveSearch"
+  target               = "https://${azurerm_search_service.test.name}.search.windows.net/"
+  api_key              = azurerm_search_service.test.primary_key
+
+  metadata = {
+    apiType    = "Azure"
+    resourceId = azurerm_search_service.test.id
+    location   = azurerm_search_service.test.location
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionApiKeyResource) apiKeyCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_api_key" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "ApiKey"
+  target               = "https://api.example.com/"
+  api_key              = "test-api-key"
+
+  metadata = {}
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionApiKeyResource) groundingWithCustomSearchCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_api_key" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "GroundingWithCustomSearch"
+  target               = "https://api.bing.microsoft.com/"
+  api_key              = "test-api-key"
+
+  metadata = {
+    apiType    = "Azure"
+    resourceId = "/subscriptions/%[3]s/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.Bing/accounts/acctestbing%[2]d"
+    type       = "bing_custom_search"
+  }
+}
+`, r.template(data), data.RandomInteger, data.Subscriptions.Primary)
+}
+
+func (r CognitiveAccountConnectionApiKeyResource) openAICategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_api_key" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "OpenAI"
+  target               = "_"
+  api_key              = "test-api-key"
+
+  metadata = {}
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionApiKeyResource) serpCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_api_key" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "Serp"
+  target               = "_"
+  api_key              = "test-api-key"
+
+  metadata = {}
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionApiKeyResource) serverlessCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_api_key" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "Serverless"
+  target               = "https://acctest-%[2]d.example.models.ai.azure.com/"
+  api_key              = "test-api-key"
+
+  metadata = {}
 }
 `, r.template(data), data.RandomInteger)
 }
