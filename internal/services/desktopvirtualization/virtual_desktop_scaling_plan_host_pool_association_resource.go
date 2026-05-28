@@ -67,7 +67,6 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.Res
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan <-> Host Pool Association creation.")
 	scalingPlanId, err := scalingplan.ParseScalingPlanID(d.Get("scaling_plan_id").(string))
 	if err != nil {
 		return err

@@ -300,11 +300,11 @@ func expandWebpubsubPublicNetwork(input []interface{}) *webpubsub.NetworkACL {
 
 	v := input[0].(map[string]interface{})
 
-	for _, item := range *(utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List())) {
+	for _, item := range *utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
 		allowRTs = append(allowRTs, webpubsub.WebPubSubRequestType(item))
 	}
 
-	for _, item := range *(utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List())) {
+	for _, item := range *utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
 		deniedRTs = append(deniedRTs, webpubsub.WebPubSubRequestType(item))
 	}
 
@@ -322,7 +322,7 @@ func flattenWebpubsubPublicNetwork(input *webpubsub.NetworkACL) []interface{} {
 	allowRequestTypes := make([]string, 0)
 	if input.Allow != nil {
 		for _, item := range *input.Allow {
-			allowRequestTypes = append(allowRequestTypes, (string)(item))
+			allowRequestTypes = append(allowRequestTypes, string(item))
 		}
 	}
 	allow := utils.FlattenStringSlice(&allowRequestTypes)
@@ -330,7 +330,7 @@ func flattenWebpubsubPublicNetwork(input *webpubsub.NetworkACL) []interface{} {
 	deniedRequestTypes := make([]string, 0)
 	if input.Deny != nil {
 		for _, item := range *input.Deny {
-			deniedRequestTypes = append(deniedRequestTypes, (string)(item))
+			deniedRequestTypes = append(deniedRequestTypes, string(item))
 		}
 	}
 	deny := utils.FlattenStringSlice(&deniedRequestTypes)
@@ -369,13 +369,13 @@ func expandWebpubsubPrivateEndpoint(input []interface{}, privateEndpointConnecti
 				}
 
 				allowedRTs := make([]webpubsub.WebPubSubRequestType, 0)
-				for _, item := range *(utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List())) {
+				for _, item := range *utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
 					allowedRTs = append(allowedRTs, webpubsub.WebPubSubRequestType(item))
 				}
 				result.Allow = &allowedRTs
 
 				deniedRTs := make([]webpubsub.WebPubSubRequestType, 0)
-				for _, item := range *(utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List())) {
+				for _, item := range *utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
 					deniedRTs = append(deniedRTs, webpubsub.WebPubSubRequestType(item))
 				}
 				result.Deny = &deniedRTs
@@ -419,7 +419,7 @@ func flattenWebpubsubPrivateEndpoint(input *[]webpubsub.PrivateEndpointACL, priv
 				deniedRequestTypes := make([]string, 0)
 				if item.Deny != nil {
 					for _, item := range *item.Deny {
-						deniedRequestTypes = append(deniedRequestTypes, (string)(item))
+						deniedRequestTypes = append(deniedRequestTypes, string(item))
 					}
 				}
 				deny := utils.FlattenStringSlice(&deniedRequestTypes)

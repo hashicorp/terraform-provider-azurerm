@@ -219,8 +219,6 @@ func resourceAppServicePublicCertificateDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting App Service Public Certificate %s", *id)
-
 	resp, err := client.DeletePublicCertificate(ctx, *id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {

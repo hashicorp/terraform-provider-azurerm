@@ -6,10 +6,10 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
     val environment = environment
     val vcsRootId = vcsRootId
 
-    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int, disableTriggers: Boolean) : BuildType {
+    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int, disableTriggers: Boolean, runWithBetaVersion: Boolean) : BuildType {
         return BuildType {
             // TC needs a consistent ID for dynamically generated packages
-            id(uniqueID(providerName))
+            id(uniqueID(providerName, runWithBetaVersion))
 
             name = "%s - Acceptance Tests".format(displayName)
 
@@ -19,6 +19,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
             }
 
             steps {
+                SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
                 RunAcceptanceTests(packageName)
@@ -43,6 +44,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 ReadOnlySettings()
                 WorkingDirectory(packageName)
                 GoCache()
+                BuildStartTime()
             }
 
             triggers {
@@ -51,7 +53,10 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
         }
     }
 
-    fun uniqueID(provider : String) : String {
+    fun uniqueID(provider : String, runWithBetaVersion: Boolean ) : String {
+        if (runWithBetaVersion) {
+            return "%s_BETA_VERSION_SERVICE_%s_%s".format(provider.uppercase(), environment.uppercase(), packageName.uppercase())
+        }
         return "%s_SERVICE_%s_%s".format(provider.uppercase(), environment.uppercase(), packageName.uppercase())
     }
 }

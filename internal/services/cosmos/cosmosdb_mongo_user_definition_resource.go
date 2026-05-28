@@ -10,11 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/mongorbacs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -48,7 +47,7 @@ func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.MongodbDatabaseID,
+			ValidateFunc: cosmosdb.ValidateMongodbDatabaseID,
 		},
 
 		"username": {
@@ -90,13 +89,13 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Cosmos.MongoRBACClient
-			databaseId, err := parse.MongodbDatabaseID(model.CosmosMongoDatabaseId)
+			databaseId, err := cosmosdb.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
 			}
 
-			mongoUserDefinitionId := fmt.Sprintf("%s.%s", databaseId.Name, model.Username)
-			id := mongorbacs.NewMongodbUserDefinitionID(databaseId.SubscriptionId, databaseId.ResourceGroup, databaseId.DatabaseAccountName, mongoUserDefinitionId)
+			mongoUserDefinitionId := fmt.Sprintf("%s.%s", databaseId.MongodbDatabaseName, model.Username)
+			id := mongorbacs.NewMongodbUserDefinitionID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.DatabaseAccountName, mongoUserDefinitionId)
 
 			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
@@ -112,11 +111,11 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 
 			properties := mongorbacs.MongoUserDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoUserDefinitionResource{
-					DatabaseName: pointer.To(databaseId.Name),
+					DatabaseName: pointer.To(databaseId.MongodbDatabaseName),
 					Mechanisms:   pointer.To("SCRAM-SHA-256"),
 					Password:     pointer.To(model.Password),
 					UserName:     pointer.To(model.Username),
-					Roles:        expandInheritedRole(model.InheritedRoleNames, databaseId.Name),
+					Roles:        expandInheritedRole(model.InheritedRoleNames, databaseId.MongodbDatabaseName),
 				},
 			}
 
@@ -159,7 +158,7 @@ func (r CosmosDbMongoUserDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			databaseId, err := parse.MongodbDatabaseID(model.CosmosMongoDatabaseId)
+			databaseId, err := cosmosdb.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
 			}
@@ -173,7 +172,7 @@ func (r CosmosDbMongoUserDefinitionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("inherited_role_names") {
-				parameters.Properties.Roles = expandInheritedRole(model.InheritedRoleNames, databaseId.Name)
+				parameters.Properties.Roles = expandInheritedRole(model.InheritedRoleNames, databaseId.MongodbDatabaseName)
 			}
 
 			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, *id, parameters); err != nil {
@@ -209,7 +208,7 @@ func (r CosmosDbMongoUserDefinitionResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					databaseId := parse.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, *properties.DatabaseName)
+					databaseId := cosmosdb.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, *properties.DatabaseName)
 
 					state.CosmosMongoDatabaseId = databaseId.ID()
 					state.Username = pointer.From(properties.UserName)

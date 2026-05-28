@@ -578,7 +578,8 @@ func expandSMTPConfigurationModel(input []SMTPConfigurationModel) *managedgrafan
 	return pointer.To(
 		managedgrafanas.GrafanaConfigurations{
 			Smtp: pointer.To(smtp),
-		})
+		},
+	)
 }
 
 func expandGrafanaIntegrationsModel(inputList []AzureMonitorWorkspaceIntegrationModel) *managedgrafanas.GrafanaIntegrations {
