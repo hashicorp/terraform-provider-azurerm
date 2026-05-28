@@ -8,3 +8,7 @@ const defaultApiVersion = "2025-10-08"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/prefixlistresources/2025-10-08"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

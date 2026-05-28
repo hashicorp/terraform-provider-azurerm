@@ -62,9 +62,20 @@ func (c ServerDnsAliasesClient) Acquire(ctx context.Context, id DnsAliasId, inpu
 
 // AcquireThenPoll performs Acquire then polls until it's completed
 func (c ServerDnsAliasesClient) AcquireThenPoll(ctx context.Context, id DnsAliasId, input ServerDnsAliasAcquisition) error {
+	return c.AcquireCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AcquireCallbackThenPoll performs Acquire, runs the optional callback function, then polls until it's completed
+func (c ServerDnsAliasesClient) AcquireCallbackThenPoll(ctx context.Context, id DnsAliasId, input ServerDnsAliasAcquisition, callback func() error) error {
 	result, err := c.Acquire(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Acquire: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

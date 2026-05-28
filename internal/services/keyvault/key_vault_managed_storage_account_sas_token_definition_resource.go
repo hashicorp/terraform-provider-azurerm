@@ -127,15 +127,17 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.GetSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Managed Storage Account Sas Defition %q (Storage Account %q, Key Vault %q): %+v", name, storageAccount.Name, *keyVaultId, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Managed Storage Account Sas Defition %q (Storage Account %q, Key Vault %q): %+v", name, storageAccount.Name, *keyVaultId, err)
+				}
 			}
-		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_managed_storage_account_sas_token_definition", *existing.ID)
+			if existing.ID != nil && *existing.ID != "" {
+				return tf.ImportAsExistsError("azurerm_key_vault_managed_storage_account_sas_token_definition", *existing.ID)
+			}
 		}
 	}
 

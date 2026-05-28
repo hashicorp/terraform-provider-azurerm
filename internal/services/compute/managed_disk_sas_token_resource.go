@@ -85,7 +85,6 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Disk Export.")
 	durationInSeconds := int64(d.Get("duration_in_seconds").(int))
 	access := disks.AccessLevel(d.Get("access_level").(string))
 
@@ -121,9 +120,17 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return fmt.Errorf("granting access to %s: %+v", *diskId, err)
 	}
+
+	// Normally we would use `CallbackThenPoll` but we need the last response for the SAS access URL
+	if !meta.(*clients.Client).Features.PersistIDOnCreateBeforePollingForCompletion {
+		d.SetId(diskId.ID())
+	}
+
 	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for access to be granted to %s: %+v", *diskId, err)
 	}
+
+	d.SetId(diskId.ID())
 
 	lastResponse := future.Poller.LatestResponse()
 	if lastResponse == nil {
@@ -135,9 +142,7 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving SAS Token for Disk Access %s: %+v", *diskId, err)
 	}
 
-	d.SetId(diskId.ID())
-	sasToken := result.Properties.Output.AccessSAS
-	d.Set("sas_url", sasToken)
+	d.Set("sas_url", result.Properties.Output.AccessSAS)
 
 	return resourceManagedDiskSasTokenRead(d, meta)
 }

@@ -33,6 +33,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -448,7 +449,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 
 	id := replicationprotecteditems.NewReplicationProtectedItemID(subscriptionId, resGroup, vaultName, fabricName, sourceProtectionContainerName, name)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -508,11 +509,9 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	err := client.CreateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
-
 	d.SetId(id.ID())
 
 	// We are not allowed to configure the NIC on the initial setup, and the VM has to be replicated before
@@ -950,8 +949,8 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					if nic.SourceNicArmId != nil {
 						nicOutput["source_network_interface_id"] = *nic.SourceNicArmId
 					}
-					if nic.IPConfigs != nil && len(*(nic.IPConfigs)) > 0 {
-						ipConfig := (*(nic.IPConfigs))[0]
+					if nic.IPConfigs != nil && len(*nic.IPConfigs) > 0 {
+						ipConfig := (*nic.IPConfigs)[0]
 						if ipConfig.RecoveryStaticIPAddress != nil {
 							nicOutput["target_static_ip"] = *ipConfig.RecoveryStaticIPAddress
 						}
