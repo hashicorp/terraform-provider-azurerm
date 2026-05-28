@@ -19,6 +19,8 @@ import (
 
 var _ pollers.PollerType = &SiteRecoveryReplicatedVMDiskTypePoller{}
 
+const siteRecoveryReplicatedVMDiskTypeRequiredSuccessfulReads = 3
+
 type SiteRecoveryReplicatedVMDiskTypeTarget struct {
 	DiskId                string
 	TargetDiskType        string
@@ -26,10 +28,11 @@ type SiteRecoveryReplicatedVMDiskTypeTarget struct {
 }
 
 type SiteRecoveryReplicatedVMDiskTypePoller struct {
-	client      *replicationprotecteditems.ReplicationProtectedItemsClient
-	id          replicationprotecteditems.ReplicationProtectedItemId
-	targets     map[string]SiteRecoveryReplicatedVMDiskTypeTarget
-	latestState string
+	client                     *replicationprotecteditems.ReplicationProtectedItemsClient
+	id                         replicationprotecteditems.ReplicationProtectedItemId
+	targets                    map[string]SiteRecoveryReplicatedVMDiskTypeTarget
+	latestState                string
+	consecutiveSuccessfulReads int
 }
 
 func NewSiteRecoveryReplicatedVMDiskTypePoller(client *replicationprotecteditems.ReplicationProtectedItemsClient, id replicationprotecteditems.ReplicationProtectedItemId, targets []SiteRecoveryReplicatedVMDiskTypeTarget) *SiteRecoveryReplicatedVMDiskTypePoller {
@@ -98,11 +101,19 @@ func (p *SiteRecoveryReplicatedVMDiskTypePoller) Poll(ctx context.Context) (*pol
 		return nil, err
 	}
 	if len(pending) == 0 {
+		p.consecutiveSuccessfulReads++
+		if p.consecutiveSuccessfulReads < siteRecoveryReplicatedVMDiskTypeRequiredSuccessfulReads {
+			p.latestState = fmt.Sprintf("managed disk types matched target values for %d consecutive reads", p.consecutiveSuccessfulReads)
+			result.Status = pollers.PollingStatusInProgress
+			return result, nil
+		}
+
 		p.latestState = ""
 		result.Status = pollers.PollingStatusSucceeded
 		return result, nil
 	}
 
+	p.consecutiveSuccessfulReads = 0
 	sort.Strings(pending)
 	p.latestState = strings.Join(pending, "; ")
 	result.Status = pollers.PollingStatusInProgress
