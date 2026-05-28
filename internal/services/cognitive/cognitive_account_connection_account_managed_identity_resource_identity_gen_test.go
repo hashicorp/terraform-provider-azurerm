@@ -18,10 +18,10 @@ func TestAccCognitiveAccountConnectionAccountManagedIdentity_resourceIdentity(t 
 	r := CognitiveAccountConnectionAccountManagedIdentityResource{}
 
 	checkedFields := map[string]struct{}{
-		"subscription_id":     {},
-		"resource_group_name": {},
-		"account_name":        {},
-		"name":                {},
+		"subscription_id":        {},
+		"cognitive_account_name": {},
+		"name":                   {},
+		"resource_group_name":    {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
@@ -30,9 +30,9 @@ func TestAccCognitiveAccountConnectionAccountManagedIdentity_resourceIdentity(t 
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_cognitive_account_connection_account_managed_identity.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("cognitive_account_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("account_name"), tfjsonpath.New("cognitive_account_id")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("cognitive_account_name"), tfjsonpath.New("cognitive_account_name")),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(true),
