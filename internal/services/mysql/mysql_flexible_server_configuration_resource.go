@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -88,7 +89,7 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 
-	if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.UpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
 

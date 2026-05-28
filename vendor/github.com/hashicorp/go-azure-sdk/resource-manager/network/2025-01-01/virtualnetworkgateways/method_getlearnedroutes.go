@@ -58,9 +58,20 @@ func (c VirtualNetworkGatewaysClient) GetLearnedRoutes(ctx context.Context, id V
 
 // GetLearnedRoutesThenPoll performs GetLearnedRoutes then polls until it's completed
 func (c VirtualNetworkGatewaysClient) GetLearnedRoutesThenPoll(ctx context.Context, id VirtualNetworkGatewayId) error {
+	return c.GetLearnedRoutesCallbackThenPoll(ctx, id, nil)
+}
+
+// GetLearnedRoutesCallbackThenPoll performs GetLearnedRoutes, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) GetLearnedRoutesCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, callback func() error) error {
 	result, err := c.GetLearnedRoutes(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GetLearnedRoutes: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

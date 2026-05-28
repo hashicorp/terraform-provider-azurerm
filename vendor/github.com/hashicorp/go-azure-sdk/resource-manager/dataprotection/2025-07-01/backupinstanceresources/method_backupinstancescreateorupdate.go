@@ -92,9 +92,20 @@ func (c BackupInstanceResourcesClient) BackupInstancesCreateOrUpdate(ctx context
 
 // BackupInstancesCreateOrUpdateThenPoll performs BackupInstancesCreateOrUpdate then polls until it's completed
 func (c BackupInstanceResourcesClient) BackupInstancesCreateOrUpdateThenPoll(ctx context.Context, id BackupInstanceId, input BackupInstanceResource, options BackupInstancesCreateOrUpdateOperationOptions) error {
+	return c.BackupInstancesCreateOrUpdateCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// BackupInstancesCreateOrUpdateCallbackThenPoll performs BackupInstancesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c BackupInstanceResourcesClient) BackupInstancesCreateOrUpdateCallbackThenPoll(ctx context.Context, id BackupInstanceId, input BackupInstanceResource, options BackupInstancesCreateOrUpdateOperationOptions, callback func() error) error {
 	result, err := c.BackupInstancesCreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing BackupInstancesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
