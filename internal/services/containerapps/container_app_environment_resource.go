@@ -411,7 +411,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
-					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
+					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles, existingState.WorkloadProfiles)
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
 
 					if props.CustomDomainConfiguration != nil {

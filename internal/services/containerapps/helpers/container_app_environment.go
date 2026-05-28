@@ -123,13 +123,29 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 	return &result
 }
 
-func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []WorkloadProfileModel {
+func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile, existing []WorkloadProfileModel) []WorkloadProfileModel {
 	if input == nil || len(*input) == 0 {
 		return []WorkloadProfileModel{}
 	}
-	result := make([]WorkloadProfileModel, 0)
 
-	for _, v := range *input {
+	userDeclaredConsumption := false
+	for _, p := range existing {
+		if p.Name == string(WorkloadProfileSkuConsumption) {
+			userDeclaredConsumption = true
+			break
+		}
+	}
+
+	apiProfiles := *input
+	result := make([]WorkloadProfileModel, 0, len(apiProfiles))
+
+	for _, v := range apiProfiles {
+		// Filter out the implicit `Consumption` profile that Azure auto-adds to any environment
+		// containing a dedicated profile, but only when the user has not declared one themselves.
+		if len(apiProfiles) > 1 && v.Name == string(WorkloadProfileSkuConsumption) && !userDeclaredConsumption {
+			continue
+		}
+
 		result = append(result, WorkloadProfileModel{
 			Name:                v.Name,
 			MaximumCount:        pointer.From(v.MaximumCount),
