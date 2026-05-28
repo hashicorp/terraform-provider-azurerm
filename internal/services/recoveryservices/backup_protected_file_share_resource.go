@@ -326,11 +326,9 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 
 		if existing.Model != nil && existing.Model.Properties != nil {
 			if item, ok := existing.Model.Properties.(protecteditems.AzureFileshareProtectedItem); ok {
+				item.ProtectionState = &targetState
 				update := protecteditems.ProtectedItemResource{
-					Properties: &protecteditems.AzureFileshareProtectedItem{
-						ProtectionState:  &targetState,
-						SourceResourceId: item.SourceResourceId,
-					},
+					Properties: item,
 				}
 
 				if err := client.CreateOrUpdateThenPoll(ctx, *id, update); err != nil {
