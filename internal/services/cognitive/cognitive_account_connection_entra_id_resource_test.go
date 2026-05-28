@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CognitiveAccountConnectionEntraIDResource struct{}
+type CognitiveAccountConnectionEntraIdResource struct{}
 
 func TestAccCognitiveAccountConnectionEntraID_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
-	r := CognitiveAccountConnectionEntraIDResource{}
+	r := CognitiveAccountConnectionEntraIdResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccCognitiveAccountConnectionEntraID_basic(t *testing.T) {
 
 func TestAccCognitiveAccountConnectionEntraID_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
-	r := CognitiveAccountConnectionEntraIDResource{}
+	r := CognitiveAccountConnectionEntraIdResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccCognitiveAccountConnectionEntraID_requiresImport(t *testing.T) {
 
 func TestAccCognitiveAccountConnectionEntraID_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
-	r := CognitiveAccountConnectionEntraIDResource{}
+	r := CognitiveAccountConnectionEntraIdResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -72,7 +72,7 @@ func TestAccCognitiveAccountConnectionEntraID_update(t *testing.T) {
 
 func TestAccCognitiveAccountConnectionEntraID_supportedCategories(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
-	r := CognitiveAccountConnectionEntraIDResource{}
+	r := CognitiveAccountConnectionEntraIdResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -108,7 +108,7 @@ func TestAccCognitiveAccountConnectionEntraID_supportedCategories(t *testing.T) 
 	})
 }
 
-func (r CognitiveAccountConnectionEntraIDResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CognitiveAccountConnectionEntraIdResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := accountconnectionresource.ParseConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func (r CognitiveAccountConnectionEntraIDResource) Exists(ctx context.Context, c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CognitiveAccountConnectionEntraIDResource) template(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIdResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cognitive-ac-%[1]d"
@@ -145,7 +145,7 @@ resource "azurerm_cognitive_account" "test" {
 `, data.RandomInteger, "Australia East")
 }
 
-func (r CognitiveAccountConnectionEntraIDResource) basic(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIdResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -180,7 +180,7 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionEntraIDResource) requiresImport(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIdResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -199,7 +199,7 @@ resource "azurerm_cognitive_account_connection_entra_id" "import" {
 `, r.basic(data))
 }
 
-func (r CognitiveAccountConnectionEntraIDResource) updated(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIdResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -234,7 +234,7 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionEntraIDResource) aiServicesCategory(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIdResource) aiServicesCategory(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -271,7 +271,7 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionEntraIDResource) storageAccountCategory(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIdResource) storageAccountCategory(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -301,7 +301,7 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r CognitiveAccountConnectionEntraIDResource) cognitiveSearchCategory(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIdResource) cognitiveSearchCategory(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -331,7 +331,7 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionEntraIDResource) cosmosDbCategory(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIdResource) cosmosDbCategory(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -374,7 +374,7 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r CognitiveAccountConnectionEntraIDResource) databricksCategory(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIdResource) databricksCategory(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

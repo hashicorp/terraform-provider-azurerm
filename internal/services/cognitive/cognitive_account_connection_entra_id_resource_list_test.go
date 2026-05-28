@@ -19,7 +19,7 @@ import (
 
 func TestAccCognitiveAccountConnectionEntraID_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
-	r := CognitiveAccountConnectionEntraIDResource{}
+	r := CognitiveAccountConnectionEntraIdResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -50,7 +50,7 @@ func TestAccCognitiveAccountConnectionEntraID_list(t *testing.T) {
 	})
 }
 
-func (r CognitiveAccountConnectionEntraIDResource) basicListQuery() string {
+func (r CognitiveAccountConnectionEntraIdResource) basicListQuery() string {
 	return `
 list "azurerm_cognitive_account_connection_entra_id" "list" {
   provider = azurerm
@@ -61,6 +61,6 @@ list "azurerm_cognitive_account_connection_entra_id" "list" {
 `
 }
 
-func (r CognitiveAccountConnectionEntraIDResource) basicList(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIdResource) basicList(data acceptance.TestData) string {
 	return r.basic(data)
 }
