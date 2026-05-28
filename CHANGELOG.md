@@ -10,16 +10,16 @@ ENHANCEMENTS:
 * `azurerm_redhat_openshift_cluster` - update API version to `2025-07-25` [GH-32029]
 * `azurerm_application_gateway` - add support for `certificate_chain_validation_enabled`, `sni_validation_enabled`, and `sni_name` properties to `backend_http_settings` [GH-31206]
 * dependencies: `recoveryservices/vaults` - update to API Version `2025-08-01` [GH-31163]
-* `azurerm_mssql_managed_instance_transparent_data_encryption` - support versionless `key_vault_key_id` (#32399) [GH-32399]
+* `azurerm_mssql_managed_instance_transparent_data_encryption` - support versionless `key_vault_key_id` [GH-32399]
 * `azurerm_mongo_cluster` - the `storage_size_in_gb` property now allows values of up to `32768` [GH-32428]
 
 FEATURES:
 
 BUG FIXES:
-* `azurerm_site_recovery_vmware_replicated_vm` - fixes  a bug where`test_subnet_name` not set correctly [GH-32407]
+* `azurerm_site_recovery_vmware_replicated_vm` - fixes a bug where `test_subnet_name` not set correctly [GH-32407]
 * `azurerm_cosmosdb_sql_container` - fix Read function to ensure the resource is able to track drift [GH-32443]
 * Data Source: `azurerm_virtual_network_gateway` - fixed issue returning correct value for deprecated `enable_bgp` property [GH-32422]
-`azurerm_api_management_backend` - the make `proxy.username` property is now optional [GH-32433]
+* `azurerm_api_management_backend` - the `proxy.username` property is now optional [GH-32433]
 
 ## 4.74.0 (May 21, 2026)
 
