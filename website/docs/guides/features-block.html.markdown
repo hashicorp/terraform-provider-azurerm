@@ -79,10 +79,10 @@ provider "azurerm" {
     }
 
     recovery_service {
-      vm_backup_stop_protection_and_retain_data_on_destroy            = true
-      vm_backup_suspend_protection_and_retain_data_on_destroy         = true
-      file_share_backup_stop_protection_and_retain_data_on_destroy    = true
-      purge_protected_items_from_vault_on_destroy                     = true
+      vm_backup_stop_protection_and_retain_data_on_destroy         = true
+      vm_backup_suspend_protection_and_retain_data_on_destroy      = true
+      file_share_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy                  = true
     }
 
     recovery_services_vault {
