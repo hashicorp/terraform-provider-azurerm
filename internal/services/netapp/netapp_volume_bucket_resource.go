@@ -146,12 +146,14 @@ func (r NetAppVolumeBucketResource) Arguments() map[string]*pluginsdk.Schema {
 		"server": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			Computed: true, // O+C - the API always hydrates a `server` block with backend defaults (fqdn, on_certificate_conflict_action) even when the user omits it, so without Computed we'd see a non-empty plan after apply when the block is left out of config
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"fqdn": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Computed:     true, // O+C - the API returns the backend-generated bucket fqdn even when the user supplies an empty `server {}` block; without Computed Terraform would try to wipe it on the next plan
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"certificate_pem": {
@@ -164,7 +166,7 @@ func (r NetAppVolumeBucketResource) Arguments() map[string]*pluginsdk.Schema {
 					"on_certificate_conflict_action": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Default:      string(buckets.OnCertificateConflictActionFail),
+						Computed:     true, // O+C - the API always returns this attribute (defaulting to "Fail") regardless of whether the user supplied it; Default cannot be combined with Computed in the plugin SDK, so we let the API supply the default and mark the field Computed to avoid drift
 						ValidateFunc: validation.StringInSlice(buckets.PossibleValuesForOnCertificateConflictAction(), false),
 					},
 				},
