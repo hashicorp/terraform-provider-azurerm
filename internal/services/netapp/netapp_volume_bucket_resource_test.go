@@ -101,6 +101,40 @@ func TestAccNetAppVolumeBucket_requiresImport(t *testing.T) {
 	})
 }
 
+// TestAccNetAppVolumeBucket_serverBlockVariations verifies that multiple buckets can
+// coexist on volumes that share the same capacity pool and delegated subnet while
+// declaring the `server` block in three different shapes:
+//   - bucket "test"  : fully populated `server` block (fqdn + certificate_pem).
+//   - bucket "test2" : empty `server {}` block.
+//   - bucket "test3" : no `server` block at all.
+//
+// Step 1 creates only the first volume + bucket (server block populated). Step 2 keeps
+// it and adds two additional volumes + buckets into the same capacity pool, reusing
+// the same delegated subnet.
+func TestAccNetAppVolumeBucket_serverBlockVariations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_bucket", "test")
+	r := NetAppVolumeBucketResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("server.0.certificate_pem"),
+		{
+			Config: r.serverBlockVariations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_netapp_volume_bucket.test2").ExistsInAzure(r),
+				check.That("azurerm_netapp_volume_bucket.test3").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("server.0.certificate_pem"),
+	})
+}
+
 func (t NetAppVolumeBucketResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := buckets.ParseBucketID(state.ID)
 	if err != nil {
@@ -299,6 +333,69 @@ resource "azurerm_netapp_volume_bucket" "import" {
   }
 }
 `, r.basic(data))
+}
+
+// serverBlockVariations builds on top of basic() (volume "test" + bucket "test"
+// with a fully populated server block) and adds two additional volumes living
+// in the same capacity pool and sharing the same delegated subnet, each paired
+// with a bucket exercising a different `server` block shape:
+//   - bucket "test2" declares an empty `server {}` block;
+//   - bucket "test3" omits the `server` block entirely.
+func (r NetAppVolumeBucketResource) serverBlockVariations(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test2" {
+  name                = "acctest-NetAppVolume2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path2-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  storage_quota_in_gb = 100
+  protocols           = ["NFSv3"]
+}
+
+resource "azurerm_netapp_volume_bucket" "test2" {
+  name      = "acctest-bucket2-%[2]d"
+  volume_id = azurerm_netapp_volume.test2.id
+
+  file_system_nfs_user {
+    group_id = 1000
+    user_id  = 1000
+  }
+
+  # Empty server block - declared but no attributes populated.
+  server {}
+}
+
+resource "azurerm_netapp_volume" "test3" {
+  name                = "acctest-NetAppVolume3-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path3-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  storage_quota_in_gb = 100
+  protocols           = ["NFSv3"]
+}
+
+resource "azurerm_netapp_volume_bucket" "test3" {
+  name      = "acctest-bucket3-%[2]d"
+  volume_id = azurerm_netapp_volume.test3.id
+
+  file_system_nfs_user {
+    group_id = 1000
+    user_id  = 1000
+  }
+
+  # No server block declared.
+}
+`, r.basic(data), data.RandomInteger)
 }
 
 func (NetAppVolumeBucketResource) template(data acceptance.TestData) string {
