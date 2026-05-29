@@ -118,15 +118,17 @@ func (r ContainerAppEnvironmentManagedCertificateResource) Create() sdk.Resource
 
 			id := managedenvironments.NewManagedCertificateID(envId.SubscriptionId, envId.ResourceGroupName, envId.ManagedEnvironmentName, model.Name)
 
-			existing, err := client.ManagedCertificatesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ManagedCertificatesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			env, err := client.Get(ctx, *envId)
@@ -147,7 +149,7 @@ func (r ContainerAppEnvironmentManagedCertificateResource) Create() sdk.Resource
 				Tags: tags.Expand(model.Tags),
 			}
 
-			if err := client.ManagedCertificatesCreateOrUpdateThenPoll(ctx, id, certificate); err != nil {
+			if err := client.ManagedCertificatesCreateOrUpdateCallbackThenPoll(ctx, id, certificate, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

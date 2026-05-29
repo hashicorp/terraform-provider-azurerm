@@ -6,7 +6,6 @@ package loganalytics
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -114,12 +113,13 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.LogAnalytics.TablesClient
 
 			tableName := model.Name
-			log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace Table %s update.", tableName)
 
 			workspaceId, err := workspaces.ParseWorkspaceID(model.WorkspaceId)
 			if err != nil {
 				return fmt.Errorf("invalid workspace object ID for table %s: %s", tableName, err)
 			}
+
+			// TODO: Import check
 
 			id := tables.NewTableID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, tableName)
 
@@ -142,7 +142,7 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 				updateInput.Properties.TotalRetentionInDays = pointer.To(model.TotalRetentionInDays)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, updateInput, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("failed to update table %s in workspace %s in resource group %s: %s", tableName, workspaceId.WorkspaceName, workspaceId.ResourceGroupName, err)
 			}
 

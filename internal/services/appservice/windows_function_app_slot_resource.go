@@ -486,13 +486,15 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			// Only send for Dynamic and ElasticPremium
 			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !functionAppSlot.ForceDisableContentShare
 
-			existing, err := client.GetSlot(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetSlot(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			subscriptionID := commonids.NewSubscriptionID(subscriptionId)
@@ -611,17 +613,21 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(functionAppSlot.ClientCertExclusionPaths)
 			}
 
-			if err = client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
+			if err = client.CreateOrUpdateSlotCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
 			}
 
-			sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-					Allow: functionAppSlot.PublishingDeployBasicAuthEnabled,
-				},
-			}
-			if _, err = client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
-				return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+			metadata.SetID(id)
+
+			if !functionAppSlot.PublishingDeployBasicAuthEnabled {
+				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: false,
+					},
+				}
+				if _, err = client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
 			}
 
 			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
@@ -636,8 +642,6 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			if err = client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
 				return fmt.Errorf("updating properties of Windows %s: %+v", id, err)
 			}
-
-			metadata.SetID(id)
 
 			backupConfig, err := helpers.ExpandBackupConfig(functionAppSlot.Backup)
 			if err != nil {
@@ -878,8 +882,6 @@ func (r WindowsFunctionAppSlotResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting Windows %s", *id)
 
 			delOpts := webapps.DeleteSlotOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -1293,7 +1295,7 @@ func (r WindowsFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("retrieving %s: %+v", functionAppId, err)
 				}
 				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
-					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
+					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *ase.Id != "" && !newValue.(bool) {
 						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
 					}
 				}

@@ -91,12 +91,14 @@ func resourceSynapseWorkspaceAADAdminCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("updating Synapse Workspace %q AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
 	}
 
+	id := parse.NewWorkspaceAADAdminID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "activeDirectory")
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err = workspaceAadAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting on updating for Synapse Workspace %q AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
 	}
-
-	id := parse.NewWorkspaceAADAdminID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "activeDirectory")
-	d.SetId(id.ID())
 
 	return resourceSynapseWorkspaceAADAdminRead(d, meta)
 }
