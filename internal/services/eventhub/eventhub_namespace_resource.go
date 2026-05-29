@@ -38,7 +38,6 @@ import (
 // default connection strings and keys
 var (
 	eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
-	eventHubNamespaceResourceName             = "azurerm_eventhub_namespace"
 )
 
 func resourceEventHubNamespace() *pluginsdk.Resource {

@@ -20,8 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-const appServiceHostnameBindingResourceName = "azurerm_app_service_custom_hostname_binding"
-
 func resourceAppServiceCertificateBinding() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceAppServiceCertificateBindingCreate,

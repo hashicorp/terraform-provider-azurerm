@@ -25,8 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var scalingPlanResourceType = "azurerm_virtual_desktop_scaling_plan"
-
 func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceVirtualDesktopScalingPlanCreate,

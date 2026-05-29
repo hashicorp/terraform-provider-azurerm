@@ -28,8 +28,6 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity
 
-const virtualHubResourceName = "azurerm_virtual_hub"
-
 func resourceVirtualHub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create:   resourceVirtualHubCreate,
