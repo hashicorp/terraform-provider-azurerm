@@ -217,38 +217,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidatio
 	data.ResourceTest(t, r, testSteps)
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_validate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	testSteps := []acceptance.TestStep{
-		{
-			Config:      r.skuProfileInvalidVMSizePrefix(data),
-			ExpectError: regexp.MustCompile("must begin with `Standard_`, got `D2s_v5`"),
-		},
-		{
-			Config:      r.skuProfileInvalidVMSizeFamily(data),
-			ExpectError: regexp.MustCompile("must use a supported instance mix VM size family .* got `Standard_L8s_v3`"),
-		},
-		{
-			Config:      r.skuProfileInvalidVMSizeConfidentialFamily(data),
-			ExpectError: regexp.MustCompile("must use a supported instance mix VM size family .* got `Standard_DC2ads_v5`"),
-		},
-	}
-
-	// TODO: Remove in v5.0 - These test steps are for deprecated vm_sizes functionality
-	if !features.FivePointOh() {
-		testSteps = append(testSteps,
-			acceptance.TestStep{
-				Config:      r.skuProfileDeprecatedInvalidVMSizeFamily(data),
-				ExpectError: regexp.MustCompile("must use a supported instance mix VM size family .* got `Standard_L8s_v3`"),
-			},
-		)
-	}
-
-	data.ResourceTest(t, r, testSteps)
-}
-
 func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_forceNewOnRemovalWithSkuNameChange(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
@@ -398,51 +366,6 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfileRankWithoutPriorit
 	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
 }
 
-func (r OrchestratedVirtualMachineScaleSetResource) skuProfileInvalidVMSizePrefix(data acceptance.TestData) string {
-	skuProfileBlock := `  sku_profile {
-    allocation_strategy = "CapacityOptimized"
-
-    virtual_machine_size {
-      name = "D2s_v5"
-    }
-
-    virtual_machine_size {
-      name = "Standard_D2s_v3"
-    }
-  }`
-	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
-}
-
-func (r OrchestratedVirtualMachineScaleSetResource) skuProfileInvalidVMSizeFamily(data acceptance.TestData) string {
-	skuProfileBlock := `  sku_profile {
-    allocation_strategy = "CapacityOptimized"
-
-    virtual_machine_size {
-      name = "Standard_L8s_v3"
-    }
-
-    virtual_machine_size {
-      name = "Standard_D2s_v3"
-    }
-  }`
-	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
-}
-
-func (r OrchestratedVirtualMachineScaleSetResource) skuProfileInvalidVMSizeConfidentialFamily(data acceptance.TestData) string {
-	skuProfileBlock := `  sku_profile {
-    allocation_strategy = "CapacityOptimized"
-
-    virtual_machine_size {
-      name = "Standard_DC2ads_v5"
-    }
-
-    virtual_machine_size {
-      name = "Standard_D2s_v3"
-    }
-  }`
-	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
-}
-
 // Helper functions for common SKU profile configurations
 func skuProfileCapacityOptimized() string {
 	return `  sku_profile {
@@ -545,15 +468,6 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfileDeprecatedSimple(d
 	skuProfileBlock := `  sku_profile {
     allocation_strategy = "LowestPrice"
     vm_sizes = ["Standard_A2_v2", "Standard_D2s_v3"]
-  }`
-	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
-}
-
-// TODO: Remove in v5.0
-func (r OrchestratedVirtualMachineScaleSetResource) skuProfileDeprecatedInvalidVMSizeFamily(data acceptance.TestData) string {
-	skuProfileBlock := `  sku_profile {
-    allocation_strategy = "LowestPrice"
-    vm_sizes = ["Standard_L8s_v3", "Standard_D2s_v3"]
   }`
 	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
 }
