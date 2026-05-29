@@ -155,14 +155,14 @@ jobs:
               console.log(`✅ Created unified failure comment (id: ${newComment.id}) for "${workflowName}" at commit ${shortSha}`);
             }
 
-            // Apply not-ready-for-review label
+            // Apply waiting-response label
             try {
-              console.log(`Applying 'not-ready-for-review' label...`);
+              console.log(`Applying 'waiting-response' label...`);
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: prNumber,
-                labels: ['not-ready-for-review'],
+                labels: ['waiting-response'],
               });
             } catch (err) {
               console.log(`⚠️ Failed to apply label: ${err.message}`);

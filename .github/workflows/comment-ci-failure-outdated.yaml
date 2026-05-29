@@ -168,14 +168,14 @@ jobs:
                 `, { id: comment.id });
                 console.log(`✅ Minimized resolved comment (id: ${comment.databaseId})`);
 
-                // Remove not-ready-for-review label
+                // Remove waiting-response label
                 try {
-                  console.log(`Removing 'not-ready-for-review' label...`);
+                  console.log(`Removing 'waiting-response' label...`);
                   await github.rest.issues.removeLabel({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     issue_number: prNumber,
-                    name: 'not-ready-for-review',
+                    name: 'waiting-response',
                   });
                 } catch (err) {
                   console.log(`⚠️ Failed to remove label (might not exist): ${err.message}`);
