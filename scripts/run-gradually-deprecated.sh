@@ -113,23 +113,6 @@ function runGraduallyDeprecatedFunctions {
       continue
     fi
 
-    # require resources to be imported is now hard-coded on - but only checking for additions
-    violations=$(grep -H -n "features\.ShouldResourcesBeImported" "$f")
-    if [ -n "$violations" ]; then
-      unignored=$(filter_violations "$violations" "gradually-deprecated")
-      if [ -n "$unignored" ]; then
-        echo "$unignored"
-        echo "The Feature Flag for 'ShouldResourcesBeImported' will be deprecated in the future"
-        echo "and shouldn't be used in new resources - please remove new usages of the"
-        echo "'ShouldResourcesBeImported' function from these changes - since this is now enabled"
-        echo "by default."
-        echo ""
-        echo "In the future this function will be marked as Deprecated - however it's not for"
-        echo "the moment to not conflict with open Pull Requests."
-        exit 1
-      fi
-    fi
-
     # using Resource ID Formatters/Parsers
     violations=$(grep -H -n "d\.SetId(\\*" "$f")
     if [ -n "$violations" ]; then
