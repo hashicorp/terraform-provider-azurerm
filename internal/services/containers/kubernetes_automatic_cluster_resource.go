@@ -333,19 +333,19 @@ type LinuxOSConfigModel struct {
 }
 
 type SysctlConfigModel struct {
-	FsAioMaxNr                     int64 `tfschema:"fs_aio_maximum_nr"`
-	FsFileMax                      int64 `tfschema:"fs_file_maximum"`
-	FsInotifyMaxUserWatches        int64 `tfschema:"fs_inotify_maximum_user_watches"`
+	FsAioMaxNr                     int64 `tfschema:"fs_aio_max_nr"`
+	FsFileMax                      int64 `tfschema:"fs_file_max"`
+	FsInotifyMaxUserWatches        int64 `tfschema:"fs_inotify_max_user_watches"`
 	FsNrOpen                       int64 `tfschema:"fs_nr_open"`
-	KernelThreadsMax               int64 `tfschema:"kernel_threads_maximum"`
-	NetCoreNetdevMaxBacklog        int64 `tfschema:"net_core_netdev_maximum_backlog"`
-	NetCoreOptmemMax               int64 `tfschema:"net_core_optmem_maximum"`
+	KernelThreadsMax               int64 `tfschema:"kernel_threads_max"`
+	NetCoreNetdevMaxBacklog        int64 `tfschema:"net_core_netdev_max_backlog"`
+	NetCoreOptmemMax               int64 `tfschema:"net_core_optmem_max"`
 	NetCoreRmemDefault             int64 `tfschema:"net_core_rmem_default"`
-	NetCoreRmemMax                 int64 `tfschema:"net_core_rmem_maximum"`
+	NetCoreRmemMax                 int64 `tfschema:"net_core_rmem_max"`
 	NetCoreSomaxconn               int64 `tfschema:"net_core_somaxconn"`
 	NetCoreWmemDefault             int64 `tfschema:"net_core_wmem_default"`
-	NetCoreWmemMax                 int64 `tfschema:"net_core_wmem_maximum"`
-	NetIPv4IPLocalPortRangeMin     int64 `tfschema:"net_ipv4_ip_local_port_range_minimum"`
+	NetCoreWmemMax                 int64 `tfschema:"net_core_wmem_max"`
+	NetIPv4IPLocalPortRangeMin     int64 `tfschema:"net_ipv4_ip_local_port_range_min"`
 	NetIPv4IPLocalPortRangeMax     int64 `tfschema:"net_ipv4_ip_local_port_range_maximum"`
 	NetIPv4NeighDefaultGcThresh1   int64 `tfschema:"net_ipv4_neigh_default_gc_thresh1"`
 	NetIPv4NeighDefaultGcThresh2   int64 `tfschema:"net_ipv4_neigh_default_gc_thresh2"`
@@ -354,12 +354,12 @@ type SysctlConfigModel struct {
 	NetIPv4TCPKeepaliveIntvl       int64 `tfschema:"net_ipv4_tcp_keepalive_intvl"`
 	NetIPv4TCPKeepaliveProbes      int64 `tfschema:"net_ipv4_tcp_keepalive_probes"`
 	NetIPv4TCPKeepaliveTime        int64 `tfschema:"net_ipv4_tcp_keepalive_time"`
-	NetIPv4TCPMaxSynBacklog        int64 `tfschema:"net_ipv4_tcp_maximum_syn_backlog"`
-	NetIPv4TCPMaxTwBuckets         int64 `tfschema:"net_ipv4_tcp_maximum_tw_buckets"`
+	NetIPv4TCPMaxSynBacklog        int64 `tfschema:"net_ipv4_tcp_max_syn_backlog"`
+	NetIPv4TCPMaxTwBuckets         int64 `tfschema:"net_ipv4_tcp_max_tw_buckets"`
 	NetIPv4TCPTwReuse              bool  `tfschema:"net_ipv4_tcp_tw_reuse"`
 	NetNetfilterNfConntrackBuckets int64 `tfschema:"net_netfilter_nf_conntrack_buckets"`
-	NetNetfilterNfConntrackMax     int64 `tfschema:"net_netfilter_nf_conntrack_maximum"`
-	VMMaxMapCount                  int64 `tfschema:"vm_maximum_map_count"`
+	NetNetfilterNfConntrackMax     int64 `tfschema:"net_netfilter_nf_conntrack_max"`
+	VMMaxMapCount                  int64 `tfschema:"vm_max_map_count"`
 	VMSwappiness                   int64 `tfschema:"vm_swappiness"`
 	VMVfsCachePressure             int64 `tfschema:"vm_vfs_cache_pressure"`
 }
@@ -744,19 +744,19 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
-											"fs_aio_maximum_nr": {
+											"fs_aio_max_nr": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(65536, 6553500),
 											},
 
-											"fs_file_maximum": {
+											"fs_file_max": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(8192, 12000500),
 											},
 
-											"fs_inotify_maximum_user_watches": {
+											"fs_inotify_max_user_watches": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(781250, 2097152),
@@ -768,19 +768,19 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 												ValidateFunc: validation.IntBetween(8192, 20000500),
 											},
 
-											"kernel_threads_maximum": {
+											"kernel_threads_max": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(20, 513785),
 											},
 
-											"net_core_netdev_maximum_backlog": {
+											"net_core_netdev_max_backlog": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(1000, 3240000),
 											},
 
-											"net_core_optmem_maximum": {
+											"net_core_optmem_max": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(20480, 4194304),
@@ -792,7 +792,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 												ValidateFunc: validation.IntBetween(212992, 134217728),
 											},
 
-											"net_core_rmem_maximum": {
+											"net_core_rmem_max": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(212992, 134217728),
@@ -810,13 +810,13 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 												ValidateFunc: validation.IntBetween(212992, 134217728),
 											},
 
-											"net_core_wmem_maximum": {
+											"net_core_wmem_max": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(212992, 134217728),
 											},
 
-											"net_ipv4_ip_local_port_range_minimum": {
+											"net_ipv4_ip_local_port_range_min": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(1024, 60999),
@@ -870,13 +870,13 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 												ValidateFunc: validation.IntBetween(30, 432000),
 											},
 
-											"net_ipv4_tcp_maximum_syn_backlog": {
+											"net_ipv4_tcp_max_syn_backlog": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(128, 3240000),
 											},
 
-											"net_ipv4_tcp_maximum_tw_buckets": {
+											"net_ipv4_tcp_max_tw_buckets": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(8000, 1440000),
@@ -893,13 +893,13 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 												ValidateFunc: validation.IntBetween(65536, 524288),
 											},
 
-											"net_netfilter_nf_conntrack_maximum": {
+											"net_netfilter_nf_conntrack_max": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(131072, 2097152),
 											},
 
-											"vm_maximum_map_count": {
+											"vm_max_map_count": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(65530, 262144),
@@ -4768,10 +4768,10 @@ func expandClusterNodePoolSysctlConfigTyped(input []SysctlConfigModel) (*managed
 
 	if (config.NetIPv4IPLocalPortRangeMin != 0 && config.NetIPv4IPLocalPortRangeMax == 0) ||
 		(config.NetIPv4IPLocalPortRangeMin == 0 && config.NetIPv4IPLocalPortRangeMax != 0) {
-		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_minimum` and `net_ipv4_ip_local_port_range_maximum` should both be set or unset")
+		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` and `net_ipv4_ip_local_port_range_maximum` should both be set or unset")
 	}
 	if config.NetIPv4IPLocalPortRangeMin > config.NetIPv4IPLocalPortRangeMax {
-		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_minimum` should be no larger than `net_ipv4_ip_local_port_range_maximum`")
+		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` should be no larger than `net_ipv4_ip_local_port_range_maximum`")
 	}
 	if config.NetIPv4IPLocalPortRangeMin != 0 && config.NetIPv4IPLocalPortRangeMax != 0 {
 		result.NetIPv4IPLocalPortRange = pointer.To(fmt.Sprintf("%d %d", config.NetIPv4IPLocalPortRangeMin, config.NetIPv4IPLocalPortRangeMax))
