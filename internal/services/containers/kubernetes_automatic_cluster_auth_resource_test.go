@@ -393,11 +393,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count     = 1
     vnet_subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test.id
   }
 
@@ -406,7 +406,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  network_profile {
+  network {
     outbound_type = "loadBalancer"
   }
 
