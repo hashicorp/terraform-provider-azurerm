@@ -62,9 +62,20 @@ func (c AppPlatformClient) AppsUpdate(ctx context.Context, id AppId, input AppRe
 
 // AppsUpdateThenPoll performs AppsUpdate then polls until it's completed
 func (c AppPlatformClient) AppsUpdateThenPoll(ctx context.Context, id AppId, input AppResource) error {
+	return c.AppsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AppsUpdateCallbackThenPoll performs AppsUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) AppsUpdateCallbackThenPoll(ctx context.Context, id AppId, input AppResource, callback func() error) error {
 	result, err := c.AppsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AppsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

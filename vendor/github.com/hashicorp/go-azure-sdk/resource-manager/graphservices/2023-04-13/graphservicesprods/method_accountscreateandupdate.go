@@ -62,9 +62,20 @@ func (c GraphservicesprodsClient) AccountsCreateAndUpdate(ctx context.Context, i
 
 // AccountsCreateAndUpdateThenPoll performs AccountsCreateAndUpdate then polls until it's completed
 func (c GraphservicesprodsClient) AccountsCreateAndUpdateThenPoll(ctx context.Context, id AccountId, input AccountResource) error {
+	return c.AccountsCreateAndUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AccountsCreateAndUpdateCallbackThenPoll performs AccountsCreateAndUpdate, runs the optional callback function, then polls until it's completed
+func (c GraphservicesprodsClient) AccountsCreateAndUpdateCallbackThenPoll(ctx context.Context, id AccountId, input AccountResource, callback func() error) error {
 	result, err := c.AccountsCreateAndUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AccountsCreateAndUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

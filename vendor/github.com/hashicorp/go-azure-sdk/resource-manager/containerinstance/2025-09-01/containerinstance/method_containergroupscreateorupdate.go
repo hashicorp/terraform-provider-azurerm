@@ -62,9 +62,20 @@ func (c ContainerInstanceClient) ContainerGroupsCreateOrUpdate(ctx context.Conte
 
 // ContainerGroupsCreateOrUpdateThenPoll performs ContainerGroupsCreateOrUpdate then polls until it's completed
 func (c ContainerInstanceClient) ContainerGroupsCreateOrUpdateThenPoll(ctx context.Context, id ContainerGroupId, input ContainerGroup) error {
+	return c.ContainerGroupsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ContainerGroupsCreateOrUpdateCallbackThenPoll performs ContainerGroupsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c ContainerInstanceClient) ContainerGroupsCreateOrUpdateCallbackThenPoll(ctx context.Context, id ContainerGroupId, input ContainerGroup, callback func() error) error {
 	result, err := c.ContainerGroupsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ContainerGroupsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

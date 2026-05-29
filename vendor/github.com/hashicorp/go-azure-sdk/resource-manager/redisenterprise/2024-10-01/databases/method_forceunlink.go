@@ -61,9 +61,20 @@ func (c DatabasesClient) ForceUnlink(ctx context.Context, id DatabaseId, input F
 
 // ForceUnlinkThenPoll performs ForceUnlink then polls until it's completed
 func (c DatabasesClient) ForceUnlinkThenPoll(ctx context.Context, id DatabaseId, input ForceUnlinkParameters) error {
+	return c.ForceUnlinkCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ForceUnlinkCallbackThenPoll performs ForceUnlink, runs the optional callback function, then polls until it's completed
+func (c DatabasesClient) ForceUnlinkCallbackThenPoll(ctx context.Context, id DatabaseId, input ForceUnlinkParameters, callback func() error) error {
 	result, err := c.ForceUnlink(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ForceUnlink: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

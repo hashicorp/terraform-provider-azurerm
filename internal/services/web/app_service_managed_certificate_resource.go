@@ -149,15 +149,17 @@ func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta 
 
 	id := certificates.NewCertificateID(subscriptionID, appServicePlanID.ResourceGroupName, chbID.HostNameBindingName)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_app_service_managed_certificate", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_app_service_managed_certificate", id.ID())
+		}
 	}
 
 	certificate := certificates.Certificate{
@@ -174,6 +176,8 @@ func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("creating %s: %w", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// API may return a 202, however, the Location header returned does not return a ProvisioningState when polled
 	// causing the provider to poll until timeout.
 	if response.WasStatusCode(resp.HttpResponse, http.StatusAccepted) {
@@ -182,8 +186,6 @@ func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta 
 			return fmt.Errorf("polling %s: %w", id, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	// An API issue prevents setting tags using the PUT operation, so we'll patch them in after
 	// https://github.com/Azure/azure-rest-api-specs/issues/14529
