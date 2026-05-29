@@ -42,6 +42,7 @@ jobs:
               'Generation Check': 'Run `make generate` locally to regenerate any auto-generated code, then commit the resulting changes.',
               'GoLang Linting': 'Run the Go linter locally with `golangci-lint run -v ./internal/...` and fix any reported issues.',
               'GoLang Formatting Check': 'Run `make fmtcheck` locally to check Go files for formatting issues. You can run `make fmt` to automatically format Go files with gofmt.',
+              'GoLang Compilation': 'Run `go build` or `make build` locally to reproduce and fix compilation errors.',
               'Terraform Schema Linting': 'Run `make tflint` locally and fix any Terraform schema issues in your resource or data source definitions.',
               'Unit Tests': 'Run `make test` locally to reproduce and fix the failing unit tests.',
               'ShellCheck Scripts': 'Run `make shellcheck` locally to check shell scripts for issues and fix any warnings or errors.',

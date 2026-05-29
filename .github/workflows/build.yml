@@ -19,9 +19,9 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - main # limiting to main branch
     paths:
-      - 'version/VERSION'
+      - 'version/VERSION' # and the version file, anything else is redundant for preparing releases
 
 env:
   PKG_NAME: "terraform-provider-azurerm"
