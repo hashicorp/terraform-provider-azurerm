@@ -3,9 +3,15 @@ name: Comment CI Failure
 on:
   # This file is reused, and called from other workflows
   workflow_call:
+    inputs:
+      check_name:
+        description: "The name of the check to report"
+        required: false
+        type: string
 
 permissions:
   pull-requests: write
+  issues: write
 
 jobs:
   comment-failure:
@@ -20,7 +26,7 @@ jobs:
           result-encoding: string
           retries: 3
           script: |
-            const workflowName = '${{ github.workflow }}';
+            const workflowName = '${{ inputs.check_name || github.workflow }}';
             const sha = '${{ github.event.pull_request.head.sha }}';
             const shortSha = sha.substring(0, 7);
             const runUrl = '${{ env.gha_url }}';
@@ -35,6 +41,7 @@ jobs:
               'Website Linting': 'Run `make website-lint` and `make document-validate` locally to check your documentation files under `website/` for formatting or validation issues.',
               'Generation Check': 'Run `make generate` locally to regenerate any auto-generated code, then commit the resulting changes.',
               'GoLang Linting': 'Run the Go linter locally with `golangci-lint run -v ./internal/...` and fix any reported issues.',
+              'GoLang Formatting Check': 'Run `make fmtcheck` locally to check Go files for formatting issues. You can run `make fmt` to automatically format Go files with gofmt.',
               'Terraform Schema Linting': 'Run `make tflint` locally and fix any Terraform schema issues in your resource or data source definitions.',
               'Unit Tests': 'Run `make test` locally to reproduce and fix the failing unit tests.',
               'ShellCheck Scripts': 'Run `make shellcheck` locally to check shell scripts for issues and fix any warnings or errors.',
@@ -145,6 +152,19 @@ jobs:
                 body: body,
               });
               console.log(`✅ Created unified failure comment (id: ${newComment.id}) for "${workflowName}" at commit ${shortSha}`);
+            }
+
+            // Apply not-ready-for-review label
+            try {
+              console.log(`Applying 'not-ready-for-review' label...`);
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['not-ready-for-review'],
+              });
+            } catch (err) {
+              console.log(`⚠️ Failed to apply label: ${err.message}`);
             }
 
             function updateCounter(body) {
