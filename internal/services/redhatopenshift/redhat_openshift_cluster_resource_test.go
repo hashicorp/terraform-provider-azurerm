@@ -189,6 +189,49 @@ func TestAccOpenShiftCluster_basicResourceGroupName(t *testing.T) {
 	})
 }
 
+func TestAccOpenShiftCluster_loadBalancerProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
+	r := OpenShiftClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.loadBalancerProfile(data, 2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").Exists(),
+			),
+		},
+		{
+			Config: r.loadBalancerProfile(data, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret"),
+	})
+}
+
+func TestAccOpenShiftCluster_platformWorkloadIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
+	r := OpenShiftClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.platformWorkloadIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.platformWorkloadIdentityUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t OpenShiftClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := openshiftclusters.ParseOpenShiftClusterID(state.ID)
 	if err != nil {
@@ -213,8 +256,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain  = "aro-%[3]s.com"
-    version = "4.19.20"
+    domain = "aro-%[3]s.com"
   }
 
   network_profile {
@@ -335,8 +377,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain  = "aro-%[3]s.com"
-    version = "4.19.20"
+    domain = "aro-%[3]s.com"
   }
 
   network_profile {
@@ -899,10 +940,639 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
+func (r OpenShiftClusterResource) loadBalancerProfile(data acceptance.TestData, managedOutboundIpCount int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_redhat_openshift_cluster" "test" {
+  name                = "acctestaro%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cluster_profile {
+    domain  = "aro-%[3]s.com"
+    version = "4.19.20"
+  }
+
+  network_profile {
+    pod_cidr     = "10.128.0.0/14"
+    service_cidr = "172.30.0.0/16"
+
+    load_balancer_profile {
+      managed_outbound_ip_count = %[4]d
+    }
+  }
+
+  main_profile {
+    vm_size   = "Standard_D8s_v3"
+    subnet_id = azurerm_subnet.main_subnet.id
+  }
+
+  api_server_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Public"
+  }
+
+  worker_profile {
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
+  }
+
+  service_principal {
+    client_id     = azuread_application.test.client_id
+    client_secret = azuread_service_principal_password.test.value
+  }
+
+  depends_on = [
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+  ]
+}
+    `, r.template(data), data.RandomInteger, data.RandomString, managedOutboundIpCount)
+}
+
+func (r OpenShiftClusterResource) platformWorkloadIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {}
+
+data "azuread_service_principal" "redhatopenshift" {
+  // This is the Azure Red Hat OpenShift RP service principal id, use datasource to prevent deleting by accident
+  client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aro-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/22"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "main_subnet" {
+  name                 = "main-subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/23"]
+  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_subnet" "worker_subnet" {
+  name                 = "worker-subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/23"]
+  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+}
+
+resource "azurerm_user_assigned_identity" "cluster" {
+  name                = "acctest-aro-cluster-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "ccm" {
+  name                = "acctest-aro-ccm-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "ingress" {
+  name                = "acctest-aro-ingress-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "machine_api" {
+  name                = "acctest-aro-machine-api-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "disk_csi" {
+  name                = "acctest-aro-disk-csi-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "cloud_network" {
+  name                = "acctest-aro-cloud-network-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "image_registry" {
+  name                = "acctest-aro-image-registry-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "file_csi" {
+  name                = "acctest-aro-file-csi-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "aro_operator" {
+  name                = "acctest-aro-operator-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+locals {
+  cluster_federated_credential_scopes = [
+    azurerm_user_assigned_identity.aro_operator.id,
+    azurerm_user_assigned_identity.ccm.id,
+    azurerm_user_assigned_identity.cloud_network.id,
+    azurerm_user_assigned_identity.disk_csi.id,
+    azurerm_user_assigned_identity.file_csi.id,
+    azurerm_user_assigned_identity.image_registry.id,
+    azurerm_user_assigned_identity.ingress.id,
+    azurerm_user_assigned_identity.machine_api.id,
+  ]
+}
+
+resource "azurerm_role_assignment" "cluster_federated_credential" {
+  count                = length(local.cluster_federated_credential_scopes)
+  scope                = local.cluster_federated_credential_scopes[count.index]
+  role_definition_name = "Azure Red Hat OpenShift Federated Credential"
+  principal_id         = azurerm_user_assigned_identity.cluster.principal_id
+}
+
+resource "azurerm_role_assignment" "ccm_master_subnet" {
+  scope                = azurerm_subnet.main_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Cloud Controller Manager"
+  principal_id         = azurerm_user_assigned_identity.ccm.principal_id
+}
+
+resource "azurerm_role_assignment" "ccm_worker_subnet" {
+  scope                = azurerm_subnet.worker_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Cloud Controller Manager"
+  principal_id         = azurerm_user_assigned_identity.ccm.principal_id
+}
+
+resource "azurerm_role_assignment" "ingress_master_subnet" {
+  scope                = azurerm_subnet.main_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Cluster Ingress Operator"
+  principal_id         = azurerm_user_assigned_identity.ingress.principal_id
+}
+
+resource "azurerm_role_assignment" "ingress_worker_subnet" {
+  scope                = azurerm_subnet.worker_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Cluster Ingress Operator"
+  principal_id         = azurerm_user_assigned_identity.ingress.principal_id
+}
+
+resource "azurerm_role_assignment" "machine_api_master_subnet" {
+  scope                = azurerm_subnet.main_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Machine API Operator"
+  principal_id         = azurerm_user_assigned_identity.machine_api.principal_id
+}
+
+resource "azurerm_role_assignment" "machine_api_worker_subnet" {
+  scope                = azurerm_subnet.worker_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Machine API Operator"
+  principal_id         = azurerm_user_assigned_identity.machine_api.principal_id
+}
+
+resource "azurerm_role_assignment" "cloud_network_vnet" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Azure Red Hat OpenShift Network Operator"
+  principal_id         = azurerm_user_assigned_identity.cloud_network.principal_id
+}
+
+resource "azurerm_role_assignment" "file_csi_vnet" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Azure Red Hat OpenShift File Storage Operator"
+  principal_id         = azurerm_user_assigned_identity.file_csi.principal_id
+}
+
+resource "azurerm_role_assignment" "image_registry_vnet" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Azure Red Hat OpenShift Image Registry Operator"
+  principal_id         = azurerm_user_assigned_identity.image_registry.principal_id
+}
+
+resource "azurerm_role_assignment" "aro_operator_master_subnet" {
+  scope                = azurerm_subnet.main_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Service Operator"
+  principal_id         = azurerm_user_assigned_identity.aro_operator.principal_id
+}
+
+resource "azurerm_role_assignment" "aro_operator_worker_subnet" {
+  scope                = azurerm_subnet.worker_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Service Operator"
+  principal_id         = azurerm_user_assigned_identity.aro_operator.principal_id
+}
+
+resource "azurerm_role_assignment" "arorp_vnet" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Azure Red Hat OpenShift First Party Network"
+  principal_id         = data.azuread_service_principal.redhatopenshift.object_id
+}
+
+resource "azurerm_redhat_openshift_cluster" "test" {
+  name                = "acctestaro%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.cluster.id]
+  }
+
+  cluster_profile {
+    domain  = "aro-%[3]s.com"
+    version = "4.19.20"
+  }
+
+  network_profile {
+    pod_cidr     = "10.128.0.0/14"
+    service_cidr = "172.30.0.0/16"
+  }
+
+  main_profile {
+    vm_size   = "Standard_D8s_v3"
+    subnet_id = azurerm_subnet.main_subnet.id
+  }
+
+  api_server_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Public"
+  }
+
+  worker_profile {
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
+  }
+
+  platform_workload_identity_profile {
+    platform_workload_identity {
+      name        = "cloud-controller-manager"
+      identity_id = azurerm_user_assigned_identity.ccm.id
+    }
+    platform_workload_identity {
+      name        = "ingress"
+      identity_id = azurerm_user_assigned_identity.ingress.id
+    }
+    platform_workload_identity {
+      name        = "machine-api"
+      identity_id = azurerm_user_assigned_identity.machine_api.id
+    }
+    platform_workload_identity {
+      name        = "disk-csi-driver"
+      identity_id = azurerm_user_assigned_identity.disk_csi.id
+    }
+    platform_workload_identity {
+      name        = "cloud-network-config"
+      identity_id = azurerm_user_assigned_identity.cloud_network.id
+    }
+    platform_workload_identity {
+      name        = "image-registry"
+      identity_id = azurerm_user_assigned_identity.image_registry.id
+    }
+    platform_workload_identity {
+      name        = "file-csi-driver"
+      identity_id = azurerm_user_assigned_identity.file_csi.id
+    }
+    platform_workload_identity {
+      name        = "aro-operator"
+      identity_id = azurerm_user_assigned_identity.aro_operator.id
+    }
+  }
+
+  depends_on = [
+    azurerm_role_assignment.cluster_federated_credential,
+    azurerm_role_assignment.ccm_master_subnet,
+    azurerm_role_assignment.ccm_worker_subnet,
+    azurerm_role_assignment.ingress_master_subnet,
+    azurerm_role_assignment.ingress_worker_subnet,
+    azurerm_role_assignment.machine_api_master_subnet,
+    azurerm_role_assignment.machine_api_worker_subnet,
+    azurerm_role_assignment.cloud_network_vnet,
+    azurerm_role_assignment.file_csi_vnet,
+    azurerm_role_assignment.image_registry_vnet,
+    azurerm_role_assignment.aro_operator_master_subnet,
+    azurerm_role_assignment.aro_operator_worker_subnet,
+    azurerm_role_assignment.arorp_vnet,
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r OpenShiftClusterResource) platformWorkloadIdentityUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {}
+
+data "azuread_service_principal" "redhatopenshift" {
+  // This is the Azure Red Hat OpenShift RP service principal id, use datasource to prevent deleting by accident
+  client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aro-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/22"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "main_subnet" {
+  name                 = "main-subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/23"]
+  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_subnet" "worker_subnet" {
+  name                 = "worker-subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/23"]
+  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+}
+
+resource "azurerm_user_assigned_identity" "cluster" {
+  name                = "acctest-aro-cluster-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "cluster_update" {
+  name                = "acctest-aro-cluster-update-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "ccm" {
+  name                = "acctest-aro-ccm-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "ingress" {
+  name                = "acctest-aro-ingress-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "machine_api" {
+  name                = "acctest-aro-machine-api-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "disk_csi" {
+  name                = "acctest-aro-disk-csi-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "cloud_network" {
+  name                = "acctest-aro-cloud-network-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "image_registry" {
+  name                = "acctest-aro-image-registry-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "file_csi" {
+  name                = "acctest-aro-file-csi-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "aro_operator" {
+  name                = "acctest-aro-operator-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+locals {
+  cluster_federated_credential_scopes = [
+    azurerm_user_assigned_identity.aro_operator.id,
+    azurerm_user_assigned_identity.ccm.id,
+    azurerm_user_assigned_identity.cloud_network.id,
+    azurerm_user_assigned_identity.disk_csi.id,
+    azurerm_user_assigned_identity.file_csi.id,
+    azurerm_user_assigned_identity.image_registry.id,
+    azurerm_user_assigned_identity.ingress.id,
+    azurerm_user_assigned_identity.machine_api.id,
+  ]
+}
+
+resource "azurerm_role_assignment" "cluster_federated_credential" {
+  count                = length(local.cluster_federated_credential_scopes)
+  scope                = local.cluster_federated_credential_scopes[count.index]
+  role_definition_name = "Azure Red Hat OpenShift Federated Credential"
+  principal_id         = azurerm_user_assigned_identity.cluster_update.principal_id
+}
+
+resource "azurerm_role_assignment" "ccm_master_subnet" {
+  scope                = azurerm_subnet.main_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Cloud Controller Manager"
+  principal_id         = azurerm_user_assigned_identity.ccm.principal_id
+}
+
+resource "azurerm_role_assignment" "ccm_worker_subnet" {
+  scope                = azurerm_subnet.worker_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Cloud Controller Manager"
+  principal_id         = azurerm_user_assigned_identity.ccm.principal_id
+}
+
+resource "azurerm_role_assignment" "ingress_master_subnet" {
+  scope                = azurerm_subnet.main_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Cluster Ingress Operator"
+  principal_id         = azurerm_user_assigned_identity.ingress.principal_id
+}
+
+resource "azurerm_role_assignment" "ingress_worker_subnet" {
+  scope                = azurerm_subnet.worker_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Cluster Ingress Operator"
+  principal_id         = azurerm_user_assigned_identity.ingress.principal_id
+}
+
+resource "azurerm_role_assignment" "machine_api_master_subnet" {
+  scope                = azurerm_subnet.main_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Machine API Operator"
+  principal_id         = azurerm_user_assigned_identity.machine_api.principal_id
+}
+
+resource "azurerm_role_assignment" "machine_api_worker_subnet" {
+  scope                = azurerm_subnet.worker_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Machine API Operator"
+  principal_id         = azurerm_user_assigned_identity.machine_api.principal_id
+}
+
+resource "azurerm_role_assignment" "cloud_network_vnet" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Azure Red Hat OpenShift Network Operator"
+  principal_id         = azurerm_user_assigned_identity.cloud_network.principal_id
+}
+
+resource "azurerm_role_assignment" "file_csi_vnet" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Azure Red Hat OpenShift File Storage Operator"
+  principal_id         = azurerm_user_assigned_identity.file_csi.principal_id
+}
+
+resource "azurerm_role_assignment" "image_registry_vnet" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Azure Red Hat OpenShift Image Registry Operator"
+  principal_id         = azurerm_user_assigned_identity.image_registry.principal_id
+}
+
+resource "azurerm_role_assignment" "aro_operator_master_subnet" {
+  scope                = azurerm_subnet.main_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Service Operator"
+  principal_id         = azurerm_user_assigned_identity.aro_operator.principal_id
+}
+
+resource "azurerm_role_assignment" "aro_operator_worker_subnet" {
+  scope                = azurerm_subnet.worker_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Service Operator"
+  principal_id         = azurerm_user_assigned_identity.aro_operator.principal_id
+}
+
+resource "azurerm_role_assignment" "arorp_vnet" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Azure Red Hat OpenShift First Party Network"
+  principal_id         = data.azuread_service_principal.redhatopenshift.object_id
+}
+
+resource "azurerm_redhat_openshift_cluster" "test" {
+  name                = "acctestaro%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.cluster_update.id]
+  }
+
+  cluster_profile {
+    domain  = "aro-%[3]s.com"
+    version = "4.19.20"
+  }
+
+  network_profile {
+    pod_cidr     = "10.128.0.0/14"
+    service_cidr = "172.30.0.0/16"
+  }
+
+  main_profile {
+    vm_size   = "Standard_D8s_v3"
+    subnet_id = azurerm_subnet.main_subnet.id
+  }
+
+  api_server_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Public"
+  }
+
+  worker_profile {
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
+  }
+
+  platform_workload_identity_profile {
+    upgradeable_to = "4.20.20"
+
+    platform_workload_identity {
+      name        = "cloud-controller-manager"
+      identity_id = azurerm_user_assigned_identity.ccm.id
+    }
+    platform_workload_identity {
+      name        = "ingress"
+      identity_id = azurerm_user_assigned_identity.ingress.id
+    }
+    platform_workload_identity {
+      name        = "machine-api"
+      identity_id = azurerm_user_assigned_identity.machine_api.id
+    }
+    platform_workload_identity {
+      name        = "disk-csi-driver"
+      identity_id = azurerm_user_assigned_identity.disk_csi.id
+    }
+    platform_workload_identity {
+      name        = "cloud-network-config"
+      identity_id = azurerm_user_assigned_identity.cloud_network.id
+    }
+    platform_workload_identity {
+      name        = "image-registry"
+      identity_id = azurerm_user_assigned_identity.image_registry.id
+    }
+    platform_workload_identity {
+      name        = "file-csi-driver"
+      identity_id = azurerm_user_assigned_identity.file_csi.id
+    }
+    platform_workload_identity {
+      name        = "aro-operator"
+      identity_id = azurerm_user_assigned_identity.aro_operator.id
+    }
+  }
+
+  depends_on = [
+    azurerm_role_assignment.cluster_federated_credential,
+    azurerm_role_assignment.ccm_master_subnet,
+    azurerm_role_assignment.ccm_worker_subnet,
+    azurerm_role_assignment.ingress_master_subnet,
+    azurerm_role_assignment.ingress_worker_subnet,
+    azurerm_role_assignment.machine_api_master_subnet,
+    azurerm_role_assignment.machine_api_worker_subnet,
+    azurerm_role_assignment.cloud_network_vnet,
+    azurerm_role_assignment.file_csi_vnet,
+    azurerm_role_assignment.image_registry_vnet,
+    azurerm_role_assignment.aro_operator_master_subnet,
+    azurerm_role_assignment.aro_operator_worker_subnet,
+    azurerm_role_assignment.arorp_vnet,
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (OpenShiftClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  skip_provider_registration = true
   features {
     key_vault {
       recover_soft_deleted_key_vaults    = false
@@ -931,7 +1601,7 @@ resource "azuread_service_principal_password" "test" {
 }
 
 data "azuread_service_principal" "redhatopenshift" {
-  // This is the Azure Red Hat OpenShift RP service principal id, do NOT delete it
+  // This is the Azure Red Hat OpenShift RP service principal id, use datasource to prevent deleting by accident
   client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 
