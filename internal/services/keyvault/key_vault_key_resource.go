@@ -15,6 +15,8 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"reflect"
+	"slices"
 	"strings"
 	"time"
 
@@ -26,6 +28,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedkeys"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -139,6 +142,29 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsRFC3339Time,
+			},
+
+			"release_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"json": {
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							ValidateFunc:     validation.StringIsJSON,
+							DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+						},
+
+						"immutable": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
 			},
 
 			"rotation_policy": {
@@ -272,6 +298,48 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 
 				return false
 			}),
+			func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				if p := d.Get("release_policy").([]any); len(p) > 0 {
+					if t := d.Get("key_type").(string); !slices.Contains([]string{string(keys.JsonWebKeyTypeRSANegativeHSM), string(keys.JsonWebKeyTypeECNegativeHSM)}, t) {
+						return fmt.Errorf("when `release_policy` is set, `key_type` must be `RSA-HSM` or `EC-HSM`, got `%s`", t)
+					}
+
+					if d.Id() != "" {
+						if d.HasChange("release_policy.0.json") && (!d.HasChange("release_policy.0.immutable") && d.Get("release_policy.0.immutable").(bool)) {
+							// before triggering a resource recreation, confirm it's not just a whitespace difference
+							o, n := d.GetChange("release_policy.0.json")
+							if o != "" {
+								oldMap, err := structure.ExpandJsonFromString(o.(string))
+								if err != nil {
+									return fmt.Errorf("old: %+v", err)
+								}
+
+								newMap, err := structure.ExpandJsonFromString(n.(string))
+								if err != nil {
+									return fmt.Errorf("new: %+v", err)
+								}
+
+								if !reflect.DeepEqual(oldMap, newMap) {
+									if err := d.ForceNew("release_policy.0.json"); err != nil {
+										return err
+									}
+								}
+							}
+						}
+
+						if d.HasChange("release_policy.0.immutable") {
+							o, n := d.GetChange("release_policy.0.immutable")
+							if o.(bool) && !n.(bool) {
+								if err := d.ForceNew("release_policy.0.immutable"); err != nil {
+									return err
+								}
+							}
+						}
+					}
+				}
+
+				return nil
+			},
 		),
 	}
 }
@@ -281,7 +349,6 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key creation.")
 	name := d.Get("name").(string)
 	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
@@ -309,26 +376,26 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	keyType := d.Get("key_type").(string)
-	keyOptions := expandKeyVaultKeyOptions(d)
-	t := d.Get("tags").(map[string]interface{})
-
 	// TODO: support Importing Keys once this is fixed:
 	// https://github.com/Azure/azure-rest-api-specs/issues/1747
 	parameters := keys.KeyCreateParameters{
-		Kty:    keys.JsonWebKeyType(keyType),
-		KeyOps: keyOptions,
+		Kty:    keys.JsonWebKeyType(d.Get("key_type").(string)),
+		KeyOps: expandKeyVaultKeyOptions(d),
 		Attributes: &keys.KeyAttributes{
 			Enabled: pointer.To(true),
 		},
+		Tags: pointer.To(tags.ToTypedObject(tags.Expand(d.Get("tags").(map[string]interface{})))),
+	}
 
-		Tags: pointer.To(tags.ToTypedObject(tags.Expand(t))),
+	if p := expandKeyVaultKeyReleasePolicy(d.Get("release_policy").([]any)); p != nil {
+		parameters.ReleasePolicy = p
+		// key must be exportable when `release_policy` is set
+		parameters.Attributes.Exportable = pointer.To(true)
 	}
 
 	switch parameters.Kty {
 	case keys.JsonWebKeyTypeEC, keys.JsonWebKeyTypeECNegativeHSM:
-		curveName := d.Get("curve").(string)
-		parameters.Crv = pointer.To(keys.JsonWebKeyCurveName(curveName))
+		parameters.Crv = pointer.ToEnum[keys.JsonWebKeyCurveName](d.Get("curve").(string))
 	case keys.JsonWebKeyTypeRSA, keys.JsonWebKeyTypeRSANegativeHSM:
 		keySize, ok := d.GetOk("key_size")
 		if !ok {
@@ -439,15 +506,13 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Keys.Clone(id.KeyVaultBaseURL)
 	keyVersionId := keys.NewKeyversionID(id.KeyVaultBaseURL, id.Name, "")
 	keyId := keys.NewKeyID(id.KeyVaultBaseURL, id.Name)
-	keyOptions := expandKeyVaultKeyOptions(d)
-	t := d.Get("tags").(map[string]interface{})
 
 	parameters := keys.KeyUpdateParameters{
-		KeyOps: keyOptions,
+		KeyOps: expandKeyVaultKeyOptions(d),
 		Attributes: &keys.KeyAttributes{
 			Enabled: pointer.To(true),
 		},
-		Tags: pointer.To(tags.ToTypedObject(tags.Expand(t))),
+		Tags: pointer.To(tags.ToTypedObject(tags.Expand(d.Get("tags").(map[string]interface{})))),
 	}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
@@ -458,6 +523,10 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
 		parameters.Attributes.Exp = pointer.To(expirationDate.Unix())
+	}
+
+	if d.HasChange("release_policy") {
+		parameters.ReleasePolicy = expandKeyVaultKeyReleasePolicy(d.Get("release_policy").([]interface{}))
 	}
 
 	if _, err = client.UpdateKey(ctx, keyVersionId, parameters); err != nil {
@@ -550,6 +619,12 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 			d.Set("curve", string(pointer.From(key.Crv)))
 		}
+
+		data, err := flattenKeyVaultKeyReleasePolicy(resp.Model.ReleasePolicy)
+		if err != nil {
+			return fmt.Errorf("flattening `release_policy`: %+v", err)
+		}
+		d.Set("release_policy", data)
 
 		if attributes := resp.Model.Attributes; attributes != nil {
 			notBeforeDate := ""
@@ -852,6 +927,41 @@ func flattenKeyVaultKeyRotationPolicy(input keys.KeyRotationPolicy) []interface{
 	}
 
 	return []interface{}{policy}
+}
+
+func expandKeyVaultKeyReleasePolicy(input []any) *keys.KeyReleasePolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &keys.KeyReleasePolicy{
+		Data:      pointer.To(base64.StdEncoding.EncodeToString([]byte(v["json"].(string)))),
+		Immutable: pointer.To(v["immutable"].(bool)),
+	}
+}
+
+func flattenKeyVaultKeyReleasePolicy(input *keys.KeyReleasePolicy) ([]any, error) {
+	if input == nil {
+		return nil, nil
+	}
+
+	data := ""
+	if input.Data != nil {
+		decoded, err := base64.RawURLEncoding.DecodeString(*input.Data)
+		if err != nil {
+			return nil, err
+		}
+		data = string(decoded)
+	}
+
+	return []any{
+		map[string]any{
+			"json":      data,
+			"immutable": pointer.From(input.Immutable),
+		},
+	}, nil
 }
 
 // Credit to Hashicorp modified from https://github.com/hashicorp/terraform-provider-tls/blob/v3.1.0/internal/provider/util.go#L79-L105
