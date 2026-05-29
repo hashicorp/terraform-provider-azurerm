@@ -2548,15 +2548,19 @@ func parseTlsCipherSuites(input string) (*TlsCipherSuites, error) {
 type TriggeredWebJobStatus string
 
 const (
+	TriggeredWebJobStatusAborted TriggeredWebJobStatus = "Aborted"
 	TriggeredWebJobStatusError   TriggeredWebJobStatus = "Error"
 	TriggeredWebJobStatusFailed  TriggeredWebJobStatus = "Failed"
+	TriggeredWebJobStatusRunning TriggeredWebJobStatus = "Running"
 	TriggeredWebJobStatusSuccess TriggeredWebJobStatus = "Success"
 )
 
 func PossibleValuesForTriggeredWebJobStatus() []string {
 	return []string{
+		string(TriggeredWebJobStatusAborted),
 		string(TriggeredWebJobStatusError),
 		string(TriggeredWebJobStatusFailed),
+		string(TriggeredWebJobStatusRunning),
 		string(TriggeredWebJobStatusSuccess),
 	}
 }
@@ -2576,8 +2580,10 @@ func (s *TriggeredWebJobStatus) UnmarshalJSON(bytes []byte) error {
 
 func parseTriggeredWebJobStatus(input string) (*TriggeredWebJobStatus, error) {
 	vals := map[string]TriggeredWebJobStatus{
+		"aborted": TriggeredWebJobStatusAborted,
 		"error":   TriggeredWebJobStatusError,
 		"failed":  TriggeredWebJobStatusFailed,
+		"running": TriggeredWebJobStatusRunning,
 		"success": TriggeredWebJobStatusSuccess,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {

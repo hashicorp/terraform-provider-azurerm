@@ -386,6 +386,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-previe
 github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/certificateprofiles
 github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesprojects
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/deployments
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raiblocklists
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raipolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesprojects
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/deployments
@@ -1263,7 +1267,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/managedapis
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites
-github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplans
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/appserviceplans
