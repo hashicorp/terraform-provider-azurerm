@@ -58,9 +58,20 @@ func (c ManagedClustersClient) AbortLatestOperation(ctx context.Context, id comm
 
 // AbortLatestOperationThenPoll performs AbortLatestOperation then polls until it's completed
 func (c ManagedClustersClient) AbortLatestOperationThenPoll(ctx context.Context, id commonids.KubernetesClusterId) error {
+	return c.AbortLatestOperationCallbackThenPoll(ctx, id, nil)
+}
+
+// AbortLatestOperationCallbackThenPoll performs AbortLatestOperation, runs the optional callback function, then polls until it's completed
+func (c ManagedClustersClient) AbortLatestOperationCallbackThenPoll(ctx context.Context, id commonids.KubernetesClusterId, callback func() error) error {
 	result, err := c.AbortLatestOperation(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing AbortLatestOperation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

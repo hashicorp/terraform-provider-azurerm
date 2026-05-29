@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -118,21 +117,21 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := protectionpolicies.NewBackupPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), d.Get("name").(string))
 
-	log.Printf("[DEBUG] Creating %s", id)
-
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
 	timeOfDay := fmt.Sprintf("%s:00Z", d.Get("backup.0.time").(string))
 	times := append(make([]string, 0), timeOfDay)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_backup_policy_vm", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_backup_policy_vm", id.ID())
+		}
 	}
 
 	// Less than 7 daily backups is no longer supported for create/update
@@ -196,8 +195,6 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Reading %s", id)
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -291,8 +288,6 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Updating %s", id)
 
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
 	timeOfDay := fmt.Sprintf("%s:00Z", d.Get("backup.0.time").(string))
@@ -433,8 +428,6 @@ func resourceBackupProtectionPolicyVMDelete(d *pluginsdk.ResourceData, meta inte
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting %s", id)
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

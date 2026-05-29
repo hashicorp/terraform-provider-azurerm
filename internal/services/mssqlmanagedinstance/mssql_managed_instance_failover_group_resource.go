@@ -182,14 +182,15 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)
 			}
 
-			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			readOnlyFailoverPolicy := instancefailovergroups.ReadOnlyEndpointFailoverPolicyDisabled
@@ -225,10 +226,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.Logger.Infof("Creating %s", id)
-
-			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -250,7 +248,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceFailoverGroupModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -305,8 +302,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.Logger.Infof("Updating %s", id)
-
 			err = client.CreateOrUpdateThenPoll(ctx, *id, parameters)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
@@ -328,7 +323,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceFailoverGroupModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
