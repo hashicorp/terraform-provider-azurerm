@@ -26,8 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var applicationGroupType = "azurerm_virtual_desktop_application_group"
-
 func resourceVirtualDesktopApplicationGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceVirtualDesktopApplicationGroupCreateUpdate,

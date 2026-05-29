@@ -21,8 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var backendAddressPoolResourceName = "azurerm_lb_backend_address_pool"
-
 func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerBackendAddressPoolCreateUpdate,

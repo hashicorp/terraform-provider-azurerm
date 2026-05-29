@@ -41,8 +41,6 @@ const (
 	ServerMaintenanceWindowDisabled = "Disabled"
 )
 
-var postgresqlFlexibleServerResourceName = "azurerm_postgresql_flexible_server"
-
 func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
 		Create: resourcePostgresqlFlexibleServerCreate,

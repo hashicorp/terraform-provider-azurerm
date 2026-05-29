@@ -23,8 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var hostPoolResourceType = "azurerm_virtual_desktop_host_pool"
-
 func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceVirtualDesktopHostPoolCreate,

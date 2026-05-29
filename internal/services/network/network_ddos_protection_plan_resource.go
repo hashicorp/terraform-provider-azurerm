@@ -27,8 +27,6 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_ddos_protection_plan -test-name basicConfigIdentity -service-package-name network -properties "name,resource_group_name"
 
-const ddosProtectionPlanResourceName = "azurerm_network_ddos_protection_plan"
-
 func resourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceNetworkDDoSProtectionPlanCreate,

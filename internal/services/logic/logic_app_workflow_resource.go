@@ -28,8 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var logicAppResourceName = "azurerm_logic_app"
-
 func resourceLogicAppWorkflow() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceLogicAppWorkflowCreate,

@@ -35,8 +35,6 @@ import (
 	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
-var keyVaultResourceName = "azurerm_key_vault"
-
 func resourceKeyVault() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
 		Create: resourceKeyVaultCreate,

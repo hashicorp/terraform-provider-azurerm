@@ -24,8 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var workspaceResourceType = "azurerm_virtual_desktop_workspace"
-
 func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmDesktopVirtualizationWorkspaceCreateUpdate,

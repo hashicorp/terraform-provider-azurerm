@@ -16,10 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var (
-	cdnFrontDoorCustomDomainResourceName = "azurerm_cdn_frontdoor_custom_domain"
-	cdnFrontDoorRouteResourceName        = "azurerm_cdn_frontdoor_route"
-)
+var cdnFrontDoorCustomDomainResourceName = "azurerm_cdn_frontdoor_custom_domain"
 
 func resourceCdnFrontDoorCustomDomainAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

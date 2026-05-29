@@ -18,8 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-const appServiceSlotCustomHostnameBindingResourceName = "azurerm_app_service_slot_custom_hostname_binding"
-
 func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceAppServiceSlotCustomHostnameBindingCreate,

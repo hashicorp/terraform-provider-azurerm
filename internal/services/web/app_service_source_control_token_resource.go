@@ -20,8 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var appServiceSourceControlTokenResourceName = "azurerm_app_service_source_control_token"
-
 func resourceAppServiceSourceControlToken() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceAppServiceSourceControlTokenCreateUpdate,
