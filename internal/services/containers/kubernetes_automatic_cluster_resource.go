@@ -215,7 +215,6 @@ type AdvancedNetworkingModel struct {
 }
 
 type ServiceMeshProfileModel struct {
-	Mode                          string                      `tfschema:"mode"`
 	Revisions                     []string                    `tfschema:"revisions"`
 	InternalIngressGatewayEnabled bool                        `tfschema:"internal_ingress_gateway_enabled"`
 	ExternalIngressGatewayEnabled bool                        `tfschema:"external_ingress_gateway_enabled"`
@@ -1860,13 +1859,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"mode": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.ServiceMeshModeIstio),
-						}, false),
-					},
 					"internal_ingress_gateway_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -4386,39 +4378,36 @@ func expandKubernetesAutomaticClusterServiceMeshProfile(input []ServiceMeshProfi
 	}
 
 	config := input[0]
-	mode := config.Mode
 
 	profile := managedclusters.ServiceMeshProfile{}
 
-	if managedclusters.ServiceMeshMode(mode) == managedclusters.ServiceMeshModeIstio {
-		profile.Mode = managedclusters.ServiceMeshMode(mode)
-		profile.Istio = &managedclusters.IstioServiceMesh{}
-		profile.Istio.Components = &managedclusters.IstioComponents{}
+	profile.Mode = managedclusters.ServiceMeshModeIstio
+	profile.Istio = &managedclusters.IstioServiceMesh{}
+	profile.Istio.Components = &managedclusters.IstioComponents{}
 
-		istioIngressGatewaysList := make([]managedclusters.IstioIngressGateway, 0)
+	istioIngressGatewaysList := make([]managedclusters.IstioIngressGateway, 0)
 
-		ingressGatewayElementInternal := managedclusters.IstioIngressGateway{
-			Enabled: config.InternalIngressGatewayEnabled,
-			Mode:    managedclusters.IstioIngressGatewayModeInternal,
-		}
-		istioIngressGatewaysList = append(istioIngressGatewaysList, ingressGatewayElementInternal)
+	ingressGatewayElementInternal := managedclusters.IstioIngressGateway{
+		Enabled: config.InternalIngressGatewayEnabled,
+		Mode:    managedclusters.IstioIngressGatewayModeInternal,
+	}
+	istioIngressGatewaysList = append(istioIngressGatewaysList, ingressGatewayElementInternal)
 
-		ingressGatewayElementExternal := managedclusters.IstioIngressGateway{
-			Enabled: config.ExternalIngressGatewayEnabled,
-			Mode:    managedclusters.IstioIngressGatewayModeExternal,
-		}
-		istioIngressGatewaysList = append(istioIngressGatewaysList, ingressGatewayElementExternal)
+	ingressGatewayElementExternal := managedclusters.IstioIngressGateway{
+		Enabled: config.ExternalIngressGatewayEnabled,
+		Mode:    managedclusters.IstioIngressGatewayModeExternal,
+	}
+	istioIngressGatewaysList = append(istioIngressGatewaysList, ingressGatewayElementExternal)
 
-		profile.Istio.Components.IngressGateways = &istioIngressGatewaysList
+	profile.Istio.Components.IngressGateways = &istioIngressGatewaysList
 
-		if len(config.CertificateAuthority) > 0 {
-			certificateAuthority := expandKubernetesAutomaticClusterServiceMeshProfileCertificateAuthority(config.CertificateAuthority)
-			profile.Istio.CertificateAuthority = certificateAuthority
-		}
+	if len(config.CertificateAuthority) > 0 {
+		certificateAuthority := expandKubernetesAutomaticClusterServiceMeshProfileCertificateAuthority(config.CertificateAuthority)
+		profile.Istio.CertificateAuthority = certificateAuthority
+	}
 
-		if len(config.Revisions) > 0 {
-			profile.Istio.Revisions = pointer.To(config.Revisions)
-		}
+	if len(config.Revisions) > 0 {
+		profile.Istio.Revisions = pointer.To(config.Revisions)
 	}
 
 	return &profile
@@ -4429,7 +4418,6 @@ func flattenKubernetesAutomaticClusterServiceMeshProfile(profile *managedcluster
 		return []ServiceMeshProfileModel{}
 	}
 
-	mode := string(profile.Mode)
 	revisions := make([]string, 0)
 	if profile.Istio.Revisions != nil {
 		revisions = pointer.From(profile.Istio.Revisions)
@@ -4452,7 +4440,6 @@ func flattenKubernetesAutomaticClusterServiceMeshProfile(profile *managedcluster
 	certificateAuthority := flattenKubernetesAutomaticClusterServiceMeshProfileCertificateAuthority(profile.Istio.CertificateAuthority)
 
 	return []ServiceMeshProfileModel{{
-		Mode:                          mode,
 		Revisions:                     revisions,
 		InternalIngressGatewayEnabled: internalIngressGatewayEnabled,
 		ExternalIngressGatewayEnabled: externalIngressGatewayEnabled,
