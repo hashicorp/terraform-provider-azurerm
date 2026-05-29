@@ -271,6 +271,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
   health_probe_id     = azurerm_lb_probe.test.id
+  upgrade_mode        = "Automatic"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -325,6 +326,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+  upgrade_mode        = "Automatic"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
