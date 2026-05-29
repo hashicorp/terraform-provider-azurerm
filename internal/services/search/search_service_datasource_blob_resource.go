@@ -144,6 +144,11 @@ func (r SearchServiceDatasourceBlobResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			encryptionKey, err := searchSchema.ExpandSearchDatasourceEncryptionKey(model.EncryptionKey)
+			if err != nil {
+				return fmt.Errorf("expanding `encryption_key`: %+v", err)
+			}
+
 			parameters := datasources.SearchIndexerDataSource{
 				Name: model.Name,
 				Type: datasources.SearchIndexerDataSourceTypeAzureblob,
@@ -153,7 +158,7 @@ func (r SearchServiceDatasourceBlobResource) Create() sdk.ResourceFunc {
 				Credentials: datasources.DataSourceCredentials{
 					ConnectionString: pointer.To(woConnectionString.AsString()),
 				},
-				EncryptionKey: searchSchema.ExpandSearchDatasourceEncryptionKey(model.EncryptionKey),
+				EncryptionKey: encryptionKey,
 			}
 
 			if model.Description != "" {
@@ -214,7 +219,12 @@ func (r SearchServiceDatasourceBlobResource) Read() sdk.ResourceFunc {
 					state.SoftDeleteMarkerValue = pointer.From(policy.SoftDeleteMarkerValue)
 				}
 
-				state.EncryptionKey = searchSchema.FlattenSearchDatasourceEncryptionKey(respModel.EncryptionKey, metadata.ResourceData)
+				encryptionKey, err := searchSchema.FlattenSearchDatasourceEncryptionKey(respModel.EncryptionKey, metadata.ResourceData)
+				if err != nil {
+					return fmt.Errorf("flattening `encryption_key`: %+v", err)
+				}
+
+				state.EncryptionKey = encryptionKey
 			}
 
 			state.ConnectionStringWOVersion = int64(metadata.ResourceData.Get("connection_string_wo_version").(int))
@@ -244,15 +254,14 @@ func (r SearchServiceDatasourceBlobResource) Update() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, *resourceId, datasources.DefaultGetOperationOptions())
 			if err != nil {
-				return fmt.Errorf("retrieving %s for update: %+v", *resourceId, err)
+				return fmt.Errorf("retrieving %s: %+v", *resourceId, err)
 			}
 
 			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s for update: `model` was nil", *resourceId)
+				return fmt.Errorf("retrieving %s: `model` was nil", *resourceId)
 			}
 
 			existing := *resp.Model
-
 			if metadata.ResourceData.HasChange("container_name") {
 				existing.Container.Name = state.ContainerName
 			}
@@ -276,7 +285,12 @@ func (r SearchServiceDatasourceBlobResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("encryption_key") {
-				existing.EncryptionKey = searchSchema.ExpandSearchDatasourceEncryptionKey(state.EncryptionKey)
+				encryptionKey, err := searchSchema.ExpandSearchDatasourceEncryptionKey(state.EncryptionKey)
+				if err != nil {
+					return fmt.Errorf("expanding `encryption_key`: %+v", err)
+				}
+
+				existing.EncryptionKey = encryptionKey
 			}
 
 			// The SDK populates zero-value RawData*DetectionPolicyImpl structs from the GET response

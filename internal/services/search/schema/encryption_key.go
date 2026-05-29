@@ -50,22 +50,22 @@ func SearchDatasourceEncryptionKeySchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSearchDatasourceEncryptionKey(input []SearchDatasourceEncryptionKeyModel) *datasources.SearchResourceEncryptionKey {
+func ExpandSearchDatasourceEncryptionKey(input []SearchDatasourceEncryptionKeyModel) (*datasources.SearchResourceEncryptionKey, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	ek := input[0]
 	keyVaultKeyId, err := keyvault.ParseNestedItemID(ek.KeyVaultKeyId, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if err != nil {
-		return nil
+		return nil, err
 	}
+
 	result := &datasources.SearchResourceEncryptionKey{
 		KeyVaultKeyName:    keyVaultKeyId.Name,
 		KeyVaultKeyVersion: keyVaultKeyId.Version,
 		KeyVaultUri:        keyVaultKeyId.KeyVaultBaseURL,
 	}
-
 	if ek.ClientId != "" {
 		result.AccessCredentials = &datasources.AzureActiveDirectoryApplicationCredentials{
 			ApplicationId:     ek.ClientId,
@@ -73,23 +73,22 @@ func ExpandSearchDatasourceEncryptionKey(input []SearchDatasourceEncryptionKeyMo
 		}
 	}
 
-	return result
+	return result, nil
 }
 
-func FlattenSearchDatasourceEncryptionKey(input *datasources.SearchResourceEncryptionKey, d *pluginsdk.ResourceData) []SearchDatasourceEncryptionKeyModel {
+func FlattenSearchDatasourceEncryptionKey(input *datasources.SearchResourceEncryptionKey, d *pluginsdk.ResourceData) ([]SearchDatasourceEncryptionKeyModel, error) {
 	if input == nil {
-		return []SearchDatasourceEncryptionKeyModel{}
+		return []SearchDatasourceEncryptionKeyModel{}, nil
 	}
 
 	keyVaultKeyId, err := keyvault.NewNestedItemID(input.KeyVaultUri, keyvault.NestedItemTypeKey, input.KeyVaultKeyName, input.KeyVaultKeyVersion)
 	if err != nil {
-		return []SearchDatasourceEncryptionKeyModel{}
+		return []SearchDatasourceEncryptionKeyModel{}, err
 	}
 
 	ekModel := SearchDatasourceEncryptionKeyModel{
 		KeyVaultKeyId: keyVaultKeyId.ID(),
 	}
-
 	if ac := input.AccessCredentials; ac != nil {
 		ekModel.ClientId = ac.ApplicationId
 		if v, ok := d.GetOk("encryption_key.0.client_secret"); ok {
@@ -97,5 +96,5 @@ func FlattenSearchDatasourceEncryptionKey(input *datasources.SearchResourceEncry
 		}
 	}
 
-	return []SearchDatasourceEncryptionKeyModel{ekModel}
+	return []SearchDatasourceEncryptionKeyModel{ekModel}, nil
 }
