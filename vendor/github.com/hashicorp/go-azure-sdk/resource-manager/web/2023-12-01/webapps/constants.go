@@ -1926,6 +1926,7 @@ type RuntimeName string
 const (
 	RuntimeNameCustom                 RuntimeName = "custom"
 	RuntimeNameDotnetNegativeisolated RuntimeName = "dotnet-isolated"
+	RuntimeNameGo                     RuntimeName = "go"
 	RuntimeNameJava                   RuntimeName = "java"
 	RuntimeNameNode                   RuntimeName = "node"
 	RuntimeNamePowershell             RuntimeName = "powershell"
@@ -1936,6 +1937,7 @@ func PossibleValuesForRuntimeName() []string {
 	return []string{
 		string(RuntimeNameCustom),
 		string(RuntimeNameDotnetNegativeisolated),
+		string(RuntimeNameGo),
 		string(RuntimeNameJava),
 		string(RuntimeNameNode),
 		string(RuntimeNamePowershell),
@@ -1960,6 +1962,7 @@ func parseRuntimeName(input string) (*RuntimeName, error) {
 	vals := map[string]RuntimeName{
 		"custom":          RuntimeNameCustom,
 		"dotnet-isolated": RuntimeNameDotnetNegativeisolated,
+		"go":              RuntimeNameGo,
 		"java":            RuntimeNameJava,
 		"node":            RuntimeNameNode,
 		"powershell":      RuntimeNamePowershell,

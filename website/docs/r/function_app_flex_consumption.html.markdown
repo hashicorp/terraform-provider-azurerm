@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `storage_authentication_type` - (Required) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`.
 
-* `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java` and `custom`.
+* `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `go`, `powershell`, `python`, `java` and `custom`.
 
 * `runtime_version` - (Required) The Runtime version of the Linux Function App. Accepted values varies with the value of `runtime_name`.
 

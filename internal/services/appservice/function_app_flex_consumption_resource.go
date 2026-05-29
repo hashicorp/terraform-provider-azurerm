@@ -165,6 +165,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(webapps.RuntimeNameDotnetNegativeisolated),
+				string(webapps.RuntimeNameGo),
 				string(webapps.RuntimeNameJava),
 				string(webapps.RuntimeNameNode),
 				string(webapps.RuntimeNamePowershell),
