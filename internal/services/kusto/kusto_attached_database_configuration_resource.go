@@ -295,8 +295,9 @@ func resourceKustoAttachedDatabaseConfigurationDelete(d *pluginsdk.ResourceData,
 	}
 
 	// DELETE operation for attached configuration does not support running concurrently at cluster level
-	locks.ByName(id.ClusterName, "azurerm_kusto_cluster")
-	defer locks.UnlockByName(id.ClusterName, "azurerm_kusto_cluster")
+	kustoClusterID := commonids.NewKustoClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
+	locks.ByID(kustoClusterID.ID())
+	defer locks.UnlockByID(kustoClusterID.ID())
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

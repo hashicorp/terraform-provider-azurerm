@@ -189,8 +189,8 @@ func resourceVirtualDesktopWorkspaceDelete(d *pluginsdk.ResourceData, meta any) 
 		return err
 	}
 
-	locks.ByName(id.WorkspaceName, workspaceResourceType)
-	defer locks.UnlockByName(id.WorkspaceName, workspaceResourceType)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

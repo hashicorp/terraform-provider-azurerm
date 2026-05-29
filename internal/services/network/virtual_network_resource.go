@@ -680,7 +680,7 @@ func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	nsgNames, routeTableNames, err := expandResourcesForLocking(d)
+	nsgIDs, routeTableIDs, err := expandResourcesForLocking(d)
 	if err != nil {
 		return fmt.Errorf("parsing Network Security Group ID's: %+v", err)
 	}

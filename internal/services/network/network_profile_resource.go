@@ -128,7 +128,7 @@ func resourceNetworkProfileCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(d.Get("container_network_interface").([]any))
-	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(containerNetworkInterfaceConfigurations)
+	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetIDs(containerNetworkInterfaceConfigurations)
 	if err != nil {
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
@@ -187,7 +187,7 @@ func resourceNetworkProfileUpdate(d *pluginsdk.ResourceData, meta any) error {
 	payload := existing.Model
 
 	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(d.Get("container_network_interface").([]any))
-	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(containerNetworkInterfaceConfigurations)
+	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetIDs(containerNetworkInterfaceConfigurations)
 	if err != nil {
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
@@ -281,7 +281,7 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("retrieving existing %s: `model.Properties` was nil", *id)
 	}
 
-	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(existing.Model.Properties.ContainerNetworkInterfaceConfigurations)
+	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetIDs(existing.Model.Properties.ContainerNetworkInterfaceConfigurations)
 	if err != nil {
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
@@ -338,7 +338,7 @@ func expandNetworkProfileContainerNetworkInterface(input []any) *[]networkprofil
 	return &retCNIConfigs
 }
 
-func expandNetworkProfileVirtualNetworkSubnetNames(input *[]networkprofiles.ContainerNetworkInterfaceConfiguration) (*[]string, *[]string, error) {
+func expandNetworkProfileVirtualNetworkSubnetIDs(input *[]networkprofiles.ContainerNetworkInterfaceConfiguration) (*[]string, *[]string, error) {
 	subnetIds := make([]string, 0)
 	vnetIds := make([]string, 0)
 

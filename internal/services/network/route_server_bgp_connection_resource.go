@@ -84,8 +84,8 @@ func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta any)
 		return err
 	}
 
-	locks.ByName(routerServerId.VirtualHubName, "azurerm_route_server")
-	defer locks.UnlockByName(routerServerId.VirtualHubName, "azurerm_route_server")
+	locks.ByID(routerServerId.ID())
+	defer locks.UnlockByID(routerServerId.ID())
 
 	id := commonids.NewVirtualHubBGPConnectionID(routerServerId.SubscriptionId, routerServerId.ResourceGroupName, routerServerId.VirtualHubName, d.Get("name").(string))
 

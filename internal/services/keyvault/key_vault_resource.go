@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -221,8 +220,8 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	// Locking this resource so we don't make modifications to it at the same time if there is a
 	// key vault access policy trying to update it as well
-	locks.ByName(id.VaultName, keyVaultResourceName)
-	defer locks.UnlockByName(id.VaultName, keyVaultResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	isPublic := d.Get("public_network_access_enabled").(bool)
 
@@ -319,19 +318,20 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
-	virtualNetworkNames := make([]string, 0)
+	virtualNetworkIDs := make([]string, 0)
 	for _, v := range subnetIds {
 		id, err := commonids.ParseSubnetIDInsensitively(v)
 		if err != nil {
 			return err
 		}
-		if !slices.Contains(virtualNetworkNames, id.VirtualNetworkName) {
-			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
+		virtualNetworkID := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+		if !slices.Contains(virtualNetworkIDs, virtualNetworkID.ID()) {
+			virtualNetworkIDs = append(virtualNetworkIDs, virtualNetworkID.ID())
 		}
 	}
 
-	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+	locks.MultipleByID(&virtualNetworkIDs)
+	defer locks.UnlockMultipleByID(&virtualNetworkIDs)
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -410,8 +410,8 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	// Locking this resource so we don't make modifications to it at the same time if there is a
 	// key vault access policy trying to update it as well
-	locks.ByName(id.VaultName, keyVaultResourceName)
-	defer locks.UnlockByName(id.VaultName, keyVaultResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// first pull the existing key vault since we need to lock on several bits of its information
 	existing, err := client.Get(ctx, *id)
@@ -455,20 +455,21 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta any) error {
 		networkAcls, subnetIds := expandKeyVaultNetworkAcls(networkAclsRaw)
 
 		// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
-		virtualNetworkNames := make([]string, 0)
+		virtualNetworkIDs := make([]string, 0)
 		for _, v := range subnetIds {
 			id, err := commonids.ParseSubnetIDInsensitively(v)
 			if err != nil {
 				return err
 			}
 
-			if !slices.Contains(virtualNetworkNames, id.VirtualNetworkName) {
-				virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
+			virtualNetworkID := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+			if !slices.Contains(virtualNetworkIDs, virtualNetworkID.ID()) {
+				virtualNetworkIDs = append(virtualNetworkIDs, virtualNetworkID.ID())
 			}
 		}
 
-		locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
-		defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+		locks.MultipleByID(&virtualNetworkIDs)
+		defer locks.UnlockMultipleByID(&virtualNetworkIDs)
 
 		update.Properties.NetworkAcls = networkAcls
 	}
@@ -683,8 +684,8 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	locks.ByName(id.VaultName, keyVaultResourceName)
-	defer locks.UnlockByName(id.VaultName, keyVaultResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	read, err := client.Get(ctx, *id)
 	if err != nil {
@@ -698,7 +699,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta any) error {
 	location := ""
 	purgeProtectionEnabled := false
 	softDeleteEnabled := false
-	virtualNetworkNames := make([]string, 0)
+	virtualNetworkIDs := make([]string, 0)
 	if model := read.Model; model != nil {
 		if model.Location != nil {
 			location = *model.Location
@@ -721,16 +722,17 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta any) error {
 						return err
 					}
 
-					if !slices.Contains(virtualNetworkNames, subnetId.VirtualNetworkName) {
-						virtualNetworkNames = append(virtualNetworkNames, subnetId.VirtualNetworkName)
+					virtualNetworkID := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
+					if !slices.Contains(virtualNetworkIDs, virtualNetworkID.ID()) {
+						virtualNetworkIDs = append(virtualNetworkIDs, virtualNetworkID.ID())
 					}
 				}
 			}
 		}
 	}
 
-	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+	locks.MultipleByID(&virtualNetworkIDs)
+	defer locks.UnlockMultipleByID(&virtualNetworkIDs)
 
 	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)

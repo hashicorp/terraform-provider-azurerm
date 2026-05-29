@@ -105,8 +105,8 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	locks.ByName(clusterID.KustoClusterName, "azurerm_kusto_cluster")
-	defer locks.UnlockByName(clusterID.KustoClusterName, "azurerm_kusto_cluster")
+	locks.ByID(clusterID.ID())
+	defer locks.UnlockByID(clusterID.ID())
 
 	cluster, err := clusterClient.Get(ctx, *clusterID)
 	if err != nil {
@@ -301,8 +301,8 @@ func resourceKustoClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	locks.ByName(clusterID.KustoClusterName, "azurerm_kusto_cluster")
-	defer locks.UnlockByName(clusterID.KustoClusterName, "azurerm_kusto_cluster")
+	locks.ByID(clusterID.ID())
+	defer locks.UnlockByID(clusterID.ID())
 
 	// confirm it still exists prior to trying to update it, else we'll get an error
 	cluster, err := client.Get(ctx, *clusterID)

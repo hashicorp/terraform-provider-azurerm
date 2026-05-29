@@ -126,8 +126,8 @@ func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	id := virtualwans.NewVirtualHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.VirtualHubName, "azurerm_route_server")
-	defer locks.UnlockByName(id.VirtualHubName, "azurerm_route_server")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.VirtualHubsGet(ctx, id)
@@ -205,8 +205,8 @@ func resourceRouteServerUpdate(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	locks.ByName(id.VirtualHubName, "azurerm_route_server")
-	defer locks.UnlockByName(id.VirtualHubName, "azurerm_route_server")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.VirtualHubsGet(ctx, *id)
 	if err != nil {

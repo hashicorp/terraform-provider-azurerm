@@ -131,11 +131,13 @@ func resourceNotificationHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 		}
 	}
 
-	locks.ByName(id.NotificationHubName, notificationHubResourceName)
-	defer locks.UnlockByName(id.NotificationHubName, notificationHubResourceName)
+	hubID := hubs.NewNotificationHubID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.NotificationHubName)
+	locks.ByID(hubID.ID())
+	defer locks.UnlockByID(hubID.ID())
 
-	locks.ByName(id.NamespaceName, notificationHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, notificationHubNamespaceResourceName)
+	namespaceID := hubs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	locks.ByID(namespaceID.ID())
+	defer locks.UnlockByID(namespaceID.ID())
 
 	manage := d.Get("manage").(bool)
 	send := d.Get("send").(bool)
@@ -214,11 +216,13 @@ func resourceNotificationHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	locks.ByName(id.NotificationHubName, notificationHubResourceName)
-	defer locks.UnlockByName(id.NotificationHubName, notificationHubResourceName)
+	hubID := hubs.NewNotificationHubID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.NotificationHubName)
+	locks.ByID(hubID.ID())
+	defer locks.UnlockByID(hubID.ID())
 
-	locks.ByName(id.NamespaceName, notificationHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, notificationHubNamespaceResourceName)
+	namespaceID := hubs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	locks.ByID(namespaceID.ID())
+	defer locks.UnlockByID(namespaceID.ID())
 
 	resp, err := client.NotificationHubsDeleteAuthorizationRule(ctx, *id)
 	if err != nil {

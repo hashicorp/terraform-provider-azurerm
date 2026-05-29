@@ -341,18 +341,19 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if policyId, ok := d.GetOk("firewall_policy_id"); ok {
 		id, _ := firewallpolicies.ParseFirewallPolicyID(policyId.(string))
-		locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
-		defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+		firewallPolicyID := firewallpolicies.NewFirewallPolicyID(id.SubscriptionId, id.ResourceGroupName, id.FirewallPolicyName)
+		locks.ByID(firewallPolicyID.ID())
+		defer locks.UnlockByID(firewallPolicyID.ID())
 	}
 
-	locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
-	defer locks.UnlockByName(id.AzureFirewallName, AzureFirewallResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
-	locks.MultipleByName(vnetToLock, VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(vnetToLock, VirtualNetworkResourceName)
+	locks.MultipleByID(vnetToLock)
+	defer locks.UnlockMultipleByID(vnetToLock)
 
-	locks.MultipleByName(subnetToLock, SubnetResourceName)
-	defer locks.UnlockMultipleByName(subnetToLock, SubnetResourceName)
+	locks.MultipleByID(subnetToLock)
+	defer locks.UnlockMultipleByID(subnetToLock)
 
 	if !d.IsNewResource() {
 		exists, err2 := client.Get(ctx, id)
@@ -500,8 +501,8 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("retrieving Firewall %s : %+v", *id, err)
 	}
 
-	subnetNamesToLock := make([]string, 0)
-	virtualNetworkNamesToLock := make([]string, 0)
+	subnetIDsToLock := make([]string, 0)
+	virtualNetworkIDsToLock := make([]string, 0)
 	if model := read.Model; model != nil {
 		if props := model.Properties; props != nil {
 			if configs := props.IPConfigurations; configs != nil {
@@ -515,12 +516,12 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta any) error {
 						return err2
 					}
 
-					if !slices.Contains(subnetNamesToLock, parsedSubnetID.SubnetName) {
-						subnetNamesToLock = append(subnetNamesToLock, parsedSubnetID.SubnetName)
+					if !slices.Contains(subnetIDsToLock, parsedSubnetID.SubnetName) {
+						subnetIDsToLock = append(subnetIDsToLock, parsedSubnetID.SubnetName)
 					}
 
-					if !slices.Contains(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName) {
-						virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName)
+					if !slices.Contains(virtualNetworkIDsToLock, parsedSubnetID.VirtualNetworkName) {
+						virtualNetworkIDsToLock = append(virtualNetworkIDsToLock, parsedSubnetID.VirtualNetworkName)
 					}
 				}
 			}
@@ -532,12 +533,12 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta any) error {
 						return err2
 					}
 
-					if !slices.Contains(subnetNamesToLock, parsedSubnetID.SubnetName) {
-						subnetNamesToLock = append(subnetNamesToLock, parsedSubnetID.SubnetName)
+					if !slices.Contains(subnetIDsToLock, parsedSubnetID.SubnetName) {
+						subnetIDsToLock = append(subnetIDsToLock, parsedSubnetID.SubnetName)
 					}
 
-					if !slices.Contains(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName) {
-						virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName)
+					if !slices.Contains(virtualNetworkIDsToLock, parsedSubnetID.VirtualNetworkName) {
+						virtualNetworkIDsToLock = append(virtualNetworkIDsToLock, parsedSubnetID.VirtualNetworkName)
 					}
 				}
 			}
@@ -548,18 +549,19 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta any) error {
 			if err != nil {
 				return err
 			}
-			locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
-			defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+			firewallPolicyID := firewallpolicies.NewFirewallPolicyID(id.SubscriptionId, id.ResourceGroupName, id.FirewallPolicyName)
+			locks.ByID(firewallPolicyID.ID())
+			defer locks.UnlockByID(firewallPolicyID.ID())
 		}
 
-		locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
-		defer locks.UnlockByName(id.AzureFirewallName, AzureFirewallResourceName)
+		locks.ByID(id.ID())
+		defer locks.UnlockByID(id.ID())
 
-		locks.MultipleByName(&virtualNetworkNamesToLock, VirtualNetworkResourceName)
-		defer locks.UnlockMultipleByName(&virtualNetworkNamesToLock, VirtualNetworkResourceName)
+		locks.MultipleByID(&virtualNetworkIDsToLock)
+		defer locks.UnlockMultipleByID(&virtualNetworkIDsToLock)
 
-		locks.MultipleByName(&subnetNamesToLock, SubnetResourceName)
-		defer locks.UnlockMultipleByName(&subnetNamesToLock, SubnetResourceName)
+		locks.MultipleByID(&subnetIDsToLock)
+		defer locks.UnlockMultipleByID(&subnetIDsToLock)
 
 		// todo see if this is still needed this way
 		/*
@@ -582,8 +584,8 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta any) error {
 
 func expandFirewallIPConfigurations(configs []any) (*[]azurefirewalls.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
 	ipConfigs := make([]azurefirewalls.AzureFirewallIPConfiguration, 0)
-	subnetNamesToLock := make([]string, 0)
-	virtualNetworkNamesToLock := make([]string, 0)
+	subnetIDsToLock := make([]string, 0)
+	virtualNetworkIDsToLock := make([]string, 0)
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]any)
@@ -608,12 +610,13 @@ func expandFirewallIPConfigurations(configs []any) (*[]azurefirewalls.AzureFirew
 				return nil, nil, nil, err
 			}
 
-			if !slices.Contains(subnetNamesToLock, subnetID.SubnetName) {
-				subnetNamesToLock = append(subnetNamesToLock, subnetID.SubnetName)
+			if !slices.Contains(subnetIDsToLock, subnetID.ID()) {
+				subnetIDsToLock = append(subnetIDsToLock, subnetID.ID())
 			}
 
-			if !slices.Contains(virtualNetworkNamesToLock, subnetID.VirtualNetworkName) {
-				virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, subnetID.VirtualNetworkName)
+			virtualNetworkID := commonids.NewVirtualNetworkID(subnetID.SubscriptionId, subnetID.ResourceGroupName, subnetID.VirtualNetworkName)
+			if !slices.Contains(virtualNetworkIDsToLock, virtualNetworkID.ID()) {
+				virtualNetworkIDsToLock = append(virtualNetworkIDsToLock, virtualNetworkID.ID())
 			}
 
 			ipConfig.Properties.Subnet = &azurefirewalls.SubResource{
@@ -622,7 +625,7 @@ func expandFirewallIPConfigurations(configs []any) (*[]azurefirewalls.AzureFirew
 		}
 		ipConfigs = append(ipConfigs, ipConfig)
 	}
-	return &ipConfigs, &subnetNamesToLock, &virtualNetworkNamesToLock, nil
+	return &ipConfigs, &subnetIDsToLock, &virtualNetworkIDsToLock, nil
 }
 
 func flattenFirewallIPConfigurations(input *[]azurefirewalls.AzureFirewallIPConfiguration) []any {

@@ -499,8 +499,8 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 
 	id := virtualmachines.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
-	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
@@ -1178,8 +1178,8 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 		return err
 	}
 
-	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
-	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	options := virtualmachines.DefaultGetOperationOptions()
 	options.Expand = pointer.To(virtualmachines.InstanceViewTypesUserData)
@@ -1782,8 +1782,8 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) er
 		return err
 	}
 
-	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
-	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {

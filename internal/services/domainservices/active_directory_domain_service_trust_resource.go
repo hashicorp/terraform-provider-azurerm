@@ -104,8 +104,8 @@ func (r DomainServiceTrustResource) Create() sdk.ResourceFunc {
 			id := parse.NewDomainServiceTrustID(dsid.SubscriptionId, dsid.ResourceGroup, dsid.Name, plan.Name)
 			idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
 
-			locks.ByName(id.DomainServiceName, DomainServiceResourceName)
-			defer locks.UnlockByName(id.DomainServiceName, DomainServiceResourceName)
+			locks.ByID(idsdk.ID())
+			defer locks.UnlockByID(idsdk.ID())
 
 			existing, err := client.Get(ctx, idsdk)
 			if err != nil {
@@ -258,8 +258,8 @@ func (r DomainServiceTrustResource) Delete() sdk.ResourceFunc {
 
 			idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
 
-			locks.ByName(id.DomainServiceName, DomainServiceResourceName)
-			defer locks.UnlockByName(id.DomainServiceName, DomainServiceResourceName)
+			locks.ByID(idsdk.ID())
+			defer locks.UnlockByID(idsdk.ID())
 
 			existing, err := client.Get(ctx, idsdk)
 			if err != nil {
@@ -325,8 +325,8 @@ func (r DomainServiceTrustResource) Update() sdk.ResourceFunc {
 
 			idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
 
-			locks.ByName(id.DomainServiceName, DomainServiceResourceName)
-			defer locks.UnlockByName(id.DomainServiceName, DomainServiceResourceName)
+			locks.ByID(idsdk.ID())
+			defer locks.UnlockByID(idsdk.ID())
 
 			existing, err := client.Get(ctx, idsdk)
 			if err != nil {

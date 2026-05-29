@@ -168,8 +168,8 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta any) erro
 
 	id := expressroutecircuits.NewExpressRouteCircuitID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
@@ -180,7 +180,7 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta any) erro
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_express_route_circuit", id.ID())
+			return tf.ImportAsExistsError(expressRouteCircuitResourceName, id.ID())
 		}
 	}
 
@@ -259,8 +259,8 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta any) erro
 		return err
 	}
 
-	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// There is the potential for the express route circuit to become out of sync when the service provider updates
 	// the express route circuit. We'll get and update the resource in place as per https://aka.ms/erRefresh
@@ -408,8 +408,8 @@ func resourceExpressRouteCircuitDelete(d *pluginsdk.ResourceData, meta any) erro
 		return err
 	}
 
-	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s : %+v", *id, err)

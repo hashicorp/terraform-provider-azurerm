@@ -66,8 +66,8 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta any, kind s
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %s %s %q", workflowId, kind, name)
 
 	// lock to prevent against Actions or Triggers conflicting
-	locks.ByName(workflowId.WorkflowName, logicAppResourceName)
-	defer locks.UnlockByName(workflowId.WorkflowName, logicAppResourceName)
+	locks.ByID(workflowId.ID())
+	defer locks.UnlockByID(workflowId.ID())
 
 	read, err := client.Get(ctx, workflowId)
 	if err != nil {
@@ -149,8 +149,8 @@ func resourceLogicAppComponentRemove(d *pluginsdk.ResourceData, meta any, kind, 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q Deletion", id.WorkflowName, id.ResourceGroupName, kind, name)
 
 	// lock to prevent against Actions, Parameters or Actions conflicting
-	locks.ByName(id.WorkflowName, logicAppResourceName)
-	defer locks.UnlockByName(id.WorkflowName, logicAppResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	read, err := client.Get(ctx, id)
 	if err != nil {
@@ -255,8 +255,9 @@ func retreiveLogicAppTriggerCallbackUrl(d *pluginsdk.ResourceData, meta any, id 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q", id.WorkflowName, id.ResourceGroupName, "trigger", id.TriggerName)
 
 	// lock to prevent against Actions, Parameters or Actions conflicting
-	locks.ByName(id.WorkflowName, logicAppResourceName)
-	defer locks.UnlockByName(id.WorkflowName, logicAppResourceName)
+	workflowID := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
+	locks.ByID(workflowID.ID())
+	defer locks.UnlockByID(workflowID.ID())
 
 	result, err := client.TriggersClient.ListCallbackURL(ctx, id)
 	if err != nil {
@@ -278,8 +279,8 @@ func retrieveLogicAppComponent(d *pluginsdk.ResourceData, meta any, kind, proper
 	log.Printf("[DEBUG] Preparing arguments for %s: %s %q", id.ID(), kind, name)
 
 	// lock to prevent against Actions, Parameters or Actions conflicting
-	locks.ByName(id.WorkflowName, logicAppResourceName)
-	defer locks.UnlockByName(id.WorkflowName, logicAppResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	read, err := client.Get(ctx, id)
 	if err != nil {

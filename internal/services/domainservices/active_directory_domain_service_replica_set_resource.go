@@ -93,8 +93,8 @@ func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceD
 
 	idsdk := domainservices.NewDomainServiceID(domainServiceId.SubscriptionId, domainServiceId.ResourceGroup, domainServiceId.Name)
 
-	locks.ByName(domainServiceId.Name, DomainServiceResourceName)
-	defer locks.UnlockByName(domainServiceId.Name, DomainServiceResourceName)
+	locks.ByID(idsdk.ID())
+	defer locks.UnlockByID(idsdk.ID())
 
 	domainService, err := client.Get(ctx, idsdk)
 	if err != nil {

@@ -222,6 +222,8 @@ func resourceVirtualNetworkDnsServersDelete(d *pluginsdk.ResourceData, meta any)
 	}
 
 	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroup, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
 
 	locks.ByID(vnetId.ID())
 	defer locks.UnlockByID(vnetId.ID())

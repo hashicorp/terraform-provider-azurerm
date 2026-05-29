@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	intStor "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
@@ -723,8 +722,8 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta any) err
 		vm.Plan = expandAzureRmVirtualMachinePlan(d)
 	}
 
-	locks.ByName(id.VirtualMachineName, compute.VirtualMachineResourceName)
-	defer locks.UnlockByName(id.VirtualMachineName, compute.VirtualMachineResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if d.IsNewResource() {
 		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, vm, virtualmachines.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -913,8 +912,8 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	locks.ByName(id.VirtualMachineName, compute.VirtualMachineResourceName)
-	defer locks.UnlockByName(id.VirtualMachineName, compute.VirtualMachineResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	virtualMachine, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
