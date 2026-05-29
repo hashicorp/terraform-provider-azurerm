@@ -134,7 +134,7 @@ func (r DurableTaskRetentionPolicyResource) basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_durable_task_retention_policy" "test" {
-  durable_task_scheduler_id = azurerm_durable_task_scheduler.test.id
+  durable_task_scheduler_id        = azurerm_durable_task_scheduler.test.id
   default_retention_period_in_days = 30
 }
 `, r.template(data))
@@ -145,7 +145,7 @@ func (r DurableTaskRetentionPolicyResource) requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_durable_task_retention_policy" "import" {
-  durable_task_scheduler_id = azurerm_durable_task_retention_policy.test.durable_task_scheduler_id
+  durable_task_scheduler_id        = azurerm_durable_task_retention_policy.test.durable_task_scheduler_id
   default_retention_period_in_days = 30
 }
 `, r.basic(data))
