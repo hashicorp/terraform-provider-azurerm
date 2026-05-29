@@ -1,6 +1,7 @@
 ## 4.75.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_data_protection_backup_instance_data_lake_storage` - add FriendlyName on Create to align with other backup instance resources [GH-32351]
 * `azurerm_orchestrated_virtual_machine_scale_set` - add support for the `virtual_machine_size` block [GH-30260]
 * Data Source: `azurerm_orchestrated_virtual_machine_scale_set` - export the `sku_profile` block [GH-30260]
 * `azurerm_windows_function_app` - add support for `7.6` to the `site_config.application_stack.powershell_core_version` property [GH-32448]
