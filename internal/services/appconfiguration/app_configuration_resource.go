@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -303,14 +304,17 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	resourceId := configurationstores.NewConfigurationStoreID(subscriptionId, resourceGroup, name)
-	existing, err := client.Get(ctx, resourceId)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, resourceId)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_app_configuration", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_app_configuration", resourceId.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -375,7 +379,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 	parameters.Identity = identity
 
-	if err := client.CreateThenPoll(ctx, resourceId, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, resourceId, parameters, sdk.SetIDCallback(meta, &resourceId, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 

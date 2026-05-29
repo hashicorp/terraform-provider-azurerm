@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -152,15 +153,17 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 
 	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	server, err := client.GetDetails(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(server.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		server, err := client.GetDetails(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(server.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(server.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_analysis_services_server", id.ID())
+		if !response.WasNotFound(server.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_analysis_services_server", id.ID())
+		}
 	}
 
 	analysisServicesServer := servers.AnalysisServicesServer{
@@ -183,7 +186,7 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 		analysisServicesServer.Properties.BackupBlobContainerUri = pointer.To(containerUri.(string))
 	}
 
-	if err := client.CreateThenPoll(ctx, id, analysisServicesServer); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, analysisServicesServer, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

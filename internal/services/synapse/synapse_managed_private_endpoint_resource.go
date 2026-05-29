@@ -116,12 +116,14 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 	dataPlaneID := managedprivateendpoints.NewManagedPrivateEndpointID(baseURI, id.ManagedVirtualNetworkName, id.Name)
 	client := meta.(*clients.Client).Synapse.ManagedPrivateEndpointsClient.Clone(dataPlaneID.BaseURI)
 
-	existing, err := client.Get(ctx, dataPlaneID)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, dataPlaneID)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_synapse_managed_private_endpoint", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_synapse_managed_private_endpoint", id.ID())
 	}
 
 	payload := managedprivateendpoints.ManagedPrivateEndpoint{
@@ -136,6 +138,8 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("creating %s: %w", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// The Create operation returns a 200 but behaves as if it is async, thus requiring polling on `provisioningState`
 	pollerType := custompollers.NewSynapseManagedPrivateEndpointCreatePoller(client, dataPlaneID)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
@@ -143,7 +147,6 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("polling %s: %w", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSynapseManagedPrivateEndpointRead(d, meta)
 }
 

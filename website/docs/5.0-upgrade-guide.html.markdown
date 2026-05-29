@@ -409,6 +409,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `msi_work_space_resource_id` property has been removed in favour of the `msi_workspace_id` property.
 
+### `azurerm_data_factory_linked_service_mysql`
+
+* The property `driver_version` now defaults to `V2`.
+
 ### `azurerm_data_factory_integration_runtime_self_hosted`
 
 * Validation for `rbac_authorization.resource_id` has been changed to validate for an integration runtime resource ID (case-sensitive) rather than validating for a non-empty string.
@@ -521,6 +525,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
+### `azurerm_local_network_gateway`
+
+* The `address_space` property's type has been changed to a Set instead of a List, meaning that this is now unordered. Note that if you are referencing these nested items by index within your Terraform Configuration, this is no longer possible.
+
 ### `azurerm_log_analytics_linked_storage_account`
 
 * The deprecated `workspace_resource_id` property has been removed and superseded by the `workspace_id` property.
@@ -535,8 +543,9 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_logic_app_standard`
 
-* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+* The `app_service_plan_id` property now validates that the input is an App Service Plan ID. This validation is case-sensitive.
 * The `client_certificate_mode` property now defaults to `Required` to match API default value.
+* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 * The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 * The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 

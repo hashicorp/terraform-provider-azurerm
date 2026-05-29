@@ -61,9 +61,20 @@ func (c VirtualNetworkGatewaysClient) DisconnectVirtualNetworkGatewayVpnConnecti
 
 // DisconnectVirtualNetworkGatewayVpnConnectionsThenPoll performs DisconnectVirtualNetworkGatewayVpnConnections then polls until it's completed
 func (c VirtualNetworkGatewaysClient) DisconnectVirtualNetworkGatewayVpnConnectionsThenPoll(ctx context.Context, id VirtualNetworkGatewayId, input P2SVpnConnectionRequest) error {
+	return c.DisconnectVirtualNetworkGatewayVpnConnectionsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DisconnectVirtualNetworkGatewayVpnConnectionsCallbackThenPoll performs DisconnectVirtualNetworkGatewayVpnConnections, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) DisconnectVirtualNetworkGatewayVpnConnectionsCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, input P2SVpnConnectionRequest, callback func() error) error {
 	result, err := c.DisconnectVirtualNetworkGatewayVpnConnections(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DisconnectVirtualNetworkGatewayVpnConnections: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

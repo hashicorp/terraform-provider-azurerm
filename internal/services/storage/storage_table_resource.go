@@ -147,12 +147,14 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	id := tables.NewTableID(*accountId, tableName)
 
-	exists, err := tablesDataPlaneClient.Exists(ctx, tableName)
-	if err != nil {
-		return fmt.Errorf("checking for existing %s: %v", id, err)
-	}
-	if exists != nil && *exists {
-		return tf.ImportAsExistsError("azurerm_storage_table", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		exists, err := tablesDataPlaneClient.Exists(ctx, tableName)
+		if err != nil {
+			return fmt.Errorf("checking for existing %s: %v", id, err)
+		}
+		if exists != nil && *exists {
+			return tf.ImportAsExistsError("azurerm_storage_table", id.ID())
+		}
 	}
 
 	if err = tablesDataPlaneClient.Create(ctx, tableName); err != nil {
