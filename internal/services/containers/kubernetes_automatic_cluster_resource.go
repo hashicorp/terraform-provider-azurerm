@@ -30,12 +30,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationsecuritygroups"
-
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -101,7 +99,7 @@ type KubernetesAutomaticClusterModel struct {
 	KubeConfigRaw                  string            `tfschema:"kube_config_raw"`
 	NodeResourceGroupID            string            `tfschema:"node_resource_group_id"`
 	OIDCIssuerURL                  string            `tfschema:"oidc_issuer_url"`
-	PrivateFQDN                    string            `tfschema:"private_fqdn"`
+	PrivateFQDN                    string            `tfschema:"private_fully_qualified_domain_name"`
 }
 
 type APIServerAccessProfileModel struct {
@@ -187,9 +185,7 @@ type MonitorMetricsModel struct {
 type NetworkProfileModel struct {
 	DNSServiceIP        string                     `tfschema:"dns_service_ip"`
 	PodCIDR             string                     `tfschema:"pod_cidr"`
-	PodCIDRs            []string                   `tfschema:"pod_cidrs"`
 	ServiceCIDR         string                     `tfschema:"service_cidr"`
-	ServiceCIDRs        []string                   `tfschema:"service_cidrs"`
 	OutboundType        string                     `tfschema:"outbound_type"`
 	LoadBalancerSKU     string                     `tfschema:"load_balancer_sku"`
 	LoadBalancerProfile []LoadBalancerProfileModel `tfschema:"load_balancer"`
@@ -204,13 +200,13 @@ type LoadBalancerProfileModel struct {
 	OutboundPortsAllocated int64    `tfschema:"outbound_ports_allocated"`
 	IdleTimeoutInMinutes   int64    `tfschema:"idle_timeout_in_minutes"`
 	BackendPoolType        string   `tfschema:"backend_pool_type"`
-	EffectiveOutboundIPs   []string `tfschema:"effective_outbound_ips"`
+	EffectiveOutboundIPs   []string `tfschema:"effective_outbound_ip_ids"`
 }
 
 type NATGatewayProfileModel struct {
 	ManagedOutboundIPCount int64    `tfschema:"managed_outbound_ip_count"`
 	IdleTimeoutInMinutes   int64    `tfschema:"idle_timeout_in_minutes"`
-	EffectiveOutboundIPs   []string `tfschema:"effective_outbound_ips"`
+	EffectiveOutboundIPs   []string `tfschema:"effective_outbound_ip_ids"`
 }
 
 type AdvancedNetworkingModel struct {
@@ -1705,17 +1701,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						ForceNew:     true,
 						ValidateFunc: validate.CIDR,
 					},
-					"pod_cidrs": {
-						Type: pluginsdk.TypeList,
-						// NOTE: O+C - Azure calculates default pod CIDRs if not specified
-						Optional: true,
-						Computed: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validate.CIDR,
-						},
-					},
 					"service_cidr": {
 						Type: pluginsdk.TypeString,
 						// NOTE: O+C - Azure calculates a default service CIDR if not specified
@@ -1723,17 +1708,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Computed:     true,
 						ForceNew:     true,
 						ValidateFunc: validate.CIDR,
-					},
-					"service_cidrs": {
-						Type: pluginsdk.TypeList,
-						// NOTE: O+C - Azure calculates default service CIDRs if not specified
-						Optional: true,
-						Computed: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
 					},
 					"load_balancer_sku": {
 						Type:     pluginsdk.TypeString,
@@ -1792,7 +1766,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									ConflictsWith: []string{"network.0.load_balancer.0.managed_outbound_ip_count", "network.0.load_balancer.0.outbound_ip_address_ids"},
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
-										ValidateFunc: azure.ValidateResourceID,
+										ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 									},
 								},
 								"outbound_ip_address_ids": {
@@ -1801,10 +1775,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									ConflictsWith: []string{"network.0.load_balancer.0.managed_outbound_ip_count", "network.0.load_balancer.0.outbound_ip_prefix_ids"},
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
-										ValidateFunc: azure.ValidateResourceID,
+										ValidateFunc: commonids.ValidatePublicIPAddressID,
 									},
 								},
-								"effective_outbound_ips": {
+								"effective_outbound_ip_ids": {
 									Type:     pluginsdk.TypeSet,
 									Computed: true,
 									Elem: &pluginsdk.Schema{
@@ -1845,7 +1819,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									Computed:     true,
 									ValidateFunc: validation.IntBetween(1, 100),
 								},
-								"effective_outbound_ips": {
+								"effective_outbound_ip_ids": {
 									Type:     pluginsdk.TypeSet,
 									Computed: true,
 									Elem: &pluginsdk.Schema{
@@ -2436,12 +2410,12 @@ func (r KubernetesAutomaticClusterResource) Attributes() map[string]*pluginsdk.S
 			Computed: true,
 		},
 
-		"portal_fqdn": {
+		"portal_fully_qualified_domain_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"private_fqdn": {
+		"private_fully_qualified_domain_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -3568,16 +3542,8 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel)
 		networkProfile.PodCidr = pointer.To(config.PodCIDR)
 	}
 
-	if len(config.PodCIDRs) > 0 {
-		networkProfile.PodCidrs = pointer.To(config.PodCIDRs)
-	}
-
 	if config.ServiceCIDR != "" {
 		networkProfile.ServiceCidr = pointer.To(config.ServiceCIDR)
-	}
-
-	if len(config.ServiceCIDRs) > 0 {
-		networkProfile.ServiceCidrs = pointer.To(config.ServiceCIDRs)
 	}
 
 	networkProfile.AdvancedNetworking = expandKubernetesAutomaticClusterAdvancedNetworking(config.AdvancedNetworking)
@@ -3795,16 +3761,6 @@ func flattenKubernetesAutomaticClusterNetworkProfile(profile *managedclusters.Co
 
 	advancedNetworking := flattenKubernetesAutomaticClusterAdvancedNetworking(profile.AdvancedNetworking)
 
-	podCidrs := []string{}
-	if profile.PodCidrs != nil {
-		podCidrs = pointer.From(profile.PodCidrs)
-	}
-
-	serviceCidrs := []string{}
-	if profile.ServiceCidrs != nil {
-		serviceCidrs = pointer.From(profile.ServiceCidrs)
-	}
-
 	return []NetworkProfileModel{
 		{
 			DNSServiceIP:        dnsServiceIP,
@@ -3812,9 +3768,7 @@ func flattenKubernetesAutomaticClusterNetworkProfile(profile *managedclusters.Co
 			LoadBalancerProfile: lbProfiles,
 			NATGatewayProfile:   ngwProfiles,
 			PodCIDR:             podCidr,
-			PodCIDRs:            podCidrs,
 			ServiceCIDR:         serviceCidr,
-			ServiceCIDRs:        serviceCidrs,
 			OutboundType:        outboundType,
 			AdvancedNetworking:  advancedNetworking,
 		},
