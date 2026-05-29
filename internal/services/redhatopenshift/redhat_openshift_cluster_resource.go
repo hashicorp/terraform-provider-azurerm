@@ -151,286 +151,9 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"location": commonschema.Location(),
-
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"cluster_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			ForceNew: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"domain": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"version": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ForceNew:     true,
-						ValidateFunc: validate.ClusterVersion,
-					},
-					"fips_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						ForceNew: true,
-						Default:  false,
-					},
-					"pull_secret": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						Sensitive:    true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"managed_resource_group_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validate.ClusterResourceGroupName,
-						DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
-							defaultResourceGroupName := fmt.Sprintf("aro-%s", d.Get("cluster_profile.0.domain").(string))
-							if old == defaultResourceGroupName && new == "" {
-								return true
-							}
-							return false
-						},
-					},
-					"resource_group_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
-		"service_principal": {
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			MaxItems:     1,
-			ExactlyOneOf: []string{"service_principal", "identity"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"client_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"client_secret": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						Sensitive:    true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-		},
-
-		"platform_workload_identity_profile": {
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			MaxItems:     1,
-			RequiredWith: []string{"identity"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"platform_workload_identity": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
-						MinItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"identity_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-								},
-								"client_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"object_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"upgradeable_to": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validate.ClusterVersion,
-					},
-				},
-			},
-		},
-
-		"identity": func() *pluginsdk.Schema {
-			s := commonschema.UserAssignedIdentityOptional()
-			s.ExactlyOneOf = []string{"service_principal", "identity"}
-			s.RequiredWith = []string{"platform_workload_identity_profile"}
-			if elem, ok := s.Elem.(*schema.Resource); ok {
-				if ids, ok := elem.Schema["identity_ids"]; ok {
-					ids.MinItems = 1
-					ids.MaxItems = 1
-				}
-			}
-			return s
-		}(),
-
-		"network_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"pod_cidr": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: commonValidate.CIDR,
-					},
-					"service_cidr": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: commonValidate.CIDR,
-					},
-					"outbound_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  string(openshiftclusters.OutboundTypeLoadbalancer),
-						ValidateFunc: validation.StringInSlice(
-							openshiftclusters.PossibleValuesForOutboundType(),
-							false,
-						),
-					},
-					"preconfigured_network_security_group_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						ForceNew: true,
-						Default:  false,
-					},
-					"load_balancer_profile": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"managed_outbound_ip_count": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      1,
-									ValidateFunc: validation.IntBetween(1, 20),
-								},
-								"effective_outbound_ips": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"main_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"subnet_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-					"vm_size": {
-						Type:             pluginsdk.TypeString,
-						Required:         true,
-						ForceNew:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
-						ValidateFunc:     validation.StringIsNotEmpty,
-					},
-					"encryption_at_host_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						ForceNew: true,
-						Default:  false,
-					},
-					"disk_encryption_set_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-				},
-			},
-		},
-
-		"worker_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"vm_size": {
-						Type:             pluginsdk.TypeString,
-						Required:         true,
-						ForceNew:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
-						ValidateFunc:     validation.StringIsNotEmpty,
-					},
-					"disk_size_gb": {
-						Type:         pluginsdk.TypeInt,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.IntAtLeast(128),
-					},
-					"node_count": {
-						Type:         pluginsdk.TypeInt,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.IntBetween(3, 60),
-					},
-					"subnet_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-					"encryption_at_host_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						ForceNew: true,
-						Default:  false,
-					},
-					"disk_encryption_set_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-				},
-			},
-		},
+		"location": commonschema.Location(),
 
 		"api_server_profile": {
 			Type:     pluginsdk.TypeList,
@@ -457,6 +180,60 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"cluster_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			ForceNew: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"domain": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"fips_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+					"managed_resource_group_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.ClusterResourceGroupName,
+						DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+							defaultResourceGroupName := fmt.Sprintf("aro-%s", d.Get("cluster_profile.0.domain").(string))
+							if old == defaultResourceGroupName && new == "" {
+								return true
+							}
+							return false
+						},
+					},
+					"pull_secret": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"version": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.ClusterVersion,
+					},
+					"resource_group_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
 		"ingress_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -477,6 +254,229 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:     schema.TypeString,
 						Computed: true,
+					},
+				},
+			},
+		},
+
+		"main_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+					"vm_size": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						ForceNew:         true,
+						DiffSuppressFunc: suppress.CaseDifference,
+						ValidateFunc:     validation.StringIsNotEmpty,
+					},
+					"disk_encryption_set_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+					"encryption_at_host_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"network_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"pod_cidr": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonValidate.CIDR,
+					},
+					"service_cidr": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonValidate.CIDR,
+					},
+					"load_balancer_profile": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"managed_outbound_ip_count": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									Default:      1,
+									ValidateFunc: validation.IntBetween(1, 20),
+								},
+								"effective_outbound_ips": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+							},
+						},
+					},
+					"outbound_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Default:  string(openshiftclusters.OutboundTypeLoadbalancer),
+						ValidateFunc: validation.StringInSlice(
+							openshiftclusters.PossibleValuesForOutboundType(),
+							false,
+						),
+					},
+					"preconfigured_network_security_group_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"worker_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"disk_size_gb": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IntAtLeast(128),
+					},
+					"node_count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IntBetween(3, 60),
+					},
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+					"vm_size": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						ForceNew:         true,
+						DiffSuppressFunc: suppress.CaseDifference,
+						ValidateFunc:     validation.StringIsNotEmpty,
+					},
+					"disk_encryption_set_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+					"encryption_at_host_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"identity": func() *pluginsdk.Schema {
+			s := commonschema.UserAssignedIdentityOptional()
+			s.ExactlyOneOf = []string{"service_principal", "identity"}
+			s.RequiredWith = []string{"platform_workload_identity_profile"}
+			if elem, ok := s.Elem.(*schema.Resource); ok {
+				if ids, ok := elem.Schema["identity_ids"]; ok {
+					ids.MinItems = 1
+					ids.MaxItems = 1
+				}
+			}
+			return s
+		}(),
+
+		"platform_workload_identity_profile": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			RequiredWith: []string{"identity"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"platform_workload_identity": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						MinItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"identity_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+								},
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"upgradeable_to": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.ClusterVersion,
+					},
+				},
+			},
+		},
+
+		"service_principal": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"service_principal", "identity"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"client_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+					"client_secret": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
