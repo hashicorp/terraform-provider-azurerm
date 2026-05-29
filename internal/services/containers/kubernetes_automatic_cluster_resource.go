@@ -179,7 +179,7 @@ type MicrosoftDefenderModel struct {
 }
 
 type MonitorMetricsModel struct {
-	MonitorMetricsEnabled bool   `tfschema:"monitor_metrics_enabled"`
+	MonitorMetricsEnabled bool   `tfschema:"enabled"`
 	AnnotationsAllowed    string `tfschema:"annotations_allowed"`
 	LabelsAllowed         string `tfschema:"labels_allowed"`
 }
@@ -268,7 +268,7 @@ type WindowsProfileModel struct {
 type GMSAModel struct {
 	DNSServer          string `tfschema:"dns_server"`
 	RootDomain         string `tfschema:"root_domain"`
-	GMSAProfileEnabled bool   `tfschema:"gmsa_profile_enabled"`
+	GMSAProfileEnabled bool   `tfschema:"enabled"`
 }
 
 type KubeConfigModel struct {
@@ -1661,7 +1661,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"monitor_metrics_enabled": {
+					"enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  true,
@@ -2081,7 +2081,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"gmsa_profile_enabled": {
+								"enabled": {
 									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  true,
