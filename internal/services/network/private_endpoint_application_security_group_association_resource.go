@@ -70,8 +70,8 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 				return err
 			}
 
-			locks.ByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
-			defer locks.UnlockByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
+			locks.ByID(privateEndpointId.ID())
+			defer locks.UnlockByID(privateEndpointId.ID())
 
 			ASGClient := metadata.Client.Network.ApplicationSecurityGroups
 			ASGId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(state.ApplicationSecurityGroupId)
@@ -79,8 +79,8 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 				return err
 			}
 
-			locks.ByName(ASGId.ApplicationSecurityGroupName, "azurerm_application_security_group")
-			defer locks.UnlockByName(ASGId.ApplicationSecurityGroupName, "azurerm_application_security_group")
+			locks.ByID(ASGId.ID())
+			defer locks.UnlockByID(ASGId.ID())
 
 			existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, *privateEndpointId, privateendpoints.DefaultGetOperationOptions())
 			if err != nil && !response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
@@ -170,8 +170,8 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 				return err
 			}
 
-			locks.ByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
-			defer locks.UnlockByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
+			locks.ByID(privateEndpointId.ID())
+			defer locks.UnlockByID(privateEndpointId.ID())
 
 			ASGClient := metadata.Client.Network.ApplicationSecurityGroups
 
@@ -180,8 +180,8 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 				return err
 			}
 
-			locks.ByName(ASGId.ApplicationSecurityGroupName, "azurerm_application_security_group")
-			defer locks.UnlockByName(ASGId.ApplicationSecurityGroupName, "azurerm_application_security_group")
+			locks.ByID(ASGId.ID())
+			defer locks.UnlockByID(ASGId.ID())
 
 			existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, *privateEndpointId, privateendpoints.DefaultGetOperationOptions())
 			if err != nil && !response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
@@ -250,8 +250,8 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 				return err
 			}
 
-			locks.ByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
-			defer locks.UnlockByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
+			locks.ByID(privateEndpointId.ID())
+			defer locks.UnlockByID(privateEndpointId.ID())
 
 			ASGClient := metadata.Client.Network.ApplicationSecurityGroups
 
@@ -260,8 +260,8 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 				return err
 			}
 
-			locks.ByName(ASGId.ApplicationSecurityGroupName, "azurerm_application_security_group")
-			defer locks.UnlockByName(ASGId.ApplicationSecurityGroupName, "azurerm_application_security_group")
+			locks.ByID(ASGId.ID())
+			defer locks.UnlockByID(ASGId.ID())
 
 			existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, *privateEndpointId, privateendpoints.DefaultGetOperationOptions())
 			if err != nil && !response.WasNotFound(existingPrivateEndpoint.HttpResponse) {

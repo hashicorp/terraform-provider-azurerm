@@ -128,19 +128,19 @@ func resourceNetworkProfileCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(d.Get("container_network_interface").([]interface{}))
-	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(containerNetworkInterfaceConfigurations)
+	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetIDs(containerNetworkInterfaceConfigurations)
 	if err != nil {
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
 
-	locks.ByName(id.NetworkProfileName, azureNetworkProfileResourceName)
-	defer locks.UnlockByName(id.NetworkProfileName, azureNetworkProfileResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
-	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
+	locks.MultipleByID(vnetsToLock)
+	defer locks.UnlockMultipleByID(vnetsToLock)
 
-	locks.MultipleByName(subnetsToLock, SubnetResourceName)
-	defer locks.UnlockMultipleByName(subnetsToLock, SubnetResourceName)
+	locks.MultipleByID(subnetsToLock)
+	defer locks.UnlockMultipleByID(subnetsToLock)
 
 	payload := networkprofiles.NetworkProfile{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
@@ -187,19 +187,19 @@ func resourceNetworkProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	payload := existing.Model
 
 	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(d.Get("container_network_interface").([]interface{}))
-	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(containerNetworkInterfaceConfigurations)
+	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetIDs(containerNetworkInterfaceConfigurations)
 	if err != nil {
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
 
-	locks.ByName(id.NetworkProfileName, azureNetworkProfileResourceName)
-	defer locks.UnlockByName(id.NetworkProfileName, azureNetworkProfileResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
-	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
+	locks.MultipleByID(vnetsToLock)
+	defer locks.UnlockMultipleByID(vnetsToLock)
 
-	locks.MultipleByName(subnetsToLock, SubnetResourceName)
-	defer locks.UnlockMultipleByName(subnetsToLock, SubnetResourceName)
+	locks.MultipleByID(subnetsToLock)
+	defer locks.UnlockMultipleByID(subnetsToLock)
 
 	if d.HasChange("container_network_interface") {
 		payload.Properties.ContainerNetworkInterfaceConfigurations = containerNetworkInterfaceConfigurations
@@ -283,19 +283,19 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving existing %s: `model.Properties` was nil", *id)
 	}
 
-	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(existing.Model.Properties.ContainerNetworkInterfaceConfigurations)
+	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetIDs(existing.Model.Properties.ContainerNetworkInterfaceConfigurations)
 	if err != nil {
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
 
-	locks.ByName(id.NetworkProfileName, azureNetworkProfileResourceName)
-	defer locks.UnlockByName(id.NetworkProfileName, azureNetworkProfileResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
-	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
+	locks.MultipleByID(vnetsToLock)
+	defer locks.UnlockMultipleByID(vnetsToLock)
 
-	locks.MultipleByName(subnetsToLock, SubnetResourceName)
-	defer locks.UnlockMultipleByName(subnetsToLock, SubnetResourceName)
+	locks.MultipleByID(subnetsToLock)
+	defer locks.UnlockMultipleByID(subnetsToLock)
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -343,9 +343,9 @@ func expandNetworkProfileContainerNetworkInterface(input []interface{}) *[]netwo
 	return &retCNIConfigs
 }
 
-func expandNetworkProfileVirtualNetworkSubnetNames(input *[]networkprofiles.ContainerNetworkInterfaceConfiguration) (*[]string, *[]string, error) {
-	subnetNames := make([]string, 0)
-	vnetNames := make([]string, 0)
+func expandNetworkProfileVirtualNetworkSubnetIDs(input *[]networkprofiles.ContainerNetworkInterfaceConfiguration) (*[]string, *[]string, error) {
+	subnetIDs := make([]string, 0)
+	vnetIDs := make([]string, 0)
 
 	if input != nil {
 		for _, item := range *input {
@@ -363,18 +363,19 @@ func expandNetworkProfileVirtualNetworkSubnetNames(input *[]networkprofiles.Cont
 					return nil, nil, err
 				}
 
-				if !utils.SliceContainsValue(subnetNames, subnetId.SubnetName) {
-					subnetNames = append(subnetNames, subnetId.SubnetName)
+				if !utils.SliceContainsValue(subnetIDs, subnetId.ID()) {
+					subnetIDs = append(subnetIDs, subnetId.ID())
 				}
 
-				if !utils.SliceContainsValue(vnetNames, subnetId.VirtualNetworkName) {
-					vnetNames = append(vnetNames, subnetId.VirtualNetworkName)
+				virtualNetworkID := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
+				if !utils.SliceContainsValue(vnetIDs, virtualNetworkID.ID()) {
+					vnetIDs = append(vnetIDs, virtualNetworkID.ID())
 				}
 			}
 		}
 	}
 
-	return &subnetNames, &vnetNames, nil
+	return &subnetIDs, &vnetIDs, nil
 }
 
 func flattenNetworkProfileContainerNetworkInterface(input *[]networkprofiles.ContainerNetworkInterfaceConfiguration) []interface{} {

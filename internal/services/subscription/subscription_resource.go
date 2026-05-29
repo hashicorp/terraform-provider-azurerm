@@ -151,8 +151,8 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	locks.ByName(aliasName, SubscriptionResourceName)
-	defer locks.UnlockByName(aliasName, SubscriptionResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	workload := subscriptionAlias.WorkloadProduction
 	workloadRaw := d.Get("workload").(string)
@@ -264,8 +264,8 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	locks.ByName(id.AliasName, SubscriptionResourceName)
-	defer locks.UnlockByName(id.AliasName, SubscriptionResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 	resp, err := aliasClient.AliasGet(ctx, *id)
 	if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.SubscriptionId == nil {
 		return fmt.Errorf("could not read Subscription Alias for update: %+v", err)
@@ -376,8 +376,8 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	locks.ByName(id.AliasName, SubscriptionResourceName)
-	defer locks.UnlockByName(id.AliasName, SubscriptionResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// Get subscription details for later
 	alias, err := aliasClient.AliasGet(ctx, *id)

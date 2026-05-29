@@ -76,11 +76,11 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *plugins
 	}
 	associationId := parse.NewWorkspaceApplicationGroupAssociationId(*workspaceId, *applicationGroupId).ID()
 
-	locks.ByName(workspaceId.WorkspaceName, workspaceResourceType)
-	defer locks.UnlockByName(workspaceId.WorkspaceName, workspaceResourceType)
+	locks.ByID(workspaceId.ID())
+	defer locks.UnlockByID(workspaceId.ID())
 
-	locks.ByName(applicationGroupId.ApplicationGroupName, applicationGroupType)
-	defer locks.UnlockByName(applicationGroupId.ApplicationGroupName, applicationGroupType)
+	locks.ByID(applicationGroupId.ID())
+	defer locks.UnlockByID(applicationGroupId.ID())
 
 	existing, err := client.Get(ctx, *workspaceId)
 	if err != nil {
@@ -169,11 +169,11 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *plugins
 		return err
 	}
 
-	locks.ByName(id.Workspace.WorkspaceName, workspaceResourceType)
-	defer locks.UnlockByName(id.Workspace.WorkspaceName, workspaceResourceType)
+	locks.ByID(id.Workspace.ID())
+	defer locks.UnlockByID(id.Workspace.ID())
 
-	locks.ByName(id.ApplicationGroup.ApplicationGroupName, applicationGroupType)
-	defer locks.UnlockByName(id.ApplicationGroup.ApplicationGroupName, applicationGroupType)
+	locks.ByID(id.ApplicationGroup.ID())
+	defer locks.UnlockByID(id.ApplicationGroup.ID())
 
 	existing, err := client.Get(ctx, id.Workspace)
 	if err != nil {

@@ -147,8 +147,8 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 		return err
 	}
 
-	locks.ByName(parsedVirtualMachineId.VirtualMachineName, VirtualMachineResourceName)
-	defer locks.UnlockByName(parsedVirtualMachineId.VirtualMachineName, VirtualMachineResourceName)
+	locks.ByID(parsedVirtualMachineId.ID())
+	defer locks.UnlockByID(parsedVirtualMachineId.ID())
 
 	virtualMachine, err := client.Get(ctx, *parsedVirtualMachineId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
@@ -325,8 +325,8 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 
 	virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
 
-	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
-	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
+	locks.ByID(virtualMachineId.ID())
+	defer locks.UnlockByID(virtualMachineId.ID())
 
 	virtualMachine, err := client.Get(ctx, virtualMachineId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {

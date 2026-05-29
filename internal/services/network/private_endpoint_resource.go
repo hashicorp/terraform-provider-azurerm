@@ -362,12 +362,8 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	cosmosDbResIds := getCosmosDbResIdInPrivateServiceConnections(parameters.Properties)
-	for _, cosmosDbResId := range cosmosDbResIds {
-		log.Printf("[DEBUG] Add Lock For Private Endpoint %q, lock name: %q", id.PrivateEndpointName, cosmosDbResId)
-		locks.ByName(cosmosDbResId, "azurerm_private_endpoint")
-		//goland:noinspection GoDeferInLoop
-		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
-	}
+	locks.MultipleByID(&cosmosDbResIds)
+	defer locks.UnlockMultipleByID(&cosmosDbResIds)
 
 	// TODO: refactor to remove Retry func
 	// TODO: implement callback
@@ -776,11 +772,8 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	cosmosDbResIds := getCosmosDbResIdInPrivateServiceConnections(existing.Model.Properties)
-	for _, cosmosDbResId := range cosmosDbResIds {
-		locks.ByName(cosmosDbResId, "azurerm_private_endpoint")
-		//goland:noinspection GoDeferInLoop
-		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
-	}
+	locks.MultipleByID(&cosmosDbResIds)
+	defer locks.UnlockMultipleByID(&cosmosDbResIds)
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

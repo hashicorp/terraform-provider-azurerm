@@ -111,13 +111,13 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceDat
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	locks.ByName(name, applicationGroupType)
-	defer locks.UnlockByName(name, applicationGroupType)
+	id := applicationgroup.NewApplicationGroupID(subscriptionId, resourceGroup, name)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := applicationgroup.NewApplicationGroupID(subscriptionId, resourceGroup, name)
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id)
@@ -251,8 +251,8 @@ func resourceVirtualDesktopApplicationGroupDelete(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	locks.ByName(id.ApplicationGroupName, applicationGroupType)
-	defer locks.UnlockByName(id.ApplicationGroupName, applicationGroupType)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

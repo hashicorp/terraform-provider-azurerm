@@ -77,11 +77,11 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.Res
 	}
 	associationId := parse.NewScalingPlanHostPoolAssociationId(*scalingPlanId, *hostPoolId).ID()
 
-	locks.ByName(scalingPlanId.ScalingPlanName, scalingPlanResourceType)
-	defer locks.UnlockByName(scalingPlanId.ScalingPlanName, scalingPlanResourceType)
+	locks.ByID(scalingPlanId.ID())
+	defer locks.UnlockByID(scalingPlanId.ID())
 
-	locks.ByName(hostPoolId.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(hostPoolId.HostPoolName, hostPoolResourceType)
+	locks.ByID(hostPoolId.ID())
+	defer locks.UnlockByID(hostPoolId.ID())
 
 	existing, err := client.Get(ctx, *scalingPlanId)
 	if err != nil {
@@ -183,11 +183,11 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.Res
 		return err
 	}
 
-	locks.ByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
-	defer locks.UnlockByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
+	locks.ByID(id.ScalingPlan.ID())
+	defer locks.UnlockByID(id.ScalingPlan.ID())
 
-	locks.ByName(id.HostPool.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(id.HostPool.HostPoolName, hostPoolResourceType)
+	locks.ByID(id.HostPool.ID())
+	defer locks.UnlockByID(id.HostPool.ID())
 
 	existing, err := client.Get(ctx, id.ScalingPlan)
 	if err != nil {
@@ -244,11 +244,11 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationDelete(d *pluginsdk.Res
 		return err
 	}
 
-	locks.ByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
-	defer locks.UnlockByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
+	locks.ByID(id.ScalingPlan.ID())
+	defer locks.UnlockByID(id.ScalingPlan.ID())
 
-	locks.ByName(id.HostPool.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(id.HostPool.HostPoolName, hostPoolResourceType)
+	locks.ByID(id.HostPool.ID())
+	defer locks.UnlockByID(id.HostPool.ID())
 
 	existing, err := client.Get(ctx, id.ScalingPlan)
 	if err != nil {

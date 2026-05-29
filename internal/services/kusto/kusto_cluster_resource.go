@@ -350,8 +350,8 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	locks.ByName(id.KustoClusterName, "azurerm_kusto_cluster")
-	defer locks.UnlockByName(id.KustoClusterName, "azurerm_kusto_cluster")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 	if err != nil {
@@ -465,8 +465,8 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	locks.ByName(id.KustoClusterName, "azurerm_kusto_cluster")
-	defer locks.UnlockByName(id.KustoClusterName, "azurerm_kusto_cluster")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {

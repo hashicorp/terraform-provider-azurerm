@@ -102,8 +102,8 @@ func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	locks.ByName(virtualHubId.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(virtualHubId.VirtualHubName, virtualHubResourceName)
+	locks.ByID(virtualHubId.ID())
+	defer locks.UnlockByID(virtualHubId.ID())
 
 	id := commonids.NewVirtualHubIPConfigurationID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroupName, virtualHubId.VirtualHubName, d.Get("name").(string))
 
@@ -164,8 +164,8 @@ func resourceVirtualHubIPUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	locks.ByName(virtualHubId.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(virtualHubId.VirtualHubName, virtualHubResourceName)
+	locks.ByID(virtualHubId.ID())
+	defer locks.UnlockByID(virtualHubId.ID())
 
 	id, err := commonids.ParseVirtualHubIPConfigurationID(d.Id())
 	if err != nil {
@@ -254,8 +254,9 @@ func resourceVirtualHubIPDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	locks.ByName(id.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
+	virtualHubId := virtualwans.NewVirtualHubID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName)
+	locks.ByID(virtualHubId.ID())
+	defer locks.UnlockByID(virtualHubId.ID())
 
 	if err := client.VirtualHubIPConfigurationDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

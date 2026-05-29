@@ -97,8 +97,8 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 
 	// Not sure if I should also lock the key vault here too
 	// or at the very least the key?
-	locks.ByName(id.WorkspaceName, "azurerm_databricks_workspace")
-	defer locks.UnlockByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 	var encryptionEnabled bool
 
 	workspace, err := workspaceClient.Get(ctx, *id)
@@ -250,8 +250,8 @@ func databricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 	}
 
 	// Not sure if I should also lock the key vault here too
-	locks.ByName(id.WorkspaceName, "azurerm_databricks_workspace")
-	defer locks.UnlockByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	workspace, err := client.Get(ctx, *id)
 	if err != nil {

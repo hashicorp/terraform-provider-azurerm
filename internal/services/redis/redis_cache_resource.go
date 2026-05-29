@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -525,11 +524,12 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			return err
 		}
 
-		locks.ByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
-		defer locks.UnlockByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
+		virtualNetworkID := commonids.NewVirtualNetworkID(parsed.SubscriptionId, parsed.ResourceGroupName, parsed.VirtualNetworkName)
+		locks.ByID(virtualNetworkID.ID())
+		defer locks.UnlockByID(virtualNetworkID.ID())
 
-		locks.ByName(parsed.SubnetName, network.SubnetResourceName)
-		defer locks.UnlockByName(parsed.SubnetName, network.SubnetResourceName)
+		locks.ByID(parsed.ID())
+		defer locks.UnlockByID(parsed.ID())
 
 		parameters.Properties.SubnetId = pointer.To(v.(string))
 	}
@@ -841,11 +841,12 @@ func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error
 			return err
 		}
 
-		locks.ByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
-		defer locks.UnlockByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
+		virtualNetworkID := commonids.NewVirtualNetworkID(parsed.SubscriptionId, parsed.ResourceGroupName, parsed.VirtualNetworkName)
+		locks.ByID(virtualNetworkID.ID())
+		defer locks.UnlockByID(virtualNetworkID.ID())
 
-		locks.ByName(parsed.SubnetName, network.SubnetResourceName)
-		defer locks.UnlockByName(parsed.SubnetName, network.SubnetResourceName)
+		locks.ByID(parsed.ID())
+		defer locks.UnlockByID(parsed.ID())
 	}
 
 	if err := client.RedisDeleteThenPoll(ctx, *id); err != nil {

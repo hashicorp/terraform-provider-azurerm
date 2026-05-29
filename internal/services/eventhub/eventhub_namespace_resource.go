@@ -300,8 +300,8 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	location := location.Normalize(d.Get("location").(string))
 	sku := d.Get("sku").(string)
@@ -392,8 +392,8 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	location := location.Normalize(d.Get("location").(string))
 	sku := d.Get("sku").(string)
@@ -603,8 +603,8 @@ func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

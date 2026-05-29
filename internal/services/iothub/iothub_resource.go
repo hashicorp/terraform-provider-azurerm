@@ -650,10 +650,11 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	defer cancel()
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
+	// TODO: when migrating this to a `resourceids.ResourceId` ID, replace all references to this in `locks.ByID` as well
 	id := parse.NewIotHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.Name, IothubResourceName)
-	defer locks.UnlockByName(id.Name, IothubResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
@@ -798,8 +799,8 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("parsing %s: %+v", id, err)
 	}
 
-	locks.ByName(id.Name, IothubResourceName)
-	defer locks.UnlockByName(id.Name, IothubResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
@@ -1121,8 +1122,8 @@ func resourceIotHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	locks.ByName(id.Name, IothubResourceName)
-	defer locks.UnlockByName(id.Name, IothubResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {

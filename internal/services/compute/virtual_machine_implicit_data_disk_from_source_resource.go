@@ -152,8 +152,8 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Create() sdk.ResourceF
 				return err
 			}
 
-			locks.ByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
-			defer locks.UnlockByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
+			locks.ByID(virtualMachineId.ID())
+			defer locks.UnlockByID(virtualMachineId.ID())
 
 			id := parse.NewDataDiskID(subscriptionId, virtualMachineId.ResourceGroupName, virtualMachineId.VirtualMachineName, config.Name)
 
@@ -297,10 +297,10 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Delete() sdk.ResourceF
 				return err
 			}
 
-			locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
-			defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
-
 			virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
+			locks.ByID(virtualMachineId.ID())
+			defer locks.UnlockByID(virtualMachineId.ID())
+
 			resp, err := client.Get(ctx, virtualMachineId, virtualmachines.DefaultGetOperationOptions())
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", virtualMachineId, err)
@@ -375,10 +375,10 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Update() sdk.ResourceF
 				return err
 			}
 
-			locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
-			defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
-
 			virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
+			locks.ByID(virtualMachineId.ID())
+			defer locks.UnlockByID(virtualMachineId.ID())
+
 			resp, err := client.Get(ctx, virtualMachineId, virtualmachines.DefaultGetOperationOptions())
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", virtualMachineId, err)

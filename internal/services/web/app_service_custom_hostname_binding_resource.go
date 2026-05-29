@@ -93,8 +93,8 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 
 	id := webapps.NewHostNameBindingID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), d.Get("hostname").(string))
 
-	locks.ByName(id.SiteName, appServiceCustomHostnameBindingResourceName)
-	defer locks.UnlockByName(id.SiteName, appServiceCustomHostnameBindingResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetHostNameBinding(ctx, id)
@@ -185,8 +185,8 @@ func resourceAppServiceCustomHostnameBindingDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	locks.ByName(id.SiteName, appServiceCustomHostnameBindingResourceName)
-	defer locks.UnlockByName(id.SiteName, appServiceCustomHostnameBindingResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	resp, err := client.DeleteHostNameBinding(ctx, *id)
 	if err != nil {

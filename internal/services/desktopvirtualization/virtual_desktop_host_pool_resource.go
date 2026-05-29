@@ -282,8 +282,8 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	locks.ByName(id.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(id.HostPoolName, hostPoolResourceType)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	payload := hostpool.HostPoolPatch{}
 
@@ -416,8 +416,8 @@ func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	locks.ByName(id.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(id.HostPoolName, hostPoolResourceType)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	options := hostpool.DeleteOperationOptions{
 		Force: pointer.To(true),

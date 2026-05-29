@@ -364,8 +364,8 @@ func resourceVpnGatewayConnectionResourceCreate(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
-	locks.ByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
-	defer locks.UnlockByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
+	locks.ByID(gatewayId.ID())
+	defer locks.UnlockByID(gatewayId.ID())
 
 	payload := virtualwans.VpnConnection{
 		Properties: &virtualwans.VpnConnectionProperties{
@@ -476,8 +476,8 @@ func resourceVpnGatewayConnectionResourceUpdate(d *pluginsdk.ResourceData, meta 
 
 	gatewayId := virtualwans.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroupName, id.GatewayName)
 
-	locks.ByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
-	defer locks.UnlockByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
+	locks.ByID(gatewayId.ID())
+	defer locks.UnlockByID(gatewayId.ID())
 
 	if d.HasChange("internet_security_enabled") {
 		payload.Properties.EnableInternetSecurity = pointer.To(d.Get("internet_security_enabled").(bool))
@@ -513,8 +513,9 @@ func resourceVpnGatewayConnectionResourceDelete(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	locks.ByName(id.GatewayName, VPNGatewayResourceName)
-	defer locks.UnlockByName(id.GatewayName, VPNGatewayResourceName)
+	gatewayId := virtualwans.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroupName, id.GatewayName)
+	locks.ByID(gatewayId.ID())
+	defer locks.UnlockByID(gatewayId.ID())
 
 	if err := client.VpnConnectionsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

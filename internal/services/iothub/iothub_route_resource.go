@@ -113,8 +113,9 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := parse.NewRouteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.IotHubName, IothubResourceName)
-	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
+	iotHubID := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
+	locks.ByID(iotHubID.ID())
+	defer locks.UnlockByID(iotHubID.ID())
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
@@ -251,8 +252,9 @@ func resourceIotHubRouteDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	locks.ByName(id.IotHubName, IothubResourceName)
-	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
+	iotHubID := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
+	locks.ByID(iotHubID.ID())
+	defer locks.UnlockByID(iotHubID.ID())
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {

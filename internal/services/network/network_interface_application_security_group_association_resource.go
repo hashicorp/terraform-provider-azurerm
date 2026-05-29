@@ -76,8 +76,8 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 		return err
 	}
 
-	locks.ByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(networkInterfaceId.ID())
+	defer locks.UnlockByID(networkInterfaceId.ID())
 
 	read, err := client.Get(ctx, *networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
@@ -187,8 +187,8 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *plugin
 		return err
 	}
 
-	locks.ByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(id.First.ID())
+	defer locks.UnlockByID(id.First.ID())
 
 	read, err := client.Get(ctx, *id.First, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {

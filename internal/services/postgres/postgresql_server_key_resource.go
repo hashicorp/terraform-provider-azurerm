@@ -98,8 +98,8 @@ func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("cannot compose name for %s: %+v", serverId, err)
 	}
 
-	locks.ByName(serverId.ServerName, postgreSQLServerResourceName)
-	defer locks.UnlockByName(serverId.ServerName, postgreSQLServerResourceName)
+	locks.ByID(serverId.ID())
+	defer locks.UnlockByID(serverId.ID())
 
 	id := serverkeys.NewKeyID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, *name)
 
@@ -190,8 +190,9 @@ func resourcePostgreSQLServerKeyDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	locks.ByName(id.ServerName, postgreSQLServerResourceName)
-	defer locks.UnlockByName(id.ServerName, postgreSQLServerResourceName)
+	serverID := serverkeys.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
+	locks.ByID(serverID.ID())
+	defer locks.UnlockByID(serverID.ID())
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

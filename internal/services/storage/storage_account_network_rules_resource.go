@@ -134,8 +134,8 @@ func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	locks.ByName(id.StorageAccountName, storageAccountResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	resp, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
@@ -206,8 +206,8 @@ func resourceStorageAccountNetworkRulesUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	locks.ByName(id.StorageAccountName, storageAccountResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	resp, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
@@ -314,8 +314,8 @@ func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	locks.ByName(id.StorageAccountName, storageAccountResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// We can't delete a network rule set so we'll just update it back to the default instead
 	payload := storageaccounts.StorageAccountUpdateParameters{

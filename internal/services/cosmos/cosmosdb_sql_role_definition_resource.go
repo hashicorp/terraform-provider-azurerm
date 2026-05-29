@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/rbacs"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -124,8 +125,9 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 
 	id := rbacs.NewSqlRoleDefinitionID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), roleDefinitionId)
 
-	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
-	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+	cosmosdbAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	locks.ByID(cosmosdbAccountID.ID())
+	defer locks.UnlockByID(cosmosdbAccountID.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.SqlResourcesGetSqlRoleDefinition(ctx, id)
@@ -205,8 +207,9 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
-	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+	cosmosdbAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	locks.ByID(cosmosdbAccountID.ID())
+	defer locks.UnlockByID(cosmosdbAccountID.ID())
 
 	existing, err := client.SqlResourcesGetSqlRoleDefinition(ctx, *id)
 	if err != nil {
@@ -255,8 +258,9 @@ func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
-	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+	cosmosdbAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	locks.ByID(cosmosdbAccountID.ID())
+	defer locks.UnlockByID(cosmosdbAccountID.ID())
 
 	if err := client.SqlResourcesDeleteSqlRoleDefinitionThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

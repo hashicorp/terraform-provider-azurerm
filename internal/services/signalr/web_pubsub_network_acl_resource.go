@@ -145,8 +145,8 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving existing %s: `model` was nil", *id)
 	}
 
-	locks.ByName(id.WebPubSubName, "azurerm_web_pubsub")
-	defer locks.UnlockByName(id.WebPubSubName, "azurerm_web_pubsub")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {

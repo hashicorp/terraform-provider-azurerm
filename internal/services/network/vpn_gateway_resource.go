@@ -314,8 +314,8 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	locks.ByName(id.VpnGatewayName, VPNGatewayResourceName)
-	defer locks.UnlockByName(id.VpnGatewayName, VPNGatewayResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.VpnGatewaysGet(ctx, *id)
 	if err != nil {

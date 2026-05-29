@@ -184,8 +184,8 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 		}
 	}
 
-	locks.ByName(name, backendAddressPoolResourceName)
-	defer locks.UnlockByName(name, backendAddressPoolResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	locks.ByID(loadBalancerId.ID())
 	defer locks.UnlockByID(loadBalancerId.ID())
@@ -425,8 +425,8 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *pluginsdk.ResourceData, 
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
-	locks.ByName(id.BackendAddressPoolName, backendAddressPoolResourceName)
-	defer locks.UnlockByName(id.BackendAddressPoolName, backendAddressPoolResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
 	lb, err := lbClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})

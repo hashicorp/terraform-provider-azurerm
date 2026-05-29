@@ -95,8 +95,8 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 	id := parse.NewAccessPolicyId(*keyVaultId, objectId, applicationId)
 
 	// Locking to prevent parallel changes causing issues
-	locks.ByName(keyVaultId.VaultName, keyVaultResourceName)
-	defer locks.UnlockByName(keyVaultId.VaultName, keyVaultResourceName)
+	locks.ByID(keyVaultId.ID())
+	defer locks.UnlockByID(keyVaultId.ID())
 
 	keyVault, err := client.Get(ctx, *keyVaultId)
 	if err != nil {
@@ -197,8 +197,8 @@ func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 	keyVaultId := id.KeyVaultId()
 
 	// Locking to prevent parallel changes causing issues
-	locks.ByName(keyVaultId.VaultName, keyVaultResourceName)
-	defer locks.UnlockByName(keyVaultId.VaultName, keyVaultResourceName)
+	locks.ByID(keyVaultId.ID())
+	defer locks.UnlockByID(keyVaultId.ID())
 
 	certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
 	certPermissions := expandCertificatePermissions(certPermissionsRaw)
@@ -331,8 +331,8 @@ func resourceKeyVaultAccessPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 	vaultId := id.KeyVaultId()
 
 	// Locking to prevent parallel changes causing issues
-	locks.ByName(vaultId.VaultName, keyVaultResourceName)
-	defer locks.UnlockByName(vaultId.VaultName, keyVaultResourceName)
+	locks.ByID(vaultId.ID())
+	defer locks.UnlockByID(vaultId.ID())
 
 	keyVault, err := client.Get(ctx, vaultId)
 	if err != nil {

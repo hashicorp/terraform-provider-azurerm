@@ -246,8 +246,8 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		EnableAcceleratedNetworking: &enableAcceleratedNetworking,
 	}
 
-	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if auxiliaryMode, hasAuxiliaryMode := d.GetOk("auxiliary_mode"); hasAuxiliaryMode {
 		properties.AuxiliaryMode = pointer.To(networkinterfaces.NetworkInterfaceAuxiliaryMode(auxiliaryMode.(string)))
@@ -323,8 +323,8 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// first get the existing one so that we can pull things as needed
 	existing, err := client.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
@@ -545,8 +545,8 @@ func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {

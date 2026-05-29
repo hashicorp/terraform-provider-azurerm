@@ -139,8 +139,8 @@ func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
-	locks.ByName(id.First.SiteName, appServiceHostnameBindingResourceName)
-	defer locks.UnlockByName(id.First.SiteName, appServiceHostnameBindingResourceName)
+	locks.ByID(id.First.ID())
+	defer locks.UnlockByID(id.First.ID())
 
 	props.SslState = pointer.ToEnum[webapps.SslState](d.Get("ssl_state").(string))
 	props.Thumbprint = thumbprint
@@ -216,8 +216,8 @@ func resourceAppServiceCertificateBindingDelete(d *pluginsdk.ResourceData, meta 
 	}
 	props := binding.Model.Properties
 
-	locks.ByName(id.First.SiteName, appServiceHostnameBindingResourceName)
-	defer locks.UnlockByName(id.First.SiteName, appServiceHostnameBindingResourceName)
+	locks.ByID(id.First.ID())
+	defer locks.UnlockByID(id.First.ID())
 
 	props.SslState = pointer.To(webapps.SslStateDisabled)
 	props.Thumbprint = nil

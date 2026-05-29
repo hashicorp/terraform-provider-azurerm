@@ -149,8 +149,9 @@ func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData
 
 	id := parse.NewEndpointServiceBusTopicID(subscriptionId, iotHubRG, iotHubName, d.Get("name").(string))
 
-	locks.ByName(iotHubName, IothubResourceName)
-	defer locks.UnlockByName(iotHubName, IothubResourceName)
+	iotHubID := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
+	locks.ByID(iotHubID.ID())
+	defer locks.UnlockByID(iotHubID.ID())
 
 	iothub, err := client.Get(ctx, iotHubRG, iotHubName)
 	if err != nil {
@@ -342,8 +343,9 @@ func resourceIotHubEndpointServiceBusTopicDelete(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	locks.ByName(id.IotHubName, IothubResourceName)
-	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
+	iotHubID := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
+	locks.ByID(iotHubID.ID())
+	defer locks.UnlockByID(iotHubID.ID())
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {

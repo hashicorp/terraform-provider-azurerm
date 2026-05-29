@@ -380,8 +380,8 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	locks.ByName(id.WorkflowName, logicAppResourceName)
-	defer locks.UnlockByName(id.WorkflowName, logicAppResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	read, err := client.Get(ctx, *id)
 	if err != nil {
@@ -588,8 +588,8 @@ func resourceLogicAppWorkflowDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	locks.ByName(id.WorkflowName, logicAppResourceName)
-	defer locks.UnlockByName(id.WorkflowName, logicAppResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	resp, err := client.Delete(ctx, *id)
 	if err != nil {

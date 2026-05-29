@@ -309,14 +309,13 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 	resourceGroup := d.Get("resource_group_name").(string)
 	resourceErrorName := fmt.Sprintf("Domain Service (Name: %q, Resource Group: %q)", name, resourceGroup)
 
-	locks.ByName(name, DomainServiceResourceName)
-	defer locks.UnlockByName(name, DomainServiceResourceName)
+	idsdk := domainservices.NewDomainServiceID(subscriptionId, resourceGroup, name)
+	locks.ByID(idsdk.ID())
+	defer locks.UnlockByID(idsdk.ID())
 
 	// If this is a new resource, we cannot determine the resource ID until after it has been created since we need to
 	// know the ID of the first replica set.
 	var id *parse.DomainServiceId
-
-	idsdk := domainservices.NewDomainServiceID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {

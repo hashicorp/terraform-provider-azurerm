@@ -75,8 +75,8 @@ func resourceFlexibleServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 	id := configurations.NewConfigurationID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, d.Get("name").(string))
 
-	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	locks.ByID(serverId.ID())
+	defer locks.UnlockByID(serverId.ID())
 
 	props := configurations.ConfigurationForUpdate{
 		Properties: &configurations.ConfigurationProperties{
@@ -168,8 +168,8 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 		return nil
 	}
 
-	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	locks.ByID(serverID.ID())
+	defer locks.UnlockByID(serverID.ID())
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -113,8 +115,9 @@ func resourceRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	locks.ByName(id.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
+	routeTableID := routetables.NewRouteTableID(id.SubscriptionId, id.ResourceGroupName, id.RouteTableName)
+	locks.ByID(routeTableID.ID())
+	defer locks.UnlockByID(routeTableID.ID())
 
 	route := routes.Route{
 		Name: pointer.To(id.RouteName),
@@ -164,8 +167,9 @@ func resourceRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	payload := existing.Model
 
-	locks.ByName(id.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
+	routeTableID := routetables.NewRouteTableID(id.SubscriptionId, id.ResourceGroupName, id.RouteTableName)
+	locks.ByID(routeTableID.ID())
+	defer locks.UnlockByID(routeTableID.ID())
 
 	if d.HasChange("address_prefix") {
 		payload.Properties.AddressPrefix = pointer.To(d.Get("address_prefix").(string))
@@ -233,8 +237,9 @@ func resourceRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	locks.ByName(id.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
+	routeTableID := routetables.NewRouteTableID(id.SubscriptionId, id.ResourceGroupName, id.RouteTableName)
+	locks.ByID(routeTableID.ID())
+	defer locks.UnlockByID(routeTableID.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

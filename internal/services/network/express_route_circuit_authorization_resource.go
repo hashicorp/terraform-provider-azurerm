@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuits"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -73,8 +75,9 @@ func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, m
 
 	id := expressroutecircuitauthorizations.NewAuthorizationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+	expressRouteCircuitID := expressroutecircuits.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.ExpressRouteCircuitName)
+	locks.ByID(expressRouteCircuitID.ID())
+	defer locks.UnlockByID(expressRouteCircuitID.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
@@ -145,8 +148,9 @@ func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+	expressRouteCircuitID := expressroutecircuits.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.ExpressRouteCircuitName)
+	locks.ByID(expressRouteCircuitID.ID())
+	defer locks.UnlockByID(expressRouteCircuitID.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

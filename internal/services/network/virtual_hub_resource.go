@@ -168,8 +168,8 @@ func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	id := virtualwans.NewVirtualHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.VirtualHubsGet(ctx, id)
@@ -256,8 +256,8 @@ func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	locks.ByName(id.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.VirtualHubsGet(ctx, *id)
 	if err != nil {
@@ -401,8 +401,8 @@ func resourceVirtualHubDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	locks.ByName(id.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err := client.VirtualHubsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

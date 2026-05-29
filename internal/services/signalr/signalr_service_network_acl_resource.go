@@ -155,8 +155,8 @@ func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	locks.ByName(id.SignalRName, "azurerm_signalr_service")
-	defer locks.UnlockByName(id.SignalRName, "azurerm_signalr_service")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -267,8 +267,8 @@ func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	locks.ByName(id.SignalRName, "azurerm_signalr_service")
-	defer locks.UnlockByName(id.SignalRName, "azurerm_signalr_service")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {

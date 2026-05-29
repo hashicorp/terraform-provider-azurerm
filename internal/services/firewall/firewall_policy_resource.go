@@ -135,8 +135,8 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
-	defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if d.IsNewResource() {
 		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -283,8 +283,8 @@ func resourceFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
-	defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

@@ -722,8 +722,8 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
 		// The source server will be Updating status when creating a replica
 		sourceServerId, _ := servers.ParseFlexibleServerID(v.(string))
-		locks.ByName(sourceServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
-		defer locks.UnlockByName(sourceServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+		locks.ByID(sourceServerId.ID())
+		defer locks.UnlockByID(sourceServerId.ID())
 
 		parameters.Properties.SourceServerResourceId = pointer.To(v.(string))
 	}

@@ -80,17 +80,17 @@ func resourceNetworkDDoSProtectionPlanCreate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetNames(d.Get("virtual_network_ids").([]interface{}))
+	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetIDs(d.Get("virtual_network_ids").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("extracting names of Virtual Network: %+v", err)
 	}
 
 	id := ddosprotectionplans.NewDdosProtectionPlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.DdosProtectionPlanName, ddosProtectionPlanResourceName)
-	defer locks.UnlockByName(id.DdosProtectionPlanName, ddosProtectionPlanResourceName)
-	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+	locks.MultipleByID(vnetsToLock)
+	defer locks.UnlockMultipleByID(vnetsToLock)
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
@@ -127,7 +127,7 @@ func resourceNetworkDDoSProtectionPlanUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetNames(d.Get("virtual_network_ids").([]interface{}))
+	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetIDs(d.Get("virtual_network_ids").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("extracting names of Virtual Network: %+v", err)
 	}
@@ -137,10 +137,10 @@ func resourceNetworkDDoSProtectionPlanUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	locks.ByName(id.DdosProtectionPlanName, ddosProtectionPlanResourceName)
-	defer locks.UnlockByName(id.DdosProtectionPlanName, ddosProtectionPlanResourceName)
-	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+	locks.MultipleByID(vnetsToLock)
+	defer locks.UnlockMultipleByID(vnetsToLock)
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
@@ -241,11 +241,11 @@ func resourceNetworkDDoSProtectionPlanDelete(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("extracting names of Virtual Network: %+v", err)
 	}
 
-	locks.ByName(id.DdosProtectionPlanName, ddosProtectionPlanResourceName)
-	defer locks.UnlockByName(id.DdosProtectionPlanName, ddosProtectionPlanResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
-	locks.MultipleByName(virtualNetworksNamesToLock, VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(virtualNetworksNamesToLock, VirtualNetworkResourceName)
+	locks.MultipleByID(virtualNetworksNamesToLock)
+	defer locks.UnlockMultipleByID(virtualNetworksNamesToLock)
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -254,8 +254,8 @@ func resourceNetworkDDoSProtectionPlanDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandNetworkDDoSProtectionPlanVnetNames(input []interface{}) (*[]string, error) {
-	vnetNames := make([]string, 0)
+func expandNetworkDDoSProtectionPlanVnetIDs(input []interface{}) (*[]string, error) {
+	vnetIDs := make([]string, 0)
 
 	for _, vnetID := range input {
 		vnetResourceID, err := commonids.ParseVirtualNetworkID(vnetID.(string))
@@ -263,12 +263,12 @@ func expandNetworkDDoSProtectionPlanVnetNames(input []interface{}) (*[]string, e
 			return nil, err
 		}
 
-		if !utils.SliceContainsValue(vnetNames, vnetResourceID.VirtualNetworkName) {
-			vnetNames = append(vnetNames, vnetResourceID.VirtualNetworkName)
+		if !utils.SliceContainsValue(vnetIDs, vnetResourceID.ID()) {
+			vnetIDs = append(vnetIDs, vnetResourceID.ID())
 		}
 	}
 
-	return &vnetNames, nil
+	return &vnetIDs, nil
 }
 
 func flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(input *[]ddosprotectionplans.SubResource) []string {

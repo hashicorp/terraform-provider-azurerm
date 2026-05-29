@@ -32,7 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -1389,8 +1388,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	id := commonids.NewStorageAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	locks.ByName(id.StorageAccountName, storageAccountResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
@@ -1729,8 +1728,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	locks.ByName(id.StorageAccountName, storageAccountResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	accountTier := storageaccounts.SkuTier(d.Get("account_tier").(string))
 	provisionedBillingModelVersion := d.Get("provisioned_billing_model_version").(string)
@@ -2421,8 +2420,8 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	locks.ByName(id.StorageAccountName, storageAccountResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
@@ -2434,7 +2433,7 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// the networking api's only allow a single change to be made to a network layout at once, so let's lock to handle that
-	virtualNetworkNames := make([]string, 0)
+	virtualNetworkIDs := make([]string, 0)
 	if model := existing.Model; model != nil && model.Properties != nil {
 		if acls := model.Properties.NetworkAcls; acls != nil {
 			if vnr := acls.VirtualNetworkRules; vnr != nil {
@@ -2444,20 +2443,14 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 						return err
 					}
 
-					networkName := subnetId.VirtualNetworkName
-					for _, virtualNetworkName := range virtualNetworkNames {
-						if networkName == virtualNetworkName {
-							continue
-						}
-					}
-					virtualNetworkNames = append(virtualNetworkNames, networkName)
+					virtualNetworkIDs = append(virtualNetworkIDs, commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName).ID())
 				}
 			}
 		}
 	}
 
-	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+	locks.MultipleByID(&virtualNetworkIDs)
+	defer locks.UnlockMultipleByID(&virtualNetworkIDs)
 
 	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

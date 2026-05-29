@@ -103,8 +103,9 @@ func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	locks.ByName(routeTableId.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(routeTableId.VirtualHubName, virtualHubResourceName)
+	virtualHubID := virtualwans.NewVirtualHubID(routeTableId.SubscriptionId, routeTableId.ResourceGroupName, routeTableId.VirtualHubName)
+	locks.ByID(virtualHubID.ID())
+	defer locks.UnlockByID(virtualHubID.ID())
 
 	routeTable, err := client.HubRouteTablesGet(ctx, *routeTableId)
 	if err != nil {
@@ -174,8 +175,9 @@ func resourceVirtualHubRouteTableRouteUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	locks.ByName(routeTableId.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(routeTableId.VirtualHubName, virtualHubResourceName)
+	virtualHubID := virtualwans.NewVirtualHubID(routeTableId.SubscriptionId, routeTableId.ResourceGroupName, routeTableId.VirtualHubName)
+	locks.ByID(virtualHubID.ID())
+	defer locks.UnlockByID(virtualHubID.ID())
 
 	routeTable, err := client.HubRouteTablesGet(ctx, *routeTableId)
 	if err != nil {
@@ -290,8 +292,9 @@ func resourceVirtualHubRouteTableRouteDelete(d *pluginsdk.ResourceData, meta int
 
 	routeTableId := virtualwans.NewHubRouteTableID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName, id.HubRouteTableName)
 
-	locks.ByName(id.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
+	virtualHubID := virtualwans.NewVirtualHubID(routeTableId.SubscriptionId, routeTableId.ResourceGroupName, routeTableId.VirtualHubName)
+	locks.ByID(virtualHubID.ID())
+	defer locks.UnlockByID(virtualHubID.ID())
 
 	// get latest list of routes
 	routeTable, err := client.HubRouteTablesGet(ctx, routeTableId)

@@ -12,12 +12,6 @@ func ByID(id string) {
 	armMutexKV.Lock(id)
 }
 
-// handle the case of using the same name for different kinds of resources
-func ByName(name string, resourceType string) {
-	updatedName := resourceType + "." + name
-	armMutexKV.Lock(updatedName)
-}
-
 func MultipleByID(ids *[]string) {
 	newSlice := removeDuplicatesFromStringArray(*ids)
 
@@ -28,23 +22,8 @@ func MultipleByID(ids *[]string) {
 	}
 }
 
-func MultipleByName(names *[]string, resourceType string) {
-	newSlice := removeDuplicatesFromStringArray(*names)
-
-	slices.Sort(newSlice)
-
-	for _, name := range newSlice {
-		ByName(name, resourceType)
-	}
-}
-
 func UnlockByID(id string) {
 	armMutexKV.Unlock(id)
-}
-
-func UnlockByName(name string, resourceType string) {
-	updatedName := resourceType + "." + name
-	armMutexKV.Unlock(updatedName)
 }
 
 func UnlockMultipleByID(ids *[]string) {
@@ -52,13 +31,5 @@ func UnlockMultipleByID(ids *[]string) {
 
 	for _, id := range newSlice {
 		UnlockByID(id)
-	}
-}
-
-func UnlockMultipleByName(names *[]string, resourceType string) {
-	newSlice := removeDuplicatesFromStringArray(*names)
-
-	for _, name := range newSlice {
-		UnlockByName(name, resourceType)
 	}
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/checknameavailabilitydisasterrecoveryconfigs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/disasterrecoveryconfigs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -89,8 +90,9 @@ func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resource
 		}
 	}
 
-	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+	eventhubNamespaceID := eventhubs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	locks.ByID(eventhubNamespaceID.ID())
+	defer locks.UnlockByID(eventhubNamespaceID.ID())
 
 	parameters := disasterrecoveryconfigs.ArmDisasterRecovery{
 		Properties: &disasterrecoveryconfigs.ArmDisasterRecoveryProperties{
@@ -121,8 +123,9 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 		return err
 	}
 
-	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+	eventhubNamespaceID := eventhubs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	locks.ByID(eventhubNamespaceID.ID())
+	defer locks.UnlockByID(eventhubNamespaceID.ID())
 
 	pairingStatus, err := client.Get(ctx, *id)
 	if err != nil {
@@ -207,8 +210,9 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 		return err
 	}
 
-	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+	eventhubNamespaceID := eventhubs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	locks.ByID(eventhubNamespaceID.ID())
+	defer locks.UnlockByID(eventhubNamespaceID.ID())
 
 	pairingStatus, err := client.Get(ctx, *id)
 	if err != nil {
