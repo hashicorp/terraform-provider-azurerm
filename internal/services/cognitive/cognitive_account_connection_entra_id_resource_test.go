@@ -29,7 +29,7 @@ func TestAccCognitiveAccountConnectionEntraID_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("metadata"),
+		data.ImportStep(),
 	})
 }
 
@@ -59,18 +59,18 @@ func TestAccCognitiveAccountConnectionEntraID_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("metadata"),
+		data.ImportStep(),
 		{
 			Config: r.updated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("metadata"),
+		data.ImportStep(),
 	})
 }
 
-func TestAccCognitiveAccountConnectionEntraID_supportedCategories(t *testing.T) {
+func TestAccCognitiveAccountConnectionEntraID_aiServicesCategory(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
 	r := CognitiveAccountConnectionEntraIdResource{}
 
@@ -81,24 +81,70 @@ func TestAccCognitiveAccountConnectionEntraID_supportedCategories(t *testing.T) 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionEntraID_azureOpenAICategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureOpenAICategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionEntraID_storageAccountCategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccountCategory(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionEntraID_cognitiveSearchCategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cognitiveSearchCategory(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionEntraID_cosmosDbCategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cosmosDbCategory(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionEntraID_databricksCategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.databricksCategory(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -153,6 +199,23 @@ provider "azurerm" {
 
 %[1]s
 
+resource "azurerm_cognitive_account_connection_entra_id" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "Databricks"
+  target               = "https://workspace-%[2]d.databricks.net/"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionEntraIdResource) azureOpenAICategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
 resource "azurerm_cognitive_account" "openai" {
   name                = "acctest-openai-%[2]d"
   location            = azurerm_resource_group.test.location
@@ -189,12 +252,6 @@ resource "azurerm_cognitive_account_connection_entra_id" "import" {
   cognitive_account_id = azurerm_cognitive_account_connection_entra_id.test.cognitive_account_id
   category             = azurerm_cognitive_account_connection_entra_id.test.category
   target               = azurerm_cognitive_account_connection_entra_id.test.target
-
-  metadata = {
-    apiType    = azurerm_cognitive_account_connection_entra_id.test.metadata.apiType
-    resourceId = azurerm_cognitive_account_connection_entra_id.test.metadata.resourceId
-    location   = azurerm_cognitive_account_connection_entra_id.test.metadata.location
-  }
 }
 `, r.basic(data))
 }
@@ -207,29 +264,11 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_cognitive_account" "openai2" {
-  name                = "acctest-openai2-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "OpenAI"
-  sku_name            = "S0"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
 resource "azurerm_cognitive_account_connection_entra_id" "test" {
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  category             = "AzureOpenAI"
-  target               = azurerm_cognitive_account.openai2.endpoint
-
-  metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai2.id
-    location   = azurerm_cognitive_account.openai2.location
-  }
+  category             = "Databricks"
+  target               = "https://workspace2-%[2]d.databricks.net/"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -387,11 +426,6 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
   cognitive_account_id = azurerm_cognitive_account.test.id
   category             = "Databricks"
   target               = "https://workspace%[2]d.databricks.net/"
-
-  metadata = {
-    apiType                          = "Azure"
-    azure_databricks_connection_type = "other"
-  }
 }
 `, r.template(data), data.RandomInteger)
 }

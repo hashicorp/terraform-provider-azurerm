@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_connection_account_managed_identity -properties "name,resource_group_name,cognitive_account_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name "basic" -test-expect-non-empty
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_connection_account_managed_identity -properties "name" -compare-values "subscription_id:cognitive_account_id,resource_group_name:cognitive_account_id,account_name:cognitive_account_id" -test-name "basic" -test-expect-non-empty
 
 var (
 	_ sdk.ResourceWithUpdate   = CognitiveAccountConnectionAccountManagedIdentityResource{}

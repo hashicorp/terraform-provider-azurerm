@@ -6,7 +6,6 @@ package cognitive_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -18,10 +17,10 @@ func TestAccCognitiveAccountConnectionAccountManagedIdentity_resourceIdentity(t 
 	r := CognitiveAccountConnectionAccountManagedIdentityResource{}
 
 	checkedFields := map[string]struct{}{
-		"subscription_id":        {},
-		"cognitive_account_name": {},
-		"name":                   {},
-		"resource_group_name":    {},
+		"name":                {},
+		"account_name":        {},
+		"resource_group_name": {},
+		"subscription_id":     {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
@@ -29,10 +28,10 @@ func TestAccCognitiveAccountConnectionAccountManagedIdentity_resourceIdentity(t 
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_cognitive_account_connection_account_managed_identity.test", checkedFields),
-				statecheck.ExpectIdentityValue("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("cognitive_account_name"), tfjsonpath.New("cognitive_account_name")),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("account_name"), tfjsonpath.New("cognitive_account_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("cognitive_account_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cognitive_account_connection_account_managed_identity.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("cognitive_account_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(true),

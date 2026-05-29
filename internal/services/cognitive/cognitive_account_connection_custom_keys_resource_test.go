@@ -29,7 +29,7 @@ func TestAccCognitiveAccountConnectionCustomKeys_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("custom_keys", "metadata"),
+		data.ImportStep("custom_keys"),
 	})
 }
 
@@ -45,6 +45,21 @@ func TestAccCognitiveAccountConnectionCustomKeys_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccCognitiveAccountConnectionCustomKeys_withMetadata(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_custom_keys", "test")
+	r := CognitiveAccountConnectionCustomKeysResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withMetadata(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("custom_keys", "metadata"),
 	})
 }
 
@@ -133,6 +148,40 @@ resource "azurerm_cognitive_account_connection_custom_keys" "test" {
   category             = "CustomKeys"
   target               = azurerm_cognitive_account.openai.endpoint
 
+  custom_keys = {
+    primaryKey   = azurerm_cognitive_account.openai.primary_access_key
+    secondaryKey = azurerm_cognitive_account.openai.secondary_access_key
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionCustomKeysResource) withMetadata(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account" "openai" {
+  name                = "acctest-openai-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "OpenAI"
+  sku_name            = "S0"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_cognitive_account_connection_custom_keys" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "CustomKeys"
+  target               = azurerm_cognitive_account.openai.endpoint
+
   metadata = {
     apiType    = "Azure"
     resourceId = azurerm_cognitive_account.openai.id
@@ -157,12 +206,6 @@ resource "azurerm_cognitive_account_connection_custom_keys" "import" {
   category             = azurerm_cognitive_account_connection_custom_keys.test.category
   target               = azurerm_cognitive_account_connection_custom_keys.test.target
   custom_keys          = azurerm_cognitive_account_connection_custom_keys.test.custom_keys
-
-  metadata = {
-    apiType    = azurerm_cognitive_account_connection_custom_keys.test.metadata.apiType
-    resourceId = azurerm_cognitive_account_connection_custom_keys.test.metadata.resourceId
-    location   = azurerm_cognitive_account_connection_custom_keys.test.metadata.location
-  }
 }
 `, r.basic(data))
 }

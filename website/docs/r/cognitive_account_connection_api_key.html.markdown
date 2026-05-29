@@ -67,13 +67,15 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
 
+* `api_key` - (Required) The API key for authentication. This field is sensitive.
+
 * `category` - (Required) The category of the connection. Possible values include `AIServices`, `ApiKey`, `AppInsights`, `AzureOpenAI`, `CognitiveSearch`, `GroundingWithCustomSearch`, `OpenAI`, `Serp`, and `Serverless`. Changing this forces a new resource to be created.
 
-* `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
+* `metadata` - (Optional) A mapping of metadata key-value pairs for the connection.
 
-* `target` - (Required) The target endpoint or resource for the connection.
+* `target` - (Optional) The target endpoint or resource for the connection.
 
-* `api_key` - (Required) The API key for authentication. This field is sensitive.
+~> **Note:** `target` must be specified unless `category` is set to `OpenAI` or `Serp`.
 
 ## Attributes Reference
 
