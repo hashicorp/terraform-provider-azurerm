@@ -1,0 +1,27 @@
+package devices
+
+import (
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/dates"
+)
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type ResourceMoveDetails struct {
+	OperationInProgress                 *ResourceMoveStatus `json:"operationInProgress,omitempty"`
+	OperationInProgressLockTimeoutInUTC *string             `json:"operationInProgressLockTimeoutInUTC,omitempty"`
+}
+
+func (o *ResourceMoveDetails) GetOperationInProgressLockTimeoutInUTCAsTime() (*time.Time, error) {
+	if o.OperationInProgressLockTimeoutInUTC == nil {
+		return nil, nil
+	}
+	return dates.ParseAsFormat(o.OperationInProgressLockTimeoutInUTC, "2006-01-02T15:04:05Z07:00")
+}
+
+func (o *ResourceMoveDetails) SetOperationInProgressLockTimeoutInUTCAsTime(input time.Time) {
+	formatted := input.Format("2006-01-02T15:04:05Z07:00")
+	o.OperationInProgressLockTimeoutInUTC = &formatted
+}

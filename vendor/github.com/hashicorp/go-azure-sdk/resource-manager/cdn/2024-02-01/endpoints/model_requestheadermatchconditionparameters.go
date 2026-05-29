@@ -1,0 +1,54 @@
+package endpoints
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+var _ DeliveryRuleConditionParameters = RequestHeaderMatchConditionParameters{}
+
+type RequestHeaderMatchConditionParameters struct {
+	MatchValues     *[]string             `json:"matchValues,omitempty"`
+	NegateCondition *bool                 `json:"negateCondition,omitempty"`
+	Operator        RequestHeaderOperator `json:"operator"`
+	Selector        *string               `json:"selector,omitempty"`
+	Transforms      *[]Transform          `json:"transforms,omitempty"`
+
+	// Fields inherited from DeliveryRuleConditionParameters
+
+	TypeName DeliveryRuleConditionParametersType `json:"typeName"`
+}
+
+func (s RequestHeaderMatchConditionParameters) DeliveryRuleConditionParameters() BaseDeliveryRuleConditionParametersImpl {
+	return BaseDeliveryRuleConditionParametersImpl{
+		TypeName: s.TypeName,
+	}
+}
+
+var _ json.Marshaler = RequestHeaderMatchConditionParameters{}
+
+func (s RequestHeaderMatchConditionParameters) MarshalJSON() ([]byte, error) {
+	type wrapper RequestHeaderMatchConditionParameters
+	wrapped := wrapper(s)
+	encoded, err := json.Marshal(wrapped)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling RequestHeaderMatchConditionParameters: %+v", err)
+	}
+
+	var decoded map[string]interface{}
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
+		return nil, fmt.Errorf("unmarshaling RequestHeaderMatchConditionParameters: %+v", err)
+	}
+
+	decoded["typeName"] = "DeliveryRuleRequestHeaderConditionParameters"
+
+	encoded, err = json.Marshal(decoded)
+	if err != nil {
+		return nil, fmt.Errorf("re-marshaling RequestHeaderMatchConditionParameters: %+v", err)
+	}
+
+	return encoded, nil
+}

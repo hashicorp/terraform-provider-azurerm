@@ -1,0 +1,26 @@
+package tenants
+
+import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
+)
+
+// Copyright IBM Corp. 2023, 2026 All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type TenantsClient struct {
+	Client *resourcemanager.Client
+}
+
+func NewTenantsClientWithBaseURI(sdkApi sdkEnv.Api) (*TenantsClient, error) {
+	client, err := resourcemanager.NewClient(sdkApi, "tenants", defaultApiVersion)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating TenantsClient: %+v", err)
+	}
+
+	return &TenantsClient{
+		Client: client,
+	}, nil
+}
