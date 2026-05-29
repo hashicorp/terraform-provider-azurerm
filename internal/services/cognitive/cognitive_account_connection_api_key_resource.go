@@ -23,8 +23,9 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_connection_api_key -properties "name" -compare-values "subscription_id:cognitive_account_id,resource_group_name:cognitive_account_id,account_name:cognitive_account_id" -test-name "basic" -test-expect-non-empty
 
 var (
-	_ sdk.ResourceWithUpdate   = CognitiveAccountConnectionApiKeyResource{}
-	_ sdk.ResourceWithIdentity = CognitiveAccountConnectionApiKeyResource{}
+	_ sdk.ResourceWithUpdate        = CognitiveAccountConnectionApiKeyResource{}
+	_ sdk.ResourceWithIdentity      = CognitiveAccountConnectionApiKeyResource{}
+	_ sdk.ResourceWithCustomizeDiff = CognitiveAccountConnectionApiKeyResource{}
 )
 
 type CognitiveAccountConnectionApiKeyResource struct{}
@@ -84,7 +85,7 @@ func (r CognitiveAccountConnectionApiKeyResource) Arguments() map[string]*plugin
 
 		"metadata": {
 			Type:     pluginsdk.TypeMap,
-			Required: true,
+			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -92,7 +93,7 @@ func (r CognitiveAccountConnectionApiKeyResource) Arguments() map[string]*plugin
 
 		"target": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -101,6 +102,29 @@ func (r CognitiveAccountConnectionApiKeyResource) Arguments() map[string]*plugin
 			Required:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+	}
+}
+
+func (r CognitiveAccountConnectionApiKeyResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model CognitiveAccountConnectionApiKeyModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding diff: %+v", err)
+			}
+
+			switch model.Category {
+			case string(accountconnectionresource.ConnectionCategoryOpenAI), string(accountconnectionresource.ConnectionCategorySerp):
+				return nil
+			}
+
+			if metadata.ResourceDiff.GetRawConfig().GetAttr("target").IsNull() {
+				return fmt.Errorf("`target` must be specified when `category` is `%s`", model.Category)
+			}
+
+			return nil
 		},
 	}
 }
@@ -138,11 +162,15 @@ func (r CognitiveAccountConnectionApiKeyResource) Create() sdk.ResourceFunc {
 			properties := accountconnectionresource.ApiKeyAuthConnectionProperties{
 				AuthType: accountconnectionresource.ConnectionAuthTypeApiKey,
 				Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
-				Metadata: pointer.To(model.Metadata),
-				Target:   pointer.To(model.Target),
 				Credentials: &accountconnectionresource.ConnectionApiKey{
 					Key: pointer.To(model.ApiKey),
 				},
+			}
+			if len(model.Metadata) > 0 {
+				properties.Metadata = pointer.To(model.Metadata)
+			}
+			if model.Target != "" {
+				properties.Target = pointer.To(model.Target)
 			}
 
 			connection := accountconnectionresource.ConnectionPropertiesV2BasicResource{
@@ -203,12 +231,12 @@ func (r CognitiveAccountConnectionApiKeyResource) Read() sdk.ResourceFunc {
 				base := props.ConnectionPropertiesV2()
 				state.Category = pointer.FromEnum(base.Category)
 				state.Target = pointer.From(base.Target)
-				state.Metadata = map[string]string{}
 
 				// Only include metadata fields that were in the original config.
 				// The API returns additional metadata fields beyond what was configured (e.g., `ApiVersion`,
 				// `DeploymentApiVersion`), which would cause unwanted diffs.
 				if len(currentState.Metadata) > 0 {
+					state.Metadata = map[string]string{}
 					apiMetadata := pointer.From(base.Metadata)
 
 					for configKey := range currentState.Metadata {
@@ -262,7 +290,11 @@ func (r CognitiveAccountConnectionApiKeyResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("target") {
-				props.Target = pointer.To(model.Target)
+				if model.Target == "" {
+					props.Target = nil
+				} else {
+					props.Target = pointer.To(model.Target)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("metadata") {

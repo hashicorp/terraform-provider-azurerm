@@ -74,7 +74,7 @@ func (r CognitiveAccountConnectionCustomKeysResource) Arguments() map[string]*pl
 
 		"metadata": {
 			Type:     pluginsdk.TypeMap,
-			Required: true,
+			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -130,11 +130,13 @@ func (r CognitiveAccountConnectionCustomKeysResource) Create() sdk.ResourceFunc 
 			properties := accountconnectionresource.CustomKeysConnectionProperties{
 				AuthType: accountconnectionresource.ConnectionAuthTypeCustomKeys,
 				Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
-				Metadata: pointer.To(model.Metadata),
 				Target:   pointer.To(model.Target),
 				Credentials: &accountconnectionresource.CustomKeys{
 					Keys: &model.CustomKeys,
 				},
+			}
+			if len(model.Metadata) > 0 {
+				properties.Metadata = pointer.To(model.Metadata)
 			}
 
 			connection := accountconnectionresource.ConnectionPropertiesV2BasicResource{
@@ -195,12 +197,12 @@ func (r CognitiveAccountConnectionCustomKeysResource) Read() sdk.ResourceFunc {
 				base := props.ConnectionPropertiesV2()
 				state.Category = pointer.FromEnum(base.Category)
 				state.Target = pointer.From(base.Target)
-				state.Metadata = map[string]string{}
 
 				// Only include metadata fields that were in the original config.
 				// The API returns additional metadata fields beyond what was configured (e.g., `ApiVersion`,
 				// `DeploymentApiVersion`), which would cause unwanted diffs.
 				if len(currentState.Metadata) > 0 {
+					state.Metadata = map[string]string{}
 					apiMetadata := pointer.From(base.Metadata)
 
 					for configKey := range currentState.Metadata {

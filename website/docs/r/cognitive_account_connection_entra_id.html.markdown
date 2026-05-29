@@ -68,9 +68,9 @@ The following arguments are supported:
 
 * `category` - (Required) The category of the connection. Possible values include `AIServices`, `AzureOpenAI`, `AzureStorageAccount`, `CognitiveSearch`, `CosmosDb`, and `Databricks`. Changing this forces a new resource to be created.
 
-* `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
-
 * `target` - (Required) The target endpoint or resource for the connection.
+
+* `metadata` - (Optional) A mapping of metadata key-value pairs for the connection.
 
 ## Attributes Reference
 
