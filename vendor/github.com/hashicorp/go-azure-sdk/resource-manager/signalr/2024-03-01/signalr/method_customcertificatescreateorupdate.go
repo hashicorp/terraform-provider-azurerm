@@ -62,9 +62,20 @@ func (c SignalRClient) CustomCertificatesCreateOrUpdate(ctx context.Context, id 
 
 // CustomCertificatesCreateOrUpdateThenPoll performs CustomCertificatesCreateOrUpdate then polls until it's completed
 func (c SignalRClient) CustomCertificatesCreateOrUpdateThenPoll(ctx context.Context, id CustomCertificateId, input CustomCertificate) error {
+	return c.CustomCertificatesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CustomCertificatesCreateOrUpdateCallbackThenPoll performs CustomCertificatesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c SignalRClient) CustomCertificatesCreateOrUpdateCallbackThenPoll(ctx context.Context, id CustomCertificateId, input CustomCertificate, callback func() error) error {
 	result, err := c.CustomCertificatesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CustomCertificatesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -152,6 +152,16 @@ func ValidateNestedItemID(versionType VersionType, nestedItemType NestedItemType
 }
 
 func ValidateNestedItemName(v interface{}, k string) (warnings []string, errors []error) {
+	name, ok := v.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected `%s` to be a string", k))
+		return
+	}
+
+	if len(name) > 127 {
+		errors = append(errors, fmt.Errorf("`%s` must be between 1 and 127 characters in length, got %d", k, len(name)))
+	}
+
 	if !regexp.MustCompile(`^[0-9a-zA-Z-]+$`).MatchString(v.(string)) {
 		errors = append(errors, fmt.Errorf("`%s` may only contain alphanumeric characters and dashes", k))
 	}

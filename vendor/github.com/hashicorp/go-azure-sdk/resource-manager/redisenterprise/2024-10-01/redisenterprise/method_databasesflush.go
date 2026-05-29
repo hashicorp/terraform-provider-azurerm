@@ -61,9 +61,20 @@ func (c RedisEnterpriseClient) DatabasesFlush(ctx context.Context, id DatabaseId
 
 // DatabasesFlushThenPoll performs DatabasesFlush then polls until it's completed
 func (c RedisEnterpriseClient) DatabasesFlushThenPoll(ctx context.Context, id DatabaseId, input FlushParameters) error {
+	return c.DatabasesFlushCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DatabasesFlushCallbackThenPoll performs DatabasesFlush, runs the optional callback function, then polls until it's completed
+func (c RedisEnterpriseClient) DatabasesFlushCallbackThenPoll(ctx context.Context, id DatabaseId, input FlushParameters, callback func() error) error {
 	result, err := c.DatabasesFlush(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DatabasesFlush: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

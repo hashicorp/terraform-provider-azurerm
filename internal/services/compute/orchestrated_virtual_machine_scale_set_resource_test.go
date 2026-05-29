@@ -2146,7 +2146,6 @@ resource "azurerm_public_ip" "gwtest" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
-  sku                 = "Basic"
 }
 
 resource "azurerm_application_gateway" "test" {
