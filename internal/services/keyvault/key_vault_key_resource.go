@@ -311,12 +311,12 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 							if o != "" {
 								oldMap, err := structure.ExpandJsonFromString(o.(string))
 								if err != nil {
-									return fmt.Errorf("old: %+v", err)
+									return fmt.Errorf("expanding `release_policy.json`: %+v", err)
 								}
 
 								newMap, err := structure.ExpandJsonFromString(n.(string))
 								if err != nil {
-									return fmt.Errorf("new: %+v", err)
+									return fmt.Errorf("expanding updated `release_policy.json`: %+v", err)
 								}
 
 								if !reflect.DeepEqual(oldMap, newMap) {
