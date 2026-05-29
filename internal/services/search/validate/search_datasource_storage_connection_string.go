@@ -11,7 +11,7 @@ import (
 func SearchDatasourceStorageConnectionString(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if value == "" {
-		errors = append(errors, fmt.Errorf("property `%s` must not be empty", k))
+		errors = append(errors, fmt.Errorf("`%s` must not be empty", k))
 		return warnings, errors
 	}
 
@@ -21,7 +21,7 @@ func SearchDatasourceStorageConnectionString(v interface{}, k string) (warnings 
 	isContainerSAS := strings.Contains(value, "ContainerSharedAccessUri=")
 
 	if !isResourceId && !isAccountKey && !isSAS && !isContainerSAS {
-		errors = append(errors, fmt.Errorf("property `%s` must be in one of the following formats: "+
+		errors = append(errors, fmt.Errorf("`%s` must be in one of the following formats: "+
 			"`ResourceId=[resource ID string];` or "+
 			"`DefaultEndpointsProtocol=https;AccountName=[your storage account];AccountKey=[your account key];` or "+
 			"`BlobEndpoint=[your blob endpoint URI];SharedAccessSignature=[your account shared access token];` or "+
