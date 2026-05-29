@@ -6,6 +6,7 @@ package custompollers
 import (
 	"context"
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 	"time"
@@ -19,40 +20,32 @@ import (
 
 var _ pollers.PollerType = &SiteRecoveryReplicatedVMDiskTypePoller{}
 
-const siteRecoveryReplicatedVMDiskTypeRequiredSuccessfulReads = 3
-
-type SiteRecoveryReplicatedVMDiskTypeTarget struct {
-	DiskId                string
-	TargetDiskType        string
-	TargetReplicaDiskType string
+type SiteRecoveryReplicatedVMDiskTypeUpdate struct {
+	DiskId                  string
+	RecoveryTargetDiskType  string
+	RecoveryReplicaDiskType string
 }
 
 type SiteRecoveryReplicatedVMDiskTypePoller struct {
-	client                     *replicationprotecteditems.ReplicationProtectedItemsClient
-	id                         replicationprotecteditems.ReplicationProtectedItemId
-	targets                    map[string]SiteRecoveryReplicatedVMDiskTypeTarget
-	latestState                string
-	consecutiveSuccessfulReads int
+	client  *replicationprotecteditems.ReplicationProtectedItemsClient
+	id      replicationprotecteditems.ReplicationProtectedItemId
+	updates map[string]SiteRecoveryReplicatedVMDiskTypeUpdate
 }
 
-func NewSiteRecoveryReplicatedVMDiskTypePoller(client *replicationprotecteditems.ReplicationProtectedItemsClient, id replicationprotecteditems.ReplicationProtectedItemId, targets []SiteRecoveryReplicatedVMDiskTypeTarget) *SiteRecoveryReplicatedVMDiskTypePoller {
-	targetsByDiskId := make(map[string]SiteRecoveryReplicatedVMDiskTypeTarget, len(targets))
-	for _, target := range targets {
-		targetsByDiskId[normalizeSiteRecoveryReplicatedVMManagedDiskID(target.DiskId)] = target
+func NewSiteRecoveryReplicatedVMDiskTypePoller(client *replicationprotecteditems.ReplicationProtectedItemsClient, id replicationprotecteditems.ReplicationProtectedItemId, updates []SiteRecoveryReplicatedVMDiskTypeUpdate) *SiteRecoveryReplicatedVMDiskTypePoller {
+	updatesByDiskId := make(map[string]SiteRecoveryReplicatedVMDiskTypeUpdate, len(updates))
+	for _, update := range updates {
+		updatesByDiskId[normalizeSiteRecoveryReplicatedVMManagedDiskID(update.DiskId)] = update
 	}
 
 	return &SiteRecoveryReplicatedVMDiskTypePoller{
 		client:  client,
 		id:      id,
-		targets: targetsByDiskId,
+		updates: updatesByDiskId,
 	}
 }
 
-func (p *SiteRecoveryReplicatedVMDiskTypePoller) LatestState() string {
-	return p.latestState
-}
-
-func (p *SiteRecoveryReplicatedVMDiskTypePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+func (p SiteRecoveryReplicatedVMDiskTypePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.Get(ctx, p.id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
@@ -100,70 +93,73 @@ func (p *SiteRecoveryReplicatedVMDiskTypePoller) Poll(ctx context.Context) (*pol
 	if err != nil {
 		return nil, err
 	}
-	if len(pending) == 0 {
-		p.consecutiveSuccessfulReads++
-		if p.consecutiveSuccessfulReads < siteRecoveryReplicatedVMDiskTypeRequiredSuccessfulReads {
-			p.latestState = fmt.Sprintf("managed disk types matched target values for %d consecutive reads", p.consecutiveSuccessfulReads)
-			result.Status = pollers.PollingStatusInProgress
-			return result, nil
-		}
 
-		p.latestState = ""
+	if len(pending) == 0 {
 		result.Status = pollers.PollingStatusSucceeded
 		return result, nil
 	}
 
-	p.consecutiveSuccessfulReads = 0
 	sort.Strings(pending)
-	p.latestState = strings.Join(pending, "; ")
+	log.Printf("[DEBUG] waiting for managed disk type updates for %s: %s", p.id, strings.Join(pending, "; "))
 	result.Status = pollers.PollingStatusInProgress
 	return result, nil
 }
 
-func (p *SiteRecoveryReplicatedVMDiskTypePoller) pendingDiskTypeUpdates(details replicationprotecteditems.A2AReplicationDetails, resp *client.Response) ([]string, error) {
+func (p SiteRecoveryReplicatedVMDiskTypePoller) pendingDiskTypeUpdates(details replicationprotecteditems.A2AReplicationDetails, resp *client.Response) ([]string, error) {
 	pending := make([]string, 0)
 
 	protectedDisks := make(map[string]replicationprotecteditems.A2AProtectedManagedDiskDetails)
 	if details.ProtectedManagedDisks != nil {
 		for _, disk := range *details.ProtectedManagedDisks {
 			diskId := normalizeSiteRecoveryReplicatedVMManagedDiskID(pointer.From(disk.DiskId))
-			if _, ok := p.targets[diskId]; ok {
+			if _, ok := p.updates[diskId]; ok {
 				protectedDisks[diskId] = disk
 			}
 		}
 	}
 
-	for diskId, target := range p.targets {
+	for diskId, update := range p.updates {
 		disk, ok := protectedDisks[diskId]
 		if !ok {
-			pending = append(pending, fmt.Sprintf("%s is not present in protected managed disks", target.DiskId))
+			pending = append(pending, fmt.Sprintf("%s is not present in protected managed disks", update.DiskId))
 			continue
 		}
 
 		if siteRecoveryReplicatedVMStateIndicatesFailure(pointer.From(disk.DiskState)) {
-			p.latestState = fmt.Sprintf("%s entered disk state %q", target.DiskId, pointer.From(disk.DiskState))
 			return nil, pollers.PollingFailedError{
 				HttpResponse: resp,
-				Message:      p.latestState,
+				Message:      fmt.Sprintf("%s entered disk state %q", update.DiskId, pointer.From(disk.DiskState)),
 			}
 		}
 
-		actualTargetDiskType := pointer.From(disk.RecoveryTargetDiskAccountType)
-		actualTargetReplicaDiskType := pointer.From(disk.RecoveryReplicaDiskAccountType)
-
-		mismatches := make([]string, 0)
-		if actualTargetDiskType != target.TargetDiskType {
-			mismatches = append(mismatches, fmt.Sprintf("target_disk_type is %q, expected %q", actualTargetDiskType, target.TargetDiskType))
-		}
-		if actualTargetReplicaDiskType != target.TargetReplicaDiskType {
-			mismatches = append(mismatches, fmt.Sprintf("target_replica_disk_type is %q, expected %q", actualTargetReplicaDiskType, target.TargetReplicaDiskType))
-		}
-		if len(mismatches) > 0 {
-			pending = append(pending, fmt.Sprintf("%s: %s", target.DiskId, strings.Join(mismatches, ", ")))
+		if pendingReason := siteRecoveryReplicatedVMDiskTypeUpdatePendingReason(update, disk); pendingReason != "" {
+			pending = append(pending, pendingReason)
 		}
 	}
 
 	return pending, nil
+}
+
+func siteRecoveryReplicatedVMDiskTypeUpdatePendingReason(update SiteRecoveryReplicatedVMDiskTypeUpdate, disk replicationprotecteditems.A2AProtectedManagedDiskDetails) string {
+	if jobType, percentageComplete := pointer.From(disk.MonitoringJobType), pointer.From(disk.MonitoringPercentageCompletion); jobType != "" && percentageComplete < 100 {
+		return fmt.Sprintf("%s: disk job %q is in progress (%d%% complete)", update.DiskId, jobType, percentageComplete)
+	}
+
+	actualTargetDiskType := pointer.From(disk.RecoveryTargetDiskAccountType)
+	actualTargetReplicaDiskType := pointer.From(disk.RecoveryReplicaDiskAccountType)
+
+	mismatches := make([]string, 0)
+	if actualTargetDiskType != update.RecoveryTargetDiskType {
+		mismatches = append(mismatches, fmt.Sprintf("target_disk_type is %q, expected %q", actualTargetDiskType, update.RecoveryTargetDiskType))
+	}
+	if actualTargetReplicaDiskType != update.RecoveryReplicaDiskType {
+		mismatches = append(mismatches, fmt.Sprintf("target_replica_disk_type is %q, expected %q", actualTargetReplicaDiskType, update.RecoveryReplicaDiskType))
+	}
+	if len(mismatches) > 0 {
+		return fmt.Sprintf("%s: %s", update.DiskId, strings.Join(mismatches, ", "))
+	}
+
+	return ""
 }
 
 func normalizeSiteRecoveryReplicatedVMManagedDiskID(input string) string {

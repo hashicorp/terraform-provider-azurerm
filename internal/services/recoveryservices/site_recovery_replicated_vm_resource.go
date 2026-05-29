@@ -659,10 +659,6 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		diskTypePoller := custompollers.NewSiteRecoveryReplicatedVMDiskTypePoller(client, id, diskTypeTargets)
 		poller := pollers.NewPoller(diskTypePoller, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 		if err = poller.PollUntilDone(ctx); err != nil {
-			if latestState := diskTypePoller.LatestState(); latestState != "" {
-				return fmt.Errorf("waiting for managed disk type updates for replicated vm %s (vault %s): %s: %+v", name, vaultName, latestState, err)
-			}
-
 			return fmt.Errorf("waiting for managed disk type updates for replicated vm %s (vault %s): %+v", name, vaultName, err)
 		}
 	}
@@ -670,22 +666,22 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 	return resourceSiteRecoveryReplicatedItemRead(d, meta)
 }
 
-func siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(managedDisks []replicationprotecteditems.A2AVMManagedDiskUpdateDetails) []custompollers.SiteRecoveryReplicatedVMDiskTypeTarget {
+func siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(managedDisks []replicationprotecteditems.A2AVMManagedDiskUpdateDetails) []custompollers.SiteRecoveryReplicatedVMDiskTypeUpdate {
 	if len(managedDisks) == 0 {
 		return nil
 	}
 
-	targets := make([]custompollers.SiteRecoveryReplicatedVMDiskTypeTarget, 0, len(managedDisks))
+	targets := make([]custompollers.SiteRecoveryReplicatedVMDiskTypeUpdate, 0, len(managedDisks))
 	for _, disk := range managedDisks {
 		diskId := pointer.From(disk.DiskId)
 		if diskId == "" {
 			continue
 		}
 
-		targets = append(targets, custompollers.SiteRecoveryReplicatedVMDiskTypeTarget{
-			DiskId:                diskId,
-			TargetDiskType:        pointer.From(disk.RecoveryTargetDiskAccountType),
-			TargetReplicaDiskType: pointer.From(disk.RecoveryReplicaDiskAccountType),
+		targets = append(targets, custompollers.SiteRecoveryReplicatedVMDiskTypeUpdate{
+			DiskId:                  diskId,
+			RecoveryTargetDiskType:  pointer.From(disk.RecoveryTargetDiskAccountType),
+			RecoveryReplicaDiskType: pointer.From(disk.RecoveryReplicaDiskAccountType),
 		})
 	}
 
