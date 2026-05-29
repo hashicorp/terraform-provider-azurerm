@@ -149,7 +149,7 @@ type HTTPProxyConfigModel struct {
 	HTTPProxy  string   `tfschema:"http_proxy"`
 	HTTPSProxy string   `tfschema:"https_proxy"`
 	NoProxy    []string `tfschema:"no_proxy"`
-	TrustedCA  string   `tfschema:"trusted_ca"`
+	TrustedCA  string   `tfschema:"trusted_certificate_authority"`
 }
 
 type KeyManagementServiceModel struct {
@@ -921,7 +921,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									ValidateFunc: validation.StringInSlice([]string{
 										"always",
 										"madvise",
-										"never",
 									}, false),
 								},
 
@@ -933,7 +932,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 										"defer",
 										"defer+madvise",
 										"madvise",
-										"never",
 									}, false),
 								},
 
@@ -1523,7 +1521,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							Type: schema.TypeString,
 						},
 					},
-					"trusted_ca": {
+					"trusted_certificate_authority": {
 						Type:      pluginsdk.TypeString,
 						Optional:  true,
 						Sensitive: true,
@@ -4638,18 +4636,22 @@ func expandAutomaticClusterNodePoolLinuxOSConfig(input []LinuxOSConfigModel) (*m
 		return nil, err
 	}
 
-	result := &managedclusters.LinuxOSConfig{
-		Sysctls:                    sysctlConfig,
-		TransparentHugePageDefrag:  pointer.To(""),
-		TransparentHugePageEnabled: pointer.To(""),
+	TransparentHugePage := "never"
+	if v := config.TransparentHugePage; v != "" {
+		TransparentHugePage = v
 	}
 
-	if config.TransparentHugePage != "" {
-		result.TransparentHugePageEnabled = pointer.To(config.TransparentHugePage)
+	TransparentHugePageDefrag := "never"
+	if v := config.TransparentHugePageDefrag; v != "" {
+		TransparentHugePageDefrag = v
 	}
-	if config.TransparentHugePageDefrag != "" {
-		result.TransparentHugePageDefrag = pointer.To(config.TransparentHugePageDefrag)
+
+	result := &managedclusters.LinuxOSConfig{
+		Sysctls:                    sysctlConfig,
+		TransparentHugePageDefrag:  pointer.To(TransparentHugePageDefrag),
+		TransparentHugePageEnabled: pointer.To(TransparentHugePage),
 	}
+
 	if config.SwapFileSizeMB != 0 {
 		result.SwapFileSizeMB = pointer.To(config.SwapFileSizeMB)
 	}
@@ -4852,12 +4854,18 @@ func flattenAutomaticClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOS
 		SysctlConfig: sysctlConfig,
 	}
 
-	if input.TransparentHugePageEnabled != nil {
-		result.TransparentHugePage = pointer.From(input.TransparentHugePageEnabled)
+	TransparentHugePageEnabled := pointer.To("")
+	if v := input.TransparentHugePageEnabled; v != nil && v != pointer.To("never") {
+		TransparentHugePageEnabled = v
 	}
-	if input.TransparentHugePageDefrag != nil {
-		result.TransparentHugePageDefrag = pointer.From(input.TransparentHugePageDefrag)
+	result.TransparentHugePage = pointer.From(TransparentHugePageEnabled)
+
+	TransparentHugePageDefrag := pointer.To("")
+	if v := input.TransparentHugePageDefrag; v != nil && v != pointer.To("never") {
+		TransparentHugePageDefrag = v
 	}
+	result.TransparentHugePageDefrag = pointer.From(TransparentHugePageDefrag)
+
 	if input.SwapFileSizeMB != nil {
 		result.SwapFileSizeMB = pointer.From(input.SwapFileSizeMB)
 	}
