@@ -62,9 +62,20 @@ func (c SchedulersClient) Update(ctx context.Context, id SchedulerId, input Sche
 
 // UpdateThenPoll performs Update then polls until it's completed
 func (c SchedulersClient) UpdateThenPoll(ctx context.Context, id SchedulerId, input SchedulerUpdate) error {
+	return c.UpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed
+func (c SchedulersClient) UpdateCallbackThenPoll(ctx context.Context, id SchedulerId, input SchedulerUpdate, callback func() error) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

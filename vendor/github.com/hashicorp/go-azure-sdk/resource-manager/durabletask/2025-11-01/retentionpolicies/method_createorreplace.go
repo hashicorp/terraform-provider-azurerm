@@ -62,9 +62,20 @@ func (c RetentionPoliciesClient) CreateOrReplace(ctx context.Context, id Schedul
 
 // CreateOrReplaceThenPoll performs CreateOrReplace then polls until it's completed
 func (c RetentionPoliciesClient) CreateOrReplaceThenPoll(ctx context.Context, id SchedulerId, input RetentionPolicy) error {
+	return c.CreateOrReplaceCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrReplaceCallbackThenPoll performs CreateOrReplace, runs the optional callback function, then polls until it's completed
+func (c RetentionPoliciesClient) CreateOrReplaceCallbackThenPoll(ctx context.Context, id SchedulerId, input RetentionPolicy, callback func() error) error {
 	result, err := c.CreateOrReplace(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrReplace: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
