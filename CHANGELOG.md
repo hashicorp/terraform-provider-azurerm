@@ -1,6 +1,7 @@
 ## 4.75.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `azurerm_cdn_frontdoor` - update API version to `2025-12-01` [GH-32461]
 * `azurerm_data_protection_backup_instance_data_lake_storage` - add FriendlyName on Create to align with other backup instance resources [GH-32351]
 * `azurerm_orchestrated_virtual_machine_scale_set` - add support for the `virtual_machine_size` block [GH-30260]
 * Data Source: `azurerm_orchestrated_virtual_machine_scale_set` - export the `sku_profile` block [GH-30260]
