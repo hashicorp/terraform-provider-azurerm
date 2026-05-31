@@ -272,30 +272,30 @@ func cdnFrontDoorBatchRuleConditionsSchema() *pluginsdk.Schema {
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
-			"remote_address_condition":     batchConditionListSchema(batchOperatorRemoteAddressSchema(), batchMatchValuesSchema(), false, false, ""),
-			"request_method_condition":     batchConditionListSchema(batchEqualOnlyOperatorSchema(), batchRequestMethodMatchValuesSchema(), false, false, ""),
-			"query_string_condition":       batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, false, ""),
-			"post_args_condition":          batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, false, "post_args_name"),
-			"request_uri_condition":        batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, false, ""),
-			"request_header_condition":     batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, false, "header_name"),
-			"request_body_condition":       batchConditionListSchema(batchOperatorSchema(), batchMatchValuesRequiredSchema(), true, false, ""),
-			"request_scheme_condition":     batchConditionListSchema(batchEqualOnlyOperatorSchema(), batchProtocolMatchValuesSchema(), false, false, ""),
-			"url_path_condition":           batchConditionListSchema(batchURLPathOperatorSchema(), batchURLPathMatchValuesSchema(), true, false, ""),
-			"url_file_extension_condition": batchConditionListSchema(batchOperatorSchema(), batchMatchValuesRequiredSchema(), true, false, ""),
-			"url_filename_condition":       batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, false, ""),
-			"http_version_condition":       batchConditionListSchema(batchEqualOnlyOperatorSchema(), batchHTTPVersionMatchValuesSchema(), false, false, ""),
-			"cookies_condition":            batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, false, "cookie_name"),
-			"is_device_condition":          batchConditionListSchema(batchEqualOnlyOperatorSchema(), batchIsDeviceMatchValuesSchema(), false, false, ""),
-			"socket_address_condition":     batchConditionListSchema(batchOperatorSocketAddressSchema(), batchMatchValuesSchema(), false, false, ""),
-			"client_port_condition":        batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), false, false, ""),
-			"server_port_condition":        batchConditionListSchema(batchOperatorSchema(), batchServerPortMatchValuesSchema(), false, false, ""),
-			"host_name_condition":          batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, false, ""),
-			"ssl_protocol_condition":       batchConditionListSchema(batchEqualOnlyOperatorSchema(), batchSSLProtocolMatchValuesSchema(), false, false, ""),
+			"remote_address_condition":     batchConditionListSchema(batchOperatorRemoteAddressSchema(), batchMatchValuesSchema(), false, ""),
+			"request_method_condition":     batchConditionListSchema(batchEqualOnlyOperatorSchema(), batchRequestMethodMatchValuesSchema(), false, ""),
+			"query_string_condition":       batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, ""),
+			"post_args_condition":          batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, "post_args_name"),
+			"request_uri_condition":        batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, ""),
+			"request_header_condition":     batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, "header_name"),
+			"request_body_condition":       batchConditionListSchema(batchOperatorSchema(), batchMatchValuesRequiredSchema(), true, ""),
+			"request_scheme_condition":     batchConditionListSchema(batchEqualOnlyOperatorSchema(), batchProtocolMatchValuesSchema(), false, ""),
+			"url_path_condition":           batchConditionListSchema(batchURLPathOperatorSchema(), batchURLPathMatchValuesSchema(), true, ""),
+			"url_file_extension_condition": batchConditionListSchema(batchOperatorSchema(), batchMatchValuesRequiredSchema(), true, ""),
+			"url_filename_condition":       batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, ""),
+			"http_version_condition":       batchConditionListSchema(batchEqualOnlyOperatorSchema(), batchHTTPVersionMatchValuesSchema(), false, ""),
+			"cookies_condition":            batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, "cookie_name"),
+			"is_device_condition":          batchConditionListSchema(batchEqualOnlyOperatorSchema(), batchIsDeviceMatchValuesSchema(), false, ""),
+			"socket_address_condition":     batchConditionListSchema(batchOperatorSocketAddressSchema(), batchMatchValuesSchema(), false, ""),
+			"client_port_condition":        batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), false, ""),
+			"server_port_condition":        batchConditionListSchema(batchOperatorSchema(), batchServerPortMatchValuesSchema(), false, ""),
+			"host_name_condition":          batchConditionListSchema(batchOperatorSchema(), batchMatchValuesSchema(), true, ""),
+			"ssl_protocol_condition":       batchConditionListSchema(batchEqualOnlyOperatorSchema(), batchSSLProtocolMatchValuesSchema(), false, ""),
 		}},
 	}
 }
 
-func batchConditionListSchema(operatorSchema, matchValuesSchema *pluginsdk.Schema, includeTransforms bool, required bool, selectorField string) *pluginsdk.Schema {
+func batchConditionListSchema(operatorSchema, matchValuesSchema *pluginsdk.Schema, includeTransforms bool, selectorField string) *pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
 		"operator":         operatorSchema,
 		"negate_condition": batchNegateConditionSchema(),
@@ -307,7 +307,7 @@ func batchConditionListSchema(operatorSchema, matchValuesSchema *pluginsdk.Schem
 	if selectorField != "" {
 		schema[selectorField] = &pluginsdk.Schema{Type: pluginsdk.TypeString, Required: true, ValidateFunc: validation.StringIsNotEmpty}
 	}
-	return &pluginsdk.Schema{Type: pluginsdk.TypeList, Optional: !required, Required: required, Elem: &pluginsdk.Resource{Schema: schema}}
+	return &pluginsdk.Schema{Type: pluginsdk.TypeList, Optional: true, Elem: &pluginsdk.Resource{Schema: schema}}
 }
 
 func batchOperatorSchema() *pluginsdk.Schema {
@@ -843,11 +843,7 @@ func expandCdnFrontDoorBatchRuleConditions(input []CdnFrontDoorBatchRuleConditio
 		results = append(results, condition)
 	}
 	for _, item := range conditions.RequestSchemeCondition {
-		condition, err := expandRequestSchemeCondition(item)
-		if err != nil {
-			return nil, fmt.Errorf("expanding `request_scheme_condition`: %+v", err)
-		}
-		results = append(results, condition)
+		results = append(results, expandRequestSchemeCondition(item))
 	}
 	for _, item := range conditions.HTTPVersionCondition {
 		condition, err := expandHTTPVersionCondition(item)
@@ -864,11 +860,7 @@ func expandCdnFrontDoorBatchRuleConditions(input []CdnFrontDoorBatchRuleConditio
 		results = append(results, condition)
 	}
 	for _, item := range conditions.IsDeviceCondition {
-		condition, err := expandIsDeviceCondition(item)
-		if err != nil {
-			return nil, fmt.Errorf("expanding `is_device_condition`: %+v", err)
-		}
-		results = append(results, condition)
+		results = append(results, expandIsDeviceCondition(item))
 	}
 	for _, item := range conditions.SSLProtocolCondition {
 		condition, err := expandSSLProtocolCondition(item)
@@ -1007,8 +999,8 @@ func expandRequestMethodCondition(input CdnFrontDoorBatchRuleRequestMethodCondit
 	return rules.DeliveryRuleRequestMethodCondition{Name: rules.MatchVariableRequestMethod, Parameters: rules.RequestMethodMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleRequestMethodConditionParameters, Operator: rules.RequestMethodOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: requestMethodValuesPointer(input.MatchValues)}}, nil
 }
 
-func expandRequestSchemeCondition(input CdnFrontDoorBatchRuleRequestSchemeConditionModel) (rules.DeliveryRuleCondition, error) {
-	return rules.DeliveryRuleRequestSchemeCondition{Name: rules.MatchVariableRequestScheme, Parameters: rules.RequestSchemeMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleRequestSchemeConditionParameters, Operator: rules.RequestSchemeMatchConditionParametersOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: requestSchemeValuesPointer(input.MatchValues)}}, nil
+func expandRequestSchemeCondition(input CdnFrontDoorBatchRuleRequestSchemeConditionModel) rules.DeliveryRuleCondition {
+	return rules.DeliveryRuleRequestSchemeCondition{Name: rules.MatchVariableRequestScheme, Parameters: rules.RequestSchemeMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleRequestSchemeConditionParameters, Operator: rules.RequestSchemeMatchConditionParametersOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: requestSchemeValuesPointer(input.MatchValues)}}
 }
 
 func expandURLPathCondition(input CdnFrontDoorBatchRuleStringConditionModel) (rules.DeliveryRuleCondition, error) {
@@ -1046,8 +1038,8 @@ func expandCookiesCondition(input CdnFrontDoorBatchRuleCookiesConditionModel) (r
 	return rules.DeliveryRuleCookiesCondition{Name: rules.MatchVariableCookies, Parameters: rules.CookiesMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleCookiesConditionParameters, Selector: pointer.To(input.CookieName), Operator: rules.CookiesOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: stringSlicePointer(input.MatchValues), Transforms: transformsPointer(input.Transforms)}}, nil
 }
 
-func expandIsDeviceCondition(input CdnFrontDoorBatchRuleIsDeviceConditionModel) (rules.DeliveryRuleCondition, error) {
-	return rules.DeliveryRuleIsDeviceCondition{Name: rules.MatchVariableIsDevice, Parameters: rules.IsDeviceMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleIsDeviceConditionParameters, Operator: rules.IsDeviceOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: isDeviceValuesPointer(input.MatchValues)}}, nil
+func expandIsDeviceCondition(input CdnFrontDoorBatchRuleIsDeviceConditionModel) rules.DeliveryRuleCondition {
+	return rules.DeliveryRuleIsDeviceCondition{Name: rules.MatchVariableIsDevice, Parameters: rules.IsDeviceMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleIsDeviceConditionParameters, Operator: rules.IsDeviceOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: isDeviceValuesPointer(input.MatchValues)}}
 }
 
 func expandSocketAddressCondition(input CdnFrontDoorBatchRuleStringConditionModel) (rules.DeliveryRuleCondition, error) {

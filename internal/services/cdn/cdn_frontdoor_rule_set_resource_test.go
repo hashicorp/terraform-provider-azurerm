@@ -170,15 +170,15 @@ func (r CdnFrontDoorRuleSetResource) batchModeEnabled(data acceptance.TestData, 
 	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 %s
 
 resource "azurerm_cdn_frontdoor_rule_set" "test" {
-	name                     = "acctestfdbatchruleset%d"
-	cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-	batch_mode_enabled       = true
+  name                     = "acctestfdbatchruleset%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  batch_mode_enabled       = true
 }
 `, template, data.RandomIntOfLength(8))
 }
