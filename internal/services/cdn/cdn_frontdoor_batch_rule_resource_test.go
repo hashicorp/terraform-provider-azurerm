@@ -6,6 +6,7 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -133,6 +134,18 @@ func TestAccCdnFrontDoorBatchRule_collectionReorderUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRule_routeConfigurationOverrideValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
+	r := CdnFrontDoorBatchRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.invalidRouteConfigurationOverrideMissingQueryStringCachingBehavior(data),
+			ExpectError: regexp.MustCompile("the `route_configuration_override_action` block is not valid, the `query_string_caching_behavior` field must be set"),
+		},
 	})
 }
 
@@ -514,4 +527,34 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r CdnFrontDoorBatchRuleResource) invalidRouteConfigurationOverrideMissingQueryStringCachingBehavior(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  rules {
+    name  = "accTestBatchRule%d"
+    order = 1
+
+    actions {
+      route_configuration_override_action {
+        cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+        forwarding_protocol           = "HttpsOnly"
+        cache_behavior                = "OverrideIfOriginMissing"
+        cache_duration                = "23:59:59"
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

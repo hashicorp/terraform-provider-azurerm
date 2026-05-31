@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	legacyrulesets "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	"github.com/hashicorp/terraform-plugin-framework/list"
@@ -76,7 +77,7 @@ func (CdnFrontDoorBatchRuleListResource) List(ctx context.Context, request list.
 	}
 
 	stream.Results = func(push func(list.ListResult) bool) {
-		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.BatchMode == nil || !*resp.Model.Properties.BatchMode {
+		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.BatchMode == nil || !*resp.Model.Properties.BatchMode || resp.Model.Properties.Rules == nil || len(pointer.From(resp.Model.Properties.Rules)) == 0 {
 			return
 		}
 

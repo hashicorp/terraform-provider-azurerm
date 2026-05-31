@@ -683,12 +683,41 @@ func expandRouteConfigurationOverrideAction(input CdnFrontDoorBatchRuleRouteConf
 	var cacheConfiguration *rules.CacheConfiguration
 	if input.CacheBehavior != "" || input.QueryStringCachingBehavior != "" || len(input.QueryStringParameters) > 0 || input.CacheDuration != "" || input.CompressionEnabled {
 		cacheBehavior := input.CacheBehavior
-		if cacheBehavior == "" {
-			cacheBehavior = string(rules.RuleCacheBehaviorHonorOrigin)
+		if cacheBehavior == string(rules.RuleIsCompressionEnabledDisabled) {
+			if input.QueryStringCachingBehavior != "" {
+				return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, if the `cache_behavior` is set to `Disabled` you cannot define the `query_string_caching_behavior`, got %q", input.QueryStringCachingBehavior)
+			}
+
+			if len(input.QueryStringParameters) != 0 {
+				return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, if the `cache_behavior` is set to `Disabled` you cannot define the `query_string_parameters`, got %d", len(input.QueryStringParameters))
+			}
+
+			if input.CacheDuration != "" {
+				return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, if the `cache_behavior` is set to `Disabled` you cannot define the `cache_duration`, got %q", input.CacheDuration)
+			}
+		} else {
+			if cacheBehavior == "" {
+				return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, the `cache_behavior` field must be set")
+			}
+
+			if input.QueryStringCachingBehavior == "" {
+				return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, the `query_string_caching_behavior` field must be set")
+			}
+
+			if cacheBehavior != string(rules.RuleCacheBehaviorHonorOrigin) {
+				if input.CacheDuration == "" {
+					return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, the `cache_duration` field must be set")
+				}
+			} else if input.CacheDuration != "" {
+				return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, the `cache_duration` field must not be set if the `cache_behavior` is `HonorOrigin`")
+			}
 		}
 
 		if requiresQueryStringParameters(input.QueryStringCachingBehavior) && len(input.QueryStringParameters) == 0 {
 			return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, the `query_string_parameters` field must be set when `query_string_caching_behavior` is %q", input.QueryStringCachingBehavior)
+		}
+		if len(input.QueryStringParameters) > 0 && (input.QueryStringCachingBehavior == string(rules.RuleQueryStringCachingBehaviorUseQueryString) || input.QueryStringCachingBehavior == string(rules.RuleQueryStringCachingBehaviorIgnoreQueryString)) {
+			return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, `query_string_parameters` must not be set if the `query_string_caching_behavior` is `UseQueryStrings` or `IgnoreQueryStrings`")
 		}
 
 		compressionEnabled := rules.RuleIsCompressionEnabledDisabled
