@@ -30,13 +30,40 @@ resource "azurerm_cdn_frontdoor_rule_set" "example" {
 }
 ```
 
+### Batch Mode
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-cdn-frontdoor"
+  location = "West Europe"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "example" {
+  name                = "example-profile"
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Standard_AzureFrontDoor"
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "example" {
+  name                     = "ExampleBatchRuleSet"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+  batch_mode_enabled       = true
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Front Door Rule Set. Changing this forces a new Front Door Rule Set to be created.
+* `name` - (Required) The name which should be used for this Front Door Rule Set. Changing this forces a new resource to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile. Changing this forces a new Front Door Rule Set to be created.
+* `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile. Changing this forces a new resource to be created.
+
+* `batch_mode_enabled` - (Optional) Whether this Front Door Rule Set uses batch mode for batch rule updates. Defaults to `false`. Changing this forces a new resource to be created.
+
+~> **Note:** `batch_mode_enabled` is an explicit opt-in to batch rule updates at the Rule Set level. Once a Rule Set is created in batch mode, it cannot be switched back to the existing Front Door Standard/Premium per-rule update mode. To change modes, create a new Rule Set and re-associate the routes.
+
+~> **Note:** `azurerm_cdn_frontdoor_batch_rule` requires `batch_mode_enabled = true` on the parent Rule Set and manages the full ordered batch rule collection for that Rule Set. `azurerm_cdn_frontdoor_rule` resources must use a Rule Set where `batch_mode_enabled` is `false`.
 
 ## Attributes Reference
 
@@ -54,7 +81,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Front Door Rule Sets can be imported using the `resource id`, e.g.
+A Front Door Rule Set can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_rule_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1
@@ -64,4 +91,4 @@ terraform import azurerm_cdn_frontdoor_rule_set.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Cdn` - 2024-02-01
+* `Microsoft.Cdn` - 2025-12-01

@@ -34,6 +34,8 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
+* `batch_mode_enabled` - Whether this Front Door Rule Set uses batch mode for batch rule updates.
+
 * `id` - The ID of the Front Door Rule Set.
 
 * `cdn_frontdoor_profile_id` - The ID of the Front Door Profile within which this Front Door Rule Set exists.
@@ -48,4 +50,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Cdn` - 2024-02-01
+* `Microsoft.Cdn` - 2025-12-01
