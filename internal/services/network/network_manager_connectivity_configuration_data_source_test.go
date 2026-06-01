@@ -13,11 +13,11 @@ import (
 
 type ManagerConnectivityConfigurationDataSource struct{}
 
-func testAccNetworkManagerConnectivityConfigurationDataSource_basic(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfigurationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_manager_connectivity_configuration", "test")
 	d := ManagerConnectivityConfigurationDataSource{}
 
-	data.DataSourceTestInSequence(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

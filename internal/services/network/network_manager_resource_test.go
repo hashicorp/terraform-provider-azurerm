@@ -51,16 +51,6 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManagerScopeConnection_update,
 			"requiresImport": testAccNetworkManagerScopeConnection_requiresImport,
 		},
-		"ConnectivityConfiguration": {
-			"basic":                        testAccNetworkManagerConnectivityConfiguration_basic,
-			"basicTopologyMesh":            testAccNetworkManagerConnectivityConfiguration_basicTopologyMesh,
-			"complete":                     testAccNetworkManagerConnectivityConfiguration_complete,
-			"connectivityCapabilityUpdate": testAccNetworkManagerConnectivityConfiguration_connectivityCapabilityUpdate,
-			"update":                       testAccNetworkManagerConnectivityConfiguration_update,
-			"peeringEnforcementValidation": testAccNetworkManagerConnectivityConfiguration_peeringEnforcementValidation,
-			"requiresImport":               testAccNetworkManagerConnectivityConfiguration_requiresImport,
-			"dataSource":                   testAccNetworkManagerConnectivityConfigurationDataSource_basic,
-		},
 		"SecurityAdminConfiguration": {
 			"basic":          testAccNetworkManagerSecurityAdminConfiguration_basic,
 			"complete":       testAccNetworkManagerSecurityAdminConfiguration_complete,

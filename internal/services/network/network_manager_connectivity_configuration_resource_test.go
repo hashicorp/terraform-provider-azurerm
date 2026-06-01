@@ -20,10 +20,10 @@ import (
 
 type ManagerConnectivityConfigurationResource struct{}
 
-func testAccNetworkManagerConnectivityConfiguration_basic(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,10 +34,10 @@ func testAccNetworkManagerConnectivityConfiguration_basic(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerConnectivityConfiguration_basicTopologyMesh(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfiguration_basicTopologyMesh(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicTopologyMesh(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -48,10 +48,10 @@ func testAccNetworkManagerConnectivityConfiguration_basicTopologyMesh(t *testing
 	})
 }
 
-func testAccNetworkManagerConnectivityConfiguration_requiresImport(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -62,10 +62,10 @@ func testAccNetworkManagerConnectivityConfiguration_requiresImport(t *testing.T)
 	})
 }
 
-func testAccNetworkManagerConnectivityConfiguration_complete(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfiguration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -76,10 +76,10 @@ func testAccNetworkManagerConnectivityConfiguration_complete(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerConnectivityConfiguration_update(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -104,10 +104,10 @@ func testAccNetworkManagerConnectivityConfiguration_update(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerConnectivityConfiguration_connectivityCapabilityUpdate(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfiguration_connectivityCapabilityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.connectivityCapabilityUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -125,11 +125,11 @@ func testAccNetworkManagerConnectivityConfiguration_connectivityCapabilityUpdate
 	})
 }
 
-func testAccNetworkManagerConnectivityConfiguration_peeringEnforcementValidation(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfiguration_peeringEnforcementValidation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.peeringEnforcementWithMeshTopology(data),
 			ExpectError: regexp.MustCompile("`peering_enforcement` can only be set to `Enforced` when `connectivity_topology` is `HubAndSpoke`"),
