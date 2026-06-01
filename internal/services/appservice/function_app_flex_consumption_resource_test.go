@@ -22,6 +22,9 @@ type FunctionAppFlexConsumptionResource struct{}
 
 // remove in 5.0 starts
 func TestAccFunctionAppFlexConsumption_FourPointOhBasic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -38,6 +41,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhBasic(t *testing.T) {
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhAddBackendStorage(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -62,6 +68,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAddBackendStorage(t *testing.T
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhBackendStorageUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -94,6 +103,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhBackendStorageUpdate(t *testin
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhBackendStorageUseMsi(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -109,6 +121,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhBackendStorageUseMsi(t *testin
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhBackendStorageUseKeyVault(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -124,6 +139,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhBackendStorageUseKeyVault(t *t
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -156,6 +174,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUpdate(t *tes
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageSchemaUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -188,6 +209,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageSchemaUpdate(
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUaiSchemaUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -228,6 +252,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUaiSchemaUpda
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageSystemIdentitySchemaUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -260,6 +287,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageSystemIdentit
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhConnectionString(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -276,6 +306,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhConnectionString(t *testing.T)
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhStickySettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -292,6 +325,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhStickySettings(t *testing.T) {
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhConnectionStringUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -324,6 +360,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhConnectionStringUpdate(t *test
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhComplete(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -340,6 +379,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhComplete(t *testing.T) {
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhAppSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -356,6 +398,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAppSettings(t *testing.T) {
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhAppSettingsUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -388,6 +433,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAppSettingsUpdate(t *testing.T
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhRuntimePython(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -404,6 +452,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhRuntimePython(t *testing.T) {
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhInstanceMemoryUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -436,6 +487,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhInstanceMemoryUpdate(t *testin
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdateName(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -476,6 +530,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdateName(t *testi
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyInstanceCountError(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -488,6 +545,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyInstanceCountError(
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -512,6 +572,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdate(t *testing.T
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhMaxInstanceCount(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -544,6 +607,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhMaxInstanceCount(t *testing.T)
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhHttpsOnlyUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -576,6 +642,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhHttpsOnlyUpdate(t *testing.T) 
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhvNetIntegrationWithVnetProperties(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -595,6 +664,9 @@ func TestAccFunctionAppFlexConsumption_FourPointOhvNetIntegrationWithVnetPropert
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhHttpConcurrencyUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -1824,10 +1896,9 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   backend_storage {
-    key_vault_secret_id = azurerm_key_vault_secret.test.versionless_id
+    key_vault_secret_id                 = azurerm_key_vault_secret.test.versionless_id
+    key_vault_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
-
-  key_vault_reference_identity_id = azurerm_user_assigned_identity.test.id
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -2850,9 +2921,9 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   backend_storage {
-    key_vault_secret_id = azurerm_key_vault_secret.test.versionless_id
+    key_vault_secret_id                 = azurerm_key_vault_secret.test.versionless_id
+    key_vault_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
-  key_vault_reference_identity_id = azurerm_user_assigned_identity.test.id
 
   deployment_storage {
     container_endpoint = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"

@@ -61,7 +61,6 @@ type FunctionAppFlexConsumptionModel struct {
 	VirtualNetworkSubnetID           string                     `tfschema:"virtual_network_subnet_id"`
 	ZipDeployFile                    string                     `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	KeyVaultReferenceIdentityID      string                     `tfschema:"key_vault_reference_identity_id"`
 
 	StorageContainerType          string                                         `tfschema:"storage_container_type,removedInNextMajorVersion"`
 	StorageContainerEndpoint      string                                         `tfschema:"storage_container_endpoint,removedInNextMajorVersion"`
@@ -104,9 +103,10 @@ type DeploymentStorage struct {
 }
 
 type BackendStorage struct {
-	Name             string `tfschema:"name"`
-	AccessKey        string `tfschema:"access_key"`
-	KeyVaultSecretID string `tfschema:"key_vault_secret_id"`
+	Name                           string `tfschema:"name"`
+	AccessKey                      string `tfschema:"access_key"`
+	KeyVaultSecretID               string `tfschema:"key_vault_secret_id"`
+	KeyVaultUserAssignedIdentityID string `tfschema:"key_vault_user_assigned_identity_id"`
 }
 
 var _ sdk.ResourceWithUpdate = FunctionAppFlexConsumptionResource{}
@@ -183,17 +183,15 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 							"backend_storage.0.key_vault_secret_id",
 						},
 					},
+
+					"key_vault_user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						Description:  "The User Assigned Identity to use for Key Vault access.",
+					},
 				},
 			},
-		},
-
-		// computed: The key vault reference identity will be computed by API when the Function App uses a Key Vault–stored connection string for backend storage access.
-		"key_vault_reference_identity_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-			Description:  "The User Assigned Identity to use for Key Vault access.",
 		},
 
 		"deployment_storage": {
@@ -574,7 +572,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			}
 
 			backendStorage := functionAppFlexConsumption.BackendStorage
-			backendSaConStr, backendStorageUseMsi := expandBackendStorage(backendStorage, storageDomainSuffix)
+			backendSaConStr, backendStorageUseMsi, kvIdentity := expandBackendStorage(backendStorage, storageDomainSuffix)
 			deploymentStorage, deploymentSaConStr := expandDeploymentStorage(functionAppFlexConsumption.DeploymentStorage, DeploymentStorageConnStr, storageDomainSuffix)
 
 			if !features.FivePointOh() && deploymentStorage == nil {
@@ -670,8 +668,8 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if functionAppFlexConsumption.KeyVaultReferenceIdentityID != "" {
-				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(functionAppFlexConsumption.KeyVaultReferenceIdentityID)
+			if kvIdentity != "" {
+				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(kvIdentity)
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -833,7 +831,6 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 				state.DefaultHostname = pointer.From(props.DefaultHostName)
 				state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-				state.KeyVaultReferenceIdentityID = pointer.From(props.KeyVaultReferenceIdentity)
 				servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
 				if err != nil {
 					return err
@@ -902,6 +899,9 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				}
 
 				state.BackendStorage = flattenBackendStorage(backendSaConStr, backendStorageUseMsi)
+				if props.KeyVaultReferenceIdentity != nil && !strings.EqualFold(*props.KeyVaultReferenceIdentity, "SystemAssigned") {
+					state.BackendStorage[0].KeyVaultUserAssignedIdentityID = pointer.From(props.KeyVaultReferenceIdentity)
+				}
 
 				state.unpackFunctionAppFlexConsumptionSettings(*appSettingsResp.Model)
 
@@ -1033,6 +1033,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			backendSaConStr, backendStorageUseMsi, deploymentSaConStrVal := flattenStorageConnectionStrings(*appSettingsResp.Model)
+			backendSaKvIdentity := pointer.From(model.Properties.KeyVaultReferenceIdentity)
 			_, deploymentStorageKey := helpers.ParseWebJobsStorageString(deploymentSaConStrVal)
 			deploymentStorage := model.Properties.FunctionAppConfig.Deployment.Storage
 
@@ -1086,7 +1087,8 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("backend_storage") {
-				backendSaConStr, backendStorageUseMsi = expandBackendStorage(state.BackendStorage, storageDomainSuffix)
+				backendSaConStr, backendStorageUseMsi, backendSaKvIdentity = expandBackendStorage(state.BackendStorage, storageDomainSuffix)
+				model.Properties.KeyVaultReferenceIdentity = pointer.To(backendSaKvIdentity)
 			}
 
 			if metadata.ResourceData.HasChange("deployment_storage") {
@@ -1161,10 +1163,6 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
-			}
-
-			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
-				model.Properties.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
 			}
 
 			if metadata.ResourceData.HasChange("https_only") {
@@ -1349,15 +1347,13 @@ func expandDeploymentStorage(input []DeploymentStorage, connectionStrName string
 	}
 
 	var saStr string
-	switch {
-	case input[0].AccessKey != "":
+	if input[0].AccessKey != "" {
 		result.Authentication.Type = pointer.To(webapps.AuthenticationTypeStorageAccountConnectionString)
 		result.Authentication.StorageAccountConnectionStringName = pointer.To(connectionStrName)
 		endpoint, _ := url.Parse(input[0].ContainerEndPoint)
 		deploymentSaName := strings.Split(endpoint.Host, ".")[0]
 		saStr = fmt.Sprintf(StorageStringFmt, deploymentSaName, input[0].AccessKey, *storageDomainSuffix)
-
-	case input[0].UserAssignedIdentityId != "":
+	} else if input[0].UserAssignedIdentityId != "" {
 		result.Authentication.Type = pointer.To(webapps.AuthenticationTypeUserAssignedIdentity)
 		result.Authentication.UserAssignedIdentityResourceId = pointer.To(input[0].UserAssignedIdentityId)
 	}
@@ -1383,20 +1379,20 @@ func flattenDeploymentStorage(input *webapps.FunctionsDeploymentStorage, deploym
 	return ds
 }
 
-func expandBackendStorage(input []BackendStorage, storageDomainSuffix *string) (string, bool) {
+func expandBackendStorage(input []BackendStorage, storageDomainSuffix *string) (string, bool, string) {
 	if len(input) == 0 {
-		return "", false
+		return "", false, ""
 	}
 
 	if input[0].KeyVaultSecretID != "" {
 		saConnStr := fmt.Sprintf(helpers.StorageStringFmtKV, input[0].KeyVaultSecretID)
-		return saConnStr, false
+		return saConnStr, false, input[0].KeyVaultUserAssignedIdentityID
 	} else if input[0].AccessKey != "" {
 		saConnStr := fmt.Sprintf(helpers.StorageStringFmt, input[0].Name, input[0].AccessKey, *storageDomainSuffix)
-		return saConnStr, false
+		return saConnStr, false, input[0].KeyVaultUserAssignedIdentityID
 	}
 
-	return input[0].Name, true
+	return input[0].Name, true, input[0].KeyVaultUserAssignedIdentityID
 }
 
 func flattenBackendStorage(input string, useMsi bool) []BackendStorage {
