@@ -57,9 +57,20 @@ func (c StaticSitesClient) DetachStaticSite(ctx context.Context, id StaticSiteId
 
 // DetachStaticSiteThenPoll performs DetachStaticSite then polls until it's completed
 func (c StaticSitesClient) DetachStaticSiteThenPoll(ctx context.Context, id StaticSiteId) error {
+	return c.DetachStaticSiteCallbackThenPoll(ctx, id, nil)
+}
+
+// DetachStaticSiteCallbackThenPoll performs DetachStaticSite, runs the optional callback function, then polls until it's completed
+func (c StaticSitesClient) DetachStaticSiteCallbackThenPoll(ctx context.Context, id StaticSiteId, callback func() error) error {
 	result, err := c.DetachStaticSite(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing DetachStaticSite: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

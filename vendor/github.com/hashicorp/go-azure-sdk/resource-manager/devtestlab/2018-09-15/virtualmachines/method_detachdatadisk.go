@@ -61,9 +61,20 @@ func (c VirtualMachinesClient) DetachDataDisk(ctx context.Context, id VirtualMac
 
 // DetachDataDiskThenPoll performs DetachDataDisk then polls until it's completed
 func (c VirtualMachinesClient) DetachDataDiskThenPoll(ctx context.Context, id VirtualMachineId, input DetachDataDiskProperties) error {
+	return c.DetachDataDiskCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DetachDataDiskCallbackThenPoll performs DetachDataDisk, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) DetachDataDiskCallbackThenPoll(ctx context.Context, id VirtualMachineId, input DetachDataDiskProperties, callback func() error) error {
 	result, err := c.DetachDataDisk(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DetachDataDisk: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

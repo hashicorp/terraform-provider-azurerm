@@ -255,15 +255,17 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 
 			id := managedenvironments.NewManagedEnvironmentID(subscriptionId, containerAppEnvironment.ResourceGroup, containerAppEnvironment.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			managedEnvironment := managedenvironments.ManagedEnvironment{
@@ -328,15 +330,15 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 
 			managedEnvironment.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(containerAppEnvironment.WorkloadProfiles)
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, managedEnvironment); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, managedEnvironment, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			// Set the `log_analytics_workspace_id` during creation, in case the workspace is created on another subscription.
 			if containerAppEnvironment.LogAnalyticsWorkspaceId != "" {
 				metadata.ResourceData.Set("log_analytics_workspace_id", containerAppEnvironment.LogAnalyticsWorkspaceId)
 			}
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -624,16 +626,17 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
 					logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
 					logAnalyticsWorkspaceID := metadata.ResourceDiff.Get("log_analytics_workspace_id").(string)
+					logAnalyticsWorkspaceIDUnknown := !metadata.ResourceDiff.GetRawConfig().AsValueMap()["log_analytics_workspace_id"].IsKnown()
 
 					switch logsDestination {
 					case LogsDestinationLogAnalytics:
-						if logAnalyticsWorkspaceID == "" {
+						if logAnalyticsWorkspaceID == "" && !logAnalyticsWorkspaceIDUnknown {
 							return errors.New("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
 						}
 
 					case LogsDestinationAzureMonitor, LogsDestinationNone:
-						if logAnalyticsWorkspaceID != "" {
-							return errors.New("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
+						if logAnalyticsWorkspaceID != "" || logAnalyticsWorkspaceIDUnknown {
+							return errors.New("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or `\"\"`")
 						}
 					}
 				}

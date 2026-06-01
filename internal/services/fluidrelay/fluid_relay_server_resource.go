@@ -178,23 +178,25 @@ func (s Server) ResourceType() string {
 func (s Server) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.FluidRelay.FluidRelayServers
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) (err error) {
+			client := metadata.Client.FluidRelay.FluidRelayServers
 
 			var model ServerModel
-			if err = meta.Decode(&model); err != nil {
+			if err = metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			id := fluidrelayservers.NewFluidRelayServerID(meta.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
+			id := fluidrelayservers.NewFluidRelayServerID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
 				}
-
-				return meta.ResourceRequiresImport(s.ResourceType(), id)
 			}
 
 			payload := fluidrelayservers.FluidRelayServer{
@@ -218,7 +220,7 @@ func (s Server) Create() sdk.ResourceFunc {
 			if _, err = client.CreateOrUpdate(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %v err: %+v", id, err)
 			}
-			meta.SetID(id)
+			metadata.SetID(id)
 
 			return nil
 		},

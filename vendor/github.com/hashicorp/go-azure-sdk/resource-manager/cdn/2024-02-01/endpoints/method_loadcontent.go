@@ -61,9 +61,20 @@ func (c EndpointsClient) LoadContent(ctx context.Context, id EndpointId, input L
 
 // LoadContentThenPoll performs LoadContent then polls until it's completed
 func (c EndpointsClient) LoadContentThenPoll(ctx context.Context, id EndpointId, input LoadParameters) error {
+	return c.LoadContentCallbackThenPoll(ctx, id, input, nil)
+}
+
+// LoadContentCallbackThenPoll performs LoadContent, runs the optional callback function, then polls until it's completed
+func (c EndpointsClient) LoadContentCallbackThenPoll(ctx context.Context, id EndpointId, input LoadParameters, callback func() error) error {
 	result, err := c.LoadContent(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing LoadContent: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

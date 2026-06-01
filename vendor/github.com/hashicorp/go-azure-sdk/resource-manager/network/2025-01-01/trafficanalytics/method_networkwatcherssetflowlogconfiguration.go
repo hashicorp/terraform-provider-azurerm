@@ -62,9 +62,20 @@ func (c TrafficAnalyticsClient) NetworkWatchersSetFlowLogConfiguration(ctx conte
 
 // NetworkWatchersSetFlowLogConfigurationThenPoll performs NetworkWatchersSetFlowLogConfiguration then polls until it's completed
 func (c TrafficAnalyticsClient) NetworkWatchersSetFlowLogConfigurationThenPoll(ctx context.Context, id NetworkWatcherId, input FlowLogInformation) error {
+	return c.NetworkWatchersSetFlowLogConfigurationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// NetworkWatchersSetFlowLogConfigurationCallbackThenPoll performs NetworkWatchersSetFlowLogConfiguration, runs the optional callback function, then polls until it's completed
+func (c TrafficAnalyticsClient) NetworkWatchersSetFlowLogConfigurationCallbackThenPoll(ctx context.Context, id NetworkWatcherId, input FlowLogInformation, callback func() error) error {
 	result, err := c.NetworkWatchersSetFlowLogConfiguration(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing NetworkWatchersSetFlowLogConfiguration: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

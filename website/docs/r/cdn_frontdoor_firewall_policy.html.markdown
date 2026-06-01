@@ -164,7 +164,7 @@ The following arguments are supported:
 
 * `custom_rule` - (Optional) One or more `custom_rule` blocks as defined below.
 
-* `custom_block_response_status_code` - (Optional) If a `custom_rule` block's action type is `block`, this is the response status code. Possible values are `200`, `403`, `405`, `406`, or `429`.
+* `custom_block_response_status_code` - (Optional) If a `custom_rule` block's action type is `block`, this is the response status code. Possible values are `200`, `403`, `405`, `406`, `429`, `990`, `991`, `992`, `993`, `994`, `995`, `996`, `997`, `998`, or `999`.
 
 * `custom_block_response_body` - (Optional) If a `custom_rule` block's action type is `block`, this is the response body. The body must be specified in base64 encoding.
 
@@ -332,10 +332,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Front Door Firewall Policy.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Firewall Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Firewall Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Firewall Policy.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Firewall Policy.
+* `update` - (Defaults to 4 hours) Used when updating the Front Door Firewall Policy.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Firewall Policy.
 
 ## Import
 
