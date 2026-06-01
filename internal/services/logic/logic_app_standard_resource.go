@@ -671,17 +671,23 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 
 				connectionString := appSettings[storageAppSettingName]
 
-				for _, part := range strings.Split(connectionString, ";") {
-					if strings.HasPrefix(part, "AccountName") {
-						accountNameParts := strings.Split(part, "AccountName=")
-						if len(accountNameParts) > 1 {
-							state.StorageAccountName = accountNameParts[1]
+				if strings.HasPrefix(connectionString, "@Microsoft.KeyVault") {
+					trimmed := strings.TrimPrefix(connectionString, "@Microsoft.KeyVault(SecretUri=")
+					trimmed = strings.TrimSuffix(trimmed, ")")
+					state.StorageKeyVaultSecretID = trimmed
+				} else {
+					for _, part := range strings.Split(connectionString, ";") {
+						if strings.HasPrefix(part, "AccountName") {
+							accountNameParts := strings.Split(part, "AccountName=")
+							if len(accountNameParts) > 1 {
+								state.StorageAccountName = accountNameParts[1]
+							}
 						}
-					}
-					if strings.HasPrefix(part, "AccountKey") {
-						accountKeyParts := strings.Split(part, "AccountKey=")
-						if len(accountKeyParts) > 1 {
-							state.StorageAccountAccessKey = accountKeyParts[1]
+						if strings.HasPrefix(part, "AccountKey") {
+							accountKeyParts := strings.Split(part, "AccountKey=")
+							if len(accountKeyParts) > 1 {
+								state.StorageAccountAccessKey = accountKeyParts[1]
+							}
 						}
 					}
 				}
@@ -974,14 +980,18 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 	appKindPropName := "APP_KIND"
 	appKindPropValue := "workflowApp"
 
-	storageAccount := d.StorageAccountName
-	accountKey := d.StorageAccountAccessKey
-	storageConnection := fmt.Sprintf(
-		"DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s",
-		storageAccount,
-		accountKey,
-		endpointSuffix,
-	)
+	var storageConnection string
+	if d.StorageKeyVaultSecretID != "" {
+		storageConnection = fmt.Sprintf(storageKeyVaultReferenceFmt, d.StorageKeyVaultSecretID)
+	} else {
+		storageConnection = fmt.Sprintf(
+			"DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s",
+			d.StorageAccountName,
+			d.StorageAccountAccessKey,
+			endpointSuffix,
+		)
+	}
+
 	functionVersion := d.Version
 
 	contentShare := strings.ToLower(d.Name) + "-content"
@@ -1341,7 +1351,14 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 	oMap := f(old)
 	cMap := f(new)
 
-	if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
+	if metadata.ResourceData.HasChange("storage_key_vault_secret_id") {
+		kvSecretID := metadata.ResourceData.Get("storage_key_vault_secret_id").(string)
+		if kvSecretID != "" {
+			kvRef := fmt.Sprintf(storageKeyVaultReferenceFmt, kvSecretID)
+			eMap[storageAppSettingName] = kvRef
+			eMap[contentFileConnStringAppSettingName] = kvRef
+		}
+	} else if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
 		accountName := metadata.ResourceData.Get("storage_account_name").(string)
 		accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
 		suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
