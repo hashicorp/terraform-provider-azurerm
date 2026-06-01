@@ -105,14 +105,14 @@ func TestExascaleDatabaseVirtualMachineClusterResource_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("data_collection"),
+		data.ImportStep(),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("data_collection"),
+		data.ImportStep(),
 	})
 }
 
@@ -206,7 +206,7 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   enabled_ecpu_count                 = 16
   grid_image_ocid                    = local.grid_image_ocid
   hostname                           = "host"
-  node_count                         = 8
+  node_count                         = 2
   ssh_public_keys                    = [local.ssh_public_key]
   subnet_id                          = azurerm_subnet.virtual_network_subnet.id
   total_ecpu_count                   = 32
