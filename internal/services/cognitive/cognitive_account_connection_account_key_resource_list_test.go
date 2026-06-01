@@ -5,6 +5,7 @@ package cognitive_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -34,7 +35,7 @@ func TestAccCognitiveAccountConnectionAccountKey_list(t *testing.T) {
 				Query:  true,
 				Config: r.basicListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_connection_account_key.list", 1),
+					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_connection_account_key.list", 2),
 					querycheck.ExpectIdentity(
 						"azurerm_cognitive_account_connection_account_key.list",
 						map[string]knownvalue.Check{
@@ -62,5 +63,21 @@ list "azurerm_cognitive_account_connection_account_key" "list" {
 }
 
 func (r CognitiveAccountConnectionAccountKeyResource) basicList(data acceptance.TestData) string {
-	return r.basic(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cognitive_account_connection_account_key" "test2" {
+	name                 = "acctest-conn2-%[2]d"
+	cognitive_account_id = azurerm_cognitive_account.test.id
+	category             = "AzureStorageAccount"
+	target               = azurerm_storage_account.test.primary_blob_endpoint
+	account_key          = azurerm_storage_account.test.primary_access_key
+
+	metadata = {
+		apiType    = "Azure"
+		resourceId = azurerm_storage_account.test.id
+		location   = azurerm_storage_account.test.location
+	}
+}
+`, r.basic(data), data.RandomInteger)
 }

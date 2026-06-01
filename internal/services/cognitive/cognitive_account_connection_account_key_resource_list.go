@@ -74,7 +74,7 @@ func (CognitiveAccountConnectionAccountKeyListResource) List(ctx context.Context
 				return
 			}
 
-			connectionsResp, err := client.AccountConnectionsListComplete(listCtx, accountconnectionresource.NewAccountID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName), accountconnectionresource.AccountConnectionsListOperationOptions{})
+			connectionsResp, err := client.AccountConnectionsListComplete(listCtx, accountconnectionresource.NewAccountID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName), accountconnectionresource.DefaultAccountConnectionsListOperationOptions())
 			if err != nil {
 				result := request.NewListResult(listCtx)
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("listing connections for `%s`", accountId.AccountName), err)

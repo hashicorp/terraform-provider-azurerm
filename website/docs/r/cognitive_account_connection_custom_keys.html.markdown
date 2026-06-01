@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
 
-* `category` - (Required) The category of the connection. Possible values include `CustomKeys`. Changing this forces a new resource to be created.
+* `category` - (Required) The category of the connection. The only possible value is `CustomKeys`. Changing this forces a new resource to be created.
 
 * `custom_keys` - (Required) A mapping of custom keys for authentication. All values in this map are sensitive.
 
@@ -99,7 +99,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Cognitive Services Account Connections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cognitive_account_connection_custom_keys.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
+terraform import azurerm_cognitive_account_connection_custom_keys.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
 ```
 
 ## API Providers

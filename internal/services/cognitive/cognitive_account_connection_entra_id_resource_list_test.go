@@ -5,6 +5,7 @@ package cognitive_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -34,7 +35,7 @@ func TestAccCognitiveAccountConnectionEntraID_list(t *testing.T) {
 				Query:  true,
 				Config: r.basicListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_connection_entra_id.list", 1),
+					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_connection_entra_id.list", 2),
 					querycheck.ExpectIdentity(
 						"azurerm_cognitive_account_connection_entra_id.list",
 						map[string]knownvalue.Check{
@@ -62,5 +63,14 @@ list "azurerm_cognitive_account_connection_entra_id" "list" {
 }
 
 func (r CognitiveAccountConnectionEntraIdResource) basicList(data acceptance.TestData) string {
-	return r.basic(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cognitive_account_connection_entra_id" "test2" {
+	name                 = "acctest-conn2-%[2]d"
+	cognitive_account_id = azurerm_cognitive_account.test.id
+	category             = "Databricks"
+	target               = "https://workspace2-%[2]d.databricks.net/"
+}
+`, r.basic(data), data.RandomInteger)
 }

@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `api_key` - (Required) The API key for authentication. This field is sensitive.
 
-* `category` - (Required) The category of the connection. Possible values include `AIServices`, `ApiKey`, `AppInsights`, `AzureOpenAI`, `CognitiveSearch`, `GroundingWithCustomSearch`, `OpenAI`, `Serp`, and `Serverless`. Changing this forces a new resource to be created.
+* `category` - (Required) The category of the connection. Possible values are `AIServices`, `ApiKey`, `AppInsights`, `AzureOpenAI`, `CognitiveSearch`, `GroundingWithCustomSearch`, `OpenAI`, `Serp`, and `Serverless`. Changing this forces a new resource to be created.
 
 * `metadata` - (Optional) A mapping of metadata key-value pairs for the connection.
 
@@ -97,7 +97,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Cognitive Services Account Connections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cognitive_account_connection_api_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
+terraform import azurerm_cognitive_account_connection_api_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
 ```
 
 ## API Providers
