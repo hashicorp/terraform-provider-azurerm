@@ -134,6 +134,10 @@ func TestAccCdnFrontDoorCustomDomain_cipherSuites_validation(t *testing.T) {
 			ExpectError: regexp.MustCompile("at least one TLS 1.2 cipher suite must be specified in `custom_ciphers.tls12` when `minimum_version` is set to `TLS12`"),
 		},
 		{
+			Config:      r.customizedCipherSuiteTls13MissingWithTls13Min(data),
+			ExpectError: regexp.MustCompile("at least one TLS 1.3 cipher suite must be specified in `custom_ciphers.tls13` when `minimum_version` is set to `TLS13`"),
+		},
+		{
 			Config:      r.customizedCipherSuiteTls13MissingOneDefault(data),
 			ExpectError: regexp.MustCompile("`custom_ciphers\\.tls13` must contain both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`"),
 		},
@@ -175,6 +179,13 @@ func TestAccCdnFrontDoorCustomDomain_cipherSuites_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.cipherSuitesTls12Multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cipherSuitesTls13(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -500,6 +511,37 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteTls13MissingWithTls13Min(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-customdomain-tls13-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-tls13-%[2]d", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS13"
+
+    cipher_suite {
+      type = "Customized"
+
+      custom_ciphers {
+        tls12 = [
+          "ECDHE_RSA_AES256_GCM_SHA384",
+        ]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteTls13MissingOneDefault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -595,6 +637,38 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
           "ECDHE_RSA_AES256_GCM_SHA384",
           "DHE_RSA_AES128_GCM_SHA256",
         ]
+        tls13 = [
+          "TLS_AES_128_GCM_SHA256",
+          "TLS_AES_256_GCM_SHA384",
+        ]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r CdnFrontDoorCustomDomainResource) cipherSuitesTls13(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctestcustomdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%[3]s", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS13"
+
+    cipher_suite {
+      type = "Customized"
+
+      custom_ciphers {
         tls13 = [
           "TLS_AES_128_GCM_SHA256",
           "TLS_AES_256_GCM_SHA384",
