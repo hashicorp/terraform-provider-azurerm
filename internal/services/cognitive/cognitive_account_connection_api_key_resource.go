@@ -83,6 +83,13 @@ func (r CognitiveAccountConnectionApiKeyResource) Arguments() map[string]*plugin
 			}, false),
 		},
 
+		"api_key": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"metadata": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
@@ -94,13 +101,6 @@ func (r CognitiveAccountConnectionApiKeyResource) Arguments() map[string]*plugin
 		"target": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"api_key": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
@@ -150,13 +150,15 @@ func (r CognitiveAccountConnectionApiKeyResource) Create() sdk.ResourceFunc {
 			}
 
 			id := accountconnectionresource.NewConnectionID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
-			existing, err := client.AccountConnectionsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AccountConnectionsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := accountconnectionresource.ApiKeyAuthConnectionProperties{

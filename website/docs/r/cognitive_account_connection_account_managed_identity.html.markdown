@@ -46,7 +46,7 @@ resource "azurerm_cognitive_account_connection_account_managed_identity" "exampl
   name                 = "example-connection"
   cognitive_account_id = azurerm_cognitive_account.example.id
   category             = "AzureKeyVault"
-  target               = azurerm_key_vault.example.id
+  target               = azurerm_key_vault.example.vault_uri
 
   metadata = {
     apiType    = "Azure"
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
 
-* `category` - (Required) The category of the connection. Possible values include `AzureKeyVault`. Changing this forces a new resource to be created.
+* `category` - (Required) The category of the connection. The only possible value is `AzureKeyVault`. Changing this forces a new resource to be created.
 
 * `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
 
@@ -92,7 +92,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Cognitive Services Account Connections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cognitive_account_connection_account_managed_identity.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
+terraform import azurerm_cognitive_account_connection_account_managed_identity.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
 ```
 
 ## API Providers

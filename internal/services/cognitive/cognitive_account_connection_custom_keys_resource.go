@@ -72,14 +72,6 @@ func (r CognitiveAccountConnectionCustomKeysResource) Arguments() map[string]*pl
 			ValidateFunc: validation.StringInSlice([]string{string(accountconnectionresource.ConnectionCategoryCustomKeys)}, false),
 		},
 
-		"metadata": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
 		"target": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -90,6 +82,14 @@ func (r CognitiveAccountConnectionCustomKeysResource) Arguments() map[string]*pl
 			Type:      pluginsdk.TypeMap,
 			Required:  true,
 			Sensitive: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"metadata": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -118,13 +118,15 @@ func (r CognitiveAccountConnectionCustomKeysResource) Create() sdk.ResourceFunc 
 			}
 
 			id := accountconnectionresource.NewConnectionID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
-			existing, err := client.AccountConnectionsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AccountConnectionsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := accountconnectionresource.CustomKeysConnectionProperties{

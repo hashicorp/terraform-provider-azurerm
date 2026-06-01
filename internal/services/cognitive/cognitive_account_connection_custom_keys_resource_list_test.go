@@ -5,6 +5,7 @@ package cognitive_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -34,7 +35,7 @@ func TestAccCognitiveAccountConnectionCustomKeys_list(t *testing.T) {
 				Query:  true,
 				Config: r.basicListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_connection_custom_keys.list", 1),
+					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_connection_custom_keys.list", 2),
 					querycheck.ExpectIdentity(
 						"azurerm_cognitive_account_connection_custom_keys.list",
 						map[string]knownvalue.Check{
@@ -62,5 +63,19 @@ list "azurerm_cognitive_account_connection_custom_keys" "list" {
 }
 
 func (r CognitiveAccountConnectionCustomKeysResource) basicList(data acceptance.TestData) string {
-	return r.basic(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cognitive_account_connection_custom_keys" "test2" {
+	name                 = "acctest-conn2-%[2]d"
+	cognitive_account_id = azurerm_cognitive_account.test.id
+	category             = "CustomKeys"
+	target               = azurerm_cognitive_account.openai.endpoint
+
+	custom_keys = {
+		primaryKey   = azurerm_cognitive_account.openai.primary_access_key
+		secondaryKey = azurerm_cognitive_account.openai.secondary_access_key
+	}
+}
+`, r.basic(data), data.RandomInteger)
 }

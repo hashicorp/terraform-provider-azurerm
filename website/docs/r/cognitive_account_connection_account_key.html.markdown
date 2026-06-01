@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `account_key` - (Required) The account key used for authentication.
 
-* `category` - (Required) The category of the connection. Possible values include `AzureStorageAccount`. Changing this forces a new resource to be created.
+* `category` - (Required) The category of the connection. The only possible value is `AzureStorageAccount`. Changing this forces a new resource to be created.
 
 * `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
 
@@ -91,7 +91,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Cognitive Services Account Connections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cognitive_account_connection_account_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
+terraform import azurerm_cognitive_account_connection_account_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
 ```
 
 ## API Providers

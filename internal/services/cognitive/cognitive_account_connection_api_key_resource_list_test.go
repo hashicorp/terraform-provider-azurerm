@@ -5,6 +5,7 @@ package cognitive_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -34,7 +35,7 @@ func TestAccCognitiveAccountConnectionApiKey_list(t *testing.T) {
 				Query:  true,
 				Config: r.basicListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_connection_api_key.list", 1),
+					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_connection_api_key.list", 2),
 					querycheck.ExpectIdentity(
 						"azurerm_cognitive_account_connection_api_key.list",
 						map[string]knownvalue.Check{
@@ -62,5 +63,15 @@ list "azurerm_cognitive_account_connection_api_key" "list" {
 }
 
 func (r CognitiveAccountConnectionApiKeyResource) basicList(data acceptance.TestData) string {
-	return r.basic(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cognitive_account_connection_api_key" "test2" {
+	name                 = "acctest-conn2-%[2]d"
+	cognitive_account_id = azurerm_cognitive_account.test.id
+	category             = "ApiKey"
+	target               = "https://api2.example.com/"
+	api_key              = "test-api-key-2"
+}
+`, r.basic(data), data.RandomInteger)
 }
