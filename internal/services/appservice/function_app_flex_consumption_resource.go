@@ -1033,7 +1033,6 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			backendSaConStr, backendStorageUseMsi, deploymentSaConStrVal := flattenStorageConnectionStrings(*appSettingsResp.Model)
-			backendSaKvIdentity := pointer.From(model.Properties.KeyVaultReferenceIdentity)
 			_, deploymentStorageKey := helpers.ParseWebJobsStorageString(deploymentSaConStrVal)
 			deploymentStorage := model.Properties.FunctionAppConfig.Deployment.Storage
 
@@ -1087,7 +1086,11 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("backend_storage") {
+				var backendSaKvIdentity string
 				backendSaConStr, backendStorageUseMsi, backendSaKvIdentity = expandBackendStorage(state.BackendStorage, storageDomainSuffix)
+				if backendSaKvIdentity == "" {
+					backendSaKvIdentity = "SystemAssigned"
+				}
 				model.Properties.KeyVaultReferenceIdentity = pointer.To(backendSaKvIdentity)
 			}
 
@@ -1384,15 +1387,19 @@ func expandBackendStorage(input []BackendStorage, storageDomainSuffix *string) (
 		return "", false, ""
 	}
 
-	if input[0].KeyVaultSecretID != "" {
-		saConnStr := fmt.Sprintf(helpers.StorageStringFmtKV, input[0].KeyVaultSecretID)
-		return saConnStr, false, input[0].KeyVaultUserAssignedIdentityID
-	} else if input[0].AccessKey != "" {
-		saConnStr := fmt.Sprintf(helpers.StorageStringFmt, input[0].Name, input[0].AccessKey, *storageDomainSuffix)
-		return saConnStr, false, input[0].KeyVaultUserAssignedIdentityID
+	backendStorage := input[0]
+
+	if backendStorage.KeyVaultSecretID != "" {
+		saConnStr := fmt.Sprintf(helpers.StorageStringFmtKV, backendStorage.KeyVaultSecretID)
+		return saConnStr, false, backendStorage.KeyVaultUserAssignedIdentityID
 	}
 
-	return input[0].Name, true, input[0].KeyVaultUserAssignedIdentityID
+	if backendStorage.AccessKey != "" {
+		saConnStr := fmt.Sprintf(helpers.StorageStringFmt, backendStorage.Name, backendStorage.AccessKey, *storageDomainSuffix)
+		return saConnStr, false, backendStorage.KeyVaultUserAssignedIdentityID
+	}
+
+	return backendStorage.Name, true, backendStorage.KeyVaultUserAssignedIdentityID
 }
 
 func flattenBackendStorage(input string, useMsi bool) []BackendStorage {
