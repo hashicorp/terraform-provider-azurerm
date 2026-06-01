@@ -743,6 +743,10 @@ func expandOpenshiftClusterProfile(input []ClusterProfile, subscriptionId string
 }
 
 func expandOpenShiftClusterIdentity(input []identity.ModelUserAssigned) (*identity.LegacySystemAndUserAssignedMap, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
 	expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(input)
 	if err != nil {
 		return nil, err
@@ -755,6 +759,10 @@ func expandOpenShiftClusterIdentity(input []identity.ModelUserAssigned) (*identi
 }
 
 func flattenOpenShiftClusterIdentity(input *identity.LegacySystemAndUserAssignedMap) ([]identity.ModelUserAssigned, error) {
+	if input == nil {
+		return []identity.ModelUserAssigned{}, nil
+	}
+
 	flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(&identity.UserAssignedMap{
 		Type:        input.Type,
 		IdentityIds: input.IdentityIds,
