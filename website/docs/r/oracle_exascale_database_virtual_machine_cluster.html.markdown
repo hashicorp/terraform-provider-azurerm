@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `hostname` - (Required) The hostname for the Exadata VM Cluster on Exascale Infrastructure. Changing this forces a new Exadata VM Cluster to be created.
 
-* `grid_image_ocid` - (Required) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the grid image that is used for grid setup. Changing this forces a new resource to be created.
+* `grid_image_ocid` - (Required) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the grid image that is used for grid setup. Changing this forces a new resource to be created. The Grid Image OCID value can be obtained using the [giMinorVersions API](https://learn.microsoft.com/en-us/rest/api/oracle/gi-minor-versions/list-by-parent?view=rest-oracle-2025-09-01&tabs=HTTP) and [giVersions API](https://learn.microsoft.com/en-us/rest/api/oracle/gi-versions/list-by-location?view=rest-oracle-2025-09-01&tabs=HTTP).
 
 * `node_count` - (Required) The number of nodes in the Exadata VM cluster on Exascale Infrastructure. Possible values range between `2` and `10`.
 
