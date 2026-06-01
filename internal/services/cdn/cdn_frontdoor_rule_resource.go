@@ -421,7 +421,9 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorProtocolMatchValues(),
+									// Intentionally preserved for compatibility with the released per-rule schema.
+									// The expand path still requires `match_values` when this block is used.
+									"match_values": schemaCdnFrontDoorProtocolMatchValues(),
 								},
 							},
 						},
@@ -511,7 +513,9 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorIsDeviceMatchValues(),
+									// Intentionally preserved for compatibility with the released per-rule schema.
+									// The expand path still requires `match_values` when this block is used.
+									"match_values": schemaCdnFrontDoorIsDeviceMatchValues(),
 								},
 							},
 						},
@@ -590,6 +594,41 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(_ context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
+			// This per-rule Front Door resource originally shipped with `request_scheme_condition`
+			// and `is_device_condition` exposing `match_values` as optional in schema, even
+			// though the expand path has always rejected those blocks when `match_values` is
+			// omitted. We intentionally keep that released schema shape for compatibility and
+			// to avoid a schema-surface change on the existing resource, while using
+			// CustomizeDiff to move the same validation failure to plan-time. This is not a
+			// breaking behavior change for working configurations because configs missing
+			// `match_values` were already invalid at apply-time before this check.
+			rawConfig := diff.GetRawConfig()
+			if rawConfig.IsNull() {
+				return nil
+			}
+
+			conditions := rawConfig.GetAttr("conditions")
+			if conditions.IsNull() || conditions.LengthInt() == 0 {
+				return nil
+			}
+
+			conditionBlock := conditions.AsValueSlice()[0].AsValueMap()
+			for _, conditionName := range []string{"request_scheme_condition", "is_device_condition"} {
+				conditionValue := conditionBlock[conditionName]
+				if conditionValue.IsNull() || conditionValue.LengthInt() == 0 {
+					continue
+				}
+
+				matchValues := conditionValue.AsValueSlice()[0].AsValueMap()["match_values"]
+				if matchValues.IsNull() || matchValues.LengthInt() == 0 {
+					return fmt.Errorf("the `%s` block requires `match_values`", conditionName)
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 

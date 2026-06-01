@@ -123,7 +123,6 @@ func (r CdnFrontDoorRuleSetResource) Exists(ctx context.Context, clients *client
 }
 
 func (r CdnFrontDoorRuleSetResource) basic(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -135,11 +134,10 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
   name                     = "acctestfdruleset%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
-`, template, data.RandomIntOfLength(8))
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomIntOfLength(8))
 }
 
 func (r CdnFrontDoorRuleSetResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data, true)
 	return fmt.Sprintf(`
 %s
 
@@ -147,11 +145,10 @@ resource "azurerm_cdn_frontdoor_rule_set" "import" {
   name                     = azurerm_cdn_frontdoor_rule_set.test.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
-`, config)
+`, r.basic(data, true))
 }
 
 func (r CdnFrontDoorRuleSetResource) complete(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -163,11 +160,10 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
   name                     = "acctestfdruleset%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
-`, template, data.RandomIntOfLength(8))
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomIntOfLength(8))
 }
 
 func (r CdnFrontDoorRuleSetResource) batchModeEnabled(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -180,7 +176,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
   batch_mode_enabled       = true
 }
-`, template, data.RandomIntOfLength(8))
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomIntOfLength(8))
 }
 
 func (r CdnFrontDoorRuleSetResource) templateWithAttachedRoute(data acceptance.TestData, attachRoute bool) string {

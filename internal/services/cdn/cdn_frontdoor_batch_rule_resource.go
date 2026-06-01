@@ -15,15 +15,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	legacyrulesets "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 var (
-	_ sdk.ResourceWithUpdate   = CdnFrontDoorBatchRuleResource{}
-	_ sdk.ResourceWithIdentity = CdnFrontDoorBatchRuleResource{}
+	_ sdk.ResourceWithCustomizeDiff = CdnFrontDoorBatchRuleResource{}
+	_ sdk.ResourceWithUpdate        = CdnFrontDoorBatchRuleResource{}
+	_ sdk.ResourceWithIdentity      = CdnFrontDoorBatchRuleResource{}
 )
 
 type CdnFrontDoorBatchRuleResource struct{}
@@ -54,6 +57,24 @@ func (CdnFrontDoorBatchRuleResource) Attributes() map[string]*pluginsdk.Schema {
 		"id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+	}
+}
+
+func (r CdnFrontDoorBatchRuleResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model CdnFrontDoorBatchRuleModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding diff: %+v", err)
+			}
+
+			if err := validateCdnFrontDoorBatchRules(model.Rules); err != nil {
+				return err
+			}
+
+			return nil
 		},
 	}
 }
@@ -171,6 +192,12 @@ func (r CdnFrontDoorBatchRuleResource) Delete() sdk.ResourceFunc {
 		Timeout: 6 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cdn.FrontDoorRuleSetsClient_v2025_12_01
+			rulesClient := metadata.Client.Cdn.FrontDoorRulesClient_v2025_12_01
+
+			var model CdnFrontDoorBatchRuleModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
 			id, err := rules.ParseRuleSetID(metadata.ResourceData.Id())
 			if err != nil {
@@ -198,8 +225,20 @@ func (r CdnFrontDoorBatchRuleResource) Delete() sdk.ResourceFunc {
 				},
 			}
 
+			// Batch rules are managed through the parent Rule Set PUT API. Deleting this
+			// Terraform resource therefore means updating the Rule Set with an empty
+			// `rules` collection rather than deleting the parent Rule Set itself.
 			if err := client.CreateThenPoll(ctx, legacyRuleSetId, payload); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			for _, batchRule := range model.Rules {
+				ruleId := rules.NewRuleID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName, batchRule.Name)
+				pollerType := custompollers.NewFrontDoorBatchRuleDeletePoller(rulesClient, ruleId)
+				poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("waiting for deletion of %s: %+v", ruleId, err)
+				}
 			}
 
 			return nil

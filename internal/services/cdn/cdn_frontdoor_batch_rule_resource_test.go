@@ -149,6 +149,67 @@ func TestAccCdnFrontDoorBatchRule_routeConfigurationOverrideValidation(t *testin
 	})
 }
 
+func TestAccCdnFrontDoorBatchRule_urlFilenameConditionOperatorAny(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
+	r := CdnFrontDoorBatchRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.urlFilenameConditionOperator(data, "Any"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rules.0.conditions.0.url_filename_condition.0.operator").HasValue("Any"),
+				check.That(data.ResourceName).Key("rules.0.conditions.0.url_filename_condition.0.match_values").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRule_conditionValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
+	r := CdnFrontDoorBatchRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.urlFilenameConditionOperator(data, "Contains"),
+			ExpectError: regexp.MustCompile("the `url_filename_condition` block is not valid, `match_values` must be set when `operator` is not `Any`"),
+		},
+		{
+			Config:      r.requestSchemeConditionOperatorAny(data),
+			ExpectError: regexp.MustCompile("the `request_scheme_condition` block is not valid, `match_values` must not be set when `operator` is `Any`"),
+		},
+		{
+			Config:      r.remoteAddressGeoMatchInvalid(data),
+			ExpectError: regexp.MustCompile("`remote_address_condition` is invalid: when `operator` is `GeoMatch` the values in `match_values` must be valid country codes"),
+		},
+		{
+			Config:      r.socketAddressConditionInvalidCIDR(data),
+			ExpectError: regexp.MustCompile("`socket_address_condition` is invalid: when `operator` is `IPMatch` the values in `match_values` must be valid IPv4 or IPv6 CIDRs"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorBatchRule_rulesValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
+	r := CdnFrontDoorBatchRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.duplicateRuleName(data),
+			ExpectError: regexp.MustCompile("the `rules` blocks must have unique `name` values, got duplicate"),
+		},
+		{
+			Config:      r.duplicateRuleOrder(data),
+			ExpectError: regexp.MustCompile("the `rules` blocks must have unique `order` values, got duplicate `1`"),
+		},
+		{
+			Config:      r.unsortedRules(data),
+			ExpectError: regexp.MustCompile("the `rules` blocks must be declared in ascending `order`, got `2` before `1`"),
+		},
+	})
+}
+
 func (r CdnFrontDoorBatchRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := rules.ParseRuleSetID(state.ID)
 	if err != nil {
@@ -263,7 +324,6 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 }
 
 func (r CdnFrontDoorBatchRuleResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -289,7 +349,7 @@ resource "azurerm_cdn_frontdoor_batch_rule" "import" {
     }
   }
 }
-`, config, data.RandomInteger)
+`, r.basic(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorBatchRuleResource) complete(data acceptance.TestData) string {
@@ -557,4 +617,274 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorBatchRuleResource) urlFilenameConditionOperator(data acceptance.TestData, operator string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  rules {
+    name              = "accTestBatchRule%d"
+    behavior_on_match = "Stop"
+    order             = 1
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/index.html"
+        preserve_unmatched_path = false
+      }
+    }
+
+    conditions {
+      url_filename_condition {
+        operator = "%s"
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, operator)
+}
+
+func (r CdnFrontDoorBatchRuleResource) requestSchemeConditionOperatorAny(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  rules {
+    name  = "accTestBatchRule%d"
+    order = 1
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/index.html"
+        preserve_unmatched_path = false
+      }
+    }
+
+    conditions {
+      request_scheme_condition {
+        operator     = "Any"
+        match_values = ["HTTP"]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorBatchRuleResource) remoteAddressGeoMatchInvalid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  rules {
+    name  = "accTestBatchRule%d"
+    order = 1
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/index.html"
+        preserve_unmatched_path = false
+      }
+    }
+
+    conditions {
+      remote_address_condition {
+        operator     = "GeoMatch"
+        match_values = ["us"]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorBatchRuleResource) socketAddressConditionInvalidCIDR(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  rules {
+    name  = "accTestBatchRule%d"
+    order = 1
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/index.html"
+        preserve_unmatched_path = false
+      }
+    }
+
+    conditions {
+      socket_address_condition {
+        operator     = "IPMatch"
+        match_values = ["not-a-cidr"]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorBatchRuleResource) duplicateRuleName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  rules {
+    name  = "accTestBatchRule%d"
+    order = 1
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/first.html"
+        preserve_unmatched_path = false
+      }
+    }
+  }
+
+  rules {
+    name  = "accTestBatchRule%d"
+    order = 2
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/second.html"
+        preserve_unmatched_path = false
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r CdnFrontDoorBatchRuleResource) duplicateRuleOrder(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  rules {
+    name  = "accTestBatchRule%d"
+    order = 1
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/first.html"
+        preserve_unmatched_path = false
+      }
+    }
+  }
+
+  rules {
+    name  = "accTestBatchRuleExtra%d"
+    order = 1
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/second.html"
+        preserve_unmatched_path = false
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r CdnFrontDoorBatchRuleResource) unsortedRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  rules {
+    name  = "accTestBatchRule%d"
+    order = 2
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/second.html"
+        preserve_unmatched_path = false
+      }
+    }
+  }
+
+  rules {
+    name  = "accTestBatchRulePrimary%d"
+    order = 1
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/first.html"
+        preserve_unmatched_path = false
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }

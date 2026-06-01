@@ -812,6 +812,28 @@ func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorError(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorRule_requestSchemeConditionMissingMatchValuesError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.requestSchemeConditionMissingMatchValues(data, true),
+			ExpectError: regexp.MustCompile("the `request_scheme_condition` block requires `match_values'|the `request_scheme_condition` block requires `match_values`"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRule_isDeviceConditionMissingMatchValuesError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.isDeviceConditionMissingMatchValues(data, true),
+			ExpectError: regexp.MustCompile("the `is_device_condition` block requires `match_values'|the `is_device_condition` block requires `match_values`"),
+		},
+	})
+}
+
 func TestAccCdnFrontDoorRule_urlPathConditionOperatorWildcard_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #29415
 	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
@@ -962,7 +984,6 @@ resource "azurerm_cdn_frontdoor_route" "test" {
 }
 
 func (r CdnFrontDoorRuleResource) basic(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -990,11 +1011,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) cacheDuration(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1022,11 +1042,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) cacheDurationZero(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1054,11 +1073,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) urlRedirectAction(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1090,11 +1108,44 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) requestSchemeConditionMissingMatchValues(data acceptance.TestData, attachRoute bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 1
+
+  conditions {
+    request_scheme_condition {
+      negate_condition = false
+      operator         = "Equal"
+    }
+  }
+
+  actions {
+    url_redirect_action {
+      redirect_type        = "PermanentRedirect"
+      redirect_protocol    = "Https"
+      destination_hostname = ""
+    }
+  }
+}
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) originGroupIdOptional(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1129,11 +1180,44 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) isDeviceConditionMissingMatchValues(data acceptance.TestData, attachRoute bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  order                     = 1
+  behavior_on_match         = "Stop"
+
+  actions {
+    url_rewrite_action {
+      source_pattern          = "/"
+      destination             = "/index.html"
+      preserve_unmatched_path = false
+    }
+  }
+
+  conditions {
+    is_device_condition {
+      operator         = "Equal"
+      negate_condition = false
+    }
+  }
+}
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) originGroupIdOptionalUpdate(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1170,11 +1254,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) originGroupIdOptionalError(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1210,11 +1293,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) disableCache(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1245,11 +1327,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) disableCacheOriginGroupId(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1282,11 +1363,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) enableCacheOriginGroupId(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1323,11 +1403,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) enableCache(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1362,11 +1441,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) disableCacheError(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1398,11 +1476,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data, true)
 	return fmt.Sprintf(`
 			%s
 
@@ -1427,11 +1504,10 @@ resource "azurerm_cdn_frontdoor_rule" "import" {
   }
 
 }
-`, config)
+`, r.basic(data, true))
 }
 
 func (r CdnFrontDoorRuleResource) complete(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1500,11 +1576,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) update(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1567,11 +1642,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) actionOnly(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1598,11 +1672,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) invalidCacheDuration(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1629,11 +1702,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) multipleQueryStringParameters(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1667,11 +1739,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) multipleQueryStringParametersError(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1705,11 +1776,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) honorOrigin(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1747,11 +1817,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) allowEmptyQueryString(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1785,11 +1854,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) allowForwardSlashUrlConditionMatchValue(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1821,11 +1889,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) allowForwardSlashUrl2ConditionMatchValue(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1857,11 +1924,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) urlFilenameConditionOperator(data acceptance.TestData, operator string, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1891,11 +1957,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger, operator)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger, operator)
 }
 
 func (r CdnFrontDoorRuleResource) urlPathWildcard(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1930,11 +1995,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) urlPathWildcardNegate(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1969,5 +2033,5 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomInteger)
 }

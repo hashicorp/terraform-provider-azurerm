@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
+	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -359,11 +360,11 @@ func batchRequestMethodMatchValuesSchema() *pluginsdk.Schema {
 }
 
 func batchProtocolMatchValuesSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{Type: pluginsdk.TypeList, Optional: true, MaxItems: 1, Elem: &pluginsdk.Schema{Type: pluginsdk.TypeString, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestSchemeMatchValue(), false)}}
+	return &pluginsdk.Schema{Type: pluginsdk.TypeList, Required: true, MaxItems: 1, Elem: &pluginsdk.Schema{Type: pluginsdk.TypeString, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestSchemeMatchValue(), false)}}
 }
 
 func batchIsDeviceMatchValuesSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{Type: pluginsdk.TypeList, Optional: true, MaxItems: 1, Elem: &pluginsdk.Schema{Type: pluginsdk.TypeString, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForIsDeviceMatchValue(), false)}}
+	return &pluginsdk.Schema{Type: pluginsdk.TypeList, Required: true, MaxItems: 1, Elem: &pluginsdk.Schema{Type: pluginsdk.TypeString, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForIsDeviceMatchValue(), false)}}
 }
 
 func batchHTTPVersionMatchValuesSchema() *pluginsdk.Schema {
@@ -493,6 +494,8 @@ func expandCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleRuleModel, ruleSe
 func validateCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleRuleModel) error {
 	names := make(map[string]struct{}, len(input))
 	orders := make(map[int64]struct{}, len(input))
+	var lastOrder int64
+	haveLastOrder := false
 
 	for _, item := range input {
 		if _, exists := names[item.Name]; exists {
@@ -504,6 +507,13 @@ func validateCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleRuleModel) erro
 			return fmt.Errorf("the `rules` blocks must have unique `order` values, got duplicate `%d`", item.Order)
 		}
 		orders[item.Order] = struct{}{}
+
+		if haveLastOrder && item.Order < lastOrder {
+			return fmt.Errorf("the `rules` blocks must be declared in ascending `order`, got `%d` before `%d`", lastOrder, item.Order)
+		}
+
+		lastOrder = item.Order
+		haveLastOrder = true
 	}
 
 	return nil
@@ -843,7 +853,11 @@ func expandCdnFrontDoorBatchRuleConditions(input []CdnFrontDoorBatchRuleConditio
 		results = append(results, condition)
 	}
 	for _, item := range conditions.RequestSchemeCondition {
-		results = append(results, expandRequestSchemeCondition(item))
+		condition, err := expandRequestSchemeCondition(item)
+		if err != nil {
+			return nil, fmt.Errorf("expanding `request_scheme_condition`: %+v", err)
+		}
+		results = append(results, condition)
 	}
 	for _, item := range conditions.HTTPVersionCondition {
 		condition, err := expandHTTPVersionCondition(item)
@@ -860,7 +874,11 @@ func expandCdnFrontDoorBatchRuleConditions(input []CdnFrontDoorBatchRuleConditio
 		results = append(results, condition)
 	}
 	for _, item := range conditions.IsDeviceCondition {
-		results = append(results, expandIsDeviceCondition(item))
+		condition, err := expandIsDeviceCondition(item)
+		if err != nil {
+			return nil, fmt.Errorf("expanding `is_device_condition`: %+v", err)
+		}
+		results = append(results, condition)
 	}
 	for _, item := range conditions.SSLProtocolCondition {
 		condition, err := expandSSLProtocolCondition(item)
@@ -947,6 +965,10 @@ func flattenCdnFrontDoorBatchRuleConditions(input *[]rules.DeliveryRuleCondition
 		}
 	}
 
+	if !batchRuleHasConditions(conditions) {
+		return []CdnFrontDoorBatchRuleConditionsModel{}, nil
+	}
+
 	return []CdnFrontDoorBatchRuleConditionsModel{conditions}, nil
 }
 
@@ -954,6 +976,29 @@ func expandRemoteAddressCondition(input CdnFrontDoorBatchRuleStringConditionMode
 	if err := validateAnyCondition("remote_address_condition", input.Operator, input.MatchValues); err != nil {
 		return nil, err
 	}
+
+	if strings.EqualFold(input.Operator, string(rules.RemoteAddressOperatorGeoMatch)) {
+		for _, matchValue := range input.MatchValues {
+			if ok, _ := helperValidate.RegExHelper(matchValue, "match_values", `^[A-Z]{2}$`); !ok {
+				return nil, fmt.Errorf("`remote_address_condition` is invalid: when `operator` is `GeoMatch` the values in `match_values` must be valid country codes consisting of 2 uppercase characters, got %q", matchValue)
+			}
+		}
+	}
+
+	if strings.EqualFold(input.Operator, string(rules.RemoteAddressOperatorIPMatch)) {
+		matchValues := make([]interface{}, 0, len(input.MatchValues))
+		for _, matchValue := range input.MatchValues {
+			matchValues = append(matchValues, matchValue)
+			if _, errs := validate.FrontDoorRuleCidrIsValid(matchValue, "match_values"); len(errs) > 0 {
+				return nil, fmt.Errorf("`remote_address_condition` is invalid: when `operator` is `IPMatch` the values in `match_values` must be valid IPv4 or IPv6 CIDRs, got %q", matchValue)
+			}
+		}
+
+		if _, errs := validate.FrontDoorRuleCidrOverlap(matchValues, "match_values"); len(errs) > 0 {
+			return nil, fmt.Errorf("`remote_address_condition` is invalid: %+v", errs[0])
+		}
+	}
+
 	return rules.DeliveryRuleRemoteAddressCondition{Name: rules.MatchVariableRemoteAddress, Parameters: rules.RemoteAddressMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleRemoteAddressConditionParameters, Operator: rules.RemoteAddressOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: stringSlicePointer(input.MatchValues)}}, nil
 }
 
@@ -986,66 +1031,87 @@ func expandRequestHeaderCondition(input CdnFrontDoorBatchRuleRequestHeaderCondit
 }
 
 func expandRequestBodyCondition(input CdnFrontDoorBatchRuleStringConditionModel) (rules.DeliveryRuleCondition, error) {
-	if len(input.MatchValues) == 0 {
-		return nil, fmt.Errorf("the `request_body_condition` block requires `match_values`")
+	if err := validateStandardCondition("request_body_condition", input.Operator, input.MatchValues); err != nil {
+		return nil, err
 	}
 	return rules.DeliveryRuleRequestBodyCondition{Name: rules.MatchVariableRequestBody, Parameters: rules.RequestBodyMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleRequestBodyConditionParameters, Operator: rules.RequestBodyOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: stringSlicePointer(input.MatchValues), Transforms: transformsPointer(input.Transforms)}}, nil
 }
 
 func expandRequestMethodCondition(input CdnFrontDoorBatchRuleRequestMethodConditionModel) (rules.DeliveryRuleCondition, error) {
-	if len(input.MatchValues) == 0 {
-		return nil, fmt.Errorf("the `request_method_condition` block requires `match_values`")
+	if err := validateStandardCondition("request_method_condition", input.Operator, input.MatchValues); err != nil {
+		return nil, err
 	}
 	return rules.DeliveryRuleRequestMethodCondition{Name: rules.MatchVariableRequestMethod, Parameters: rules.RequestMethodMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleRequestMethodConditionParameters, Operator: rules.RequestMethodOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: requestMethodValuesPointer(input.MatchValues)}}, nil
 }
 
-func expandRequestSchemeCondition(input CdnFrontDoorBatchRuleRequestSchemeConditionModel) rules.DeliveryRuleCondition {
-	return rules.DeliveryRuleRequestSchemeCondition{Name: rules.MatchVariableRequestScheme, Parameters: rules.RequestSchemeMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleRequestSchemeConditionParameters, Operator: rules.RequestSchemeMatchConditionParametersOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: requestSchemeValuesPointer(input.MatchValues)}}
+func expandRequestSchemeCondition(input CdnFrontDoorBatchRuleRequestSchemeConditionModel) (rules.DeliveryRuleCondition, error) {
+	if err := validateStandardCondition("request_scheme_condition", input.Operator, input.MatchValues); err != nil {
+		return nil, err
+	}
+	return rules.DeliveryRuleRequestSchemeCondition{Name: rules.MatchVariableRequestScheme, Parameters: rules.RequestSchemeMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleRequestSchemeConditionParameters, Operator: rules.RequestSchemeMatchConditionParametersOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: requestSchemeValuesPointer(input.MatchValues)}}, nil
 }
 
 func expandURLPathCondition(input CdnFrontDoorBatchRuleStringConditionModel) (rules.DeliveryRuleCondition, error) {
-	if err := validateStandardCondition("url_path_condition", input.Operator, input.MatchValues); err != nil && input.Operator != string(rules.URLPathOperatorWildcard) {
+	if err := validateStandardCondition("url_path_condition", input.Operator, input.MatchValues); err != nil {
 		return nil, err
 	}
 	return rules.DeliveryRuleURLPathCondition{Name: rules.MatchVariableURLPath, Parameters: rules.URLPathMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleURLPathMatchConditionParameters, Operator: rules.URLPathOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: stringSlicePointer(input.MatchValues), Transforms: transformsPointer(input.Transforms)}}, nil
 }
 
 func expandURLFileExtensionCondition(input CdnFrontDoorBatchRuleStringConditionModel) (rules.DeliveryRuleCondition, error) {
-	if len(input.MatchValues) == 0 {
-		return nil, fmt.Errorf("the `url_file_extension_condition` block requires `match_values`")
+	if err := validateStandardCondition("url_file_extension_condition", input.Operator, input.MatchValues); err != nil {
+		return nil, err
 	}
 	return rules.DeliveryRuleURLFileExtensionCondition{Name: rules.MatchVariableURLFileExtension, Parameters: rules.URLFileExtensionMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleURLFileExtensionMatchConditionParameters, Operator: rules.URLFileExtensionOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: stringSlicePointer(input.MatchValues), Transforms: transformsPointer(input.Transforms)}}, nil
 }
 
 func expandURLFilenameCondition(input CdnFrontDoorBatchRuleStringConditionModel) (rules.DeliveryRuleCondition, error) {
-	if err := validateStandardConditionAllowAnyEmpty("url_filename_condition", input.Operator, input.MatchValues); err != nil {
+	if err := validateStandardCondition("url_filename_condition", input.Operator, input.MatchValues); err != nil {
 		return nil, err
 	}
 	return rules.DeliveryRuleURLFileNameCondition{Name: rules.MatchVariableURLFileName, Parameters: rules.URLFileNameMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleURLFilenameConditionParameters, Operator: rules.URLFileNameOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: stringSlicePointer(input.MatchValues), Transforms: transformsPointer(input.Transforms)}}, nil
 }
 
 func expandHTTPVersionCondition(input CdnFrontDoorBatchRuleHTTPVersionConditionModel) (rules.DeliveryRuleCondition, error) {
-	if len(input.MatchValues) == 0 {
-		return nil, fmt.Errorf("the `http_version_condition` block requires `match_values`")
+	if err := validateStandardCondition("http_version_condition", input.Operator, input.MatchValues); err != nil {
+		return nil, err
 	}
 	return rules.DeliveryRuleHTTPVersionCondition{Name: rules.MatchVariableHTTPVersion, Parameters: rules.HTTPVersionMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleHTTPVersionConditionParameters, Operator: rules.HTTPVersionOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: stringSlicePointer(input.MatchValues)}}, nil
 }
 
 func expandCookiesCondition(input CdnFrontDoorBatchRuleCookiesConditionModel) (rules.DeliveryRuleCondition, error) {
-	if err := validateStandardConditionAllowAnyEmpty("cookies_condition", input.Operator, input.MatchValues); err != nil {
+	if err := validateStandardCondition("cookies_condition", input.Operator, input.MatchValues); err != nil {
 		return nil, err
 	}
 	return rules.DeliveryRuleCookiesCondition{Name: rules.MatchVariableCookies, Parameters: rules.CookiesMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleCookiesConditionParameters, Selector: pointer.To(input.CookieName), Operator: rules.CookiesOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: stringSlicePointer(input.MatchValues), Transforms: transformsPointer(input.Transforms)}}, nil
 }
 
-func expandIsDeviceCondition(input CdnFrontDoorBatchRuleIsDeviceConditionModel) rules.DeliveryRuleCondition {
-	return rules.DeliveryRuleIsDeviceCondition{Name: rules.MatchVariableIsDevice, Parameters: rules.IsDeviceMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleIsDeviceConditionParameters, Operator: rules.IsDeviceOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: isDeviceValuesPointer(input.MatchValues)}}
+func expandIsDeviceCondition(input CdnFrontDoorBatchRuleIsDeviceConditionModel) (rules.DeliveryRuleCondition, error) {
+	if err := validateStandardCondition("is_device_condition", input.Operator, input.MatchValues); err != nil {
+		return nil, err
+	}
+	return rules.DeliveryRuleIsDeviceCondition{Name: rules.MatchVariableIsDevice, Parameters: rules.IsDeviceMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleIsDeviceConditionParameters, Operator: rules.IsDeviceOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: isDeviceValuesPointer(input.MatchValues)}}, nil
 }
 
 func expandSocketAddressCondition(input CdnFrontDoorBatchRuleStringConditionModel) (rules.DeliveryRuleCondition, error) {
 	if err := validateAnyCondition("socket_address_condition", input.Operator, input.MatchValues); err != nil {
 		return nil, err
 	}
+
+	if strings.EqualFold(input.Operator, string(rules.SocketAddrOperatorIPMatch)) {
+		matchValues := make([]interface{}, 0, len(input.MatchValues))
+		for _, matchValue := range input.MatchValues {
+			matchValues = append(matchValues, matchValue)
+			if _, errs := validate.FrontDoorRuleCidrIsValid(matchValue, "match_values"); len(errs) > 0 {
+				return nil, fmt.Errorf("`socket_address_condition` is invalid: when `operator` is `IPMatch` the values in `match_values` must be valid IPv4 or IPv6 CIDRs, got %q", matchValue)
+			}
+		}
+
+		if _, errs := validate.FrontDoorRuleCidrOverlap(matchValues, "match_values"); len(errs) > 0 {
+			return nil, fmt.Errorf("`socket_address_condition` is invalid: %+v", errs[0])
+		}
+	}
+
 	return rules.DeliveryRuleSocketAddrCondition{Name: rules.MatchVariableSocketAddr, Parameters: rules.SocketAddrMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleSocketAddrConditionParameters, Operator: rules.SocketAddrOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: stringSlicePointer(input.MatchValues)}}, nil
 }
 
@@ -1057,8 +1123,8 @@ func expandClientPortCondition(input CdnFrontDoorBatchRuleStringConditionModel) 
 }
 
 func expandServerPortCondition(input CdnFrontDoorBatchRuleStringConditionModel) (rules.DeliveryRuleCondition, error) {
-	if len(input.MatchValues) == 0 {
-		return nil, fmt.Errorf("the `server_port_condition` block requires `match_values`")
+	if err := validateStandardCondition("server_port_condition", input.Operator, input.MatchValues); err != nil {
+		return nil, err
 	}
 	return rules.DeliveryRuleServerPortCondition{Name: rules.MatchVariableServerPort, Parameters: rules.ServerPortMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleServerPortConditionParameters, Operator: rules.ServerPortOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: stringSlicePointer(input.MatchValues)}}, nil
 }
@@ -1071,8 +1137,8 @@ func expandHostNameCondition(input CdnFrontDoorBatchRuleStringConditionModel) (r
 }
 
 func expandSSLProtocolCondition(input CdnFrontDoorBatchRuleSSLProtocolConditionModel) (rules.DeliveryRuleCondition, error) {
-	if len(input.MatchValues) == 0 {
-		return nil, fmt.Errorf("the `ssl_protocol_condition` block requires `match_values`")
+	if err := validateStandardCondition("ssl_protocol_condition", input.Operator, input.MatchValues); err != nil {
+		return nil, err
 	}
 	return rules.DeliveryRuleSslProtocolCondition{Name: rules.MatchVariableSslProtocol, Parameters: rules.SslProtocolMatchConditionParameters{TypeName: rules.DeliveryRuleConditionParametersTypeDeliveryRuleSslProtocolConditionParameters, Operator: rules.SslProtocolOperator(input.Operator), NegateCondition: pointer.To(input.NegateCondition), MatchValues: sslProtocolValuesPointer(input.MatchValues)}}, nil
 }
@@ -1087,13 +1153,6 @@ func validateStandardCondition(configName, operator string, matchValues []string
 	return nil
 }
 
-func validateStandardConditionAllowAnyEmpty(configName, operator string, matchValues []string) error {
-	if strings.EqualFold(operator, "Any") && len(matchValues) > 0 {
-		return fmt.Errorf("the `%s` block is not valid, `match_values` must not be set when `operator` is `Any`", configName)
-	}
-	return nil
-}
-
 func validateAnyCondition(configName, operator string, matchValues []string) error {
 	if strings.EqualFold(operator, "Any") && len(matchValues) > 0 {
 		return fmt.Errorf("the `%s` block is not valid, `match_values` must not be set when `operator` is `Any`", configName)
@@ -1102,6 +1161,28 @@ func validateAnyCondition(configName, operator string, matchValues []string) err
 		return fmt.Errorf("the `%s` block is not valid, `match_values` must be set when `operator` is not `Any`", configName)
 	}
 	return nil
+}
+
+func batchRuleHasConditions(input CdnFrontDoorBatchRuleConditionsModel) bool {
+	return len(input.RemoteAddressCondition) > 0 ||
+		len(input.RequestMethodCondition) > 0 ||
+		len(input.QueryStringCondition) > 0 ||
+		len(input.PostArgsCondition) > 0 ||
+		len(input.RequestURICondition) > 0 ||
+		len(input.RequestHeaderCondition) > 0 ||
+		len(input.RequestBodyCondition) > 0 ||
+		len(input.RequestSchemeCondition) > 0 ||
+		len(input.URLPathCondition) > 0 ||
+		len(input.URLFileExtensionCondition) > 0 ||
+		len(input.URLFilenameCondition) > 0 ||
+		len(input.HTTPVersionCondition) > 0 ||
+		len(input.CookiesCondition) > 0 ||
+		len(input.IsDeviceCondition) > 0 ||
+		len(input.SocketAddressCondition) > 0 ||
+		len(input.ClientPortCondition) > 0 ||
+		len(input.ServerPortCondition) > 0 ||
+		len(input.HostNameCondition) > 0 ||
+		len(input.SSLProtocolCondition) > 0
 }
 
 func flattenStringCondition(operator string, negate bool, matchValues []string, transforms []string) CdnFrontDoorBatchRuleStringConditionModel {

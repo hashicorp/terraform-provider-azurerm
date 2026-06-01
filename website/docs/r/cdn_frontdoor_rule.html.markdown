@@ -158,9 +158,7 @@ The following arguments are supported:
 
 * `actions` - (Required) An `actions` block as defined below.
 
-* `order` - (Required) The order in which the rules will be applied for the Front Door Endpoint. The order value should be sequential and begin at `1` (for example `1`, `2`, `3`). A Front Door Rule with a lesser order value is applied before a rule with a greater order value.
-
--> **Note:** If the Front Door Rule has an order value of `0`, it does not require any conditions and the actions are always applied.
+* `order` - (Required) The order in which the rules will be applied for the Front Door Endpoint. Rules with a lesser `order` value are applied before rules with a greater `order` value. Possible values are `0` or greater.
 
 * `behavior_on_match` - (Optional) If this rule is a match, should the rules engine continue processing the remaining rules or stop? Possible values are `Continue` and `Stop`. Defaults to `Continue`.
 
@@ -356,6 +354,8 @@ A `remote_address_condition` block supports the following:
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `match_values` - (Optional) For `IPMatch`, specify one or more IP address ranges. For `GeoMatch`, specify one or more country codes. If multiple values are specified, they are evaluated using `OR` logic.
 
+~> **Note:** When `operator` is set to `GeoMatch`, each value in `match_values` must be a two-letter uppercase country code.
+
 -> **Note:** See the `Specifying IP Address Ranges` section below for how to define `match_values`.
 
 ---
@@ -433,9 +433,12 @@ A `request_scheme_condition` block supports the following:
 
 -> **Note:** The `request_scheme_condition` identifies requests that use the specified protocol.
 
-* `operator` - (Optional) The only possible value is `Equal`. Defaults to `Equal`.
-* `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `match_values` - (Optional) The request protocol to match. Possible values are `HTTP` and `HTTPS`.
+
+~> **Note:** `match_values` must be set when `request_scheme_condition` is used.
+
+* `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
+* `operator` - (Optional) The only possible value is `Equal`. Defaults to `Equal`.
 
 ---
 
@@ -500,9 +503,12 @@ An `is_device_condition` block supports the following:
 
 -> **Note:** `is_device_condition` identifies requests made from a `Mobile` or `Desktop` device.
 
-* `operator` - (Optional) The only possible value is `Equal`. Defaults to `Equal`.
-* `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `match_values` - (Optional) The device type to match. Possible values are `Mobile` and `Desktop`.
+
+~> **Note:** `match_values` must be set when `is_device_condition` is used.
+
+* `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
+* `operator` - (Optional) The only possible value is `Equal`. Defaults to `Equal`.
 
 ---
 

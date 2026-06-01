@@ -160,7 +160,7 @@ The following arguments are supported:
 
 * `rules` - (Required) One or more `rules` blocks as defined below. The configured blocks represent the complete set of rules managed for the parent Rule Set. The final rule ordering is determined by each block's `order` value.
 
--> **Note:** The position of `rules` blocks in the Terraform configuration is not significant. To insert, remove, or move a rule, update the full `rules` collection with the desired `order` values.
+-> **Note:** The `rules` blocks must be declared in ascending `order`. To insert, remove, or move a rule, update the full `rules` collection in the same ascending order that you want Terraform to store.
 
 ~> **Note:** Each `rules` block must use a unique `name` value and a unique `order` value.
 
@@ -172,9 +172,7 @@ A `rules` block supports the following:
 
 * `name` - (Required) The name which should be used for this Front Door Batch Rule. Possible values must be between 1 and 260 characters in length, begin with a letter, and may contain only letters and numbers.
 
-* `order` - (Required) The order in which this rule will be applied for the Front Door Endpoint. Rules with a lesser `order` value are applied before rules with a greater `order` value.
-
--> **Note:** If a Front Door Batch Rule has an order value of `0`, it does not require any conditions and the actions are always applied.
+* `order` - (Required) The order in which this rule will be applied for the Front Door Endpoint. Rules with a lesser `order` value are applied before rules with a greater `order` value. Possible values are `0` or greater.
 
 * `behavior_on_match` - (Optional) If this rule is a match, should the rules engine continue processing the remaining rules or stop? Possible values are `Continue` and `Stop`. Defaults to `Continue`.
 
@@ -351,7 +349,7 @@ An `is_device_condition` block supports the following:
 
 -> **Note:** `is_device_condition` identifies requests made from a `Mobile` or `Desktop` device.
 
-* `match_values` - (Optional) The device type to match. Possible values are `Mobile` and `Desktop`.
+* `match_values` - (Required) The device type to match. Possible values are `Mobile` and `Desktop`.
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `operator` - (Optional) The only possible value is `Equal`. Defaults to `Equal`.
 
@@ -387,6 +385,8 @@ A `remote_address_condition` block supports the following:
 * `match_values` - (Optional) For `IPMatch`, specify one or more IP address ranges. For `GeoMatch`, specify one or more country codes. If multiple values are specified, they are evaluated using `OR` logic.
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `operator` - (Optional) The type of remote address to match. Possible values are `Any`, `GeoMatch`, and `IPMatch`. Defaults to `IPMatch`.
+
+~> **Note:** When `operator` is set to `GeoMatch`, each value in `match_values` must be a two-letter uppercase country code.
 
 -> **Note:** See the `Specifying IP Address Ranges` section below for how to define `match_values`.
 
@@ -431,7 +431,7 @@ A `request_scheme_condition` block supports the following:
 
 -> **Note:** `request_scheme_condition` identifies requests that use the specified protocol.
 
-* `match_values` - (Optional) The request protocol to match. Possible values are `HTTP` and `HTTPS`.
+* `match_values` - (Required) The request protocol to match. Possible values are `HTTP` and `HTTPS`.
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `operator` - (Optional) The only possible value is `Equal`. Defaults to `Equal`.
 
