@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
@@ -52,6 +53,7 @@ type LogicAppResourceModel struct {
 	ConnectionStrings           []helpers.ConnectionString                 `tfschema:"connection_string"`
 	StorageAccountName          string                                     `tfschema:"storage_account_name"`
 	StorageAccountAccessKey     string                                     `tfschema:"storage_account_access_key"`
+	StorageKeyVaultSecretID     string                                     `tfschema:"storage_key_vault_secret_id"`
 	PublicNetworkAccess         string                                     `tfschema:"public_network_access"`
 	StorageAccountShareName     string                                     `tfschema:"storage_account_share_name"`
 	Version                     string                                     `tfschema:"version"`
@@ -72,6 +74,7 @@ var (
 	logicAppLinuxKind = "functionapp,linux,container,workflowapp"
 
 	storageConnectionStringFmt           = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	storageKeyVaultReferenceFmt          = "@Microsoft.KeyVault(SecretUri=%s)"
 	storageAppSettingName                = "AzureWebJobsStorage"
 	contentShareAppSettingName           = "WEBSITE_CONTENTSHARE"
 	contentFileConnStringAppSettingName  = "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
@@ -202,16 +205,33 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
+			Optional:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_key_vault_secret_id",
+			},
 		},
 
 		"storage_account_access_key": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
+			ConflictsWith: []string{
+				"storage_key_vault_secret_id",
+			},
+		},
+
+		"storage_key_vault_secret_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_key_vault_secret_id",
+			},
 		},
 
 		// Once this property is set, it can not be removed while identity is UserAssigned.
