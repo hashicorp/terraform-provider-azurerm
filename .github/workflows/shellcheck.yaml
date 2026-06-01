@@ -38,8 +38,8 @@ jobs:
   comment-on-fail:
     needs: shellcheck
     if: ${{ failure() }}
-    uses: ./.github/workflows/comment-failure.yaml
+    uses: ./.github/workflows/comment-ci-failure.yaml
   comment-outdated-on-pass:
     needs: shellcheck
     if: ${{ success() }}
-    uses: ./.github/workflows/comment-cleanup.yaml
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml

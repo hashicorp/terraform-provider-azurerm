@@ -57,9 +57,20 @@ func (c ConnectedRegistriesClient) Deactivate(ctx context.Context, id ConnectedR
 
 // DeactivateThenPoll performs Deactivate then polls until it's completed
 func (c ConnectedRegistriesClient) DeactivateThenPoll(ctx context.Context, id ConnectedRegistryId) error {
+	return c.DeactivateCallbackThenPoll(ctx, id, nil)
+}
+
+// DeactivateCallbackThenPoll performs Deactivate, runs the optional callback function, then polls until it's completed
+func (c ConnectedRegistriesClient) DeactivateCallbackThenPoll(ctx context.Context, id ConnectedRegistryId, callback func() error) error {
 	result, err := c.Deactivate(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Deactivate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

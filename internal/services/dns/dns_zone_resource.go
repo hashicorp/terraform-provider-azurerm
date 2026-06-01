@@ -194,15 +194,18 @@ func (r DnsZoneResource) Create() sdk.ResourceFunc {
 			}
 
 			id := zones.NewDnsZoneID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := zones.Zone{
@@ -213,6 +216,7 @@ func (r DnsZoneResource) Create() sdk.ResourceFunc {
 			if _, err := client.CreateOrUpdate(ctx, id, parameters, zones.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			if len(model.SoaRecord) == 1 {
 				soaRecordID := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")
@@ -247,8 +251,6 @@ func (r DnsZoneResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("creating %s: %+v", soaRecordId, err)
 				}
 			}
-
-			metadata.SetID(id)
 
 			return nil
 		},

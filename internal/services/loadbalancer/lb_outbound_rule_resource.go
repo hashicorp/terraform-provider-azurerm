@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -177,7 +178,9 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *pluginsdk.ResourceData, 
 			if exists {
 				if id.OutboundRuleName == *existingOutboundRule.Name {
 					if d.IsNewResource() {
-						return tf.ImportAsExistsError("azurerm_lb_outbound_rule", *existingOutboundRule.Id)
+						if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+							return tf.ImportAsExistsError("azurerm_lb_outbound_rule", *existingOutboundRule.Id)
+						}
 					}
 
 					// this outbound rule is being updated/reapplied remove old copy from the slice
@@ -189,14 +192,18 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *pluginsdk.ResourceData, 
 
 			props.OutboundRules = &outboundRules
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
-				return fmt.Errorf("creating/updating %s: %+v", id, err)
+			if d.IsNewResource() {
+				if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+				d.SetId(id.ID())
+			} else {
+				if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerOutboundRuleRead(d, meta)
 }

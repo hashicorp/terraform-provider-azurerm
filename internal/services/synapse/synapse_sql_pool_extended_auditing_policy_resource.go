@@ -95,17 +95,19 @@ func resourceSynapseSqlPoolExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resou
 	id := parse.NewSqlPoolExtendedAuditingPolicyID(sqlPoolId.SubscriptionId, sqlPoolId.ResourceGroup, sqlPoolId.WorkspaceName, sqlPoolId.Name, "default")
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-		}
 
-		// if state is not disabled, we should flag to import it.
-		if !utils.ResponseWasNotFound(existing.Response) {
-			if props := existing.ExtendedSQLPoolBlobAuditingPolicyProperties; props != nil && props.State != synapse.BlobAuditingPolicyStateDisabled {
-				return tf.ImportAsExistsError("azurerm_synapse_sql_pool_extended_auditing_policy", id.ID())
+			// if state is not disabled, we should flag to import it.
+			if !utils.ResponseWasNotFound(existing.Response) {
+				if props := existing.ExtendedSQLPoolBlobAuditingPolicyProperties; props != nil && props.State != synapse.BlobAuditingPolicyStateDisabled {
+					return tf.ImportAsExistsError("azurerm_synapse_sql_pool_extended_auditing_policy", id.ID())
+				}
 			}
 		}
 	}
@@ -128,7 +130,10 @@ func resourceSynapseSqlPoolExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resou
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourceSynapseSqlPoolExtendedAuditingPolicyRead(d, meta)
 }
 
