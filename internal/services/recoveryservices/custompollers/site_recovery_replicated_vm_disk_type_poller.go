@@ -20,6 +20,8 @@ import (
 
 var _ pollers.PollerType = &SiteRecoveryReplicatedVMDiskTypePoller{}
 
+const siteRecoveryReplicatedVMDiskTypeRequiredSuccessfulReads = 3
+
 type SiteRecoveryReplicatedVMDiskTypeUpdate struct {
 	DiskId                  string
 	RecoveryTargetDiskType  string
@@ -27,9 +29,10 @@ type SiteRecoveryReplicatedVMDiskTypeUpdate struct {
 }
 
 type SiteRecoveryReplicatedVMDiskTypePoller struct {
-	client  *replicationprotecteditems.ReplicationProtectedItemsClient
-	id      replicationprotecteditems.ReplicationProtectedItemId
-	updates map[string]SiteRecoveryReplicatedVMDiskTypeUpdate
+	client                     *replicationprotecteditems.ReplicationProtectedItemsClient
+	id                         replicationprotecteditems.ReplicationProtectedItemId
+	updates                    map[string]SiteRecoveryReplicatedVMDiskTypeUpdate
+	consecutiveSuccessfulReads int
 }
 
 func NewSiteRecoveryReplicatedVMDiskTypePoller(client *replicationprotecteditems.ReplicationProtectedItemsClient, id replicationprotecteditems.ReplicationProtectedItemId, updates []SiteRecoveryReplicatedVMDiskTypeUpdate) *SiteRecoveryReplicatedVMDiskTypePoller {
@@ -45,7 +48,7 @@ func NewSiteRecoveryReplicatedVMDiskTypePoller(client *replicationprotecteditems
 	}
 }
 
-func (p SiteRecoveryReplicatedVMDiskTypePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+func (p *SiteRecoveryReplicatedVMDiskTypePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.Get(ctx, p.id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
@@ -95,17 +98,25 @@ func (p SiteRecoveryReplicatedVMDiskTypePoller) Poll(ctx context.Context) (*poll
 	}
 
 	if len(pending) == 0 {
+		p.consecutiveSuccessfulReads++
+		if p.consecutiveSuccessfulReads < siteRecoveryReplicatedVMDiskTypeRequiredSuccessfulReads {
+			log.Printf("[DEBUG] waiting for managed disk type updates for %s: managed disk types matched target values for %d consecutive reads", p.id, p.consecutiveSuccessfulReads)
+			result.Status = pollers.PollingStatusInProgress
+			return result, nil
+		}
+
 		result.Status = pollers.PollingStatusSucceeded
 		return result, nil
 	}
 
+	p.consecutiveSuccessfulReads = 0
 	sort.Strings(pending)
 	log.Printf("[DEBUG] waiting for managed disk type updates for %s: %s", p.id, strings.Join(pending, "; "))
 	result.Status = pollers.PollingStatusInProgress
 	return result, nil
 }
 
-func (p SiteRecoveryReplicatedVMDiskTypePoller) pendingDiskTypeUpdates(details replicationprotecteditems.A2AReplicationDetails, resp *client.Response) ([]string, error) {
+func (p *SiteRecoveryReplicatedVMDiskTypePoller) pendingDiskTypeUpdates(details replicationprotecteditems.A2AReplicationDetails, resp *client.Response) ([]string, error) {
 	pending := make([]string, 0)
 
 	protectedDisks := make(map[string]replicationprotecteditems.A2AProtectedManagedDiskDetails)
