@@ -67,15 +67,15 @@ func (r CognitiveAccountConnectionCustomKeysResource) basicList(data acceptance.
 %[1]s
 
 resource "azurerm_cognitive_account_connection_custom_keys" "test2" {
-	name                 = "acctest-conn2-%[2]d"
-	cognitive_account_id = azurerm_cognitive_account.test.id
-	category             = "CustomKeys"
-	target               = azurerm_cognitive_account.openai.endpoint
+  name                 = "acctest-conn2-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "CustomKeys"
+  target               = azurerm_cognitive_account.openai.endpoint
 
-	custom_keys = {
-		primaryKey   = azurerm_cognitive_account.openai.primary_access_key
-		secondaryKey = azurerm_cognitive_account.openai.secondary_access_key
-	}
+  custom_keys = {
+    primaryKey   = azurerm_cognitive_account.openai.primary_access_key
+    secondaryKey = azurerm_cognitive_account.openai.secondary_access_key
+  }
 }
 `, r.basic(data), data.RandomInteger)
 }

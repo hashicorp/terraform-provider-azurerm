@@ -197,7 +197,7 @@ resource "azurerm_cognitive_account_connection_account_managed_identity" "test" 
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   category             = "AzureKeyVault"
-	target               = azurerm_key_vault.test2.vault_uri
+  target               = azurerm_key_vault.test2.vault_uri
 
   metadata = {
     ApiType    = "Azure"
