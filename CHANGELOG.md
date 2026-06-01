@@ -5,6 +5,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+ * `azurerm_oracle_resource_anchor` - the `name` property should allow hyphens [GH-32481]
 
 ## 4.75.0 (June 01, 2026)
 
