@@ -168,7 +168,6 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "test" {
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) template(data acceptance.TestData) string {
 	if !features.FivePointOh() {
-
 		return fmt.Sprintf(`
 %[1]s
 

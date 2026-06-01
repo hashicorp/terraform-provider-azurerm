@@ -392,7 +392,6 @@ resource "azurerm_virtual_machine_extension" "import" {
 
 func (VirtualMachineExtensionResource) basicUpdate(data acceptance.TestData) string {
 	if !features.FivePointOh() {
-
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}

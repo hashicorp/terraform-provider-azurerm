@@ -775,7 +775,6 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 
 func (VirtualMachineDataDiskAttachmentResource) virtualMachineApplicationPrep(data acceptance.TestData) string {
 	if !features.FivePointOh() {
-
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
