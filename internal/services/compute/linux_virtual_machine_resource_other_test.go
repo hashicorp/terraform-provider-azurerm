@@ -1754,7 +1754,6 @@ resource "azurerm_linux_virtual_machine" "test" {
 
 func (r LinuxVirtualMachineResource) otherGalleryApplicationTemplate(data acceptance.TestData) string {
 	if !features.FivePointOh() {
-
 		return fmt.Sprintf(`
 %[1]s
 
