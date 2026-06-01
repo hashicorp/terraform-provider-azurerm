@@ -102,6 +102,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 							Default:  string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo),
+								string(afdcustomdomains.AfdMinimumTlsVersionTLSOneThree),
 							}, false),
 						},
 
@@ -213,6 +214,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo),
+				string(afdcustomdomains.AfdMinimumTlsVersionTLSOneThree),
 			}, false),
 		}
 	}
