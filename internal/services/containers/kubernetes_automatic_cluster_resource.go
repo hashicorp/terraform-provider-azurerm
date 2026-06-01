@@ -57,8 +57,7 @@ type KubernetesAutomaticClusterModel struct {
 	DefaultNodePool                 []DefaultNodePoolModel              `tfschema:"default_node_pool"`
 	DiskEncryptionSetID             string                              `tfschema:"disk_encryption_set_id"`
 	DNSPrefix                       string                              `tfschema:"dns_prefix"`
-	DNSPrefixPrivateCluster         string                              `tfschema:"dns_prefix_private_cluster"`
-	HTTPProxyConfig                 []HTTPProxyConfigModel              `tfschema:"http_proxy_config"`
+	HTTPProxyConfig                 []HTTPProxyConfigModel              `tfschema:"proxy"`
 	Identity                        []identity.SystemOrUserAssignedList `tfschema:"identity"`
 	ImageCleanerIntervalHours       int64                               `tfschema:"image_cleaner_interval_in_hours"`
 	KeyManagementService            []KeyManagementServiceModel         `tfschema:"key_management_service"`
@@ -91,7 +90,7 @@ type KubernetesAutomaticClusterModel struct {
 
 	// Computed fields
 	CurrentKubernetesVersion       string            `tfschema:"current_kubernetes_version"`
-	FQDN                           string            `tfschema:"fqdn"`
+	FQDN                           string            `tfschema:"fully_qualified_domain_name"`
 	HTTPApplicationRoutingZoneName string            `tfschema:"http_application_routing_zone_name"`
 	KubeAdminConfig                []KubeConfigModel `tfschema:"kube_admin_config"`
 	KubeAdminConfigRaw             string            `tfschema:"kube_admin_config_raw"`
@@ -110,6 +109,7 @@ type APIServerAccessProfileModel struct {
 type PrivateClusterModel struct {
 	PrivateClusterPublicFQDNEnabled bool   `tfschema:"public_fully_qualified_domain_name_enabled"`
 	PrivateDNSZoneID                string `tfschema:"private_dns_zone_id"`
+	DNSPrefixPrivateCluster         string `tfschema:"dns_prefix"`
 }
 
 type AutoScalerProfileModel struct {
@@ -118,7 +118,7 @@ type AutoScalerProfileModel struct {
 	DaemonsetEvictionForOccupiedNodesEnabled bool    `tfschema:"daemonset_eviction_for_occupied_nodes_enabled"`
 	Expander                                 string  `tfschema:"expander"`
 	IgnoreDaemonsetsUtilizationEnabled       bool    `tfschema:"daemonset_ignore_utilization_enabled"`
-	MaxGracefulTerminationSec                string  `tfschema:"maximum_graceful_termination_in_seconds"`
+	MaxGracefulTerminationSec                int64   `tfschema:"maximum_graceful_termination_in_seconds"`
 	MaxNodeProvisioningTime                  int64   `tfschema:"maximum_node_provisioning_in_minutes"`
 	MaxUnreadyNodes                          int64   `tfschema:"maximum_unready_nodes"`
 	MaxUnreadyPercentage                     float64 `tfschema:"maximum_unready_percentage"`
@@ -129,8 +129,8 @@ type AutoScalerProfileModel struct {
 	ScaleDownDelayAfterFailure               int64   `tfschema:"scale_down_delay_after_failure_in_minutes"`
 	ScaleDownUnneeded                        int64   `tfschema:"scale_down_unneeded_in_minutes"`
 	ScaleDownUnready                         int64   `tfschema:"scale_down_unready_in_minutes"`
-	ScaleDownUtilizationThreshold            string  `tfschema:"scale_down_utilization_threshold"`
-	EmptyBulkDeleteMax                       string  `tfschema:"maximum_empty_bulk_delete"`
+	ScaleDownUtilizationThreshold            float64 `tfschema:"scale_down_utilization_threshold"`
+	EmptyBulkDeleteMax                       int64   `tfschema:"maximum_empty_bulk_delete"`
 	SkipNodesWithLocalStorage                bool    `tfschema:"skip_nodes_with_local_storage_enabled"`
 	SkipNodesWithSystemPods                  bool    `tfschema:"skip_nodes_with_system_pods_enabled"`
 }
@@ -164,12 +164,8 @@ type KubeletIdentityModel struct {
 }
 
 type LinuxProfileModel struct {
-	AdminUsername string        `tfschema:"admin_username"`
-	SSHKey        []SSHKeyModel `tfschema:"ssh_key"`
-}
-
-type SSHKeyModel struct {
-	KeyData string `tfschema:"key_data"`
+	AdminUsername string `tfschema:"admin_username"`
+	SSHKeyData    string `tfschema:"ssh_key_data"`
 }
 
 type MicrosoftDefenderModel struct {
@@ -257,7 +253,7 @@ type WindowsProfileModel struct {
 	AdminUsername string      `tfschema:"admin_username"`
 	AdminPassword string      `tfschema:"admin_password"`
 	License       string      `tfschema:"license"`
-	GMSA          []GMSAModel `tfschema:"gmsa"`
+	GMSA          []GMSAModel `tfschema:"grounp_managed_service_accounts"`
 }
 
 type GMSAModel struct {
@@ -278,14 +274,13 @@ type KubeConfigModel struct {
 type DefaultNodePoolModel struct {
 	Name                       string                    `tfschema:"name"`
 	TemporaryNameForRotation   string                    `tfschema:"temporary_name_for_rotation"`
-	Type                       string                    `tfschema:"type"`
-	VMSize                     string                    `tfschema:"vm_size"`
+	VMSize                     string                    `tfschema:"virtual_machine_size"`
 	CapacityReservationGroupID string                    `tfschema:"capacity_reservation_group_id"`
 	KubeletConfig              []KubeletConfigModel      `tfschema:"kubelet_config"`
 	LinuxOSConfig              []LinuxOSConfigModel      `tfschema:"linux_os_config"`
 	FipsEnabled                bool                      `tfschema:"fips_enabled"`
 	GPUInstance                string                    `tfschema:"gpu_instance"`
-	GPUDriver                  string                    `tfschema:"gpu_driver"`
+	GPUDriver                  bool                      `tfschema:"gpu_driver_enabled"`
 	KubeletDiskType            string                    `tfschema:"kubelet_disk_type"`
 	MaxPods                    int64                     `tfschema:"maximum_pods"`
 	NodeNetworkProfile         []NodeNetworkProfileModel `tfschema:"node_network_profile"`
@@ -293,29 +288,28 @@ type DefaultNodePoolModel struct {
 	NodeLabels                 map[string]string         `tfschema:"node_labels"`
 	NodePublicIPPrefixID       string                    `tfschema:"node_public_ip_prefix_id"`
 	Tags                       map[string]interface{}    `tfschema:"tags"`
-	OSDiskSizeGB               int64                     `tfschema:"os_disk_size_gb"`
+	OSDiskSizeGB               int64                     `tfschema:"os_disk_size_in_gb"`
 	OSSKU                      string                    `tfschema:"os_sku"`
 	UltraSSDEnabled            bool                      `tfschema:"ultra_ssd_enabled"`
-	VnetSubnetID               string                    `tfschema:"vnet_subnet_id"`
+	VnetSubnetID               string                    `tfschema:"subnet_id"`
 	OrchestratorVersion        string                    `tfschema:"orchestrator_version"`
 	ProximityPlacementGroupID  string                    `tfschema:"proximity_placement_group_id"`
 	SnapshotID                 string                    `tfschema:"snapshot_id"`
 	HostGroupID                string                    `tfschema:"host_group_id"`
 	UpgradeSettings            []UpgradeSettingsModel    `tfschema:"upgrade_settings"`
-	WorkloadRuntime            string                    `tfschema:"workload_runtime"`
 	NodePublicIPEnabled        bool                      `tfschema:"node_public_ip_enabled"`
 	HostEncryptionEnabled      bool                      `tfschema:"host_encryption_enabled"`
 }
 
 type KubeletConfigModel struct {
-	CPUManagerPolicy      string   `tfschema:"cpu_manager_policy"`
+	CPUManagerPolicy      bool     `tfschema:"cpu_manager_policy_static_enabled"`
 	CPUCfsQuotaEnabled    bool     `tfschema:"cpu_cfs_quota_enabled"`
 	CPUCfsQuotaPeriod     string   `tfschema:"cpu_cfs_quota_period"`
 	ImageGcHighThreshold  int64    `tfschema:"image_gc_high_threshold"`
 	ImageGcLowThreshold   int64    `tfschema:"image_gc_low_threshold"`
 	TopologyManagerPolicy string   `tfschema:"topology_manager_policy"`
 	AllowedUnsafeSysctls  []string `tfschema:"allowed_unsafe_sysctls"`
-	ContainerLogMaxSizeMB int64    `tfschema:"container_log_maximum_size_mb"`
+	ContainerLogMaxSizeMB int64    `tfschema:"container_log_maximum_size_in_mb"`
 	ContainerLogMaxFiles  int64    `tfschema:"container_log_maximum_files"`
 	PodMaxPid             int64    `tfschema:"pod_maximum_pid"`
 }
@@ -323,8 +317,8 @@ type KubeletConfigModel struct {
 type LinuxOSConfigModel struct {
 	SysctlConfig              []SysctlConfigModel `tfschema:"sysctl_config"`
 	TransparentHugePage       string              `tfschema:"transparent_huge_page"`
-	TransparentHugePageDefrag string              `tfschema:"transparent_huge_page_defrag"`
-	SwapFileSizeMB            int64               `tfschema:"swap_file_size_mb"`
+	TransparentHugePageDefrag string              `tfschema:"transparent_huge_page_defragmentation"`
+	SwapFileSizeMB            int64               `tfschema:"swap_file_size_in_mb"`
 }
 
 type SysctlConfigModel struct {
@@ -351,7 +345,7 @@ type SysctlConfigModel struct {
 	NetIPv4TCPKeepaliveTime        int64 `tfschema:"net_ipv4_tcp_keepalive_time"`
 	NetIPv4TCPMaxSynBacklog        int64 `tfschema:"net_ipv4_tcp_max_syn_backlog"`
 	NetIPv4TCPMaxTwBuckets         int64 `tfschema:"net_ipv4_tcp_max_tw_buckets"`
-	NetIPv4TCPTwReuse              bool  `tfschema:"net_ipv4_tcp_tw_reuse"`
+	NetIPv4TCPTwReuse              bool  `tfschema:"net_ipv4_tcp_tw_reuse_enabled"`
 	NetNetfilterNfConntrackBuckets int64 `tfschema:"net_netfilter_nf_conntrack_buckets"`
 	NetNetfilterNfConntrackMax     int64 `tfschema:"net_netfilter_nf_conntrack_max"`
 	VMMaxMapCount                  int64 `tfschema:"vm_max_map_count"`
@@ -399,7 +393,7 @@ type IngressApplicationGatewayModel struct {
 	SubnetCIDR                        string                                   `tfschema:"subnet_cidr"`
 	SubnetID                          string                                   `tfschema:"subnet_id"`
 	EffectiveGatewayID                string                                   `tfschema:"effective_gateway_id"`
-	IngressApplicationGatewayIdentity []IngressApplicationGatewayIdentityModel `tfschema:"ingress_application_gateway_identity"`
+	IngressApplicationGatewayIdentity []IngressApplicationGatewayIdentityModel `tfschema:"identity"`
 }
 
 type IngressApplicationGatewayIdentityModel struct {
@@ -422,7 +416,7 @@ type SecretIdentityModel struct {
 type OMSAgentModel struct {
 	LogAnalyticsWorkspaceID     string                  `tfschema:"log_analytics_workspace_id"`
 	MSIAuthForMonitoringEnabled *bool                   `tfschema:"msi_auth_for_monitoring_enabled"`
-	OMSAgentIdentity            []OMSAgentIdentityModel `tfschema:"oms_agent_identity"`
+	OMSAgentIdentity            []OMSAgentIdentityModel `tfschema:"identity"`
 }
 
 type OMSAgentIdentityModel struct {
@@ -517,30 +511,30 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 
 				// Check windows_profile gmsa changes
-				if rd.HasChange("windows_profile.0.gmsa") {
-					old, new := rd.GetChange("windows_profile.0.gmsa")
+				if rd.HasChange("windows_profile.0.grounp_managed_service_accounts") {
+					old, new := rd.GetChange("windows_profile.0.grounp_managed_service_accounts")
 					oldList := old.([]interface{})
 					newList := new.([]interface{})
 					if len(oldList) > 0 && len(newList) == 0 {
-						if err := metadata.ResourceDiff.ForceNew("windows_profile.gmsa"); err != nil {
+						if err := metadata.ResourceDiff.ForceNew("windows_profile.grounp_managed_service_accounts"); err != nil {
 							return err
 						}
 					}
 				}
 
-				if rd.HasChange("windows_profile.0.gmsa.0.dns_server") {
-					old, new := rd.GetChange("windows_profile.0.gmsa.0.dns_server")
+				if rd.HasChange("windows_profile.0.grounp_managed_service_accounts.0.dns_server") {
+					old, new := rd.GetChange("windows_profile.0.grounp_managed_service_accounts.0.dns_server")
 					if old.(string) != "" && new.(string) == "" {
-						if err := metadata.ResourceDiff.ForceNew("windows_profile.gmsa.dns_server"); err != nil {
+						if err := metadata.ResourceDiff.ForceNew("windows_profile.grounp_managed_service_accounts.dns_server"); err != nil {
 							return err
 						}
 					}
 				}
 
-				if rd.HasChange("windows_profile.0.gmsa.0.root_domain") {
-					old, new := rd.GetChange("windows_profile.0.gmsa.0.root_domain")
+				if rd.HasChange("windows_profile.0.grounp_managed_service_accounts.0.root_domain") {
+					old, new := rd.GetChange("windows_profile.0.grounp_managed_service_accounts.0.root_domain")
 					if old.(string) != "" && new.(string) == "" {
-						if err := metadata.ResourceDiff.ForceNew("windows_profile.gmsa.root_domain"); err != nil {
+						if err := metadata.ResourceDiff.ForceNew("windows_profile.grounp_managed_service_accounts.root_domain"); err != nil {
 							return err
 						}
 					}
@@ -624,11 +618,11 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						}, false),
 					},
 
-					"gpu_driver": {
-						Type:         pluginsdk.TypeString,
+					"gpu_driver_enabled": {
+						Type:         pluginsdk.TypeBool,
 						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
+						Default:      false,
+						RequiredWith: []string{"default_node_pool.0.gpu_instance"},
 					},
 
 					"host_encryption_enabled": {
@@ -650,12 +644,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"cpu_manager_policy": {
-									Type:     pluginsdk.TypeString,
+								"cpu_manager_policy_static_enabled": {
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										"static",
-									}, false),
+									Default:  false,
 								},
 
 								"cpu_cfs_quota_enabled": {
@@ -665,8 +657,9 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 								},
 
 								"cpu_cfs_quota_period": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"image_gc_high_threshold": {
@@ -678,7 +671,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 								"image_gc_low_threshold": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ValidateFunc: validation.IntBetween(0, 100),
+									ValidateFunc: validation.IntBetween(1, 100),
 								},
 
 								"topology_manager_policy": {
@@ -699,9 +692,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									},
 								},
 
-								"container_log_maximum_size_mb": {
-									Type:     pluginsdk.TypeInt,
-									Optional: true,
+								"container_log_maximum_size_in_mb": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(0),
 								},
 
 								"container_log_maximum_files": {
@@ -711,8 +705,9 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 								},
 
 								"pod_maximum_pid": {
-									Type:     pluginsdk.TypeInt,
-									Optional: true,
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(0),
 								},
 							},
 						},
@@ -739,6 +734,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
+											// Abbreviations acceptable because refers to system named attributes
 											"fs_aio_max_nr": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
@@ -877,7 +873,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 												ValidateFunc: validation.IntBetween(8000, 1440000),
 											},
 
-											"net_ipv4_tcp_tw_reuse": {
+											"net_ipv4_tcp_tw_reuse_enabled": {
 												Type:     pluginsdk.TypeBool,
 												Optional: true,
 											},
@@ -918,15 +914,17 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 								"transparent_huge_page": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
+									// omited never as option, set as default
 									ValidateFunc: validation.StringInSlice([]string{
 										"always",
 										"madvise",
 									}, false),
 								},
 
-								"transparent_huge_page_defrag": {
+								"transparent_huge_page_defragmentation": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
+									// omited never as option, set as default
 									ValidateFunc: validation.StringInSlice([]string{
 										"always",
 										"defer",
@@ -935,36 +933,39 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									}, false),
 								},
 
-								"swap_file_size_mb": {
-									Type:     pluginsdk.TypeInt,
-									Optional: true,
+								"swap_file_size_in_mb": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(0),
 								},
 							},
 						},
 					},
 
 					"maximum_pods": {
-						Type: pluginsdk.TypeInt,
-						// O+C - Azure assigns a default maximum pods value based on network plugin if not specified
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
-						Computed: true,
+						// O+C - Azure assigns a default maximum pods value based on network plugin if not specified
+						Computed:     true,
+						ValidateFunc: validation.IntAtLeast(0),
 					},
 
 					"node_count": {
-						Type: pluginsdk.TypeInt,
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
 						// O+C - Azure may adjust node count based on autoscaling configuration if not explicitly set
-						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validation.IntBetween(1, 1000),
 					},
 
 					"node_labels": {
-						Type: pluginsdk.TypeMap,
-						// O+C - Azure may apply default labels to nodes if not specified
+						Type:     pluginsdk.TypeMap,
 						Optional: true,
+						// O+C - Azure may apply default labels to nodes if not specified
 						Computed: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 
@@ -1017,7 +1018,8 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									Optional: true,
 									ForceNew: true,
 									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -1039,17 +1041,17 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					},
 
 					"orchestrator_version": {
-						Type: pluginsdk.TypeString,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 						// O+C - Azure uses the cluster's Kubernetes version if not specified
-						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					"os_disk_size_gb": {
-						Type: pluginsdk.TypeInt,
+					"os_disk_size_in_gb": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
 						// O+C - Azure calculates default OS disk size based on VM size if not specified
-						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validation.IntAtLeast(1),
 					},
@@ -1083,16 +1085,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: containerValidate.KubernetesAgentPoolName,
-					},
-
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
-						}, false),
 					},
 
 					"ultra_ssd_enabled": {
@@ -1134,27 +1126,18 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						},
 					},
 
-					"vm_size": {
-						Type: pluginsdk.TypeString,
+					"virtual_machine_size": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 						// O+C can be left blank and azure will select an available vm size
-						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					"vnet_subnet_id": {
+					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
-					},
-
-					"workload_runtime": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  managedclusters.WorkloadRuntimeOCIContainer,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.WorkloadRuntimeOCIContainer),
-						}, false),
 					},
 				},
 			},
@@ -1193,15 +1176,8 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
+			ExactlyOneOf: []string{"dns_prefix", "private_cluster.0.dns_prefix"},
 			ValidateFunc: containerValidate.KubernetesDNSPrefix,
-		},
-
-		"dns_prefix_private_cluster": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
@@ -1236,18 +1212,16 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
-					},
-
+					////TODO probably remove
+					//"enabled": {
+					//	Type:     pluginsdk.TypeBool,
+					//	Required: true,
+					//},
 					"public_fully_qualified_domain_name_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
-
 					"private_dns_zone_id": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -1256,8 +1230,16 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							privatezones.ValidatePrivateDnsZoneID,
 							validation.StringInSlice([]string{
 								"System",
+								"None",
 							}, false),
 						),
+					},
+					"dns_prefix": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ExactlyOneOf: []string{"dns_prefix", "private_cluster.0.dns_prefix"},
+						ValidateFunc: containerValidate.KubernetesDNSPrefix,
 					},
 				},
 			},
@@ -1350,9 +1332,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Default:  false,
 					},
 					"maximum_graceful_termination_in_seconds": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "600",
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      600,
+						ValidateFunc: validation.IntAtLeast(0),
 					},
 					"maximum_node_provisioning_in_minutes": {
 						Type:         pluginsdk.TypeInt,
@@ -1415,14 +1398,16 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 					"scale_down_utilization_threshold": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "0.5",
+						Type:         pluginsdk.TypeFloat,
+						Optional:     true,
+						Default:      0.5,
+						ValidateFunc: validation.FloatAtLeast(0),
 					},
 					"maximum_empty_bulk_delete": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "10",
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      10,
+						ValidateFunc: validation.IntAtLeast(0),
 					},
 					"skip_nodes_with_local_storage_enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -1461,7 +1446,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						// // NOTE: O+C - Azure may populate default admin groups from tenant if not specified
-						// Computed: true,
+						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsUUID,
@@ -1498,7 +1483,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"http_proxy_config": {
+		"proxy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -1518,13 +1503,15 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Elem: &schema.Schema{
-							Type: schema.TypeString,
+							Type:         schema.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 					"trusted_certificate_authority": {
-						Type:      pluginsdk.TypeString,
-						Optional:  true,
-						Sensitive: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
@@ -1552,17 +1539,17 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"kubelet_identity": {
-			Type: pluginsdk.TypeList,
-			// NOTE: O+C - Azure creates a managed identity for kubelet if not specified
+			Type:     pluginsdk.TypeList,
 			Computed: true,
+			// NOTE: O+C - Azure creates a managed identity for kubelet if not specified
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"client_id": {
-						Type: pluginsdk.TypeString,
-						// NOTE: O+C - Azure generates client_id when creating managed identity
+						Type:     pluginsdk.TypeString,
 						Optional: true,
+						// NOTE: O+C - Azure generates client_id when creating managed identity
 						Computed: true,
 						ForceNew: true,
 						RequiredWith: []string{
@@ -1570,12 +1557,12 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							"kubelet_identity.0.user_assigned_identity_id",
 							"identity.0.identity_ids",
 						},
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validation.IsUUID,
 					},
 					"object_id": {
-						Type: pluginsdk.TypeString,
-						// NOTE: O+C - Azure generates object_id when creating managed identity
+						Type:     pluginsdk.TypeString,
 						Optional: true,
+						// NOTE: O+C - Azure generates object_id when creating managed identity
 						Computed: true,
 						ForceNew: true,
 						RequiredWith: []string{
@@ -1583,12 +1570,12 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							"kubelet_identity.0.user_assigned_identity_id",
 							"identity.0.identity_ids",
 						},
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validation.IsUUID,
 					},
 					"user_assigned_identity_id": {
-						Type: pluginsdk.TypeString,
-						// NOTE: O+C - Azure generates identity resource ID when creating managed identity
+						Type:     pluginsdk.TypeString,
 						Optional: true,
+						// NOTE: O+C - Azure generates identity resource ID when creating managed identity
 						Computed: true,
 						ForceNew: true,
 						RequiredWith: []string{
@@ -1614,20 +1601,11 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						ForceNew:     true,
 						ValidateFunc: containerValidate.KubernetesAdminUserName,
 					},
-					"ssh_key": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"key_data": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
+					"ssh_key_data": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
@@ -1656,8 +1634,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
 						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Required: true,
 					},
 					"annotations_allowed": {
 						Type:         pluginsdk.TypeString,
@@ -1683,25 +1660,25 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_service_ip": {
-						Type: pluginsdk.TypeString,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 						// NOTE: O+C - Azure calculates a default DNS service IP from service CIDR if not specified
-						Optional:     true,
 						Computed:     true,
 						ForceNew:     true,
 						ValidateFunc: validate.IPv4Address,
 					},
 					"pod_cidr": {
-						Type: pluginsdk.TypeString,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 						// NOTE: O+C - Azure calculates a default pod CIDR if not specified
-						Optional:     true,
 						Computed:     true,
 						ForceNew:     true,
 						ValidateFunc: validate.CIDR,
 					},
 					"service_cidr": {
-						Type: pluginsdk.TypeString,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 						// NOTE: O+C - Azure calculates a default service CIDR if not specified
-						Optional:     true,
 						Computed:     true,
 						ForceNew:     true,
 						ValidateFunc: validate.CIDR,
@@ -1725,15 +1702,16 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							string(managedclusters.OutboundTypeUserDefinedRouting),
 							string(managedclusters.OutboundTypeManagedNATGateway),
 							string(managedclusters.OutboundTypeUserAssignedNATGateway),
-							string(managedclusters.OutboundTypeNone), // TODO none
+							// expose none as an option because as default it would be breaking
+							string(managedclusters.OutboundTypeNone),
 						}, false),
 					},
 					"load_balancer": {
 						Type:     pluginsdk.TypeList,
 						MaxItems: 1,
 						ForceNew: true,
-						// NOTE: O+C - Azure provides default load balancer configuration if not specified
 						Optional: true,
+						// NOTE: O+C - Azure provides default load balancer configuration if not specified
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
@@ -1750,9 +1728,9 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									ValidateFunc: validation.IntBetween(4, 100),
 								},
 								"managed_outbound_ip_count": {
-									Type: pluginsdk.TypeInt,
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
 									// NOTE: O+C - Azure assigns default outbound IP count if not specified
-									Optional:      true,
 									Computed:      true,
 									ValidateFunc:  validation.IntBetween(1, 100),
 									ConflictsWith: []string{"network.0.load_balancer.0.outbound_ip_prefix_ids", "network.0.load_balancer.0.outbound_ip_address_ids"},
@@ -1798,8 +1776,8 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Type:     pluginsdk.TypeList,
 						MaxItems: 1,
 						ForceNew: true,
-						// NOTE: O+C - Azure provides default NAT gateway configuration if not specified
 						Optional: true,
+						// NOTE: O+C - Azure provides default NAT gateway configuration if not specified
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
@@ -1810,9 +1788,9 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									ValidateFunc: validation.IntBetween(4, 120),
 								},
 								"managed_outbound_ip_count": {
-									Type: pluginsdk.TypeInt,
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
 									// NOTE: O+C - Azure assigns default outbound IP count for NAT gateway if not specified
-									Optional:     true,
 									Computed:     true,
 									ValidateFunc: validation.IntBetween(1, 100),
 								},
@@ -1860,10 +1838,12 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					"internal_ingress_gateway_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Default:  false,
 					},
 					"external_ingress_gateway_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Default:  false,
 					},
 					"certificate_authority": {
 						Type:     pluginsdk.TypeList,
@@ -1902,7 +1882,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						MaxItems: 2,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.StringStartsWithOneOf("asm-"),
 						},
 					},
 				},
@@ -1910,32 +1890,36 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"storage_profile": {
-			Type: pluginsdk.TypeList,
-			// NOTE: O+C - Azure provides default storage profile configuration if not specified
+			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C - Azure provides default storage profile configuration if not specified
 			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"blob_driver_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      false,
+						AtLeastOneOf: []string{"storage_profile.0.blob_driver_enabled", "storage_profile.0.disk_driver_enabled", "storage_profile.0.file_driver_enabled", "storage_profile.0.snapshot_controller_enabled"},
 					},
 					"disk_driver_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      true,
+						AtLeastOneOf: []string{"storage_profile.0.blob_driver_enabled", "storage_profile.0.disk_driver_enabled", "storage_profile.0.file_driver_enabled", "storage_profile.0.snapshot_controller_enabled"},
 					},
 					"file_driver_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      true,
+						AtLeastOneOf: []string{"storage_profile.0.blob_driver_enabled", "storage_profile.0.disk_driver_enabled", "storage_profile.0.file_driver_enabled", "storage_profile.0.snapshot_controller_enabled"},
 					},
 					"snapshot_controller_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      true,
+						AtLeastOneOf: []string{"storage_profile.0.blob_driver_enabled", "storage_profile.0.disk_driver_enabled", "storage_profile.0.file_driver_enabled", "storage_profile.0.snapshot_controller_enabled"},
 					},
 				},
 			},
@@ -1961,9 +1945,9 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"web_app_routing": {
-			Type: pluginsdk.TypeList,
-			// NOTE: O+C - Azure provides default web app routing configuration if not specified
+			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C - Azure provides default web app routing configuration if not specified
 			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -1976,7 +1960,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							ValidateFunc: validation.Any(
 								dnsValidate.ValidateDnsZoneID,
 								privatezones.ValidatePrivateDnsZoneID,
-								validation.StringIsEmpty,
 							),
 						},
 					},
@@ -1988,7 +1971,8 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							string(managedclusters.NginxIngressControllerTypeAnnotationControlled),
 							string(managedclusters.NginxIngressControllerTypeInternal),
 							string(managedclusters.NginxIngressControllerTypeExternal),
-							string(managedclusters.NginxIngressControllerTypeNone), // TODO none
+							// Allow none as option because none is breaking in most cases
+							string(managedclusters.NginxIngressControllerTypeNone),
 						}, false),
 					},
 					"web_app_routing_identity": {
@@ -2039,7 +2023,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							string(managedclusters.LicenseTypeWindowsServer),
 						}, false),
 					},
-					"gmsa": {
+					"grounp_managed_service_accounts": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
@@ -2051,12 +2035,14 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									Default:  true,
 								},
 								"dns_server": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"root_domain": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
 						},
@@ -2098,6 +2084,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 				},
 			},
 		},
+		// TODO maybe flatten
 		"confidential_computing": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -2128,6 +2115,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						ConflictsWith: []string{
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
+							"ingress_application_gateway.0.gateway_name",
 						},
 						AtLeastOneOf: []string{
 							"ingress_application_gateway.0.gateway_id",
@@ -2137,9 +2125,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						ValidateFunc: applicationgateways.ValidateApplicationGatewayID,
 					},
 					"gateway_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type:          pluginsdk.TypeString,
+						Optional:      true,
+						ValidateFunc:  validation.StringIsNotEmpty,
+						ConflictsWith: []string{"ingress_application_gateway.0.gateway_id"},
 					},
 					"subnet_cidr": {
 						Type:     pluginsdk.TypeString,
@@ -2147,6 +2136,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						ConflictsWith: []string{
 							"ingress_application_gateway.0.gateway_id",
 							"ingress_application_gateway.0.subnet_id",
+							"ingress_application_gateway.0.gateway_name",
 						},
 						AtLeastOneOf: []string{
 							"ingress_application_gateway.0.gateway_id",
@@ -2161,6 +2151,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						ConflictsWith: []string{
 							"ingress_application_gateway.0.gateway_id",
 							"ingress_application_gateway.0.subnet_cidr",
+							"ingress_application_gateway.0.gateway_name",
 						},
 						AtLeastOneOf: []string{
 							"ingress_application_gateway.0.gateway_id",
@@ -2173,7 +2164,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
-					"ingress_application_gateway_identity": {
+					"identity": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
@@ -2199,8 +2190,8 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		"key_vault_secrets_provider": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
-			// NOTE: O+C - Azure provides default Key Vault secrets provider configuration if not specified
 			Optional: true,
+			// NOTE: O+C - Azure provides default Key Vault secrets provider configuration if not specified
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -2248,7 +2239,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
-					"oms_agent_identity": {
+					"identity": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
@@ -2288,7 +2279,7 @@ func (r KubernetesAutomaticClusterResource) Attributes() map[string]*pluginsdk.S
 			Computed: true,
 		},
 
-		"fqdn": {
+		"fully_qualified_domain_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -2441,32 +2432,10 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("validating configuration: %+v", err)
 			}
 
-			location := location.Normalize(model.Location)
-
-			kubernetesVersion := model.KubernetesVersion
-
-			linuxProfile := expandKubernetesAutomaticClusterLinuxProfile(model.LinuxProfile)
-
-			windowsProfile := expandKubernetesAutomaticClusterWindowsProfile(model.WindowsProfile)
-
-			bootstrapProfile := expandKubernetesAutomaticClusterBootstrapProfile(model.BootstrapProfile)
-
-			autoScalerProfile := expandKubernetesAutomaticClusterAutoScalerProfile(model.AutoScalerProfile)
-
 			networkProfile, err := expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile)
 			if err != nil {
 				return fmt.Errorf("expanding network profile: %+v", err)
 			}
-
-			azureMonitorProfile := expandKubernetesAutomaticClusterAzureMonitorProfile(model.MonitorMetrics)
-
-			httpProxyConfig := expandKubernetesAutomaticClusterHttpProxyConfig(model.HTTPProxyConfig)
-
-			apiAccessProfile := expandKubernetesAutomaticClusterAPIAccessProfile(model)
-
-			storageProfile := expandKubernetesAutomaticClusterStorageProfile(model.StorageProfile)
-
-			upgradeOverrideSetting := expandKubernetesAutomaticClusterUpgradeOverride(model.UpgradeOverride)
 
 			securityProfile := &managedclusters.ManagedClusterSecurityProfile{}
 
@@ -2485,12 +2454,6 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			if len(model.CustomCATrustCertificatesBase64) > 0 {
 				securityProfile.CustomCATrustCertificates = pointer.To(model.CustomCATrustCertificatesBase64)
 			}
-
-			metricsProfile := expandKubernetesAutomaticClusterMetricsProfile(model.CostAnalysisEnabled)
-
-			ingressProfile := expandKubernetesAutomaticClusterWebAppRouting(model.WebAppRouting, false)
-
-			serviceMeshProfile := expandKubernetesAutomaticClusterServiceMeshProfile(model.ServiceMeshProfile, nil)
 
 			agentProfiles, err := ExpandDefaultNodePoolTyped(model.DefaultNodePool)
 			if err != nil {
@@ -2515,6 +2478,8 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				Enabled: true,
 			}
 
+			apiAccessProfile := expandKubernetesAutomaticClusterAPIAccessProfile(model)
+
 			var azureADProfile *managedclusters.ManagedClusterAADProfile
 			if len(model.AzureActiveDirectoryRBAC) > 0 {
 				azureADProfile = &managedclusters.ManagedClusterAADProfile{
@@ -2524,7 +2489,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			parameters := managedclusters.ManagedCluster{
-				Location: location,
+				Location: location.Normalize(model.Location),
 				Sku: &managedclusters.ManagedClusterSKU{
 					Name: pointer.To(managedclusters.ManagedClusterSKUName("automatic")),
 					Tier: pointer.To(managedclusters.ManagedClusterSKUTier("standard")),
@@ -2534,22 +2499,22 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 					AadProfile:             azureADProfile,
 					AddonProfiles:          addonProfiles,
 					AgentPoolProfiles:      agentProfiles,
-					AutoScalerProfile:      autoScalerProfile,
+					AutoScalerProfile:      expandKubernetesAutomaticClusterAutoScalerProfile(model.AutoScalerProfile),
 					AutoUpgradeProfile:     pointer.To(managedclusters.ManagedClusterAutoUpgradeProfile{}),
-					AzureMonitorProfile:    azureMonitorProfile,
-					KubernetesVersion:      pointer.To(kubernetesVersion),
-					BootstrapProfile:       bootstrapProfile,
-					LinuxProfile:           linuxProfile,
-					WindowsProfile:         windowsProfile,
-					MetricsProfile:         metricsProfile,
+					AzureMonitorProfile:    expandKubernetesAutomaticClusterAzureMonitorProfile(model.MonitorMetrics),
+					KubernetesVersion:      pointer.To(model.KubernetesVersion),
+					BootstrapProfile:       expandKubernetesAutomaticClusterBootstrapProfile(model.BootstrapProfile),
+					LinuxProfile:           expandKubernetesAutomaticClusterLinuxProfile(model.LinuxProfile),
+					WindowsProfile:         expandKubernetesAutomaticClusterWindowsProfile(model.WindowsProfile),
+					MetricsProfile:         expandKubernetesAutomaticClusterMetricsProfile(model.CostAnalysisEnabled),
 					NetworkProfile:         networkProfile,
 					NodeResourceGroup:      pointer.To(model.NodeResourceGroup),
-					HTTPProxyConfig:        httpProxyConfig,
+					HTTPProxyConfig:        expandKubernetesAutomaticClusterHttpProxyConfig(model.HTTPProxyConfig),
 					SecurityProfile:        securityProfile,
-					StorageProfile:         storageProfile,
-					UpgradeSettings:        upgradeOverrideSetting,
-					IngressProfile:         ingressProfile,
-					ServiceMeshProfile:     serviceMeshProfile,
+					StorageProfile:         expandKubernetesAutomaticClusterStorageProfile(model.StorageProfile),
+					UpgradeSettings:        expandKubernetesAutomaticClusterUpgradeOverride(model.UpgradeOverride),
+					IngressProfile:         expandKubernetesAutomaticClusterWebAppRouting(model.WebAppRouting, false),
+					ServiceMeshProfile:     expandKubernetesAutomaticClusterServiceMeshProfile(model.ServiceMeshProfile, nil),
 				},
 				Tags: tags.Expand(model.Tags),
 			}
@@ -2573,15 +2538,15 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				if (parameters.Identity == nil) || (privateDNSZoneID != "System" && privateDNSZoneID != "None" && (parameters.Identity.Type != identity.TypeUserAssigned)) {
 					return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
 				}
-			}
 
-			if model.DNSPrefixPrivateCluster != "" {
-				if apiAccessProfile.PrivateDNSZone == nil || *apiAccessProfile.PrivateDNSZone == "System" || *apiAccessProfile.PrivateDNSZone == "None" {
-					return fmt.Errorf("`dns_prefix_private_cluster` should only be set for private cluster with custom private dns zone")
+				if model.PrivateCluster[0].DNSPrefixPrivateCluster != "" {
+					if apiAccessProfile.PrivateDNSZone == nil || *apiAccessProfile.PrivateDNSZone == "System" || *apiAccessProfile.PrivateDNSZone == "None" {
+						return fmt.Errorf("`private_cluster.0.dns_prefix` should only be set for private cluster with custom private dns zone")
+					}
+					parameters.Properties.FqdnSubdomain = pointer.To(model.PrivateCluster[0].DNSPrefixPrivateCluster)
+				} else {
+					parameters.Properties.DnsPrefix = pointer.To(model.DNSPrefix)
 				}
-				parameters.Properties.FqdnSubdomain = pointer.To(model.DNSPrefixPrivateCluster)
-			} else {
-				parameters.Properties.DnsPrefix = pointer.To(model.DNSPrefix)
 			}
 
 			if model.DiskEncryptionSetID != "" {
@@ -2663,7 +2628,6 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 		if props := model.Properties; props != nil {
 			state.DNSPrefix = pointer.From(props.DnsPrefix)
-			state.DNSPrefixPrivateCluster = pointer.From(props.FqdnSubdomain)
 			state.FQDN = pointer.From(props.Fqdn)
 			state.PrivateFQDN = pointer.From(props.PrivateFQDN)
 			state.DiskEncryptionSetID = pointer.From(props.DiskEncryptionSetID)
@@ -2682,6 +2646,8 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			apiServerAccessProfile, privateCluster, runCommandEnabled := flattenKubernetesAutomaticClusterAPIAccessProfile(props.ApiServerAccessProfile)
 			state.APIServerAccessProfile = apiServerAccessProfile
 			state.PrivateCluster = privateCluster
+			state.PrivateCluster[0].DNSPrefixPrivateCluster = pointer.From(props.FqdnSubdomain)
+
 			state.RunCommandEnabled = runCommandEnabled
 
 			if props.AddonProfiles != nil {
@@ -2884,12 +2850,12 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 					"default_node_pool.0.kubelet_disk_type",
 					"default_node_pool.0.linux_os_config",
 					"default_node_pool.0.maximum_pods",
-					"default_node_pool.0.os_disk_size_gb",
+					"default_node_pool.0.os_disk_size_in_gb",
 					"default_node_pool.0.pod_subnet_id",
 					"default_node_pool.0.snapshot_id",
 					"default_node_pool.0.ultra_ssd_enabled",
-					"default_node_pool.0.vnet_subnet_id",
-					"default_node_pool.0.vm_size",
+					"default_node_pool.0.subnet_id",
+					"default_node_pool.0.virtual_machine_size",
 				}
 
 				// if the default node pool name has changed, it means the initial attempt at resizing failed
@@ -2971,7 +2937,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("aci_connector_linux") ||
-				metadata.ResourceData.HasChange("confidential_computing") ||
+				metadata.ResourceData.HasChange("confidential_computing_sgx_quote_helper_enabled") ||
 				metadata.ResourceData.HasChange("http_application_routing_enabled") ||
 				metadata.ResourceData.HasChange("oms_agent") ||
 				metadata.ResourceData.HasChange("ingress_application_gateway") ||
@@ -3272,8 +3238,8 @@ func expandKubernetesAutomaticClusterLinuxProfile(input []LinuxProfileModel) *ma
 	config := input[0]
 
 	keyData := ""
-	if len(config.SSHKey) > 0 {
-		keyData = config.SSHKey[0].KeyData
+	if len(config.SSHKeyData) > 0 {
+		keyData = config.SSHKeyData
 	}
 
 	return &managedclusters.ContainerServiceLinuxProfile{
@@ -3295,7 +3261,7 @@ func flattenKubernetesAutomaticClusterLinuxProfile(profile *managedclusters.Cont
 
 	adminUsername := profile.AdminUsername
 
-	sshKeys := make([]SSHKeyModel, 0)
+	sshKeyData := ""
 	ssh := profile.Ssh
 	if keys := ssh.PublicKeys; keys != nil {
 		for _, sshKey := range keys {
@@ -3303,16 +3269,14 @@ func flattenKubernetesAutomaticClusterLinuxProfile(profile *managedclusters.Cont
 			if kd := sshKey.KeyData; kd != "" {
 				keyData = kd
 			}
-			sshKeys = append(sshKeys, SSHKeyModel{
-				KeyData: keyData,
-			})
+			sshKeyData = keyData
 		}
 	}
 
 	return []LinuxProfileModel{
 		{
 			AdminUsername: adminUsername,
-			SSHKey:        sshKeys,
+			SSHKeyData:    sshKeyData,
 		},
 	}
 }
@@ -3781,8 +3745,8 @@ func expandKubernetesAutomaticClusterAutoScalerProfile(input []AutoScalerProfile
 		profile.Expander = pointer.To(managedclusters.Expander(config.Expander))
 	}
 
-	if config.MaxGracefulTerminationSec != "" {
-		profile.MaxGracefulTerminationSec = pointer.To(config.MaxGracefulTerminationSec)
+	if config.MaxGracefulTerminationSec != 0 {
+		profile.MaxGracefulTerminationSec = pointer.To(fmt.Sprintf("%d", config.MaxGracefulTerminationSec))
 	}
 
 	if config.MaxNodeProvisioningTime > 0 {
@@ -3813,12 +3777,12 @@ func expandKubernetesAutomaticClusterAutoScalerProfile(input []AutoScalerProfile
 		profile.ScaleDownUnreadyTime = pointer.To(fmt.Sprintf("%dm", config.ScaleDownUnready))
 	}
 
-	if config.ScaleDownUtilizationThreshold != "" {
-		profile.ScaleDownUtilizationThreshold = pointer.To(config.ScaleDownUtilizationThreshold)
+	if config.ScaleDownUtilizationThreshold != 0.0 {
+		profile.ScaleDownUtilizationThreshold = pointer.To(strconv.FormatFloat(config.ScaleDownUtilizationThreshold, 'f', 1, 64))
 	}
 
-	if config.EmptyBulkDeleteMax != "" {
-		profile.MaxEmptyBulkDelete = pointer.To(config.EmptyBulkDeleteMax)
+	if config.EmptyBulkDeleteMax != 0 {
+		profile.MaxEmptyBulkDelete = pointer.To(strconv.FormatInt(config.EmptyBulkDeleteMax, 10))
 	}
 
 	if config.SkipNodesWithLocalStorage {
@@ -3855,9 +3819,11 @@ func flattenKubernetesAutomaticClusterAutoScalerProfile(profile *managedclusters
 		expander = string(pointer.From(profile.Expander))
 	}
 
-	maxGracefulTerminationSec := ""
+	maxGracefulTerminationSec := int64(0)
 	if profile.MaxGracefulTerminationSec != nil {
-		maxGracefulTerminationSec = pointer.From(profile.MaxGracefulTerminationSec)
+		if val, err := strconv.ParseInt(pointer.From(profile.MaxGracefulTerminationSec), 10, 64); err == nil {
+			maxGracefulTerminationSec = val
+		}
 	}
 
 	MaxNodeProvisioningTime := int64(0)
@@ -3926,14 +3892,18 @@ func flattenKubernetesAutomaticClusterAutoScalerProfile(profile *managedclusters
 		}
 	}
 
-	scaleDownUtilizationThreshold := ""
+	scaleDownUtilizationThreshold := float64(0)
 	if profile.ScaleDownUtilizationThreshold != nil {
-		scaleDownUtilizationThreshold = pointer.From(profile.ScaleDownUtilizationThreshold)
+		if val, err := strconv.ParseFloat(pointer.From(profile.ScaleDownUtilizationThreshold), 64); err == nil {
+			scaleDownUtilizationThreshold = val
+		}
 	}
 
-	emptyBulkDeleteMax := ""
+	emptyBulkDeleteMax := int64(0)
 	if profile.MaxEmptyBulkDelete != nil {
-		emptyBulkDeleteMax = pointer.From(profile.MaxEmptyBulkDelete)
+		if val, err := strconv.ParseInt(pointer.From(profile.MaxEmptyBulkDelete), 10, 64); err == nil {
+			emptyBulkDeleteMax = val
+		}
 	}
 
 	var skipNodesWithLocalStorage bool
@@ -4591,8 +4561,8 @@ func expandClusterNodePoolKubeletConfigTyped(input []KubeletConfigModel) *manage
 	}
 
 	CPUManagerPolicy := "none"
-	if v := config.CPUManagerPolicy; v != "" {
-		CPUManagerPolicy = v
+	if config.CPUManagerPolicy {
+		CPUManagerPolicy = "static"
 	}
 	result.CpuManagerPolicy = pointer.To(CPUManagerPolicy)
 
@@ -4808,11 +4778,11 @@ func flattenClusterNodePoolKubeletConfigTyped(input *managedclusters.KubeletConf
 		AllowedUnsafeSysctls: allowedUnsafeSysctls,
 	}
 
-	CpuManagerPolicy := pointer.To("")
+	CpuManagerPolicy := false
 	if v := input.CpuManagerPolicy; v != nil && v != pointer.To("none") {
-		CpuManagerPolicy = v
+		CpuManagerPolicy = true
 	}
-	result.CPUManagerPolicy = pointer.From(CpuManagerPolicy)
+	result.CPUManagerPolicy = CpuManagerPolicy
 
 	if input.CpuCfsQuotaPeriod != nil {
 		result.CPUCfsQuotaPeriod = pointer.From(input.CpuCfsQuotaPeriod)
@@ -5150,7 +5120,7 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 		NodeLabels:             nodeLabels,
 		NodeTaints:             nodeTaints,
 		Tags:                   tags.Expand(raw.Tags),
-		Type:                   pointer.To(managedclusters.AgentPoolType(raw.Type)),
+		Type:                   pointer.To(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
 		VMSize:                 pointer.To(raw.VMSize),
 
 		// at this time the default node pool has to be Linux or the AKS cluster fails to provision with:
@@ -5210,9 +5180,7 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 		profile.ProximityPlacementGroupID = pointer.To(raw.ProximityPlacementGroupID)
 	}
 
-	if raw.WorkloadRuntime != "" {
-		profile.WorkloadRuntime = pointer.To(managedclusters.WorkloadRuntime(raw.WorkloadRuntime))
-	}
+	profile.WorkloadRuntime = pointer.To(managedclusters.WorkloadRuntimeOCIContainer)
 
 	if raw.CapacityReservationGroupID != "" {
 		profile.CapacityReservationGroupID = pointer.To(raw.CapacityReservationGroupID)
@@ -5222,9 +5190,9 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 		profile.GpuInstanceProfile = pointer.To(managedclusters.GPUInstanceProfile(raw.GPUInstance))
 	}
 
-	if raw.GPUDriver != "" {
+	if raw.GPUDriver {
 		profile.GpuProfile = &managedclusters.GPUProfile{
-			Driver: pointer.To(managedclusters.GPUDriver(raw.GPUDriver)),
+			Driver: pointer.To(managedclusters.GPUDriverInstall),
 		}
 	}
 
@@ -5300,7 +5268,9 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 	}
 
 	if agentPool.GpuProfile != nil && agentPool.GpuProfile.Driver != nil {
-		result.GPUDriver = string(pointer.From(agentPool.GpuProfile.Driver))
+		if pointer.From(agentPool.GpuProfile.Driver) == managedclusters.GPUDriverInstall {
+			result.GPUDriver = true
+		}
 	}
 
 	if agentPool.MaxPods != nil {
@@ -5358,20 +5328,12 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 		result.CapacityReservationGroupID = pointer.From(agentPool.CapacityReservationGroupID)
 	}
 
-	if agentPool.WorkloadRuntime != nil {
-		result.WorkloadRuntime = string(pointer.From(agentPool.WorkloadRuntime))
-	}
-
 	if agentPool.KubeletDiskType != nil {
 		result.KubeletDiskType = string(pointer.From(agentPool.KubeletDiskType))
 	}
 
 	if agentPool.OsSKU != nil {
 		result.OSSKU = string(pointer.From(agentPool.OsSKU))
-	}
-
-	if agentPool.Type != nil {
-		result.Type = string(pointer.From(agentPool.Type))
 	}
 
 	result.UpgradeSettings = flattenClusterNodePoolUpgradeSettingsTyped(agentPool.UpgradeSettings)
