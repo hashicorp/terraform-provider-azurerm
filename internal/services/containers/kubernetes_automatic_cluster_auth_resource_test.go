@@ -389,9 +389,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[1]d"
 
   default_node_pool {
-    name           = "default"
-    node_count     = 1
-    subnet_id = azurerm_subnet.test1.id
+    name       = "default"
+    node_count = 1
+    subnet_id  = azurerm_subnet.test1.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
