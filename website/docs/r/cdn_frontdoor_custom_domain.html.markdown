@@ -178,7 +178,7 @@ A `tls` block supports the following:
 
 * `cipher_suite` - (Optional) A `cipher_suite` block as defined below.
 
-* `minimum_version` - (Optional) TLS protocol version that will be used for HTTPS. The only possible value is `TLS12`. Defaults to `TLS12`.
+* `minimum_version` - (Optional) TLS protocol version that will be used for HTTPS. Possible values are `TLS12` and `TLS13`. Defaults to `TLS12`.
 
 ---
 
