@@ -67,10 +67,10 @@ func (r CognitiveAccountConnectionEntraIdResource) basicList(data acceptance.Tes
 %[1]s
 
 resource "azurerm_cognitive_account_connection_entra_id" "test2" {
-	name                 = "acctest-conn2-%[2]d"
-	cognitive_account_id = azurerm_cognitive_account.test.id
-	category             = "Databricks"
-	target               = "https://workspace2-%[2]d.databricks.net/"
+  name                 = "acctest-conn2-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "Databricks"
+  target               = "https://workspace2-%[2]d.databricks.net/"
 }
 `, r.basic(data), data.RandomInteger)
 }
