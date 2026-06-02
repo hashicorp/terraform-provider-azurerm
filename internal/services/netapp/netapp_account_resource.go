@@ -254,6 +254,15 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 
+	if ad := existing.Model.Properties.ActiveDirectories; ad != nil && len(*ad) > 0 {
+		// The API doesn't return these, so we'll set these values based on config.
+		// If there are no changes to the `active_directory` block this ensures we don't unintentionally wipe these values
+		existingAD := (*ad)[0]
+		existingAD.ServerRootCACertificate = pointer.To(d.Get("active_directory.0.server_root_ca_certificate").(string))
+		existingAD.Password = pointer.To(d.Get("active_directory.0.password").(string))
+		existing.Model.Properties.ActiveDirectories = pointer.To([]netappaccounts.ActiveDirectory{existingAD})
+	}
+
 	if d.HasChange("active_directory") {
 		existing.Model.Properties.ActiveDirectories = expandNetAppActiveDirectories(d.Get("active_directory").([]interface{}))
 	}
@@ -313,7 +322,7 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if model.Properties != nil {
-			// the API returns opaque('***') values for `active_directory.0.password` and `active_directory.0.server_root_ca_certificate`, so we pass through current state values so change detection works
+			// the API doesn't return values for `active_directory.0.password` and `active_directory.0.server_root_ca_certificate`, so we pass through current state values so change detection works
 			prevPassword := d.Get("active_directory.0.password").(string)
 			prevCaCert := d.Get("active_directory.0.server_root_ca_certificate").(string)
 
