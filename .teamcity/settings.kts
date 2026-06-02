@@ -22,8 +22,32 @@ var gitHubRepo = DslContext.getParameter("gitHubRepo", "hashicorp/terraform-prov
 var gitPat = DslContext.getParameter("gitPat", "")
 var teamcityToken = DslContext.getParameter("teamcityToken", "")
 var betaVersionEnvVar = DslContext.getParameter("betaVersionEnvVar", "env.ARM_FIVEPOINTZERO_BETA")
+var labelSuccess = DslContext.getParameter("labelSuccess", "teamcity-passed")
+var labelFailure = DslContext.getParameter("labelFailure", "teamcity-failed")
 
 
-var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt, subscriptionIdDevTest, tenantIdAlt, subscriptionIdAltTenant, principalIdAltTenant, vcsRootId, runBetaVersion, enableTestTriggersGlobally, emailAddressAccTests, gitHubRepo, gitPat, teamcityToken, betaVersionEnvVar)
+var clientConfig = ClientConfiguration(
+    clientId,
+    clientSecret,
+    subscriptionId,
+    tenantId,
+    clientIdAlt,
+    clientSecretAlt,
+    subscriptionIdAlt,
+    subscriptionIdDevTest,
+    tenantIdAlt,
+    subscriptionIdAltTenant,
+    principalIdAltTenant,
+    vcsRootId,
+    runBetaVersion,
+    enableTestTriggersGlobally,
+    emailAddressAccTests,
+    gitHubRepo,
+    gitPat,
+    teamcityToken,
+    betaVersionEnvVar,
+    labelSuccess,
+    labelFailure
+)
 
 project(AzureRM(environment, clientConfig))

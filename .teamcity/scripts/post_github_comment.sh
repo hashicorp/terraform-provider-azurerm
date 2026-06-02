@@ -8,6 +8,9 @@ TEAMCITY_TOKEN="%env.TEAMCITY_TOKEN%"
 BUILD_START_TIME="%env.BUILD_START_TIME%"
 BETA_VERSION_ENV_VAR="%env.BETA_VERSION_ENV_VAR%"
 TEAMCITY_BUILD_BRANCH="%teamcity.build.branch%"
+LABEL_SUCCESS="%env.LABEL_SUCCESS%"
+LABEL_FAILURE="%env.LABEL_FAILURE%"
+
 
 if [ "$POST_GITHUB_COMMENT" != "true" ]; then
   echo "GitHub commenting disabled — skipping."
@@ -59,12 +62,12 @@ remove_label() {
 
 set_testing_label() {
   local label="$1"
-  if [ "$label" = "testing-succeeded" ]; then
-    remove_label "testing-failed"
-    apply_label "testing-succeeded"
-  elif [ "$label" = "testing-failed" ]; then
-    remove_label "testing-succeeded"
-    apply_label "testing-failed"
+  if [ "$label" = "$LABEL_SUCCESS" ]; then
+    remove_label "$LABEL_FAILURE"
+    apply_label "$LABEL_SUCCESS"
+  elif [ "$label" = "$LABEL_FAILURE" ]; then
+    remove_label "$LABEL_SUCCESS"
+    apply_label "$LABEL_FAILURE"
   fi
 }
 
@@ -311,23 +314,23 @@ curl -s -X POST \
 
 echo "Applying labels..."
 
-# If no failures, apply testing-succeeded label
+# If no failures, apply teamcity-passed label
 if [ "$FAIL_COUNT" -eq 0 ]; then
   echo "No test failures detected"
-  set_testing_label "testing-succeeded"
+  set_testing_label "$LABEL_SUCCESS"
   exit 0
 fi
 
 # If there are failures, determine label based on earlier analysis
 if [ -z "$MAIN_TEST_RESULTS" ]; then
-  echo "Could not fetch main branch results - applying 'testing-failed' label as precaution..."
-  set_testing_label "testing-failed"
+  echo "Could not fetch main branch results - applying '$LABEL_FAILURE' label as precaution..."
+  set_testing_label "$LABEL_FAILURE"
 elif [ -z "$NEW_FAILURES" ]; then
   echo "All failed tests also exist in main branch"
-  set_testing_label "testing-succeeded"
+  set_testing_label "$LABEL_SUCCESS"
 else
   echo "Found new test failures not present in main branch"
-  set_testing_label "testing-failed"
+  set_testing_label "$LABEL_FAILURE"
 fi
 
 echo "Label application complete"
