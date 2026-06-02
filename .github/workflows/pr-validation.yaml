@@ -15,15 +15,67 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+
+  # ==========================================
+  # PATH FILTERING LOGIC
+  # ==========================================
+  # We use dorny/paths-filter to only run heavy checks when relevant files change.
+  # 
+  # How to add a new Phase 1 job:
+  # 1. Add a new filter to the `paths-filter` job below.
+  # 2. In your job, add `needs: paths-filter` and `if: needs.paths-filter.outputs.<your-filter> == 'true'`.
+  # 
+  # How to add a new Phase 2/3 job:
+  # 1. It must depend on paths-filter and ALL Phase 1 jobs it needs.
+  # 2. Because GitHub Actions skips downstream jobs if any `needs` dependency is skipped,
+  #    you MUST use the following boilerplate `if` condition to ensure it runs correctly:
+  #    if: |
+  #      always() && 
+  #      needs.paths-filter.outputs.<your-filter> == 'true' &&
+  #      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && ...
+  # ==========================================
+
+  paths-filter:
+    runs-on: ubuntu-latest
+    outputs:
+      website: ${{ steps.filter.outputs.website }}
+      go: ${{ steps.filter.outputs.go }}
+      scripts: ${{ steps.filter.outputs.scripts }}
+      examples: ${{ steps.filter.outputs.examples }}
+      vendor: ${{ steps.filter.outputs.vendor }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            website:
+              - 'website/**'
+            go:
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+            scripts:
+              - 'scripts/**'
+              - '**/*.sh'
+            examples:
+              - 'examples/**'
+            vendor:
+              - 'vendor/**'
+              - 'go.mod'
+              - 'go.sum'
+
   # ==========================================
   # Phase 1: Fail-Fast
   # ==========================================
 
   depscheck:
+    needs: paths-filter
+    if: needs.paths-filter.outputs.vendor == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
@@ -51,7 +103,7 @@ jobs:
 
   depscheck-on-success:
     needs: depscheck
-    if: success()
+    if: success() && needs.depscheck.result == 'success'
     uses: ./.github/workflows/comment-ci-failure-outdated.yaml
     with:
       check_name: "Vendor Dependencies Check"
@@ -59,10 +111,12 @@ jobs:
   # ------------------------------------------
 
   fmtcheck:
+    needs: paths-filter
+    if: needs.paths-filter.outputs.go == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
       - run: make fmtcheck
@@ -88,7 +142,7 @@ jobs:
 
   fmtcheck-on-success:
     needs: fmtcheck
-    if: success()
+    if: success() && needs.fmtcheck.result == 'success'
     uses: ./.github/workflows/comment-ci-failure-outdated.yaml
     with:
       check_name: "GoLang Formatting Check"
@@ -96,9 +150,11 @@ jobs:
   # ------------------------------------------
 
   shellcheck:
+    needs: paths-filter
+    if: needs.paths-filter.outputs.scripts == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Run ShellCheck
         run: make shellcheck
       - name: Guidance on failure
@@ -124,7 +180,7 @@ jobs:
 
   shellcheck-on-success:
     needs: shellcheck
-    if: success()
+    if: success() && needs.shellcheck.result == 'success'
     uses: ./.github/workflows/comment-ci-failure-outdated.yaml
     with:
       check_name: "ShellCheck Scripts"
@@ -132,10 +188,12 @@ jobs:
   # ------------------------------------------
 
   website-lint:
+    needs: paths-filter
+    if: needs.paths-filter.outputs.website == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
@@ -165,7 +223,7 @@ jobs:
 
   website-lint-on-success:
     needs: website-lint
-    if: success()
+    if: success() && needs.website-lint.result == 'success'
     uses: ./.github/workflows/comment-ci-failure-outdated.yaml
     with:
       check_name: "Website Linting"
@@ -213,11 +271,18 @@ jobs:
   # ==========================================
 
   build:
-    needs: [depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    if: |
+      always() && 
+      needs.paths-filter.outputs.go == 'true' &&
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
+      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
@@ -244,7 +309,7 @@ jobs:
 
   build-on-success:
     needs: build
-    if: success()
+    if: success() && needs.build.result == 'success'
     uses: ./.github/workflows/comment-ci-failure-outdated.yaml
     with:
       check_name: "GoLang Compilation"
@@ -252,14 +317,21 @@ jobs:
   # ------------------------------------------
 
   golangci-lint:
-    needs: [depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    if: |
+      always() && 
+      needs.paths-filter.outputs.go == 'true' &&
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
+      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-large
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - uses: golangci/golangci-lint-action@9fae48acfc02a90574d7c304a1758ef9895495fa # v7.0.1
+      - uses: golangci/golangci-lint-action@db582008a42febd596419635a5abc9d9815daa9c # v9
         with:
           version: 'v2.4.0'
           install-mode: 'goinstall'
@@ -289,7 +361,7 @@ jobs:
 
   golangci-lint-on-success:
     needs: golangci-lint
-    if: success()
+    if: success() && needs.golangci-lint.result == 'success'
     uses: ./.github/workflows/comment-ci-failure-outdated.yaml
     with:
       check_name: "GoLang Linting"
@@ -297,11 +369,18 @@ jobs:
   # ------------------------------------------
 
   tflint:
-    needs: [depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    if: |
+      always() && 
+      needs.paths-filter.outputs.go == 'true' &&
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
+      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-medium
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
@@ -331,7 +410,7 @@ jobs:
 
   tflint-on-success:
     needs: tflint
-    if: success()
+    if: success() && needs.tflint.result == 'success'
     uses: ./.github/workflows/comment-ci-failure-outdated.yaml
     with:
       check_name: "Terraform Schema Linting"
@@ -339,11 +418,18 @@ jobs:
   # ------------------------------------------
 
   gencheck:
-    needs: [depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    if: |
+      always() && 
+      needs.paths-filter.outputs.go == 'true' &&
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
+      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-large
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
@@ -370,7 +456,7 @@ jobs:
 
   gencheck-on-success:
     needs: gencheck
-    if: success()
+    if: success() && needs.gencheck.result == 'success'
     uses: ./.github/workflows/comment-ci-failure-outdated.yaml
     with:
       check_name: "Generation Check"
@@ -378,12 +464,19 @@ jobs:
   # ------------------------------------------
 
   unit-tests:
-    needs: [depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    if: |
+      always() && 
+      needs.paths-filter.outputs.go == 'true' &&
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
+      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-xl
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           cache-dependency-path: go.mod
           go-version-file: ./.go-version
@@ -425,7 +518,7 @@ jobs:
 
   unit-tests-on-success:
     needs: unit-tests
-    if: success()
+    if: success() && needs.unit-tests.result == 'success'
     uses: ./.github/workflows/comment-ci-failure-outdated.yaml
     with:
       check_name: "Unit Tests"
@@ -433,11 +526,18 @@ jobs:
   # ------------------------------------------
 
   validate-examples:
-    needs: [depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    if: |
+      always() && 
+      needs.paths-filter.outputs.examples == 'true' &&
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
+      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-small
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
@@ -466,7 +566,7 @@ jobs:
 
   validate-examples-on-success:
     needs: validate-examples
-    if: success()
+    if: success() && needs.validate-examples.result == 'success'
     uses: ./.github/workflows/comment-ci-failure-outdated.yaml
     with:
       check_name: "Validate Examples"
