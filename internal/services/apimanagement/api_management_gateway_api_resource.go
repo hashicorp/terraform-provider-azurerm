@@ -78,18 +78,22 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta inter
 	apiName := getApiName(apiID.ApiId)
 
 	id := gatewayapi.NewGatewayApiID(gatewayID.SubscriptionId, gatewayID.ResourceGroupName, gatewayID.ServiceName, gatewayID.GatewayId, apiName)
-	exists, err := client.GetEntityTag(ctx, id)
-	if err != nil {
-		if !response.WasStatusCode(exists.HttpResponse, http.StatusNoContent) {
-			if !response.WasNotFound(exists.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", gatewayID, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		exists, err := client.GetEntityTag(ctx, id)
+		if err != nil {
+			if !response.WasStatusCode(exists.HttpResponse, http.StatusNoContent) {
+				if !response.WasNotFound(exists.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", gatewayID, err)
+				}
 			}
+		}
+
+		if !response.WasNotFound(exists.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_api_management_gateway_api", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(exists.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_api_management_gateway_api", id.ID())
-	}
 	params := gatewayapi.AssociationContract{}
 	if _, err = client.CreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)

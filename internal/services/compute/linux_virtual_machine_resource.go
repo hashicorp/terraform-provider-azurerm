@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/custompoller"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -495,15 +496,17 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	resp, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_linux_virtual_machine", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_linux_virtual_machine", id.ID())
+		}
 	}
 
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
@@ -869,7 +872,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 
 	// "Authentication using either SSH or by user name and password must be enabled in Linux profile." Target="linuxConfiguration"
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, params, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, params, virtualmachines.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Linux %s: %+v", id, err)
 	}
 

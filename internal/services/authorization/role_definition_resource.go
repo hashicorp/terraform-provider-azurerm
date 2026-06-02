@@ -181,16 +181,18 @@ func (r RoleDefinitionResource) Create() sdk.ResourceFunc {
 
 			id := roledefinitions.NewScopedRoleDefinitionID(config.Scope, roleId)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Role Definition ID for %q (Scope %q)", config.Name, config.Scope)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				importID := parse.RoleDefinitionID{
-					RoleID: roleId,
-					Scope:  config.Scope,
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Role Definition ID for %q (Scope %q)", config.Name, config.Scope)
 				}
-				return metadata.ResourceRequiresImport(r.ResourceType(), importID)
+				if !response.WasNotFound(existing.HttpResponse) {
+					importID := parse.RoleDefinitionID{
+						RoleID: roleId,
+						Scope:  config.Scope,
+					}
+					return metadata.ResourceRequiresImport(r.ResourceType(), importID)
+				}
 			}
 
 			properties := roledefinitions.RoleDefinition{

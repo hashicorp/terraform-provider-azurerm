@@ -58,9 +58,20 @@ func (c CosmosDBClient) MongoDBResourcesMigrateMongoDBCollectionToAutoscale(ctx 
 
 // MongoDBResourcesMigrateMongoDBCollectionToAutoscaleThenPoll performs MongoDBResourcesMigrateMongoDBCollectionToAutoscale then polls until it's completed
 func (c CosmosDBClient) MongoDBResourcesMigrateMongoDBCollectionToAutoscaleThenPoll(ctx context.Context, id MongodbDatabaseCollectionId) error {
+	return c.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleCallbackThenPoll(ctx, id, nil)
+}
+
+// MongoDBResourcesMigrateMongoDBCollectionToAutoscaleCallbackThenPoll performs MongoDBResourcesMigrateMongoDBCollectionToAutoscale, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) MongoDBResourcesMigrateMongoDBCollectionToAutoscaleCallbackThenPoll(ctx context.Context, id MongodbDatabaseCollectionId, callback func() error) error {
 	result, err := c.MongoDBResourcesMigrateMongoDBCollectionToAutoscale(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing MongoDBResourcesMigrateMongoDBCollectionToAutoscale: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -103,14 +103,16 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 
 	id := projectresource.NewProjectID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.ProjectsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.ProjectsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_database_migration_project", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_database_migration_project", id.ID())
+			}
 		}
 	}
 

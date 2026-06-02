@@ -146,15 +146,17 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 
 	id := assessmentsmetadata.NewProviderAssessmentMetadataID(subscriptionId, name)
 
-	existing, err := client.GetInSubscription(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetInSubscription(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_security_center_assessment_policy", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_security_center_assessment_policy", id.ID())
+		}
 	}
 
 	params := assessmentsmetadata.SecurityAssessmentMetadataResponse{

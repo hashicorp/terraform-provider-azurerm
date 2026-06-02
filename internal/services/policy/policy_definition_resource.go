@@ -100,14 +100,15 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.IsNewResource() {
-		resp, _, err := getPolicyDefinitionByID(ctx, client, id)
-		if err != nil {
-			if !response.WasNotFound(resp) {
-				return fmt.Errorf("checking for presence of existing Policy Definition %q: %+v", name, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, _, err := getPolicyDefinitionByID(ctx, client, id)
+			if err != nil {
+				if !response.WasNotFound(resp) {
+					return fmt.Errorf("checking for presence of existing Policy Definition %q: %+v", name, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp) {
+			if !response.WasNotFound(resp) {
 			var idString string
 			switch typedId := id.(type) {
 			case policydefinitions.ProviderPolicyDefinitionId:
@@ -115,7 +116,8 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 			case policydefinitions.Providers2PolicyDefinitionId:
 				idString = typedId.ID()
 			}
-			return tf.ImportAsExistsError("azurerm_policy_definition", idString)
+				return tf.ImportAsExistsError("azurerm_policy_definition", idString)
+			}
 		}
 	}
 

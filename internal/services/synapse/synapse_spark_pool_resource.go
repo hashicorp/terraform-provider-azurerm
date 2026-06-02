@@ -264,7 +264,7 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	id := parse.NewSparkPoolID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -314,11 +314,11 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	// Library Requirements can't be specified on Create so we'll call update after we've confirmed the Spark Pool has been created.
 	return resourceSynapseSparkPoolUpdate(d, meta)

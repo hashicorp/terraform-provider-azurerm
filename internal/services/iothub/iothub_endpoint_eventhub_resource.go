@@ -219,7 +219,9 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
 			if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_endpoint_eventhub", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_iothub_endpoint_eventhub", id.ID())
+					}
 				}
 				endpoints = append(endpoints, eventhubEndpoint)
 				alreadyExists = true
@@ -241,11 +243,12 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceIotHubEndpointEventHubRead(d, meta)
 }
 

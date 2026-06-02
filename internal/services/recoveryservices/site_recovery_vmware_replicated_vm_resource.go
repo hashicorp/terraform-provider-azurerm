@@ -75,15 +75,15 @@ type SiteRecoveryReplicatedVmVMwareModel struct {
 
 type VMWareReplicatedVmResource struct{}
 
-func (s VMWareReplicatedVmResource) ModelObject() interface{} {
+func (r VMWareReplicatedVmResource) ModelObject() interface{} {
 	return &SiteRecoveryReplicatedVmVMwareModel{}
 }
 
-func (s VMWareReplicatedVmResource) ResourceType() string {
+func (r VMWareReplicatedVmResource) ResourceType() string {
 	return "azurerm_site_recovery_vmware_replicated_vm"
 }
 
-func (s VMWareReplicatedVmResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r VMWareReplicatedVmResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return replicationprotecteditems.ValidateReplicationProtectedItemID
 }
 
@@ -92,7 +92,7 @@ var (
 	_ sdk.ResourceWithCustomizeDiff = VMWareReplicatedVmResource{}
 )
 
-func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
+func (r VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -277,11 +277,11 @@ func resourceSiteRecoveryVMWareReplicatedVMNetworkInterfaceSchema() *pluginsdk.R
 	}
 }
 
-func (s VMWareReplicatedVmResource) Attributes() map[string]*pluginsdk.Schema {
+func (r VMWareReplicatedVmResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (k VMWareReplicatedVmResource) CustomizeDiff() sdk.ResourceFunc {
+func (r VMWareReplicatedVmResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			// these fields are not returned by API, and only used in creation.
@@ -318,7 +318,7 @@ func (k VMWareReplicatedVmResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
+func (r VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -352,10 +352,16 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 			id := replicationprotecteditems.NewReplicationProtectedItemID(parsedContainerId.SubscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName, parsedContainerId.ReplicationProtectionContainerName, model.Name)
 			fabricId := replicationfabrics.NewReplicationFabricID(parsedContainerId.SubscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing site recovery vmware replicated vm %q: %+v", id, err)
+					}
+				}
+
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing site recovery vmware replicated vm %q: %+v", id, err)
+					return tf.ImportAsExistsError("azurerm_site_recovery_vmware_replicated_vm", *existing.Model.Id)
 				}
 			}
 
@@ -377,10 +383,6 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 			runAsAccountId, err := fetchRunAsAccountsIdBySite(ctx, runAsAccountsClient, siteID, model.PhysicalServerCredentialName, model.ApplianceName)
 			if err != nil {
 				return fmt.Errorf("fetch run as account id %s: %+v", model.PhysicalServerCredentialName, err)
-			}
-
-			if existing.Model != nil {
-				return tf.ImportAsExistsError("azurerm_site_recovery_vmware_replicated_vm", *existing.Model.Id)
 			}
 
 			providerSpecificDetail := replicationprotecteditems.InMageRcmEnableProtectionInput{
@@ -470,17 +472,10 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			poller, err := client.Create(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %q: %+v", id, err)
 			}
-			// once the PUT request returned successfully, an item has been created, even if it may fail in the poll process.
 			metadata.SetID(id)
-
-			err = poller.Poller.PollUntilDone(ctx)
-			if err != nil {
-				return fmt.Errorf("polling %q: %+v", id, err)
-			}
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
@@ -544,8 +539,7 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.UpdateThenPoll(ctx, id, updateInput)
-			if err != nil {
+			if err := client.UpdateThenPoll(ctx, id, updateInput); err != nil {
 				return fmt.Errorf("creating %q: %+v", id, err)
 			}
 
@@ -554,7 +548,7 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (s VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
+func (r VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -715,7 +709,7 @@ func (s VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (s VMWareReplicatedVmResource) Read() sdk.ResourceFunc {
+func (r VMWareReplicatedVmResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -836,7 +830,7 @@ func (s VMWareReplicatedVmResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (s VMWareReplicatedVmResource) Delete() sdk.ResourceFunc {
+func (r VMWareReplicatedVmResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -1044,6 +1038,7 @@ func expandVMWareReplicatedVMNics(input []NetworkInterfaceModel) []replicationpr
 		vmNic := replicationprotecteditems.InMageRcmNicInput{
 			NicId:            nic.SourceMacAddress,
 			TargetSubnetName: &nic.TargetSubnetName,
+			TestSubnetName:   &nic.TestSubnetName,
 		}
 		if nic.TargetStaticIp != "" {
 			vmNic.TargetStaticIPAddress = &nic.TargetStaticIp
