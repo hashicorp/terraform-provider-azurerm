@@ -71,7 +71,7 @@ type accountManagedIdentityConnectionProperties struct {
 
 func (s accountManagedIdentityConnectionProperties) ConnectionPropertiesV2() accountconnectionresource.BaseConnectionPropertiesV2Impl {
 	return accountconnectionresource.BaseConnectionPropertiesV2Impl{
-		AuthType:                    accountconnectionresource.ConnectionAuthType("AccountManagedIdentity"),
+		AuthType:                    accountconnectionresource.ConnectionAuthTypeAccountManagedIdentity,
 		Category:                    s.Category,
 		CreatedByWorkspaceArmId:     s.CreatedByWorkspaceArmId,
 		Error:                       s.Error,
@@ -94,7 +94,7 @@ func (s accountManagedIdentityConnectionProperties) MarshalJSON() ([]byte, error
 		AuthType string `json:"authType"`
 	}{
 		alias:    alias(s),
-		AuthType: "AccountManagedIdentity",
+		AuthType: string(accountconnectionresource.ConnectionAuthTypeAccountManagedIdentity),
 	}
 
 	encoded, err := json.Marshal(wrapper)

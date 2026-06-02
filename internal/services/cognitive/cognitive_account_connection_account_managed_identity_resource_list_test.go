@@ -48,8 +48,24 @@ func TestAccCognitiveAccountConnectionAccountManagedIdentity_list(t *testing.T) 
 					),
 				},
 			},
+			{
+				Query:  true,
+				Config: r.basicListSubscriptionQuery(),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_connection_account_managed_identity.list", 1),
+				},
+			},
 		},
 	})
+}
+
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) basicListSubscriptionQuery() string {
+	return `
+list "azurerm_cognitive_account_connection_account_managed_identity" "list" {
+  provider = azurerm
+  config {}
+}
+`
 }
 
 func (r CognitiveAccountConnectionAccountManagedIdentityResource) basicListQuery(data acceptance.TestData) string {

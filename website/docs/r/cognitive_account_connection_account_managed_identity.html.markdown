@@ -72,8 +72,6 @@ The following arguments are supported:
 
 * `target` - (Required) The target endpoint or resource for the connection.
 
-~> **Note:** This authentication mode is intended for scenarios where the Foundry account's managed identity is used to access the target resource. The target resource must grant the required permissions to that identity.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -91,7 +89,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Cognitive Services Account Connections can be imported using the `resource id`, e.g.
+A Cognitive Services (Microsoft Foundry) Account Connection with Account Managed Identity authentication can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cognitive_account_connection_account_managed_identity.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1

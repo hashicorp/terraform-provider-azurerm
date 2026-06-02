@@ -47,8 +47,24 @@ func TestAccCognitiveAccountConnectionApiKey_list(t *testing.T) {
 					),
 				},
 			},
+			{
+				Query:  true,
+				Config: r.basicListSubscriptionQuery(),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_connection_api_key.list", 2),
+				},
+			},
 		},
 	})
+}
+
+func (r CognitiveAccountConnectionApiKeyResource) basicListSubscriptionQuery() string {
+	return `
+list "azurerm_cognitive_account_connection_api_key" "list" {
+  provider = azurerm
+  config {}
+}
+`
 }
 
 func (r CognitiveAccountConnectionApiKeyResource) basicListQuery(data acceptance.TestData) string {
