@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -12,21 +13,19 @@ import (
 
 func TestFlattenWorkloadProfiles(t *testing.T) {
 	cases := []struct {
-		Name     string
-		Input    *[]managedenvironments.WorkloadProfile
-		Existing []WorkloadProfileModel
-		Expected []WorkloadProfileModel
+		Name                    string
+		Input                   *[]managedenvironments.WorkloadProfile
+		UserDeclaredConsumption bool
+		Expected                []WorkloadProfileModel
 	}{
 		{
 			Name:     "nil input returns empty",
 			Input:    nil,
-			Existing: nil,
 			Expected: []WorkloadProfileModel{},
 		},
 		{
 			Name:     "empty input returns empty",
 			Input:    &[]managedenvironments.WorkloadProfile{},
-			Existing: nil,
 			Expected: []WorkloadProfileModel{},
 		},
 		{
@@ -37,7 +36,7 @@ func TestFlattenWorkloadProfiles(t *testing.T) {
 					WorkloadProfileType: string(WorkloadProfileSkuConsumption),
 				},
 			},
-			Existing: nil,
+			UserDeclaredConsumption: true,
 			Expected: []WorkloadProfileModel{
 				{
 					Name:                string(WorkloadProfileSkuConsumption),
@@ -46,7 +45,7 @@ func TestFlattenWorkloadProfiles(t *testing.T) {
 			},
 		},
 		{
-			Name: "implicit Consumption is filtered when user declared only dedicated",
+			Name: "implicit Consumption is filtered when user did not declare it",
 			Input: &[]managedenvironments.WorkloadProfile{
 				{
 					Name:                "D4-01",
@@ -59,38 +58,7 @@ func TestFlattenWorkloadProfiles(t *testing.T) {
 					WorkloadProfileType: string(WorkloadProfileSkuConsumption),
 				},
 			},
-			Existing: []WorkloadProfileModel{
-				{
-					Name:                "D4-01",
-					WorkloadProfileType: string(WorkloadProfileSkuD4),
-					MinimumCount:        0,
-					MaximumCount:        3,
-				},
-			},
-			Expected: []WorkloadProfileModel{
-				{
-					Name:                "D4-01",
-					WorkloadProfileType: string(WorkloadProfileSkuD4),
-					MinimumCount:        0,
-					MaximumCount:        3,
-				},
-			},
-		},
-		{
-			Name: "implicit Consumption is filtered on import (existing empty) when API returned dedicated + Consumption",
-			Input: &[]managedenvironments.WorkloadProfile{
-				{
-					Name:                "D4-01",
-					WorkloadProfileType: string(WorkloadProfileSkuD4),
-					MinimumCount:        pointer.To(int64(0)),
-					MaximumCount:        pointer.To(int64(3)),
-				},
-				{
-					Name:                string(WorkloadProfileSkuConsumption),
-					WorkloadProfileType: string(WorkloadProfileSkuConsumption),
-				},
-			},
-			Existing: nil,
+			UserDeclaredConsumption: false,
 			Expected: []WorkloadProfileModel{
 				{
 					Name:                "D4-01",
@@ -114,18 +82,7 @@ func TestFlattenWorkloadProfiles(t *testing.T) {
 					WorkloadProfileType: string(WorkloadProfileSkuConsumption),
 				},
 			},
-			Existing: []WorkloadProfileModel{
-				{
-					Name:                "D4-01",
-					WorkloadProfileType: string(WorkloadProfileSkuD4),
-					MinimumCount:        0,
-					MaximumCount:        3,
-				},
-				{
-					Name:                string(WorkloadProfileSkuConsumption),
-					WorkloadProfileType: string(WorkloadProfileSkuConsumption),
-				},
-			},
+			UserDeclaredConsumption: true,
 			Expected: []WorkloadProfileModel{
 				{
 					Name:                "D4-01",
@@ -159,20 +116,7 @@ func TestFlattenWorkloadProfiles(t *testing.T) {
 					WorkloadProfileType: string(WorkloadProfileSkuConsumption),
 				},
 			},
-			Existing: []WorkloadProfileModel{
-				{
-					Name:                "D4-01",
-					WorkloadProfileType: string(WorkloadProfileSkuD4),
-					MinimumCount:        0,
-					MaximumCount:        3,
-				},
-				{
-					Name:                "E4-01",
-					WorkloadProfileType: string(WorkloadProfileSkuE4),
-					MinimumCount:        1,
-					MaximumCount:        2,
-				},
-			},
+			UserDeclaredConsumption: false,
 			Expected: []WorkloadProfileModel{
 				{
 					Name:                "D4-01",
@@ -202,18 +146,7 @@ func TestFlattenWorkloadProfiles(t *testing.T) {
 					WorkloadProfileType: string(WorkloadProfileSkuConsumptionGpuNc24A100),
 				},
 			},
-			Existing: []WorkloadProfileModel{
-				{
-					Name:                "D4-01",
-					WorkloadProfileType: string(WorkloadProfileSkuD4),
-					MinimumCount:        0,
-					MaximumCount:        3,
-				},
-				{
-					Name:                string(WorkloadProfileSkuConsumptionGpuNc24A100),
-					WorkloadProfileType: string(WorkloadProfileSkuConsumptionGpuNc24A100),
-				},
-			},
+			UserDeclaredConsumption: false,
 			Expected: []WorkloadProfileModel{
 				{
 					Name:                "D4-01",
@@ -227,26 +160,42 @@ func TestFlattenWorkloadProfiles(t *testing.T) {
 				},
 			},
 		},
+		{
+			Name: "Consumption preserved when flag is true even alongside dedicated profiles",
+			Input: &[]managedenvironments.WorkloadProfile{
+				{
+					Name:                "D4-01",
+					WorkloadProfileType: string(WorkloadProfileSkuD4),
+					MinimumCount:        pointer.To(int64(0)),
+					MaximumCount:        pointer.To(int64(3)),
+				},
+				{
+					Name:                string(WorkloadProfileSkuConsumption),
+					WorkloadProfileType: string(WorkloadProfileSkuConsumption),
+				},
+			},
+			UserDeclaredConsumption: true,
+			Expected: []WorkloadProfileModel{
+				{
+					Name:                "D4-01",
+					WorkloadProfileType: string(WorkloadProfileSkuD4),
+					MinimumCount:        0,
+					MaximumCount:        3,
+				},
+				{
+					Name:                string(WorkloadProfileSkuConsumption),
+					WorkloadProfileType: string(WorkloadProfileSkuConsumption),
+				},
+			},
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			actual := FlattenWorkloadProfiles(tc.Input, tc.Existing)
-			if !workloadProfilesEqual(actual, tc.Expected) {
+			actual := FlattenWorkloadProfiles(tc.Input, tc.UserDeclaredConsumption)
+			if !reflect.DeepEqual(actual, tc.Expected) {
 				t.Fatalf("expected %#v, got %#v", tc.Expected, actual)
 			}
 		})
 	}
-}
-
-func workloadProfilesEqual(a, b []WorkloadProfileModel) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }

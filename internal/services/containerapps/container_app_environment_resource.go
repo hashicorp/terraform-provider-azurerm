@@ -411,7 +411,36 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
-					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles, existingState.WorkloadProfiles)
+					// Decide whether to keep the implicit `Consumption` profile the API adds.
+					// Prefer raw config (Create/Update); fall back to prior state when the SDK
+					// passes no config (refresh/import).
+					userDeclaredConsumption := false
+					if rawConfig := metadata.ResourceData.GetRawConfig(); !rawConfig.IsNull() {
+						if wp := rawConfig.AsValueMap()["workload_profile"]; !wp.IsNull() && wp.IsKnown() {
+							for it := wp.ElementIterator(); it.Next(); {
+								_, profile := it.Element()
+								if profile.IsNull() || !profile.IsKnown() {
+									continue
+								}
+								name, ok := profile.AsValueMap()["name"]
+								if !ok || name.IsNull() || !name.IsKnown() {
+									continue
+								}
+								if name.AsString() == string(helpers.WorkloadProfileSkuConsumption) {
+									userDeclaredConsumption = true
+									break
+								}
+							}
+						}
+					} else {
+						for _, p := range existingState.WorkloadProfiles {
+							if p.Name == string(helpers.WorkloadProfileSkuConsumption) {
+								userDeclaredConsumption = true
+								break
+							}
+						}
+					}
+					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles, userDeclaredConsumption)
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
 
 					if props.CustomDomainConfiguration != nil {

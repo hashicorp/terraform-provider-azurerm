@@ -123,25 +123,19 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 	return &result
 }
 
-func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile, existing []WorkloadProfileModel) []WorkloadProfileModel {
+func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile, userDeclaredConsumption bool) []WorkloadProfileModel {
 	if input == nil || len(*input) == 0 {
 		return []WorkloadProfileModel{}
-	}
-
-	userDeclaredConsumption := false
-	for _, p := range existing {
-		if p.Name == string(WorkloadProfileSkuConsumption) {
-			userDeclaredConsumption = true
-			break
-		}
 	}
 
 	apiProfiles := *input
 	result := make([]WorkloadProfileModel, 0, len(apiProfiles))
 
+	// When any dedicated profile exists, the API auto-appends an implicit
+	// `Consumption` profile to the response. If `userDeclaredConsumption` is
+	// false, that implicit profile is dropped to avoid a perpetual diff.
+	// `Consumption-GPU-*` SKUs have distinct names and are never filtered.
 	for _, v := range apiProfiles {
-		// Filter out the implicit `Consumption` profile that Azure auto-adds to any environment
-		// containing a dedicated profile, but only when the user has not declared one themselves.
 		if len(apiProfiles) > 1 && v.Name == string(WorkloadProfileSkuConsumption) && !userDeclaredConsumption {
 			continue
 		}
