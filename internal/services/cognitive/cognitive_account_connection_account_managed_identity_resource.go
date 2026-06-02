@@ -55,35 +55,17 @@ type CognitiveAccountConnectionAccountManagedIdentityModel struct {
 }
 
 type accountManagedIdentityConnectionProperties struct {
-	Category                    *accountconnectionresource.ConnectionCategory   `json:"category,omitempty"`
-	Metadata                    *map[string]string                              `json:"metadata,omitempty"`
-	Target                      *string                                         `json:"target,omitempty"`
-	UseWorkspaceManagedIdentity *bool                                           `json:"useWorkspaceManagedIdentity,omitempty"`
-	CreatedByWorkspaceArmId     *string                                         `json:"createdByWorkspaceArmId,omitempty"`
-	Error                       *string                                         `json:"error,omitempty"`
-	ExpiryTime                  *string                                         `json:"expiryTime,omitempty"`
-	Group                       *accountconnectionresource.ConnectionGroup      `json:"group,omitempty"`
-	IsSharedToAll               *bool                                           `json:"isSharedToAll,omitempty"`
-	PeRequirement               *accountconnectionresource.ManagedPERequirement `json:"peRequirement,omitempty"`
-	PeStatus                    *accountconnectionresource.ManagedPEStatus      `json:"peStatus,omitempty"`
-	SharedUserList              *[]string                                       `json:"sharedUserList,omitempty"`
+	Category *accountconnectionresource.ConnectionCategory `json:"category,omitempty"`
+	Metadata *map[string]string                            `json:"metadata,omitempty"`
+	Target   *string                                       `json:"target,omitempty"`
 }
 
 func (s accountManagedIdentityConnectionProperties) ConnectionPropertiesV2() accountconnectionresource.BaseConnectionPropertiesV2Impl {
 	return accountconnectionresource.BaseConnectionPropertiesV2Impl{
-		AuthType:                    accountconnectionresource.ConnectionAuthTypeAccountManagedIdentity,
-		Category:                    s.Category,
-		CreatedByWorkspaceArmId:     s.CreatedByWorkspaceArmId,
-		Error:                       s.Error,
-		ExpiryTime:                  s.ExpiryTime,
-		Group:                       s.Group,
-		IsSharedToAll:               s.IsSharedToAll,
-		Metadata:                    s.Metadata,
-		PeRequirement:               s.PeRequirement,
-		PeStatus:                    s.PeStatus,
-		SharedUserList:              s.SharedUserList,
-		Target:                      s.Target,
-		UseWorkspaceManagedIdentity: s.UseWorkspaceManagedIdentity,
+		AuthType: accountconnectionresource.ConnectionAuthTypeAccountManagedIdentity,
+		Category: s.Category,
+		Metadata: s.Metadata,
+		Target:   s.Target,
 	}
 }
 
@@ -172,10 +154,9 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) Create() sdk.R
 			}
 
 			properties := accountManagedIdentityConnectionProperties{
-				Category:                    pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
-				Metadata:                    pointer.To(model.Metadata),
-				Target:                      pointer.To(model.Target),
-				UseWorkspaceManagedIdentity: pointer.To(true),
+				Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
+				Metadata: pointer.To(model.Metadata),
+				Target:   pointer.To(model.Target),
 			}
 
 			connection := accountconnectionresource.ConnectionPropertiesV2BasicResource{
@@ -280,10 +261,9 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) Update() sdk.R
 			}
 
 			properties := accountManagedIdentityConnectionProperties{
-				Category:                    pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
-				Metadata:                    pointer.To(model.Metadata),
-				Target:                      pointer.To(model.Target),
-				UseWorkspaceManagedIdentity: pointer.To(true),
+				Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
+				Metadata: pointer.To(model.Metadata),
+				Target:   pointer.To(model.Target),
 			}
 
 			connection := accountconnectionresource.ConnectionPropertiesV2BasicResource{
