@@ -80,7 +80,7 @@ func (CognitiveAccountConnectionAccountManagedIdentityListResource) List(ctx con
 				}
 
 				base := connection.Properties.ConnectionPropertiesV2()
-				if string(base.AuthType) != "AccountManagedIdentity" {
+				if string(base.AuthType) != string(accountconnectionresource.ConnectionAuthTypeAccountManagedIdentity) {
 					continue
 				}
 

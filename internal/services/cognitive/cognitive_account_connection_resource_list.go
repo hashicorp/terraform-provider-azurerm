@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type cognitiveAccountConnectionListModel struct {
@@ -49,7 +50,7 @@ func cognitiveAccountConnectionListResourceConfigSchema() schema.Schema {
 				Optional: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
-						Func: commonids.ValidateSubscriptionID,
+						Func: validation.IsUUID,
 					},
 				},
 			},

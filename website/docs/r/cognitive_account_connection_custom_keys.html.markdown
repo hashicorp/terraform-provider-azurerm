@@ -96,7 +96,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Cognitive Services Account Connections can be imported using the `resource id`, e.g.
+A Cognitive Services (Microsoft Foundry) Account Connection with Custom Keys authentication can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cognitive_account_connection_custom_keys.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
