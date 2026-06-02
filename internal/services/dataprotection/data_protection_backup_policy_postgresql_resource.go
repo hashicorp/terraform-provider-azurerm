@@ -201,14 +201,16 @@ func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceDat
 
 	id := basebackuppolicyresources.NewBackupPolicyID(subscriptionId, resourceGroup, vaultName, name)
 
-	existing, err := client.BackupPoliciesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing DataProtection BackupPolicy (%q): %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.BackupPoliciesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing DataProtection BackupPolicy (%q): %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_data_protection_backup_policy_postgresql", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_data_protection_backup_policy_postgresql", id.ID())
+		}
 	}
 
 	taggingCriteria, err := expandBackupPolicyPostgreSQLTaggingCriteriaArray(d.Get("retention_rule").([]interface{}))
@@ -490,7 +492,7 @@ func flattenBackupPolicyPostgreSQLDefaultRetentionRuleDuration(input *[]baseback
 	for _, item := range *input {
 		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
 			if len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
+				if deleteOption, ok := retentionRule.Lifecycles[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
 					return deleteOption.Duration
 				}
 			}
@@ -529,7 +531,7 @@ func flattenBackupPolicyPostgreSQLRetentionRuleArray(input *[]basebackuppolicyre
 			}
 			var duration string
 			if len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
+				if deleteOption, ok := retentionRule.Lifecycles[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
 					duration = deleteOption.Duration
 				}
 			}
@@ -560,21 +562,21 @@ func flattenBackupPolicyPostgreSQLBackupCriteriaArray(input *[]basebackuppolicyr
 			if criteria.DaysOfTheWeek != nil {
 				daysOfWeek = make([]string, 0)
 				for _, item := range *criteria.DaysOfTheWeek {
-					daysOfWeek = append(daysOfWeek, (string)(item))
+					daysOfWeek = append(daysOfWeek, string(item))
 				}
 			}
 			var monthsOfYear []string
 			if criteria.MonthsOfYear != nil {
 				monthsOfYear = make([]string, 0)
 				for _, item := range *criteria.MonthsOfYear {
-					monthsOfYear = append(monthsOfYear, (string)(item))
+					monthsOfYear = append(monthsOfYear, string(item))
 				}
 			}
 			var weeksOfMonth []string
 			if criteria.WeeksOfTheMonth != nil {
 				weeksOfMonth = make([]string, 0)
 				for _, item := range *criteria.WeeksOfTheMonth {
-					weeksOfMonth = append(weeksOfMonth, (string)(item))
+					weeksOfMonth = append(weeksOfMonth, string(item))
 				}
 			}
 			var scheduleTimes []string

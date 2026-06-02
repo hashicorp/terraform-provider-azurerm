@@ -126,8 +126,10 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 				}
 			}
 
-			if ASGInPE {
-				return fmt.Errorf("a resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information", resourceId.ID(), "azurerm_private_endpoint_application_security_group_association")
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if ASGInPE {
+					return metadata.ResourceRequiresImport(p.ResourceType(), resourceId)
+				}
 			}
 
 			if ASGList != nil {
@@ -141,6 +143,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 				}
 			}
 
+			// TODO: implement callback, requires migrating to an ID implementing `resourceids.ResourceId`
 			if err = privateEndpointClient.CreateOrUpdateThenPoll(ctx, *privateEndpointId, *input.Model); err != nil {
 				return fmt.Errorf("creating %s: %+v", privateEndpointId, err)
 			}

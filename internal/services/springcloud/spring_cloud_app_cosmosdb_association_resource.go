@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -81,7 +82,7 @@ func resourceSpringCloudAppCosmosDBAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: cosmosValidate.DatabaseAccountID,
+				ValidateFunc: cosmosdb.ValidateDatabaseAccountID,
 			},
 
 			"api_type": {
@@ -154,15 +155,18 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 	}
 
 	id := parse.NewSpringCloudAppAssociationID(appId.SubscriptionId, appId.ResourceGroup, appId.SpringName, appId.AppName, d.Get("name").(string))
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.BindingName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.BindingName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_app_cosmosdb_association", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_spring_cloud_app_cosmosdb_association", id.ID())
+			}
 		}
 	}
 
@@ -217,11 +221,15 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSpringCloudAppCosmosDBAssociationRead(d, meta)
 }
 

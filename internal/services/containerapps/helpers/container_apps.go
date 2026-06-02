@@ -1638,7 +1638,8 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					Default:  "EmptyDir",
 					ValidateFunc: validation.StringInSlice(
 						containerapps.PossibleValuesForStorageType(),
-						false),
+						false,
+					),
 					Description: "The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.",
 				},
 

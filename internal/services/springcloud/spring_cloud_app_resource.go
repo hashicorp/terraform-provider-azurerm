@@ -244,7 +244,7 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("unable to retrieve %q: %+v", id, err)
 	}
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -280,6 +280,9 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
@@ -304,7 +307,6 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("waiting for update of %q: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSpringCloudAppRead(d, meta)
 }
 
