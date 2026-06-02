@@ -1137,7 +1137,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  auto_scaler {
+  auto_scaler_profile {
     balance_similar_node_groups                   = true
     daemonset_eviction_for_empty_nodes_enabled    = true
     daemonset_eviction_for_occupied_nodes_enabled = false
@@ -1151,7 +1151,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     scan_interval                                 = "10s"
     scale_down_delay_after_add                    = "10m"
     scale_down_delay_after_delete                 = "10s"
-    scale_down_delay_after_failure                = "1h"
+    scale_down_delay_after_failure                = "15m"
     scale_down_unneeded                           = "15m"
     scale_down_unready                            = "15m"
     scale_down_utilization_threshold              = "0.5"
