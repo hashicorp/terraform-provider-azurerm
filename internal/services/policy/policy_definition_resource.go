@@ -109,13 +109,13 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 			}
 
 			if !response.WasNotFound(resp) {
-			var idString string
-			switch typedId := id.(type) {
-			case policydefinitions.ProviderPolicyDefinitionId:
-				idString = typedId.ID()
-			case policydefinitions.Providers2PolicyDefinitionId:
-				idString = typedId.ID()
-			}
+				var idString string
+				switch typedId := id.(type) {
+				case policydefinitions.ProviderPolicyDefinitionId:
+					idString = typedId.ID()
+				case policydefinitions.Providers2PolicyDefinitionId:
+					idString = typedId.ID()
+				}
 				return tf.ImportAsExistsError("azurerm_policy_definition", idString)
 			}
 		}
@@ -349,15 +349,10 @@ func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"policy_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(policydefinitions.PolicyTypeBuiltIn),
-				string(policydefinitions.PolicyTypeCustom),
-				string(policydefinitions.PolicyTypeNotSpecified),
-				string(policydefinitions.PolicyTypeStatic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(policydefinitions.PossibleValuesForPolicyType(), false),
 		},
 
 		"mode": {

@@ -72,15 +72,15 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	resources := map[string]*pluginsdk.Resource{
-		"azurerm_management_group_policy_remediation":             resourceArmManagementGroupPolicyRemediation(),
-		"azurerm_resource_policy_remediation":                     resourceArmResourcePolicyRemediation(),
 		"azurerm_management_group_policy_exemption":               resourceArmManagementGroupPolicyExemption(),
-		"azurerm_resource_policy_exemption":                       resourceArmResourcePolicyExemption(),
-		"azurerm_resource_group_policy_exemption":                 resourceArmResourceGroupPolicyExemption(),
-		"azurerm_subscription_policy_exemption":                   resourceArmSubscriptionPolicyExemption(),
-		"azurerm_resource_group_policy_remediation":               resourceArmResourceGroupPolicyRemediation(),
-		"azurerm_subscription_policy_remediation":                 resourceArmSubscriptionPolicyRemediation(),
+		"azurerm_management_group_policy_remediation":             resourceArmManagementGroupPolicyRemediation(),
 		"azurerm_policy_virtual_machine_configuration_assignment": resourcePolicyVirtualMachineConfigurationAssignment(),
+		"azurerm_resource_group_policy_exemption":                 resourceArmResourceGroupPolicyExemption(),
+		"azurerm_resource_group_policy_remediation":               resourceArmResourceGroupPolicyRemediation(),
+		"azurerm_resource_policy_exemption":                       resourceArmResourcePolicyExemption(),
+		"azurerm_resource_policy_remediation":                     resourceArmResourcePolicyRemediation(),
+		"azurerm_subscription_policy_exemption":                   resourceArmSubscriptionPolicyExemption(),
+		"azurerm_subscription_policy_remediation":                 resourceArmSubscriptionPolicyRemediation(),
 	}
 
 	if !features.FivePointOh() {
