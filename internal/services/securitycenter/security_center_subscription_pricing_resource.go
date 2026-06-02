@@ -12,9 +12,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -118,6 +120,11 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 	defer cancel()
 	id := pricings_v2023_01_01.NewPricingID(subscriptionId, d.Get("resource_type").(string))
 
+	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,
+	// as the API only allows one pricing update per subscription at a time.
+	locks.ByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+	defer locks.UnlockByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+
 	pricing := pricings_v2023_01_01.Pricing{
 		Properties: &pricings_v2023_01_01.PricingProperties{
 			PricingTier: pricings_v2023_01_01.PricingTier(d.Get("tier").(string)),
@@ -205,6 +212,11 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	if err != nil {
 		return err
 	}
+
+	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,
+	// as the API only allows one pricing update per subscription at a time.
+	locks.ByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+	defer locks.UnlockByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
 
 	apiResponse, err := client.Get(ctx, *id)
 	if err != nil {
@@ -320,6 +332,11 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 	if err != nil {
 		return fmt.Errorf("parsing %s: %+v", d.Id(), err)
 	}
+
+	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,
+	// as the API only allows one pricing update per subscription at a time.
+	locks.ByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+	defer locks.UnlockByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
 
 	pricing := pricings_v2023_01_01.Pricing{
 		Properties: &pricings_v2023_01_01.PricingProperties{

@@ -1038,6 +1038,7 @@ func expandVMWareReplicatedVMNics(input []NetworkInterfaceModel) []replicationpr
 		vmNic := replicationprotecteditems.InMageRcmNicInput{
 			NicId:            nic.SourceMacAddress,
 			TargetSubnetName: &nic.TargetSubnetName,
+			TestSubnetName:   &nic.TestSubnetName,
 		}
 		if nic.TargetStaticIp != "" {
 			vmNic.TargetStaticIPAddress = &nic.TargetStaticIp
