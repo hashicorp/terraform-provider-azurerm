@@ -914,7 +914,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 								"transparent_huge_page": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									// omited never as option, set as default
+									// omitted never as option, set as default
 									ValidateFunc: validation.StringInSlice([]string{
 										"always",
 										"madvise",
@@ -924,7 +924,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 								"transparent_huge_page_defragmentation": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									// omited never as option, set as default
+									// omitted never as option, set as default
 									ValidateFunc: validation.StringInSlice([]string{
 										"always",
 										"defer",
@@ -1212,11 +1212,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					////TODO probably remove
-					//"enabled": {
-					//	Type:     pluginsdk.TypeBool,
-					//	Required: true,
-					//},
 					"public_fully_qualified_domain_name_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -2538,15 +2533,15 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				if (parameters.Identity == nil) || (privateDNSZoneID != "System" && privateDNSZoneID != "None" && (parameters.Identity.Type != identity.TypeUserAssigned)) {
 					return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
 				}
+			}
 
-				if model.PrivateCluster[0].DNSPrefixPrivateCluster != "" {
-					if apiAccessProfile.PrivateDNSZone == nil || *apiAccessProfile.PrivateDNSZone == "System" || *apiAccessProfile.PrivateDNSZone == "None" {
-						return fmt.Errorf("`private_cluster.0.dns_prefix` should only be set for private cluster with custom private dns zone")
-					}
-					parameters.Properties.FqdnSubdomain = pointer.To(model.PrivateCluster[0].DNSPrefixPrivateCluster)
-				} else {
-					parameters.Properties.DnsPrefix = pointer.To(model.DNSPrefix)
+			if len(model.PrivateCluster) > 0 && model.PrivateCluster[0].DNSPrefixPrivateCluster != "" {
+				if apiAccessProfile.PrivateDNSZone == nil || *apiAccessProfile.PrivateDNSZone == "System" || *apiAccessProfile.PrivateDNSZone == "None" {
+					return fmt.Errorf("`private_cluster.0.dns_prefix` should only be set for private cluster with custom private dns zone")
 				}
+				parameters.Properties.FqdnSubdomain = pointer.To(model.PrivateCluster[0].DNSPrefixPrivateCluster)
+			} else {
+				parameters.Properties.DnsPrefix = pointer.To(model.DNSPrefix)
 			}
 
 			if model.DiskEncryptionSetID != "" {
@@ -2646,7 +2641,10 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			apiServerAccessProfile, privateCluster, runCommandEnabled := flattenKubernetesAutomaticClusterAPIAccessProfile(props.ApiServerAccessProfile)
 			state.APIServerAccessProfile = apiServerAccessProfile
 			state.PrivateCluster = privateCluster
-			state.PrivateCluster[0].DNSPrefixPrivateCluster = pointer.From(props.FqdnSubdomain)
+
+			if len(state.PrivateCluster) > 0 {
+				state.PrivateCluster[0].DNSPrefixPrivateCluster = pointer.From(props.FqdnSubdomain)
+			}
 
 			state.RunCommandEnabled = runCommandEnabled
 
