@@ -96,12 +96,14 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 	locks.ByName(id.SiteName, appServiceCustomHostnameBindingResourceName)
 	defer locks.UnlockByName(id.SiteName, appServiceCustomHostnameBindingResourceName)
 
-	existing, err := client.GetHostNameBinding(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetHostNameBinding(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_app_service_custom_hostname_binding", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_app_service_custom_hostname_binding", id.ID())
 	}
 
 	payload := webapps.HostNameBinding{

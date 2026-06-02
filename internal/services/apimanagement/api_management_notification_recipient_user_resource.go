@@ -92,17 +92,19 @@ func (r ApiManagementNotificationRecipientUserResource) Create() sdk.ResourceFun
 
 			id := notificationrecipientuser.NewRecipientUserID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientuser.NotificationName(model.NotificationName), model.UserId)
 
-			// CheckEntityExists can not be used, it returns autorest error
-			notificationId := notificationrecipientuser.NewNotificationID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientuser.NotificationName(model.NotificationName))
-			users, err := client.ListByNotificationComplete(ctx, notificationId)
-			if err != nil {
-				if !response.WasNotFound(users.LatestHttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				// CheckEntityExists can not be used, it returns autorest error
+				notificationId := notificationrecipientuser.NewNotificationID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientuser.NotificationName(model.NotificationName))
+				users, err := client.ListByNotificationComplete(ctx, notificationId)
+				if err != nil {
+					if !response.WasNotFound(users.LatestHttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			for _, existing := range users.Items {
-				if existing.Name != nil && *existing.Name == model.UserId {
-					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				for _, existing := range users.Items {
+					if existing.Name != nil && *existing.Name == model.UserId {
+						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					}
 				}
 			}
 

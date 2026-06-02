@@ -58,9 +58,20 @@ func (c ElasticPoolsClient) Failover(ctx context.Context, id commonids.SqlElasti
 
 // FailoverThenPoll performs Failover then polls until it's completed
 func (c ElasticPoolsClient) FailoverThenPoll(ctx context.Context, id commonids.SqlElasticPoolId) error {
+	return c.FailoverCallbackThenPoll(ctx, id, nil)
+}
+
+// FailoverCallbackThenPoll performs Failover, runs the optional callback function, then polls until it's completed
+func (c ElasticPoolsClient) FailoverCallbackThenPoll(ctx context.Context, id commonids.SqlElasticPoolId, callback func() error) error {
 	result, err := c.Failover(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Failover: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

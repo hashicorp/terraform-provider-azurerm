@@ -205,14 +205,16 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
-			existing, err := client.GetKey(ctx, endpoint.BaseURI(), id.KeyName, "")
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetKey(ctx, endpoint.BaseURI(), id.KeyName, "")
+				if err != nil {
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := keyvault.KeyCreateParameters{

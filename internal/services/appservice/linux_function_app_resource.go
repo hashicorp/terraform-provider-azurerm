@@ -462,13 +462,15 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 			elasticOrConsumptionPlan := helpers.PlanIsElastic(planSKU) || helpers.PlanIsConsumption(planSKU)
 			sendContentSettings := elasticOrConsumptionPlan && !functionApp.ForceDisableContentShare
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Linux %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Linux %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			subId := commonids.NewSubscriptionID(subscriptionId)
@@ -580,8 +582,13 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(functionApp.ClientCertExclusionPaths)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
 			}
 
 			// (@jackofallops) - updating the policy for publishing credentials resets the `Use32BitWorkerProcess` property
@@ -609,11 +616,6 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
-			}
-
-			metadata.SetID(id)
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
-				return err
 			}
 
 			stickySettings := helpers.ExpandStickySettings(functionApp.StickySettings)

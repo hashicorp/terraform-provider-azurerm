@@ -608,11 +608,11 @@ func (m SoftwareUpdateConfigurationResource) ResourceType() string {
 func (m SoftwareUpdateConfigurationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.SoftwareUpdateConfigClient
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Automation.SoftwareUpdateConfigClient
 
 			var model SoftwareUpdateConfigurationModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
@@ -621,12 +621,15 @@ func (m SoftwareUpdateConfigurationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			id := softwareupdateconfiguration.NewSoftwareUpdateConfigurationID(subscriptionID, automationID.ResourceGroupName, automationID.AutomationAccountName, model.Name)
-			existing, err := client.GetByName(ctx, id, softwareupdateconfiguration.DefaultGetByNameOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return meta.ResourceRequiresImport(m.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetByName(ctx, id, softwareupdateconfiguration.DefaultGetByNameOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return metadata.ResourceRequiresImport(m.ResourceType(), id)
+					}
 				}
 			}
 
@@ -635,7 +638,7 @@ func (m SoftwareUpdateConfigurationResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}
