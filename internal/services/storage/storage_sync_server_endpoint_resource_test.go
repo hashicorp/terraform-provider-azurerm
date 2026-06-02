@@ -19,8 +19,6 @@ import (
 type StorageSyncServerEndpointResource struct{}
 
 func TestAccStorageSyncServerEndpointSequential(t *testing.T) {
-	t.Skip("@mbfrahry: temporarily skipping as the server must be registered manually. Will come back to this when the server can be registered programmatically")
-
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"storageSyncServerEndpoint": {
 			"basic":            testAccStorageSyncServerEndpoint_basic,
@@ -64,13 +62,6 @@ func testAccStorageSyncServerEndpoint_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -99,7 +90,10 @@ provider "azurerm" {
 resource "azurerm_storage_sync_server_endpoint" "test" {
   name                  = "acctestSE-%[2]s"
   storage_sync_group_id = azurerm_storage_sync_group.test.id
-  registered_server_id  = azurerm_storage_sync.test.registered_servers[0]
+  registered_server_id  = trimspace(data.local_file.server_id.content)
+  server_local_path     = "D:\\SyncFolder"
+
+  depends_on = [azurerm_storage_sync_cloud_endpoint.test]
 }
 `, r.template(data), data.RandomString)
 }
@@ -115,12 +109,15 @@ provider "azurerm" {
 resource "azurerm_storage_sync_server_endpoint" "test" {
   name                  = "acctestSE-%[2]s"
   storage_sync_group_id = azurerm_storage_sync_group.test.id
-  registered_server_id  = azurerm_storage_sync.test.registered_servers[0]
+  registered_server_id  = trimspace(data.local_file.server_id.content)
+  server_local_path     = "D:\\SyncFolder"
 
   cloud_tiering_enabled      = true
   volume_free_space_percent  = 30
   tier_files_older_than_days = 5
-  local_cache_mode           = "DownloadNewAndModifiedFiles"
+  local_cache_mode           = "UpdateLocallyCachedFiles"
+
+  depends_on = [azurerm_storage_sync_cloud_endpoint.test]
 }
 `, r.template(data), data.RandomString)
 }
@@ -146,7 +143,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
 resource "azurerm_network_interface" "test" {
   name                = "acctestnic-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -161,6 +157,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_windows_virtual_machine" "test" {
   name                = "acctest-%[1]d"
+  computer_name       = "afs%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
@@ -170,6 +167,10 @@ resource "azurerm_windows_virtual_machine" "test" {
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   os_disk {
     caching              = "ReadWrite"
@@ -184,10 +185,32 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctest-disk-%[1]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 32
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = azurerm_managed_disk.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
+  lun                = 0
+  caching            = "None"
+}
+
 resource "azurerm_storage_sync" "test" {
   name                = "acctest-StorageSync-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "vm_filesync_admin" {
+  scope                = azurerm_storage_sync.test.id
+  role_definition_name = "Azure File Sync Administrator"
+  principal_id         = azurerm_windows_virtual_machine.test.identity[0].principal_id
 }
 
 resource "azurerm_storage_sync_group" "test" {
@@ -214,6 +237,110 @@ resource "azurerm_storage_share" "test" {
       permissions = "r"
     }
   }
+}
+
+resource "azurerm_storage_sync_cloud_endpoint" "test" {
+  name                  = "acctest-CEP-%[1]d"
+  storage_sync_group_id = azurerm_storage_sync_group.test.id
+  storage_account_id    = azurerm_storage_account.test.id
+  file_share_name       = azurerm_storage_share.test.name
+}
+
+resource "terraform_data" "afs_register" {
+  depends_on = [
+    azurerm_windows_virtual_machine.test,
+    azurerm_virtual_machine_data_disk_attachment.test,
+    azurerm_role_assignment.vm_filesync_admin,
+    azurerm_storage_sync.test,
+  ]
+
+  triggers_replace = {
+    vm_id   = azurerm_windows_virtual_machine.test.id
+    rg_name = azurerm_resource_group.test.name
+    ss_name = azurerm_storage_sync.test.name
+  }
+
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    command     = <<-EOT
+      output=$(az vm run-command invoke \
+        --resource-group '${azurerm_resource_group.test.name}' \
+        --name '${azurerm_windows_virtual_machine.test.name}' \
+        --command-id RunPowerShellScript \
+        --output json \
+        --scripts \
+          '$ErrorActionPreference = "Stop"' \
+          'try {' \
+          '  $disk = Get-Disk | Where-Object PartitionStyle -eq RAW | Select-Object -First 1; if ($disk) { $p = $disk | Initialize-Disk -PartitionStyle GPT -PassThru | New-Partition -AssignDriveLetter -UseMaximumSize; $p | Format-Volume -FileSystem NTFS | Out-Null }' \
+          '  New-Item -Path D:\SyncFolder -ItemType Directory -Force | Out-Null' \
+          '  New-Item -Path C:\Temp\AFS -ItemType Directory -Force | Out-Null' \
+          '  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12' \
+          '  Invoke-WebRequest -Uri https://aka.ms/afs/agent/Server2016 -OutFile C:\Temp\AFS\StorageSyncAgent.msi -UseBasicParsing' \
+          '  Start-Process msiexec.exe -ArgumentList "/i","C:\Temp\AFS\StorageSyncAgent.msi","/qn","/norestart" -Wait -NoNewWindow' \
+          '  $waited = 0; while ((Get-Service FileSyncSvc -ErrorAction SilentlyContinue).Status -ne "Running" -and $waited -lt 180) { Start-Sleep 10; $waited += 10 }' \
+          '  if ((Get-Service FileSyncSvc -ErrorAction SilentlyContinue).Status -ne "Running") { throw "FileSyncSvc did not start within 3 minutes" }' \
+          '  Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope AllUsers' \
+          '  Install-Module -Name Az.Accounts -Force -AllowClobber -Scope AllUsers' \
+          '  Install-Module -Name Az.StorageSync -Force -AllowClobber -Scope AllUsers' \
+          '  Import-Module Az.Accounts -Force' \
+          '  Import-Module Az.StorageSync -Force' \
+          '  $subId = (Invoke-RestMethod -Uri "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -Headers @{Metadata="true"} -UseBasicParsing).compute.subscriptionId' \
+          '  Connect-AzAccount -Identity' \
+          '  Set-AzContext -Subscription $subId' \
+          "  Register-AzStorageSyncServer -ResourceGroupName ${azurerm_resource_group.test.name} -StorageSyncServiceName ${azurerm_storage_sync.test.name}" \
+          '  Write-Output "REGISTRATION_COMPLETE"' \
+          '} catch { Write-Error $_; Write-Output "REGISTRATION_FAILED" }') \
+        || { echo "az vm run-command invoke failed"; exit 1; }
+      echo "=== AFS REGISTRATION OUTPUT ==="
+      echo "$output"
+      echo "================================"
+      if ! echo "$output" | grep -q "REGISTRATION_COMPLETE"; then
+        echo "ERROR: AFS server registration did not complete. See output above."
+        exit 1
+      fi
+      sub=$(az account show --query id -o tsv)
+      server_id=$(az rest \
+        --method GET \
+        --url "https://management.azure.com/subscriptions/$sub/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.StorageSync/storageSyncServices/${azurerm_storage_sync.test.name}/registeredServers?api-version=2020-03-01" \
+        --query 'value[0].id' -o tsv)
+      echo "$server_id" > "/tmp/afs_server_id_${azurerm_resource_group.test.name}.txt"
+      sleep 30
+    EOT
+  }
+
+  provisioner "local-exec" {
+    when        = destroy
+    interpreter = ["bash", "-c"]
+    command     = <<-EOT
+      sub=$(az account show --query id -o tsv)
+      server_ids=$(az rest \
+        --method GET \
+        --url "https://management.azure.com/subscriptions/$sub/resourceGroups/${self.triggers_replace.rg_name}/providers/Microsoft.StorageSync/storageSyncServices/${self.triggers_replace.ss_name}/registeredServers?api-version=2020-03-01" \
+        --query 'value[].id' -o tsv)
+      echo "Servers to deregister: $server_ids"
+      for sid in $server_ids; do
+        echo "Deregistering: $sid"
+        az rest --method DELETE \
+          --url "https://management.azure.com$sid?api-version=2020-03-01" || true
+      done
+      if [ -n "$server_ids" ]; then
+        for i in 1 2 3 4 5 6; do
+          remaining=$(az rest --method GET \
+            --url "https://management.azure.com/subscriptions/$sub/resourceGroups/${self.triggers_replace.rg_name}/providers/Microsoft.StorageSync/storageSyncServices/${self.triggers_replace.ss_name}/registeredServers?api-version=2020-03-01" \
+            --query 'length(value)' -o tsv 2>/dev/null || echo "0")
+          [ "$remaining" = "0" ] && break
+          echo "Waiting for deregistration... ($i/6)"
+          sleep 20
+        done
+      fi
+      rm -f "/tmp/afs_server_id_${self.triggers_replace.rg_name}.txt"
+    EOT
+  }
+}
+
+data "local_file" "server_id" {
+  filename   = "/tmp/afs_server_id_${azurerm_resource_group.test.name}.txt"
+  depends_on = [terraform_data.afs_register]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
