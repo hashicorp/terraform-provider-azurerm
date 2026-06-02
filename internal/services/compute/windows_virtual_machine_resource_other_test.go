@@ -465,7 +465,10 @@ func TestAccWindowsVirtualMachine_otherUserData(t *testing.T) {
 	})
 }
 
-func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDefault(t *testing.T) {
+func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDefaultLegacy(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as `enable_automatic_updates` is removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
@@ -475,6 +478,22 @@ func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDefault(t *testing.
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_automatic_updates").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherAutomaticUpdatesEnabledDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherEnableAutomaticUpdatesDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("automatic_updates_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("admin_password"),
