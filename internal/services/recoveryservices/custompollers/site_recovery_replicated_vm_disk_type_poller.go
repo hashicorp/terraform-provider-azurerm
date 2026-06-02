@@ -20,7 +20,7 @@ import (
 
 var _ pollers.PollerType = &SiteRecoveryReplicatedVMDiskTypePoller{}
 
-const siteRecoveryReplicatedVMDiskTypeRequiredSuccessfulReads = 3
+const siteRecoveryReplicatedVMDiskTypeRequiredSuccessfulReads = 10
 
 type SiteRecoveryReplicatedVMDiskTypeUpdate struct {
 	DiskId                  string
@@ -100,7 +100,7 @@ func (p *SiteRecoveryReplicatedVMDiskTypePoller) Poll(ctx context.Context) (*pol
 	if len(pending) == 0 {
 		p.consecutiveSuccessfulReads++
 		if p.consecutiveSuccessfulReads < siteRecoveryReplicatedVMDiskTypeRequiredSuccessfulReads {
-			log.Printf("[DEBUG] waiting for managed disk type updates for %s: managed disk types matched target values for %d consecutive reads", p.id, p.consecutiveSuccessfulReads)
+			log.Printf("[DEBUG] waiting for managed disk type updates for %s: matched %d/%d consecutive reads", p.id, p.consecutiveSuccessfulReads, siteRecoveryReplicatedVMDiskTypeRequiredSuccessfulReads)
 			result.Status = pollers.PollingStatusInProgress
 			return result, nil
 		}
@@ -143,34 +143,22 @@ func (p *SiteRecoveryReplicatedVMDiskTypePoller) pendingDiskTypeUpdates(details 
 			}
 		}
 
-		if pendingReason := siteRecoveryReplicatedVMDiskTypeUpdatePendingReason(update, disk); pendingReason != "" {
-			pending = append(pending, pendingReason)
+		actualTargetDiskType := pointer.From(disk.RecoveryTargetDiskAccountType)
+		actualTargetReplicaDiskType := pointer.From(disk.RecoveryReplicaDiskAccountType)
+
+		mismatches := make([]string, 0)
+		if actualTargetDiskType != update.RecoveryTargetDiskType {
+			mismatches = append(mismatches, fmt.Sprintf("target_disk_type is %q, expected %q", actualTargetDiskType, update.RecoveryTargetDiskType))
+		}
+		if actualTargetReplicaDiskType != update.RecoveryReplicaDiskType {
+			mismatches = append(mismatches, fmt.Sprintf("target_replica_disk_type is %q, expected %q", actualTargetReplicaDiskType, update.RecoveryReplicaDiskType))
+		}
+		if len(mismatches) > 0 {
+			pending = append(pending, fmt.Sprintf("%s: %s", update.DiskId, strings.Join(mismatches, ", ")))
 		}
 	}
 
 	return pending, nil
-}
-
-func siteRecoveryReplicatedVMDiskTypeUpdatePendingReason(update SiteRecoveryReplicatedVMDiskTypeUpdate, disk replicationprotecteditems.A2AProtectedManagedDiskDetails) string {
-	if jobType, percentageComplete := pointer.From(disk.MonitoringJobType), pointer.From(disk.MonitoringPercentageCompletion); jobType != "" && percentageComplete < 100 {
-		return fmt.Sprintf("%s: disk job %q is in progress (%d%% complete)", update.DiskId, jobType, percentageComplete)
-	}
-
-	actualTargetDiskType := pointer.From(disk.RecoveryTargetDiskAccountType)
-	actualTargetReplicaDiskType := pointer.From(disk.RecoveryReplicaDiskAccountType)
-
-	mismatches := make([]string, 0)
-	if actualTargetDiskType != update.RecoveryTargetDiskType {
-		mismatches = append(mismatches, fmt.Sprintf("target_disk_type is %q, expected %q", actualTargetDiskType, update.RecoveryTargetDiskType))
-	}
-	if actualTargetReplicaDiskType != update.RecoveryReplicaDiskType {
-		mismatches = append(mismatches, fmt.Sprintf("target_replica_disk_type is %q, expected %q", actualTargetReplicaDiskType, update.RecoveryReplicaDiskType))
-	}
-	if len(mismatches) > 0 {
-		return fmt.Sprintf("%s: %s", update.DiskId, strings.Join(mismatches, ", "))
-	}
-
-	return ""
 }
 
 func normalizeSiteRecoveryReplicatedVMManagedDiskID(input string) string {
