@@ -12,11 +12,23 @@ Lists Cognitive Services Account Connection with Entra ID authentication resourc
 
 ## Example Usage
 
+### List all Cognitive Services Account Connection with Microsoft Entra ID authentication resources in the subscription
+
+```hcl
+list "azurerm_cognitive_account_connection_entra_id" "example" {
+  provider = azurerm
+  config {}
+}
+```
+
+### List all Cognitive Services Account Connection with Microsoft Entra ID authentication resources in a specific Cognitive Account
+
 ```hcl
 list "azurerm_cognitive_account_connection_entra_id" "example" {
   provider = azurerm
   config {
-    resource_group_name = "example-resources"
+    cognitive_account_name = "example-cognitive-account"
+    resource_group_name    = "example-resources"
   }
 }
 ```
@@ -25,6 +37,8 @@ list "azurerm_cognitive_account_connection_entra_id" "example" {
 
 This list resource supports the following arguments:
 
-* `resource_group_name` - (Required) The name of the Resource Group to query.
+* `cognitive_account_name` - (Optional) The name of the Cognitive Account to query. When specified, `resource_group_name` must also be specified.
+
+* `resource_group_name` - (Optional) The name of the Resource Group to query.
 
 * `subscription_id` - (Optional) The Subscription ID to query. Defaults to the value specified in the Provider Configuration.

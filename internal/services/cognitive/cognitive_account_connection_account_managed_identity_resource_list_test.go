@@ -5,6 +5,7 @@ package cognitive_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -32,8 +33,9 @@ func TestAccCognitiveAccountConnectionAccountManagedIdentity_list(t *testing.T) 
 			},
 			{
 				Query:  true,
-				Config: r.basicListQuery(),
+				Config: r.basicListQuery(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
+					// Azure allows only one AccountManagedIdentity connection with the AzureKeyVault category per account.
 					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_connection_account_managed_identity.list", 1),
 					querycheck.ExpectIdentity(
 						"azurerm_cognitive_account_connection_account_managed_identity.list",
@@ -50,15 +52,17 @@ func TestAccCognitiveAccountConnectionAccountManagedIdentity_list(t *testing.T) 
 	})
 }
 
-func (r CognitiveAccountConnectionAccountManagedIdentityResource) basicListQuery() string {
-	return `
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) basicListQuery(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 list "azurerm_cognitive_account_connection_account_managed_identity" "list" {
   provider = azurerm
   config {
-    resource_group_name = azurerm_resource_group.test.name
+    cognitive_account_name = azurerm_cognitive_account.test.name
+    resource_group_name    = azurerm_resource_group.test.name
+    subscription_id        = "%[1]s"
   }
 }
-`
+`, data.Subscriptions.Primary)
 }
 
 func (r CognitiveAccountConnectionAccountManagedIdentityResource) basicList(data acceptance.TestData) string {

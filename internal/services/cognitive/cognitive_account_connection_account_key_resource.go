@@ -46,11 +46,11 @@ func (r CognitiveAccountConnectionAccountKeyResource) IDValidationFunc() plugins
 }
 
 type CognitiveAccountConnectionAccountKeyModel struct {
+	Name               string            `tfschema:"name"`
+	CognitiveAccountId string            `tfschema:"cognitive_account_id"`
 	AccountKey         string            `tfschema:"account_key"`
 	Category           string            `tfschema:"category"`
-	CognitiveAccountId string            `tfschema:"cognitive_account_id"`
 	Metadata           map[string]string `tfschema:"metadata"`
-	Name               string            `tfschema:"name"`
 	Target             string            `tfschema:"target"`
 }
 
@@ -64,6 +64,13 @@ func (r CognitiveAccountConnectionAccountKeyResource) Arguments() map[string]*pl
 		},
 
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&accountconnectionresource.AccountId{}),
+
+		"account_key": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
 		"category": {
 			Type:         pluginsdk.TypeString,
@@ -83,13 +90,6 @@ func (r CognitiveAccountConnectionAccountKeyResource) Arguments() map[string]*pl
 		"target": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"account_key": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
@@ -189,10 +189,8 @@ func (r CognitiveAccountConnectionAccountKeyResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			if model := resp.Model; model != nil {
-				props := model.Properties
-
-				base := props.ConnectionPropertiesV2()
+			if model := resp.Model; model != nil && model.Properties != nil {
+				base := model.Properties.ConnectionPropertiesV2()
 				state.Category = pointer.FromEnum(base.Category)
 				state.Target = pointer.From(base.Target)
 				state.Metadata = map[string]string{}

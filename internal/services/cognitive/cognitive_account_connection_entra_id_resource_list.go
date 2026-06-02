@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-plugin-framework/list"
@@ -27,21 +26,20 @@ func (CognitiveAccountConnectionEntraIDListResource) ResourceFunc() *pluginsdk.R
 }
 
 func (CognitiveAccountConnectionEntraIDListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = "azurerm_cognitive_account_connection_entra_id"
+	response.TypeName = CognitiveAccountConnectionEntraIDResource{}.ResourceType()
+}
+
+func (CognitiveAccountConnectionEntraIDListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+	response.Schema = cognitiveAccountConnectionListResourceConfigSchema()
 }
 
 func (CognitiveAccountConnectionEntraIDListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Cognitive.AccountConnectionResourceClient
 
-	var data sdk.DefaultListModel
+	var data cognitiveAccountConnectionListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
-		return
-	}
-
-	if data.ResourceGroupName.IsNull() {
-		sdk.SetResponseErrorDiagnostic(stream, "listing `azurerm_cognitive_account_connection_entra_id`", "`resource_group_name` is required")
 		return
 	}
 
@@ -51,14 +49,9 @@ func (CognitiveAccountConnectionEntraIDListResource) List(ctx context.Context, r
 		return
 	}
 
-	subscriptionID := metadata.SubscriptionId
-	if !data.SubscriptionId.IsNull() {
-		subscriptionID = data.SubscriptionId.ValueString()
-	}
-
-	accountsResp, err := metadata.Client.Cognitive.AccountsClient.AccountsListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
+	accounts, err := cognitiveAccountConnectionListAccounts(ctx, metadata, data)
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, "listing `azurerm_cognitive_account_connection_entra_id`", err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", CognitiveAccountConnectionEntraIDResource{}.ResourceType()), err)
 		return
 	}
 
@@ -66,7 +59,7 @@ func (CognitiveAccountConnectionEntraIDListResource) List(ctx context.Context, r
 		listCtx, cancel := context.WithDeadline(context.Background(), deadline)
 		defer cancel()
 
-		for _, account := range accountsResp.Items {
+		for _, account := range accounts {
 			accountId, err := cognitiveservicesaccounts.ParseAccountID(pointer.From(account.Id))
 			if err != nil {
 				result := request.NewListResult(listCtx)
@@ -82,6 +75,10 @@ func (CognitiveAccountConnectionEntraIDListResource) List(ctx context.Context, r
 			}
 
 			for _, connection := range connectionsResp.Items {
+				if connection.Properties == nil {
+					continue
+				}
+
 				base := connection.Properties.ConnectionPropertiesV2()
 				if string(base.AuthType) != string(accountconnectionresource.ConnectionAuthTypeAAD) {
 					continue

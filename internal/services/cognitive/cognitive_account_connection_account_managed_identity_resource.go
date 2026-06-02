@@ -47,10 +47,10 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) IDValidationFu
 }
 
 type CognitiveAccountConnectionAccountManagedIdentityModel struct {
-	Category           string            `tfschema:"category"`
-	CognitiveAccountId string            `tfschema:"cognitive_account_id"`
-	Metadata           map[string]string `tfschema:"metadata"`
 	Name               string            `tfschema:"name"`
+	CognitiveAccountId string            `tfschema:"cognitive_account_id"`
+	Category           string            `tfschema:"category"`
+	Metadata           map[string]string `tfschema:"metadata"`
 	Target             string            `tfschema:"target"`
 }
 
@@ -229,7 +229,7 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) Read() sdk.Res
 				return err
 			}
 
-			if model := resp.Model; model != nil {
+			if model := resp.Model; model != nil && model.Properties != nil {
 				base := model.Properties.ConnectionPropertiesV2()
 				state.Category = pointer.FromEnum(base.Category)
 				state.Target = pointer.From(base.Target)
