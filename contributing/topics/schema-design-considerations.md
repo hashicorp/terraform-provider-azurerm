@@ -4,6 +4,48 @@ Whilst it is acceptable in certain cases to map the schema of a new resource or 
 
 Below are a list of common patterns found in the Azure API and how these typically get mapped within Terraform.
 
+## Prefer Azure Portal terminology when it significantly differ with REST API
+
+Users should be able to intuitively correlate Terraform configuration with those in portal.
+
+Take an example of `allowBlobPublicAccess` property from the [Storage Accounts REST API](https://learn.microsoft.com/rest/api/storagerp/storage-accounts/create?view=rest-storagerp-2025-08-01&tabs=HTTP), in portal this is called `Public network access`. Hence the appropriate argument name in Terraform should be `public_network_acces_enabled`.
+
+In some cases where portal experience is not yet available, or portal is not the most prominent experience, align with Azure CLI instead.
+
+## Grouping of semantically related arguments
+
+Terraform arguments have mostly alphabetical ordering (refer to the ordering guide in [guide-new-resource.md]). For resource with large list of arguments, this can cause related arguments to be scattered. If some form of grouping exists in portal / CLI (eg: tabs or section heading) introduce a block in Terraform to reduce the cognitive load for the user.
+
+## Eliminate ambiguity in collection-typed arguments
+
+Some Azure API takes form of an array / list collection instead of statically typed properties which can introduce ambiguity in Terraform configuration. For example, two `retention_policy` with `orchestration_state = "Completed"` can be supplied below while only one semantically make sense:
+
+```terraform
+retention_policy {
+  retention_period_in_days = 7
+  orchestration_state      = "InProgress"
+}
+
+retention_policy {
+  retention_period_in_days = 30
+  orchestration_state      = "Completed"
+}
+
+retention_policy {
+  retention_period_in_days = 5
+  orchestration_state      = "Completed" // Which one of the "Completed" wins?
+}
+```
+
+Instead the schema for such API should be designed to eliminate the ambiguity:
+
+```terraform
+retention_policy {
+  completed_retention_period_in_days = 30
+  in_progress_retention_period_in_days = 7
+}
+```
+
 ## Features that are toggled by the property `Enabled`
 
 It is commonplace for features to be toggled on and off by an `Enabled` property within an object in the SDK used to interact with the Azure API. See the examples below.
