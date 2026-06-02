@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `category` - (Required) The category of the connection. The only possible value is `AzureKeyVault`. Changing this forces a new resource to be created.
 
+~> **Note:** Only one Account Managed Identity connection with the `AzureKeyVault` category can exist per Cognitive Services Account.
+
 * `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
 
 * `target` - (Required) The target endpoint or resource for the connection.

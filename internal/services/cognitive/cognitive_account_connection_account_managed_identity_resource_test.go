@@ -104,7 +104,7 @@ resource "azurerm_cognitive_account" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, "Australia East")
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r CognitiveAccountConnectionAccountManagedIdentityResource) basic(data acceptance.TestData) string {

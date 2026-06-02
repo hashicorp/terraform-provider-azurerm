@@ -46,11 +46,11 @@ func (r CognitiveAccountConnectionEntraIDResource) IDValidationFunc() pluginsdk.
 }
 
 type CognitiveAccountConnectionEntraIDModel struct {
-	Category           string            `tfschema:"category"`
-	CognitiveAccountId string            `tfschema:"cognitive_account_id"`
-	Metadata           map[string]string `tfschema:"metadata"`
 	Name               string            `tfschema:"name"`
+	CognitiveAccountId string            `tfschema:"cognitive_account_id"`
+	Category           string            `tfschema:"category"`
 	Target             string            `tfschema:"target"`
+	Metadata           map[string]string `tfschema:"metadata"`
 }
 
 func (r CognitiveAccountConnectionEntraIDResource) Arguments() map[string]*pluginsdk.Schema {
@@ -186,10 +186,8 @@ func (r CognitiveAccountConnectionEntraIDResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			if model := resp.Model; model != nil {
-				props := model.Properties
-
-				base := props.ConnectionPropertiesV2()
+			if model := resp.Model; model != nil && model.Properties != nil {
+				base := model.Properties.ConnectionPropertiesV2()
 				state.Category = pointer.FromEnum(base.Category)
 				state.Target = pointer.From(base.Target)
 
