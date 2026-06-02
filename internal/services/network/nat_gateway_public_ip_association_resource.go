@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -111,22 +113,29 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 	if isIPv6 {
 		publicIpAddresses = pointer.From(gatewayProps.PublicIPAddressesV6)
 	}
+
+	exists := false
 	for _, existingPublicIPAddress := range publicIpAddresses {
 		if strings.EqualFold(pointer.From(existingPublicIPAddress.Id), publicIpAddressId.ID()) {
-			return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", id.ID())
+			exists = true
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", id.ID())
+			}
 		}
 	}
 
-	publicIpAddresses = append(publicIpAddresses, natgateways.SubResource{
-		Id: pointer.To(publicIpAddressId.ID()),
-	})
+	if !exists {
+		publicIpAddresses = append(publicIpAddresses, natgateways.SubResource{
+			Id: pointer.To(publicIpAddressId.ID()),
+		})
+	}
 	if isIPv6 {
 		gatewayProps.PublicIPAddressesV6 = pointer.To(publicIpAddresses)
 	} else {
 		gatewayProps.PublicIPAddresses = pointer.To(publicIpAddresses)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *natGatewayId, *natGateway.Model); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *natGatewayId, *natGateway.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating %s: %+v", natGatewayId, err)
 	}
 

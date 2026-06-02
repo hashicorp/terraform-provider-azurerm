@@ -61,9 +61,20 @@ func (c RegistriesClient) ImportImage(ctx context.Context, id RegistryId, input 
 
 // ImportImageThenPoll performs ImportImage then polls until it's completed
 func (c RegistriesClient) ImportImageThenPoll(ctx context.Context, id RegistryId, input ImportImageParameters) error {
+	return c.ImportImageCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ImportImageCallbackThenPoll performs ImportImage, runs the optional callback function, then polls until it's completed
+func (c RegistriesClient) ImportImageCallbackThenPoll(ctx context.Context, id RegistryId, input ImportImageParameters, callback func() error) error {
 	result, err := c.ImportImage(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ImportImage: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

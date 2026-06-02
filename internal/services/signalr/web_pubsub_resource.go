@@ -4,7 +4,6 @@
 package signalr
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -21,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -217,14 +217,16 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	liveTraceConfig := d.Get("live_trace").([]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %q: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError(webPubSubResourceType, id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError(webPubSubResourceType, id.ID())
+			}
 		}
 	}
 
@@ -257,35 +259,18 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %q: %+v", id, err)
-	}
-
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			string(webpubsub.ProvisioningStateUpdating),
-			string(webpubsub.ProvisioningStateCreating),
-			string(webpubsub.ProvisioningStateMoving),
-			string(webpubsub.ProvisioningStateRunning),
-		},
-		Target:                    []string{string(webpubsub.ProvisioningStateSucceeded)},
-		Refresh:                   webPubsubProvisioningStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 5,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return err
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	return resourceWebPubSubRead(d, meta)
@@ -432,26 +417,6 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 		"connectivity_logs_enabled": connectivityLogEnabled,
 		"http_request_logs_enabled": httpLogsEnabled,
 	}}
-}
-
-func webPubsubProvisioningStateRefreshFunc(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.WebPubSubId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-
-		provisioningState := "Pending"
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, provisioningState, nil
-			}
-			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
-		}
-
-		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
-			provisioningState = string(*res.Model.Properties.ProvisioningState)
-		}
-
-		return res, provisioningState, nil
-	}
 }
 
 func resourceWebPubSubFlatten(d *pluginsdk.ResourceData, id *webpubsub.WebPubSubId, model *webpubsub.WebPubSubResource, keyModel *webpubsub.WebPubSubKeys) error {

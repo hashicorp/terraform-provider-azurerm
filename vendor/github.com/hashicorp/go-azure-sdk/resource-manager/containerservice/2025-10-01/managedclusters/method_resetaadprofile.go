@@ -62,9 +62,20 @@ func (c ManagedClustersClient) ResetAADProfile(ctx context.Context, id commonids
 
 // ResetAADProfileThenPoll performs ResetAADProfile then polls until it's completed
 func (c ManagedClustersClient) ResetAADProfileThenPoll(ctx context.Context, id commonids.KubernetesClusterId, input ManagedClusterAADProfile) error {
+	return c.ResetAADProfileCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ResetAADProfileCallbackThenPoll performs ResetAADProfile, runs the optional callback function, then polls until it's completed
+func (c ManagedClustersClient) ResetAADProfileCallbackThenPoll(ctx context.Context, id commonids.KubernetesClusterId, input ManagedClusterAADProfile, callback func() error) error {
 	result, err := c.ResetAADProfile(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ResetAADProfile: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
