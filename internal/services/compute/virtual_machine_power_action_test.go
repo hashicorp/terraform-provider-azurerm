@@ -249,14 +249,9 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 
-data "azurerm_virtual_machine" "test" {
-  name                = "acctestVM-%[2]d" // sidestep cyclic reference issue
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 action "azurerm_virtual_machine_power" "test" {
   config {
-    virtual_machine_id = data.azurerm_virtual_machine.test.id
+    virtual_machine_id = azurerm_linux_virtual_machine.test.id
     power_action       = "deallocate"
   }
 }
