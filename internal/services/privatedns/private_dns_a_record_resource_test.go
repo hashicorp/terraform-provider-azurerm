@@ -178,8 +178,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
