@@ -115,7 +115,18 @@ func testAccExpressRouteConnection_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.update(data, 2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// regression test step for https://github.com/hashicorp/terraform-provider-azurerm/issues/32486
+			// updating only routing_weight to confirm `internet_security_enabled` doesn't unintentionally change
+			// can be removed post 5.0 (features.FivePointOh)
+			Config: r.update(data, 4),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("true"),
@@ -210,7 +221,7 @@ resource "azurerm_express_route_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ExpressRouteConnectionResource) update(data acceptance.TestData) string {
+func (r ExpressRouteConnectionResource) update(data acceptance.TestData, routingWeight int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -264,7 +275,7 @@ resource "azurerm_express_route_connection" "test" {
   name                                 = "acctest-ExpressRouteConnection-%d"
   express_route_gateway_id             = azurerm_express_route_gateway.test.id
   express_route_circuit_peering_id     = azurerm_express_route_circuit_peering.test.id
-  routing_weight                       = 2
+  routing_weight                       = %[3]d
   authorization_key                    = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
   internet_security_enabled            = true
   express_route_gateway_bypass_enabled = true
@@ -280,9 +291,8 @@ resource "azurerm_express_route_connection" "test" {
     inbound_route_map_id  = azurerm_route_map.routemap1.id
     outbound_route_map_id = azurerm_route_map.routemap2.id
   }
-  depends_on = [azurerm_route_map.routemap1, azurerm_route_map.routemap2]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, routingWeight)
 }
 
 func (r ExpressRouteConnectionResource) template(data acceptance.TestData) string {
