@@ -111,7 +111,7 @@ An `ip_address_pool` block supports the following:
 
 * `number_of_ip_addresses` - (Required) The number of IP addresses to allocated to the subnet. The value must be a string that represents a positive number, e.g., `"100"`.
 
--> **Note:** `number_of_ip_addresses` cannot be decreased.
+~> **Note:** `number_of_ip_addresses` cannot be decreased.
 
 ---
 
