@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -62,7 +62,7 @@ func (NetworkPacketCaptureV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Default:  18000,
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"storage_location": {
 			Type:     pluginsdk.TypeList,
 			Required: true,

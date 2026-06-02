@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package analysisservices
@@ -6,7 +6,6 @@ package analysisservices
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -16,15 +15,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name analysis_services_server -service-package-name analysisservices -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceAnalysisServicesServer() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -40,10 +42,11 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := servers.ParseServerID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&servers.ServerId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&servers.ServerId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -86,18 +89,12 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			"power_bi_service_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
-				ConflictsWith: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"enable_power_bi_service"}
-					}
-					return []string{}
-				}(),
 			},
 
 			"ipv4_firewall_rule": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				RequiredWith: []string{"power_bi_service_enabled"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -144,24 +141,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-	if !features.FourPointOhBeta() {
-		resource.Schema["querypool_connection_mode"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(servers.ConnectionModeAll),
-				string(servers.ConnectionModeReadOnly),
-			}, false),
-		}
-		resource.Schema["enable_power_bi_service"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "The property `enable_power_bi_service` has been superseded by `power_bi_service_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-			ConflictsWith: []string{"power_bi_service_enabled"},
-		}
-	}
+
 	return resource
 }
 
@@ -171,19 +151,19 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
-
 	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	server, err := client.GetDetails(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(server.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		server, err := client.GetDetails(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(server.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(server.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_analysis_services_server", id.ID())
+		if !response.WasNotFound(server.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_analysis_services_server", id.ID())
+		}
 	}
 
 	analysisServicesServer := servers.AnalysisServicesServer{
@@ -198,23 +178,6 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("enable_power_bi_service"); ok && !features.FourPointOhBeta() {
-		if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
-			analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
-				FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
-			}
-		}
-		analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(v.(bool))
-	}
-	if v, ok := d.GetOk("power_bi_service_enabled"); ok {
-		if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
-			analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
-				FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
-			}
-		}
-		analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(v.(bool))
-	}
-
 	if querypoolConnectionMode, ok := d.GetOk("querypool_connection_mode"); ok {
 		analysisServicesServer.Properties.QuerypoolConnectionMode = pointer.To(servers.ConnectionMode(querypoolConnectionMode.(string)))
 	}
@@ -223,11 +186,15 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 		analysisServicesServer.Properties.BackupBlobContainerUri = pointer.To(containerUri.(string))
 	}
 
-	if err := client.CreateThenPoll(ctx, id, analysisServicesServer); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, analysisServicesServer, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceAnalysisServicesServerRead(d, meta)
 }
 
@@ -266,9 +233,6 @@ func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("admin_users", adminUsers)
 
 			enablePowerBi, fwRules := flattenAnalysisServicesServerFirewallSettings(props)
-			if !features.FourPointOhBeta() {
-				d.Set("enable_power_bi_service", enablePowerBi)
-			}
 			d.Set("power_bi_service_enabled", enablePowerBi)
 			if err := d.Set("ipv4_firewall_rule", fwRules); err != nil {
 				return fmt.Errorf("setting `ipv4_firewall_rule`: %s", err)
@@ -291,15 +255,13 @@ func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.Servers
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server update.")
 
 	id, err := servers.ParseServerID(d.Id())
 	if err != nil {
@@ -341,26 +303,6 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 			IPV4FirewallSettings:    expandAnalysisServicesServerFirewallSettings(d),
 			QuerypoolConnectionMode: pointer.To(servers.ConnectionMode(d.Get("querypool_connection_mode").(string))),
 		},
-	}
-
-	if d.HasChange("power_bi_service_enabled") {
-		if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
-			analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
-				FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
-			}
-		}
-		analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(d.Get("power_bi_service_enabled").(bool))
-	}
-
-	if !features.FourPointOhBeta() {
-		if d.HasChange("enable_power_bi_service") {
-			if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
-				analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
-					FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
-				}
-			}
-			analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(d.Get("enable_power_bi_service").(bool))
-		}
 	}
 
 	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
@@ -413,25 +355,32 @@ func expandAnalysisServicesServerAdminUsers(d *pluginsdk.ResourceData) *servers.
 }
 
 func expandAnalysisServicesServerFirewallSettings(d *pluginsdk.ResourceData) *servers.IPv4FirewallSettings {
-	firewallRules := d.Get("ipv4_firewall_rule").(*pluginsdk.Set).List()
+	fwRules := make([]servers.IPv4FirewallRule, 0)
+	result := servers.IPv4FirewallSettings{}
 
-	if len(firewallRules) == 0 {
-		return nil
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "power_bi_service_enabled") {
+		result.EnablePowerBIService = pointer.To(d.Get("power_bi_service_enabled").(bool))
+		// when `power_bi_service_enabled` is specified, we must send at least an empty array for `FirewallRules`
+		// otherwise the API errors out with a 400.
+		result.FirewallRules = &fwRules
 	}
 
-	firewallSettings := servers.IPv4FirewallSettings{}
-	fwRules := make([]servers.IPv4FirewallRule, len(firewallRules))
-	for i, v := range firewallRules {
+	firewallRules := d.Get("ipv4_firewall_rule").(*pluginsdk.Set).List()
+	if len(firewallRules) == 0 {
+		return &result
+	}
+
+	for _, v := range firewallRules {
 		fwRule := v.(map[string]interface{})
-		fwRules[i] = servers.IPv4FirewallRule{
+		fwRules = append(fwRules, servers.IPv4FirewallRule{
 			FirewallRuleName: pointer.To(fwRule["name"].(string)),
 			RangeStart:       pointer.To(fwRule["range_start"].(string)),
 			RangeEnd:         pointer.To(fwRule["range_end"].(string)),
-		}
+		})
 	}
-	firewallSettings.FirewallRules = &fwRules
+	result.FirewallRules = &fwRules
 
-	return &firewallSettings
+	return &result
 }
 
 func flattenAnalysisServicesServerFirewallSettings(serverProperties *servers.AnalysisServicesServerProperties) (*bool, *pluginsdk.Set) {

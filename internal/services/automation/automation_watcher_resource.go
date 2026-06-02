@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WatcherModel struct {
@@ -118,24 +117,26 @@ func (m WatcherResource) ResourceType() string {
 func (m WatcherResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.WatcherClient
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Automation.WatcherClient
 
 			var model WatcherModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			accountID, _ := watcher.ParseAutomationAccountID(model.AutomationAccountID)
 			id := watcher.NewWatcherID(subscriptionID, accountID.ResourceGroupName, accountID.AutomationAccountName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
 			tags := expandStringInterfaceMap(model.Tags)
@@ -143,23 +144,22 @@ func (m WatcherResource) Create() sdk.ResourceFunc {
 
 			param := watcher.Watcher{
 				Properties: &watcher.WatcherProperties{
-					Description:                 utils.String(model.Description),
-					ExecutionFrequencyInSeconds: utils.Int64(model.ExecutionFrequencyInSeconds),
-					ScriptName:                  utils.String(model.ScriptName),
+					Description:                 pointer.To(model.Description),
+					ExecutionFrequencyInSeconds: pointer.To(model.ExecutionFrequencyInSeconds),
+					ScriptName:                  pointer.To(model.ScriptName),
 					ScriptParameters:            &scriptParameters,
-					ScriptRunOn:                 utils.String(model.ScriptRunOn),
+					ScriptRunOn:                 pointer.To(model.ScriptRunOn),
 				},
-				Etag:     utils.String(model.Etag),
-				Location: utils.String(model.Location),
+				Etag:     pointer.To(model.Etag),
+				Location: pointer.To(model.Location),
 				Tags:     &tags,
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id, param)
-			if err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -231,7 +231,7 @@ func (m WatcherResource) Update() sdk.ResourceFunc {
 			var upd watcher.WatcherUpdateParameters
 			upd.Properties = &watcher.WatcherUpdateProperties{}
 			if meta.ResourceData.HasChange("execution_frequency_in_seconds") {
-				upd.Properties.ExecutionFrequencyInSeconds = utils.Int64(model.ExecutionFrequencyInSeconds)
+				upd.Properties.ExecutionFrequencyInSeconds = pointer.To(model.ExecutionFrequencyInSeconds)
 			}
 			if _, err = client.Update(ctx, *id, upd); err != nil {
 				return fmt.Errorf("updating %s: %v", *id, err)

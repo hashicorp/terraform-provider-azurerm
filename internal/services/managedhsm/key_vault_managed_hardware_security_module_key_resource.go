@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -14,6 +14,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -77,6 +78,7 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 			// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 			ValidateFunc: validation.StringInSlice([]string{
 				string(keyvault.JSONWebKeyTypeECHSM),
+				string(keyvault.JSONWebKeyTypeOctHSM),
 				string(keyvault.JSONWebKeyTypeRSAHSM),
 			}, false),
 		},
@@ -121,6 +123,7 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 					string(keyvault.JSONWebKeyOperationUnwrapKey),
 					string(keyvault.JSONWebKeyOperationVerify),
 					string(keyvault.JSONWebKeyOperationWrapKey),
+					string(keyvault.JSONWebKeyOperationImport),
 				}, false),
 			},
 		},
@@ -137,7 +140,7 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -202,21 +205,23 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
-			existing, err := client.GetKey(ctx, endpoint.BaseURI(), id.KeyName, "")
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetKey(ctx, endpoint.BaseURI(), id.KeyName, "")
+				if err != nil {
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := keyvault.KeyCreateParameters{
 				Kty:    keyvault.JSONWebKeyType(config.KeyType),
 				KeyOps: expandKeyVaultKeyOptions(config.KeyOpts),
 				KeyAttributes: &keyvault.KeyAttributes{
-					Enabled: utils.Bool(true),
+					Enabled: pointer.To(true),
 				},
 
 				Tags: tags.Expand(config.Tags),
@@ -272,7 +277,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 						log.Printf("[DEBUG] Key %q recovered with ID: %q", config.Name, *kid)
 					}
 				} else {
-					return fmt.Errorf("Creating Key: %+v", err)
+					return fmt.Errorf("creating Key: %+v", err)
 				}
 			}
 
@@ -327,7 +332,7 @@ func (r KeyVaultMHSMKeyResource) Read() sdk.ResourceFunc {
 				if key.N != nil {
 					nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 					if err != nil {
-						return fmt.Errorf("Could not decode N: %+v", err)
+						return fmt.Errorf("could not decode N: %+v", err)
 					}
 					schema.KeySize = int64(len(nBytes) * 8)
 				}
@@ -380,7 +385,7 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 			parameters := keyvault.KeyUpdateParameters{
 				KeyOps: expandKeyVaultKeyOptions(config.KeyOpts),
 				KeyAttributes: &keyvault.KeyAttributes{
-					Enabled: utils.Bool(true),
+					Enabled: pointer.To(true),
 				},
 
 				Tags: tags.Expand(config.Tags),

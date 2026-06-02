@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package md
@@ -196,7 +196,7 @@ func FixFileNormalize(file string) {
 	}
 	newBs := strings.Join(newContent, "\n")
 	if newBs != content {
-		f, _ := os.OpenFile(file, os.O_TRUNC|os.O_WRONLY, 0666)
+		f, _ := os.OpenFile(file, os.O_TRUNC|os.O_WRONLY, 0o666)
 		_, _ = f.WriteString(newBs)
 		_ = f.Sync()
 	}
@@ -246,31 +246,34 @@ func tryFixProp(line string) string {
 			}
 		}
 	}
-	// need a dash after property name
-	idx := strings.Index(line, "`")
-	if idx += strings.Index(line[idx+1:], "`") + 1; idx > 0 {
-		for idx2 := idx + 1; idx2 < len(line); idx2++ {
-			if line[idx2] == ' ' {
-				continue
-			}
-			if line[idx2] != '-' {
-				line2 := line[:idx+2]
-				if line[idx2-1] != ' ' {
-					line2 += " "
+	// Skip adding dashes for note sections
+	if !strings.HasPrefix(line, "~>") && !strings.HasPrefix(line, "->") && !strings.HasPrefix(line, "!>") {
+		// need a dash after property name
+		idx := strings.Index(line, "`")
+		if idx += strings.Index(line[idx+1:], "`") + 1; idx > 0 {
+			for idx2 := idx + 1; idx2 < len(line); idx2++ {
+				if line[idx2] == ' ' {
+					continue
 				}
-				line2 += "- "
-				line2 += line[idx2:]
-				line = line2
-				break
-			} else {
-				// if line[idx2] == '-'  exists
-				if line[idx2-1] != ' ' {
-					line = line[:idx2] + " " + line[idx2:]
+				if line[idx2] != '-' {
+					line2 := line[:idx+2]
+					if line[idx2-1] != ' ' {
+						line2 += " "
+					}
+					line2 += "- "
+					line2 += line[idx2:]
+					line = line2
+					break
+				} else {
+					// if line[idx2] == '-'  exists
+					if line[idx2-1] != ' ' {
+						line = line[:idx2] + " " + line[idx2:]
+					}
+					if line[idx2+1] != ' ' {
+						line = line[:idx2+1] + " " + line[idx2+1:]
+					}
+					break
 				}
-				if line[idx2+1] != ' ' {
-					line = line[:idx2+1] + " " + line[idx2+1:]
-				}
-				break
 			}
 		}
 	}

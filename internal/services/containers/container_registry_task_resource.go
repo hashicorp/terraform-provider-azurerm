@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -574,16 +574,19 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"cpu": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntInSlice([]int{2}),
 					},
 				},
 			},
+			ConflictsWith: []string{"agent_pool_name"},
 		},
 		"agent_pool_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"agent_setting"},
 		},
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -663,7 +666,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
-			registryClient := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
+			registryClient := metadata.Client.Containers.ContainerRegistryClient.Registries
 
 			var model ContainerRegistryTaskModel
 			if err := metadata.Decode(&model); err != nil {
@@ -681,14 +684,17 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 			}
 
 			id := tasks.NewTaskID(registryId.SubscriptionId, registryId.ResourceGroupName, registryId.RegistryName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			status := tasks.TaskStatusDisabled
@@ -726,7 +732,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 				params.Properties.LogTemplate = &model.LogTemplate
 			}
 
-			if err := client.CreateThenPoll(ctx, id, params); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, params, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -905,8 +911,8 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 			}
 
 			if existing.Model.Properties.Trigger != nil {
-				if !metadata.ResourceData.HasChange("source_triggers") && existing.Model.Properties.Trigger.SourceTriggers != nil {
-					// For update that is not affecting source_triggers, we need to patch the source_triggers to include the properties missing in the response of GET.
+				if !metadata.ResourceData.HasChange("source_trigger") && existing.Model.Properties.Trigger.SourceTriggers != nil {
+					// For update that is not affecting source_trigger, we need to patch the source_trigger to include the properties missing in the response of GET.
 					existing.Model.Properties.Trigger.SourceTriggers = patchRegistryTaskTriggerSourceTrigger(*existing.Model.Properties.Trigger.SourceTriggers, model)
 				}
 			}
@@ -1159,7 +1165,7 @@ func expandRegistryTaskDockerStep(step DockerStep) tasks.DockerBuildStep {
 	out := tasks.DockerBuildStep{
 		DockerFilePath: step.DockerfilePath,
 		IsPushEnabled:  &step.IsPushEnabled,
-		NoCache:        utils.Bool(!step.IsCacheEnabled),
+		NoCache:        pointer.To(!step.IsCacheEnabled),
 		Arguments:      expandRegistryTaskArguments(step.Arguments, step.SecretArguments),
 	}
 	if step.ContextPath != "" {
@@ -1284,7 +1290,7 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskSt
 		out.ContextAccessToken = &step.ContextAccessToken
 	}
 	if step.ValueContent != "" {
-		out.EncodedValuesContent = utils.String(utils.Base64EncodeIfNot(step.ValueContent))
+		out.EncodedValuesContent = pointer.To(utils.Base64EncodeIfNot(step.ValueContent))
 	}
 	return out
 }
@@ -1335,14 +1341,14 @@ func expandRegistryTaskArguments(arguments map[string]string, secretArguments ma
 		out = append(out, tasks.Argument{
 			Name:     k,
 			Value:    v,
-			IsSecret: utils.Bool(false),
+			IsSecret: pointer.To(false),
 		})
 	}
 	for k, v := range secretArguments {
 		out = append(out, tasks.Argument{
 			Name:     k,
 			Value:    v,
-			IsSecret: utils.Bool(true),
+			IsSecret: pointer.To(true),
 		})
 	}
 	return &out
@@ -1387,14 +1393,14 @@ func expandRegistryTaskValues(values map[string]string, secretValues map[string]
 		out = append(out, tasks.SetValue{
 			Name:     k,
 			Value:    v,
-			IsSecret: utils.Bool(false),
+			IsSecret: pointer.To(false),
 		})
 	}
 	for k, v := range secretValues {
 		out = append(out, tasks.SetValue{
 			Name:     k,
 			Value:    v,
-			IsSecret: utils.Bool(true),
+			IsSecret: pointer.To(true),
 		})
 	}
 	return &out
@@ -1507,7 +1513,7 @@ func expandSourceRegistryCredential(input []SourceRegistryCredential) *tasks.Sou
 }
 
 func flattenSourceRegistryCredential(input *tasks.SourceRegistryCredentials) []SourceRegistryCredential {
-	if input == nil {
+	if input == nil || input.LoginMode == nil {
 		return nil
 	}
 
@@ -1525,26 +1531,26 @@ func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string
 
 		if credential.UserName != "" {
 			usernameType := tasks.SecretObjectTypeOpaque
-			if _, err := keyVaultParse.ParseNestedItemID(credential.UserName); err == nil {
+			if _, err := keyvault.ParseNestedItemID(credential.UserName, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny); err == nil {
 				usernameType = tasks.SecretObjectTypeVaultsecret
 			}
 			cred.UserName = &tasks.SecretObject{
-				Value: utils.String(credential.UserName),
+				Value: pointer.To(credential.UserName),
 				Type:  &usernameType,
 			}
 		}
 		if credential.Password != "" {
 			passwordType := tasks.SecretObjectTypeOpaque
-			if _, err := keyVaultParse.ParseNestedItemID(credential.Password); err == nil {
+			if _, err := keyvault.ParseNestedItemID(credential.Password, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny); err == nil {
 				passwordType = tasks.SecretObjectTypeVaultsecret
 			}
 			cred.Password = &tasks.SecretObject{
-				Value: utils.String(credential.Password),
+				Value: pointer.To(credential.Password),
 				Type:  &passwordType,
 			}
 		}
 		if credential.Identity != "" {
-			cred.Identity = utils.String(credential.Identity)
+			cred.Identity = pointer.To(credential.Identity)
 		}
 		out[credential.LoginServer] = cred
 	}
@@ -1557,7 +1563,7 @@ func expandRegistryTaskAgentProperties(input []AgentConfig) *tasks.AgentProperti
 	}
 
 	agentConfig := input[0]
-	return &tasks.AgentProperties{Cpu: utils.Int64(agentConfig.CPU)}
+	return &tasks.AgentProperties{Cpu: pointer.To(agentConfig.CPU)}
 }
 
 func flattenRegistryTaskAgentProperties(input *tasks.AgentProperties) []AgentConfig {
@@ -1575,7 +1581,7 @@ func patchRegistryTaskTriggerSourceTrigger(triggers []tasks.SourceTrigger, model
 
 	result := make([]tasks.SourceTrigger, len(triggers))
 	for i, trigger := range model.SourceTrigger {
-		t := (triggers)[i]
+		t := triggers[i]
 		if len(trigger.Auth) == 0 {
 			result[i] = t
 			continue

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -8,15 +8,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
+	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 type SpringCloudDevToolPortalModel struct {
@@ -37,7 +39,14 @@ type SsoModel struct {
 
 type SpringCloudDevToolPortalResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudDevToolPortalResource{}
+func (s SpringCloudDevToolPortalResource) DeprecationMessage() string {
+	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_dev_tool_portal` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudDevToolPortalResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudDevToolPortalResource{}
+)
 
 func (s SpringCloudDevToolPortalResource) ResourceType() string {
 	return "azurerm_spring_cloud_dev_tool_portal"
@@ -142,17 +151,19 @@ func (s SpringCloudDevToolPortalResource) Create() sdk.ResourceFunc {
 			}
 			id := parse.NewSpringCloudDevToolPortalID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.DevToolPortalName)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.DevToolPortalName)
+				if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			DevToolPortalResource := appplatform.DevToolPortalResource{
 				Properties: &appplatform.DevToolPortalProperties{
-					Public:        utils.Bool(model.PublicNetworkAccessEnabled),
+					Public:        pointer.To(model.PublicNetworkAccessEnabled),
 					SsoProperties: expandSpringCloudDevToolPortalSsoProperties(model.Sso),
 					Features:      expandSpringCloudDevToolPortalFeatures(model.ApplicationAcceleratorEnabled, model.ApplicationLiveViewEnabled),
 				},
@@ -162,11 +173,12 @@ func (s SpringCloudDevToolPortalResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -194,7 +206,7 @@ func (s SpringCloudDevToolPortalResource) Update() sdk.ResourceFunc {
 
 			DevToolPortalResource := appplatform.DevToolPortalResource{
 				Properties: &appplatform.DevToolPortalProperties{
-					Public:        utils.Bool(model.PublicNetworkAccessEnabled),
+					Public:        pointer.To(model.PublicNetworkAccessEnabled),
 					SsoProperties: expandSpringCloudDevToolPortalSsoProperties(model.Sso),
 					Features:      expandSpringCloudDevToolPortalFeatures(model.ApplicationAcceleratorEnabled, model.ApplicationLiveViewEnabled),
 				},
@@ -319,9 +331,9 @@ func expandSpringCloudDevToolPortalSsoProperties(input []SsoModel) *appplatform.
 
 	return &appplatform.DevToolPortalSsoProperties{
 		Scopes:       &sso.Scope,
-		ClientID:     utils.String(sso.ClientId),
-		ClientSecret: utils.String(sso.ClientSecret),
-		MetadataURL:  utils.String(sso.MetadataUrl),
+		ClientID:     pointer.To(sso.ClientId),
+		ClientSecret: pointer.To(sso.ClientSecret),
+		MetadataURL:  pointer.To(sso.MetadataUrl),
 	}
 }
 

@@ -1,39 +1,37 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
 
 import (
-	"encoding/base64"
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultSuppress "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAppServiceCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAppServiceCertificateCreateUpdate,
+		Create: resourceAppServiceCertificateCreate,
 		Read:   resourceAppServiceCertificateRead,
-		Update: resourceAppServiceCertificateCreateUpdate,
+		Update: resourceAppServiceCertificateUpdate,
 		Delete: resourceAppServiceCertificateDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CertificateID(id)
+			_, err := certificates.ParseCertificateID(id)
 			return err
 		}),
 
@@ -44,92 +42,198 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceAppServiceCertificateSchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"location": commonschema.Location(),
+
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"pfx_blob": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsBase64,
+			},
+
+			"password": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
+			"key_vault_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateKeyVaultID,
+				RequiredWith: []string{"key_vault_secret_id"},
+			},
+
+			"key_vault_secret_id": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
+				ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
+				ConflictsWith:    []string{"pfx_blob", "password"},
+				ExactlyOneOf:     []string{"key_vault_secret_id", "pfx_blob"},
+			},
+
+			"app_service_plan_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"friendly_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"subject_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"host_names": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"issuer": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"issue_date": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"expiration_date": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"thumbprint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"hosting_environment_profile_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"tags": commonschema.Tags(),
+		},
 	}
 }
 
-func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).Web.CertificatesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
+	id := certificates.NewCertificateID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	id := parse.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	pfxBlob := d.Get("pfx_blob").(string)
-	password := d.Get("password").(string)
-	customizedKeyVaultId := d.Get("key_vault_id").(string)
-	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
-	appServicePlanId := d.Get("app_service_plan_id").(string)
-	t := d.Get("tags").(map[string]interface{})
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %w", id, err)
 			}
-		}
-
-		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_app_service_certificate", id.ID())
 		}
 	}
 
-	certificate := web.Certificate{
-		CertificateProperties: &web.CertificateProperties{
-			Password: utils.String(password),
+	certificate := certificates.Certificate{
+		Properties: &certificates.CertificateProperties{
+			Password: pointer.To(d.Get("password").(string)),
 		},
-		Location: utils.String(location),
-		Tags:     tags.Expand(t),
+		Location: location.Normalize(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if appServicePlanId != "" {
-		certificate.CertificateProperties.ServerFarmID = &appServicePlanId
+	if v := d.Get("app_service_plan_id").(string); v != "" {
+		certificate.Properties.ServerFarmId = &v
 	}
 
-	if pfxBlob != "" {
-		decodedPfxBlob, err := base64.StdEncoding.DecodeString(pfxBlob)
-		if err != nil {
-			return fmt.Errorf("Could not decode PFX blob: %+v", err)
-		}
-		certificate.CertificateProperties.PfxBlob = &decodedPfxBlob
+	if v := d.Get("pfx_blob").(string); v != "" {
+		certificate.Properties.PfxBlob = pointer.To(v)
 	}
 
-	if keyVaultSecretId != "" {
-		parsedSecretId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultSecretId)
+	if v := d.Get("key_vault_secret_id").(string); v != "" {
+		parsedSecretId, err := keyvault.ParseNestedItemID(v, keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 		if err != nil {
 			return err
 		}
 
 		var keyVaultId *string
-		if customizedKeyVaultId != "" {
-			keyVaultId = utils.String(customizedKeyVaultId)
+		if v := d.Get("key_vault_id").(string); v != "" {
+			keyVaultId = pointer.To(v)
 		} else {
-			keyVaultBaseUrl := parsedSecretId.KeyVaultBaseUrl
+			keyVaultBaseUrl := parsedSecretId.KeyVaultBaseURL
 
-			subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+			subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
 			keyVaultId, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultBaseUrl)
 			if err != nil {
 				return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
 			}
 			if keyVaultId == nil {
-				return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
+				return fmt.Errorf("unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
 			}
 		}
 
-		certificate.CertificateProperties.KeyVaultID = keyVaultId
-		certificate.CertificateProperties.KeyVaultSecretName = utils.String(parsedSecretId.Name)
+		certificate.Properties.KeyVaultId = keyVaultId
+		certificate.Properties.KeyVaultSecretName = pointer.To(parsedSecretId.Name)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, certificate); err != nil {
-		return fmt.Errorf("creating/updating %s: %s", id, err)
+	if _, err := client.CreateOrUpdate(ctx, id, certificate); err != nil {
+		return fmt.Errorf("creating %s: %s", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAppServiceCertificateRead(d, meta)
+}
+
+func resourceAppServiceCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Web.CertificatesClient
+
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := certificates.NewCertificateID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %w", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+
+	if _, err := client.CreateOrUpdate(ctx, id, *existing.Model); err != nil {
+		return fmt.Errorf("updating %s: %s", id, err)
+	}
 
 	return resourceAppServiceCertificateRead(d, meta)
 }
@@ -139,54 +243,55 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CertificateID(d.Id())
+	id, err := certificates.ParseCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Certificate %q (Resource Group %q) was not found - removing from state", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on App Service Certificate %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.CertificateName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(resp.Model.Location))
 
-	if props := resp.CertificateProperties; props != nil {
-		d.Set("friendly_name", props.FriendlyName)
-		d.Set("subject_name", props.SubjectName)
-		d.Set("host_names", props.HostNames)
-		d.Set("issuer", props.Issuer)
-		if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
-			envId, err := parse.AppServiceEnvironmentID(*props.HostingEnvironmentProfile.ID)
-			if err != nil {
-				return fmt.Errorf("parsing hosting environment error: %+v", err)
+		if props := model.Properties; props != nil {
+			d.Set("friendly_name", props.FriendlyName)
+			d.Set("subject_name", props.SubjectName)
+			d.Set("host_names", props.HostNames)
+			d.Set("issuer", props.Issuer)
+			d.Set("tags", tags.Flatten(model.Tags))
+			d.Set("issue_date", props.IssueDate)
+			d.Set("expiration_date", props.ExpirationDate)
+			d.Set("thumbprint", props.Thumbprint)
+
+			if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.Id != nil {
+				envId, err := commonids.ParseAppServiceEnvironmentID(*props.HostingEnvironmentProfile.Id)
+				if err != nil {
+					return err
+				}
+				d.Set("hosting_environment_profile_id", envId.ID())
 			}
-			d.Set("hosting_environment_profile_id", envId.ID())
+
+			if props.ServerFarmId != nil {
+				sfID, err := commonids.ParseAppServicePlanID(*props.ServerFarmId)
+				if err != nil {
+					return err
+				}
+				d.Set("app_service_plan_id", sfID.ID())
+			}
 		}
-		issueDate := ""
-		if props.IssueDate != nil {
-			issueDate = props.IssueDate.Format(time.RFC3339)
-		}
-		d.Set("issue_date", issueDate)
-		expirationDate := ""
-		if props.ExpirationDate != nil {
-			expirationDate = props.ExpirationDate.Format(time.RFC3339)
-		}
-		d.Set("expiration_date", expirationDate)
-		d.Set("thumbprint", props.Thumbprint)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -194,119 +299,14 @@ func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CertificateID(d.Id())
+	id, err := certificates.ParseCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", id.Name, id.ResourceGroup)
-
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting App Service Certificate %q (Resource Group %q): %s)", id.Name, id.ResourceGroup, err)
-		}
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %w", id, err)
 	}
 
 	return nil
-}
-
-func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"location": commonschema.Location(),
-
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"pfx_blob": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Sensitive:    true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsBase64,
-		},
-
-		"password": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Sensitive:    true,
-			ForceNew:     true,
-			ValidateFunc: validation.NoZeroValues,
-		},
-
-		"key_vault_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateKeyVaultID,
-			RequiredWith: []string{"key_vault_secret_id"},
-		},
-
-		"key_vault_secret_id": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
-			ValidateFunc:     keyVaultValidate.NestedItemIdWithOptionalVersion,
-			ConflictsWith:    []string{"pfx_blob", "password"},
-			ExactlyOneOf:     []string{"key_vault_secret_id", "pfx_blob"},
-		},
-
-		"app_service_plan_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-		},
-
-		"friendly_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"subject_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"host_names": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"issuer": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"issue_date": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"expiration_date": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"thumbprint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"hosting_environment_profile_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"tags": tags.Schema(),
-	}
 }

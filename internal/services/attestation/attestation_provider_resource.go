@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package attestation
@@ -22,13 +22,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name attestation_provider -service-package-name attestation -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
 
 func resourceAttestationProvider() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -44,10 +45,11 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := attestationproviders.ParseAttestationProvidersID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&attestationproviders.AttestationProvidersId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&attestationproviders.AttestationProvidersId{}),
+		},
 
 		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
 			if o, n := diff.GetChange("open_enclave_policy_base64"); o.(string) != "" && n.(string) == "" {
@@ -126,27 +128,6 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 				},
 			}
 
-			if !features.FourPointOhBeta() {
-				s["policy"] = &pluginsdk.Schema{
-					Type:       pluginsdk.TypeList,
-					Optional:   true,
-					Deprecated: "This field is no longer used and will be removed in v4.0 of the Azure Provider - use `open_enclave_policy_base64`, `sgx_enclave_policy_base64`, `tpm_policy_base64` and `sev_snp_policy_base64` instead.",
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"environment_type": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-							},
-
-							"data": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-							},
-						},
-					},
-				}
-			}
-
 			return s
 		}(),
 	}
@@ -159,14 +140,17 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	id := attestationproviders.NewAttestationProvidersID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := attestationClients.ProviderClient.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of exisiting %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := attestationClients.ProviderClient.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of exisiting %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_attestation_provider", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_attestation_provider", id.ID())
+		}
 	}
 
 	props := attestationproviders.AttestationServiceCreationParams{
@@ -194,6 +178,9 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	dataPlaneUri, err := attestationClients.DataPlaneEndpointForProvider(ctx, id)
 	if err != nil {
@@ -315,13 +302,7 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 	d.Set("sev_snp_policy_base64", pointer.From(sevSnpPolicyData))
 
-	if !features.FourPointOhBeta() {
-		if err := d.Set("policy", []interface{}{}); err != nil {
-			return fmt.Errorf("setting `policy`: %+v", err)
-		}
-	}
-
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -394,12 +375,12 @@ func resourceAttestationProviderDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandArmAttestationProviderJSONWebKeySet(pem string) *attestationproviders.JsonWebKeySet {
+func expandArmAttestationProviderJSONWebKeySet(pem string) *attestationproviders.JSONWebKeySet {
 	if len(pem) == 0 {
 		return nil
 	}
 
-	result := attestationproviders.JsonWebKeySet{
+	result := attestationproviders.JSONWebKeySet{
 		Keys: expandArmAttestationProviderJSONWebKeyArray(pem),
 	}
 

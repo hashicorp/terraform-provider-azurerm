@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -20,10 +20,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/filesystems"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/paths"
-	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/filesystems"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/paths"
+	"github.com/jackofallops/giovanni/storage/accesscontrol"
 )
 
 func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
@@ -202,18 +202,19 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 	propertiesRaw := d.Get("properties").(map[string]interface{})
 	properties := ExpandMetaData(propertiesRaw)
 
-	resp, err := dataPlaneFilesystemsClient.GetProperties(ctx, id.FileSystemName)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := dataPlaneFilesystemsClient.GetProperties(ctx, id.FileSystemName)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existence of existing File System %q in %s: %v", id.FileSystemName, accountId, err)
+			}
+		}
+
 		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existence of existing File System %q in %s: %v", id.FileSystemName, accountId, err)
+			return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_filesystem", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_filesystem", id.ID())
-	}
-
-	log.Printf("[INFO] Creating %s...", id)
 	input := filesystems.CreateInput{
 		Properties: properties,
 	}
@@ -239,7 +240,6 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 	if acl != nil || owner != nil || group != nil {
 		var aclString *string
 		if acl != nil {
-			log.Printf("[INFO] Creating ACL %q for %s", acl, id)
 			v := acl.String()
 			aclString = &v
 		}
@@ -301,7 +301,6 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 	propertiesRaw := d.Get("properties").(map[string]interface{})
 	properties := ExpandMetaData(propertiesRaw)
 
-	log.Printf("[INFO] Updating Properties for %s...", id)
 	input := filesystems.SetPropertiesInput{
 		Properties: properties,
 	}
@@ -323,7 +322,6 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 	if acl != nil || owner != nil || group != nil {
 		var aclString *string
 		if acl != nil {
-			log.Printf("[INFO] Creating ACL %q for %s...", acl, id)
 			v := acl.String()
 			aclString = &v
 		}
@@ -456,15 +454,18 @@ func validateStorageDataLakeGen2FileSystemName(v interface{}, k string) (warning
 	if !regexp.MustCompile(`^\$root$|^[0-9a-z-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
 			"only lowercase alphanumeric characters and hyphens allowed in %q: %q",
-			k, value))
+			k, value,
+		))
 	}
 	if len(value) < 3 || len(value) > 63 {
 		errors = append(errors, fmt.Errorf(
-			"%q must be between 3 and 63 characters: %q", k, value))
+			"%q must be between 3 and 63 characters: %q", k, value,
+		))
 	}
 	if regexp.MustCompile(`^-`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
-			"%q cannot begin with a hyphen: %q", k, value))
+			"%q cannot begin with a hyphen: %q", k, value,
+		))
 	}
 	return warnings, errors
 }

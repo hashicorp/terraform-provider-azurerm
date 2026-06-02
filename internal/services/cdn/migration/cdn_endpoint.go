@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -160,7 +160,7 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"global_delivery_rule": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,

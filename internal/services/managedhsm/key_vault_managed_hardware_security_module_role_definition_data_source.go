@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -9,10 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,9 +28,6 @@ type KeyVaultMHSMRoleDefinitionDataSourceModel struct {
 	Permission        []Permission `tfschema:"permission"`
 	RoleType          string       `tfschema:"role_type"`
 	ResourceManagerId string       `tfschema:"resource_manager_id"`
-
-	// TODO: remove in v4.0
-	VaultBaseUrl string `tfschema:"vault_base_url,removedInNextMajorVersion"`
 }
 
 type KeyvaultMHSMRoleDefinitionDataSource struct{}
@@ -40,38 +35,19 @@ type KeyvaultMHSMRoleDefinitionDataSource struct{}
 var _ sdk.DataSource = KeyvaultMHSMRoleDefinitionDataSource{}
 
 func (k KeyvaultMHSMRoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
-		"managed_hsm_id": func() *pluginsdk.Schema {
-			s := &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: managedhsms.ValidateManagedHSMID,
-			}
-			if features.FourPointOhBeta() {
-				s.Required = true
-			} else {
-				s.Optional = true
-				s.Computed = true
-			}
-			return s
-		}(),
-	}
-
-	if !features.FourPointOhBeta() {
-		s["vault_base_url"] = &pluginsdk.Schema{
+		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-		}
+			ValidateFunc: managedhsms.ValidateManagedHSMID,
+			Required:     true,
+		},
 	}
-
-	return s
 }
 
 func (k KeyvaultMHSMRoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
@@ -190,21 +166,6 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			if managedHsmId == nil && !features.FourPointOhBeta() {
-				endpoint, err = parse.ManagedHSMEndpoint(config.VaultBaseUrl, domainSuffix)
-				if err != nil {
-					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
-				}
-				subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI(), domainSuffix)
-				if err != nil {
-					return fmt.Errorf("determining the Managed HSM ID for %q: %+v", endpoint.BaseURI(), err)
-				}
-				if managedHsmId == nil {
-					return fmt.Errorf("unable to determine the Resource Manager ID")
-				}
-			}
-
 			scope := keyvault.RoleScopeGlobal
 			id := parse.NewManagedHSMDataPlaneRoleDefinitionID(endpoint.ManagedHSMName, endpoint.DomainSuffix, string(scope), config.Name)
 
@@ -225,7 +186,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if prop := result.RoleDefinitionProperties; prop != nil {
-				config.Description = pointer.ToString(prop.Description)
+				config.Description = pointer.From(prop.Description)
 				config.RoleType = string(prop.RoleType)
 				config.RoleName = pointer.From(prop.RoleName)
 

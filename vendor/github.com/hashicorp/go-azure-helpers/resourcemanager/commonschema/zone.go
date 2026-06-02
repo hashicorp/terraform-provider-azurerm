@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package commonschema
@@ -7,8 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
-
-// NOTE: we intentionally don't have an Optional & Computed here for behavioural consistency.
 
 // ZoneSingleRequired returns the schema used when a single Zone must be specified
 func ZoneSingleRequired() *schema.Schema {
@@ -52,6 +50,15 @@ func ZoneSingleOptionalForceNew() *schema.Schema {
 func ZoneSingleComputed() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,
+		Computed: true,
+	}
+}
+
+// ZoneSingleOptionalComputed returns the schema used when a single Zone can be specified or a single Zone is returned when omitted
+func ZoneSingleOptionalComputed() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeString,
+		Optional: true,
 		Computed: true,
 	}
 }

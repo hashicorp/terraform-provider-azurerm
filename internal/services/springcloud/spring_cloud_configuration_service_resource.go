@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -45,8 +46,15 @@ type SpringCloudRepositoryModel struct {
 
 type SpringCloudConfigurationServiceResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudConfigurationServiceResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudConfigurationServiceResource{}
+func (s SpringCloudConfigurationServiceResource) DeprecationMessage() string {
+	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_configuration_service` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudConfigurationServiceResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudConfigurationServiceResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudConfigurationServiceResource{}
+)
 
 func (s SpringCloudConfigurationServiceResource) ResourceType() string {
 	return "azurerm_spring_cloud_configuration_service"
@@ -211,14 +219,16 @@ func (s SpringCloudConfigurationServiceResource) Create() sdk.ResourceFunc {
 			}
 			id := appplatform.NewConfigurationServiceID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.ConfigurationServicesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ConfigurationServicesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			configurationServiceResource := appplatform.ConfigurationServiceResource{
@@ -232,12 +242,11 @@ func (s SpringCloudConfigurationServiceResource) Create() sdk.ResourceFunc {
 					},
 				},
 			}
-			err = client.ConfigurationServicesCreateOrUpdateThenPoll(ctx, id, configurationServiceResource)
-			if err != nil {
+			if err := client.ConfigurationServicesCreateOrUpdateCallbackThenPoll(ctx, id, configurationServiceResource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating/updating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -361,6 +370,7 @@ func (s SpringCloudConfigurationServiceResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
+
 func expandConfigurationServiceConfigurationServiceGitRepositoryArray(input []SpringCloudRepositoryModel) *[]appplatform.ConfigurationServiceGitRepository {
 	if len(input) == 0 {
 		return nil

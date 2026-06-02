@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AlertProcessingRuleSuppressionModel struct {
@@ -63,12 +63,15 @@ func (r AlertProcessingRuleSuppressionResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := alertprocessingrules.NewActionRuleID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.GetByName(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetByName(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			alertProcessingRule := alertprocessingrules.AlertProcessingRule{
@@ -79,8 +82,8 @@ func (r AlertProcessingRuleSuppressionResource) Create() sdk.ResourceFunc {
 						alertprocessingrules.RemoveAllActionGroups{},
 					},
 					Conditions:  expandAlertProcessingRuleConditions(model.Condition),
-					Description: utils.String(model.Description),
-					Enabled:     utils.Bool(model.Enabled),
+					Description: pointer.To(model.Description),
+					Enabled:     pointer.To(model.Enabled),
 					Schedule:    expandAlertProcessingRuleSchedule(model.Schedule),
 					Scopes:      model.Scopes,
 				},
@@ -126,21 +129,16 @@ func (r AlertProcessingRuleSuppressionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("unexpected null properties of %s", *id)
 			}
 
-			if metadata.ResourceData.HasChange("add_action_group_ids") {
-				model.Properties.Actions = []alertprocessingrules.Action{
-					alertprocessingrules.RemoveAllActionGroups{}}
-			}
-
 			if metadata.ResourceData.HasChange("condition") {
 				model.Properties.Conditions = expandAlertProcessingRuleConditions(resourceModel.Condition)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				model.Properties.Description = utils.String(resourceModel.Description)
+				model.Properties.Description = pointer.To(resourceModel.Description)
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
-				model.Properties.Enabled = utils.Bool(resourceModel.Enabled)
+				model.Properties.Enabled = pointer.To(resourceModel.Enabled)
 			}
 
 			if metadata.ResourceData.HasChange("schedule") {
@@ -217,6 +215,7 @@ func (r AlertProcessingRuleSuppressionResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r AlertProcessingRuleSuppressionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,

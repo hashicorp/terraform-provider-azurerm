@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedapplications
@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -89,12 +89,6 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 			Computed:         true,
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-			ConflictsWith: func() []string {
-				if !features.FourPointOhBeta() {
-					return []string{"parameters"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"plan": {
@@ -149,19 +143,6 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		schema["parameters"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeMap,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"parameter_values"},
-			Deprecated:    "This property has been deprecated in favour of `parameter_values`",
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		}
-	}
-
 	return schema
 }
 
@@ -173,7 +154,7 @@ func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{
 
 	id := applications.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -208,18 +189,13 @@ func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{
 
 	params, err := expandManagedApplicationParameters(d)
 	if err != nil {
-		if !features.FourPointOhBeta() {
-			return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
-		}
 		return fmt.Errorf("expanding `parameter_values`: %+v", err)
 	}
 	parameters.Properties.Parameters = pointer.To(interface{}(params))
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("failed to create %s: %+v", id, err)
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceManagedApplicationRead(d, meta)
@@ -252,9 +228,6 @@ func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	params, err := expandManagedApplicationParameters(d)
 	if err != nil {
-		if !features.FourPointOhBeta() {
-			return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
-		}
 		return fmt.Errorf("expanding `parameter_values`: %+v", err)
 	}
 	payload.Properties.Parameters = pointer.To(interface{}(params))
@@ -309,9 +282,6 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 
 		expendedParams, err := expandManagedApplicationParameters(d)
 		if err != nil {
-			if !features.FourPointOhBeta() {
-				return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
-			}
 			return fmt.Errorf("expanding `parameter_values`: %+v", err)
 		}
 
@@ -320,16 +290,6 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("serializing JSON from `parameter_values`: %+v", err)
 		}
 		d.Set("parameter_values", parameterValues)
-
-		if !features.FourPointOhBeta() {
-			parameters, err := flattenManagedApplicationParameters(p.Parameters, *expendedParams)
-			if err != nil {
-				return err
-			}
-			if err = d.Set("parameters", parameters); err != nil {
-				return err
-			}
-		}
 
 		outputs, err := flattenManagedApplicationOutputs(p.Outputs)
 		if err != nil {
@@ -388,21 +348,6 @@ func expandManagedApplicationParameters(d *pluginsdk.ResourceData) (*map[string]
 		}
 	}
 
-	if !features.FourPointOhBeta() {
-		// `parameters` will be available in state as well after first apply when `parameter_values` is used, so getting its value only during creation or when it is changed
-		if d.IsNewResource() || d.HasChange("parameters") {
-			if v, ok := d.GetOk("parameters"); ok {
-				params := v.(map[string]interface{})
-
-				for key, val := range params {
-					newParamValue := make(map[string]interface{}, 1)
-					newParamValue["value"] = val
-					newParams[key] = newParamValue
-				}
-			}
-		}
-	}
-
 	return &newParams, nil
 }
 
@@ -421,45 +366,6 @@ func flattenManagedApplicationPlan(input *applications.Plan) []interface{} {
 	})
 
 	return results
-}
-
-func flattenManagedApplicationParameters(input *interface{}, localParameters map[string]interface{}) (map[string]interface{}, error) {
-	results := make(map[string]interface{})
-	if input == nil {
-		return results, nil
-	}
-
-	attrs := *input
-	if _, ok := attrs.(map[string]interface{}); ok {
-		for k, val := range attrs.(map[string]interface{}) {
-			mapVal, ok := val.(map[string]interface{})
-			if !ok {
-				return nil, fmt.Errorf("unexpected managed application parameter type: %+v", mapVal)
-			}
-			if mapVal != nil {
-				v, ok := mapVal["value"]
-				if !ok {
-					// Secure values are not returned, thus settings it with local value
-					v = ""
-					if oldValueStruct, oldValueStructOK := localParameters[k]; oldValueStructOK {
-						if _, oldValueStructTypeOK := oldValueStruct.(map[string]interface{}); oldValueStructTypeOK {
-							if oldValue, oldValueOK := oldValueStruct.(map[string]interface{})["value"]; oldValueOK {
-								v = oldValue
-							}
-						}
-					}
-				}
-
-				value, err := extractParameterOrOutputValue(v)
-				if err != nil {
-					return nil, fmt.Errorf("extracting parameters: %+v", err)
-				}
-				results[k] = value
-			}
-		}
-	}
-
-	return results, nil
 }
 
 func flattenManagedApplicationOutputs(input *interface{}) (map[string]interface{}, error) {

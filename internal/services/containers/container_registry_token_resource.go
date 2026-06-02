@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -8,17 +8,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/scopemaps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/tokens"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/scopemaps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceContainerRegistryToken() *pluginsdk.Resource {
@@ -73,7 +74,7 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 }
 
 func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Tokens
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -83,7 +84,7 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -106,12 +107,12 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 
 	parameters := tokens.Token{
 		Properties: &tokens.TokenProperties{
-			ScopeMapId: utils.String(scopeMapID),
+			ScopeMapId: pointer.To(scopeMapID),
 			Status:     &status,
 		},
 	}
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -121,11 +122,10 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Tokens
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry token update.")
 	id, err := tokens.ParseTokenID(d.Id())
 	if err != nil {
 		return err
@@ -144,7 +144,7 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 
 	parameters := tokens.TokenUpdateParameters{
 		Properties: &tokens.TokenUpdateProperties{
-			ScopeMapId: utils.String(scopeMapID),
+			ScopeMapId: pointer.To(scopeMapID),
 			Status:     &status,
 		},
 	}
@@ -159,7 +159,7 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Tokens
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -203,7 +203,7 @@ func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceContainerRegistryTokenDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Tokens
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

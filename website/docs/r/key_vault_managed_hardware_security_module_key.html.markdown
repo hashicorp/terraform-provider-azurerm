@@ -12,6 +12,8 @@ Manages a Key Vault Managed Hardware Security Module Key.
 
 ~> **Note:** The Azure Provider includes a Feature Toggle which will purge a Key Vault Managed Hardware Security Module Key resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_hardware_security_modules_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_hardware_security_module_keys_on_destroy) for more information.
 
+## Example Usage
+
 ```hcl
 data "azurerm_client_config" "current" {}
 
@@ -66,7 +68,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -74,13 +76,13 @@ The following arguments are supported:
 
 * `managed_hsm_id` - (Required) Specifies the ID of the Key Vault Managed Hardware Security Module that they key will be owned by. Changing this forces a new resource to be created.
 
-* `key_type` - (Required) Specifies the Key Type to use for this Key Vault Managed Hardware Security Module Key. Possible values are `EC-HSM` and `RSA-HSM`. Changing this forces a new resource to be created.
+* `key_type` - (Required) Specifies the Key Type to use for this Key Vault Managed Hardware Security Module Key. Possible values are `EC-HSM`, `oct-HSM` and `RSA-HSM`. More details see [HSM-protected keys](https://learn.microsoft.com/en-us/azure/key-vault/keys/about-keys#hsm-protected-keys). Changing this forces a new resource to be created.
 
-* `key_size` - (Optional) Specifies the Size of the RSA key to create in bytes. For example, 1024 or 2048. *Note*: This field is required if `key_type` is `RSA-HSM`. Changing this forces a new resource to be created.
+* `key_size` - (Optional) Specifies the Size of the RSA key to create in bytes. For example, 1024 or 2048. *Note*: This field is required if `key_type` is `RSA-HSM` or `oct-HSM`. Changing this forces a new resource to be created.
 
 * `curve` - (Optional) Specifies the curve to use when creating an `EC-HSM` key. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field is required if `key_type` is `EC-HSM`. Changing this forces a new resource to be created.
 
-* `key_opts` - (Required) A list of JSON web key operations. Possible values include: `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify` and `wrapKey`. Please note these values are case-sensitive.
+* `key_opts` - (Required) A list of JSON web key operations. Possible values include: `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify`, `wrapKey` and `import`. Please note these values are case-sensitive.
 
 * `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
 
@@ -101,12 +103,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Key Vault Managed Hardware Security Module Key.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Managed Hardware Security Module Key.
+* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Managed Hardware Security Module Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Managed Hardware Security Module Key.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Key Vault Managed Hardware Security Module Key.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Managed Hardware Security Module Key.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Managed Hardware Security Module Key.
 
 ## Import
 
@@ -115,3 +117,9 @@ Key Vault Managed Hardware Security Module Key can be imported using the `resour
 ```shell
 terraform import azurerm_key_vault_managed_hardware_security_module_key.example https://exampleHSM.managedhsm.azure.net/keys/exampleKey
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.KeyVault` - 2023-07-01

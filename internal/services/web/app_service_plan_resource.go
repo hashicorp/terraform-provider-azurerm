@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -10,8 +10,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/migration"
@@ -36,7 +37,7 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: "The `azurerm_app_service_plan` resource has been superseded by the `azurerm_service_plan` resource. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_app_service_plan` resource has been superseded by the `azurerm_service_plan` resource. This resource will be removed in v5.0 of the AzureRM Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -146,35 +147,35 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicePlansClient
+	client := meta.(*clients.Client).Web.AppServicePlansClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
-
 	id := parse.NewAppServicePlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerFarmName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.ServerFarmName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_app_service_plan", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_app_service_plan", id.ID())
+			}
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	kind := d.Get("kind").(string)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -197,13 +198,13 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v := d.Get("app_service_environment_id").(string); v != "" {
-		appServicePlan.AppServicePlanProperties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
-			ID: utils.String(v),
+		appServicePlan.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
+			ID: pointer.To(v),
 		}
 	}
 
 	if v := d.Get("per_site_scaling").(bool); v {
-		appServicePlan.AppServicePlanProperties.PerSiteScaling = utils.Bool(v)
+		appServicePlan.PerSiteScaling = pointer.To(v)
 	}
 
 	reserved := d.Get("reserved").(bool)
@@ -216,15 +217,15 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v := d.Get("maximum_elastic_worker_count").(int); v > 0 {
-		appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(v))
+		appServicePlan.MaximumElasticWorkerCount = pointer.To(int32(v))
 	}
 
 	if v := d.Get("zone_redundant").(bool); v {
-		appServicePlan.AppServicePlanProperties.ZoneRedundant = utils.Bool(v)
+		appServicePlan.ZoneRedundant = pointer.To(v)
 	}
 
 	if reserved {
-		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(reserved)
+		appServicePlan.Reserved = pointer.To(reserved)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerFarmName, appServicePlan)
@@ -232,17 +233,19 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the create/update of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceAppServicePlanRead(d, meta)
 }
 
 func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicePlansClient
+	client := meta.(*clients.Client).Web.AppServicePlansClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -272,8 +275,8 @@ func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.ServerFarmName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := resp.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 	d.Set("kind", resp.Kind)
 
@@ -310,7 +313,7 @@ func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceAppServicePlanDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicePlansClient
+	client := meta.(*clients.Client).Web.AppServicePlansClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -318,8 +321,6 @@ func resourceAppServicePlanDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting App Service Plan %q (Resource Group %q)", id.ServerFarmName, id.ResourceGroup)
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServerFarmName)
 	if err != nil {
@@ -339,14 +340,14 @@ func expandAppServicePlanSku(d *pluginsdk.ResourceData) web.SkuDescription {
 	size := config["size"].(string)
 
 	sku := web.SkuDescription{
-		Name: utils.String(size),
-		Tier: utils.String(tier),
-		Size: utils.String(size),
+		Name: pointer.To(size),
+		Tier: pointer.To(tier),
+		Size: pointer.To(size),
 	}
 
 	if v, ok := config["capacity"]; ok {
 		capacity := v.(int)
-		sku.Capacity = utils.Int32(int32(capacity))
+		sku.Capacity = pointer.To(int32(capacity))
 	}
 
 	return sku

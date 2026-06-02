@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
@@ -14,7 +14,8 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/migration"
@@ -22,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
@@ -59,10 +61,13 @@ type VaultKeyReference struct {
 func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			// User-specified segments are lowercased in the API response
+			// tracked in https://github.com/Azure/azure-rest-api-specs/issues/24337
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     configurationstores.ValidateConfigurationStoreID,
 		},
 		"key": {
 			Type:         pluginsdk.TypeString,
@@ -117,7 +122,7 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 				"value",
 			},
 		},
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -168,7 +173,6 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
 			// allow some time for role permission to be propagated
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be propagated", model.Key)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Forbidden"},
 				Target:                    []string{"Error", "Exists", "NotFound"},
@@ -182,36 +186,38 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", model.Key, err)
 			}
 
-			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
-			if err != nil {
-				if v, ok := err.(autorest.DetailedError); ok {
-					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("checking for presence of existing %s: %+v", nestedItemId, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
+				if err != nil {
+					if v, ok := err.(autorest.DetailedError); ok {
+						if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+							return fmt.Errorf("checking for presence of existing %s: %+v", nestedItemId, err)
+						}
+					} else {
+						return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
 					}
-				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
+				} else if kv.StatusCode == 200 {
+					return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 				}
-			} else if kv.Response.StatusCode == 200 {
-				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 
 			entity := appconfiguration.KeyValue{
-				Key:   utils.String(model.Key),
-				Label: utils.String(model.Label),
+				Key:   pointer.To(model.Key),
+				Label: pointer.To(model.Label),
 				Tags:  tags.Expand(model.Tags),
 			}
 
 			switch model.Type {
 			case KeyTypeKV:
-				entity.ContentType = utils.String(model.ContentType)
-				entity.Value = utils.String(model.Value)
+				entity.ContentType = pointer.To(model.ContentType)
+				entity.Value = pointer.To(model.Value)
 			case KeyTypeVault:
-				entity.ContentType = utils.String(VaultKeyContentType)
+				entity.ContentType = pointer.To(VaultKeyContentType)
 				ref, err := json.Marshal(VaultKeyReference{URI: model.VaultKeyReference})
 				if err != nil {
 					return fmt.Errorf("while encoding vault key reference: %+v", err)
 				}
-				entity.Value = utils.String(string(ref))
+				entity.Value = pointer.To(string(ref))
 			}
 
 			if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
@@ -219,14 +225,12 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Locked {
-				_, err = client.PutLock(ctx, model.Key, model.Label, "", "")
-				if err != nil {
+				if _, err = client.PutLock(ctx, model.Key, model.Label, "", ""); err != nil {
 					return fmt.Errorf("while locking key/label pair %q/%q: %+v", model.Key, model.Label, err)
 				}
 			}
 
 			// https://github.com/Azure/AppConfiguration/issues/763
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q to be provisioned", model.Key)
 			stateConf = &pluginsdk.StateChangeConf{
 				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},
@@ -364,22 +368,22 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("value") || metadata.ResourceData.HasChange("content_type") || metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("type") || metadata.ResourceData.HasChange("vault_key_reference") {
 				entity := appconfiguration.KeyValue{
-					Key:   utils.String(model.Key),
-					Label: utils.String(model.Label),
+					Key:   pointer.To(model.Key),
+					Label: pointer.To(model.Label),
 					Tags:  tags.Expand(model.Tags),
 				}
 
 				switch model.Type {
 				case KeyTypeKV:
-					entity.ContentType = utils.String(model.ContentType)
-					entity.Value = utils.String(model.Value)
+					entity.ContentType = pointer.To(model.ContentType)
+					entity.Value = pointer.To(model.Value)
 				case KeyTypeVault:
-					entity.ContentType = utils.String(VaultKeyContentType)
+					entity.ContentType = pointer.To(VaultKeyContentType)
 					ref, err := json.Marshal(VaultKeyReference{URI: model.VaultKeyReference})
 					if err != nil {
 						return fmt.Errorf("while encoding vault key reference: %+v", err)
 					}
-					entity.Value = utils.String(string(ref))
+					entity.Value = pointer.To(string(ref))
 				}
 				if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
 					return fmt.Errorf("while updating key/label pair %s/%s: %+v", model.Key, model.Label, err)

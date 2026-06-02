@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -20,9 +20,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/replicas"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -109,6 +111,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
+		DeprecationMessage: "The `azurerm_postgresql_server` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28, please use the `azurerm_postgresql_flexible_server` resource instead. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.",
+
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.PostgresqlServerV0ToV1{},
@@ -148,9 +152,24 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"administrator_login_password": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
-				Sensitive: true,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ConflictsWith: []string{"administrator_login_password_wo"},
+			},
+
+			"administrator_login_password_wo": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				WriteOnly:     true,
+				ConflictsWith: []string{"administrator_login_password"},
+				RequiredWith:  []string{"administrator_login_password_wo_version"},
+			},
+
+			"administrator_login_password_wo_version": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"administrator_login_password_wo"},
 			},
 
 			"auto_grow_enabled": {
@@ -369,18 +388,18 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server creation.")
-
 	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_postgresql_server", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_postgresql_server", id.ID())
+		}
 	}
 
 	mode := servers.CreateMode(d.Get("create_mode").(string))
@@ -417,22 +436,34 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	switch mode {
 	case servers.CreateModeDefault:
 		admin := d.Get("administrator_login").(string)
-		pass := d.Get("administrator_login_password").(string)
-		if admin == "" {
-			return fmt.Errorf("`administrator_login` must not be empty when `create_mode` is `default`")
+		password := ""
+
+		if v, ok := d.GetOk("administrator_login_password"); ok {
+			password = v.(string)
 		}
-		if pass == "" {
-			return fmt.Errorf("`administrator_login_password` must not be empty when `create_mode` is `default`")
+		woPassword, err := pluginsdk.GetWriteOnly(d, "administrator_login_password_wo", cty.String)
+		if err != nil {
+			return err
+		}
+		if !woPassword.IsNull() {
+			password = woPassword.AsString()
+		}
+
+		if admin == "" {
+			return fmt.Errorf("`administrator_login` must not be empty when `create_mode` is `Default`")
+		}
+		if password == "" {
+			return fmt.Errorf("`administrator_login_password_wo` or `administrator_login_password` must be set when `create_mode` is `Default`")
 		}
 
 		if _, ok := d.GetOk("restore_point_in_time"); ok {
-			return fmt.Errorf("`restore_point_in_time` cannot be set when `create_mode` is `default`")
+			return fmt.Errorf("`restore_point_in_time` cannot be set when `create_mode` is `Default`")
 		}
 
 		// check admin
 		props = servers.ServerPropertiesForDefaultCreate{
 			AdministratorLogin:         admin,
-			AdministratorLoginPassword: pass,
+			AdministratorLoginPassword: password,
 			InfrastructureEncryption:   &infraEncrypt,
 			PublicNetworkAccess:        &publicAccess,
 			MinimalTlsVersion:          &tlsMin,
@@ -488,9 +519,10 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err = client.CreateThenPoll(ctx, id, server); err != nil {
+	if err = client.CreateCallbackThenPoll(ctx, id, server, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	log.Printf("[DEBUG] Waiting for %s to become available", id)
 	stateConf := &pluginsdk.StateChangeConf{
@@ -505,8 +537,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
-
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
 		securityAlertId := serversecurityalertpolicies.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
 		alert := expandSecurityAlertPolicy(v)
@@ -519,7 +549,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	// Issue tracking the REST API update failure: https://github.com/Azure/azure-rest-api-specs/issues/14117
 	if mode == servers.CreateModeReplica {
-		log.Printf("[INFO] updating `public_network_access_enabled` and `identity` for %s", id)
 		properties := servers.ServerUpdateParameters{
 			Identity: expandedIdentity,
 			Properties: &servers.ServerUpdateParametersProperties{
@@ -533,7 +562,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if mode == servers.CreateModePointInTimeRestore {
-		log.Printf("[INFO] updating `public_network_access_enabled` for %s", id)
 		properties := servers.ServerUpdateParameters{
 			Properties: &servers.ServerUpdateParametersProperties{
 				PublicNetworkAccess: &publicAccess,
@@ -659,12 +687,24 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	oldCreateMode, newCreateMode := d.GetChange("create_mode")
 	replicaUpdatedToDefault := servers.CreateMode(oldCreateMode.(string)) == servers.CreateModeReplica && servers.CreateMode(newCreateMode.(string)) == servers.CreateModeDefault
 	if replicaUpdatedToDefault {
-		properties.Properties.ReplicationRole = utils.String("None")
+		properties.Properties.ReplicationRole = pointer.To("None")
 	}
 
 	// Update Admin Password in the separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
-	if d.HasChange("administrator_login_password") && !replicaUpdatedToDefault {
-		properties.Properties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+	if d.HasChanges("administrator_login_password", "administrator_login_password_wo_version") && !replicaUpdatedToDefault {
+		password := ""
+
+		if v, ok := d.GetOk("administrator_login_password"); ok {
+			password = v.(string)
+		}
+		woPassword, err := pluginsdk.GetWriteOnly(d, "administrator_login_password_wo", cty.String)
+		if err != nil {
+			return err
+		}
+		if !woPassword.IsNull() {
+			password = woPassword.AsString()
+		}
+		properties.Properties.AdministratorLoginPassword = pointer.To(password)
 	}
 
 	if err = client.UpdateThenPoll(ctx, *id, properties); err != nil {
@@ -672,12 +712,20 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// Update Admin Password in a separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
-	if d.HasChange("administrator_login_password") && replicaUpdatedToDefault {
-		properties.Properties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+	if d.HasChanges("administrator_login_password", "administrator_login_password_wo_version") && replicaUpdatedToDefault {
+		password := ""
 
-		if err = client.UpdateThenPoll(ctx, *id, properties); err != nil {
-			return fmt.Errorf("updating Admin Password of %q: %+v", id, err)
+		if v, ok := d.GetOk("administrator_login_password"); ok {
+			password = v.(string)
 		}
+		woPassword, err := pluginsdk.GetWriteOnly(d, "administrator_login_password_wo", cty.String)
+		if err != nil {
+			return err
+		}
+		if !woPassword.IsNull() {
+			password = woPassword.AsString()
+		}
+		properties.Properties.AdministratorLoginPassword = pointer.To(password)
 	}
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
@@ -717,6 +765,8 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.Set("name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+
+	d.Set("administrator_login_password_wo_version", d.Get("administrator_login_password_wo_version").(int))
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(&model.Location))
@@ -800,7 +850,9 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -858,8 +910,8 @@ func expandServerSkuName(skuName string) (*servers.Sku, error) {
 	return &servers.Sku{
 		Name:     skuName,
 		Tier:     &tier,
-		Capacity: utils.Int64(int64(capacity)),
-		Family:   utils.String(parts[1]),
+		Capacity: pointer.To(int64(capacity)),
+		Family:   pointer.To(parts[1]),
 	}, nil
 }
 
@@ -876,7 +928,7 @@ func expandPostgreSQLStorageProfile(d *pluginsdk.ResourceData) *servers.StorageP
 	}
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {
-		storage.BackupRetentionDays = utils.Int64(int64(v.(int)))
+		storage.BackupRetentionDays = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("geo_redundant_backup_enabled"); ok {
@@ -889,7 +941,7 @@ func expandPostgreSQLStorageProfile(d *pluginsdk.ResourceData) *servers.StorageP
 	}
 
 	if v, ok := d.GetOk("storage_mb"); ok {
-		storage.StorageMB = utils.Int64(int64(v.(int)))
+		storage.StorageMB = pointer.To(int64(v.(int)))
 	}
 
 	return &storage
@@ -921,19 +973,19 @@ func expandSecurityAlertPolicy(i interface{}) *serversecurityalertpolicies.Serve
 	}
 
 	if v, ok := block["email_account_admins"]; ok {
-		props.EmailAccountAdmins = utils.Bool(v.(bool))
+		props.EmailAccountAdmins = pointer.To(v.(bool))
 	}
 
 	if v, ok := block["retention_days"]; ok {
-		props.RetentionDays = utils.Int64(int64(v.(int)))
+		props.RetentionDays = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := block["storage_account_access_key"]; ok && v.(string) != "" {
-		props.StorageAccountAccessKey = utils.String(v.(string))
+		props.StorageAccountAccessKey = pointer.To(v.(string))
 	}
 
 	if v, ok := block["storage_endpoint"]; ok && v.(string) != "" {
-		props.StorageEndpoint = utils.String(v.(string))
+		props.StorageEndpoint = pointer.To(v.(string))
 	}
 
 	return &serversecurityalertpolicies.ServerSecurityAlertPolicy{

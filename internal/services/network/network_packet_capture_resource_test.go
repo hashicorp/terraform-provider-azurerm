@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -8,21 +8,20 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/packetcaptures"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/packetcaptures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetworkPacketCaptureResource struct{}
 
-// todo remove for 4.0
 func testAccNetworkPacketCapture_localDisk(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
+	if features.FivePointOh() {
+		t.Skip("Skipping since `azure_network_packet_capture` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
@@ -38,10 +37,9 @@ func testAccNetworkPacketCapture_localDisk(t *testing.T) {
 	})
 }
 
-// todo remove for 4.0
 func testAccNetworkPacketCapture_requiresImport(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
+	if features.FivePointOh() {
+		t.Skip("Skipping since `azure_network_packet_capture` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
@@ -60,10 +58,9 @@ func testAccNetworkPacketCapture_requiresImport(t *testing.T) {
 	})
 }
 
-// todo remove for 4.0
 func testAccNetworkPacketCapture_storageAccount(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
+	if features.FivePointOh() {
+		t.Skip("Skipping since `azure_network_packet_capture` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
@@ -79,10 +76,9 @@ func testAccNetworkPacketCapture_storageAccount(t *testing.T) {
 	})
 }
 
-// todo remove for 4.0
 func testAccNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
+	if features.FivePointOh() {
+		t.Skip("Skipping since `azure_network_packet_capture` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
@@ -98,10 +94,9 @@ func testAccNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	})
 }
 
-// todo remove for 4.0
 func testAccNetworkPacketCapture_withFilters(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
+	if features.FivePointOh() {
+		t.Skip("Skipping since `azure_network_packet_capture` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
@@ -128,7 +123,7 @@ func (t NetworkPacketCaptureResource) Exists(ctx context.Context, clients *clien
 		return nil, fmt.Errorf("reading Network Packet Capture (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (NetworkPacketCaptureResource) base(data acceptance.TestData) string {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -20,14 +20,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 type IotHubEndpointCosmosDBAccountResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotHubEndpointCosmosDBAccountResource{}
-)
+var _ sdk.ResourceWithUpdate = IotHubEndpointCosmosDBAccountResource{}
 
 type IotHubEndpointCosmosDBAccountModel struct {
 	Name                 string `tfschema:"name"`
@@ -42,6 +40,7 @@ type IotHubEndpointCosmosDBAccountModel struct {
 	PartitionKeyTemplate string `tfschema:"partition_key_template"`
 	PrimaryKey           string `tfschema:"primary_key"`
 	SecondaryKey         string `tfschema:"secondary_key"`
+	SubscriptionId       string `tfschema:"subscription_id"`
 }
 
 func (r IotHubEndpointCosmosDBAccountResource) Arguments() map[string]*pluginsdk.Schema {
@@ -131,6 +130,14 @@ func (r IotHubEndpointCosmosDBAccountResource) Arguments() map[string]*pluginsdk
 			ConflictsWith: []string{"identity_id"},
 			RequiredWith:  []string{"primary_key"},
 		},
+
+		"subscription_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C : required since this property would always be set even if it isn't specified in the tf config, otherwise it would cause a diff and break existing users
+			Computed:     true,
+			ValidateFunc: validation.IsUUID,
+		},
 	}
 }
 
@@ -183,12 +190,20 @@ func (r IotHubEndpointCosmosDBAccountResource) Create() sdk.ResourceFunc {
 			authenticationType := devices.AuthenticationType(state.AuthenticationType)
 			cosmosDBAccountEndpoint := devices.RoutingCosmosDBSQLAPIProperties{
 				Name:               pointer.To(id.EndpointName),
-				SubscriptionID:     pointer.To(subscriptionId),
 				ResourceGroup:      pointer.To(state.ResourceGroupName),
 				AuthenticationType: authenticationType,
 				CollectionName:     pointer.To(state.ContainerName),
 				DatabaseName:       pointer.To(state.DatabaseName),
 				EndpointURI:        pointer.To(state.EndpointUri),
+			}
+
+			// To align with the previous TF behavior, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behavior is different than before and it may block the existing users
+			// From the business perspective, the raw config handling is only meant for the case that the user has an CosmosDB Account whose Endpoint's subscription is not the provider's one. Then the user wants to reset it to the provider's one by unset the subscription_id
+			// From the TF code perspective, given `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set in the tf config. So `d.GetRawConfig()` is required to determine if it's set in the tf config
+			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["subscription_id"]; v.IsNull() {
+				cosmosDBAccountEndpoint.SubscriptionID = pointer.To(subscriptionId)
+			} else {
+				cosmosDBAccountEndpoint.SubscriptionID = pointer.To(state.SubscriptionId)
 			}
 
 			if state.PartitionKeyName != "" {
@@ -235,7 +250,9 @@ func (r IotHubEndpointCosmosDBAccountResource) Create() sdk.ResourceFunc {
 
 			for _, existingEndpoint := range pointer.From(routing.Endpoints.CosmosDBSQLCollections) {
 				if strings.EqualFold(pointer.From(existingEndpoint.Name), id.EndpointName) {
-					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+					if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+					}
 				}
 				endpoints = append(endpoints, existingEndpoint)
 			}
@@ -248,11 +265,12 @@ func (r IotHubEndpointCosmosDBAccountResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for the completion of the creation of %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -298,6 +316,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Read() sdk.ResourceFunc {
 						PartitionKeyTemplate: pointer.From(endpoint.PartitionKeyTemplate),
 						PrimaryKey:           oldState.PrimaryKey,
 						SecondaryKey:         oldState.SecondaryKey,
+						SubscriptionId:       pointer.From(endpoint.SubscriptionID),
 					}
 
 					authenticationType := string(devices.AuthenticationTypeKeyBased)
@@ -326,6 +345,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.IoTHub.ResourceClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := parse.EndpointCosmosDBAccountID(metadata.ResourceData.Id())
 			if err != nil {
@@ -399,6 +419,16 @@ func (r IotHubEndpointCosmosDBAccountResource) Update() sdk.ResourceFunc {
 						} else {
 							endpoint.PartitionKeyTemplate = pointer.To(state.PartitionKeyTemplate)
 						}
+					}
+
+					// As `subscription_id` is `O+C`, `HasChange()` can't detect the change when it isn't specified. And `subscription_id` always needs to be set to the subscription ID used in the provider block when it isn't specified. So, `HasChange()` is not needed.
+					// To align with the previous TF behavior, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behavior is different than before and it may block the existing users
+					// From the business perspective, the raw config handling is only meant for the case that the user has an CosmosDB Account whose Endpoint's subscription is not the provider's one. Then the user wants to reset it to the provider's one by unset the subscription_id
+					// From the TF code perspective, given `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set in the tf config. So `d.GetRawConfig()` is required to determine if it's set in the tf config
+					if v := metadata.ResourceData.GetRawConfig().AsValueMap()["subscription_id"]; v.IsNull() {
+						endpoint.SubscriptionID = pointer.To(subscriptionId)
+					} else {
+						endpoint.SubscriptionID = pointer.To(state.SubscriptionId)
 					}
 
 					(*iothub.Properties.Routing.Endpoints.CosmosDBSQLCollections)[i] = endpoint

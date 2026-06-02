@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -12,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/fileshares"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -27,8 +28,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
 
 func resourceStorageShare() *pluginsdk.Resource {
@@ -39,7 +40,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 		Delete: resourceStorageShareDelete,
 
 		Importer: helpers.ImporterValidatingStorageResourceId(func(id, storageDomainSuffix string) error {
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				if strings.HasPrefix(id, "/subscriptions") {
 					_, err := fileshares.ParseShareID(id)
 					return err
@@ -151,16 +152,21 @@ func resourceStorageShare() *pluginsdk.Resource {
 						string(shares.HotAccessTier),
 						string(shares.CoolAccessTier),
 						string(shares.TransactionOptimizedAccessTier),
-					}, false),
+					}, false,
+				),
+			},
+
+			"rbac_scope_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_account_id",
@@ -171,7 +177,6 @@ func resourceStorageShare() *pluginsdk.Resource {
 		r.Schema["storage_account_id"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_account_id",
@@ -182,6 +187,30 @@ func resourceStorageShare() *pluginsdk.Resource {
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
 			Deprecated: "this property is deprecated and will be removed 5.0 and replaced by the `id` property.",
+		}
+
+		r.CustomizeDiff = func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
+			// Resource Manager ID in use, but change to `storage_account_id` should recreate
+			if strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_id") {
+				return diff.ForceNew("storage_account_id")
+			}
+
+			// using legacy Data Plane ID but attempting to change the storage_account_name should recreate
+			if diff.Id() != "" && !strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_name") {
+				// converting from storage_account_id to the deprecated storage_account_name is not supported
+				oldAccountId, _ := diff.GetChange("storage_account_id")
+				oldName, newName := diff.GetChange("storage_account_name")
+
+				if oldAccountId.(string) != "" && newName.(string) != "" {
+					return diff.ForceNew("storage_account_name")
+				}
+
+				if oldName.(string) != "" && newName.(string) != "" {
+					return diff.ForceNew("storage_account_name")
+				}
+			}
+
+			return nil
 		}
 	}
 
@@ -194,7 +223,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		storageClient := meta.(*clients.Client).Storage
 		if accountName := d.Get("storage_account_name").(string); accountName != "" {
 			shareName := d.Get("name").(string)
@@ -244,10 +273,11 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("checking for existing %s: %v", id, err)
 			}
 			if exists != nil && *exists {
-				return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+				}
 			}
 
-			log.Printf("[INFO] Creating Share %q in Storage Account %q", shareName, accountName)
 			input := shares.CreateInput{
 				QuotaInGB:       quota,
 				MetaData:        metaData,
@@ -282,14 +312,16 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	id := fileshares.NewShareID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
 
-	existing, err := sharesClient.Get(ctx, id, fileshares.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %q: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := sharesClient.Get(ctx, id, fileshares.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %q: %v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+		}
 	}
 
 	payload := fileshares.FileShare{
@@ -323,7 +355,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") && d.Get("storage_account_id").(string) == "" {
 		storageClient := meta.(*clients.Client).Storage
 		id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
@@ -378,8 +410,22 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 		resourceManagerId := parse.NewStorageShareResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", id.ShareName)
 		d.Set("resource_manager_id", resourceManagerId.ID())
+		d.Set("rbac_scope_id", resourceManagerId.ID())
 
 		return nil
+	}
+
+	if !features.FivePointOh() {
+		// Deal with the ID changing if the user changes from `storage_account_name` to `storage_account_id`
+		if !strings.HasPrefix(d.Id(), "/subscriptions/") {
+			accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
+			if err != nil {
+				return err
+			}
+
+			id := fileshares.NewShareID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
+			d.SetId(id.ID())
+		}
 	}
 
 	id, err := fileshares.ParseShareID(d.Id())
@@ -415,8 +461,9 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		d.Set("resource_manager_id", id.ID())
+		d.Set("storage_account_name", "")
 	}
 
 	// TODO - The following section for `url` will need to be updated to go-azure-sdk when the Giovanni Deprecation process has been completed
@@ -441,6 +488,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.Set("url", shares.NewShareID(*accountId, id.ShareName).ID())
+	d.Set("rbac_scope_id", parse.NewStorageShareResourceManagerID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName, "default", id.ShareName).ID())
 
 	return nil
 }
@@ -452,7 +500,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
 		id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
 			return err
@@ -473,40 +521,29 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if d.HasChange("quota") {
-			log.Printf("[DEBUG] Updating the Quota for %s", id)
 			quota := d.Get("quota").(int)
 
 			if err = client.UpdateQuota(ctx, id.ShareName, quota); err != nil {
 				return fmt.Errorf("updating Quota for %s: %v", id, err)
 			}
-
-			log.Printf("[DEBUG] Updated the Quota for %s", id)
 		}
 
 		if d.HasChange("metadata") {
-			log.Printf("[DEBUG] Updating the MetaData for %s", id)
-
 			metaDataRaw := d.Get("metadata").(map[string]interface{})
 			metaData := ExpandMetaData(metaDataRaw)
 
 			if err = client.UpdateMetaData(ctx, id.ShareName, metaData); err != nil {
 				return fmt.Errorf("updating MetaData for %s: %v", id, err)
 			}
-
-			log.Printf("[DEBUG] Updated the MetaData for %s", id)
 		}
 
 		if d.HasChange("acl") {
-			log.Printf("[DEBUG] Updating the ACLs for %s", id)
-
 			aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 			acls := expandStorageShareACLsDeprecated(aclsRaw)
 
 			if err = client.UpdateACLs(ctx, id.ShareName, shares.SetAclInput{SignedIdentifiers: acls}); err != nil {
 				return fmt.Errorf("updating ACLs for %s: %v", id, err)
 			}
-
-			log.Printf("[DEBUG] Updated ACLs for %s", id)
 		}
 
 		if d.HasChange("access_tier") {
@@ -525,8 +562,6 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			if err != nil {
 				return fmt.Errorf("updating access tier %s: %+v", id, err)
 			}
-
-			log.Printf("[DEBUG] Updated Access Tier for %s", id)
 		}
 
 		return resourceStorageShareRead(d, meta)
@@ -575,7 +610,7 @@ func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
 		storageClient := meta.(*clients.Client).Storage
 		id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {

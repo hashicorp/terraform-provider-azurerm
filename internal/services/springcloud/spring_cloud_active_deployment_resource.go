@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -11,16 +11,19 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
+	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudActiveDeployment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_active_deployment` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+
 		Create: resourceSpringCloudActiveDeploymentCreate,
 		Read:   resourceSpringCloudActiveDeploymentRead,
 		Update: resourceSpringCloudActiveDeploymentUpdate,
@@ -72,12 +75,14 @@ func resourceSpringCloudActiveDeploymentCreate(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	activeDeployments, err := listSpringCloudActiveDeployments(ctx, deploymentClient, appId)
-	if err != nil {
-		return err
-	}
-	if len(activeDeployments) != 0 {
-		return tf.ImportAsExistsError("azurerm_spring_cloud_active_deployment", appId.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		activeDeployments, err := listSpringCloudActiveDeployments(ctx, deploymentClient, appId)
+		if err != nil {
+			return err
+		}
+		if len(activeDeployments) != 0 {
+			return tf.ImportAsExistsError("azurerm_spring_cloud_active_deployment", appId.ID())
+		}
 	}
 
 	parameter := appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{deploymentName}}
@@ -86,11 +91,11 @@ func resourceSpringCloudActiveDeploymentCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("setting active deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
 	}
 
+	d.SetId(appId.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for setting active deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", deploymentName, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
 	}
-
-	d.SetId(appId.ID())
 
 	return resourceSpringCloudActiveDeploymentRead(d, meta)
 }

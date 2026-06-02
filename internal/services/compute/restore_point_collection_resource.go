@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -22,8 +22,10 @@ import (
 // RestorePointCollectionResource remove this in 4.0, the resource is renamed
 type RestorePointCollectionResource struct{}
 
-var _ sdk.ResourceWithUpdate = RestorePointCollectionResource{}
-var _ sdk.ResourceWithDeprecationReplacedBy = RestorePointCollectionResource{}
+var (
+	_ sdk.ResourceWithUpdate                = RestorePointCollectionResource{}
+	_ sdk.ResourceWithDeprecationReplacedBy = RestorePointCollectionResource{}
+)
 
 func (r RestorePointCollectionResource) DeprecatedInFavourOfResource() string {
 	return "azurerm_virtual_machine_restore_point_collection"
@@ -90,14 +92,16 @@ func (r RestorePointCollectionResource) Create() sdk.ResourceFunc {
 
 			id := restorepointcollections.NewRestorePointCollectionID(subscriptionId, config.ResourceGroup, config.Name)
 
-			existing, err := client.Get(ctx, id, restorepointcollections.DefaultGetOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, restorepointcollections.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := restorepointcollections.RestorePointCollection{
@@ -110,7 +114,7 @@ func (r RestorePointCollectionResource) Create() sdk.ResourceFunc {
 				Tags: tags.Expand(config.Tags),
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

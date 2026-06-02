@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azuresdkhacks
@@ -33,7 +33,7 @@ func (c DataPlaneClient) GetKeyValuesComplete(ctx context.Context, key string, l
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
+				sc = result.page.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -48,7 +48,7 @@ func (c DataPlaneClient) GetKeyValues(ctx context.Context, key string, label str
 		defer func() {
 			sc := -1
 			if result.kvlr.Response.Response != nil {
-				sc = result.kvlr.Response.Response.StatusCode
+				sc = result.kvlr.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -105,7 +105,8 @@ func (c DataPlaneClient) GetKeyValuesResponder(resp *http.Response) (result KeyV
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
+		autorest.ByClosing(),
+	)
 	result.Response = autorest.Response{Response: resp}
 	return
 }

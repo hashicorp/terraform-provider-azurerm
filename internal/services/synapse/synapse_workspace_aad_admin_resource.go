@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -79,10 +79,10 @@ func resourceSynapseWorkspaceAADAdminCreateUpdate(d *pluginsdk.ResourceData, met
 
 	aadAdmin := &synapse.WorkspaceAadAdminInfo{
 		AadAdminProperties: &synapse.AadAdminProperties{
-			TenantID:          utils.String(d.Get("tenant_id").(string)),
-			Login:             utils.String(d.Get("login").(string)),
-			AdministratorType: utils.String("ActiveDirectory"),
-			Sid:               utils.String(d.Get("object_id").(string)),
+			TenantID:          pointer.To(d.Get("tenant_id").(string)),
+			Login:             pointer.To(d.Get("login").(string)),
+			AdministratorType: pointer.To("ActiveDirectory"),
+			Sid:               pointer.To(d.Get("object_id").(string)),
 		},
 	}
 
@@ -91,12 +91,14 @@ func resourceSynapseWorkspaceAADAdminCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("updating Synapse Workspace %q AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
 	}
 
+	id := parse.NewWorkspaceAADAdminID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "activeDirectory")
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err = workspaceAadAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting on updating for Synapse Workspace %q AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
 	}
-
-	id := parse.NewWorkspaceAADAdminID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "activeDirectory")
-	d.SetId(id.ID())
 
 	return resourceSynapseWorkspaceAADAdminRead(d, meta)
 }
@@ -123,9 +125,9 @@ func resourceSynapseWorkspaceAADAdminRead(d *pluginsdk.ResourceData, meta interf
 	workspaceID := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
 	d.Set("synapse_workspace_id", workspaceID.ID())
-	d.Set("login", aadAdmin.AadAdminProperties.Login)
-	d.Set("object_id", aadAdmin.AadAdminProperties.Sid)
-	d.Set("tenant_id", aadAdmin.AadAdminProperties.TenantID)
+	d.Set("login", aadAdmin.Login)
+	d.Set("object_id", aadAdmin.Sid)
+	d.Set("tenant_id", aadAdmin.TenantID)
 
 	return nil
 }

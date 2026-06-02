@@ -8,7 +8,7 @@ Due to their fundamental importance in the provider, resource IDs should be hand
 
 The SDK `hashicorp/go-azure-sdk` used in the provider contains the necessary parsing and validation functions required for a resource ID and will exist in the resource's package.
 
-As an example the function to parse a Machine Learning Workspace Resource ID will be accessible by importing the workspace resource package into the provider
+As an example the function to parse a Machine Learning Workspace Resource ID will be accessible by importing the workspace resource package into the provider:
 
 ```go
 import "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
@@ -85,6 +85,28 @@ func (r NatGatewayPublicIpAssociation) Read() sdk.ResourceFunc {
 }
 ```
 
+## Normalizing Resource IDs Before Setting Into State
+
+Azure APIs can return resource IDs with inconsistent casing on static segments (e.g. `/Subscriptions/` vs `/subscriptions/`). Always parse resource IDs through their typed parser before setting into state — this normalizes the casing and prevents phantom diffs on subsequent plans.
+
+This applies to **scoped resource IDs** (where the scope must be parsed separately) and **IDs returned as properties** in API responses:
+
+```go
+// Scoped IDs: parse the scope portion into a typed ID
+storageAccountId, err := commonids.ParseStorageAccountID(id.Scope)
+if err != nil {
+    return err
+}
+state.StorageAccountId = storageAccountId.ID()
+
+// IDs from API response properties: parse before setting into state
+projectId, err := devcenters.ParseProjectID(props.DevCenterProjectResourceId)
+if err != nil {
+    return err
+}
+state.DevCenterProjectId = projectId.ID()
+```
+
 ## Generated Resource ID Parsers and Validators (legacy)
 
 Prior to generating the parser and validation functions within the SDK, we generated these functions in the provider with [this automation](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/tools/generator-resource-id) which generates the functions for all IDs defined in `resourceids.go`.
@@ -105,5 +127,5 @@ Running `make generate` - will output the following files:
 * `./internal/service/resource/parse/resource_group_example_test.go` - contains tests for those ^.
 * `./internal/service/resource/validate/resource_group_example_id.go` - contains Terraform validation functions for the Resource ID.
 
-**NOTE:** This is an outdated way of handling resource IDs in the provider and is being phased out. This method should only be used in exceptional cases.
+> **Note:** This is an outdated way of handling resource IDs in the provider and is being phased out. This method should only be used in exceptional cases.
 

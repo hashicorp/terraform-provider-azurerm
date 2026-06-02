@@ -1,20 +1,24 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/attacheddatabaseconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/attacheddatabaseconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,7 +28,7 @@ import (
 )
 
 func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
 		Read:   resourceKustoAttachedDatabaseConfigurationRead,
 		Update: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
@@ -38,6 +42,16 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := attacheddatabaseconfigurations.ParseAttachedDatabaseConfigurationID(id)
 			return err
+		}),
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			databaseName := diff.Get("database_name").(string)
+			databaseNameOverride := diff.Get("database_name_override").(string)
+
+			if databaseName == "*" && databaseNameOverride != "" {
+				return fmt.Errorf("cannot set `database_name_override` when `database_name` is set to `*` (all databases)")
+			}
+			return nil
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -73,12 +87,25 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.Any(validate.DatabaseName, validation.StringInSlice([]string{"*"}, false)),
 			},
 
-			// TODO: this should become `cluster_id` in 4.0
-			"cluster_resource_id": {
+			"cluster_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: commonids.ValidateKustoClusterID,
+			},
+
+			"database_name_override": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  validate.DatabaseName,
+				ConflictsWith: []string{"database_name_prefix"},
+			},
+
+			"database_name_prefix": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  validate.DatabaseName,
+				ConflictsWith: []string{"database_name_override"},
 			},
 
 			"attached_database_names": {
@@ -111,6 +138,22 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 						},
 
 						"external_tables_to_include": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"functions_to_exclude": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"functions_to_include": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
@@ -154,6 +197,26 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["cluster_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
+			ValidateFunc: commonids.ValidateKustoClusterID,
+		}
+		resource.Schema["cluster_resource_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: commonids.ValidateKustoClusterID,
+			Deprecated:   "`cluster_resource_id` has been deprecated in favour of the `cluster_id` property and will be removed in v5.0 of the AzureRM Provider.",
+			ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
+		}
+	}
+
+	return resource
 }
 
 func resourceKustoAttachedDatabaseConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -164,30 +227,37 @@ func resourceKustoAttachedDatabaseConfigurationCreateUpdate(d *pluginsdk.Resourc
 
 	id := attacheddatabaseconfigurations.NewAttachedDatabaseConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_kusto_attached_database_configuration", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_kusto_attached_database_configuration", id.ID())
+			}
 		}
 	}
 
 	configurationProperties := expandKustoAttachedDatabaseConfigurationProperties(d)
 	configurationRequest := attacheddatabaseconfigurations.AttachedDatabaseConfiguration{
-		Location:   utils.String(location.Normalize(d.Get("location").(string))),
+		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: configurationProperties,
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, configurationRequest)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, configurationRequest, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, configurationRequest); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceKustoAttachedDatabaseConfigurationRead(d, meta)
 }
 
@@ -203,7 +273,7 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -223,11 +293,17 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 			if parseErr != nil {
 				return parseErr
 			}
-			d.Set("cluster_resource_id", clusterResourceId.ID())
+			d.Set("cluster_id", clusterResourceId.ID())
 			d.Set("database_name", props.DatabaseName)
+			d.Set("database_name_override", pointer.From(props.DatabaseNameOverride))
+			d.Set("database_name_prefix", pointer.From(props.DatabaseNamePrefix))
 			d.Set("default_principal_modification_kind", props.DefaultPrincipalsModificationKind)
 			d.Set("attached_database_names", props.AttachedDatabaseNames)
 			d.Set("sharing", flattenAttachedDatabaseConfigurationTableLevelSharingProperties(props.TableLevelSharingProperties))
+
+			if !features.FivePointOh() {
+				d.Set("cluster_resource_id", clusterResourceId.ID())
+			}
 		}
 	}
 
@@ -259,12 +335,25 @@ func resourceKustoAttachedDatabaseConfigurationDelete(d *pluginsdk.ResourceData,
 func expandKustoAttachedDatabaseConfigurationProperties(d *pluginsdk.ResourceData) *attacheddatabaseconfigurations.AttachedDatabaseConfigurationProperties {
 	AttachedDatabaseConfigurationProperties := &attacheddatabaseconfigurations.AttachedDatabaseConfigurationProperties{}
 
-	if clusterResourceID, ok := d.GetOk("cluster_resource_id"); ok {
+	if clusterResourceID, ok := d.GetOk("cluster_id"); ok {
 		AttachedDatabaseConfigurationProperties.ClusterResourceId = clusterResourceID.(string)
+	}
+	if !features.FivePointOh() {
+		if clusterResourceID, ok := d.GetOk("cluster_resource_id"); ok {
+			AttachedDatabaseConfigurationProperties.ClusterResourceId = clusterResourceID.(string)
+		}
 	}
 
 	if databaseName, ok := d.GetOk("database_name"); ok {
 		AttachedDatabaseConfigurationProperties.DatabaseName = databaseName.(string)
+	}
+
+	if databaseNameOverride, ok := d.GetOk("database_name_override"); ok {
+		AttachedDatabaseConfigurationProperties.DatabaseNameOverride = pointer.To(databaseNameOverride.(string))
+	}
+
+	if databaseNamePrefix, ok := d.GetOk("database_name_prefix"); ok {
+		AttachedDatabaseConfigurationProperties.DatabaseNamePrefix = pointer.To(databaseNamePrefix.(string))
 	}
 
 	if defaultPrincipalModificationKind, ok := d.GetOk("default_principal_modification_kind"); ok {
@@ -286,6 +375,8 @@ func expandAttachedDatabaseConfigurationTableLevelSharingProperties(input []inte
 		TablesToExclude:            utils.ExpandStringSlice(v["tables_to_exclude"].(*pluginsdk.Set).List()),
 		ExternalTablesToInclude:    utils.ExpandStringSlice(v["external_tables_to_include"].(*pluginsdk.Set).List()),
 		ExternalTablesToExclude:    utils.ExpandStringSlice(v["external_tables_to_exclude"].(*pluginsdk.Set).List()),
+		FunctionsToInclude:         utils.ExpandStringSlice(v["functions_to_include"].(*pluginsdk.Set).List()),
+		FunctionsToExclude:         utils.ExpandStringSlice(v["functions_to_exclude"].(*pluginsdk.Set).List()),
 		MaterializedViewsToInclude: utils.ExpandStringSlice(v["materialized_views_to_include"].(*pluginsdk.Set).List()),
 		MaterializedViewsToExclude: utils.ExpandStringSlice(v["materialized_views_to_exclude"].(*pluginsdk.Set).List()),
 	}
@@ -300,6 +391,8 @@ func flattenAttachedDatabaseConfigurationTableLevelSharingProperties(input *atta
 		map[string]interface{}{
 			"external_tables_to_exclude":    utils.FlattenStringSlice(input.ExternalTablesToExclude),
 			"external_tables_to_include":    utils.FlattenStringSlice(input.ExternalTablesToInclude),
+			"functions_to_exclude":          utils.FlattenStringSlice(input.FunctionsToExclude),
+			"functions_to_include":          utils.FlattenStringSlice(input.FunctionsToInclude),
 			"materialized_views_to_exclude": utils.FlattenStringSlice(input.MaterializedViewsToExclude),
 			"materialized_views_to_include": utils.FlattenStringSlice(input.MaterializedViewsToInclude),
 			"tables_to_exclude":             utils.FlattenStringSlice(input.TablesToExclude),

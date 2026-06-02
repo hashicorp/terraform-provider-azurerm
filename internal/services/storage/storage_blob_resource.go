@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 func resourceStorageBlob() *pluginsdk.Resource {
@@ -204,17 +204,15 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	id := blobs.NewBlobID(accountId, containerName, name)
-	if d.IsNewResource() {
-		input := blobs.GetPropertiesInput{}
-		props, err := blobsClient.GetProperties(ctx, containerName, name, input)
-		if err != nil {
-			if !response.WasNotFound(props.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %v", id, err)
-			}
-		}
+	input := blobs.GetPropertiesInput{}
+	props, err := blobsClient.GetProperties(ctx, containerName, name, input)
+	if err != nil {
 		if !response.WasNotFound(props.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
+			return fmt.Errorf("checking for existing %s: %v", id, err)
 		}
+	}
+	if !response.WasNotFound(props.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
 	}
 
 	contentMD5Raw := d.Get("content_md5").(string)
@@ -227,7 +225,6 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	log.Printf("[DEBUG] Creating %s..", id)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	blobInput := BlobUpload{
 		AccountName:   accountName,
@@ -254,7 +251,6 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err = blobInput.Create(ctx); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
-	log.Printf("[DEBUG] Created %s.", id)
 
 	d.SetId(id.ID())
 
@@ -285,7 +281,6 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("building Blobs Client: %v", err)
 	}
 
-	log.Printf("[INFO] Retrieving %s", id)
 	input := blobs.GetPropertiesInput{}
 	props, err := blobsClient.GetProperties(ctx, id.ContainerName, id.BlobName, input)
 	if err != nil {
@@ -299,7 +294,6 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("content_type") || d.HasChange("cache_control") {
-		log.Printf("[DEBUG] Updating Properties for %s...", id)
 		input := blobs.SetPropertiesInput{
 			ContentType:  pointer.To(d.Get("content_type").(string)),
 			CacheControl: pointer.To(d.Get("cache_control").(string)),
@@ -316,11 +310,9 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if _, err = blobsClient.SetProperties(ctx, id.ContainerName, id.BlobName, input); err != nil {
 			return fmt.Errorf("updating Properties for %s: %v", id, err)
 		}
-		log.Printf("[DEBUG] Updated Properties for %s", id)
 	}
 
 	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating MetaData for %s...", id)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 		input := blobs.SetMetaDataInput{
 			MetaData: ExpandMetaData(metaDataRaw),
@@ -332,19 +324,15 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if _, err = blobsClient.SetMetaData(ctx, id.ContainerName, id.BlobName, input); err != nil {
 			return fmt.Errorf("updating MetaData for %s: %v", id, err)
 		}
-		log.Printf("[DEBUG] Updated MetaData for %s", id)
 	}
 
 	if d.HasChange("access_tier") {
 		// this is only applicable for Gen2/BlobStorage accounts
-		log.Printf("[DEBUG] Updating Access Tier for %s...", id)
 		accessTier := blobs.AccessTier(d.Get("access_tier").(string))
 
 		if _, err := blobsClient.SetTier(ctx, id.ContainerName, id.BlobName, blobs.SetTierInput{Tier: accessTier}); err != nil {
 			return fmt.Errorf("updating Access Tier for %s: %v", id, err)
 		}
-
-		log.Printf("[DEBUG] Updated Access Tier for %s", id)
 	}
 
 	return resourceStorageBlobRead(d, meta)
@@ -376,7 +364,6 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("building Blobs Client: %v", err)
 	}
 
-	log.Printf("[INFO] Retrieving %s", id)
 	input := blobs.GetPropertiesInput{}
 	props, err := blobsClient.GetProperties(ctx, id.ContainerName, id.BlobName, input)
 	if err != nil {

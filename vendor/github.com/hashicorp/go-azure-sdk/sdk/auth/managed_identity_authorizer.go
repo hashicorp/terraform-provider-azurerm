@@ -28,6 +28,14 @@ type ManagedIdentityAuthorizerOptions struct {
 	// CustomManagedIdentityEndpoint is an optional endpoint from which to obtain an access
 	// token. When blank, the default is used.
 	CustomManagedIdentityEndpoint string
+
+	// CustomManagedIdentityAPIVersion is an optional API version to use when requesting a token.
+	// This is required when using an endpoint that does not support the default API version such as Azure Container Apps.
+	CustomManagedIdentityAPIVersion string
+
+	// CustomManagedIdentityHeaders are optional HTTP headers to use when requesting a token
+	// This is required when requesting from Azure Container App or Service Fabric.
+	CustomManagedIdentityHeaders map[string][]string
 }
 
 // NewManagedIdentityAuthorizer returns an authorizer using a Managed Identity for authentication.
@@ -36,7 +44,7 @@ func NewManagedIdentityAuthorizer(ctx context.Context, options ManagedIdentityAu
 	if err != nil {
 		return nil, fmt.Errorf("determining resource for api %q: %+v", options.Api.Name(), err)
 	}
-	conf, err := newManagedIdentityConfig(*resource, options.ClientId, options.CustomManagedIdentityEndpoint)
+	conf, err := newManagedIdentityConfig(*resource, options.ClientId, options.CustomManagedIdentityEndpoint, options.CustomManagedIdentityAPIVersion, options.CustomManagedIdentityHeaders)
 	if err != nil {
 		return nil, err
 	}
@@ -70,9 +78,9 @@ func (a *ManagedIdentityAuthorizer) Token(ctx context.Context, _ *http.Request) 
 		query["client_id"] = []string{a.conf.ClientID}
 	}
 
-	url := fmt.Sprintf("%s?%s", a.conf.MsiEndpoint, query.Encode())
+	u := fmt.Sprintf("%s?%s", a.conf.MsiEndpoint, query.Encode())
 
-	body, err := azureMetadata(ctx, url)
+	body, err := azureMetadata(ctx, u, a.conf.MsiHeaders)
 	if err != nil {
 		return nil, fmt.Errorf("ManagedIdentityAuthorizer: failed to request token from metadata endpoint: %v", err)
 	}
@@ -129,23 +137,32 @@ type managedIdentityConfig struct {
 	// MsiEndpoint is the endpoint where the metadata service can be found
 	MsiEndpoint string
 
+	// MsiHeaders are headers to add when requesting a token from the metadata service
+	MsiHeaders map[string][]string
+
 	// Resource is the service for which to request an access token
 	Resource string
 }
 
 // newManagedIdentityConfig returns a new managedIdentityConfig with a configured metadata endpoint and resource.
 // clientId and objectId can be left blank when a single managed identity is available
-func newManagedIdentityConfig(resource, clientId, customManagedIdentityEndpoint string) (*managedIdentityConfig, error) {
+func newManagedIdentityConfig(resource, clientId, customManagedIdentityEndpoint string, customManagedIdentityAPIVersion string, customManagedIdentityHeaders map[string][]string) (*managedIdentityConfig, error) {
 	endpoint := msiDefaultEndpoint
 	if customManagedIdentityEndpoint != "" {
 		endpoint = customManagedIdentityEndpoint
 	}
 
+	apiVersion := msiDefaultApiVersion
+	if customManagedIdentityAPIVersion != "" {
+		apiVersion = customManagedIdentityAPIVersion
+	}
+
 	return &managedIdentityConfig{
 		ClientID:      clientId,
 		Resource:      resource,
-		MsiApiVersion: msiDefaultApiVersion,
+		MsiApiVersion: apiVersion,
 		MsiEndpoint:   endpoint,
+		MsiHeaders:    customManagedIdentityHeaders,
 	}, nil
 }
 
@@ -156,14 +173,19 @@ func (c *managedIdentityConfig) TokenSource(_ context.Context) (Authorizer, erro
 	})
 }
 
-func azureMetadata(ctx context.Context, url string) (body []byte, err error) {
+func azureMetadata(ctx context.Context, url string, headers map[string][]string) (body []byte, err error) {
 	var req *http.Request
 	req, err = http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return
 	}
+
 	req.Header = http.Header{
 		"Metadata": []string{"true"},
+	}
+
+	for k, v := range headers {
+		req.Header[http.CanonicalHeaderKey(k)] = v
 	}
 
 	var resp *http.Response

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfiguration"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -34,10 +34,11 @@ func (c ConfigFile) toSDKModel() nginxconfiguration.NginxConfigurationFile {
 type ProtectedFile struct {
 	Content     string `tfschema:"content"`
 	VirtualPath string `tfschema:"virtual_path"`
+	ContentHash string `tfschema:"content_hash"`
 }
 
-func (c ProtectedFile) toSDKModel() nginxconfiguration.NginxConfigurationFile {
-	return nginxconfiguration.NginxConfigurationFile{
+func (c ProtectedFile) toSDKModel() nginxconfiguration.NginxConfigurationProtectedFileRequest {
+	return nginxconfiguration.NginxConfigurationProtectedFileRequest{
 		Content:     pointer.To(c.Content),
 		VirtualPath: pointer.To(c.VirtualPath),
 	}
@@ -59,12 +60,11 @@ func (c ConfigurationModel) toSDKFiles() *[]nginxconfiguration.NginxConfiguratio
 	return &files
 }
 
-func (c ConfigurationModel) toSDKProtectedFiles() *[]nginxconfiguration.NginxConfigurationFile {
+func (c ConfigurationModel) toSDKProtectedFiles() *[]nginxconfiguration.NginxConfigurationProtectedFileRequest {
 	if len(c.ProtectedFile) == 0 {
 		return nil
 	}
-
-	files := make([]nginxconfiguration.NginxConfigurationFile, 0, len(c.ProtectedFile))
+	files := []nginxconfiguration.NginxConfigurationProtectedFileRequest{}
 	for _, file := range c.ProtectedFile {
 		files = append(files, file.toSDKModel())
 	}
@@ -72,10 +72,10 @@ func (c ConfigurationModel) toSDKProtectedFiles() *[]nginxconfiguration.NginxCon
 }
 
 // ToSDKModel used in both Create and Update
-func (c ConfigurationModel) ToSDKModel() nginxconfiguration.NginxConfiguration {
-	req := nginxconfiguration.NginxConfiguration{
+func (c ConfigurationModel) ToSDKModel() nginxconfiguration.NginxConfigurationRequest {
+	req := nginxconfiguration.NginxConfigurationRequest{
 		Name: pointer.To(defaultConfigurationName),
-		Properties: &nginxconfiguration.NginxConfigurationProperties{
+		Properties: &nginxconfiguration.NginxConfigurationRequestProperties{
 			RootFile: pointer.To(c.RootFile),
 		},
 	}
@@ -144,6 +144,11 @@ func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+
+					"content_hash": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
@@ -179,11 +184,11 @@ func (m ConfigurationResource) ResourceType() string {
 func (m ConfigurationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxConfiguration
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Nginx.NginxConfiguration
 
 			var model ConfigurationModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
@@ -192,24 +197,26 @@ func (m ConfigurationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			id := nginxconfiguration.NewConfigurationID(subscriptionID, deployID.ResourceGroupName, deployID.NginxDeploymentName, defaultConfigurationName)
 
-			existing, err := client.ConfigurationsGet(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retreiving %s: %v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ConfigurationsGet(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retreiving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
 			req := model.ToSDKModel()
 
-			if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, id, req); err != nil {
+			if err := client.ConfigurationsCreateOrUpdateCallbackThenPoll(ctx, id, req, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -238,7 +245,7 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			var output ConfigurationModel
-			// protected files field not return by API so decode from state
+			// protected files content field not return by API so decode from state
 			if err := meta.Decode(&output); err != nil {
 				return err
 			}
@@ -247,28 +254,45 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			output.NginxDeploymentId = deployID.ID()
 
 			if prop := result.Model.Properties; prop != nil {
-				output.RootFile = pointer.ToString(prop.RootFile)
+				output.RootFile = pointer.From(prop.RootFile)
 
 				if prop.Package != nil && prop.Package.Data != nil {
-					output.PackageData = pointer.ToString(prop.Package.Data)
+					output.PackageData = pointer.From(prop.Package.Data)
 				}
 
 				if files := prop.Files; files != nil {
+					configs := []ConfigFile{}
 					for _, file := range *files {
-						output.ConfigFile = append(output.ConfigFile, ConfigFile{
-							Content:     pointer.ToString(file.Content),
-							VirtualPath: pointer.ToString(file.VirtualPath),
-						})
+						if pointer.From(file.Content) != "" {
+							configs = append(configs, ConfigFile{
+								Content:     pointer.From(file.Content),
+								VirtualPath: pointer.From(file.VirtualPath),
+							})
+						}
+					}
+					if len(configs) > 0 {
+						output.ConfigFile = configs
 					}
 				}
 
-				// GET does not return protected files
 				if files := prop.ProtectedFiles; files != nil {
+					configs := []ProtectedFile{}
 					for _, file := range *files {
-						output.ProtectedFile = append(output.ProtectedFile, ProtectedFile{
-							Content:     pointer.ToString(file.Content),
-							VirtualPath: pointer.ToString(file.VirtualPath),
-						})
+						config := ProtectedFile{
+							VirtualPath: pointer.From(file.VirtualPath),
+							ContentHash: pointer.From(file.ContentHash),
+						}
+						// GET returns protected files without content, so fill in from state
+						for _, protectedFile := range output.ProtectedFile {
+							if protectedFile.VirtualPath == pointer.From(file.VirtualPath) {
+								config.Content = protectedFile.Content
+								break
+							}
+						}
+						configs = append(configs, config)
+					}
+					if len(configs) > 0 {
+						output.ProtectedFile = configs
 					}
 				}
 			}
@@ -302,8 +326,26 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving as nil for %v", *id)
 			}
 
-			upd := existing.Model
-			// root file is required in update
+			// full update - fill in the existing fields from the API and then patch it
+			upd := nginxconfiguration.NginxConfigurationRequest{
+				Name: pointer.To(defaultConfigurationName),
+				Properties: &nginxconfiguration.NginxConfigurationRequestProperties{
+					RootFile: existing.Model.Properties.RootFile,
+					Files:    existing.Model.Properties.Files,
+					Package:  existing.Model.Properties.Package,
+				},
+			}
+
+			if existing.Model.Properties.ProtectedFiles != nil {
+				var pfs []nginxconfiguration.NginxConfigurationProtectedFileRequest
+				for _, f := range *existing.Model.Properties.ProtectedFiles {
+					pfs = append(pfs, nginxconfiguration.NginxConfigurationProtectedFileRequest{
+						VirtualPath: f.VirtualPath,
+					})
+				}
+				upd.Properties.ProtectedFiles = pointer.To(pfs)
+			}
+
 			if meta.ResourceData.HasChange("root_file") {
 				upd.Properties.RootFile = pointer.To(model.RootFile)
 			}
@@ -312,8 +354,9 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				upd.Properties.Files = model.toSDKFiles()
 			}
 
-			// API does not return protected file field, so always set this field
-			upd.Properties.ProtectedFiles = model.toSDKProtectedFiles()
+			if meta.ResourceData.HasChange("protected_file") {
+				upd.Properties.ProtectedFiles = model.toSDKProtectedFiles()
+			}
 
 			if meta.ResourceData.HasChange("package_data") {
 				upd.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{
@@ -321,7 +364,7 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, *id, *upd); err != nil {
+			if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, *id, upd); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 

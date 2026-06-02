@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -18,11 +19,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
+	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_gateway_route_config` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+
 		Create: resourceSpringCloudGatewayRouteConfigCreateUpdate,
 		Read:   resourceSpringCloudGatewayRouteConfigRead,
 		Update: resourceSpringCloudGatewayRouteConfigCreateUpdate,
@@ -74,17 +77,9 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:S013
 			"protocol": {
 				Type:     pluginsdk.TypeString,
-				Optional: !features.FourPointOh(),
-				Required: features.FourPointOh(),
-				Default: func() interface{} {
-					if !features.FourPointOh() {
-						return string(appplatform.GatewayRouteConfigProtocolHTTP)
-					}
-					return nil
-				}(),
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(appplatform.GatewayRouteConfigProtocolHTTP),
 					string(appplatform.GatewayRouteConfigProtocolHTTPS),
@@ -204,23 +199,25 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	id := parse.NewSpringCloudGatewayRouteConfigID(subscriptionId, gatewayId.ResourceGroup, gatewayId.SpringName, gatewayId.GatewayName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_gateway_route_config", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_spring_cloud_gateway_route_config", id.ID())
+			}
 		}
 	}
 
 	gatewayRouteConfigResource := appplatform.GatewayRouteConfigResource{
 		Properties: &appplatform.GatewayRouteConfigProperties{
-			AppResourceID: utils.String(d.Get("spring_cloud_app_id").(string)),
+			AppResourceID: pointer.To(d.Get("spring_cloud_app_id").(string)),
 			Protocol:      appplatform.GatewayRouteConfigProtocol(d.Get("protocol").(string)),
 			Routes:        expandGatewayRouteConfigGatewayAPIRouteArray(d.Get("route").(*pluginsdk.Set).List()),
-			SsoEnabled:    utils.Bool(d.Get("sso_validation_enabled").(bool)),
+			SsoEnabled:    pointer.To(d.Get("sso_validation_enabled").(bool)),
 			OpenAPI:       expandGatewayRouteConfigOpenApi(d.Get("open_api").([]interface{})),
 		},
 	}
@@ -240,11 +237,14 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSpringCloudGatewayRouteConfigRead(d, meta)
 }
 
@@ -326,14 +326,14 @@ func expandGatewayRouteConfigGatewayAPIRouteArray(input []interface{}) *[]apppla
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, appplatform.GatewayAPIRoute{
-			Title:       utils.String(v["title"].(string)),
-			Description: utils.String(v["description"].(string)),
-			URI:         utils.String(v["uri"].(string)),
-			SsoEnabled:  utils.Bool(v["sso_validation_enabled"].(bool)),
-			TokenRelay:  utils.Bool(v["token_relay"].(bool)),
+			Title:       pointer.To(v["title"].(string)),
+			Description: pointer.To(v["description"].(string)),
+			URI:         pointer.To(v["uri"].(string)),
+			SsoEnabled:  pointer.To(v["sso_validation_enabled"].(bool)),
+			TokenRelay:  pointer.To(v["token_relay"].(bool)),
 			Predicates:  utils.ExpandStringSlice(v["predicates"].(*pluginsdk.Set).List()),
 			Filters:     utils.ExpandStringSlice(v["filters"].(*pluginsdk.Set).List()),
-			Order:       utils.Int32(int32(v["order"].(int))),
+			Order:       pointer.To(int32(v["order"].(int))),
 			Tags:        utils.ExpandStringSlice(v["classification_tags"].(*pluginsdk.Set).List()),
 		})
 	}
@@ -393,7 +393,7 @@ func expandGatewayRouteConfigOpenApi(input []interface{}) *appplatform.GatewayRo
 
 	config := input[0].(map[string]interface{})
 	return &appplatform.GatewayRouteConfigOpenAPIProperties{
-		URI: utils.String(config["uri"].(string)),
+		URI: pointer.To(config["uri"].(string)),
 	}
 }
 

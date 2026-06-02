@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/sdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -47,6 +46,10 @@ type StaticWebAppResourceModel struct {
 
 	ApiKey          string `tfschema:"api_key"`
 	DefaultHostName string `tfschema:"default_host_name"`
+
+	RepositoryUrl    string `tfschema:"repository_url"`
+	RepositoryToken  string `tfschema:"repository_token"`
+	RepositoryBranch string `tfschema:"repository_branch"`
 }
 
 func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
@@ -112,7 +115,29 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
-		"tags": tags.Schema(),
+		"repository_url": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			RequiredWith: []string{"repository_token", "repository_branch"},
+		},
+
+		"repository_token": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"repository_url", "repository_branch"},
+		},
+
+		"repository_branch": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"repository_url", "repository_token"},
+		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -158,14 +183,16 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 
 			id := staticsites.NewStaticSiteID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.GetStaticSite(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetStaticSite(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			envelope := staticsites.StaticSiteARMResource{
@@ -196,13 +223,20 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 				props.StagingEnvironmentPolicy = pointer.To(staticsites.StagingEnvironmentPolicyDisabled)
 			}
 
+			// Check if repository URL, branch, or token are set
+			if model.RepositoryUrl != "" || model.RepositoryBranch != "" || model.RepositoryToken != "" {
+				props.Branch = pointer.To(model.RepositoryBranch)
+				props.RepositoryURL = pointer.To(model.RepositoryUrl)
+				props.RepositoryToken = pointer.To(model.RepositoryToken)
+			}
+
 			if !model.PublicNetworkAccess {
 				props.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
 			}
 
 			envelope.Properties = props
 
-			if err := client.CreateOrUpdateStaticSiteThenPoll(ctx, id, envelope); err != nil {
+			if err := client.CreateOrUpdateStaticSiteCallbackThenPoll(ctx, id, envelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -279,6 +313,15 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 					state.ConfigFileChanges = pointer.From(props.AllowConfigFileUpdates)
 					state.DefaultHostName = pointer.From(props.DefaultHostname)
 					state.PreviewEnvironments = pointer.From(props.StagingEnvironmentPolicy) == staticsites.StagingEnvironmentPolicyEnabled
+
+					state.RepositoryUrl = pointer.From(props.RepositoryURL)
+					state.RepositoryBranch = pointer.From(props.Branch)
+
+					// Token isn't returned in the response, so we need to grab it from the config
+					if repositoryToken, ok := metadata.ResourceData.GetOk("repository_token"); ok {
+						state.RepositoryToken = repositoryToken.(string)
+					}
+
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 				}
 
@@ -452,6 +495,12 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				if _, err := sdkHackClient.CreateOrUpdateBasicAuth(ctx, *id, authProps); err != nil {
 					return fmt.Errorf("setting basic auth on %s: %+v", *id, err)
 				}
+			}
+
+			if metadata.ResourceData.HasChanges("repository_url", "repository_branch", "repository_token") {
+				model.Properties.RepositoryURL = pointer.To(config.RepositoryUrl)
+				model.Properties.Branch = pointer.To(config.RepositoryBranch)
+				model.Properties.RepositoryToken = pointer.To(config.RepositoryToken)
 			}
 
 			return nil

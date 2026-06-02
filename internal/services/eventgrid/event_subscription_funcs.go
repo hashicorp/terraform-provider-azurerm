@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -8,8 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -22,27 +21,11 @@ func expandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscrip
 	}
 
 	eventhubEndpointId, ok := d.GetOk("eventhub_endpoint_id")
-	if !ok && !features.FourPointOhBeta() {
-		val, ok := d.GetOk("eventhub_endpoint")
-		if ok && len(val.([]interface{})) == 1 {
-			raw := val.([]interface{})
-			props := raw[0].(map[string]interface{})
-			eventhubEndpointId = props["eventhub_id"].(string)
-		}
-	}
 	if ok {
 		return expandEventSubscriptionDestinationEventHub(eventhubEndpointId.(string), deliveryMappings)
 	}
 
 	hybridConnectionEndpointId, ok := d.GetOk("hybrid_connection_endpoint_id")
-	if !ok && !features.FourPointOhBeta() {
-		val, ok := d.GetOk("hybrid_connection_endpoint")
-		if ok && len(val.([]interface{})) == 1 {
-			raw := val.([]interface{})
-			props := raw[0].(map[string]interface{})
-			hybridConnectionEndpointId = props["hybrid_connection_id"].(string)
-		}
-	}
 	if ok {
 		return expandEventSubscriptionDestinationHybridConnection(hybridConnectionEndpointId.(string), deliveryMappings)
 	}
@@ -93,11 +76,11 @@ func expandEventGridEventSubscriptionWebhookEndpoint(input []interface{}, delive
 	}
 
 	if v, ok := config["active_directory_tenant_id"]; ok && v != "" {
-		props.AzureActiveDirectoryTenantId = utils.String(v.(string))
+		props.AzureActiveDirectoryTenantId = pointer.To(v.(string))
 	}
 
 	if v, ok := config["active_directory_app_id_or_uri"]; ok && v != "" {
-		props.AzureActiveDirectoryApplicationIdOrUri = utils.String(v.(string))
+		props.AzureActiveDirectoryApplicationIdOrUri = pointer.To(v.(string))
 	}
 
 	return webhookDestination
@@ -109,7 +92,7 @@ func expandEventSubscriptionDestinationAzureFunction(input []interface{}, delive
 		DeliveryAttributeMappings: &deliveryMappings,
 	}
 	if v, ok := item["function_id"]; ok && v != "" {
-		props.ResourceId = utils.String(v.(string))
+		props.ResourceId = pointer.To(v.(string))
 	}
 	if v, ok := item["max_events_per_batch"]; ok && v != 0 {
 		props.MaxEventsPerBatch = pointer.To(int64(v.(int)))
@@ -244,19 +227,20 @@ func expandEventSubscriptionDeliveryAttributeMappings(input []interface{}) []eve
 	for _, item := range input {
 		mappingBlock := item.(map[string]interface{})
 
-		if mappingBlock["type"].(string) == "Static" {
+		switch mappingBlock["type"].(string) {
+		case "Static":
 			output = append(output, eventsubscriptions.StaticDeliveryAttributeMapping{
-				Name: utils.String(mappingBlock["header_name"].(string)),
+				Name: pointer.To(mappingBlock["header_name"].(string)),
 				Properties: &eventsubscriptions.StaticDeliveryAttributeMappingProperties{
-					Value:    utils.String(mappingBlock["value"].(string)),
-					IsSecret: utils.Bool(mappingBlock["secret"].(bool)),
+					Value:    pointer.To(mappingBlock["value"].(string)),
+					IsSecret: pointer.To(mappingBlock["secret"].(bool)),
 				},
 			})
-		} else if mappingBlock["type"].(string) == "Dynamic" {
+		case "Dynamic":
 			output = append(output, eventsubscriptions.DynamicDeliveryAttributeMapping{
-				Name: utils.String(mappingBlock["header_name"].(string)),
+				Name: pointer.To(mappingBlock["header_name"].(string)),
 				Properties: &eventsubscriptions.DynamicDeliveryAttributeMappingProperties{
-					SourceField: utils.String(mappingBlock["source_field"].(string)),
+					SourceField: pointer.To(mappingBlock["source_field"].(string)),
 				},
 			})
 		}
@@ -629,7 +613,7 @@ func expandEventSubscriptionFilter(d *pluginsdk.ResourceData) (*eventsubscriptio
 	}
 
 	if v, ok := d.GetOk("advanced_filtering_on_arrays_enabled"); ok {
-		filter.EnableAdvancedFilteringOnArrays = utils.Bool(v.(bool))
+		filter.EnableAdvancedFilteringOnArrays = pointer.To(v.(bool))
 	}
 
 	return filter, nil
@@ -750,7 +734,7 @@ func expandEventSubscriptionAdvancedFilter(operatorType string, config map[strin
 			Values: v,
 		}, nil
 	default:
-		return nil, fmt.Errorf("Invalid `advanced_filter` operator_type %q used", operatorType)
+		return nil, fmt.Errorf("invalid `advanced_filter` operator_type %q used", operatorType)
 	}
 }
 
@@ -810,7 +794,7 @@ func flattenRangeValues(inputKey *string, inputValues *[][]any) map[string]any {
 	values := make([]any, 0)
 	if inputValues != nil {
 		for _, item := range *inputValues {
-			values = append(values, item...)
+			values = append(values, item) // nolint: asasalint
 		}
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,15 +21,17 @@ import (
 
 var _ sdk.DataSource = SiteRecoveryRecoveryVaultDataSource{}
 
-type SiteRecoveryRecoveryVaultDataSource struct{}
-type SiteRecoveryRecoveryVaultDataSourceModel struct {
-	Name              string                                     `tfschema:"name"`
-	ResourceGroupName string                                     `tfschema:"resource_group_name"`
-	Location          string                                     `tfschema:"location"`
-	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Sku               string                                     `tfschema:"sku"`
-	Tags              map[string]string                          `tfschema:"tags"`
-}
+type (
+	SiteRecoveryRecoveryVaultDataSource      struct{}
+	SiteRecoveryRecoveryVaultDataSourceModel struct {
+		Name              string                                     `tfschema:"name"`
+		ResourceGroupName string                                     `tfschema:"resource_group_name"`
+		Location          string                                     `tfschema:"location"`
+		Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+		Sku               string                                     `tfschema:"sku"`
+		Tags              map[string]string                          `tfschema:"tags"`
+	}
+)
 
 func (SiteRecoveryRecoveryVaultDataSource) ModelObject() interface{} {
 	return &SiteRecoveryRecoveryVaultDataSourceModel{}
@@ -50,6 +52,7 @@ func (SiteRecoveryRecoveryVaultDataSource) Arguments() map[string]*pluginsdk.Sch
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
+
 func (SiteRecoveryRecoveryVaultDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
@@ -88,7 +91,6 @@ func (r SiteRecoveryRecoveryVaultDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
-
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}

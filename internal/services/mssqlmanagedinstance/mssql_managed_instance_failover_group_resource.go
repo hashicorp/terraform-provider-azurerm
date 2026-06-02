@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance
@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlManagedInstanceFailoverGroupModel struct {
@@ -28,6 +27,7 @@ type MsSqlManagedInstanceFailoverGroupModel struct {
 	ManagedInstanceId                     string `tfschema:"managed_instance_id"`
 	PartnerManagedInstanceId              string `tfschema:"partner_managed_instance_id"`
 	ReadOnlyEndpointFailoverPolicyEnabled bool   `tfschema:"readonly_endpoint_failover_policy_enabled"`
+	SecondaryType                         string `tfschema:"secondary_type"`
 
 	ReadWriteEndpointFailurePolicy []MsSqlManagedInstanceReadWriteEndpointFailurePolicyModel `tfschema:"read_write_endpoint_failover_policy"`
 
@@ -45,8 +45,10 @@ type MsSqlManagedInstancePartnerRegionModel struct {
 	Role     string `tfschema:"role"`
 }
 
-var _ sdk.Resource = MsSqlManagedInstanceFailoverGroupResource{}
-var _ sdk.ResourceWithUpdate = MsSqlManagedInstanceFailoverGroupResource{}
+var (
+	_ sdk.Resource           = MsSqlManagedInstanceFailoverGroupResource{}
+	_ sdk.ResourceWithUpdate = MsSqlManagedInstanceFailoverGroupResource{}
+)
 
 type MsSqlManagedInstanceFailoverGroupResource struct{}
 
@@ -116,6 +118,13 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*plugi
 				},
 			},
 		},
+
+		"secondary_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(instancefailovergroups.SecondaryInstanceTypeGeo),
+			ValidateFunc: validation.StringInSlice(instancefailovergroups.PossibleValuesForSecondaryInstanceType(), false),
+		},
 	}
 }
 
@@ -173,14 +182,15 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)
 			}
 
-			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			readOnlyFailoverPolicy := instancefailovergroups.ReadOnlyEndpointFailoverPolicyDisabled
@@ -201,10 +211,11 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 					},
 					ManagedInstancePairs: []instancefailovergroups.ManagedInstancePairInfo{
 						{
-							PrimaryManagedInstanceId: utils.String(managedInstanceId.ID()),
-							PartnerManagedInstanceId: utils.String(partnerId.ID()),
+							PrimaryManagedInstanceId: pointer.To(managedInstanceId.ID()),
+							PartnerManagedInstanceId: pointer.To(partnerId.ID()),
 						},
 					},
+					SecondaryType: pointer.To(instancefailovergroups.SecondaryInstanceType(model.SecondaryType)),
 				},
 			}
 
@@ -215,10 +226,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.Logger.Infof("Creating %s", id)
-
-			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -240,7 +248,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceFailoverGroupModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -280,10 +287,11 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 					},
 					ManagedInstancePairs: []instancefailovergroups.ManagedInstancePairInfo{
 						{
-							PrimaryManagedInstanceId: utils.String(managedInstanceId.ID()),
-							PartnerManagedInstanceId: utils.String(partnerId.ID()),
+							PrimaryManagedInstanceId: pointer.To(managedInstanceId.ID()),
+							PartnerManagedInstanceId: pointer.To(partnerId.ID()),
 						},
 					},
+					SecondaryType: pointer.To(instancefailovergroups.SecondaryInstanceType(state.SecondaryType)),
 				},
 			}
 
@@ -293,8 +301,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 					parameters.Properties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = &rwPolicy[0].GraceMinutes
 				}
 			}
-
-			metadata.Logger.Infof("Updating %s", id)
 
 			err = client.CreateOrUpdateThenPoll(ctx, *id, parameters)
 			if err != nil {
@@ -317,7 +323,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceFailoverGroupModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -377,6 +382,8 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 							model.ReadOnlyEndpointFailoverPolicyEnabled = true
 						}
 					}
+
+					model.SecondaryType = string(pointer.From(props.SecondaryType))
 
 					model.ReadWriteEndpointFailurePolicy = []MsSqlManagedInstanceReadWriteEndpointFailurePolicyModel{
 						{

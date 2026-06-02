@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package elasticsan
@@ -13,18 +13,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = ElasticSANVolumeGroupResource{}
-var _ sdk.ResourceWithUpdate = ElasticSANVolumeGroupResource{}
-var _ sdk.ResourceWithCustomizeDiff = ElasticSANVolumeGroupResource{}
+var (
+	_ sdk.Resource                  = ElasticSANVolumeGroupResource{}
+	_ sdk.ResourceWithUpdate        = ElasticSANVolumeGroupResource{}
+	_ sdk.ResourceWithCustomizeDiff = ElasticSANVolumeGroupResource{}
+)
 
 type ElasticSANVolumeGroupResource struct{}
 
@@ -90,7 +91,7 @@ func (r ElasticSANVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema 
 					"key_vault_key_id": {
 						Required:     true,
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 					},
 					"user_assigned_identity_id": {
 						Optional:     true,
@@ -194,14 +195,16 @@ func (r ElasticSANVolumeGroupResource) Create() sdk.ResourceFunc {
 
 			id := volumegroups.NewVolumeGroupID(subscriptionId, elasticSanId.ResourceGroupName, elasticSanId.ElasticSanName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			expandedIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(config.Identity)
@@ -224,7 +227,7 @@ func (r ElasticSANVolumeGroupResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -370,7 +373,7 @@ func ExpandVolumeGroupEncryption(input []ElasticSANVolumeGroupResourceEncryption
 		return nil, nil
 	}
 
-	nestedItemId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(input[0].KeyVaultKeyId)
+	nestedItemId, err := keyvault.ParseNestedItemID(input[0].KeyVaultKeyId, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return nil, err
 	}
@@ -379,7 +382,7 @@ func ExpandVolumeGroupEncryption(input []ElasticSANVolumeGroupResourceEncryption
 		KeyVaultProperties: &volumegroups.KeyVaultProperties{
 			KeyName:     pointer.To(nestedItemId.Name),
 			KeyVersion:  pointer.To(nestedItemId.Version),
-			KeyVaultUri: pointer.To(nestedItemId.KeyVaultBaseUrl),
+			KeyVaultUri: pointer.To(nestedItemId.KeyVaultBaseURL),
 		},
 	}
 
@@ -399,7 +402,7 @@ func FlattenVolumeGroupEncryption(input *volumegroups.EncryptionProperties) ([]E
 
 	var keyVaultKeyId, currentVersionedKeyExpirationTimestamp, currentVersionedKeyId, lastKeyRotationTimestamp string
 	if kv := input.KeyVaultProperties; kv != nil {
-		id, err := keyVaultParse.NewNestedItemID(pointer.From(kv.KeyVaultUri), keyVaultParse.NestedItemTypeKey, pointer.From(kv.KeyName), pointer.From(kv.KeyVersion))
+		id, err := keyvault.NewNestedItemID(pointer.From(kv.KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From(kv.KeyName), pointer.From(kv.KeyVersion))
 		if err != nil {
 			return nil, fmt.Errorf("parsing Encryption Key Vault Key ID: %+v", err)
 		}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -8,14 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
 )
 
 type StorageTableEntityResource struct{}
@@ -42,60 +41,6 @@ func TestAccTableEntity_basicAzureADAuth(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAzureADAuth(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccTableEntity_basicDeprecated(t *testing.T) {
-	// TODO: remove test in v4.0
-	if features.FourPointOhBeta() {
-		t.Skip("test not applicable in v4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
-	r := StorageTableEntityResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccTableEntity_migrateStorageTableId(t *testing.T) {
-	// TODO: remove test in v4.0
-	if features.FourPointOhBeta() {
-		t.Skip("test not applicable in v4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
-	r := StorageTableEntityResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -212,11 +157,11 @@ func (r StorageTableEntityResource) Exists(ctx context.Context, client *clients.
 	resp, err := entitiesClient.Get(ctx, id.TableName, input)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Entity (Partition Key %q / Row Key %q) (Table %q in %s): %+v", id.PartitionKey, id.RowKey, id.TableName, account.StorageAccountId, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StorageTableEntityResource) basic(data acceptance.TestData) string {
@@ -271,24 +216,6 @@ resource "azurerm_storage_table_entity" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func (r StorageTableEntityResource) basicDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_storage_table_entity" "test" {
-  storage_account_name = azurerm_storage_account.test.name
-  table_name           = azurerm_storage_table.test.name
-
-  partition_key = "test_partition%[2]d"
-  row_key       = "test_row%[2]d"
-  entity = {
-    Foo = "Bar"
-  }
-}
-`, template, data.RandomInteger)
 }
 
 func (r StorageTableEntityResource) requiresImport(data acceptance.TestData) string {

@@ -29,7 +29,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 
 We recommend using either a Service Principal or Managed Service Identity when running Terraform non-interactively (such as when running Terraform in a CI server) - and authenticating using the Azure CLI when running Terraform locally.
 
-->**Note on Permissions** The User, Service Principal or Managed Identity running Terraform should have permissions to register [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types). If the principal running Terraform has insufficient permissions to register Resource Providers then we recommend setting the property [`resource_provider_registrations`](#resource_provider_registrations) to `none` in the provider block to prevent auto-registration.
+-> **Note:** The User, Service Principal or Managed Identity running Terraform should have permissions to register [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types). If the principal running Terraform has insufficient permissions to register Resource Providers then we recommend setting the property [`resource_provider_registrations`](#resource_provider_registrations) to `none` in the provider block to prevent auto-registration.
 
 ## Example Usage
 
@@ -40,7 +40,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -103,9 +103,9 @@ The following arguments are supported:
 
 * `features` - (Required) A `features` block as defined below which can be used to customize the behaviour of certain Azure Provider resources.
 
-* `subscription_id` - (Required) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable.
+* `subscription_id` - (Optional) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable or the `az` CLI (the default subscription will be selected).
 
--> The `subscription_id` property is required when performing a plan or apply operation, but is not required to run `terraform validate`.
+-> **Note:** The `subscription_id` property is required when performing a plan or apply operation, but is not required to run `terraform validate`.
 
 * `client_id` - (Optional) The Client ID which should be used. This can also be sourced from the `ARM_CLIENT_ID` Environment Variable.
 
@@ -143,13 +143,17 @@ More information on [how to configure a Service Principal using a Client Secret 
 
 When authenticating as a Service Principal using Open ID Connect, the following fields can be set:
 
-* `oidc_request_token` - (Optional) The bearer token for the request to the OIDC provider. This can also be sourced from the `ARM_OIDC_REQUEST_TOKEN` or `ACTIONS_ID_TOKEN_REQUEST_TOKEN` Environment Variables.
+* `oidc_request_token` - (Optional) The bearer token for the request to the OIDC provider. This can also be sourced from the `ARM_OIDC_REQUEST_TOKEN`, `ACTIONS_ID_TOKEN_REQUEST_TOKEN` or `SYSTEM_ACCESSTOKEN` Environment Variables. The provider will look for values in this order and use the first it finds configured.
 
-* `oidc_request_url` - (Optional) The URL for the OIDC provider from which to request an ID token. This can also be sourced from the `ARM_OIDC_REQUEST_URL` or `ACTIONS_ID_TOKEN_REQUEST_URL` Environment Variables.
+* `oidc_request_url` - (Optional) The URL for the OIDC provider from which to request an ID token. This can also be sourced from the `ARM_OIDC_REQUEST_URL`, `ACTIONS_ID_TOKEN_REQUEST_URL` or `SYSTEM_OIDCREQUESTURI` Environment Variables. The provider will look for values in this order and use the first it finds configured.
+
+* `ado_pipeline_service_connection_id` - (Optional) The Azure DevOps Pipeline Service Connection ID. This can also be sourced from the `ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID` or `ARM_OIDC_AZURE_SERVICE_CONNECTION_ID` Environment Variables. The provider will look for values in this order and use the first it finds configured.
 
 * `oidc_token` - (Optional) The ID token when authenticating using OpenID Connect (OIDC). This can also be sourced from the `ARM_OIDC_TOKEN` environment Variable.
 
 * `oidc_token_file_path` - (Optional) The path to a file containing an ID token when authenticating using OpenID Connect (OIDC). This can also be sourced from the `ARM_OIDC_TOKEN_FILE_PATH` Environment Variable.
+
+~> **Note:** The OIDC token will only be read once from the file at `oidc_token_file_path`. When the Azure access token expires, the provider will not read the OIDC token again from this file.
 
 * `use_oidc` - (Optional) Should OIDC be used for Authentication? This can also be sourced from the `ARM_USE_OIDC` Environment Variable. Defaults to `false`.
 
@@ -193,17 +197,23 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 * `auxiliary_tenant_ids` - (Optional) Contains a list of (up to 3) other Tenant IDs used for cross-tenant and multi-tenancy scenarios with multiple AzureRM provider definitions. The list of `auxiliary_tenant_ids` in a given AzureRM provider definition contains the other, remote Tenants and should not include its own `subscription_id` (or `ARM_SUBSCRIPTION_ID` Environment Variable).
 
-* `resource_provider_registrations` - (Optional) Specifies a pre-determined set of [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types) to automatically register when initializing the AzureRM Provider. Allowed values for this property are `core`, `extended`, `all`, or `none`. This can also be sourced from the `ARM_RESOURCE_PROVIDER_REGISTRATIONS` environment variable. For more information about which resource providers each set contains, see the [Resource Provider Registrations](#resource-provider-registrations) section below.
+* `resource_provider_registrations` - (Optional) Specifies a pre-determined set of [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types) to automatically register when initializing the AzureRM Provider. Allowed values for this property are `core`, `extended`, `all`, `legacy`, or `none`. This can also be sourced from the `ARM_RESOURCE_PROVIDER_REGISTRATIONS` environment variable. For more information about which resource providers each set contains, see the [Resource Provider Registrations](#resource-provider-registrations) section below. Defaults to `legacy` in v4.x and `none` in v5.0+.
 
 * `resource_providers_to_register` - (Optional) A list of arbitrary [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types) to automatically register when initializing the AzureRM Provider. Can be used in combination with the `resource_provider_registrations` property. For more information, see the [Resource Provider Registrations](#resource-provider-registrations) section below.
 
--> By default, Terraform will attempt to register any Resource Providers that it supports, even if they're not used in your configurations, to be able to display more helpful error messages. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform you may wish to disable this by setting `resource_provider_registrations` to `none`; however, please note that the error messages returned from Azure may be confusing as a result.
+-> **Note:** In version 5.0 and later, the default value for `resource_provider_registrations` is `none`, meaning no Resource Providers will be automatically registered. If you're upgrading from v4.x and want to maintain the previous behaviour, set `resource_provider_registrations = "legacy"` in your provider block. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform, `none` is the recommended setting.
 
 * `storage_use_azuread` - (Optional) Should the AzureRM Provider use AzureAD to connect to the Storage Blob & Queue APIs, rather than the SharedKey from the Storage Account? This can also be sourced from the `ARM_STORAGE_USE_AZUREAD` Environment Variable. Defaults to `false`.
 
 ~> **Note:** This requires that the User/Service Principal being used has the associated `Storage` roles - which are added to new Contributor/Owner role-assignments, but **have not** been backported by Azure to existing role-assignments.
 
 ~> **Note:** The Files Storage API does not support authenticating via AzureAD and will continue to use a SharedKey when AAD authentication is enabled.
+
+The `enhanced_validation` block supports the following:
+
+* `locations` - (Optional) Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? This calls out to the Azure MetaData Service to cache the list of supported Azure Locations for the specified Environment. When enabled, invalid locations are caught at `terraform plan` time; when disabled, these errors are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` Environment Variable, or from the legacy `ARM_PROVIDER_ENHANCED_VALIDATION`. Defaults to `true` in version 4.x and `false` in version 5.0.
+
+* `resource_providers` - (Optional) Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? This caches the list of registered Resource Providers for the subscription. When enabled, invalid resource providers are caught at `terraform plan` time; when disabled, these errors are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` Environment Variable, or from the legacy `ARM_PROVIDER_ENHANCED_VALIDATION`. Defaults to `true` in version 4.x and `false` in version 5.0.
 
 It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
 
@@ -226,4 +236,4 @@ To view the latest specific Azure Resource Providers included in each set, pleas
 
 In addition to, or in place of, the sets described above, you can also configure the AzureRM Provider to register specific Azure Resource Providers, by setting the `resource_providers_to_register` provider property. This should be a list of strings, containing the exact names of Azure Resource Providers to register. For a list of all resource providers, please refer to [official Azure documentation](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types).
 
--> **Note on Permissions** The User, Service Principal or Managed Identity running Terraform should have permissions to register [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types). If the principal running Terraform has insufficient permissions to register Resource Providers then we recommend setting the property [`resource_provider_registrations`](#resource_provider_registrations) to `none` in the provider block to prevent auto-registration.
+-> **Note:** The User, Service Principal or Managed Identity running Terraform should have permissions to register [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types). If the principal running Terraform has insufficient permissions to register Resource Providers then we recommend setting the property [`resource_provider_registrations`](#resource_provider_registrations) to `none` in the provider block to prevent auto-registration.

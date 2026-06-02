@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package redisenterprise
@@ -11,24 +11,28 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_redis_enterprise_cluster` resource has been deprecated in favor of `azurerm_managed_redis_cluster`",
+
 		Create: resourceRedisEnterpriseClusterCreate,
 		Read:   resourceRedisEnterpriseClusterRead,
 		Update: resourceRedisEnterpriseClusterUpdate,
@@ -72,8 +76,6 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 				ForceNew: true,
 				Default:  string(redisenterprise.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(redisenterprise.TlsVersionOnePointZero),
-					string(redisenterprise.TlsVersionOnePointOne),
 					string(redisenterprise.TlsVersionOnePointTwo),
 				}, false),
 			},
@@ -86,6 +88,22 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(redisenterprise.TlsVersionOnePointTwo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(redisenterprise.TlsVersionOnePointZero),
+				string(redisenterprise.TlsVersionOnePointOne),
+				string(redisenterprise.TlsVersionOnePointTwo),
+			}, false),
+		}
+	}
+
+	return resource
 }
 
 func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -95,7 +113,7 @@ func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interf
 	defer cancel()
 
 	id := redisenterprise.NewRedisEnterpriseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -139,10 +157,12 @@ func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
+	// TODO: is this still required now that this is using polling methods from `go-azure-sdk`?
 	log.Printf("[DEBUG] Waiting for %s to become available..", id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Creating", "Updating", "Enabling", "Deleting", "Disabling"},
@@ -155,7 +175,6 @@ func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceRedisEnterpriseClusterRead(d, meta)
 }
 
@@ -212,7 +231,6 @@ func resourceRedisEnterpriseClusterUpdate(d *pluginsdk.ResourceData, meta interf
 	client := meta.(*clients.Client).RedisEnterprise.Client
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
 
 	id, err := redisenterprise.ParseRedisEnterpriseID(d.Id())
 	if err != nil {
@@ -269,7 +287,7 @@ func expandRedisEnterpriseClusterSku(v string) redisenterprise.Sku {
 
 	return redisenterprise.Sku{
 		Name:     redisenterprise.SkuName(redisSku.Name),
-		Capacity: utils.Int64(capacity),
+		Capacity: pointer.To(capacity),
 	}
 }
 

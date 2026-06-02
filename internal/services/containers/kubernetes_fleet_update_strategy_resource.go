@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -12,14 +12,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetupdatestrategies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/fleetupdatestrategies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = KubernetesFleetUpdateStrategyResource{}
-var _ sdk.ResourceWithUpdate = KubernetesFleetUpdateStrategyResource{}
+var (
+	_ sdk.Resource           = KubernetesFleetUpdateStrategyResource{}
+	_ sdk.ResourceWithUpdate = KubernetesFleetUpdateStrategyResource{}
+)
 
 type KubernetesFleetUpdateStrategyResource struct{}
 
@@ -119,14 +121,16 @@ func (r KubernetesFleetUpdateStrategyResource) Create() sdk.ResourceFunc {
 
 			id := fleetupdatestrategies.NewUpdateStrategyID(fleetId.SubscriptionId, fleetId.ResourceGroupName, fleetId.FleetName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := fleetupdatestrategies.FleetUpdateStrategy{
@@ -137,7 +141,7 @@ func (r KubernetesFleetUpdateStrategyResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload, fleetupdatestrategies.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, fleetupdatestrategies.DefaultCreateOrUpdateOperationOptions(), metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -217,6 +221,7 @@ func (r KubernetesFleetUpdateStrategyResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r KubernetesFleetUpdateStrategyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -242,7 +247,7 @@ func expandKubernetesFleetUpdateStrategyStage(input []KubernetesFleetUpdateStrat
 	for _, stage := range input {
 		output = append(output, fleetupdatestrategies.UpdateStage{
 			Name:                    stage.Name,
-			AfterStageWaitInSeconds: pointer.FromInt64(stage.AfterStageWaitInSeconds),
+			AfterStageWaitInSeconds: pointer.To(stage.AfterStageWaitInSeconds),
 			Groups:                  expandKubernetesFleetUpdateStrategyGroup(stage.Group),
 		})
 	}
@@ -264,7 +269,7 @@ func flattenKubernetesFleetUpdateStrategyStage(input []fleetupdatestrategies.Upd
 	for _, stage := range input {
 		output = append(output, KubernetesFleetUpdateStrategyResourceUpdateStageSchema{
 			Name:                    stage.Name,
-			AfterStageWaitInSeconds: pointer.ToInt64(stage.AfterStageWaitInSeconds),
+			AfterStageWaitInSeconds: pointer.From(stage.AfterStageWaitInSeconds),
 			Group:                   flattenKubernetesFleetUpdateStrategyGroup(stage.Groups),
 		})
 	}

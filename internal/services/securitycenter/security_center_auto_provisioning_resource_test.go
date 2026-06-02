@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter_test
@@ -8,21 +8,22 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SecurityCenterAutoProvisionResource struct{}
 
 func TestAccSecurityCenterAutoProvision_update(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_security_center_auto_provisioning` is deprecated on service side, can no longer be enabled.")
 	data := acceptance.BuildTestData(t, "azurerm_security_center_auto_provisioning", "test")
 	r := SecurityCenterAutoProvisionResource{}
 
-	//lintignore:AT001
+	// lintignore:AT001
 	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.setting("On"),
@@ -54,7 +55,7 @@ func (SecurityCenterAutoProvisionResource) Exists(ctx context.Context, clients *
 		return nil, fmt.Errorf("retrieving auto-provisioning setting for %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.AutoProvisioningSettingProperties != nil), nil
+	return pointer.To(resp.AutoProvisioningSettingProperties != nil), nil
 }
 
 func (SecurityCenterAutoProvisionResource) setting(setting string) string {

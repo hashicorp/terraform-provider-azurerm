@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azuresdkhacks
@@ -27,7 +27,7 @@ func CreateSecurityCenterContact(ctx context.Context, client *security.ContactsC
 			}},
 		},
 	}); err != nil {
-		return result, validation.NewError("security.ContactsClient", "Create", err.Error()) // nolint: govet
+		return result, validation.NewError("security.ContactsClient", "Create", "%+v", err.Error())
 	}
 
 	req, err := client.CreatePreparer(ctx, securityContactName, securityContact)
@@ -57,7 +57,8 @@ func createResponder(resp *http.Response) (result security.Contact, err error) {
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
+		autorest.ByClosing(),
+	)
 	if err != nil {
 		return result, err
 	}

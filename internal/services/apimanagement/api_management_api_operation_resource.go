@@ -1,11 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -111,6 +114,42 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 
 			"template_parameter": schemaz.SchemaApiManagementOperationParameterContract(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			// Get the parameters used in url_template
+			urlTemplate := diff.Get("url_template").(string)
+			re := regexp.MustCompile(`\{([^}]+)\}`)
+			matches := re.FindAllStringSubmatch(urlTemplate, -1)
+			urlTemplateParamSet := make(map[string]struct{})
+			for _, match := range matches {
+				if len(match) > 1 {
+					// Since Azure API Management's `url_template` supports two formats: {name} and {*name}, `*` should be removed when getting name.
+					urlTemplateParamSet[strings.TrimPrefix(match[1], "*")] = struct{}{}
+				}
+			}
+
+			// Get the parameters defined in template_parameter
+			templateParametersRaw := diff.Get("template_parameter").([]interface{})
+			templateParameterSet := make(map[string]struct{})
+			for _, p := range templateParametersRaw {
+				paramValue := p.(map[string]interface{})
+				templateParameterSet[paramValue["name"].(string)] = struct{}{}
+			}
+
+			for key := range urlTemplateParamSet {
+				if _, found := templateParameterSet[key]; !found {
+					return fmt.Errorf("template parameter `%s` used in `url_template` is not defined in `template_parameter`", key)
+				}
+			}
+
+			for key := range templateParameterSet {
+				if _, found := urlTemplateParamSet[key]; !found {
+					return fmt.Errorf("template parameter `%s` defined in `template_parameter` is not used in `url_template`", key)
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -123,15 +162,17 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 	id := apioperation.NewOperationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("operation_id").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api_operation", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_api_operation", id.ID())
+			}
 		}
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SecurityCenterStorageDefenderResource struct{}
@@ -30,7 +30,7 @@ func (SecurityCenterStorageDefenderResource) Exists(ctx context.Context, clients
 	}
 
 	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.IsEnabled == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
 	return resp.Model.Properties.IsEnabled, nil
@@ -143,6 +143,10 @@ func TestAccSecurityCenterStorageDefender_eventGrid(t *testing.T) {
 
 func (r SecurityCenterStorageDefenderResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%[1]d"
   location = "%[2]s"

@@ -9,10 +9,10 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CredentialSet struct {
-	Id         *string                            `json:"id,omitempty"`
-	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
-	Name       *string                            `json:"name,omitempty"`
-	Properties *CredentialSetProperties           `json:"properties,omitempty"`
-	SystemData *systemdata.SystemData             `json:"systemData,omitempty"`
-	Type       *string                            `json:"type,omitempty"`
+	Id         *string                  `json:"id,omitempty"`
+	Identity   *identity.SystemAssigned `json:"identity,omitempty"`
+	Name       *string                  `json:"name,omitempty"`
+	Properties *CredentialSetProperties `json:"properties,omitempty"`
+	SystemData *systemdata.SystemData   `json:"systemData,omitempty"`
+	Type       *string                  `json:"type,omitempty"`
 }

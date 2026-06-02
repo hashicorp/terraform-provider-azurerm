@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -128,6 +128,10 @@ func (WindowsVirtualMachineResource) imageFromExistingMachineDependencies(data a
 	return fmt.Sprintf(`
 locals {
   vm_name = "acctvm-%[1]s"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -8,15 +8,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const EnableMultiVMSyncEnabled string = "True"
@@ -39,6 +39,7 @@ func (r VMWareReplicationPolicyResource) ModelObject() interface{} {
 func (r VMWareReplicationPolicyResource) ResourceType() string {
 	return "azurerm_site_recovery_vmware_replication_policy"
 }
+
 func (r VMWareReplicationPolicyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ReplicationPolicyID
 }
@@ -97,16 +98,18 @@ func (r VMWareReplicationPolicyResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.RecoveryServices.ReplicationPoliciesClient
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
-				if !response.WasNotFound(existing.HttpResponse) && !wasBadRequestWithNotExist(existing.HttpResponse, err) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
+					if !response.WasNotFound(existing.HttpResponse) && !wasBadRequestWithNotExist(existing.HttpResponse, err) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_site_recovery_vmware_replication_policy", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_site_recovery_vmware_replication_policy", id.ID())
+				}
 			}
 
 			recoveryPoint := plan.RecoveryPointRetentionInMinutes
@@ -120,17 +123,15 @@ func (r VMWareReplicationPolicyResource) Create() sdk.ResourceFunc {
 					ProviderSpecificInput: &replicationpolicies.InMageRcmPolicyCreationInput{
 						RecoveryPointHistoryInMinutes:     &recoveryPoint,
 						AppConsistentFrequencyInMinutes:   &appConsistency,
-						CrashConsistentFrequencyInMinutes: utils.Int64(10),
-						EnableMultiVMSync:                 utils.String(EnableMultiVMSyncEnabled),
+						CrashConsistentFrequencyInMinutes: pointer.To(int64(10)),
+						EnableMultiVMSync:                 pointer.To(EnableMultiVMSyncEnabled),
 					},
 				},
 			}
 
-			err = client.CreateThenPoll(ctx, id, parameters)
-			if err != nil {
-				return fmt.Errorf("creating %q: %+v", id, err)
+			if err := client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil
@@ -209,8 +210,8 @@ func (r VMWareReplicationPolicyResource) Update() sdk.ResourceFunc {
 					ReplicationProviderSettings: &replicationpolicies.InMageRcmPolicyCreationInput{
 						RecoveryPointHistoryInMinutes:     &recoveryPoint,
 						AppConsistentFrequencyInMinutes:   &appConsistency,
-						EnableMultiVMSync:                 utils.String(EnableMultiVMSyncEnabled),
-						CrashConsistentFrequencyInMinutes: utils.Int64(10),
+						EnableMultiVMSync:                 pointer.To(EnableMultiVMSyncEnabled),
+						CrashConsistentFrequencyInMinutes: pointer.To(int64(10)),
 					},
 				},
 			}

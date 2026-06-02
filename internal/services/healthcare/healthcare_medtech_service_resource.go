@@ -1,10 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package healthcare
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -21,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
@@ -106,7 +106,6 @@ func resourceHealthcareApisMedTechServiceCreate(d *pluginsdk.ResourceData, meta 
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Healthcare MedTech Service creation.")
 
 	workspace, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
@@ -114,7 +113,7 @@ func resourceHealthcareApisMedTechServiceCreate(d *pluginsdk.ResourceData, meta 
 	}
 	id := iotconnectors.NewIotConnectorID(workspace.SubscriptionId, workspace.ResourceGroupName, workspace.WorkspaceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -153,22 +152,8 @@ func resourceHealthcareApisMedTechServiceCreate(d *pluginsdk.ResourceData, meta 
 	}
 	parameters.Properties.DeviceMapping = &deviceContentMap
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 12,
-		Delay:                     60 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"Creating", "Updating"},
-		Target:                    []string{"Succeeded"},
-		Refresh:                   medTechServiceCreateStateRefreshFunc(ctx, client, id),
-		Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for MedTech Service %s to settle down: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -250,7 +235,9 @@ func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta in
 			d.Set("device_mapping_json", mapContent)
 		}
 
-		return tags.FlattenAndSet(d, m.Tags)
+		if err := tags.FlattenAndSet(d, m.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -292,25 +279,9 @@ func resourceHealthcareApisMedTechServiceUpdate(d *pluginsdk.ResourceData, meta 
 	}
 	parameters.Properties.DeviceMapping = &deviceContentMap
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
-
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 12,
-		Delay:                     60 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"Creating", "Updating"},
-		Target:                    []string{"Succeeded"},
-		Refresh:                   medTechServiceCreateStateRefreshFunc(ctx, client, id),
-		Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for MedTech Service %s to settle down: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
 
 	return resourceHealthcareApisMedTechServiceRead(d, meta)
 }
@@ -325,60 +296,13 @@ func resourceHealthcareApisMedTechServiceDelete(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	// NOTE: this can be removed when using `hashicorp/go-azure-sdk`'s base layer
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Pending"},
-		Target:                    []string{"Deleted"},
-		Refresh:                   medTechServiceStateStatusCodeRefreshFunc(ctx, client, *id),
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
-		ContinuousTargetOccurence: 3,
-		PollInterval:              10 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
-	}
 	return nil
-}
-
-func medTechServiceStateStatusCodeRefreshFunc(ctx context.Context, client *iotconnectors.IotConnectorsClient, id iotconnectors.IotConnectorId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, "Deleted", nil
-			}
-			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", id, err)
-		}
-
-		return res, "Pending", nil
-	}
 }
 
 func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
-}
-
-func medTechServiceCreateStateRefreshFunc(ctx context.Context, client *iotconnectors.IotConnectorsClient, id iotconnectors.IotConnectorId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return nil, "", fmt.Errorf("unable to retrieve MedTech Service %q: %+v", id, err)
-			}
-			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", id, err)
-		}
-
-		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.ProvisioningState == nil {
-			return resp, "Error", fmt.Errorf("model or properties or ProvisioningState is nil")
-		}
-
-		return resp, string(pointer.From(resp.Model.Properties.ProvisioningState)), nil
-	}
 }

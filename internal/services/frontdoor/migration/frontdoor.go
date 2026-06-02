@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -383,7 +383,7 @@ func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
-					//lintignore:XS003
+					// lintignore:XS003
 					"custom_https_configuration": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,

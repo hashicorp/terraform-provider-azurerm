@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,9 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -191,22 +192,24 @@ func resourceVpnSiteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	id := virtualwans.NewVpnSiteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.VpnSitesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.VpnSitesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_vpn_site", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vpn_site", id.ID())
+		}
 	}
 
 	payload := virtualwans.VpnSite{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &virtualwans.VpnSiteProperties{
 			VirtualWAN: &virtualwans.SubResource{
-				Id: utils.String(d.Get("virtual_wan_id").(string)),
+				Id: pointer.To(d.Get("virtual_wan_id").(string)),
 			},
 			DeviceProperties: expandVpnSiteDeviceProperties(d.Get("device_vendor").(string), d.Get("device_model").(string)),
 			AddressSpace:     expandVpnSiteAddressSpace(d.Get("address_cidrs").(*pluginsdk.Set).List()),
@@ -216,7 +219,7 @@ func resourceVpnSiteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.VpnSitesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.VpnSitesCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -407,7 +410,7 @@ func expandVpnSiteLinks(input []interface{}) *[]virtualwans.VpnSiteLink {
 		}
 		e := e.(map[string]interface{})
 		link := virtualwans.VpnSiteLink{
-			Name: utils.String(e["name"].(string)),
+			Name: pointer.To(e["name"].(string)),
 			Properties: &virtualwans.VpnSiteLinkProperties{
 				LinkProperties: &virtualwans.VpnLinkProviderProperties{
 					LinkSpeedInMbps: pointer.To(int64(e["speed_in_mbps"].(int))),
@@ -505,8 +508,8 @@ func expandVpnSiteVpnLinkBgpSettings(input []interface{}) *virtualwans.VpnLinkBg
 	v := input[0].(map[string]interface{})
 
 	return &virtualwans.VpnLinkBgpSettings{
-		Asn:               utils.Int64(int64(v["asn"].(int))),
-		BgpPeeringAddress: utils.String(v["peering_address"].(string)),
+		Asn:               pointer.To(int64(v["asn"].(int))),
+		BgpPeeringAddress: pointer.To(v["peering_address"].(string)),
 	}
 }
 
@@ -553,9 +556,9 @@ func expandVpnSiteO365TrafficCategoryPolicy(input []interface{}) *virtualwans.O3
 	trafficCategory := input[0].(map[string]interface{})
 
 	return &virtualwans.O365BreakOutCategoryPolicies{
-		Allow:    utils.Bool(trafficCategory["allow_endpoint_enabled"].(bool)),
-		Default:  utils.Bool(trafficCategory["default_endpoint_enabled"].(bool)),
-		Optimize: utils.Bool(trafficCategory["optimize_endpoint_enabled"].(bool)),
+		Allow:    pointer.To(trafficCategory["allow_endpoint_enabled"].(bool)),
+		Default:  pointer.To(trafficCategory["default_endpoint_enabled"].(bool)),
+		Optimize: pointer.To(trafficCategory["optimize_endpoint_enabled"].(bool)),
 	}
 }
 

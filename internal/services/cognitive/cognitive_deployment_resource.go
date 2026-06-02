@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive
@@ -10,22 +10,22 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/cognitiveservicesaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type cognitiveDeploymentModel struct {
-	Name                 string                 `tfschema:"name"`
-	CognitiveAccountId   string                 `tfschema:"cognitive_account_id"`
-	Model                []DeploymentModelModel `tfschema:"model"`
-	RaiPolicyName        string                 `tfschema:"rai_policy_name"`
-	Sku                  []DeploymentSkuModel   `tfschema:"sku"`
-	VersionUpgradeOption string                 `tfschema:"version_upgrade_option"`
+	Name                     string                 `tfschema:"name"`
+	CognitiveAccountId       string                 `tfschema:"cognitive_account_id"`
+	DynamicThrottlingEnabled bool                   `tfschema:"dynamic_throttling_enabled"`
+	Model                    []DeploymentModelModel `tfschema:"model"`
+	RaiPolicyName            string                 `tfschema:"rai_policy_name"`
+	Sku                      []DeploymentSkuModel   `tfschema:"sku"`
+	VersionUpgradeOption     string                 `tfschema:"version_upgrade_option"`
 }
 
 type DeploymentModelModel struct {
@@ -74,6 +74,11 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: cognitiveservicesaccounts.ValidateAccountID,
 		},
 
+		"dynamic_throttling_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
 		"model": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -82,12 +87,10 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"format": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"OpenAI",
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"name": {
@@ -117,8 +120,11 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Standard",
+							"DataZoneBatch",
+							"DataZoneProvisionedManaged",
 							"DataZoneStandard",
 							"GlobalBatch",
+							"GlobalProvisionedManaged",
 							"GlobalStandard",
 							"ProvisionedManaged",
 						}, false),
@@ -160,8 +166,10 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"rai_policy_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C `raiPolicyName` has default value when `rai_policy_name` is not set. So, `O+C` is required otherwise it will incur difference.
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -201,13 +209,16 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(accountId.ID())
 
 			id := deployments.NewDeploymentID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &deployments.Deployment{
@@ -220,6 +231,10 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 				properties.Properties.RaiPolicyName = &model.RaiPolicyName
 			}
 
+			if model.DynamicThrottlingEnabled {
+				properties.Properties.DynamicThrottlingEnabled = &model.DynamicThrottlingEnabled
+			}
+
 			if model.VersionUpgradeOption != "" {
 				option := deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption)
 				properties.Properties.VersionUpgradeOption = &option
@@ -227,7 +242,7 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 
 			properties.Sku = expandDeploymentSkuModel(model.Sku)
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -265,6 +280,10 @@ func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			properties := resp.Model
+
+			if metadata.ResourceData.HasChange("dynamic_throttling_enabled") {
+				properties.Properties.DynamicThrottlingEnabled = pointer.To(model.DynamicThrottlingEnabled)
+			}
 
 			if metadata.ResourceData.HasChange("sku.0.capacity") {
 				properties.Sku.Capacity = pointer.To(model.Sku[0].Capacity)
@@ -323,12 +342,9 @@ func (r CognitiveDeploymentResource) Read() sdk.ResourceFunc {
 			if properties := model.Properties; properties != nil {
 				state.Model = flattenDeploymentModelModel(properties.Model)
 
-				if v := properties.RaiPolicyName; v != nil {
-					state.RaiPolicyName = *v
-				}
-				if v := properties.VersionUpgradeOption; v != nil {
-					state.VersionUpgradeOption = string(*v)
-				}
+				state.DynamicThrottlingEnabled = pointer.From(properties.DynamicThrottlingEnabled)
+				state.RaiPolicyName = pointer.From(properties.RaiPolicyName)
+				state.VersionUpgradeOption = string(pointer.From(properties.VersionUpgradeOption))
 			}
 			if sku := flattenDeploymentSkuModel(model.Sku); sku != nil {
 				state.Sku = sku
@@ -394,13 +410,13 @@ func expandDeploymentSkuModel(inputList []DeploymentSkuModel) *deployments.Sku {
 		Name: input.Name,
 	}
 	if input.Capacity != 0 {
-		s.Capacity = utils.Int64(input.Capacity)
+		s.Capacity = pointer.To(input.Capacity)
 	}
 	if input.Family != "" {
-		s.Family = utils.String(input.Family)
+		s.Family = pointer.To(input.Family)
 	}
 	if input.Size != "" {
-		s.Size = utils.String(input.Size)
+		s.Size = pointer.To(input.Size)
 	}
 	if input.Tier != "" {
 		tier := deployments.SkuTier(input.Tier)

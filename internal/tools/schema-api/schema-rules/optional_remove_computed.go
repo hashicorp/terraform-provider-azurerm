@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package schema_rules
@@ -12,8 +12,7 @@ import (
 
 var _ BreakingChangeRule = optionalRemoveComputed{}
 
-type optionalRemoveComputed struct {
-}
+type optionalRemoveComputed struct{}
 
 // Check - Checks that Computed is not removed from Optional properties as user configs may not supply the value, but the state will contain one, causing a diff./
 func (optionalRemoveComputed) Check(base providerjson.SchemaJSON, current providerjson.SchemaJSON, propertyName string) *string {

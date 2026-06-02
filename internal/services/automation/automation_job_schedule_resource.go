@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -6,7 +6,6 @@ package automation
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -15,12 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/schedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/jobschedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/schedule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -95,7 +93,7 @@ func resourceAutomationJobSchedule() *pluginsdk.Resource {
 				Optional: true,
 				// NOTE: O+C this can remain as this can change if the runbook is updated but cannot be updated by the user
 				Computed:     true,
-				ForceNew:     features.FourPointOhBeta(),
+				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
@@ -112,8 +110,6 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Job Schedule creation.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("automation_account_name").(string)
@@ -137,7 +133,7 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 		Second: &runbookID,
 	}
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := GetJobScheduleFromTFID(ctx, client, tfID)
 		if err != nil {
 			return fmt.Errorf("checking for presence of existing %s: %s", id, err)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -817,5 +817,5 @@ resource "azurerm_virtual_machine_extension" "test" {
     source_vault_id = azurerm_key_vault.test[%[4]d].id
   }
 }
-`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomString, index)
+`, LinuxVirtualMachineResource{}.templateWithOutProvider(data), data.RandomInteger, data.RandomString, index)
 }

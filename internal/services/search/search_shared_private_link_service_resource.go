@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package search
@@ -8,15 +8,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/services"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/sharedprivatelinkresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/sharedprivatelinkresources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SharedPrivateLinkServiceResource struct{}
@@ -110,32 +111,37 @@ func (r SharedPrivateLinkServiceResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			locks.ByID(searchServiceId.ID())
+			defer locks.UnlockByID(searchServiceId.ID())
+
 			id := sharedprivatelinkresources.NewSharedPrivateLinkResourceID(subscriptionId, searchServiceId.ResourceGroupName, searchServiceId.SearchServiceName, model.Name)
 
-			existing, err := client.Get(ctx, id, sharedprivatelinkresources.GetOperationOptions{})
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing shared private link resource %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, sharedprivatelinkresources.GetOperationOptions{})
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing shared private link resource %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := sharedprivatelinkresources.SharedPrivateLinkResource{
 				Properties: &sharedprivatelinkresources.SharedPrivateLinkResourceProperties{
-					GroupId:               utils.String(model.SubResourceName),
-					PrivateLinkResourceId: utils.String(model.TargetResourceId),
+					GroupId:               pointer.To(model.SubResourceName),
+					PrivateLinkResourceId: pointer.To(model.TargetResourceId),
 				},
 			}
 
 			if model.RequestMessage != "" {
-				parameters.Properties.RequestMessage = utils.String(model.RequestMessage)
+				parameters.Properties.RequestMessage = pointer.To(model.RequestMessage)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, sharedprivatelinkresources.CreateOrUpdateOperationOptions{}); err != nil {
-				return fmt.Errorf("creating/ updating %s: %+v", id, err)
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sharedprivatelinkresources.CreateOrUpdateOperationOptions{}, metadata.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 		Timeout: 60 * time.Minute,
@@ -154,7 +160,6 @@ func (r SharedPrivateLinkServiceResource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, *id, sharedprivatelinkresources.GetOperationOptions{})
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					metadata.Logger.Infof("%q was not found - removing from state!", *id)
 					return metadata.MarkAsGone(id)
 				}
 
@@ -200,6 +205,10 @@ func (r SharedPrivateLinkServiceResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			searchServiceId := sharedprivatelinkresources.NewSearchServiceID(id.SubscriptionId, id.ResourceGroupName, id.SearchServiceName)
+			locks.ByID(searchServiceId.ID())
+			defer locks.UnlockByID(searchServiceId.ID())
+
 			var state SharedPrivateLinkServiceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -210,7 +219,7 @@ func (r SharedPrivateLinkServiceResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("request_message") {
 				props := sharedprivatelinkresources.SharedPrivateLinkResource{
 					Properties: &sharedprivatelinkresources.SharedPrivateLinkResourceProperties{
-						RequestMessage: utils.String(state.RequestMessage),
+						RequestMessage: pointer.To(state.RequestMessage),
 					},
 				}
 				if err := client.CreateOrUpdateThenPoll(ctx, *id, props, sharedprivatelinkresources.CreateOrUpdateOperationOptions{}); err != nil {
@@ -231,6 +240,10 @@ func (r SharedPrivateLinkServiceResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			searchServiceId := sharedprivatelinkresources.NewSearchServiceID(id.SubscriptionId, id.ResourceGroupName, id.SearchServiceName)
+			locks.ByID(searchServiceId.ID())
+			defer locks.UnlockByID(searchServiceId.ID())
 
 			if err := client.DeleteThenPoll(ctx, *id, sharedprivatelinkresources.DeleteOperationOptions{}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

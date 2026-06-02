@@ -35,9 +35,11 @@ type ChaosStudioTargetResourceSchema struct {
 func (r ChaosStudioTargetResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateChaosStudioTargetID
 }
+
 func (r ChaosStudioTargetResource) ResourceType() string {
 	return "azurerm_chaos_studio_target"
 }
+
 func (r ChaosStudioTargetResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
@@ -53,9 +55,11 @@ func (r ChaosStudioTargetResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 	}
 }
+
 func (r ChaosStudioTargetResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
+
 func (r ChaosStudioTargetResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -88,6 +92,7 @@ func (r ChaosStudioTargetResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r ChaosStudioTargetResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,

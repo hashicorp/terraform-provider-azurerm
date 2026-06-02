@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -11,6 +11,7 @@ import (
 	"time"
 
 	frsUUID "github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	accesscontrol "github.com/tombuildsstuff/kermit/sdk/synapse/2020-08-01-preview/synapse"
+	accesscontrol "github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse"
 )
 
 func resourceSynapseRoleAssignment() *pluginsdk.Resource {
@@ -152,11 +153,13 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 	// TODO: unpick this/refactor to use ID Formatters
-	if listResp.Value != nil && len(*listResp.Value) != 0 {
-		existing := (*listResp.Value)[0]
-		if !utils.ResponseWasNotFound(existing.Response) {
-			resourceId := parse.NewRoleAssignmentId(synapseScope, *existing.ID).ID()
-			return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if listResp.Value != nil && len(*listResp.Value) != 0 {
+			existing := (*listResp.Value)[0]
+			if !utils.ResponseWasNotFound(existing.Response) {
+				resourceId := parse.NewRoleAssignmentId(synapseScope, *existing.ID).ID()
+				return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
+			}
 		}
 	}
 
@@ -174,7 +177,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	roleAssignment := accesscontrol.RoleAssignmentRequest{
 		RoleID:      roleId,
 		PrincipalID: &principalID,
-		Scope:       utils.String(scope),
+		Scope:       pointer.To(scope),
 	}
 
 	if v, ok := d.GetOk("principal_type"); ok {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -81,6 +81,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -104,8 +108,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-${var.random}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -163,6 +167,10 @@ variable "shared_key" {
   default = "%s"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test_1" {
   name     = "acctestRG-${var.random1}"
   location = "%s"
@@ -186,8 +194,8 @@ resource "azurerm_public_ip" "test_1" {
   name                = "acctest-${var.random1}"
   location            = azurerm_resource_group.test_1.location
   resource_group_name = azurerm_resource_group.test_1.name
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test_1" {
@@ -242,8 +250,8 @@ resource "azurerm_public_ip" "test_2" {
   name                = "acctest-${var.random2}"
   location            = azurerm_resource_group.test_2.location
   resource_group_name = azurerm_resource_group.test_2.name
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test_2" {
@@ -293,6 +301,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -318,6 +330,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -326,7 +339,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   resource_group_name = azurerm_resource_group.test.name
   type                = "Vpn"
   vpn_type            = "RouteBased"
-  sku                 = "VpnGw1"
+  sku                 = "VpnGw1AZ"
 
   ip_configuration {
     name                          = "vnetGatewayConfig"

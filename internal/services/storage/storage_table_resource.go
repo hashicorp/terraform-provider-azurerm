@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -14,12 +14,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 func resourceStorageTable() *pluginsdk.Resource {
@@ -98,6 +99,12 @@ func resourceStorageTable() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"resource_manager_id": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The Resource Manager ID of this Storage Table.",
+			},
 		},
 	}
 }
@@ -140,12 +147,14 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	id := tables.NewTableID(*accountId, tableName)
 
-	exists, err := tablesDataPlaneClient.Exists(ctx, tableName)
-	if err != nil {
-		return fmt.Errorf("checking for existing %s: %v", id, err)
-	}
-	if exists != nil && *exists {
-		return tf.ImportAsExistsError("azurerm_storage_table", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		exists, err := tablesDataPlaneClient.Exists(ctx, tableName)
+		if err != nil {
+			return fmt.Errorf("checking for existing %s: %v", id, err)
+		}
+		if exists != nil && *exists {
+			return tf.ImportAsExistsError("azurerm_storage_table", id.ID())
+		}
 	}
 
 	if err = tablesDataPlaneClient.Create(ctx, tableName); err != nil {
@@ -216,6 +225,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.Set("name", id.TableName)
 	d.Set("storage_account_name", id.AccountId.AccountName)
+	d.Set("resource_manager_id", parse.NewStorageTableResourceManagerID(subscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, "default", id.TableName).ID())
 
 	if err = d.Set("acl", flattenStorageTableACLs(acls)); err != nil {
 		return fmt.Errorf("setting `acl`: %v", err)
@@ -278,8 +288,6 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("acl") {
-		log.Printf("[DEBUG] Updating ACLs for %s", id)
-
 		aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 		acls := expandStorageTableACLs(aclsRaw)
 
@@ -292,8 +300,6 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		if err = aclClient.UpdateACLs(ctx, id.TableName, acls); err != nil {
 			return fmt.Errorf("updating ACLs for %s: %v", id, err)
 		}
-
-		log.Printf("[DEBUG] Updated ACLs for %s", id)
 	}
 
 	return resourceStorageTableRead(d, meta)

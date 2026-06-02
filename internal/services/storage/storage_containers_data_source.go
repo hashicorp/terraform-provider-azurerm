@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobcontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 type storageContainersDataSource struct{}
@@ -88,8 +88,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			blobContainersClient := metadata.Client.Storage.ResourceManager.BlobContainers
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			blobServicesClient := metadata.Client.Storage.ResourceManager.BlobServices
 
 			var plan storageContainersDataSourceModel
 			if err := metadata.Decode(&plan); err != nil {
@@ -101,7 +100,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			account, err := metadata.Client.Storage.FindAccount(ctx, subscriptionId, id.StorageAccountName)
+			account, err := metadata.Client.Storage.GetAccount(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving Storage Account %q: %v", id.StorageAccountName, err)
 			}
@@ -121,7 +120,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("parsing Account ID: %v", err)
 			}
 
-			resp, err := blobContainersClient.ListCompleteMatchingPredicate(ctx, *id, blobcontainers.DefaultListOperationOptions(), blobcontainers.ListContainerItemOperationPredicate{})
+			resp, err := blobServicesClient.BlobContainersListCompleteMatchingPredicate(ctx, *id, blobservices.BlobContainersListOperationOptions{}, blobservices.ListContainerItemOperationPredicate{})
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
@@ -139,7 +138,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenStorageContainersContainers(l []blobcontainers.ListContainerItem, accountId accounts.AccountId, prefix string) []containerModel {
+func flattenStorageContainersContainers(l []blobservices.ListContainerItem, accountId accounts.AccountId, prefix string) []containerModel {
 	output := make([]containerModel, 0, len(l))
 	for _, item := range l {
 		var name string

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helper
@@ -28,7 +28,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				"weekly_retention": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Default:      "PT0S",
 					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
@@ -37,7 +37,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				"monthly_retention": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Default:      "PT0S",
 					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
@@ -46,7 +46,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				"yearly_retention": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Default:      "PT0S",
 					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},

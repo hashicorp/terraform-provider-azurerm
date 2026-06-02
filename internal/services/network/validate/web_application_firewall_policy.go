@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -55,12 +55,15 @@ var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice
 	"MS-ThreatIntel-AppSec",
 	"MS-ThreatIntel-SQLI",
 	"MS-ThreatIntel-CVEs",
+	"MS-ThreatIntel-XSS",
 }, false)
 
 var ValidateWebApplicationFirewallPolicyRuleSetVersion = validation.StringInSlice([]string{
 	"0.1",
 	"1.0",
+	"1.1",
 	"2.1",
+	"2.2",
 	"2.2.9",
 	"3.0",
 	"3.1",
@@ -75,7 +78,9 @@ var ValidateWebApplicationFirewallPolicyRuleSetType = validation.StringInSlice([
 
 var ValidateWebApplicationFirewallPolicyExclusionRuleSetVersion = validation.StringInSlice([]string{
 	"1.0",
+	"1.1",
 	"2.1",
+	"2.2",
 	"3.2",
 }, false)
 

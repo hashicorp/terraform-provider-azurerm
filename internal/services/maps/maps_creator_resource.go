@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maps
@@ -22,7 +22,7 @@ import (
 
 func resourceMapsCreator() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMapsCreatorCreateUpdate,
+		Create: resourceMapsCreatorCreate,
 		Read:   resourceMapsCreatorRead,
 		Update: resourceMapsCreatorUpdate,
 		Delete: resourceMapsCreatorDelete,
@@ -33,6 +33,8 @@ func resourceMapsCreator() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		DeprecationMessage: "The `azurerm_maps_creator` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := creators.ParseCreatorID(id)
@@ -66,9 +68,9 @@ func resourceMapsCreator() *pluginsdk.Resource {
 	}
 }
 
-func resourceMapsCreatorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMapsCreatorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maps.CreatorsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	accountId, err := accounts.ParseAccountID(d.Get("maps_account_id").(string))
@@ -78,7 +80,7 @@ func resourceMapsCreatorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := creators.NewCreatorID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -99,7 +101,7 @@ func resourceMapsCreatorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if _, err := client.CreateOrUpdate(ctx, id, props); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

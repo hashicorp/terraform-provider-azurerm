@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -12,20 +12,21 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSecurityCenterSubscriptionPricingUpdate,
+		Create: resourceSecurityCenterSubscriptionPricingCreate,
 		Read:   resourceSecurityCenterSubscriptionPricingRead,
 		Update: resourceSecurityCenterSubscriptionPricingUpdate,
 		Delete: resourceSecurityCenterSubscriptionPricingDelete,
@@ -56,11 +57,13 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 					string(security.PricingTierStandard),
 				}, false),
 			},
+
 			"resource_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "VirtualMachines",
 				ValidateFunc: validation.StringInSlice([]string{
+					"AI",
 					"Api",
 					"AppServices",
 					"ContainerRegistry",
@@ -78,10 +81,13 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 					"CloudPosture",
 				}, false),
 			},
+
 			"subplan": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
+
 			"extension": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -107,21 +113,26 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 	}
 }
 
-func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
 	id := pricings_v2023_01_01.NewPricingID(subscriptionId, d.Get("resource_type").(string))
+
+	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,
+	// as the API only allows one pricing update per subscription at a time.
+	locks.ByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+	defer locks.UnlockByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+
 	pricing := pricings_v2023_01_01.Pricing{
 		Properties: &pricings_v2023_01_01.PricingProperties{
 			PricingTier: pricings_v2023_01_01.PricingTier(d.Get("tier").(string)),
 		},
 	}
 
-	apiResponse, err := client.Get(ctx, id)
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		apiResponse, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(apiResponse.HttpResponse) {
 				return fmt.Errorf("checking for presence of apiResponse %s: %+v", id, err)
@@ -133,20 +144,20 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
+	apiResponse, err := client.Get(ctx, id)
+	if err != nil && !response.WasNotFound(apiResponse.HttpResponse) {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
 	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
-	isCurrentlyInFree := false
 	if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil {
 		if apiResponse.Model.Properties.Extensions != nil {
 			extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
 		}
-
-		if apiResponse.Model.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
-			isCurrentlyInFree = true
-		}
 	}
 
 	if vSub, okSub := d.GetOk("subplan"); okSub {
-		pricing.Properties.SubPlan = utils.String(vSub.(string))
+		pricing.Properties.SubPlan = pointer.To(vSub.(string))
 	}
 
 	// When the state file contains an `extension` with `additional_extension_properties`
@@ -160,12 +171,10 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	if d.HasChange("extension") {
-		// can not set extensions for free tier
-		if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
-			extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
-			pricing.Properties.Extensions = extensions
-		}
+	// can not set any extension for free tier in the same request.
+	if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
+		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
+		pricing.Properties.Extensions = extensions
 	}
 
 	if len(realCfgExtensions) > 0 && pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
@@ -177,21 +186,100 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("setting %s: %+v", id, updateErr)
 	}
 
-	if updateErr == nil && updateResponse.Model != nil && updateResponse.Model.Properties != nil {
+	// the extensions from backend might vary after pricing tier changed.
+	if updateResponse.Model != nil && updateResponse.Model.Properties != nil && updateResponse.Model.Properties.Extensions != nil {
+		extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
+	}
+
+	extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
+	pricing.Properties.Extensions = extensions
+
+	_, updateErr = client.Update(ctx, id, pricing)
+	if updateErr != nil {
+		return fmt.Errorf("updating %s: %+v", id, updateErr)
+	}
+
+	d.SetId(id.ID())
+	return resourceSecurityCenterSubscriptionPricingRead(d, meta)
+}
+
+func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).SecurityCenter.PricingClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := pricings_v2023_01_01.ParsePricingID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,
+	// as the API only allows one pricing update per subscription at a time.
+	locks.ByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+	defer locks.UnlockByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+
+	apiResponse, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	update := pricings_v2023_01_01.Pricing{
+		Properties: &pricings_v2023_01_01.PricingProperties{
+			PricingTier: pricings_v2023_01_01.PricingTier(d.Get("tier").(string)),
+		},
+	}
+
+	// When the state file contains an `extension` with `additional_extension_properties`
+	// But the tf config does not, `d.Get("extension")` will contain a zero element.
+	// Tracked by https://github.com/hashicorp/terraform-plugin-sdk/issues/1248
+	realCfgExtensions := make([]interface{}, 0)
+	for _, e := range d.Get("extension").(*pluginsdk.Set).List() {
+		v := e.(map[string]interface{})
+		if v["name"] != "" {
+			realCfgExtensions = append(realCfgExtensions, e)
+		}
+	}
+
+	if len(realCfgExtensions) > 0 && update.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
+		return fmt.Errorf("extensions cannot be enabled when using free tier")
+	}
+
+	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
+	currentlyFreeTier := false
+	if apiResponse.Model != nil && apiResponse.Model.Properties != nil {
+		if apiResponse.Model.Properties.Extensions != nil {
+			extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
+		}
+
+		currentlyFreeTier = apiResponse.Model.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree
+	}
+
+	// Update from `free` tier to `Standard`, we need to update it to `standard` tier first without extensions
+	// Then do an additional update for the `extensions`
+	requiredAdditionalUpdate := false
+	if d.HasChange("extension") && update.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
+		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
+		update.Properties.Extensions = extensions
+		requiredAdditionalUpdate = currentlyFreeTier
+	}
+
+	updateResponse, err := client.Update(ctx, *id, update)
+	if err != nil {
+		return fmt.Errorf("setting %s: %+v", id, err)
+	}
+
+	// The extensions list from backend might vary after `tier` changed, thus we need to retrieve it again.
+	if updateResponse.Model != nil && updateResponse.Model.Properties != nil {
 		if updateResponse.Model.Properties.Extensions != nil {
 			extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
 		}
 	}
 
-	// after turning on the bundle, we have now the extensions list
-	if d.IsNewResource() || isCurrentlyInFree {
+	if requiredAdditionalUpdate {
 		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
-		pricing.Properties.Extensions = extensions
-		_, updateErr := client.Update(ctx, id, pricing)
-		if err != nil {
-			if updateErr != nil {
-				return fmt.Errorf("setting %s: %+v", id, updateErr)
-			}
+		update.Properties.Extensions = extensions
+		if _, err := client.Update(ctx, *id, update); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
 
@@ -245,6 +333,11 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("parsing %s: %+v", d.Id(), err)
 	}
 
+	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,
+	// as the API only allows one pricing update per subscription at a time.
+	locks.ByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+	defer locks.UnlockByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+
 	pricing := pricings_v2023_01_01.Pricing{
 		Properties: &pricings_v2023_01_01.PricingProperties{
 			PricingTier: pricings_v2023_01_01.PricingTierFree,
@@ -268,6 +361,9 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 		for _, backendExtension := range *extensionsStatusFromBackend {
 			// set the default value to false, then turn on the extension that appear in the template
 			extensionStatuses[backendExtension.Name] = false
+			if backendExtension.AdditionalExtensionProperties != nil {
+				extensionProperties[backendExtension.Name] = *backendExtension.AdditionalExtensionProperties
+			}
 		}
 	}
 
@@ -293,7 +389,9 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 			IsEnabled: isEnabled,
 		}
 
-		if vAdditional, ok := extensionProperties[extensionName]; ok {
+		// The service will return HTTP 500 if the payload contains extensionProperties and `IsEnabled==false`
+		// `AdditionalProperties of Extension 'xxx' can't be updated while the extension is disabled (IsEnabled = False)`
+		if vAdditional, ok := extensionProperties[extensionName]; ok && toBeEnabled {
 			props, _ := vAdditional.(*interface{})
 			p := (*props).(map[string]interface{})
 			output.AdditionalExtensionProperties = pointer.To(p)

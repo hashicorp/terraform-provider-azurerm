@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -161,7 +161,7 @@ func (teamCityServicesListGenerator) outputPath(rootDirectory string) string {
 }
 
 func (teamCityServicesListGenerator) run(outputFileName string, packagesToSkip map[string]struct{}) error {
-	template := `// Copyright (c) HashiCorp, Inc.
+	template := `// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 // NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
@@ -251,7 +251,8 @@ func (websiteCategoriesGenerator) run(outputFileName string, _ map[string]struct
 	// sort them
 	sort.Strings(websiteCategories)
 
-	fileContents := strings.Join(websiteCategories, "\n")
+	// the file needs to start with an empty line to allow documentation without any subcategory e.g. provider function docs
+	fileContents := "\n" + strings.Join(websiteCategories, "\n")
 	return writeToFile(outputFileName, fileContents)
 }
 
@@ -303,6 +304,7 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 			names = append(names, ds.ResourceType())
 		}
 
+		names = removeDuplicateNames(names)
 		labelToNames = appendToSliceWithinMap(labelToNames, names, label)
 	}
 	for _, service := range provider.SupportedUntypedServices() {

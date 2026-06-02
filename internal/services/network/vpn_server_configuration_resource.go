@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,14 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVPNServerConfiguration() *pluginsdk.Resource {
@@ -276,15 +275,18 @@ func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta interf
 	defer cancel()
 
 	id := virtualwans.NewVpnServerConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.VpnServerConfigurationsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_vpn_server_configuration", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.VpnServerConfigurationsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vpn_server_configuration", id.ID())
+		}
 	}
 
 	aadAuthenticationRaw := d.Get("azure_active_directory_authentication").([]interface{})
@@ -324,7 +326,7 @@ func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta interf
 			supportsRadius = true
 
 		default:
-			return fmt.Errorf("Unsupported `vpn_authentication_type`: %q", authType)
+			return fmt.Errorf("unsupported `vpn_authentication_type`: %q", authType)
 		}
 
 		vpnAuthenticationTypes = append(vpnAuthenticationTypes, authType)
@@ -357,22 +359,22 @@ func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta interf
 			props.RadiusServers = radius.servers
 		}
 
-		props.RadiusServerAddress = utils.String(radius.address)
-		props.RadiusServerSecret = utils.String(radius.secret)
+		props.RadiusServerAddress = pointer.To(radius.address)
+		props.RadiusServerSecret = pointer.To(radius.secret)
 
 		props.RadiusClientRootCertificates = radius.clientRootCertificates
 		props.RadiusServerRootCertificates = radius.serverRootCertificates
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	parameters := virtualwans.VpnServerConfiguration{
-		Location:   utils.String(location),
+		Location:   pointer.To(location),
 		Properties: &props,
 		Tags:       tags.Expand(t),
 	}
 
-	if err := client.VpnServerConfigurationsCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.VpnServerConfigurationsCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -429,7 +431,7 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 			}
 
-			flattenedRadius := flattenVpnServerConfigurationRadius(props)
+			flattenedRadius := flattenVpnServerConfigurationRadius(props, d)
 			if err := d.Set("radius", flattenedRadius); err != nil {
 				return fmt.Errorf("setting `radius`: %+v", err)
 			}
@@ -523,7 +525,7 @@ func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interf
 			supportsRadius = true
 
 		default:
-			return fmt.Errorf("Unsupported `vpn_authentication_type`: %q", authType)
+			return fmt.Errorf("unsupported `vpn_authentication_type`: %q", authType)
 		}
 
 		vpnAuthenticationTypes = append(vpnAuthenticationTypes, authType)
@@ -551,8 +553,8 @@ func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interf
 				payload.Properties.RadiusServers = radius.servers
 			}
 
-			payload.Properties.RadiusServerAddress = utils.String(radius.address)
-			payload.Properties.RadiusServerSecret = utils.String(radius.secret)
+			payload.Properties.RadiusServerAddress = pointer.To(radius.address)
+			payload.Properties.RadiusServerSecret = pointer.To(radius.secret)
 
 			payload.Properties.RadiusClientRootCertificates = radius.clientRootCertificates
 			payload.Properties.RadiusServerRootCertificates = radius.serverRootCertificates
@@ -605,9 +607,9 @@ func expandVpnServerConfigurationAADAuthentication(input []interface{}) *virtual
 
 	v := input[0].(map[string]interface{})
 	return &virtualwans.AadAuthenticationParameters{
-		AadAudience: utils.String(v["audience"].(string)),
-		AadIssuer:   utils.String(v["issuer"].(string)),
-		AadTenant:   utils.String(v["tenant"].(string)),
+		AadAudience: pointer.To(v["audience"].(string)),
+		AadIssuer:   pointer.To(v["issuer"].(string)),
+		AadTenant:   pointer.To(v["tenant"].(string)),
 	}
 }
 
@@ -646,8 +648,8 @@ func expandVpnServerConfigurationClientRootCertificates(input []interface{}) *[]
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 		clientRootCertificates = append(clientRootCertificates, virtualwans.VpnServerConfigVpnClientRootCertificate{
-			Name:           utils.String(raw["name"].(string)),
-			PublicCertData: utils.String(raw["public_cert_data"].(string)),
+			Name:           pointer.To(raw["name"].(string)),
+			PublicCertData: pointer.To(raw["public_cert_data"].(string)),
 		})
 	}
 
@@ -687,8 +689,8 @@ func expandVpnServerConfigurationClientRevokedCertificates(input []interface{}) 
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 		clientRevokedCertificates = append(clientRevokedCertificates, virtualwans.VpnServerConfigVpnClientRevokedCertificate{
-			Name:       utils.String(raw["name"].(string)),
-			Thumbprint: utils.String(raw["thumbprint"].(string)),
+			Name:       pointer.To(raw["name"].(string)),
+			Thumbprint: pointer.To(raw["thumbprint"].(string)),
 		})
 	}
 
@@ -781,8 +783,8 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 	for _, raw := range clientRootCertsRaw {
 		v := raw.(map[string]interface{})
 		clientRootCertificates = append(clientRootCertificates, virtualwans.VpnServerConfigRadiusClientRootCertificate{
-			Name:       utils.String(v["name"].(string)),
-			Thumbprint: utils.String(v["thumbprint"].(string)),
+			Name:       pointer.To(v["name"].(string)),
+			Thumbprint: pointer.To(v["thumbprint"].(string)),
 		})
 	}
 
@@ -791,8 +793,8 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 	for _, raw := range serverRootCertsRaw {
 		v := raw.(map[string]interface{})
 		serverRootCertificates = append(serverRootCertificates, virtualwans.VpnServerConfigRadiusServerRootCertificate{
-			Name:           utils.String(v["name"].(string)),
-			PublicCertData: utils.String(v["public_cert_data"].(string)),
+			Name:           pointer.To(v["name"].(string)),
+			PublicCertData: pointer.To(v["public_cert_data"].(string)),
 		})
 	}
 
@@ -806,8 +808,8 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 			v := raw.(map[string]interface{})
 			radiusServers = append(radiusServers, virtualwans.RadiusServer{
 				RadiusServerAddress: v["address"].(string),
-				RadiusServerSecret:  utils.String(v["secret"].(string)),
-				RadiusServerScore:   utils.Int64(int64(v["score"].(int))),
+				RadiusServerSecret:  pointer.To(v["secret"].(string)),
+				RadiusServerScore:   pointer.To(int64(v["score"].(int))),
 			})
 		}
 	}
@@ -821,7 +823,7 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 	}
 }
 
-func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurationProperties) []interface{} {
+func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurationProperties, d *pluginsdk.ResourceData) []interface{} {
 	if input == nil || (input.RadiusServerAddress == nil && (input.RadiusServers == nil || len(*input.RadiusServers) == 0)) {
 		return []interface{}{}
 	}
@@ -868,11 +870,12 @@ func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurati
 
 	servers := make([]interface{}, 0)
 	if input.RadiusServers != nil && len(*input.RadiusServers) > 0 {
-		for _, v := range *input.RadiusServers {
+		for i, v := range *input.RadiusServers {
 			servers = append(servers, map[string]interface{}{
 				"address": v.RadiusServerAddress,
-				"secret":  pointer.From(v.RadiusServerSecret),
-				"score":   pointer.From(v.RadiusServerScore),
+				// setting this because the azure api does not return the secret, so need to read it in from the config
+				"secret": d.Get(fmt.Sprintf("radius.0.server.%d.secret", i)),
+				"score":  pointer.From(v.RadiusServerScore),
 			})
 		}
 	}

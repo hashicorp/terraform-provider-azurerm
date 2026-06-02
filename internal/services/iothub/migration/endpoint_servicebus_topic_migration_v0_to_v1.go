@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -28,7 +28,7 @@ func (s IoTHubEndpointServiceBusTopicV0ToV1) Schema() map[string]*pluginsdk.Sche
 			ForceNew: true,
 		},
 
-		//lintignore: S013
+		// lintignore: S013
 		"iothub_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,

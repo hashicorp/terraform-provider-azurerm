@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance
@@ -29,8 +29,10 @@ type MsSqlManagedInstanceActiveDirectoryAdministratorModel struct {
 	TenantId                  string `tfschema:"tenant_id"`
 }
 
-var _ sdk.Resource = MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
-var _ sdk.ResourceWithUpdate = MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
+var (
+	_ sdk.Resource           = MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
+	_ sdk.ResourceWithUpdate = MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
+)
 
 type MsSqlManagedInstanceActiveDirectoryAdministratorResource struct{}
 
@@ -104,14 +106,15 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 			id := parse.NewManagedInstanceAzureActiveDirectoryAdministratorID(managedInstanceId.SubscriptionId,
 				managedInstanceId.ResourceGroupName, managedInstanceId.ManagedInstanceName, string(managedinstanceadministrators.ManagedInstanceAdministratorTypeActiveDirectory))
 
-			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, *managedInstanceId)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, *managedInstanceId)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := managedinstanceadministrators.ManagedInstanceAdministrator{
@@ -123,13 +126,10 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 				},
 			}
 
-			metadata.Logger.Infof("Creating %s", id)
-
-			err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters)
-			if err != nil {
+			// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+			if err := client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			aadAuthOnlyParams := managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthentication{
@@ -160,7 +160,6 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceActiveDirectoryAdministratorModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -179,8 +178,6 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 					TenantId:          &state.TenantId,
 				},
 			}
-
-			metadata.Logger.Infof("Updating %s", id)
 
 			err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters)
 			if err != nil {
@@ -215,7 +212,6 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceActiveDirectoryAdministratorModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -274,9 +270,17 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 
 			managedInstanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
 
-			err = aadAuthOnlyClient.DeleteThenPoll(ctx, managedInstanceId)
+			// Before deleting an AAD admin, it is necessary to disable `AzureADOnlyAuthentication` first, as deleting an AAD admin when `AzureADOnlyAuthentication` feature is enabled is not supported.
+			// Use `CreateOrUpdateThenPoll` instead of `DeleteThenPoll`, because the actual deletion behavior of the API is not to really delete the record, but to update `AzureADOnlyAuthentication` to false. Therefore, using `DeleteThenPoll` will cause pull till done to never end until it times out.
+			aadAuthOnlyParams := managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthentication{
+				Properties: &managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthProperties{
+					AzureADOnlyAuthentication: false,
+				},
+			}
+
+			err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, managedInstanceId, aadAuthOnlyParams)
 			if err != nil {
-				return fmt.Errorf("removing `azuread_authentication_only` for %s: %+v", managedInstanceId, err)
+				return fmt.Errorf("disabling `azuread_authentication_only` for %s: %+v", id, err)
 			}
 
 			err = client.DeleteThenPoll(ctx, managedInstanceId)

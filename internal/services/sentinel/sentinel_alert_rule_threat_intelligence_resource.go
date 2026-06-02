@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -10,8 +10,8 @@ import (
 
 	alertruletemplates "github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -29,8 +29,10 @@ type AlertRuleThreatIntelligenceModel struct {
 
 type AlertRuleThreatIntelligenceResource struct{}
 
-var _ sdk.ResourceWithCustomImporter = AlertRuleThreatIntelligenceResource{}
-var _ sdk.ResourceWithUpdate = AlertRuleThreatIntelligenceResource{}
+var (
+	_ sdk.ResourceWithCustomImporter = AlertRuleThreatIntelligenceResource{}
+	_ sdk.ResourceWithUpdate         = AlertRuleThreatIntelligenceResource{}
+)
 
 func (a AlertRuleThreatIntelligenceResource) ModelObject() interface{} {
 	return &AlertRuleThreatIntelligenceModel{}
@@ -101,15 +103,17 @@ func (a AlertRuleThreatIntelligenceResource) Create() sdk.ResourceFunc {
 
 			id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, metaModel.Name)
 
-			resp, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("checking for existing %q: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				resp, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(resp.HttpResponse) {
+						return fmt.Errorf("checking for existing %q: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(resp.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_threat_intelligence", id.ID())
+				if !response.WasNotFound(resp.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_threat_intelligence", id.ID())
+				}
 			}
 
 			template, err := fetchAlertRuleThreatIntelligenceTemplate(ctx, metadata.Client.Sentinel.AlertRuleTemplatesClient, *workspaceID, metaModel.TemplateName)
@@ -235,9 +239,6 @@ func (a AlertRuleThreatIntelligenceResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("enabled") {
 				rule.Properties.Enabled = metaModel.Enabled
-			}
-			if metadata.ResourceData.HasChange("template_name") {
-				rule.Properties.AlertRuleTemplateName = metaModel.TemplateName
 			}
 
 			param := alertrules.ThreatIntelligenceAlertRule{

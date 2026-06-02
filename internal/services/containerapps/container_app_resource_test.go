@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps_test
@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -68,24 +68,23 @@ func TestAccContainerAppResource_smallerGranularityCPUMemoryCombinations(t *test
 func TestAccContainerAppResource_workloadProfileUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.withMultipleWorkloadProfiles(data, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.withWorkloadProfile(data),
+			Config: r.withMultipleWorkloadProfiles(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.withMultipleWorkloadProfiles(data, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -477,6 +476,21 @@ func TestAccContainerAppResource_multipleScaleRules(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleScaleRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_scaleRuleWithIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scaleRuleWithIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1362,8 +1376,9 @@ resource "azurerm_container_app" "test" {
       }
 
       volume_mounts {
-        name = azurerm_container_app_environment_storage.test.name
-        path = "/tmp/testdata"
+        name     = azurerm_container_app_environment_storage.test.name
+        path     = "/tmp/testdata"
+        sub_path = "subdirectory"
       }
     }
 
@@ -1373,21 +1388,27 @@ resource "azurerm_container_app" "test" {
       cpu    = 0.25
       memory = "0.5Gi"
       volume_mounts {
-        name = azurerm_container_app_environment_storage.test.name
-        path = "/tmp/testdata"
+        name     = azurerm_container_app_environment_storage.test.name
+        path     = "/tmp/testdata"
+        sub_path = "subdirectory"
       }
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    min_replicas = 2
-    max_replicas = 3
+    min_replicas                = 2
+    max_replicas                = 3
+    cooldown_period_in_seconds  = 1000
+    polling_interval_in_seconds = 10
 
     revision_suffix = "%[3]s"
+
+    termination_grace_period_seconds = 60
   }
 
   ingress {
@@ -1395,9 +1416,19 @@ resource "azurerm_container_app" "test" {
     external_enabled           = true
     target_port                = 5000
     transport                  = "http"
+    client_certificate_mode    = "accept"
     traffic_weight {
       latest_revision = true
       percentage      = 100
+    }
+
+    cors {
+      allow_credentials_enabled = true
+      allowed_headers           = ["HEADER1", "HEADER2"]
+      allowed_methods           = ["GET", "POST"]
+      allowed_origins           = ["https://a.test.com", "https://b.test.com"]
+      exposed_headers           = ["HEADER3", "HEADER3"]
+      max_age_in_seconds        = 100
     }
   }
 
@@ -1468,6 +1499,50 @@ resource "azurerm_container_app" "test" {
   }
 }
 `, r.templateWorkloadProfile(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) withMultipleWorkloadProfiles(data acceptance.TestData, workloadProfileIndex int) string {
+	return fmt.Sprintf(`
+%s
+
+locals {
+  workload_profiles = tolist(azurerm_container_app_environment.test.workload_profile)
+}
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  workload_profile_name = local.workload_profiles.%[3]d.name
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    allow_insecure_connections = true
+    external_enabled           = true
+    target_port                = 5000
+    transport                  = "http"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+
+  tags = {
+    foo     = "Bar"
+    accTest = "1"
+  }
+}
+`, r.templateMultipleWorkloadProfiles(data), data.RandomInteger, workloadProfileIndex)
 }
 
 func (r ContainerAppResource) withSmallerGranularityCPUMemoryCombinations(data acceptance.TestData) string {
@@ -1575,8 +1650,10 @@ resource "azurerm_container_app" "test" {
       storage_type = "EmptyDir"
     }
 
-    min_replicas = 2
-    max_replicas = 3
+    min_replicas                = 2
+    max_replicas                = 3
+    cooldown_period_in_seconds  = 1000
+    polling_interval_in_seconds = 10
 
     revision_suffix = "%[3]s"
   }
@@ -1667,13 +1744,16 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    min_replicas = 2
-    max_replicas = 3
+    min_replicas                = 2
+    max_replicas                = 3
+    cooldown_period_in_seconds  = 1000
+    polling_interval_in_seconds = 10
 
     revision_suffix = "%[3]s"
   }
@@ -1761,13 +1841,16 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    min_replicas = 2
-    max_replicas = 3
+    min_replicas                = 2
+    max_replicas                = 3
+    cooldown_period_in_seconds  = 1000
+    polling_interval_in_seconds = 10
 
     revision_suffix = "%[3]s"
   }
@@ -1887,13 +1970,16 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    min_replicas = 2
-    max_replicas = 3
+    min_replicas                = 2
+    max_replicas                = 3
+    cooldown_period_in_seconds  = 1000
+    polling_interval_in_seconds = 10
 
     revision_suffix = "%[3]s"
   }
@@ -2012,13 +2098,16 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    min_replicas = 2
-    max_replicas = 3
+    min_replicas                = 2
+    max_replicas                = 3
+    cooldown_period_in_seconds  = 1000
+    polling_interval_in_seconds = 10
 
     revision_suffix = "%[3]s"
   }
@@ -2120,12 +2209,15 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    max_replicas = 4
+    max_replicas                = 4
+    cooldown_period_in_seconds  = 500
+    polling_interval_in_seconds = 5
 
     revision_suffix = "%[3]s"
   }
@@ -2135,6 +2227,7 @@ resource "azurerm_container_app" "test" {
     external_enabled           = true
     target_port                = 5000
     transport                  = "auto"
+    client_certificate_mode    = "ignore"
 
     traffic_weight {
       latest_revision = true
@@ -2144,6 +2237,15 @@ resource "azurerm_container_app" "test" {
     traffic_weight {
       revision_suffix = "rev1"
       percentage      = 80
+    }
+
+    cors {
+      allow_credentials_enabled = false
+      allowed_headers           = ["HEADER3", "HEADER4"]
+      allowed_methods           = ["PUT", "PATCH"]
+      allowed_origins           = ["https://c.test.com", "https://d.test.com"]
+      exposed_headers           = ["HEADER1", "HEADER2"]
+      max_age_in_seconds        = 100
     }
   }
 
@@ -2240,13 +2342,16 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    min_replicas = 1
-    max_replicas = 4
+    min_replicas                = 1
+    max_replicas                = 4
+    cooldown_period_in_seconds  = 1000
+    polling_interval_in_seconds = 10
 
     revision_suffix = "%[3]s"
   }
@@ -2439,6 +2544,48 @@ resource "azurerm_container_app" "test" {
     tcp_scale_rule {
       name                = "tcp-1"
       concurrent_requests = "1000"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) scaleRuleWithIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  secret {
+    name  = "queue-auth-secret"
+    value = "VGhpcyBJcyBOb3QgQSBHb29kIFBhc3N3b3JkCg=="
+  }
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+
+    custom_scale_rule {
+      name             = "csr-1"
+      custom_rule_type = "azure-monitor"
+      metadata = {
+        foo = "bar"
+      }
+      identity_id = azurerm_user_assigned_identity.test.id
     }
   }
 }
@@ -2658,6 +2805,10 @@ func (ContainerAppResource) templateWorkloadProfile(data acceptance.TestData) st
 	return ContainerAppEnvironmentResource{}.complete(data)
 }
 
+func (ContainerAppResource) templateMultipleWorkloadProfiles(data acceptance.TestData) string {
+	return ContainerAppEnvironmentResource{}.completeMultipleWorkloadProfiles(data)
+}
+
 func (ContainerAppResource) templateWithVnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -2712,9 +2863,9 @@ resource "azurerm_container_registry" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%[3]s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "testshare%[3]s"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 resource "azurerm_container_app_environment_storage" "test" {
@@ -2853,7 +3004,7 @@ func (r ContainerAppResource) latestRevisionFalseRevisionSuffixEmpty() string {
 	return `
 traffic_weight {
   latest_revision = false
-  percentage = 100
+  percentage      = 100
 }
 `
 }

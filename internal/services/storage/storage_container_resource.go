@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -12,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobcontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobcontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -23,8 +24,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 var containerAccessTypeConversionMap = map[string]string{
@@ -45,7 +46,7 @@ func resourceStorageContainer() *pluginsdk.Resource {
 		Update: resourceStorageContainerUpdate,
 
 		Importer: helpers.ImporterValidatingStorageResourceId(func(id, storageDomainSuffix string) error {
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				if strings.HasPrefix(id, "/subscriptions/") {
 					_, err := commonids.ParseStorageContainerID(id)
 					return err
@@ -126,11 +127,10 @@ func resourceStorageContainer() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validate.StorageAccountName,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 			Deprecated:   "the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider.",
@@ -139,7 +139,6 @@ func resourceStorageContainer() *pluginsdk.Resource {
 		r.Schema["storage_account_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 		}
@@ -148,6 +147,30 @@ func resourceStorageContainer() *pluginsdk.Resource {
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
 			Deprecated: "this property has been deprecated in favour of `id` and will be removed in version 5.0 of the Provider.",
+		}
+
+		r.CustomizeDiff = func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
+			// Resource Manager ID in use, but change to `storage_account_id` should recreate - won't trigger on create as diff.Id() will be ""
+			if strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_id") {
+				return diff.ForceNew("storage_account_id")
+			}
+
+			// using legacy Data Plane ID but attempting to change the storage_account_name should recreate - won't trigger on create as diff.Id() will be ""
+			if diff.Id() != "" && !strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_name") {
+				// converting from storage_account_id to the deprecated storage_account_name is not supported
+				oldAccountId, _ := diff.GetChange("storage_account_id")
+				oldName, newName := diff.GetChange("storage_account_name")
+
+				if oldAccountId.(string) != "" && newName.(string) != "" {
+					return diff.ForceNew("storage_account_name")
+				}
+
+				if oldName.(string) != "" && newName.(string) != "" {
+					return diff.ForceNew("storage_account_name")
+				}
+			}
+
+			return nil
 		}
 	}
 
@@ -166,7 +189,7 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := ExpandMetaData(metaDataRaw)
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		storageClient := meta.(*clients.Client).Storage
 		if accountName := d.Get("storage_account_name").(string); accountName != "" {
 			account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
@@ -201,10 +224,11 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("checking for existing %s: %v", id, err)
 			}
 			if exists != nil && *exists {
-				return tf.ImportAsExistsError("azurerm_storage_container", id.ID())
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_storage_container", id.ID())
+				}
 			}
 
-			log.Printf("[INFO] Creating %s", id)
 			input := containers.CreateInput{
 				AccessLevel: accessLevel,
 				MetaData:    metaData,
@@ -235,14 +259,16 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	id := commonids.NewStorageContainerID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, containerName)
 
-	existing, err := containerClient.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %q: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := containerClient.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %q: %v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_container", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_container", id.ID())
+		}
 	}
 
 	payload := blobcontainers.BlobContainer{
@@ -276,7 +302,7 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
 		storageClient := meta.(*clients.Client).Storage
 		id, err := containers.ParseContainerID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
@@ -291,8 +317,6 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
 		}
 		if d.HasChange("container_access_type") {
-			log.Printf("[DEBUG] Updating Access Level for %s...", id)
-
 			// Updating metadata does not work with AAD authentication, returns a cryptic 404
 			client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
 			if err != nil {
@@ -305,13 +329,9 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if err = client.UpdateAccessLevel(ctx, id.ContainerName, accessLevel); err != nil {
 				return fmt.Errorf("updating Access Level for %s: %v", id, err)
 			}
-
-			log.Printf("[DEBUG] Updated Access Level for %s", id)
 		}
 
 		if d.HasChange("metadata") {
-			log.Printf("[DEBUG] Updating Metadata for %s...", id)
-
 			client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 			if err != nil {
 				return fmt.Errorf("building Containers Client: %v", err)
@@ -323,8 +343,6 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if err = client.UpdateMetaData(ctx, id.ContainerName, metaData); err != nil {
 				return fmt.Errorf("updating Metadata for %s: %v", id, err)
 			}
-
-			log.Printf("[DEBUG] Updated Metadata for %s", id)
 		}
 
 		return resourceStorageContainerRead(d, meta)
@@ -362,7 +380,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") && d.Get("storage_account_id") == "" {
 		storageClient := meta.(*clients.Client).Storage
 		id, err := containers.ParseContainerID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
@@ -415,6 +433,19 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return nil
 	}
 
+	if !features.FivePointOh() {
+		// Deal with the ID changing if the user changes from `storage_account_name` to `storage_account_id`
+		if !strings.HasPrefix(d.Id(), "/subscriptions/") {
+			accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
+			if err != nil {
+				return err
+			}
+
+			id := commonids.NewStorageContainerID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
+			d.SetId(id.ID())
+		}
+	}
+
 	id, err := commonids.ParseStorageContainerID(d.Id())
 	if err != nil {
 		return err
@@ -441,7 +472,8 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 			d.Set("has_legal_hold", props.HasLegalHold)
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
+				d.Set("storage_account_name", "")
 				d.Set("resource_manager_id", id.ID())
 			}
 		}
@@ -456,7 +488,7 @@ func resourceStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
 		storageClient := meta.(*clients.Client).Storage
 
 		id, err := containers.ParseContainerID(d.Id(), storageClient.StorageDomainSuffix)

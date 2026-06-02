@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package voiceservices
@@ -11,15 +11,18 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/communicationsgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name voice_services_communications_gateway -service-package-name voiceservices -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type CommunicationsGatewayModel struct {
 	Name                               string                                                   `tfschema:"name"`
@@ -46,14 +49,19 @@ type ServiceRegionPropertiesModel struct {
 	EsrpAddresses                         []string `tfschema:"esrp_addresses"`
 }
 
-type PrimaryRegionPropertiesModel struct {
-}
+type PrimaryRegionPropertiesModel struct{}
 
 type CommunicationsGatewayResource struct{}
 
-var _ sdk.ResourceWithUpdate = CommunicationsGatewayResource{}
+var (
+	_ sdk.ResourceWithUpdate        = CommunicationsGatewayResource{}
+	_ sdk.ResourceWithCustomizeDiff = CommunicationsGatewayResource{}
+	_ sdk.ResourceWithIdentity      = CommunicationsGatewayResource{}
+)
 
-var _ sdk.ResourceWithCustomizeDiff = CommunicationsGatewayResource{}
+func (r CommunicationsGatewayResource) Identity() resourceids.ResourceId {
+	return &communicationsgateways.CommunicationsGatewayId{}
+}
 
 func (r CommunicationsGatewayResource) ResourceType() string {
 	return "azurerm_voice_services_communications_gateway"
@@ -251,13 +259,15 @@ func (r CommunicationsGatewayResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := communicationsgateways.NewCommunicationsGatewayID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &communicationsgateways.CommunicationsGateway{
@@ -278,7 +288,7 @@ func (r CommunicationsGatewayResource) Create() sdk.ResourceFunc {
 			var apiBridgeValue interface{}
 			if model.ApiBridge != "" {
 				log.Printf("[DEBUG] unmarshalling json for ApiBridge")
-				if err = json.Unmarshal([]byte(model.ApiBridge), &apiBridgeValue); err != nil {
+				if err := json.Unmarshal([]byte(model.ApiBridge), &apiBridgeValue); err != nil {
 					return fmt.Errorf("unmarshalling value for ApiBridge: %+v", err)
 				}
 			}
@@ -292,11 +302,14 @@ func (r CommunicationsGatewayResource) Create() sdk.ResourceFunc {
 
 			properties.Properties.TeamsVoicemailPilotNumber = &model.MicrosoftTeamsVoicemailPilotNumber
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -411,63 +424,57 @@ func (r CommunicationsGatewayResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := CommunicationsGatewayModel{
-				Name:              id.CommunicationsGatewayName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
-			}
-
-			if properties := model.Properties; properties != nil {
-				state.Connectivity = string(properties.Connectivity)
-
-				codecsValue := ""
-				if len(properties.Codecs) > 0 {
-					codecsValue = string(properties.Codecs[0])
-				}
-				state.Codecs = codecsValue
-
-				state.E911Type = properties.E911Type
-
-				state.Platforms = flattenCommunicationsPlatformModel(properties.Platforms)
-
-				state.ServiceLocation = flattenServiceRegionPropertiesModel(&properties.ServiceLocations)
-
-				if properties.AutoGeneratedDomainNameLabelScope != nil {
-					state.AutoGeneratedDomainNameLabelScope = *properties.AutoGeneratedDomainNameLabelScope
-				}
-
-				if properties.ApiBridge != nil && *properties.ApiBridge != nil {
-					apiBridgeValue, err := json.Marshal(*properties.ApiBridge)
-					if err != nil {
-						return fmt.Errorf("marshalling value for ApiBridge: %+v", err)
-					}
-					state.ApiBridge = string(apiBridgeValue)
-				}
-
-				if properties.EmergencyDialStrings != nil {
-					state.EmergencyDialStrings = *properties.EmergencyDialStrings
-				}
-
-				onPremMcpEnabled := false
-				if properties.OnPremMcpEnabled != nil {
-					onPremMcpEnabled = *properties.OnPremMcpEnabled
-				}
-				state.OnPremMcpEnabled = onPremMcpEnabled
-
-				v := ""
-				if properties.TeamsVoicemailPilotNumber != nil {
-					v = *properties.TeamsVoicemailPilotNumber
-				}
-				state.MicrosoftTeamsVoicemailPilotNumber = v
-			}
-
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, model)
 		},
 	}
+}
+
+func (r CommunicationsGatewayResource) flatten(metadata sdk.ResourceMetaData, id *communicationsgateways.CommunicationsGatewayId, model *communicationsgateways.CommunicationsGateway) error {
+	state := CommunicationsGatewayModel{
+		Name:              id.CommunicationsGatewayName,
+		ResourceGroupName: id.ResourceGroupName,
+		Location:          location.Normalize(model.Location),
+	}
+
+	if properties := model.Properties; properties != nil {
+		state.Connectivity = string(properties.Connectivity)
+
+		codecsValue := ""
+		if len(properties.Codecs) > 0 {
+			codecsValue = string(properties.Codecs[0])
+		}
+		state.Codecs = codecsValue
+
+		state.E911Type = properties.E911Type
+
+		state.Platforms = flattenCommunicationsPlatformModel(properties.Platforms)
+
+		state.ServiceLocation = flattenServiceRegionPropertiesModel(&properties.ServiceLocations)
+
+		state.AutoGeneratedDomainNameLabelScope = pointer.From(properties.AutoGeneratedDomainNameLabelScope)
+
+		if properties.ApiBridge != nil && *properties.ApiBridge != nil {
+			apiBridgeValue, err := json.Marshal(*properties.ApiBridge)
+			if err != nil {
+				return fmt.Errorf("marshalling value for ApiBridge: %+v", err)
+			}
+			state.ApiBridge = string(apiBridgeValue)
+		}
+
+		state.EmergencyDialStrings = pointer.From(properties.EmergencyDialStrings)
+
+		state.OnPremMcpEnabled = pointer.From(properties.OnPremMcpEnabled)
+
+		state.MicrosoftTeamsVoicemailPilotNumber = pointer.From(properties.TeamsVoicemailPilotNumber)
+	}
+
+	state.Tags = pointer.From(model.Tags)
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r CommunicationsGatewayResource) Delete() sdk.ResourceFunc {
@@ -498,9 +505,9 @@ func expandServiceRegionPropertiesModel(inputList []ServiceRegionPropertiesModel
 		}
 
 		output.PrimaryRegionProperties = communicationsgateways.PrimaryRegionProperties{
-			AllowedMediaSourceAddressPrefixes:     utils.StringSlice(v.AllowedMediaSourceAddressPrefixes),
-			AllowedSignalingSourceAddressPrefixes: utils.StringSlice(v.AllowedSignalingSourceAddressPrefixes),
-			EsrpAddresses:                         utils.StringSlice(v.EsrpAddresses),
+			AllowedMediaSourceAddressPrefixes:     pointer.To(v.AllowedMediaSourceAddressPrefixes),
+			AllowedSignalingSourceAddressPrefixes: pointer.To(v.AllowedSignalingSourceAddressPrefixes),
+			EsrpAddresses:                         pointer.To(v.EsrpAddresses),
 			OperatorAddresses:                     v.OperatorAddresses,
 		}
 

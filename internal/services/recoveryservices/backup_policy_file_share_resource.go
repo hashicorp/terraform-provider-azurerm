@@ -1,12 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -57,26 +57,48 @@ func resourceBackupProtectionPolicyFileShare() *pluginsdk.Resource {
 			switch strings.ToLower(frequencyI.(string)) {
 			case "daily":
 				if !hasDaily {
-					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is daily")
+					return errors.New("`retention_daily` must be set when backup.0.frequency is daily")
 				}
 
 				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
-					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
+					return errors.New("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
 				}
 			case "weekly":
 				if hasDaily {
-					return fmt.Errorf("`retention_daily` must be not set when backup.0.frequency is weekly")
+					return errors.New("`retention_daily` must be not set when backup.0.frequency is weekly")
 				}
 				if !hasWeekly {
-					return fmt.Errorf("`retention_weekly` must be set when backup.0.frequency is weekly")
+					return errors.New("`retention_weekly` must be set when backup.0.frequency is weekly")
 				}
 			case "hourly":
 				if !hasDaily {
-					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is hourly")
+					return errors.New("`retention_daily` must be set when backup.0.frequency is hourly")
 				}
 			default:
-				return fmt.Errorf("Unrecognized value for backup.0.frequency")
+				return errors.New("unrecognized value for backup.0.frequency")
 			}
+
+			// validate backup_tier and snapshot_retention_in_days
+			if backupTier, ok := diff.GetOk("backup_tier"); ok && strings.ToLower(backupTier.(string)) == "vault-standard" {
+				snapshotRetention := 0
+				if v, ok := diff.GetOk("snapshot_retention_in_days"); ok {
+					snapshotRetention = v.(int)
+				}
+
+				if retentionDaily, ok := diff.GetOk("retention_daily"); ok {
+					retentionDailyList := retentionDaily.([]interface{})
+					if len(retentionDailyList) > 0 {
+						retentionDailyMap := retentionDailyList[0].(map[string]interface{})
+						if count, ok := retentionDailyMap["count"]; ok {
+							dailyCount := count.(int)
+							if snapshotRetention >= dailyCount {
+								return fmt.Errorf("`snapshot_retention_in_days` must be less than `retention_daily` count when `backup_tier` is set to `vault-standard`. Got snapshot_retention_in_days: %d, retention_daily count: %d", snapshotRetention, dailyCount)
+							}
+						}
+					}
+				}
+			}
+
 			return nil
 		},
 	}
@@ -89,8 +111,6 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 	defer cancel()
 
 	id := protectionpolicies.NewBackupPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), d.Get("name").(string))
-
-	log.Printf("[DEBUG] Creating/updating %s", id)
 
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
 	// if it's using hourly backup schedule, it passes null in times
@@ -105,15 +125,17 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_backup_policy_file_share", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_backup_policy_file_share", id.ID())
+			}
 		}
 	}
 
@@ -121,19 +143,32 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 		TimeZone:       pointer.To(d.Get("timezone").(string)),
 		WorkLoadType:   pointer.To(protectionpolicies.WorkloadTypeAzureFileShare),
 		SchedulePolicy: expandBackupProtectionPolicyFileShareSchedule(d, times),
-		RetentionPolicy: &protectionpolicies.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
+	}
+
+	if d.Get("backup_tier").(string) == "vault-standard" {
+		AzureFileShareProtectionPolicyProperties.VaultRetentionPolicy = &protectionpolicies.VaultRetentionPolicy{
+			SnapshotRetentionInDays: int64(d.Get("snapshot_retention_in_days").(int)),
+			VaultRetention: &protectionpolicies.LongTermRetentionPolicy{
+				DailySchedule:   expandBackupProtectionPolicyFileShareRetentionDaily(d, times),
+				WeeklySchedule:  expandBackupProtectionPolicyFileShareRetentionWeekly(d, times),
+				MonthlySchedule: expandBackupProtectionPolicyFileShareRetentionMonthly(d, times),
+				YearlySchedule:  expandBackupProtectionPolicyFileShareRetentionYearly(d, times),
+			},
+		}
+	} else {
+		AzureFileShareProtectionPolicyProperties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{
 			DailySchedule:   expandBackupProtectionPolicyFileShareRetentionDaily(d, times),
 			WeeklySchedule:  expandBackupProtectionPolicyFileShareRetentionWeekly(d, times),
 			MonthlySchedule: expandBackupProtectionPolicyFileShareRetentionMonthly(d, times),
 			YearlySchedule:  expandBackupProtectionPolicyFileShareRetentionYearly(d, times),
-		},
+		}
 	}
 
 	policy := protectionpolicies.ProtectionPolicyResource{
 		Properties: AzureFileShareProtectionPolicyProperties,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, policy); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, policy, protectionpolicies.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -146,6 +181,23 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 	return resourceBackupProtectionPolicyFileShareRead(d, meta)
 }
 
+func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := protectionpolicies.ParseBackupPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, *id, d)
+}
+
 func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -155,8 +207,6 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Reading %s", id)
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -185,61 +235,52 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 			}
 
 			if retention, ok := properties.RetentionPolicy.(protectionpolicies.LongTermRetentionPolicy); ok {
-				if s := retention.DailySchedule; s != nil {
-					if err := d.Set("retention_daily", flattenBackupProtectionPolicyFileShareRetentionDaily(s)); err != nil {
+				if err := d.Set("retention_daily", flattenBackupProtectionPolicyFileShareRetentionDaily(retention.DailySchedule)); err != nil {
+					return fmt.Errorf("setting `retention_daily`: %+v", err)
+				}
+
+				if err := d.Set("retention_weekly", flattenBackupProtectionPolicyFileShareRetentionWeekly(retention.WeeklySchedule)); err != nil {
+					return fmt.Errorf("setting `retention_weekly`: %+v", err)
+				}
+
+				if err := d.Set("retention_monthly", flattenBackupProtectionPolicyFileShareRetentionMonthly(retention.MonthlySchedule)); err != nil {
+					return fmt.Errorf("setting `retention_monthly`: %+v", err)
+				}
+
+				if err := d.Set("retention_yearly", flattenBackupProtectionPolicyFileShareRetentionYearly(retention.YearlySchedule)); err != nil {
+					return fmt.Errorf("setting `retention_yearly`: %+v", err)
+				}
+			}
+
+			if properties.VaultRetentionPolicy != nil {
+				d.Set("backup_tier", "vault-standard")
+				d.Set("snapshot_retention_in_days", int(properties.VaultRetentionPolicy.SnapshotRetentionInDays))
+
+				if retention, ok := properties.VaultRetentionPolicy.VaultRetention.(protectionpolicies.LongTermRetentionPolicy); ok {
+					if err := d.Set("retention_daily", flattenBackupProtectionPolicyFileShareRetentionDaily(retention.DailySchedule)); err != nil {
 						return fmt.Errorf("setting `retention_daily`: %+v", err)
 					}
-				} else {
-					d.Set("retention_daily", nil)
-				}
 
-				if s := retention.WeeklySchedule; s != nil {
-					if err := d.Set("retention_weekly", flattenBackupProtectionPolicyFileShareRetentionWeekly(s)); err != nil {
+					if err := d.Set("retention_weekly", flattenBackupProtectionPolicyFileShareRetentionWeekly(retention.WeeklySchedule)); err != nil {
 						return fmt.Errorf("setting `retention_weekly`: %+v", err)
 					}
-				} else {
-					d.Set("retention_weekly", nil)
-				}
 
-				if s := retention.MonthlySchedule; s != nil {
-					if err := d.Set("retention_monthly", flattenBackupProtectionPolicyFileShareRetentionMonthly(s)); err != nil {
+					if err := d.Set("retention_monthly", flattenBackupProtectionPolicyFileShareRetentionMonthly(retention.MonthlySchedule)); err != nil {
 						return fmt.Errorf("setting `retention_monthly`: %+v", err)
 					}
-				} else {
-					d.Set("retention_monthly", nil)
-				}
 
-				if s := retention.YearlySchedule; s != nil {
-					if err := d.Set("retention_yearly", flattenBackupProtectionPolicyFileShareRetentionYearly(s)); err != nil {
+					if err := d.Set("retention_yearly", flattenBackupProtectionPolicyFileShareRetentionYearly(retention.YearlySchedule)); err != nil {
 						return fmt.Errorf("setting `retention_yearly`: %+v", err)
 					}
-				} else {
-					d.Set("retention_yearly", nil)
 				}
+			} else {
+				d.Set("backup_tier", "snapshot")
+				d.Set("snapshot_retention_in_days", 0)
 			}
 		}
 	}
 
 	return nil
-}
-
-func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := protectionpolicies.ParseBackupPolicyID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	log.Printf("[DEBUG] Deleting %s", id)
-
-	if err = client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	return resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, *id, d)
 }
 
 func expandBackupProtectionPolicyFileShareSchedule(d *pluginsdk.ResourceData, times []string) *protectionpolicies.SimpleSchedulePolicy {
@@ -465,6 +506,10 @@ func flattenBackupProtectionPolicyFileShareSchedule(schedule protectionpolicies.
 }
 
 func flattenBackupProtectionPolicyFileShareRetentionDaily(daily *protectionpolicies.DailyRetentionSchedule) []interface{} {
+	if daily == nil {
+		return []interface{}{}
+	}
+
 	block := map[string]interface{}{}
 
 	if duration := daily.RetentionDuration; duration != nil {
@@ -477,6 +522,10 @@ func flattenBackupProtectionPolicyFileShareRetentionDaily(daily *protectionpolic
 }
 
 func flattenBackupProtectionPolicyFileShareRetentionWeekly(weekly *protectionpolicies.WeeklyRetentionSchedule) []interface{} {
+	if weekly == nil {
+		return []interface{}{}
+	}
+
 	block := map[string]interface{}{}
 
 	if duration := weekly.RetentionDuration; duration != nil {
@@ -497,6 +546,10 @@ func flattenBackupProtectionPolicyFileShareRetentionWeekly(weekly *protectionpol
 }
 
 func flattenBackupProtectionPolicyFileShareRetentionMonthly(monthly *protectionpolicies.MonthlyRetentionSchedule) []interface{} {
+	if monthly == nil {
+		return []interface{}{}
+	}
+
 	block := map[string]interface{}{}
 
 	if duration := monthly.RetentionDuration; duration != nil {
@@ -517,6 +570,10 @@ func flattenBackupProtectionPolicyFileShareRetentionMonthly(monthly *protectionp
 }
 
 func flattenBackupProtectionPolicyFileShareRetentionYearly(yearly *protectionpolicies.YearlyRetentionSchedule) []interface{} {
+	if yearly == nil {
+		return []interface{}{}
+	}
+
 	block := map[string]interface{}{}
 
 	if duration := yearly.RetentionDuration; duration != nil {
@@ -594,8 +651,7 @@ func resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context, c
 		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for update %s: %+v", id, err)
 	}
 
@@ -612,8 +668,7 @@ func resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx context.Context,
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for delete to finish for %s: %+v", id, err)
 	}
 
@@ -990,6 +1045,22 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 					},
 				},
 			},
+		},
+
+		"backup_tier": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "snapshot",
+			ValidateFunc: validation.StringInSlice([]string{
+				"snapshot",
+				"vault-standard",
+			}, false),
+		},
+
+		"snapshot_retention_in_days": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Default:  0,
 		},
 	}
 }

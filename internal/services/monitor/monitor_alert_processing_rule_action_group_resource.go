@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AlertProcessingRuleActionGroupModel struct {
@@ -73,12 +73,15 @@ func (r AlertProcessingRuleActionGroupResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := alertprocessingrules.NewActionRuleID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.GetByName(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetByName(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			alertProcessingRule := alertprocessingrules.AlertProcessingRule{
@@ -88,10 +91,11 @@ func (r AlertProcessingRuleActionGroupResource) Create() sdk.ResourceFunc {
 					Actions: []alertprocessingrules.Action{
 						alertprocessingrules.AddActionGroups{
 							ActionGroupIds: model.AddActionGroupIds,
-						}},
+						},
+					},
 					Conditions:  expandAlertProcessingRuleConditions(model.Condition),
-					Description: utils.String(model.Description),
-					Enabled:     utils.Bool(model.Enabled),
+					Description: pointer.To(model.Description),
+					Enabled:     pointer.To(model.Enabled),
 					Schedule:    expandAlertProcessingRuleSchedule(model.Schedule),
 					Scopes:      model.Scopes,
 				},
@@ -141,7 +145,8 @@ func (r AlertProcessingRuleActionGroupResource) Update() sdk.ResourceFunc {
 				model.Properties.Actions = []alertprocessingrules.Action{
 					alertprocessingrules.AddActionGroups{
 						ActionGroupIds: resourceModel.AddActionGroupIds,
-					}}
+					},
+				}
 			}
 
 			if metadata.ResourceData.HasChange("condition") {
@@ -149,11 +154,11 @@ func (r AlertProcessingRuleActionGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				model.Properties.Description = utils.String(resourceModel.Description)
+				model.Properties.Description = pointer.To(resourceModel.Description)
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
-				model.Properties.Enabled = utils.Bool(resourceModel.Enabled)
+				model.Properties.Enabled = pointer.To(resourceModel.Enabled)
 			}
 
 			if metadata.ResourceData.HasChange("schedule") {
@@ -241,6 +246,7 @@ func (r AlertProcessingRuleActionGroupResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r AlertProcessingRuleActionGroupResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,

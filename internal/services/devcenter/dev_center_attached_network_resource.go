@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter
@@ -10,9 +10,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/attachednetworkconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/devcenters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/networkconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/attachednetworkconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/devcenters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/networkconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -63,7 +63,7 @@ func (r DevCenterAttachedNetworkResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.AttachedNetworkConnections
+			client := metadata.Client.DevCenter.V20250201.AttachedNetworkConnections
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model DevCenterAttachedNetworkResourceModel
@@ -78,15 +78,17 @@ func (r DevCenterAttachedNetworkResource) Create() sdk.ResourceFunc {
 
 			id := attachednetworkconnections.NewDevCenterAttachedNetworkID(subscriptionId, devCenterId.ResourceGroupName, devCenterId.DevCenterName, model.Name)
 
-			existing, err := client.AttachedNetworksGetByDevCenter(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AttachedNetworksGetByDevCenter(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := attachednetworkconnections.AttachedNetworkConnection{
@@ -95,7 +97,7 @@ func (r DevCenterAttachedNetworkResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.AttachedNetworksCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			if err := client.AttachedNetworksCreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -109,7 +111,7 @@ func (r DevCenterAttachedNetworkResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.AttachedNetworkConnections
+			client := metadata.Client.DevCenter.V20250201.AttachedNetworkConnections
 
 			id, err := attachednetworkconnections.ParseDevCenterAttachedNetworkID(metadata.ResourceData.Id())
 			if err != nil {
@@ -144,7 +146,7 @@ func (r DevCenterAttachedNetworkResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.AttachedNetworkConnections
+			client := metadata.Client.DevCenter.V20250201.AttachedNetworkConnections
 
 			id, err := attachednetworkconnections.ParseDevCenterAttachedNetworkID(metadata.ResourceData.Id())
 			if err != nil {

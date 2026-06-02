@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -10,12 +10,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_map -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id" -test-params "ident"
 
 type RouteMapModel struct {
 	Name         string `tfschema:"name"`
@@ -50,8 +53,15 @@ type Criterion struct {
 
 type RouteMapResource struct{}
 
-var _ sdk.ResourceWithUpdate = RouteMapResource{}
-var _ sdk.ResourceWithCustomizeDiff = RouteMapResource{}
+var (
+	_ sdk.ResourceWithIdentity      = RouteMapResource{}
+	_ sdk.ResourceWithUpdate        = RouteMapResource{}
+	_ sdk.ResourceWithCustomizeDiff = RouteMapResource{}
+)
+
+func (r RouteMapResource) Identity() resourceids.ResourceId {
+	return &virtualwans.RouteMapId{}
+}
 
 func (r RouteMapResource) ResourceType() string {
 	return "azurerm_route_map"
@@ -230,12 +240,15 @@ func (r RouteMapResource) Create() sdk.ResourceFunc {
 			}
 
 			id := virtualwans.NewRouteMapID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroupName, virtualHubId.VirtualHubName, model.Name)
-			existing, err := client.RouteMapsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.RouteMapsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			props := &virtualwans.RouteMap{
@@ -244,12 +257,12 @@ func (r RouteMapResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.RouteMapsCreateOrUpdateThenPoll(ctx, id, *props); err != nil {
+			if err := client.RouteMapsCreateOrUpdateCallbackThenPoll(ctx, id, *props, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -324,6 +337,10 @@ func (r RouteMapResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.Rules = flattenRules(props.Rules)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -21,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 func resourceIotHubSharedAccessPolicy() *pluginsdk.Resource {
@@ -124,15 +125,15 @@ func iothubSharedAccessPolicyCustomizeDiff(ctx context.Context, d *pluginsdk.Res
 	deviceConnect, hasDeviceConnect := d.GetOk("device_connect")
 
 	if !hasRegistryRead && !hasRegistryWrite && !hasServieConnect && !hasDeviceConnect {
-		return fmt.Errorf("One of `registry_read`, `registry_write`, `service_connect` or `device_connect` properties must be set")
+		return errors.New("one of `registry_read`, `registry_write`, `service_connect` or `device_connect` properties must be set")
 	}
 
 	if !registryRead.(bool) && !registryWrite.(bool) && !serviceConnect.(bool) && !deviceConnect.(bool) {
-		err = multierror.Append(err, fmt.Errorf("At least one of `registry_read`, `registry_write`, `service_connect` or `device_connect` properties must be set to true"))
+		err = multierror.Append(err, errors.New("at least one of `registry_read`, `registry_write`, `service_connect` or `device_connect` properties must be set to true"))
 	}
 
 	if registryWrite.(bool) && !registryRead.(bool) {
-		err = multierror.Append(err, fmt.Errorf("If `registry_write` is set to true, `registry_read` must also be set to true"))
+		err = multierror.Append(err, errors.New("if `registry_write` is set to true, `registry_read` must also be set to true"))
 	}
 
 	return
@@ -174,7 +175,9 @@ func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, met
 
 		if strings.EqualFold(*existingAccessPolicy.KeyName, id.IotHubKeyName) {
 			if d.IsNewResource() {
-				return tf.ImportAsExistsError("azurerm_iothub_shared_access_policy", id.ID())
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_iothub_shared_access_policy", id.ID())
+				}
 			}
 
 			if existingAccessPolicy.PrimaryKey != nil {
@@ -205,11 +208,11 @@ func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubSharedAccessPolicyRead(d, meta)
 }

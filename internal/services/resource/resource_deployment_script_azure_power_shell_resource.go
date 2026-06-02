@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -55,13 +55,16 @@ func (r ResourceDeploymentScriptAzurePowerShellResource) Create() sdk.ResourceFu
 			client := metadata.Client.Resource.DeploymentScriptsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := deploymentscripts.NewDeploymentScriptID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &deploymentscripts.AzurePowerShellScript{
@@ -110,11 +113,11 @@ func (r ResourceDeploymentScriptAzurePowerShellResource) Create() sdk.ResourceFu
 				properties.Tags = &model.Tags
 			}
 
-			if err := client.CreateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

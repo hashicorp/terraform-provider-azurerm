@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -15,6 +15,20 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	featuresMap := map[string]*pluginsdk.Schema{
+		"persist_id_on_create_before_polling_for_completion": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Whether to set the resource ID into state before polling asynchronous operations for completion. Defaults to `false`.",
+		},
+
+		"skip_import_check_on_create_and_allow_overwriting_existing_resources": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
+		},
+
 		// lintignore:XS003
 		"api_management": {
 			Type:     pluginsdk.TypeList,
@@ -220,11 +234,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
-					"graceful_shutdown": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
 					"skip_shutdown_and_force_delete": {
 						Type:     schema.TypeBool,
 						Optional: true,
@@ -375,9 +384,16 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"vm_backup_stop_protection_and_retain_data_on_destroy": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      false,
+						ExactlyOneOf: []string{"features.0.recovery_service.0.vm_backup_stop_protection_and_retain_data_on_destroy", "features.0.recovery_service.0.vm_backup_suspend_protection_and_retain_data_on_destroy"},
+					},
+					"vm_backup_suspend_protection_and_retain_data_on_destroy": {
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      false,
+						ExactlyOneOf: []string{"features.0.recovery_service.0.vm_backup_stop_protection_and_retain_data_on_destroy", "features.0.recovery_service.0.vm_backup_suspend_protection_and_retain_data_on_destroy"},
 					},
 					"purge_protected_items_from_vault_on_destroy": {
 						Type:     pluginsdk.TypeBool,
@@ -387,6 +403,53 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
+		"netapp": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"delete_backups_on_backup_vault_destroy": {
+						Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+					},
+					"prevent_volume_destruction": {
+						Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+				},
+			},
+		},
+
+		"databricks_workspace": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"force_delete": {
+						Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+					},
+				},
+			},
+		},
+	}
+
+	if !features.FivePointOh() {
+		featuresMap["virtual_machine"].Elem.(*pluginsdk.Resource).Schema["graceful_shutdown"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
+		}
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -395,6 +458,8 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		return &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 1,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: featuresMap,
 			},
@@ -421,6 +486,14 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	val := input[0].(map[string]interface{})
+
+	if v, ok := val["persist_id_on_create_before_polling_for_completion"]; ok {
+		featuresMap.PersistIDOnCreateBeforePollingForCompletion = v.(bool)
+	}
+
+	if v, ok := val["skip_import_check_on_create_and_allow_overwriting_existing_resources"]; ok {
+		featuresMap.SkipImportCheckOnCreateAndAllowOverwritingExistingResources = v.(bool)
+	}
 
 	if raw, ok := val["api_management"]; ok {
 		items := raw.([]interface{})
@@ -538,9 +611,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := virtualMachinesRaw["delete_os_disk_on_deletion"]; ok {
 				featuresMap.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)
 			}
-			if v, ok := virtualMachinesRaw["graceful_shutdown"]; ok {
-				featuresMap.VirtualMachine.GracefulShutdown = v.(bool)
-			}
 			if v, ok := virtualMachinesRaw["skip_shutdown_and_force_delete"]; ok {
 				featuresMap.VirtualMachine.SkipShutdownAndForceDelete = v.(bool)
 			}
@@ -642,8 +712,34 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := recoveryServicesRaw["vm_backup_stop_protection_and_retain_data_on_destroy"]; ok {
 				featuresMap.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = v.(bool)
 			}
+			if v, ok := recoveryServicesRaw["vm_backup_suspend_protection_and_retain_data_on_destroy"]; ok {
+				featuresMap.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy = v.(bool)
+			}
 			if v, ok := recoveryServicesRaw["purge_protected_items_from_vault_on_destroy"]; ok {
 				featuresMap.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["netapp"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			netappRaw := items[0].(map[string]interface{})
+			if v, ok := netappRaw["delete_backups_on_backup_vault_destroy"]; ok {
+				featuresMap.NetApp.DeleteBackupsOnBackupVaultDestroy = v.(bool)
+			}
+			if v, ok := netappRaw["prevent_volume_destruction"]; ok {
+				featuresMap.NetApp.PreventVolumeDestruction = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["databricks_workspace"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			databricksRaw := items[0].(map[string]interface{})
+			if v, ok := databricksRaw["force_delete"]; ok {
+				featuresMap.DatabricksWorkspace.ForceDelete = v.(bool)
 			}
 		}
 	}

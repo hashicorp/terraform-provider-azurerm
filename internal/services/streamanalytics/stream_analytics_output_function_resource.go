@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -16,11 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type OutputFunctionResource struct {
-}
+type OutputFunctionResource struct{}
 
 var (
 	_ sdk.ResourceWithCustomImporter = OutputFunctionResource{}
@@ -119,32 +117,34 @@ func (r OutputFunctionResource) Create() sdk.ResourceFunc {
 
 			id := outputs.NewOutputID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsJob, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			props := outputs.Output{
-				Name: utils.String(model.Name),
+				Name: pointer.To(model.Name),
 				Properties: &outputs.OutputProperties{
 					Datasource: &outputs.AzureFunctionOutputDataSource{
 						Properties: &outputs.AzureFunctionOutputDataSourceProperties{
-							FunctionAppName: utils.String(model.FunctionApp),
-							FunctionName:    utils.String(model.FunctionName),
-							ApiKey:          utils.String(model.ApiKey),
-							MaxBatchSize:    utils.Float(float64(model.BatchMaxInBytes)),
-							MaxBatchCount:   utils.Float(float64(model.BatchMaxCount)),
+							FunctionAppName: pointer.To(model.FunctionApp),
+							FunctionName:    pointer.To(model.FunctionName),
+							ApiKey:          pointer.To(model.ApiKey),
+							MaxBatchSize:    pointer.To(float64(model.BatchMaxInBytes)),
+							MaxBatchCount:   pointer.To(float64(model.BatchMaxCount)),
 						},
 					},
 				},
 			}
 
 			var opts outputs.CreateOrReplaceOperationOptions
-			if _, err = client.CreateOrReplace(ctx, id, props, opts); err != nil {
+			if _, err := client.CreateOrReplace(ctx, id, props, opts); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -221,15 +221,15 @@ func (r OutputFunctionResource) Update() sdk.ResourceFunc {
 			}
 
 			props := outputs.Output{
-				Name: utils.String(state.Name),
+				Name: pointer.To(state.Name),
 				Properties: &outputs.OutputProperties{
 					Datasource: &outputs.AzureFunctionOutputDataSource{
 						Properties: &outputs.AzureFunctionOutputDataSourceProperties{
-							FunctionAppName: utils.String(state.FunctionApp),
-							FunctionName:    utils.String(state.FunctionName),
-							ApiKey:          utils.String(state.ApiKey),
-							MaxBatchSize:    utils.Float(float64(state.BatchMaxInBytes)),
-							MaxBatchCount:   utils.Float(float64(state.BatchMaxCount)),
+							FunctionAppName: pointer.To(state.FunctionApp),
+							FunctionName:    pointer.To(state.FunctionName),
+							ApiKey:          pointer.To(state.ApiKey),
+							MaxBatchSize:    pointer.To(float64(state.BatchMaxInBytes)),
+							MaxBatchCount:   pointer.To(float64(state.BatchMaxCount)),
 						},
 					},
 				},
@@ -254,8 +254,6 @@ func (r OutputFunctionResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

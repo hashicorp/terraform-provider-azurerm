@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -85,15 +85,17 @@ func (r AppServiceSourceControlTokenResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.AppService.ResourceProvidersClient
 
-			existing, err := client.GetSourceControl(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("%s not found", id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetSourceControl(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("%s not found", id)
+					}
+					return fmt.Errorf("retrieving %s: %+v", id, err)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-			if existing.Model.Properties != nil && pointer.From(existing.Model.Properties.Token) != "" {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if existing.Model.Properties != nil && pointer.From(existing.Model.Properties.Token) != "" {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			sourceControlOAuth := resourceproviders.SourceControl{

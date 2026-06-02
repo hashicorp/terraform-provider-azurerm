@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/ipgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -56,7 +56,7 @@ func resourceIpGroupCidr() *pluginsdk.Resource {
 }
 
 func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
+	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -85,15 +85,21 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: `properties` was nil", ipGroupId)
 	}
 
+	exists := false
 	if utils.SliceContainsValue(*existing.Model.Properties.IPAddresses, cidr) {
-		return tf.ImportAsExistsError("azurerm_ip_group_cidr", id.ID())
+		exists = true
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			return tf.ImportAsExistsError("azurerm_ip_group_cidr", id.ID())
+		}
 	}
 
 	ipAddresses := make([]string, 0)
 	if existing.Model.Properties.IPAddresses != nil {
 		ipAddresses = *existing.Model.Properties.IPAddresses
 	}
-	ipAddresses = append(ipAddresses, cidr)
+	if !exists {
+		ipAddresses = append(ipAddresses, cidr)
+	}
 
 	params := ipgroups.IPGroup{
 		Name:     &ipGroupId.IpGroupName,
@@ -104,6 +110,7 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
+	// TODO: implement callback, requires migrating to an ID implementing `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *ipGroupId, params); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -114,7 +121,7 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
+	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -150,7 +157,7 @@ func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error 
 }
 
 func resourceIpGroupCidrDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
+	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
