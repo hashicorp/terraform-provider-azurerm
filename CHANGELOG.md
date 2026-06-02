@@ -5,8 +5,8 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
-`azurerm_netapp_volume_group_oracle` - fix validation for the `application_identifier` property [GH-32499]
- * `azurerm_oracle_resource_anchor` - the `name` property should allow hyphens [GH-32481]
+* `azurerm_netapp_volume_group_oracle` - fix validation for the `application_identifier` property [GH-32499]
+* `azurerm_oracle_resource_anchor` - fix validation for the `name` property to allow hyphens [GH-32481]
 
 ## 4.75.0 (June 01, 2026)
 
