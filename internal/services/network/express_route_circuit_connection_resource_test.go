@@ -81,7 +81,7 @@ func testAccExpressRouteCircuitConnection_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authorization_key"),
 		{
 			Config: r.complete(data, "846a1918-b7a2-4917-b43c-8c4cdaee006a"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -102,7 +102,7 @@ func testAccExpressRouteCircuitConnection_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authorization_key"),
 	})
 }
 

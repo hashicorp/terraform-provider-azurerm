@@ -6,7 +6,6 @@ package loganalytics
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -70,8 +70,6 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Linked Services creation.")
-
 	var workspaceId string
 	resourceGroup := d.Get("resource_group_name").(string)
 	readAccess := d.Get("read_access_id").(string)
@@ -94,15 +92,17 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Linked Service '%s/%s' (Resource Group %q): %+v", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Linked Service '%s/%s' (Resource Group %q): %+v", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_log_analytics_linked_service", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_log_analytics_linked_service", id.ID())
+			}
 		}
 	}
 
@@ -118,16 +118,16 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 		parameters.Properties.WriteAccessResourceId = pointer.To(writeAccess)
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating Linked Service '%s/%s' (Resource Group %q): %+v", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	if _, err = client.Get(ctx, id); err != nil {
-		return fmt.Errorf("retrieving Linked Service '%s/%s' (Resource Group %q): %+v", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup, err)
-	}
-
-	d.SetId(id.ID())
 
 	return resourceLogAnalyticsLinkedServiceRead(d, meta)
 }

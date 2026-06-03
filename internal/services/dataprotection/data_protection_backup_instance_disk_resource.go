@@ -14,12 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -121,14 +122,16 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	id := backupinstanceresources.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.BackupInstancesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing DataProtection BackupInstance (%q): %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.BackupInstancesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing DataProtection BackupInstance (%q): %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_data_protection_backup_instance_disk", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_data_protection_backup_instance_disk", id.ID())
+			}
 		}
 	}
 
@@ -174,8 +177,19 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		},
 	}
 
-	if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
-		return fmt.Errorf("creating/updating DataProtection BackupInstance (%q): %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.BackupInstancesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions(), sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating DataProtection BackupInstance (%q): %+v", id, err)
+		}
+
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating DataProtection BackupInstance (%q): %+v", id, err)
+		}
 	}
 
 	deadline, ok := ctx.Deadline()
@@ -194,10 +208,6 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("waiting for BackupInstance(%q) policy protection to be completed: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
-	}
 	return resourceDataProtectionBackupInstanceDiskRead(d, meta)
 }
 
