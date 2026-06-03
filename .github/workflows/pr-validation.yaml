@@ -141,13 +141,12 @@ jobs:
       - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make website-lint
-      - run: make document-validate
       - name: Guidance on failure
         if: failure()
         run: |
           echo "::error::Website Linting failed."
           echo ""
-          echo "Run 'make website-lint' and 'make document-validate' locally."
+          echo "Run 'make website-lint' locally."
           echo "Check your documentation files under website/ for formatting or validation issues."
           echo "Common issues include: missing required frontmatter fields, incorrect markdown formatting,"
           echo "or mismatched resource documentation with the schema definition."
@@ -171,12 +170,50 @@ jobs:
     with:
       check_name: "Website Linting"
 
+  # ------------------------------------------
+
+  document-validate:
+    runs-on: custom-linux-large
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: ./.go-version
+      - run: bash scripts/gogetcookie.sh
+      - run: make document-validate
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Document Validation failed."
+          echo ""
+          echo "Run 'make document-validate' locally."
+          echo "Check your documentation files under website/ for formatting or validation issues against the resource schema."
+
+  document-validate-save-artifacts:
+    needs: document-validate
+    if: failure()
+    uses: ./.github/workflows/save-artifacts.yaml
+
+  document-validate-on-fail:
+    needs: document-validate
+    if: failure()
+    uses: ./.github/workflows/comment-ci-failure.yaml
+    with:
+      check_name: "Document Validation"
+
+  document-validate-on-success:
+    needs: document-validate
+    if: success()
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    with:
+      check_name: "Document Validation"
+
   # ==========================================
   # Phase 2 & 3: Heavy Checks
   # ==========================================
 
   build:
-    needs: [depscheck, fmtcheck, shellcheck, website-lint]
+    needs: [depscheck, fmtcheck, shellcheck, website-lint, document-validate]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -215,7 +252,7 @@ jobs:
   # ------------------------------------------
 
   golangci-lint:
-    needs: [depscheck, fmtcheck, shellcheck, website-lint]
+    needs: [depscheck, fmtcheck, shellcheck, website-lint, document-validate]
     runs-on: custom-linux-large
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -260,7 +297,7 @@ jobs:
   # ------------------------------------------
 
   tflint:
-    needs: [depscheck, fmtcheck, shellcheck, website-lint]
+    needs: [depscheck, fmtcheck, shellcheck, website-lint, document-validate]
     runs-on: custom-linux-medium
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -302,7 +339,7 @@ jobs:
   # ------------------------------------------
 
   gencheck:
-    needs: [depscheck, fmtcheck, shellcheck, website-lint]
+    needs: [depscheck, fmtcheck, shellcheck, website-lint, document-validate]
     runs-on: custom-linux-large
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -341,7 +378,7 @@ jobs:
   # ------------------------------------------
 
   unit-tests:
-    needs: [depscheck, fmtcheck, shellcheck, website-lint]
+    needs: [depscheck, fmtcheck, shellcheck, website-lint, document-validate]
     runs-on: custom-linux-xl
     timeout-minutes: 30
     steps:
@@ -396,7 +433,7 @@ jobs:
   # ------------------------------------------
 
   validate-examples:
-    needs: [depscheck, fmtcheck, shellcheck, website-lint]
+    needs: [depscheck, fmtcheck, shellcheck, website-lint, document-validate]
     runs-on: custom-linux-small
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
