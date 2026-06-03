@@ -2854,13 +2854,13 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 			}
 			output["sni_validation_enabled"] = sniValidationEnabled
 
-      if !features.FivePointOh() {
-        authenticationCertificates := make([]interface{}, 0)
-        if certs := props.AuthenticationCertificates; certs != nil {
-          for _, cert := range *certs {
-            if cert.Id == nil {
-              continue
-            }
+			if !features.FivePointOh() {
+				authenticationCertificates := make([]interface{}, 0)
+				if certs := props.AuthenticationCertificates; certs != nil {
+					for _, cert := range *certs {
+						if cert.Id == nil {
+							continue
+						}
 
 						certId, err := parse.AuthenticationCertificateIDInsensitively(*cert.Id)
 						if err != nil {
