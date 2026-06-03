@@ -212,6 +212,9 @@ service/maintenance:
 service/managed-apps:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_managed_application((.|\n)*)###'
 
+service/managed-devops-pools:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_managed_devops_pool((.|\n)*)###'
+
 service/managed-hsm:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_key_vault_managed_hardware_security_module((.|\n)*)###'
 
@@ -246,10 +249,13 @@ service/network-function:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(network_function_azure_traffic_collector\W+|network_function_collector_policy\W+|new_relic_monitor\W+|new_relic_tag_rule\W+)((.|\n)*)###'
 
 service/nginx:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(nginx_|oracle_)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_nginx_((.|\n)*)###'
 
 service/notifications:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_notification_hub((.|\n)*)###'
+
+service/oracle:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_oracle_((.|\n)*)###'
 
 service/orbital:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_orbital_((.|\n)*)###'

@@ -58,9 +58,20 @@ func (c ManagedInstanceEncryptionProtectorsClient) Revalidate(ctx context.Contex
 
 // RevalidateThenPoll performs Revalidate then polls until it's completed
 func (c ManagedInstanceEncryptionProtectorsClient) RevalidateThenPoll(ctx context.Context, id commonids.SqlManagedInstanceId) error {
+	return c.RevalidateCallbackThenPoll(ctx, id, nil)
+}
+
+// RevalidateCallbackThenPoll performs Revalidate, runs the optional callback function, then polls until it's completed
+func (c ManagedInstanceEncryptionProtectorsClient) RevalidateCallbackThenPoll(ctx context.Context, id commonids.SqlManagedInstanceId, callback func() error) error {
 	result, err := c.Revalidate(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Revalidate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

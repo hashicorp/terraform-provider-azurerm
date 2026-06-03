@@ -25,9 +25,9 @@ func resourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorRuleSetDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -64,19 +64,20 @@ func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	id := rulesets.NewRuleSetID(profile.SubscriptionId, profile.ResourceGroupName, profile.ProfileName, d.Get("name").(string))
-	// if d.IsNewResource() {
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule_set", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule_set", id.ID())
-	}
-	// }
 	if _, err = client.Create(ctx, id); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}

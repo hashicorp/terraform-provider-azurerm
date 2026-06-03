@@ -137,7 +137,8 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(parentId.ID())
 
 			id := federatedidentitycredentials.NewFederatedIdentityCredentialID(subscriptionId, parentId.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
-			if metadata.ResourceData.IsNewResource() {
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
