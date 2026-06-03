@@ -8,13 +8,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -51,19 +49,12 @@ func resourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.FrontDoorProfileID,
 			},
-
-			"batch_mode_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
-			},
 		},
 	}
 }
 
 func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient_v2025_12_01
+	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -87,13 +78,7 @@ func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	payload := azuresdkhacks.RuleSet2025{
-		Properties: &azuresdkhacks.RuleSetProperties2025{
-			BatchMode: pointer.To(d.Get("batch_mode_enabled").(bool)),
-		},
-	}
-
-	if err = client.CreateThenPoll(ctx, id, payload); err != nil {
+	if _, err = client.Create(ctx, id); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -102,7 +87,7 @@ func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient_v2025_12_01
+	batchModeRuleSetClient := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient_v2025_12_01
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -111,7 +96,7 @@ func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := batchModeRuleSetClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found, removing from state", id)
@@ -120,20 +105,19 @@ func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.BatchMode != nil && *resp.Model.Properties.BatchMode {
+		return fmt.Errorf("retrieving %s: `azurerm_cdn_frontdoor_rule_set` does not support rule sets where `batch_mode_enabled` is `true`; use `azurerm_cdn_frontdoor_batch_rule_set` instead", id)
+	}
 
 	d.Set("name", id.RuleSetName)
 	d.Set("cdn_frontdoor_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
-	batchModeEnabled := false
-	if resp.Model != nil && resp.Model.Properties != nil {
-		batchModeEnabled = pointer.From(resp.Model.Properties.BatchMode)
-	}
-	d.Set("batch_mode_enabled", batchModeEnabled)
 
 	return nil
 }
 
 func resourceCdnFrontDoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient_v2025_12_01
+	ruleSetDeleteClient := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+	batchModeRuleSetClient := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient_v2025_12_01
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -142,7 +126,16 @@ func resourceCdnFrontDoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
+	resp, err := batchModeRuleSetClient.Get(ctx, *id)
+	if err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+	} else if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.BatchMode != nil && *resp.Model.Properties.BatchMode {
+		return fmt.Errorf("deleting %s using `azurerm_cdn_frontdoor_rule_set` is not supported when `batch_mode_enabled` is `true`; use `azurerm_cdn_frontdoor_batch_rule_set` instead", id)
+	}
+
+	err = ruleSetDeleteClient.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

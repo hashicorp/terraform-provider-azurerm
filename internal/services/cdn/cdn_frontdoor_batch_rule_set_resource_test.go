@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CdnFrontDoorBatchRuleResource struct{}
+type CdnFrontDoorBatchRuleSetResource struct{}
 
-func TestAccCdnFrontDoorBatchRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
-	r := CdnFrontDoorBatchRuleResource{}
+func TestAccCdnFrontDoorBatchRuleSet_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontDoorBatchRuleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,9 +35,9 @@ func TestAccCdnFrontDoorBatchRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorBatchRule_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
-	r := CdnFrontDoorBatchRuleResource{}
+func TestAccCdnFrontDoorBatchRuleSet_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontDoorBatchRuleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,9 +50,9 @@ func TestAccCdnFrontDoorBatchRule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorBatchRule_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
-	r := CdnFrontDoorBatchRuleResource{}
+func TestAccCdnFrontDoorBatchRuleSet_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontDoorBatchRuleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,9 +65,9 @@ func TestAccCdnFrontDoorBatchRule_complete(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorBatchRule_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
-	r := CdnFrontDoorBatchRuleResource{}
+func TestAccCdnFrontDoorBatchRuleSet_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontDoorBatchRuleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,9 +87,9 @@ func TestAccCdnFrontDoorBatchRule_update(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorBatchRule_collectionReorderUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
-	r := CdnFrontDoorBatchRuleResource{}
+func TestAccCdnFrontDoorBatchRuleSet_collectionReorderUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontDoorBatchRuleSetResource{}
 
 	primaryRuleName := fmt.Sprintf("accTestBatchRule%d", data.RandomInteger)
 	extraRuleName := fmt.Sprintf("accTestBatchRuleExtra%d", data.RandomInteger)
@@ -137,9 +137,9 @@ func TestAccCdnFrontDoorBatchRule_collectionReorderUpdate(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorBatchRule_routeConfigurationOverrideValidation(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
-	r := CdnFrontDoorBatchRuleResource{}
+func TestAccCdnFrontDoorBatchRuleSet_routeConfigurationOverrideValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontDoorBatchRuleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -149,9 +149,9 @@ func TestAccCdnFrontDoorBatchRule_routeConfigurationOverrideValidation(t *testin
 	})
 }
 
-func TestAccCdnFrontDoorBatchRule_urlFilenameConditionOperatorAny(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
-	r := CdnFrontDoorBatchRuleResource{}
+func TestAccCdnFrontDoorBatchRuleSet_urlFilenameConditionOperatorAny(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontDoorBatchRuleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -166,9 +166,9 @@ func TestAccCdnFrontDoorBatchRule_urlFilenameConditionOperatorAny(t *testing.T) 
 	})
 }
 
-func TestAccCdnFrontDoorBatchRule_conditionValidation(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
-	r := CdnFrontDoorBatchRuleResource{}
+func TestAccCdnFrontDoorBatchRuleSet_conditionValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontDoorBatchRuleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -190,9 +190,9 @@ func TestAccCdnFrontDoorBatchRule_conditionValidation(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorBatchRule_rulesValidation(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "test")
-	r := CdnFrontDoorBatchRuleResource{}
+func TestAccCdnFrontDoorBatchRuleSet_rulesValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontDoorBatchRuleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -210,15 +210,15 @@ func TestAccCdnFrontDoorBatchRule_rulesValidation(t *testing.T) {
 	})
 }
 
-func (r CdnFrontDoorBatchRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontDoorBatchRuleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := rules.ParseRuleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	legacyRuleSetID := legacyrulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
-	client := clients.Cdn.FrontDoorRuleSetsClient_v2025_12_01
-	resp, err := client.Get(ctx, legacyRuleSetID)
+	ruleSetResourceId := legacyrulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
+	batchModeRuleSetClient := clients.Cdn.FrontDoorRuleSetsClient_v2025_12_01
+	resp, err := batchModeRuleSetClient.Get(ctx, ruleSetResourceId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -229,7 +229,7 @@ func (r CdnFrontDoorBatchRuleResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(true), nil
 }
 
-func (r CdnFrontDoorBatchRuleResource) template(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
@@ -267,12 +267,6 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   weight                         = 1
 }
 
-resource "azurerm_cdn_frontdoor_rule_set" "test" {
-  name                     = "accTestBatchRuleSet%[1]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  batch_mode_enabled       = true
-}
-
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
   name                     = "accTestEndpoint-%[1]d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
@@ -283,28 +277,29 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
-  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.test.id]
+  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_batch_rule_set.test.id]
   patterns_to_match             = ["/*"]
   supported_protocols           = ["Http", "Https"]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnFrontDoorBatchRuleResource) basic(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name  = "accTestBatchRule%d"
+    name  = "accTestBatchRule%[2]d"
     order = 0
 
     actions {
@@ -323,17 +318,18 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorBatchRuleResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "import" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "import" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name  = "accTestBatchRule%d"
+    name  = "accTestBatchRule%[2]d"
     order = 0
 
     actions {
@@ -352,21 +348,22 @@ resource "azurerm_cdn_frontdoor_batch_rule" "import" {
 `, r.basic(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorBatchRuleResource) complete(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name              = "accTestBatchRule%d"
+    name              = "accTestBatchRule%[2]d"
     behavior_on_match = "Continue"
     order             = 1
 
@@ -411,7 +408,7 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
   }
 
   rules {
-    name  = "accTestBatchRuleExtra%d"
+    name  = "accTestBatchRuleExtra%[3]d"
     order = 2
 
     actions {
@@ -426,21 +423,22 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r CdnFrontDoorBatchRuleResource) update(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name              = "accTestBatchRuleExtra%d"
+    name              = "accTestBatchRuleExtra%[2]d"
     behavior_on_match = "Stop"
     order             = 1
 
@@ -481,21 +479,22 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorBatchRuleResource) insertAndReorder(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) insertAndReorder(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name              = "accTestBatchRule%d"
+    name              = "accTestBatchRule%[2]d"
     behavior_on_match = "Continue"
     order             = 1
 
@@ -513,7 +512,7 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
   }
 
   rules {
-    name              = "accTestBatchRuleInserted%d"
+    name              = "accTestBatchRuleInserted%[3]d"
     behavior_on_match = "Continue"
     order             = 2
 
@@ -527,7 +526,7 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
   }
 
   rules {
-    name  = "accTestBatchRuleExtra%d"
+    name  = "accTestBatchRuleExtra%[4]d"
     order = 3
 
     actions {
@@ -542,21 +541,22 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r CdnFrontDoorBatchRuleResource) deleteAndReorder(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) deleteAndReorder(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name              = "accTestBatchRuleInserted%d"
+    name              = "accTestBatchRuleInserted%[2]d"
     behavior_on_match = "Stop"
     order             = 1
 
@@ -574,7 +574,7 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
   }
 
   rules {
-    name  = "accTestBatchRuleExtra%d"
+    name  = "accTestBatchRuleExtra%[3]d"
     order = 2
 
     actions {
@@ -589,21 +589,22 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r CdnFrontDoorBatchRuleResource) invalidRouteConfigurationOverrideMissingQueryStringCachingBehavior(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) invalidRouteConfigurationOverrideMissingQueryStringCachingBehavior(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name  = "accTestBatchRule%d"
+    name  = "accTestBatchRule%[2]d"
     order = 1
 
     actions {
@@ -619,21 +620,22 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorBatchRuleResource) urlFilenameConditionOperator(data acceptance.TestData, operator string) string {
+func (r CdnFrontDoorBatchRuleSetResource) urlFilenameConditionOperator(data acceptance.TestData, operator string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name              = "accTestBatchRule%d"
+    name              = "accTestBatchRule%[2]d"
     behavior_on_match = "Stop"
     order             = 1
 
@@ -647,7 +649,7 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 
     conditions {
       url_filename_condition {
-        operator = "%s"
+        operator = "%[3]s"
       }
     }
   }
@@ -655,21 +657,22 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 `, r.template(data), data.RandomInteger, operator)
 }
 
-func (r CdnFrontDoorBatchRuleResource) requestSchemeConditionOperatorAny(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) requestSchemeConditionOperatorAny(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name  = "accTestBatchRule%d"
+    name  = "accTestBatchRule%[2]d"
     order = 1
 
     actions {
@@ -691,21 +694,22 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorBatchRuleResource) remoteAddressGeoMatchInvalid(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) remoteAddressGeoMatchInvalid(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name  = "accTestBatchRule%d"
+    name  = "accTestBatchRule%[2]d"
     order = 1
 
     actions {
@@ -727,21 +731,22 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorBatchRuleResource) socketAddressConditionInvalidCIDR(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) socketAddressConditionInvalidCIDR(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name  = "accTestBatchRule%d"
+    name  = "accTestBatchRule%[2]d"
     order = 1
 
     actions {
@@ -763,21 +768,22 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorBatchRuleResource) duplicateRuleName(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) duplicateRuleName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name  = "accTestBatchRule%d"
+    name  = "accTestBatchRule%[2]d"
     order = 1
 
     actions {
@@ -790,7 +796,7 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
   }
 
   rules {
-    name  = "accTestBatchRule%d"
+    name  = "accTestBatchRule%[3]d"
     order = 2
 
     actions {
@@ -805,21 +811,22 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r CdnFrontDoorBatchRuleResource) duplicateRuleOrder(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) duplicateRuleOrder(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name  = "accTestBatchRule%d"
+    name  = "accTestBatchRule%[2]d"
     order = 1
 
     actions {
@@ -832,7 +839,7 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
   }
 
   rules {
-    name  = "accTestBatchRuleExtra%d"
+    name  = "accTestBatchRuleExtra%[3]d"
     order = 1
 
     actions {
@@ -847,21 +854,22 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r CdnFrontDoorBatchRuleResource) unsortedRules(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) unsortedRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
-resource "azurerm_cdn_frontdoor_batch_rule" "test" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   rules {
-    name  = "accTestBatchRule%d"
+    name  = "accTestBatchRule%[2]d"
     order = 2
 
     actions {
@@ -874,7 +882,7 @@ resource "azurerm_cdn_frontdoor_batch_rule" "test" {
   }
 
   rules {
-    name  = "accTestBatchRulePrimary%d"
+    name  = "accTestBatchRulePrimary%[3]d"
     order = 1
 
     actions {

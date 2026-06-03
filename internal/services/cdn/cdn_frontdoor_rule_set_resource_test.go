@@ -92,21 +92,6 @@ func TestAccCdnFrontDoorRuleSet_complete_attachedRoute(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRuleSet_batchModeEnabled_attachedRoute(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
-	r := CdnFrontDoorRuleSetResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.batchModeEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("batch_mode_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r CdnFrontDoorRuleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Cdn.FrontDoorRuleSetsClient_v2025_12_01
 
@@ -159,22 +144,6 @@ provider "azurerm" {
 resource "azurerm_cdn_frontdoor_rule_set" "test" {
   name                     = "acctestfdruleset%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-}
-`, r.templateWithAttachedRoute(data, attachRoute), data.RandomIntOfLength(8))
-}
-
-func (r CdnFrontDoorRuleSetResource) batchModeEnabled(data acceptance.TestData, attachRoute bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_cdn_frontdoor_rule_set" "test" {
-  name                     = "acctestfdbatchruleset%d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  batch_mode_enabled       = true
 }
 `, r.templateWithAttachedRoute(data, attachRoute), data.RandomIntOfLength(8))
 }

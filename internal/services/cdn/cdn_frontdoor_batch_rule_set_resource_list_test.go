@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccCdnFrontDoorBatchRule_listByRuleSetID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule", "testlist1")
-	r := CdnFrontDoorBatchRuleResource{}
+func TestAccCdnFrontDoorBatchRuleSet_listByProfileID(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "testlist1")
+	r := CdnFrontDoorBatchRuleSetResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -35,13 +35,13 @@ func TestAccCdnFrontDoorBatchRule_listByRuleSetID(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cdn_frontdoor_batch_rule.list", 1),
+					querycheck.ExpectLengthAtLeast("azurerm_cdn_frontdoor_batch_rule_set.list", 1),
 					querycheck.ExpectIdentity(
-						"azurerm_cdn_frontdoor_batch_rule.list",
+						"azurerm_cdn_frontdoor_batch_rule_set.list",
 						map[string]knownvalue.Check{
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"profile_name":        knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"rule_set_name":       knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"name":                knownvalue.StringExact(fmt.Sprintf("accTestBatchRuleSet%d", data.RandomInteger)),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),
@@ -51,7 +51,7 @@ func TestAccCdnFrontDoorBatchRule_listByRuleSetID(t *testing.T) {
 	})
 }
 
-func (r CdnFrontDoorBatchRuleResource) basicQuery(data acceptance.TestData) string {
+func (r CdnFrontDoorBatchRuleSetResource) basicQuery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -59,10 +59,10 @@ provider "azurerm" {
 
 %s
 
-list "azurerm_cdn_frontdoor_batch_rule" "list" {
+list "azurerm_cdn_frontdoor_batch_rule_set" "list" {
   provider = azurerm
   config {
-    cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+		cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
   }
 }
 `, r.basic(data))

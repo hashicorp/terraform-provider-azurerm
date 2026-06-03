@@ -1307,16 +1307,3 @@ func flattenFrontdoorDeliveryRuleActions(input *[]rules.DeliveryRuleAction) ([]i
 		},
 	}, nil
 }
-
-func ensureNonBatchRuleSetMode(ctx context.Context, client *clients.Client, id rulesets.RuleSetId) error {
-	resp, err := client.Cdn.FrontDoorRuleSetsClient_v2025_12_01.Get(ctx, id)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	if resp.Model != nil && resp.Model.Properties != nil && pointer.From(resp.Model.Properties.BatchMode) {
-		return fmt.Errorf("creating or updating an individually managed Front Door Rule in %s is not supported when `batch_mode_enabled` is `true` on the parent Rule Set; use `azurerm_cdn_frontdoor_batch_rule` instead or create a new Rule Set where `batch_mode_enabled` is `false`", id)
-	}
-
-	return nil
-}

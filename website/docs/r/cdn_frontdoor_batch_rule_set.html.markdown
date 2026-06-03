@@ -1,18 +1,18 @@
 ---
 subcategory: "CDN"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_batch_rule"
+page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_batch_rule_set"
 description: |-
-  Manages the ordered Front Door (standard/premium) Batch Rule collection for a Rule Set.
+  Manages a Front Door (standard/premium) Batch Rule Set.
 ---
 
-# azurerm_cdn_frontdoor_batch_rule
+# azurerm_cdn_frontdoor_batch_rule_set
 
-Manages the ordered Front Door (standard/premium) Batch Rule collection for a Rule Set.
+Manages a Front Door (standard/premium) Batch Rule Set.
 
-!> **Note:** The Batch Rule resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group`.
+~> **Note:** This resource creates the Front Door Rule Set in batch mode and manages the full ordered batch rule collection for it. Any change to the configured `rules` blocks sends the desired final ordered rule list to the Resource Provider in a single request.
 
-~> **Note:** This resource manages the full ordered batch rule collection for a Rule Set. Any change to the configured `rules` blocks sends the desired final ordered rule list to the Resource Provider in a single request.
+~> **Note:** Use `azurerm_cdn_frontdoor_rule_set` together with `azurerm_cdn_frontdoor_rule` for the normal non-batch Rule Set path.
 
 ~> **Note:** Azure Front Door Batch Rule operations are currently affected by a service-side regression where unattached rules or rule sets can fail with `400 Bad Request` until they are associated with a Front Door Route. As a result, unattached and attached scenarios can currently behave differently while the service-side fix is pending.
 
@@ -75,16 +75,9 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
   weight             = 500
 }
 
-resource "azurerm_cdn_frontdoor_rule_set" "example" {
+resource "azurerm_cdn_frontdoor_batch_rule_set" "example" {
   name                     = "examplebatchruleset"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
-  batch_mode_enabled       = true
-}
-
-resource "azurerm_cdn_frontdoor_batch_rule" "example" {
-  depends_on = [azurerm_cdn_frontdoor_origin_group.example, azurerm_cdn_frontdoor_origin.example]
-
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.example.id
 
   rules {
     name              = "examplebatchrule"
@@ -154,11 +147,11 @@ resource "azurerm_cdn_frontdoor_batch_rule" "example" {
 
 The following arguments are supported:
 
-* `cdn_frontdoor_rule_set_id` - (Required) The resource ID of the Front Door Rule Set for this Front Door Batch Rule. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Front Door Batch Rule Set. Changing this forces a new resource to be created.
 
-~> **Note:** The parent Rule Set must have `batch_mode_enabled = true`. Front Door Batch Rules and individually managed Front Door Standard/Premium Rules cannot be managed together in the same Rule Set.
+* `cdn_frontdoor_profile_id` - (Required) The resource ID of the Front Door Profile where this Front Door Batch Rule Set should be created. Changing this forces a new resource to be created.
 
-* `rules` - (Required) One or more `rules` blocks as defined below. The configured blocks represent the complete set of rules managed for the parent Rule Set. The final rule ordering is determined by each block's `order` value.
+* `rules` - (Required) One or more `rules` blocks as defined below. The configured blocks represent the complete set of rules managed for this Front Door Batch Rule Set. The final rule ordering is determined by each block's `order` value.
 
 -> **Note:** The `rules` blocks must be declared in ascending `order`. To insert, remove, or move a rule, update the full `rules` collection in the same ascending order that you want Terraform to store.
 
@@ -623,25 +616,23 @@ For rules that can transform strings, the following transforms are valid:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Front Door Rule Set backing this Batch Rule collection.
-
-* `cdn_frontdoor_rule_set_name` - The name of the Front Door Rule Set containing this Batch Rule collection.
+* `id` - The ID of the Front Door Batch Rule Set.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 4 hours) Used when creating the Front Door Batch Rule collection.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Batch Rule collection.
-* `update` - (Defaults to 4 hours) Used when updating the Front Door Batch Rule collection.
-* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Batch Rule collection.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Batch Rule Set.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Batch Rule Set.
+* `update` - (Defaults to 4 hours) Used when updating the Front Door Batch Rule Set.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Batch Rule Set.
 
 ## Import
 
-A Front Door Batch Rule collection can be imported using the parent Rule Set `resource id`, e.g.
+A Front Door Batch Rule Set can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cdn_frontdoor_batch_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1
+terraform import azurerm_cdn_frontdoor_batch_rule_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1
 ```
 
 ## API Providers

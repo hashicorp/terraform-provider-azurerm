@@ -4,11 +4,13 @@
 package cdn
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -18,18 +20,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var batchRuleComputedSchema = map[string]*pluginsdk.Schema{
-	"cdn_frontdoor_rule_set_name": {
-		Type:     pluginsdk.TypeString,
-		Computed: true,
-	},
-}
-
-type CdnFrontDoorBatchRuleModel struct {
-	CdnFrontDoorRuleSetID   string                           `tfschema:"cdn_frontdoor_rule_set_id"`
-	Rules                   []CdnFrontDoorBatchRuleRuleModel `tfschema:"rules"`
-	CdnFrontDoorRuleSetName string                           `tfschema:"cdn_frontdoor_rule_set_name"`
-	ID                      string                           `tfschema:"id"`
+type CdnFrontDoorBatchRuleSetModel struct {
+	Name                  string                           `tfschema:"name"`
+	CdnFrontDoorProfileID string                           `tfschema:"cdn_frontdoor_profile_id"`
+	Rules                 []CdnFrontDoorBatchRuleRuleModel `tfschema:"rules"`
+	ID                    string                           `tfschema:"id"`
 }
 
 type CdnFrontDoorBatchRuleRuleModel struct {
@@ -162,13 +157,19 @@ type CdnFrontDoorBatchRuleSSLProtocolConditionModel struct {
 	MatchValues     []string `tfschema:"match_values"`
 }
 
-func cdnFrontDoorBatchRuleArguments() map[string]*pluginsdk.Schema {
+func cdnFrontDoorBatchRuleSetArguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"cdn_frontdoor_rule_set_id": {
+		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: rules.ValidateRuleSetID,
+			ValidateFunc: validate.FrontDoorRuleSetName,
+		},
+		"cdn_frontdoor_profile_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.FrontDoorProfileID,
 		},
 		"rules": cdnFrontDoorBatchRulesSchema(),
 	}
@@ -202,6 +203,7 @@ func cdnFrontDoorBatchRulesSchema() *pluginsdk.Schema {
 	}
 }
 
+// lintignore:AZSD002 The `rules` block is repeatable, so Plugin SDK cannot use schema-level AtLeastOneOf paths here. Non-empty `actions` and `route_configuration_override_action` blocks are enforced in expand validation.
 func cdnFrontDoorBatchRuleActionsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -237,7 +239,7 @@ func cdnFrontDoorBatchRuleActionsSchema() *pluginsdk.Schema {
 				Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 					"header_action": {Type: pluginsdk.TypeString, Required: true, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForHeaderAction(), false)},
 					"header_name":   {Type: pluginsdk.TypeString, Required: true, ValidateFunc: validation.StringIsNotEmpty},
-					"value":         {Type: pluginsdk.TypeString, Optional: true},
+					"value":         {Type: pluginsdk.TypeString, Optional: true, ValidateFunc: validation.StringIsNotEmpty},
 				}},
 			},
 			"response_header_action": {
@@ -246,7 +248,7 @@ func cdnFrontDoorBatchRuleActionsSchema() *pluginsdk.Schema {
 				Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 					"header_action": {Type: pluginsdk.TypeString, Required: true, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForHeaderAction(), false)},
 					"header_name":   {Type: pluginsdk.TypeString, Required: true, ValidateFunc: validation.StringIsNotEmpty},
-					"value":         {Type: pluginsdk.TypeString, Optional: true},
+					"value":         {Type: pluginsdk.TypeString, Optional: true, ValidateFunc: validation.StringIsNotEmpty},
 				}},
 			},
 			"route_configuration_override_action": {
@@ -375,11 +377,11 @@ func batchTransformsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{Type: pluginsdk.TypeSet, Optional: true, MaxItems: 4, Elem: &pluginsdk.Schema{Type: pluginsdk.TypeString, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForTransform(), false)}}
 }
 
-func (r CdnFrontDoorBatchRuleResource) flatten(metadata sdk.ResourceMetaData, id *rules.RuleSetId, model *azuresdkhacks.RuleSet2025) error {
-	state := CdnFrontDoorBatchRuleModel{
-		ID:                      id.ID(),
-		CdnFrontDoorRuleSetID:   id.ID(),
-		CdnFrontDoorRuleSetName: id.RuleSetName,
+func (r CdnFrontDoorBatchRuleSetResource) flatten(metadata sdk.ResourceMetaData, id *rules.RuleSetId, model *azuresdkhacks.BatchRuleSetResource) error {
+	state := CdnFrontDoorBatchRuleSetModel{
+		ID:                    id.ID(),
+		Name:                  id.RuleSetName,
+		CdnFrontDoorProfileID: profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID(),
 	}
 
 	if model != nil && model.Properties != nil && model.Properties.Rules != nil {
@@ -397,9 +399,9 @@ func (r CdnFrontDoorBatchRuleResource) flatten(metadata sdk.ResourceMetaData, id
 	return metadata.Encode(&state)
 }
 
-func flattenCdnFrontDoorBatchRules(input []rules.Rule) ([]CdnFrontDoorBatchRuleRuleModel, error) {
+func flattenCdnFrontDoorBatchRules(input []azuresdkhacks.BatchRuleProperties) ([]CdnFrontDoorBatchRuleRuleModel, error) {
 	results := make([]CdnFrontDoorBatchRuleRuleModel, 0, len(input))
-	sorted := append([]rules.Rule(nil), input...)
+	sorted := append([]azuresdkhacks.BatchRuleProperties(nil), input...)
 	sort.SliceStable(sorted, func(i, j int) bool {
 		return batchRuleOrder(sorted[i]) < batchRuleOrder(sorted[j])
 	})
@@ -407,7 +409,7 @@ func flattenCdnFrontDoorBatchRules(input []rules.Rule) ([]CdnFrontDoorBatchRuleR
 	for _, item := range sorted {
 		ruleState, err := flattenCdnFrontDoorBatchRule(item)
 		if err != nil {
-			return nil, err
+			return []CdnFrontDoorBatchRuleRuleModel{}, err
 		}
 		results = append(results, ruleState)
 	}
@@ -415,52 +417,49 @@ func flattenCdnFrontDoorBatchRules(input []rules.Rule) ([]CdnFrontDoorBatchRuleR
 	return results, nil
 }
 
-func flattenCdnFrontDoorBatchRule(input rules.Rule) (CdnFrontDoorBatchRuleRuleModel, error) {
+func flattenCdnFrontDoorBatchRule(input azuresdkhacks.BatchRuleProperties) (CdnFrontDoorBatchRuleRuleModel, error) {
 	state := CdnFrontDoorBatchRuleRuleModel{
 		Name: pointer.From(input.Name),
 	}
 
-	if input.Properties != nil {
-		props := input.Properties
-		state.BehaviorOnMatch = string(pointer.From(props.MatchProcessingBehavior))
-		state.Order = pointer.From(props.Order)
+	state.BehaviorOnMatch = string(pointer.From(input.MatchProcessingBehavior))
+	state.Order = pointer.From(input.Order)
 
-		actions, err := flattenCdnFrontDoorBatchRuleActions(props.Actions)
-		if err != nil {
-			return CdnFrontDoorBatchRuleRuleModel{}, fmt.Errorf("flattening `actions`: %+v", err)
-		}
-		state.Actions = actions
-
-		conditions, err := flattenCdnFrontDoorBatchRuleConditions(props.Conditions)
-		if err != nil {
-			return CdnFrontDoorBatchRuleRuleModel{}, fmt.Errorf("flattening `conditions`: %+v", err)
-		}
-		state.Conditions = conditions
+	actions, err := flattenCdnFrontDoorBatchRuleActions(input.Actions)
+	if err != nil {
+		return CdnFrontDoorBatchRuleRuleModel{}, fmt.Errorf("flattening `actions`: %+v", err)
 	}
+	state.Actions = actions
+
+	conditions, err := flattenCdnFrontDoorBatchRuleConditions(input.Conditions)
+	if err != nil {
+		return CdnFrontDoorBatchRuleRuleModel{}, fmt.Errorf("flattening `conditions`: %+v", err)
+	}
+	state.Conditions = conditions
 
 	return state, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetPayload(batchMode bool, model CdnFrontDoorBatchRuleModel, ruleSetName string) (azuresdkhacks.RuleSet2025, error) {
-	expandedRules, err := expandCdnFrontDoorBatchRules(model.Rules, ruleSetName)
+func expandCdnFrontDoorBatchRuleSetPayload(batchMode bool, model CdnFrontDoorBatchRuleSetModel) (azuresdkhacks.BatchRuleSetResource, error) {
+	expandedRules, err := expandCdnFrontDoorBatchRules(model.Rules)
 	if err != nil {
-		return azuresdkhacks.RuleSet2025{}, err
+		return azuresdkhacks.BatchRuleSetResource{}, err
 	}
 
-	return azuresdkhacks.RuleSet2025{
-		Properties: &azuresdkhacks.RuleSetProperties2025{
+	return azuresdkhacks.BatchRuleSetResource{
+		Properties: &azuresdkhacks.BatchRuleSetProperties{
 			BatchMode: pointer.To(batchMode),
 			Rules:     pointer.To(expandedRules),
 		},
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleRuleModel, ruleSetName string) ([]rules.Rule, error) {
+func expandCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleRuleModel) ([]azuresdkhacks.BatchRuleProperties, error) {
 	if err := validateCdnFrontDoorBatchRules(input); err != nil {
 		return nil, err
 	}
 
-	results := make([]rules.Rule, 0, len(input))
+	results := make([]azuresdkhacks.BatchRuleProperties, 0, len(input))
 	for _, item := range input {
 		actions, err := expandCdnFrontDoorBatchRuleActions(item.Actions)
 		if err != nil {
@@ -472,15 +471,12 @@ func expandCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleRuleModel, ruleSe
 			return nil, err
 		}
 
-		results = append(results, rules.Rule{
-			Name: pointer.To(item.Name),
-			Properties: &rules.RuleProperties{
-				Actions:                 pointer.To(actions),
-				Conditions:              pointer.To(conditions),
-				MatchProcessingBehavior: pointer.To(rules.MatchProcessingBehavior(item.BehaviorOnMatch)),
-				Order:                   pointer.To(item.Order),
-				RuleSetName:             pointer.To(ruleSetName),
-			},
+		results = append(results, azuresdkhacks.BatchRuleProperties{
+			Actions:                 pointer.To(actions),
+			Conditions:              pointer.To(conditions),
+			MatchProcessingBehavior: pointer.ToEnum[rules.MatchProcessingBehavior](item.BehaviorOnMatch),
+			Order:                   pointer.To(item.Order),
+			RuleName:                pointer.To(item.Name),
 		})
 	}
 
@@ -519,23 +515,19 @@ func validateCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleRuleModel) erro
 	return nil
 }
 
-func batchRuleOrder(input rules.Rule) int64 {
-	if input.Properties == nil {
-		return 0
-	}
-
-	return pointer.From(input.Properties.Order)
+func batchRuleOrder(input azuresdkhacks.BatchRuleProperties) int64 {
+	return pointer.From(input.Order)
 }
 
 func expandCdnFrontDoorBatchRuleActions(input []CdnFrontDoorBatchRuleActionsModel) ([]rules.DeliveryRuleAction, error) {
 	results := make([]rules.DeliveryRuleAction, 0)
 	if len(input) == 0 {
-		return results, nil
+		return nil, errors.New("the `actions` block must contain at least one action")
 	}
 
 	actions := input[0]
 	if len(actions.URLRewriteAction) > 0 && len(actions.URLRedirectAction) > 0 {
-		return nil, fmt.Errorf("the `actions` block cannot contain both `url_rewrite_action` and `url_redirect_action`")
+		return nil, errors.New("the `actions` block cannot contain both `url_rewrite_action` and `url_redirect_action`")
 	}
 	if len(actions.URLRewriteAction) > 1 {
 		return nil, fmt.Errorf("the `url_rewrite_action` block is only allowed once in `actions`, got %d", len(actions.URLRewriteAction))
@@ -622,13 +614,16 @@ func expandCdnFrontDoorBatchRuleActions(input []CdnFrontDoorBatchRuleActionsMode
 	if len(results) > 5 {
 		return nil, fmt.Errorf("the `actions` block may only contain up to 5 match actions, got %d", len(results))
 	}
+	if len(results) == 0 {
+		return nil, errors.New("the `actions` block must contain at least one action")
+	}
 
 	return results, nil
 }
 
 func flattenCdnFrontDoorBatchRuleActions(input *[]rules.DeliveryRuleAction) ([]CdnFrontDoorBatchRuleActionsModel, error) {
 	if input == nil {
-		return nil, nil
+		return []CdnFrontDoorBatchRuleActionsModel{}, nil
 	}
 
 	actions := CdnFrontDoorBatchRuleActionsModel{}
@@ -669,7 +664,7 @@ func flattenCdnFrontDoorBatchRuleActions(input *[]rules.DeliveryRuleAction) ([]C
 			item := action.(rules.DeliveryRuleRouteConfigurationOverrideAction)
 			actions.RouteConfigurationOverrideAction = append(actions.RouteConfigurationOverrideAction, flattenRouteConfigurationOverrideAction(item.Parameters))
 		default:
-			return nil, fmt.Errorf("unsupported batch rule action %q encountered", action.DeliveryRuleAction().Name)
+			return []CdnFrontDoorBatchRuleActionsModel{}, fmt.Errorf("unsupported batch rule action %q encountered", action.DeliveryRuleAction().Name)
 		}
 	}
 
@@ -678,13 +673,17 @@ func flattenCdnFrontDoorBatchRuleActions(input *[]rules.DeliveryRuleAction) ([]C
 
 func expandRouteConfigurationOverrideAction(input CdnFrontDoorBatchRuleRouteConfigurationOverrideActionModel) (*rules.OriginGroupOverride, *rules.CacheConfiguration, error) {
 	var originGroupOverride *rules.OriginGroupOverride
+	if input.CdnFrontDoorOriginGroupID == "" && input.ForwardingProtocol == "" && input.QueryStringCachingBehavior == "" && len(input.QueryStringParameters) == 0 && !input.CompressionEnabled && input.CacheBehavior == "" && input.CacheDuration == "" {
+		return nil, nil, errors.New("the `route_configuration_override_action` block must define at least one field")
+	}
+
 	if input.CdnFrontDoorOriginGroupID != "" {
 		if input.ForwardingProtocol == "" {
-			return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, the `forwarding_protocol` field must be set")
+			return nil, nil, errors.New("the `route_configuration_override_action` block is not valid, the `forwarding_protocol` field must be set")
 		}
 		originGroupOverride = &rules.OriginGroupOverride{
 			OriginGroup:        &rules.ResourceReference{Id: pointer.To(input.CdnFrontDoorOriginGroupID)},
-			ForwardingProtocol: pointer.To(rules.ForwardingProtocol(input.ForwardingProtocol)),
+			ForwardingProtocol: pointer.ToEnum[rules.ForwardingProtocol](input.ForwardingProtocol),
 		}
 	} else if input.ForwardingProtocol != "" {
 		return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, if the `cdn_frontdoor_origin_group_id` is not set you cannot define the `forwarding_protocol`, got %q", input.ForwardingProtocol)
@@ -707,19 +706,19 @@ func expandRouteConfigurationOverrideAction(input CdnFrontDoorBatchRuleRouteConf
 			}
 		} else {
 			if cacheBehavior == "" {
-				return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, the `cache_behavior` field must be set")
+				return nil, nil, errors.New("the `route_configuration_override_action` block is not valid, the `cache_behavior` field must be set")
 			}
 
 			if input.QueryStringCachingBehavior == "" {
-				return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, the `query_string_caching_behavior` field must be set")
+				return nil, nil, errors.New("the `route_configuration_override_action` block is not valid, the `query_string_caching_behavior` field must be set")
 			}
 
 			if cacheBehavior != string(rules.RuleCacheBehaviorHonorOrigin) {
 				if input.CacheDuration == "" {
-					return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, the `cache_duration` field must be set")
+					return nil, nil, errors.New("the `route_configuration_override_action` block is not valid, the `cache_duration` field must be set")
 				}
 			} else if input.CacheDuration != "" {
-				return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, the `cache_duration` field must not be set if the `cache_behavior` is `HonorOrigin`")
+				return nil, nil, errors.New("the `route_configuration_override_action` block is not valid, the `cache_duration` field must not be set if the `cache_behavior` is `HonorOrigin`")
 			}
 		}
 
@@ -727,7 +726,7 @@ func expandRouteConfigurationOverrideAction(input CdnFrontDoorBatchRuleRouteConf
 			return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, the `query_string_parameters` field must be set when `query_string_caching_behavior` is %q", input.QueryStringCachingBehavior)
 		}
 		if len(input.QueryStringParameters) > 0 && (input.QueryStringCachingBehavior == string(rules.RuleQueryStringCachingBehaviorUseQueryString) || input.QueryStringCachingBehavior == string(rules.RuleQueryStringCachingBehaviorIgnoreQueryString)) {
-			return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, `query_string_parameters` must not be set if the `query_string_caching_behavior` is `UseQueryStrings` or `IgnoreQueryStrings`")
+			return nil, nil, errors.New("the `route_configuration_override_action` block is not valid, `query_string_parameters` must not be set if the `query_string_caching_behavior` is `UseQueryStrings` or `IgnoreQueryStrings`")
 		}
 
 		compressionEnabled := rules.RuleIsCompressionEnabledDisabled
@@ -736,7 +735,7 @@ func expandRouteConfigurationOverrideAction(input CdnFrontDoorBatchRuleRouteConf
 		}
 
 		cacheConfiguration = &rules.CacheConfiguration{
-			CacheBehavior:              pointer.To(rules.RuleCacheBehavior(cacheBehavior)),
+			CacheBehavior:              pointer.ToEnum[rules.RuleCacheBehavior](cacheBehavior),
 			CacheDuration:              stringPointerOrNil(input.CacheDuration),
 			IsCompressionEnabled:       pointer.To(compressionEnabled),
 			QueryParameters:            stringPointerOrNil(strings.Join(input.QueryStringParameters, ",")),
@@ -897,7 +896,7 @@ func expandCdnFrontDoorBatchRuleConditions(input []CdnFrontDoorBatchRuleConditio
 
 func flattenCdnFrontDoorBatchRuleConditions(input *[]rules.DeliveryRuleCondition) ([]CdnFrontDoorBatchRuleConditionsModel, error) {
 	if input == nil {
-		return nil, nil
+		return []CdnFrontDoorBatchRuleConditionsModel{}, nil
 	}
 
 	conditions := CdnFrontDoorBatchRuleConditionsModel{}
@@ -961,7 +960,7 @@ func flattenCdnFrontDoorBatchRuleConditions(input *[]rules.DeliveryRuleCondition
 			item := condition.(rules.DeliveryRuleSslProtocolCondition)
 			conditions.SSLProtocolCondition = append(conditions.SSLProtocolCondition, CdnFrontDoorBatchRuleSSLProtocolConditionModel{Operator: string(item.Parameters.Operator), NegateCondition: pointer.From(item.Parameters.NegateCondition), MatchValues: sslProtocolValuesToStrings(item.Parameters.MatchValues)})
 		default:
-			return nil, fmt.Errorf("unsupported batch rule condition %q encountered", condition.DeliveryRuleCondition().Name)
+			return []CdnFrontDoorBatchRuleConditionsModel{}, fmt.Errorf("unsupported batch rule condition %q encountered", condition.DeliveryRuleCondition().Name)
 		}
 	}
 

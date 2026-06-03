@@ -30,27 +30,6 @@ resource "azurerm_cdn_frontdoor_rule_set" "example" {
 }
 ```
 
-### Batch Mode
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-cdn-frontdoor"
-  location = "West Europe"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "example" {
-  name                = "example-profile"
-  resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "Standard_AzureFrontDoor"
-}
-
-resource "azurerm_cdn_frontdoor_rule_set" "example" {
-  name                     = "ExampleBatchRuleSet"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
-  batch_mode_enabled       = true
-}
-```
-
 ## Arguments Reference
 
 The following arguments are supported:
@@ -59,11 +38,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile. Changing this forces a new resource to be created.
 
-* `batch_mode_enabled` - (Optional) Whether this Front Door Rule Set uses batch mode for batch rule updates. Defaults to `false`. Changing this forces a new resource to be created.
-
-~> **Note:** `batch_mode_enabled` is an explicit opt-in to batch rule updates at the Rule Set level. Once a Rule Set is created in batch mode, it cannot be switched back to the existing Front Door Standard/Premium per-rule update mode. To change modes, create a new Rule Set and re-associate the routes.
-
-~> **Note:** `azurerm_cdn_frontdoor_batch_rule` requires `batch_mode_enabled = true` on the parent Rule Set and manages the full ordered batch rule collection for that Rule Set. `azurerm_cdn_frontdoor_rule` resources must use a Rule Set where `batch_mode_enabled` is `false`.
+~> **Note:** This resource manages the non-batch Front Door Standard/Premium Rule Set path. To create a batch-mode Rule Set with inline `rules`, use `azurerm_cdn_frontdoor_batch_rule_set` instead.
 
 ## Attributes Reference
 

@@ -33,7 +33,7 @@ type Client struct {
 	FrontDoorProfilesClient             *profiles.ProfilesClient
 	FrontDoorSecretsClient              *cdnFrontDoorSdk.SecretsClient
 	FrontDoorRuleSetsClient             *rulesets.RuleSetsClient
-	FrontDoorRuleSetsClient_v2025_12_01 *azuresdkhacks.RuleSets2025Client
+	FrontDoorRuleSetsClient_v2025_12_01 *azuresdkhacks.BatchRuleSetsClient
 	FrontDoorFirewallPoliciesClient     *waf.WebApplicationFirewallPoliciesClient
 	CustomDomainsClient                 *cdnSdk.CustomDomainsClient
 	EndpointsClient                     *cdnSdk.EndpointsClient
@@ -100,7 +100,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(frontDoorRuleSetsClient.Client, o.Authorizers.ResourceManager)
 
-	frontDoorRuleSetsClient_v2025_12_01, err := azuresdkhacks.NewRuleSets2025ClientWithBaseURI(o.Environment.ResourceManager)
+	frontDoorRuleSetsClient_v2025_12_01, err := azuresdkhacks.NewBatchRuleSetsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building RuleSet v2025_12_01: %+v", err)
 	}

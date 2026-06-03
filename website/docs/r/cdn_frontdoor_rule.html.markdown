@@ -154,7 +154,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_rule_set_id` - (Required) The resource ID of the Front Door Rule Set for this Front Door Rule. Changing this forces a new resource to be created.
 
-~> **Note:** The parent Rule Set must use the existing Front Door Standard/Premium per-rule update mode. If `batch_mode_enabled` is `true` on the Rule Set, use `azurerm_cdn_frontdoor_batch_rule` instead.
+~> **Note:** The parent Rule Set must use the existing Front Door Standard/Premium per-rule update mode. Batch-mode Rule Sets are managed by `azurerm_cdn_frontdoor_batch_rule_set` instead.
 
 * `actions` - (Required) An `actions` block as defined below.
 
