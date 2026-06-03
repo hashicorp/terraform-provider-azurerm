@@ -194,14 +194,16 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 
   tags = {
     environment = "staging"
+
   }
 }
 
@@ -251,10 +253,10 @@ resource "azurerm_virtual_machine_extension" "test" {
   type_handler_version = "2.0"
 
   settings = <<SETTINGS
-			{
-				"commandToExecute": "hostname"
-			}
-		SETTINGS
+	{
+		"commandToExecute": "hostname"
+	}
+SETTINGS
 
 
   tags = {
@@ -300,14 +302,16 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 
   tags = {
     environment = "staging"
+
   }
 }
 
@@ -357,10 +361,10 @@ resource "azurerm_virtual_machine_extension" "test" {
   type_handler_version = "2.0"
 
   settings = <<SETTINGS
-		{
-			"commandToExecute": "hostname"
-		}
-	SETTINGS
+			{
+				"commandToExecute": "hostname"
+			}
+		SETTINGS
 
 
   tags = {
@@ -425,11 +429,12 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 
   tags = {
     environment = "staging"
@@ -642,11 +647,12 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 
   tags = {
     environment = "staging"
@@ -727,6 +733,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+<<<<<<< HEAD
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
@@ -869,11 +876,12 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 
   tags = {
     environment = "staging"
@@ -1096,11 +1104,12 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 
   tags = {
     environment = "staging"
@@ -1155,10 +1164,10 @@ resource "azurerm_virtual_machine_extension" "test" {
   failure_suppression_enabled = true
 
   settings = <<SETTINGS
-			{
-				"commandToExecute": "hostname"
-			}
-		SETTINGS
+	{
+		"commandToExecute": "hostname"
+	}
+SETTINGS
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}

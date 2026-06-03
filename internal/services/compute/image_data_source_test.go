@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type ImageDataSource struct{}
@@ -92,7 +91,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestpip%d"
 }
 
@@ -172,11 +172,12 @@ resource "azurerm_image" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb  = 30
-    caching  = "None"
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "Standard_LRS"
   }
 
   tags = {
@@ -193,6 +194,7 @@ data "azurerm_image" "test" {
 output "location" {
   value = data.azurerm_image.test.location
 }
+<<<<<<< HEAD
 		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`

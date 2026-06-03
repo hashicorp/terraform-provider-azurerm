@@ -10,13 +10,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -800,11 +799,12 @@ resource "azurerm_gallery_application" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "stacc%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "stacc%[1]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -912,7 +912,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     environment = "staging"
   }
 }
-		`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -953,10 +953,11 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                 = "scripts"
-  storage_container_id = azurerm_storage_container.test.id
-  type                 = "Block"
-  source_content       = "exit 0"
+  name                   = "scripts"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source_content         = "exit 0"
 }
 
 resource "azurerm_gallery_application_version" "test" {
@@ -1050,7 +1051,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     environment = "staging"
   }
 }
-	`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r VirtualMachineDataDiskAttachmentResource) virtualMachineApplicationComplete(data acceptance.TestData) string {

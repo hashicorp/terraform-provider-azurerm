@@ -421,7 +421,6 @@ resource "azurerm_virtual_machine" "testsource" {
 }
 
 func (r ImageResource) setupUnmanagedDisks(data acceptance.TestData) string {
-	template := r.template(data)
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
@@ -506,7 +505,7 @@ resource "azurerm_virtual_machine" "testsource" {
     cost-center = "Ops"
   }
 }
-		`, template)
+`, r.template(data))
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -520,7 +519,7 @@ provider "azurerm" {
   }
 }
 
-	%s
+%s
 
 resource "azurerm_network_interface" "testsource" {
   name                = "acctnicsource-${local.number}"
@@ -591,7 +590,7 @@ resource "azurerm_virtual_machine" "testsource" {
     cost-center = "Ops"
   }
 }
-	`, template)
+`, r.template(data))
 }
 
 func (r ImageResource) standaloneImageProvision(data acceptance.TestData, hyperVGen string) string {

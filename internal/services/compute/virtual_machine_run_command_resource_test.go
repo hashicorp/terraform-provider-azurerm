@@ -9,13 +9,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -55,7 +54,7 @@ func TestAccVirtualMachineRunCommand_recreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
 	r := VirtualMachineRunCommandTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basicWithScriptError(data),
 			ExpectError: regexp.MustCompile("running the command"),
@@ -311,23 +310,24 @@ resource "azurerm_virtual_machine_run_command" "test" {
 func (r VirtualMachineRunCommandTestResource) complete(data acceptance.TestData) string {
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
-		%s
+%s
 
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc${var.random_string}"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "acctestacc${var.random_string}"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestsc${var.random_integer}"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
@@ -402,10 +402,10 @@ resource "azurerm_virtual_machine_run_command" "test" {
     azurerm_role_assignment.test,
   ]
 }
-		`, r.template(data))
+`, r.template(data))
 	}
 	return fmt.Sprintf(`
-	%s
+%s
 
 provider "azurerm" {
   features {}
@@ -427,22 +427,25 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_storage_blob" "test1" {
-  name                 = "script1"
-  storage_container_id = azurerm_storage_container.test.id
-  type                 = "Block"
-  source_content       = "echo 'hello world'"
+  name                   = "script1"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source_content         = "echo 'hello world'"
 }
 
 resource "azurerm_storage_blob" "test2" {
-  name                 = "output"
-  storage_container_id = azurerm_storage_container.test.id
-  type                 = "Append"
+  name                   = "output"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Append"
 }
 
 resource "azurerm_storage_blob" "test3" {
-  name                 = "error"
-  storage_container_id = azurerm_storage_container.test.id
-  type                 = "Append"
+  name                   = "error"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Append"
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -494,24 +497,25 @@ resource "azurerm_virtual_machine_run_command" "test" {
     azurerm_role_assignment.test,
   ]
 }
-	`, r.template(data))
+`, r.template(data))
 }
 
 func (r VirtualMachineRunCommandTestResource) storageBlobSystemIdentity(data acceptance.TestData) string {
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
-		%s
+%s
 
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc${var.random_string}"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "acctestacc${var.random_string}"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -583,7 +587,7 @@ resource "azurerm_virtual_machine_run_command" "test" {
     azurerm_role_assignment.test,
   ]
 }
-		`, r.template(data))
+`, r.template(data))
 	}
 	return fmt.Sprintf(`
 	%s
@@ -667,24 +671,25 @@ resource "azurerm_virtual_machine_run_command" "test" {
     azurerm_role_assignment.test,
   ]
 }
-	`, r.template(data))
+`, r.template(data))
 }
 
 func (r VirtualMachineRunCommandTestResource) storageBlobSAS(data acceptance.TestData) string {
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
-		%s
+%s
 
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc${var.random_string}"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "acctestacc${var.random_string}"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -772,10 +777,10 @@ resource "azurerm_virtual_machine_run_command" "test" {
     some_key    = "some-value"
   }
 }
-		`, r.template(data))
+`, r.template(data))
 	}
 	return fmt.Sprintf(`
-	%s
+%s
 
 provider "azurerm" {
   features {}
@@ -872,7 +877,7 @@ resource "azurerm_virtual_machine_run_command" "test" {
     some_key    = "some-value"
   }
 }
-	`, r.template(data))
+`, r.template(data))
 }
 
 func (r VirtualMachineRunCommandTestResource) template(data acceptance.TestData) string {

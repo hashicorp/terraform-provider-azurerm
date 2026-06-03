@@ -9,14 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -301,11 +300,12 @@ resource "azurerm_gallery_application" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "acctestacc%[3]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -324,10 +324,6 @@ resource "azurerm_storage_blob" "test" {
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 	}
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctest-compute-%[2]d"
   location = "%[1]s"
@@ -371,7 +367,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r GalleryApplicationVersionResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -394,7 +389,7 @@ resource "azurerm_gallery_application_version" "test" {
     regional_replica_count = 1
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func (r GalleryApplicationVersionResource) requiresImport(data acceptance.TestData) string {

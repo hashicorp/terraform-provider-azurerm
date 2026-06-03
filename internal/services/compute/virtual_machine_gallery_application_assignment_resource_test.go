@@ -8,15 +8,14 @@ import (
 	"fmt"
 	"strings"
 	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
+	
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -119,7 +118,6 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Exists(ctx context.C
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -127,7 +125,7 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "test" {
   gallery_application_version_id = azurerm_gallery_application_version.test.id
   virtual_machine_id             = azurerm_linux_virtual_machine.test.id
 }
-`, template)
+`, r.template(data))
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) requiresImport(data acceptance.TestData) string {
@@ -143,7 +141,6 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "import" {
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -154,11 +151,10 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "test" {
   order                          = 1
   tag                            = "app"
 }
-`, template)
+`, r.template(data))
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) order(data acceptance.TestData, order int) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -167,20 +163,21 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "test" {
   virtual_machine_id             = azurerm_linux_virtual_machine.test.id
   order                          = %d
 }
-`, template, order)
+`, r.template(data), order)
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) template(data acceptance.TestData) string {
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
-		%[1]s
+%[1]s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accteststr%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accteststr%[3]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -264,11 +261,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     ]
   }
 }
-		`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomString)
+`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomString)
 	}
 	return fmt.Sprintf(`
-	%[1]s
-
+%[1]s
 resource "azurerm_storage_account" "test" {
   name                            = "accteststr%[3]s"
   resource_group_name             = azurerm_resource_group.test.name
@@ -358,5 +354,5 @@ resource "azurerm_linux_virtual_machine" "test" {
     ]
   }
 }
-	`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomString)
+`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomString)
 }

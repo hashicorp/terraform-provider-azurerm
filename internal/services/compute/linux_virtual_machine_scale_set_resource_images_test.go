@@ -9,13 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -359,13 +358,14 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisites(data acceptance.TestData) string {
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
-		%s
+%s
 
 resource "azurerm_public_ip" "source" {
   name                = "source-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "source" {
@@ -392,10 +392,10 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
-		`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
 	}
 	return fmt.Sprintf(`
 	%s
@@ -486,11 +486,12 @@ resource "azurerm_image" "first" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
-    size_gb  = 30
-    caching  = "None"
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "Standard_LRS"
   }
 }
 
@@ -500,11 +501,12 @@ resource "azurerm_image" "second" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
-    size_gb  = 30
-    caching  = "None"
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "Standard_LRS"
   }
 
   depends_on = ["azurerm_image.first"]
