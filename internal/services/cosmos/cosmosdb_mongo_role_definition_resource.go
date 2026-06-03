@@ -142,13 +142,15 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
-			existing, err := client.MongoDBResourcesGetMongoRoleDefinition(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.MongoDBResourcesGetMongoRoleDefinition(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
@@ -162,7 +164,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.MongoDBResourcesCreateUpdateMongoRoleDefinitionThenPoll(ctx, id, parameters); err != nil {
+			if err := client.MongoDBResourcesCreateUpdateMongoRoleDefinitionCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

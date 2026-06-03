@@ -57,9 +57,20 @@ func (c ProfilesClient) MigrationCommit(ctx context.Context, id ProfileId) (resu
 
 // MigrationCommitThenPoll performs MigrationCommit then polls until it's completed
 func (c ProfilesClient) MigrationCommitThenPoll(ctx context.Context, id ProfileId) error {
+	return c.MigrationCommitCallbackThenPoll(ctx, id, nil)
+}
+
+// MigrationCommitCallbackThenPoll performs MigrationCommit, runs the optional callback function, then polls until it's completed
+func (c ProfilesClient) MigrationCommitCallbackThenPoll(ctx context.Context, id ProfileId, callback func() error) error {
 	result, err := c.MigrationCommit(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing MigrationCommit: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

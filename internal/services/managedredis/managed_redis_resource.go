@@ -307,15 +307,17 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 
 			clusterId := redisenterprise.NewRedisEnterpriseID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existingCluster, err := clusterClient.Get(ctx, clusterId)
-			if err != nil {
-				if !response.WasNotFound(existingCluster.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", clusterId, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existingCluster, err := clusterClient.Get(ctx, clusterId)
+				if err != nil {
+					if !response.WasNotFound(existingCluster.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", clusterId, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existingCluster.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), clusterId)
+				if !response.WasNotFound(existingCluster.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), clusterId)
+				}
 			}
 
 			dbId := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
@@ -340,7 +342,7 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 			}
 			clusterParams.Identity = expandedIdentity
 
-			if err := clusterClient.CreateThenPoll(ctx, clusterId, clusterParams); err != nil {
+			if err := clusterClient.CreateCallbackThenPoll(ctx, clusterId, clusterParams, metadata.SetIDCallback(&clusterId)); err != nil {
 				return fmt.Errorf("creating %s: %+v", clusterId, err)
 			}
 

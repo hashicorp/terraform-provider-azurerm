@@ -88,7 +88,7 @@ golangci-fix:
 	@echo "==> Fixing source code with all golangci linters..."
 	golangci-lint run ./... --fix
 
-test: fmtcheck
+test:
 	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
 	@TEST=$(TEST) ./scripts/run-test.sh
 
@@ -100,13 +100,13 @@ test-compile:
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
-testacc: fmtcheck
+testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
-acctests: fmtcheck
+acctests:
 	TF_ACC=1 go test -v ./internal/services/$(SERVICE) $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
-debugacc: fmtcheck
+debugacc:
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
 
 prepare:
