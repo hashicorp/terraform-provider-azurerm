@@ -12,6 +12,17 @@ body:
       options:
         - label: I have searched the existing issues
           required: true
+  - type: checkboxes
+    id: api-version
+    attributes:
+      label: ARM API Version Stability
+      description: |
+        The AzureRM provider is implemented using **stable** Azure Resource Manager (ARM) APIs. Preview versions are prone to sudden breaking changes and are generally **not** allowed unless strict exception criteria are met. 
+        
+        Please read our [Guide: ARM API Versions](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/guide-api-version.md) for more information.
+      options:
+        - label: I confirm that this feature request relies on a stable ARM API, or I have read the guide and believe this request qualifies for an exception.
+          required: true
   - type: textarea
     id: community
     attributes:
