@@ -14,9 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -219,15 +221,10 @@ func resourceDataFactoryManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Exists"},
-		Target:     []string{"NotFound"},
-		Refresh:    getManagedPrivateEndpointDeletionStatus(ctx, client, *id),
-		MinTimeout: 1 * time.Minute,
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", id.ID(), err)
+	pollerType := custompollers.NewDataFactoryManagedPrivateEndpointDeletePoller(client, *id)
+	poller := pollers.NewPoller(pollerType, 1*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return err
 	}
 
 	return nil
@@ -268,20 +265,5 @@ func getManagedPrivateEndpointProvisionStatus(ctx context.Context, client *manag
 		}
 
 		return resp, *resp.Model.Properties.ProvisioningState, nil
-	}
-}
-
-func getManagedPrivateEndpointDeletionStatus(ctx context.Context, client *managedprivateendpoints.ManagedPrivateEndpointsClient, id managedprivateendpoints.ManagedPrivateEndpointId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id, managedprivateendpoints.DefaultGetOperationOptions())
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "NotFound", nil
-			} else {
-				return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-		} else {
-			return resp, "Exists", nil
-		}
 	}
 }
