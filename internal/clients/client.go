@@ -662,7 +662,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Subscription: %+v", err)
 	}
 
-	client.Synapse = synapse.NewClient(o)
+	if client.Synapse, err = synapse.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Synapse: %w", err)
+	}
+
 	if client.SystemCenterVirtualMachineManager, err = systemCenterVirtualMachineManager.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for System Center Virtual Machine Manager: %+v", err)
 	}
@@ -680,7 +683,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.VoiceServices, err = voiceServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Voice Services: %+v", err)
 	}
-	client.Web = web.NewClient(o)
+
+	if client.Web, err = web.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Web: %+v", err)
+	}
 
 	if client.Workloads, err = workloads.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Workloads: %+v", err)

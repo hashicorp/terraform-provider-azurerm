@@ -97,25 +97,27 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameWebChatChannel))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		// The Bot WebChat Channel would be created by default while creating Bot Registrations Channel.
-		// So if the channel includes `Default Site`, it means it's default channel and delete it.
-		// So if the channel includes other site, it means it's user custom channel and throws conflict error.
-		if props := existing.Properties; props != nil {
-			defaultChannel, ok := props.AsWebChatChannel()
-			if ok && defaultChannel.Properties != nil {
-				if includeDefaultWebChatSite(defaultChannel.Properties.Sites) {
-					if _, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameWebChatChannel)); err != nil {
-						return fmt.Errorf("deleting the default Web Chat Channel %s: %+v", id, err)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			// The Bot WebChat Channel would be created by default while creating Bot Registrations Channel.
+			// So if the channel includes `Default Site`, it means it's default channel and delete it.
+			// So if the channel includes other site, it means it's user custom channel and throws conflict error.
+			if props := existing.Properties; props != nil {
+				defaultChannel, ok := props.AsWebChatChannel()
+				if ok && defaultChannel.Properties != nil {
+					if includeDefaultWebChatSite(defaultChannel.Properties.Sites) {
+						if _, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameWebChatChannel)); err != nil {
+							return fmt.Errorf("deleting the default Web Chat Channel %s: %+v", id, err)
+						}
+					} else {
+						return tf.ImportAsExistsError("azurerm_bot_channel_web_chat", id.ID())
 					}
-				} else {
-					return tf.ImportAsExistsError("azurerm_bot_channel_web_chat", id.ID())
 				}
 			}
 		}
@@ -139,12 +141,12 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// Unable to add a new site with user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceBotChannelWebChatRead(d, meta)
 }

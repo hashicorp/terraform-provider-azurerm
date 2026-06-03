@@ -194,7 +194,8 @@ func TestAccBatchAccount_authenticationModesUpdate(t *testing.T) {
 			Config: r.authenticationModesUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("0")),
+				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("0"),
+			),
 		},
 	})
 }

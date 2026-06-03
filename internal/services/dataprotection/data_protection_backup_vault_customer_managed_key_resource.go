@@ -102,14 +102,16 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 				return fmt.Errorf("retrieving %s: `model` is nil", *id)
 			}
 
-			if resp.Model.Properties.SecuritySettings != nil && resp.Model.Properties.SecuritySettings.EncryptionSettings != nil {
-				if kekIdentity := resp.Model.Properties.SecuritySettings.EncryptionSettings.KekIdentity; kekIdentity != nil {
-					if *kekIdentity.IdentityType == backupvaultresources.IdentityTypeUserAssigned {
-						return errors.New("customer managed keys settings have been specified in `encryption_settings` block of `azurerm_data_protection_backup_vault` resource. `azurerm_data_protection_backup_vault_customer_managed_key` resource is not required and should be removed")
-					}
-				}
+      if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+        if resp.Model.Properties.SecuritySettings != nil && resp.Model.Properties.SecuritySettings.EncryptionSettings != nil {
+          if kekIdentity := resp.Model.Properties.SecuritySettings.EncryptionSettings.KekIdentity; kekIdentity != nil {
+            if *kekIdentity.IdentityType == backupvaultresources.IdentityTypeUserAssigned {
+              return errors.New("customer managed keys settings have been specified in `encryption_settings` block of `azurerm_data_protection_backup_vault` resource. `azurerm_data_protection_backup_vault_customer_managed_key` resource is not required and should be removed")
+            }
+          }
 
-				return metadata.ResourceRequiresImport(r.ResourceType(), *id)
+				  return metadata.ResourceRequiresImport(r.ResourceType(), *id)
+				}
 			}
 
 			payload := resp.Model
@@ -130,7 +132,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 				IdentityType: pointer.To(backupvaultresources.IdentityTypeSystemAssigned),
 			}
 
-			err = client.BackupVaultsCreateOrUpdateThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions())
+			err = client.BackupVaultsCreateOrUpdateCallbackThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(id))
 			if err != nil {
 				return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
 			}

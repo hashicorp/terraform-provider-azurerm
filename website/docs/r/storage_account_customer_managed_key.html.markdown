@@ -157,4 +157,4 @@ terraform import azurerm_storage_account_customer_managed_key.example /subscript
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage` - 2025-06-01
+* `Microsoft.Storage` - 2025-08-01

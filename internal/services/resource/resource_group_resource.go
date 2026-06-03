@@ -72,15 +72,17 @@ func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	id := commonids.NewResourceGroupID(meta.(*clients.Client).Account.SubscriptionId, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError(resourceGroupResourceName, id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError(resourceGroupResourceName, id.ID())
+		}
 	}
 
 	parameters := resourcegroups.ResourceGroup{
@@ -99,7 +101,7 @@ func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	// custom poller to account for replication delays in the eventual consistency responses of newly created RG resources
 	pollerType := custompollers.NewResourceGroupCreatePoller(client, id)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err = poller.PollUntilDone(ctx); err != nil {
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return err
 	}
 
