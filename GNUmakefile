@@ -39,9 +39,9 @@ fmtcheck:
 
 terrafmt:
 	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
-	@find internal | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
+	@terrafmt fmt -f -p "*_test.go" ./internal
 	@echo "==> Fixing website terraform blocks code with terrafmt..."
-	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
+	@terrafmt fmt -p "*.html.markdown" .
 
 generate: tools
 	go generate ./internal/services/...
