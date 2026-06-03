@@ -554,7 +554,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   image_build_compute_name        = "terraformCompute"
   service_side_encryption_enabled = true
   v1_legacy_mode_enabled          = false
-  system_datastores_auth_mode   = "Identity"
+  storage_account_access_type     = "Identity"
 
   identity {
     type = "SystemAssigned"
@@ -690,7 +690,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   public_network_access_enabled   = true
   service_side_encryption_enabled = true
   image_build_compute_name        = "terraformComputeUpdate"
-  system_datastores_auth_mode   = "AccessKey"
+  storage_account_access_type     = "AccessKey"
 
   identity {
     type = "SystemAssigned"

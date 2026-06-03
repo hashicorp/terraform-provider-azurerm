@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -38,7 +39,7 @@ func dataSourceMachineLearningWorkspace() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
-			"system_datastores_auth_mode": {
+			"storage_account_access_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -67,18 +68,20 @@ func dataSourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("name", id.WorkspaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Model.Location))
+	if resp.Model != nil {
+		d.Set("location", location.NormalizeNilable(resp.Model.Location))
 
-	flattenedIdentity, err := flattenMachineLearningWorkspaceIdentity(resp.Model.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", flattenedIdentity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
+		flattenedIdentity, err := flattenMachineLearningWorkspaceIdentity(resp.Model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 
-	if resp.Model.Properties != nil {
-		d.Set("system_datastores_auth_mode", pointer.From(resp.Model.Properties.SystemDatastoresAuthMode))
+		if resp.Model.Properties != nil {
+			d.Set("storage_account_access_type", pointer.FromEnum(resp.Model.Properties.SystemDatastoresAuthMode))
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)
