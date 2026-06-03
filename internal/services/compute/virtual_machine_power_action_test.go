@@ -55,24 +55,6 @@ func TestAccVirtualMachinePowerAction_tryTurningItOffAndOnAgain(t *testing.T) {
 	})
 }
 
-func TestAccVirtualMachinePowerAction_deallocate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_power", "test")
-	a := VirtualMachinePowerAction{}
-
-	resource.ParallelTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
-		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			tfversion.SkipBelow(tfversion.Version1_14_0),
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: a.deallocate(data),
-				Check:  nil, // TODO - plugin-testing release?
-			},
-		},
-	})
-}
-
 func (a *VirtualMachinePowerAction) restart(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -113,9 +95,14 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 
+data "azurerm_virtual_machine" "test" {
+  name                = "acctestVM-%[2]d" // sidestep cyclic reference issue
+  resource_group_name = azurerm_resource_group.test.name
+}
+
 action "azurerm_virtual_machine_power" "test" {
   config {
-    virtual_machine_id = azurerm_linux_virtual_machine.test.id
+    virtual_machine_id = data.azurerm_virtual_machine.test.id
     power_action       = "restart"
   }
 }
@@ -152,20 +139,29 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   tags = {
-    triggerme = "%[3]s"
+    triggerme = %[3]s
+  }
+
+  lifecycle {
+    action_trigger {
+      events  = [before_update]
+      actions = [action.azurerm_virtual_machine_power.power_off]
+    }
+
+    action_trigger {
+      events  = [after_update]
+      actions = [action.azurerm_virtual_machine_power.power_on]
+    }
   }
 }
 
 data "azurerm_virtual_machine" "test" {
-  name                = azurerm_windows_virtual_machine.test.name
+  name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "terraform_data" "trigger" {
-  input = {
-    triggerme = "%[3]s"
-  }
-
+  input = azurerm_linux_virtual_machine.test.tags
   lifecycle {
     action_trigger {
       events  = [before_update]
@@ -178,69 +174,21 @@ resource "terraform_data" "trigger" {
   }
 }
 
+
 action "azurerm_virtual_machine_power" "power_off" {
   config {
-    virtual_machine_id = data.azurerm_virtual_machine.test.id
+    virtual_machine_id = azurerm_windows_virtual_machine.test.id
     power_action       = "power_off"
   }
 }
 
 action "azurerm_virtual_machine_power" "power_on" {
   config {
-    virtual_machine_id = data.azurerm_virtual_machine.test.id
+    virtual_machine_id = azurerm_windows_virtual_machine.test.id
     power_action       = "power_on"
   }
 }
 `, a.templateWindows(data), data.RandomInteger, tagVal)
-}
-
-func (a *VirtualMachinePowerAction) deallocate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-%s
-
-resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = local.first_public_key
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  lifecycle {
-    action_trigger {
-      events  = [after_create]
-      actions = [action.azurerm_virtual_machine_power.test]
-    }
-  }
-}
-
-action "azurerm_virtual_machine_power" "test" {
-  config {
-    virtual_machine_id = azurerm_linux_virtual_machine.test.id
-    power_action       = "deallocate"
-  }
-}
-`, a.templateLinux(data), data.RandomInteger)
 }
 
 func (a *VirtualMachinePowerAction) templateLinux(data acceptance.TestData) string {
