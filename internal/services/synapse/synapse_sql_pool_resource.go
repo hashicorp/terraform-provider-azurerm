@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -249,17 +249,19 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	id := parse.NewSqlPoolID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
-	existing, err := sqlClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-	if err != nil {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := sqlClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_synapse_sql_pool", id.ID())
 		}
 	}
-
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_synapse_sql_pool", id.ID())
-	}
-
 	workspace, err := workspaceClient.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", workspaceId, err)
@@ -272,18 +274,18 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	sqlPoolInfo := synapse.SQLPool{
 		Location: workspace.Location,
 		SQLPoolResourceProperties: &synapse.SQLPoolResourceProperties{
-			CreateMode:         synapse.CreateMode(*utils.String(mode)),
+			CreateMode:         synapse.CreateMode(*pointer.To(mode)),
 			StorageAccountType: storageAccountType,
 		},
 		Sku: &synapse.Sku{
-			Name: utils.String(d.Get("sku_name").(string)),
+			Name: pointer.To(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	switch mode {
 	case DefaultCreateMode:
-		sqlPoolInfo.SQLPoolResourceProperties.Collation = utils.String(d.Get("collation").(string))
+		sqlPoolInfo.Collation = pointer.To(d.Get("collation").(string))
 	case RecoveryCreateMode:
 		recoveryDatabaseId := constructSourceDatabaseId(d.Get("recovery_database_id").(string))
 
@@ -291,7 +293,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`recovery_database_id` must be set when `create_mode` is %q", RecoveryCreateMode)
 		}
 
-		sqlPoolInfo.SQLPoolResourceProperties.RecoverableDatabaseID = utils.String(recoveryDatabaseId)
+		sqlPoolInfo.RecoverableDatabaseID = pointer.To(recoveryDatabaseId)
 	case PointInTimeRestoreCreateMode:
 		restore := d.Get("restore").([]interface{})
 		if len(restore) == 0 || restore[0] == nil {
@@ -306,14 +308,16 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("parsing time format: %+v", parseErr)
 		}
 
-		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = &date.Time{Time: vTime}
-		sqlPoolInfo.SQLPoolResourceProperties.SourceDatabaseID = utils.String(sourceDatabaseId)
+		sqlPoolInfo.RestorePointInTime = &date.Time{Time: vTime}
+		sqlPoolInfo.SourceDatabaseID = pointer.To(sourceDatabaseId)
 	}
 
 	future, err := sqlClient.Create(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, sqlPoolInfo)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	if err = future.WaitForCompletionRef(ctx, sqlClient.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
@@ -345,6 +349,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+
 	if v, ok := d.GetOk("maintenance_schedule"); ok && v != nil {
 		maintenanceWindows := expandSqlPoolMaintenanceSchedule(v.([]interface{}))
 		if _, err := sqlMaintenanceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "current", pointer.From(maintenanceWindows)); err != nil {
@@ -352,7 +357,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	d.SetId(id.ID())
+	
 	return resourceSynapseSqlPoolRead(d, meta)
 }
 
@@ -416,7 +421,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChanges("sku_name", "tags") {
 		sqlPoolInfo := synapse.SQLPoolPatchInfo{
 			Sku: &synapse.Sku{
-				Name: utils.String(d.Get("sku_name").(string)),
+				Name: pointer.To(d.Get("sku_name").(string)),
 			},
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
@@ -556,11 +561,11 @@ func synapseSqlPoolScaleStateRefreshFunc(ctx context.Context, client *synapse.SQ
 			return resp, "failed", err
 		}
 
-		if resp.SQLPoolResourceProperties == nil || resp.SQLPoolResourceProperties.Status == nil {
+		if resp.SQLPoolResourceProperties == nil || resp.Status == nil {
 			return resp, "failed", nil
 		}
 
-		return resp, *resp.SQLPoolResourceProperties.Status, nil
+		return resp, *resp.Status, nil
 	}
 }
 

@@ -9,11 +9,11 @@ type BackendContractProperties struct {
 	Description    *string                     `json:"description,omitempty"`
 	Pool           *BackendBaseParametersPool  `json:"pool,omitempty"`
 	Properties     *BackendProperties          `json:"properties,omitempty"`
-	Protocol       BackendProtocol             `json:"protocol"`
+	Protocol       *BackendProtocol            `json:"protocol,omitempty"`
 	Proxy          *BackendProxyContract       `json:"proxy,omitempty"`
 	ResourceId     *string                     `json:"resourceId,omitempty"`
 	Title          *string                     `json:"title,omitempty"`
 	Tls            *BackendTlsProperties       `json:"tls,omitempty"`
 	Type           *BackendType                `json:"type,omitempty"`
-	Url            string                      `json:"url"`
+	Url            *string                     `json:"url,omitempty"`
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -9,6 +9,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,14 +20,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
@@ -66,12 +68,15 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			pluginsdk.ForceNewIfChange("os_sku", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldStr := old.(string)
+				newStr := new.(string)
+
 				// Ubuntu and AzureLinux are currently the only allowed Linux OSSKU Migration targets.
-				if old != string(agentpools.OSSKUUbuntu) && old != string(agentpools.OSSKUAzureLinux) {
+				if !strings.HasPrefix(oldStr, string(agentpools.OSSKUUbuntu)) && !strings.HasPrefix(oldStr, string(agentpools.OSSKUAzureLinux)) {
 					return true
 				}
 
-				if new != string(agentpools.OSSKUUbuntu) && new != string(agentpools.OSSKUAzureLinux) {
+				if !strings.HasPrefix(newStr, string(agentpools.OSSKUUbuntu)) && !strings.HasPrefix(newStr, string(agentpools.OSSKUAzureLinux)) {
 					return true
 				}
 
@@ -81,6 +86,35 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != 0 && new == 0
 			}),
+			pluginsdk.ForceNewIfChange("upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
+			}),
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+				priority := d.Get("priority").(string)
+				isSpot := priority == string(agentpools.ScaleSetPrioritySpot)
+
+				upgradeSettingsRaw := d.Get("upgrade_settings").([]interface{})
+				if len(upgradeSettingsRaw) == 0 || upgradeSettingsRaw[0] == nil {
+					return nil
+				}
+
+				upgradeSettings := upgradeSettingsRaw[0].(map[string]interface{})
+				maxSurgeRaw := upgradeSettings["max_surge"].(string)
+				maxUnavailableRaw := upgradeSettings["max_unavailable"].(string)
+
+				if isSpot {
+					if maxSurgeRaw != "" {
+						return fmt.Errorf("`max_surge` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_surge`")
+					}
+					if maxUnavailableRaw != "" {
+						return fmt.Errorf("`max_unavailable` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_unavailable`")
+					}
+				} else if maxSurgeRaw == "" && maxUnavailableRaw == "" {
+					return fmt.Errorf("either `max_surge` or `max_unavailable` must be specified in `upgrade_settings` when `priority` is not `Spot`")
+				}
+
+				return nil
+			},
 		),
 	}
 
@@ -107,6 +141,22 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				"madvise",
 				"never",
 			}, false),
+		}
+
+		resource.Schema["kubelet_config"].Elem.(*pluginsdk.Resource).Schema["container_log_max_line"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"kubelet_config.0.container_log_max_files"},
+			Deprecated:    "`container_log_max_line` has been renamed to `container_log_max_files` to align with the API property name and will be removed in v5.0 of the AzureRM Provider",
+			ValidateFunc:  validation.IntAtLeast(2),
+		}
+		resource.Schema["kubelet_config"].Elem.(*pluginsdk.Resource).Schema["container_log_max_files"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"kubelet_config.0.container_log_max_line"},
+			ValidateFunc:  validation.IntAtLeast(2),
 		}
 	}
 
@@ -267,6 +317,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"node_image_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"orchestrator_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -297,7 +352,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Computed: true, // defaults to Ubuntu if using Linux
 			ValidateFunc: validation.StringInSlice([]string{
 				string(agentpools.OSSKUAzureLinux),
+				string(agentpools.OSSKUAzureLinuxThree),
 				string(agentpools.OSSKUUbuntu),
+				string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
+				string(agentpools.OSSKUUbuntuTwoFourZeroFour),
 				string(agentpools.OSSKUWindowsTwoZeroOneNine),
 				string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 			}, false),
@@ -380,7 +438,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
-		"upgrade_settings": upgradeSettingsSchema(),
+		"upgrade_settings": upgradeSettingsSchemaNodePoolResource(),
 
 		"windows_profile": {
 			Type:     pluginsdk.TypeList,
@@ -433,7 +491,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	containersClient := meta.(*clients.Client).Containers
 	clustersClient := containersClient.KubernetesClustersClient
 	poolsClient := containersClient.AgentPoolsClient
-	subnetClient := meta.(*clients.Client).Network.Client.Subnets
+	subnetClient := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -463,7 +521,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
 
-	log.Printf("[DEBUG] Retrieving %s...", *clusterId)
 	cluster, err := clustersClient.Get(ctx, *clusterId)
 	if err != nil {
 		if response.WasNotFound(cluster.HttpResponse) {
@@ -490,15 +547,17 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("multiple node pools are only supported when the Default Node Pool uses a VMScaleSet (but %s doesn't)", *clusterId)
 	}
 
-	existing, err := poolsClient.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := poolsClient.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", id.ID())
+		}
 	}
 
 	count := d.Get("node_count").(int)
@@ -614,20 +673,20 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.OsDiskType = pointer.To(agentpools.OSDiskType(osDiskType))
 	}
 
-	subnetsToLock := make([]string, 0)
+	subnetIDsToLock := make([]string, 0)
 	if podSubnetID != nil {
 		// Lock pod subnet to avoid race condition with AKS
 		profile.PodSubnetID = pointer.To(podSubnetID.ID())
-		subnetsToLock = append(subnetsToLock, podSubnetID.SubnetName)
+		subnetIDsToLock = append(subnetIDsToLock, podSubnetID.ID())
 	}
 
 	if nodeSubnetID != nil {
 		// Lock node subnet to avoid race condition with AKS
 		profile.VnetSubnetID = pointer.To(nodeSubnetID.ID())
-		subnetsToLock = append(subnetsToLock, nodeSubnetID.SubnetName)
+		subnetIDsToLock = append(subnetIDsToLock, nodeSubnetID.ID())
 	}
-	locks.MultipleByName(&subnetsToLock, network.SubnetResourceName)
-	defer locks.UnlockMultipleByName(&subnetsToLock, network.SubnetResourceName)
+	locks.MultipleByID(&subnetIDsToLock)
+	defer locks.UnlockMultipleByID(&subnetIDsToLock)
 
 	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
 		profile.HostGroupID = pointer.To(hostGroupID)
@@ -694,10 +753,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Properties: &profile,
 	}
 
-	err = poolsClient.CreateOrUpdateThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions())
-	if err != nil {
+	if err := poolsClient.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
 	timeout, ok := ctx.Deadline()
@@ -720,7 +779,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
@@ -737,7 +795,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	d.Partial(true)
 
-	log.Printf("[DEBUG] Retrieving existing %s..", *id)
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
@@ -973,10 +1030,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		oldOsSkuRaw, newOsSkuRaw := d.GetChange("os_sku")
 		oldOsSku := oldOsSkuRaw.(string)
 		newOsSku := newOsSkuRaw.(string)
-		if oldOsSku != string(managedclusters.OSSKUUbuntu) && oldOsSku != string(managedclusters.OSSKUAzureLinux) {
+		if !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUAzureLinux)) {
 			cycleNodePool = true
 		}
-		if newOsSku != string(managedclusters.OSSKUUbuntu) && newOsSku != string(managedclusters.OSSKUAzureLinux) {
+		if !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUAzureLinux)) {
 			cycleNodePool = true
 		}
 	}
@@ -1035,7 +1092,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 		log.Printf("[DEBUG] Cycled Node Pool..")
 	} else {
-		log.Printf("[DEBUG] Updating existing %s..", *id)
 		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
@@ -1167,6 +1223,8 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
 
+		d.Set("node_image_version", props.NodeImageVersion)
+
 		// NOTE: workaround for migration from 2022-01-02-preview (<3.12.0) to 2022-03-02-preview (>=3.12.0). Before terraform apply is run against the new API, Azure will respond only with currentOrchestratorVersion, orchestratorVersion will be absent. More details: https://github.com/hashicorp/terraform-provider-azurerm/issues/17833#issuecomment-1227583353
 		if props.OrchestratorVersion != nil {
 			d.Set("orchestrator_version", props.OrchestratorVersion)
@@ -1248,7 +1306,7 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func upgradeSettingsSchema() *pluginsdk.Schema {
+func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1256,17 +1314,31 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ValidateFunc:  validation.StringIsNotEmpty,
+					ConflictsWith: []string{"upgrade_settings.0.max_unavailable"},
 				},
 				"drain_timeout_in_minutes": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+				"max_unavailable": {
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ValidateFunc:  validation.StringIsNotEmpty,
+					ConflictsWith: []string{"upgrade_settings.0.max_surge"},
 				},
 				"node_soak_duration_in_minutes": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 30),
+				},
+				"undrainable_node_behavior": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
 				},
 			},
 		},
@@ -1283,12 +1355,20 @@ func upgradeSettingsForDataSourceSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+				"max_unavailable": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 				"drain_timeout_in_minutes": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
 				"node_soak_duration_in_minutes": {
 					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+				"undrainable_node_behavior": {
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			},
@@ -1327,8 +1407,13 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 	if v := raw["container_log_max_size_mb"].(int); v != 0 {
 		result.ContainerLogMaxSizeMB = pointer.To(int64(v))
 	}
-	if v := raw["container_log_max_line"].(int); v != 0 {
+	if v := raw["container_log_max_files"].(int); v != 0 {
 		result.ContainerLogMaxFiles = pointer.To(int64(v))
+	}
+	if !features.FivePointOh() {
+		if v := raw["container_log_max_line"].(int); v != 0 {
+			result.ContainerLogMaxFiles = pointer.To(int64(v))
+		}
 	}
 	if v := raw["pod_max_pid"].(int); v != 0 {
 		result.PodMaxPids = pointer.To(int64(v))
@@ -1344,28 +1429,43 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	}
 
 	v := input[0].(map[string]interface{})
-	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
+	maxSurgeRaw := v["max_surge"].(string)
+	maxUnavailableRaw := v["max_unavailable"].(string)
+
+	if maxSurgeRaw != "" {
 		setting.MaxSurge = pointer.To(maxSurgeRaw)
+		setting.MaxUnavailable = pointer.To("0")
 	}
+	if maxUnavailableRaw != "" {
+		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
+		setting.MaxSurge = pointer.To("0")
+	}
+
 	if drainTimeoutInMinutesRaw, ok := v["drain_timeout_in_minutes"].(int); ok {
 		setting.DrainTimeoutInMinutes = pointer.To(int64(drainTimeoutInMinutesRaw))
 	}
 	if nodeSoakDurationInMinutesRaw, ok := v["node_soak_duration_in_minutes"].(int); ok {
 		setting.NodeSoakDurationInMinutes = pointer.To(int64(nodeSoakDurationInMinutesRaw))
 	}
+	if undrainableNodeBehaviorRaw, ok := v["undrainable_node_behavior"].(string); ok && undrainableNodeBehaviorRaw != "" {
+		setting.UndrainableNodeBehavior = pointer.To(agentpools.UndrainableNodeBehavior(undrainableNodeBehaviorRaw))
+	}
 	return setting
 }
 
 func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings) []interface{} {
 	// The API returns an empty upgrade settings object for spot node pools, so we need to explicitly check whether there's anything in it
-	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil) {
+	if input == nil || (input.MaxSurge == nil && input.MaxUnavailable == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil && input.UndrainableNodeBehavior == nil) {
 		return []interface{}{}
 	}
 
 	values := make(map[string]interface{})
 
-	if input.MaxSurge != nil && *input.MaxSurge != "" {
+	if input.MaxSurge != nil && *input.MaxSurge != "" && *input.MaxSurge != "0" && *input.MaxSurge != "0%" {
 		values["max_surge"] = *input.MaxSurge
+	}
+	if input.MaxUnavailable != nil && *input.MaxUnavailable != "" && *input.MaxUnavailable != "0" && *input.MaxUnavailable != "0%" {
+		values["max_unavailable"] = *input.MaxUnavailable
 	}
 
 	if input.DrainTimeoutInMinutes != nil {
@@ -1374,6 +1474,10 @@ func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings)
 
 	if input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
+	}
+
+	if input.UndrainableNodeBehavior != nil && *input.UndrainableNodeBehavior != "" {
+		values["undrainable_node_behavior"] = string(*input.UndrainableNodeBehavior)
 	}
 
 	return []interface{}{values}

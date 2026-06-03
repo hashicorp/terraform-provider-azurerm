@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicefabricmanaged
@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomFabricSetting struct {
@@ -148,14 +147,16 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(4, 23),
-				validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+(-*[a-z0-9])*$`), "The name of the cluster must have lowercase letters, numbers and hyphens. The first character must be a letter and the last character a letter or number")),
+				validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+(-*[a-z0-9])*$`), "The name of the cluster must have lowercase letters, numbers and hyphens. The first character must be a letter and the last character a letter or number"),
+			),
 		},
 		"username": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 15),
-				validation.StringMatch(regexp.MustCompile("^[^\\\\/\"\\[\\]:|<>+=;,?*$]{1,14}$"), "User names cannot contain special characters \\/\"\"[]:|<>+=;,$?*@")),
+				validation.StringMatch(regexp.MustCompile("^[^\\\\/\"\\[\\]:|<>+=;,?*$]{1,14}$"), "User names cannot contain special characters \\/\"\"[]:|<>+=;,$?*@"),
+			),
 		},
 		"password": {
 			Type:      pluginsdk.TypeString,
@@ -257,7 +258,7 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 			managedClusterId := managedcluster.NewManagedClusterID(subscriptionId, model.ResourceGroup, model.Name)
 			cluster := managedcluster.ManagedCluster{
 				Location:   model.Location,
-				Name:       utils.String(model.Name),
+				Name:       pointer.To(model.Name),
 				Properties: expandClusterProperties(&model),
 				Sku:        managedcluster.Sku{Name: model.Sku},
 			}
@@ -268,18 +269,21 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 			}
 			cluster.Tags = &tagsMap
 
-			existing, err := clusterClient.Get(ctx, managedClusterId)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("while checking if cluster %q already exists: %+v", managedClusterId.String(), err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := clusterClient.Get(ctx, managedClusterId)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("while checking if cluster %q already exists: %+v", managedClusterId.String(), err)
+					}
+				} else {
+					return metadata.ResourceRequiresImport("azurerm_service_fabric_managed_cluster", managedClusterId)
 				}
-			} else {
-				return metadata.ResourceRequiresImport("azurerm_service_fabric_managed_cluster", managedClusterId)
 			}
 
-			if err := clusterClient.CreateOrUpdateThenPoll(ctx, managedClusterId, cluster); err != nil {
+			if err := clusterClient.CreateOrUpdateCallbackThenPoll(ctx, managedClusterId, cluster, metadata.SetIDCallback(&managedClusterId)); err != nil {
 				return fmt.Errorf("creating %s: %+v", managedClusterId, err)
 			}
+			metadata.SetID(managedClusterId)
 
 			toDelete := make([]string, 0)
 			if metadata.ResourceData.HasChange("node_type") {
@@ -330,7 +334,6 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(managedClusterId)
 			return nil
 		},
 
@@ -399,7 +402,7 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 
 			cluster := managedcluster.ManagedCluster{
 				Location:   model.Location,
-				Name:       utils.String(model.Name),
+				Name:       pointer.To(model.Name),
 				Properties: expandClusterProperties(&model),
 				Sku: managedcluster.Sku{
 					Name: model.Sku,
@@ -575,9 +578,10 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 
 	if features := properties.AddonFeatures; features != nil {
 		for _, feature := range *features {
-			if feature == managedcluster.ManagedClusterAddOnFeatureDnsService {
+			switch feature {
+			case managedcluster.ManagedClusterAddOnFeatureDnsService:
 				model.DNSService = true
-			} else if feature == managedcluster.ManagedClusterAddOnFeatureBackupRestoreService {
+			case managedcluster.ManagedClusterAddOnFeatureBackupRestoreService:
 				model.BackupRestoreService = true
 			}
 		}
@@ -752,7 +756,7 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 	}
 	out.AddonFeatures = &addons
 
-	out.AdminPassword = utils.String(model.Password)
+	out.AdminPassword = pointer.To(model.Password)
 	out.AdminUserName = model.Username
 
 	out.DnsName = model.Name
@@ -768,9 +772,9 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 		if adAuth := auth[0].ADAuth; len(adAuth) > 0 {
 			if adAuth[0].ClientApp != "" && adAuth[0].ClusterApp != "" && adAuth[0].TenantId != "" {
 				out.AzureActiveDirectory = &managedcluster.AzureActiveDirectory{
-					ClientApplication:  utils.String(adAuth[0].ClientApp),
-					ClusterApplication: utils.String(adAuth[0].ClusterApp),
-					TenantId:           utils.String(adAuth[0].TenantId),
+					ClientApplication:  pointer.To(adAuth[0].ClientApp),
+					ClusterApplication: pointer.To(adAuth[0].ClusterApp),
+					TenantId:           pointer.To(adAuth[0].TenantId),
 				}
 			}
 		}
@@ -778,9 +782,9 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 			clients := make([]managedcluster.ClientCertificate, len(certs))
 			for idx, cert := range certs {
 				clients[idx] = managedcluster.ClientCertificate{
-					CommonName: utils.String(cert.CommonName),
+					CommonName: pointer.To(cert.CommonName),
 					IsAdmin:    cert.CertificateType == CertTypeAdmin,
-					Thumbprint: utils.String(cert.Thumbprint),
+					Thumbprint: pointer.To(cert.Thumbprint),
 				}
 			}
 			out.Clients = &clients
@@ -823,7 +827,7 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 				BackendPort:      rule.BackendPort,
 				FrontendPort:     rule.FrontendPort,
 				ProbeProtocol:    rule.ProbeProtocol,
-				ProbeRequestPath: utils.String(rule.ProbeRequestPath),
+				ProbeRequestPath: pointer.To(rule.ProbeRequestPath),
 				Protocol:         rule.Protocol,
 			}
 

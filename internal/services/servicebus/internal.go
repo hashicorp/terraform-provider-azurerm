@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -111,11 +112,11 @@ func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDi
 	manage, hasManage := d.GetOk("manage")
 
 	if !hasListen && !hasSend && !hasManage {
-		return fmt.Errorf("One of the `listen`, `send` or `manage` properties needs to be set")
+		return errors.New("one of the `listen`, `send` or `manage` properties needs to be set")
 	}
 
 	if manage.(bool) && (!listen.(bool) || !send.(bool)) {
-		return fmt.Errorf("if `manage` is set both `listen` and `send` must be set to true too")
+		return errors.New("if `manage` is set both `listen` and `send` must be set to true too")
 	}
 
 	return nil

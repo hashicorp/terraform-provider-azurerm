@@ -133,7 +133,11 @@ The `site_config` block exports the following:
 
 * `ip_restriction` - A list of `ip_restriction` objects representing IP restrictions as defined below.
 
+* `ip_restriction_default_action` - The default action taken when no `ip_restriction` rules match. 
+
 * `scm_ip_restriction` - A list of `scm_ip_restriction` objects representing SCM IP restrictions as defined below.
+  
+* `scm_ip_restriction_default_action` - The default action taken when no `scm_ip_restriction` rules match.
 
 * `scm_use_main_ip_restriction` - Should the Logic App `ip_restriction` configuration be used for the SCM too.
 
@@ -213,7 +217,7 @@ A `headers` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Workflow.
 

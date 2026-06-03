@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -167,11 +167,8 @@ func (r VPNGatewayNatRuleResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_vpn_gateway_nat_rule" "test" {
-  name                = "acctest-vpnnatrule-%d"
-  vpn_gateway_id      = azurerm_vpn_gateway.test.id
-  mode                = "EgressSnat"
-  type                = "Dynamic"
-  ip_configuration_id = "Instance1"
+  name           = "acctest-vpnnatrule-%d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
 
   external_mapping {
     address_space = "192.168.22.0/26"

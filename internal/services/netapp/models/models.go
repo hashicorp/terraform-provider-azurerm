@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package models
@@ -44,6 +44,10 @@ type NetAppVolumeGroupSAPHanaVolume struct {
 	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
 	DataProtectionReplication    []DataProtectionReplication    `tfschema:"data_protection_replication"`
 	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
+	Zone                         string                         `tfschema:"zone"`
+	EncryptionKeySource          string                         `tfschema:"encryption_key_source"`
+	KeyVaultPrivateEndpointId    string                         `tfschema:"key_vault_private_endpoint_id"`
+	NetworkFeatures              string                         `tfschema:"network_features"`
 }
 
 type NetAppVolumeGroupSAPHanaModel struct {

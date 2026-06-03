@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -15,7 +15,8 @@ import (
 func DevTestLabName() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[A-Za-z0-9_-]+$"),
-		"Lab Name can only include alphanumeric characters, underscores, hyphens.")
+		"Lab Name can only include alphanumeric characters, underscores, hyphens.",
+	)
 }
 
 func DevTestVirtualMachineName(maxLength int) pluginsdk.SchemaValidateFunc {
@@ -29,7 +30,7 @@ func DevTestVirtualMachineName(maxLength int) pluginsdk.SchemaValidateFunc {
 
 		errs := make([]error, 0)
 		if 1 <= len(v) && len(v) > maxLength {
-			errs = append(errs, fmt.Errorf("Expected %s to be between 1 and %d characters - got %d", k, maxLength, len(v)))
+			errs = append(errs, fmt.Errorf("expected %s to be between 1 and %d characters - got %d", k, maxLength, len(v)))
 		}
 
 		matched, err := regexp.MatchString("^([a-zA-Z0-9]{1})([a-zA-Z0-9-]+)([a-zA-Z0-9]{1})$", v)
@@ -37,7 +38,7 @@ func DevTestVirtualMachineName(maxLength int) pluginsdk.SchemaValidateFunc {
 			errs = append(errs, fmt.Errorf("validating regex: %+v", err))
 		}
 		if !matched {
-			errs = append(errs, fmt.Errorf("%s may contain letters, numbers, or '-', must begin and end with a letter or number, and cannot be all numbers.", k))
+			errs = append(errs, fmt.Errorf("%s may contain letters, numbers, or '-', must begin and end with a letter or number, and cannot be all numbers", k))
 		}
 
 		matched, err = regexp.MatchString("([a-zA-Z-]+)", v)
@@ -45,7 +46,7 @@ func DevTestVirtualMachineName(maxLength int) pluginsdk.SchemaValidateFunc {
 			errs = append(errs, fmt.Errorf("validating regex: %+v", err))
 		}
 		if !matched {
-			errs = append(errs, fmt.Errorf("%s cannot be all numbers.", k))
+			errs = append(errs, fmt.Errorf("%s cannot be all numbers", k))
 		}
 
 		return nil, errs

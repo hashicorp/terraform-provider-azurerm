@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedidentity
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -52,13 +53,18 @@ func dataSourceArmUserAssignedIdentity() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"isolation_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedIdentity.V20230131.ManagedIdentities
+	client := meta.(*clients.Client).ManagedIdentity.V20241130.Identities
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -81,6 +87,7 @@ func dataSourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("client_id", props.ClientId)
 			d.Set("principal_id", props.PrincipalId)
 			d.Set("tenant_id", props.TenantId)
+			d.Set("isolation_scope", pointer.FromEnum(props.IsolationScope))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

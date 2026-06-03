@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -292,7 +292,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("Windows %s not found", id)
+					return fmt.Errorf("'Windows %s' was not found", id)
 				}
 				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
 			}
@@ -462,7 +462,7 @@ func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(inp
 	for k, v := range *input.Properties {
 		switch k {
 		case "FUNCTIONS_EXTENSION_VERSION":
-			m.FunctionExtensionsVersion = (v)
+			m.FunctionExtensionsVersion = v
 
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":

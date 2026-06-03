@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -113,13 +113,6 @@ func (r MsSqlJobTargetGroupResource) CustomizeDiff() sdk.ResourceFunc {
 				if v.DatabaseName != "" && v.ElasticPoolName != "" {
 					return fmt.Errorf("`database_name` and `elastic_pool_name` are mutually exclusive")
 				}
-
-				targetType := determineJobTargetType(v)
-				if isCredentialRequired(jobtargetgroups.JobTargetGroupMembershipType(v.MembershipType), targetType) {
-					if v.JobCredentialId == "" {
-						return fmt.Errorf("`job_credential_id` is required when `membership_type` is `%s` and `type` is `%s`", jobtargetgroups.JobTargetGroupMembershipTypeInclude, targetType)
-					}
-				}
 			}
 
 			return nil
@@ -153,13 +146,15 @@ func (r MsSqlJobTargetGroupResource) Create() sdk.ResourceFunc {
 
 			id := jobtargetgroups.NewTargetGroupID(jobAgent.SubscriptionId, jobAgent.ResourceGroupName, jobAgent.ServerName, jobAgent.JobAgentName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := jobtargetgroups.JobTargetGroup{
@@ -298,7 +293,7 @@ func expandJobTargets(input []MsSqlJobTarget) []jobtargetgroups.JobTarget {
 		targetType := determineJobTargetType(v)
 		t.Type = targetType
 
-		if isCredentialRequired(jobtargetgroups.JobTargetGroupMembershipType(v.MembershipType), targetType) {
+		if v.JobCredentialId != "" {
 			t.RefreshCredential = pointer.To(v.JobCredentialId)
 		}
 
@@ -347,8 +342,4 @@ func determineJobTargetType(input MsSqlJobTarget) jobtargetgroups.JobTargetType 
 	default:
 		return jobtargetgroups.JobTargetTypeSqlServer
 	}
-}
-
-func isCredentialRequired(membershipType jobtargetgroups.JobTargetGroupMembershipType, targetType jobtargetgroups.JobTargetType) bool {
-	return membershipType == jobtargetgroups.JobTargetGroupMembershipTypeInclude && targetType != jobtargetgroups.JobTargetTypeSqlDatabase
 }

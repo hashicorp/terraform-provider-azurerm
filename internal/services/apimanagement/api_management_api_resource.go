@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -122,7 +122,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 						"email": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.EmailAddress,
+							ValidateFunc: validation.IsEmailAddress,
 						},
 						"name": {
 							Type:         pluginsdk.TypeString,
@@ -380,14 +380,17 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 	sourceApiId := d.Get("source_api_id").(string)
 
 	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_api_management_api", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_api_management_api", id.ID())
+		}
 	}
 
 	apiType := api.ApiTypeHTTP
@@ -485,6 +488,8 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if pollerType := custompollers.NewAPIManagementAPIPoller(client, id, result.HttpResponse); pollerType != nil {
 		poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 		if err := poller.PollUntilDone(ctx); err != nil {
@@ -492,7 +497,6 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceApiManagementApiRead(d, meta)
 }
 

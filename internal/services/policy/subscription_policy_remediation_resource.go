@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -95,6 +95,10 @@ func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
 			"policy_definition_reference_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// The API does not honour the provided casing, instead returning values in all lowercase
+				// https://github.com/Azure/azure-rest-api-specs/issues/37823
+				DiffSuppressFunc:      suppress.CaseDifference,
+				DiffSuppressOnRefresh: true,
 			},
 
 			"resource_discovery_mode": {
@@ -125,14 +129,16 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 	id := remediations.NewRemediationID(subscriptionId.SubscriptionId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetAtSubscription(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetAtSubscription(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				}
 			}
-		}
-		if existing.Model != nil {
-			return tf.ImportAsExistsError("azurerm_subscription_policy_remediation", id.ID())
+			if existing.Model != nil {
+				return tf.ImportAsExistsError("azurerm_subscription_policy_remediation", id.ID())
+			}
 		}
 	}
 
@@ -144,7 +150,9 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceArmSubscriptionPolicyRemediationRead(d, meta)
 }
@@ -197,7 +205,8 @@ func resourceArmSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitForRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
+	if err := waitForRemediationToDelete(
+		ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
 			_, err := client.CancelAtSubscription(ctx, *id)
 			return err

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -105,15 +106,18 @@ func resourceApiManagementPolicyFragmentCreate(d *pluginsdk.ResourceData, meta i
 
 	opts := policyfragment.DefaultGetOperationOptions()
 	opts.Format = &format
-	existing, err := client.Get(ctx, id, opts)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_api_management_policy_fragment", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, opts)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_api_management_policy_fragment", id.ID())
+		}
 	}
 
 	description := d.Get("description").(string)
@@ -127,7 +131,7 @@ func resourceApiManagementPolicyFragmentCreate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, policyfragment.CreateOrUpdateOperationOptions{}); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, policyfragment.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive
@@ -15,19 +15,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	cognitiveValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
-	managedHsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
-	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -35,9 +31,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.ResourceWithUpdate = AIServices{}
+func (r AIServices) DeprecatedInFavourOfResource() string {
+	return "azurerm_cognitive_account"
+}
 
-var _ sdk.ResourceWithCustomImporter = AIServices{}
+var (
+	_ sdk.ResourceWithUpdate                = AIServices{}
+	_ sdk.ResourceWithCustomImporter        = AIServices{}
+	_ sdk.ResourceWithDeprecationReplacedBy = AIServices{}
+)
 
 type AIServices struct{}
 
@@ -77,7 +79,7 @@ type NetworkACLs struct {
 type CustomerManagedKey struct {
 	IdentityClientID string `tfschema:"identity_client_id"`
 	KeyVaultKeyID    string `tfschema:"key_vault_key_id"`
-	ManagedHsmKeyID  string `tfschema:"managed_hsm_key_id"`
+	ManagedHsmKeyID  string `tfschema:"managed_hsm_key_id,removedInNextMajorVersion"`
 }
 
 type AIServicesModel struct {
@@ -100,7 +102,7 @@ type AIServicesModel struct {
 }
 
 func (AIServices) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -135,16 +137,8 @@ func (AIServices) Arguments() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-						ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
-					},
-
-					"managed_hsm_key_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.Any(managedHsmValidate.ManagedHSMDataPlaneVersionedKeyID, managedHsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
-						ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
+						Required:     true,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 					},
 
 					"identity_client_id": {
@@ -270,6 +264,30 @@ func (AIServices) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		cmkSchema := args["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema
+		cmkSchema["key_vault_key_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C while `managed_hsm_key_id` is deprecated since both will be set
+			Computed:     true,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
+			ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
+		}
+
+		cmkSchema["managed_hsm_key_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C while `managed_hsm_key_id` is deprecated since both will be set
+			Computed:     true,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
+			ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
+			Deprecated:   "`managed_hsm_key_id` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
+		}
+	}
+
+	return args
 }
 
 func (AIServices) Attributes() map[string]*pluginsdk.Schema {
@@ -314,15 +332,18 @@ func (AIServices) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := cognitiveservicesaccounts.NewAccountID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.AccountsGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_ai_services", id.ID())
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AccountsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_ai_services", id.ID())
+				}
 			}
 
 			networkACLs, subnetIds := expandNetworkACLs(model.NetworkACLs)
@@ -365,13 +386,15 @@ func (AIServices) Create() sdk.ResourceFunc {
 			}
 			props.Identity = expandIdentity
 
-			if err := client.AccountsCreateThenPoll(ctx, id, props); err != nil {
+			if err := client.AccountsCreateCallbackThenPoll(ctx, id, props, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			// creating with KV HSM takes more time than expected, at least hours in most cases and eventually terminated by service
 			if len(model.CustomerManagedKey) > 0 {
-				customerManagedKey, err := expandCustomerManagedKey(model.CustomerManagedKey)
+				customerManagedKey, err := expandCustomerManagedKey(model.CustomerManagedKey, metadata)
 				if err != nil {
 					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 				}
@@ -384,8 +407,6 @@ func (AIServices) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
-
 			return nil
 		},
 	}
@@ -396,7 +417,6 @@ func (AIServices) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.AccountsClient
-			env := metadata.Client.Account.Environment
 
 			state := AIServicesModel{}
 			id, err := cognitiveservicesaccounts.ParseAccountID(metadata.ResourceData.Id())
@@ -454,7 +474,7 @@ func (AIServices) Read() sdk.ResourceFunc {
 					}
 					state.LocalAuthorizationEnabled = localAuthEnabled
 
-					customerManagedKey, err := flattenCustomerManagedKey(props.Encryption, env)
+					customerManagedKey, err := flattenCustomerManagedKey(props.Encryption)
 					if err != nil {
 						return fmt.Errorf("flattening `customer_managed_key`: %+v", err)
 					}
@@ -549,7 +569,7 @@ func (AIServices) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("customer_managed_key") {
-				customerManagedKey, err := expandCustomerManagedKey(model.CustomerManagedKey)
+				customerManagedKey, err := expandCustomerManagedKey(model.CustomerManagedKey, metadata)
 				if err != nil {
 					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 				}
@@ -587,18 +607,13 @@ func (AIServices) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			log.Printf("[DEBUG] Retrieving %s..", *id)
 			account, err := client.AccountsGet(ctx, *id)
 			if err != nil || account.Model == nil || account.Model.Location == nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			deletedAzureAIServicesId := cognitiveservicesaccounts.NewDeletedAccountID(id.SubscriptionId, *account.Model.Location, id.ResourceGroupName, id.AccountName)
-			if err != nil {
-				return err
-			}
 
-			log.Printf("[DEBUG] Deleting %s..", *id)
 			if err := client.AccountsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
@@ -620,7 +635,7 @@ func (AIServices) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return cognitiveservicesaccounts.ValidateAccountID
 }
 
-func expandCustomerManagedKey(input []CustomerManagedKey) (*cognitiveservicesaccounts.Encryption, error) {
+func expandCustomerManagedKey(input []CustomerManagedKey, rmd sdk.ResourceMetaData) (*cognitiveservicesaccounts.Encryption, error) {
 	if len(input) == 0 {
 		return &cognitiveservicesaccounts.Encryption{
 			KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices),
@@ -634,87 +649,63 @@ func expandCustomerManagedKey(input []CustomerManagedKey) (*cognitiveservicesacc
 		identityClientId = value
 	}
 
-	encryption := &cognitiveservicesaccounts.Encryption{
+	setInConfig := func(rmd sdk.ResourceMetaData) bool {
+		raw, err := rmd.GetRawConfigAt("customer_managed_key.0.managed_hsm_key_id")
+		return err == nil && !raw.IsNull()
+	}
+
+	key := keyvault.NestedItemID{}
+	if !features.FivePointOh() && setInConfig(rmd) {
+		hsmKeyId, err := keyvault.ParseNestedItemID(v.ManagedHsmKeyID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+		if err != nil {
+			return nil, err
+		}
+		key = *hsmKeyId
+	} else {
+		keyId, err := keyvault.ParseNestedItemID(v.KeyVaultKeyID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+		if err != nil {
+			return nil, err
+		}
+		key = *keyId
+	}
+
+	return &cognitiveservicesaccounts.Encryption{
 		KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault),
 		KeyVaultProperties: &cognitiveservicesaccounts.KeyVaultProperties{
 			IdentityClientId: pointer.To(identityClientId),
+			KeyName:          pointer.To(key.Name),
+			KeyVaultUri:      pointer.To(key.KeyVaultBaseURL),
+			KeyVersion:       pointer.To(key.Version),
 		},
-	}
-
-	if v.KeyVaultKeyID != "" {
-		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v.KeyVaultKeyID)
-		if err != nil {
-			return nil, err
-		}
-		encryption.KeyVaultProperties.KeyName = pointer.To(keyId.Name)
-		encryption.KeyVaultProperties.KeyVersion = pointer.To(keyId.Version)
-		encryption.KeyVaultProperties.KeyVaultUri = pointer.To(keyId.KeyVaultBaseUrl)
-	} else {
-		hsmKyId, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(v.ManagedHsmKeyID, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		encryption.KeyVaultProperties.KeyName = pointer.To(hsmKyId.KeyName)
-		encryption.KeyVaultProperties.KeyVersion = pointer.To(hsmKyId.KeyVersion)
-		encryption.KeyVaultProperties.KeyVaultUri = pointer.To(hsmKyId.BaseUri())
-	}
-	return encryption, nil
+	}, nil
 }
 
-func flattenCustomerManagedKey(input *cognitiveservicesaccounts.Encryption, env environments.Environment) ([]CustomerManagedKey, error) {
-	if input == nil || *input.KeySource == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
+func flattenCustomerManagedKey(input *cognitiveservicesaccounts.Encryption) ([]CustomerManagedKey, error) {
+	result := make([]CustomerManagedKey, 0)
+
+	if input == nil || pointer.From(input.KeySource) == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
 		return []CustomerManagedKey{}, nil
 	}
 
-	keyName := ""
-	keyVaultURI := ""
-	keyVersion := ""
-	customerManagerKey := CustomerManagedKey{}
-
 	if props := input.KeyVaultProperties; props != nil {
-		if props.KeyName != nil {
-			keyName = *props.KeyName
-		}
-		if props.KeyVaultUri != nil {
-			keyVaultURI = *props.KeyVaultUri
-		}
-		if props.KeyVersion != nil {
-			keyVersion = *props.KeyVersion
-		}
-
-		isHsmURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+		keyId, err := keyvault.NewNestedItemID(pointer.From(props.KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From(props.KeyName), pointer.From(props.KeyVersion))
 		if err != nil {
 			return nil, err
 		}
 
-		if props.IdentityClientId != nil {
-			customerManagerKey.IdentityClientID = *props.IdentityClientId
+		cmk := CustomerManagedKey{
+			IdentityClientID: pointer.From(props.IdentityClientId),
+			KeyVaultKeyID:    keyId.ID(),
 		}
 
-		switch {
-		case isHsmURI && keyVersion == "":
-			{
-				keyVaultKeyId := managedHsmParse.NewManagedHSMDataPlaneVersionlessKeyID(instanceName, domainSuffix, keyName)
-				customerManagerKey.ManagedHsmKeyID = keyVaultKeyId.ID()
-			}
-		case isHsmURI && keyVersion != "":
-			{
-				keyVaultKeyId := managedHsmParse.NewManagedHSMDataPlaneVersionedKeyID(instanceName, domainSuffix, keyName, keyVersion)
-				customerManagerKey.ManagedHsmKeyID = keyVaultKeyId.ID()
-			}
-		case !isHsmURI:
-			{
-				keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultURI, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
-				if err != nil {
-					return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
-				}
-				customerManagerKey.KeyVaultKeyID = keyVaultKeyId.ID()
-			}
+		if !features.FivePointOh() && keyId.IsManagedHSM() {
+			cmk.ManagedHsmKeyID = keyId.ID()
 		}
+
+		result = append(result, cmk)
 	}
 
-	return []CustomerManagedKey{customerManagerKey}, nil
+	return result, nil
 }
 
 func expandNetworkACLs(input []NetworkACLs) (*cognitiveservicesaccounts.NetworkRuleSet, []string) {
@@ -747,7 +738,7 @@ func expandNetworkACLs(input []NetworkACLs) (*cognitiveservicesaccounts.NetworkR
 		networkRules = append(networkRules, rule)
 	}
 
-	bypass := cognitiveservicesaccounts.ByPassSelection((v.Bypass))
+	bypass := cognitiveservicesaccounts.ByPassSelection(v.Bypass)
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
 		Bypass:              &bypass,

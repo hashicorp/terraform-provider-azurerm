@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -12,7 +12,8 @@ func ContainerRegistryScopeMapName(v interface{}, k string) (warnings []string, 
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z0-9\-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
-			"alpha numeric characters and hyphens only are allowed in %q: %q", k, value))
+			"alpha numeric characters and hyphens only are allowed in %q: %q", k, value,
+		))
 	}
 
 	if 5 > len(value) {

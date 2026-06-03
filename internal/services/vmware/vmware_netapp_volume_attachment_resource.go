@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package vmware
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/datastores"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetappFileVolumeAttachment struct {
@@ -70,7 +70,6 @@ func (r NetappFileVolumeAttachmentResource) IDValidationFunc() pluginsdk.SchemaV
 func (r NetappFileVolumeAttachmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			metadata.Logger.Infof("Decoding state...")
 			var state NetappFileVolumeAttachment
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -85,18 +84,19 @@ func (r NetappFileVolumeAttachmentResource) Create() sdk.ResourceFunc {
 			}
 
 			id := datastores.NewDataStoreID(subscriptionId, vmWareClusterId.ResourceGroupName, vmWareClusterId.PrivateCloudName, vmWareClusterId.ClusterName, state.Name)
-			metadata.Logger.Infof("creating %s", id)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := datastores.Datastore{
-				Name: utils.String(state.Name),
+				Name: pointer.To(state.Name),
 				Properties: &datastores.DatastoreProperties{
 					NetAppVolume: &datastores.NetAppVolume{
 						Id: state.NetAppVolumeId,
@@ -104,7 +104,7 @@ func (r NetappFileVolumeAttachmentResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, input); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, input, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -125,11 +125,9 @@ func (r NetappFileVolumeAttachmentResource) Read() sdk.ResourceFunc {
 			}
 			clusterId := datastores.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.PrivateCloudName, id.ClusterName)
 
-			metadata.Logger.Infof("retrieving %s", *id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					metadata.Logger.Infof("%s was not found - removing from state!", *id)
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -162,7 +160,6 @@ func (r NetappFileVolumeAttachmentResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s..", *id)
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}

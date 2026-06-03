@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto_test
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -305,7 +306,7 @@ func TestAccKustoCluster_newSkus(t *testing.T) {
 	})
 }
 
-func TestAccKustoCluster_removeLanguageExtension(t *testing.T) {
+func TestAccKustoCluster_languageExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}
 
@@ -325,13 +326,69 @@ func TestAccKustoCluster_removeLanguageExtension(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.multipleLanguageExtensions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicHyperVSupportedSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				r.checkLanguageExtensions(data)...,
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKustoCluster_languageExtensionsDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as the `language_extensions` block was removed in 5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
 			Config: r.basicHyperVSupportedSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.multipleLanguageExtensionsDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicHyperVSupportedSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				r.checkLanguageExtensions(data)...,
+			),
+		},
+		data.ImportStep(),
 	})
+}
+
+func (r KustoClusterResource) checkLanguageExtensions(data acceptance.TestData) []pluginsdk.TestCheckFunc {
+	if !features.FivePointOh() {
+		// When removing this in 5.0, inline the `check.That(data.ResourceName).ExistsInAzure(r),` check in the TestStep
+		// and remove this method entirely.
+		return []pluginsdk.TestCheckFunc{
+			check.That(data.ResourceName).ExistsInAzure(r),
+			// While in 4.x this is O+C, so we want to ensure these blocks are empty
+			check.That(data.ResourceName).Key("language_extension.#").HasValue("0"),
+			check.That(data.ResourceName).Key("language_extensions.#").HasValue("0"),
+		}
+	}
+	return []pluginsdk.TestCheckFunc{
+		check.That(data.ResourceName).ExistsInAzure(r),
+	}
 }
 
 func (KustoClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -414,6 +471,84 @@ resource "azurerm_kusto_cluster" "test" {
   public_network_access_enabled      = false
   public_ip_type                     = "DualStack"
   outbound_network_access_restricted = true
+
+  language_extension {
+    name  = "PYTHON"
+    image = "Python3_6_5"
+  }
+
+  sku {
+    name     = "Standard_L8s_v3"
+    capacity = 2
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (KustoClusterResource) multipleLanguageExtensions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                               = "acctestkc%s"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  allowed_fqdns                      = ["example.blob.core.windows.net"]
+  allowed_ip_ranges                  = ["0.0.0.0/0"]
+  public_network_access_enabled      = false
+  public_ip_type                     = "DualStack"
+  outbound_network_access_restricted = true
+
+  language_extension {
+    name  = "R"
+    image = "R"
+  }
+
+  language_extension {
+    name  = "PYTHON"
+    image = "Python3_6_5"
+  }
+
+  sku {
+    name     = "Standard_L8s_v3"
+    capacity = 2
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (KustoClusterResource) multipleLanguageExtensionsDeprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                               = "acctestkc%s"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  allowed_fqdns                      = ["example.blob.core.windows.net"]
+  allowed_ip_ranges                  = ["0.0.0.0/0"]
+  public_network_access_enabled      = false
+  public_ip_type                     = "DualStack"
+  outbound_network_access_restricted = true
+
+  language_extensions {
+    name  = "R"
+    image = "R"
+  }
 
   language_extensions {
     name  = "PYTHON"

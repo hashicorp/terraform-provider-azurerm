@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -14,15 +15,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name service_plan -service-package-name appservice -properties "resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type ServicePlanResource struct{}
 
@@ -30,7 +34,12 @@ var (
 	_ sdk.ResourceWithUpdate         = ServicePlanResource{}
 	_ sdk.ResourceWithStateMigration = ServicePlanResource{}
 	_ sdk.ResourceWithCustomizeDiff  = ServicePlanResource{}
+	_ sdk.ResourceWithIdentity       = ServicePlanResource{}
 )
+
+func (r ServicePlanResource) Identity() resourceids.ResourceId {
+	return &commonids.AppServicePlanId{}
+}
 
 type OSType string
 
@@ -75,7 +84,9 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ValidateFunc: validation.StringInSlice(
 				helpers.AllKnownServicePlanSkus(),
-				false),
+				false,
+			),
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"os_type": {
@@ -92,7 +103,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"app_service_environment_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: webValidate.AppServiceEnvironmentID,
+			ValidateFunc: commonids.ValidateAppServiceEnvironmentID,
 		},
 
 		"per_site_scaling_enabled": {
@@ -166,12 +177,14 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewAppServicePlanID(subscriptionId, servicePlan.ResourceGroup, servicePlan.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("retrieving %s: %v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("retrieving %s: %v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			appServicePlan := appserviceplans.AppServicePlan{
@@ -191,7 +204,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 
 			if servicePlan.AppServiceEnvironmentId != "" {
 				if !strings.HasPrefix(servicePlan.Sku, "I") {
-					return fmt.Errorf("App Service Environment based Service Plans can only be used with Isolated SKUs")
+					return errors.New("'App Service Environment' based Service Plans can only be used with Isolated SKUs")
 				}
 				appServicePlan.Properties.HostingEnvironmentProfile = &appserviceplans.HostingEnvironmentProfile{
 					Id: pointer.To(servicePlan.AppServiceEnvironmentId),
@@ -206,11 +219,14 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 				appServicePlan.Sku.Capacity = pointer.To(servicePlan.WorkerCount)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, appServicePlan); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, appServicePlan, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -235,52 +251,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := ServicePlanModel{
-				Name:          id.ServerFarmName,
-				ResourceGroup: id.ResourceGroupName,
-			}
-
-			if model := servicePlan.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.Kind = pointer.From(model.Kind)
-
-				// sku read
-				if sku := model.Sku; sku != nil {
-					if sku.Name != nil {
-						state.Sku = *sku.Name
-						if sku.Capacity != nil {
-							state.WorkerCount = *sku.Capacity
-						}
-					}
-				}
-
-				// props read
-				if props := model.Properties; props != nil {
-					state.OSType = OSTypeWindows
-					if props.HyperV != nil && *props.HyperV {
-						state.OSType = OSTypeWindowsContainer
-					}
-					if props.Reserved != nil && *props.Reserved {
-						state.OSType = OSTypeLinux
-					}
-
-					if ase := props.HostingEnvironmentProfile; ase != nil && ase.Id != nil {
-						state.AppServiceEnvironmentId = *ase.Id
-					}
-
-					if pointer.From(props.ElasticScaleEnabled) && state.Sku != "" && helpers.PlanIsPremium(state.Sku) {
-						state.PremiumPlanAutoScaleEnabled = pointer.From(props.ElasticScaleEnabled)
-					}
-
-					state.PerSiteScaling = pointer.From(props.PerSiteScaling)
-					state.Reserved = pointer.From(props.Reserved)
-					state.ZoneBalancing = pointer.From(props.ZoneRedundant)
-					state.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
-				}
-				state.Tags = pointer.From(model.Tags)
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, servicePlan.Model)
 		},
 	}
 }
@@ -295,7 +266,6 @@ func (r ServicePlanResource) Delete() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppService.ServicePlanClient
-			metadata.Logger.Infof("deleting %s", id)
 
 			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
@@ -419,4 +389,53 @@ func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func (ServicePlanResource) flatten(metadata sdk.ResourceMetaData, id *commonids.AppServicePlanId, model *appserviceplans.AppServicePlan) error {
+	state := ServicePlanModel{
+		Name:          id.ServerFarmName,
+		ResourceGroup: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Kind = pointer.From(model.Kind)
+
+		// sku read
+		if sku := model.Sku; sku != nil {
+			state.Sku = pointer.From(sku.Name)
+			state.WorkerCount = pointer.From(sku.Capacity)
+		}
+
+		// props read
+		if props := model.Properties; props != nil {
+			state.OSType = OSTypeWindows
+			if props.HyperV != nil && *props.HyperV {
+				state.OSType = OSTypeWindowsContainer
+			}
+			if props.Reserved != nil && *props.Reserved {
+				state.OSType = OSTypeLinux
+			}
+
+			if ase := props.HostingEnvironmentProfile; ase != nil && ase.Id != nil {
+				state.AppServiceEnvironmentId = *ase.Id
+			}
+
+			if pointer.From(props.ElasticScaleEnabled) && state.Sku != "" && helpers.PlanIsPremium(state.Sku) {
+				state.PremiumPlanAutoScaleEnabled = pointer.From(props.ElasticScaleEnabled)
+			}
+
+			state.PerSiteScaling = pointer.From(props.PerSiteScaling)
+			state.Reserved = pointer.From(props.Reserved)
+			state.ZoneBalancing = pointer.From(props.ZoneRedundant)
+			state.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
+		}
+		state.Tags = pointer.From(model.Tags)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }

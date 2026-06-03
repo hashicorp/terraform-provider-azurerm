@@ -25,7 +25,7 @@ resource "azurerm_data_factory" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `customer_managed_key_id` - (Optional) Specifies the Azure Key Vault Key ID to be used as the Customer Managed Key (CMK) for double encryption. Required with user assigned identity.
 
-* `customer_managed_key_identity_id` - (Optional) Specifies the ID of the user assigned identity associated with the Customer Managed Key. Must be supplied if `customer_managed_key_id` is set.
+* `customer_managed_key_identity_id` - (Optional) Specifies the ID of the user assigned identity associated with the Customer Managed Key. Must be supplied at factory creation if `customer_managed_key_id` is set. Can be left empty once factory is created to use the system assigned identity. See the [Microsoft documentation](https://learn.microsoft.com/en-us/azure/data-factory/enable-customer-managed-key) for more information.
 
 * `purview_id` - (Optional) Specifies the ID of the purview account resource associated with the Data Factory.
 
@@ -131,7 +131,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory.

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datadog
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -19,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDatadogMonitor() *pluginsdk.Resource {
@@ -174,14 +175,16 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	id := monitorsresource.NewMonitorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.MonitorsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.MonitorsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_datadog_monitor", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_datadog_monitor", id.ID())
+		}
 	}
 
 	monitoringStatus := monitorsresource.MonitoringStatusDisabled
@@ -203,7 +206,7 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.MonitorsCreateThenPoll(ctx, id, payload); err != nil {
+	if err := client.MonitorsCreateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -351,12 +354,12 @@ func expandMonitorOrganizationProperties(input []interface{}) *monitorsresource.
 	}
 	v := input[0].(map[string]interface{})
 	return &monitorsresource.DatadogOrganizationProperties{
-		LinkingAuthCode: utils.String(v["linking_auth_code"].(string)),
-		LinkingClientId: utils.String(v["linking_client_id"].(string)),
-		RedirectUri:     utils.String(v["redirect_uri"].(string)),
-		ApiKey:          utils.String(v["api_key"].(string)),
-		ApplicationKey:  utils.String(v["application_key"].(string)),
-		EnterpriseAppId: utils.String(v["enterprise_app_id"].(string)),
+		LinkingAuthCode: pointer.To(v["linking_auth_code"].(string)),
+		LinkingClientId: pointer.To(v["linking_client_id"].(string)),
+		RedirectUri:     pointer.To(v["redirect_uri"].(string)),
+		ApiKey:          pointer.To(v["api_key"].(string)),
+		ApplicationKey:  pointer.To(v["application_key"].(string)),
+		EnterpriseAppId: pointer.To(v["enterprise_app_id"].(string)),
 	}
 }
 
@@ -366,9 +369,9 @@ func expandMonitorUserInfo(input []interface{}) *monitorsresource.UserInfo {
 	}
 	v := input[0].(map[string]interface{})
 	return &monitorsresource.UserInfo{
-		Name:         utils.String(v["name"].(string)),
-		EmailAddress: utils.String(v["email"].(string)),
-		PhoneNumber:  utils.String(v["phone_number"].(string)),
+		Name:         pointer.To(v["name"].(string)),
+		EmailAddress: pointer.To(v["email"].(string)),
+		PhoneNumber:  pointer.To(v["phone_number"].(string)),
 	}
 }
 
@@ -424,11 +427,11 @@ func flattenMonitorOrganizationProperties(input *monitorsresource.DatadogOrganiz
 	return []interface{}{
 		map[string]interface{}{
 			"name":              name,
-			"api_key":           utils.String(v["api_key"].(string)),
-			"application_key":   utils.String(v["application_key"].(string)),
+			"api_key":           pointer.To(v["api_key"].(string)),
+			"application_key":   pointer.To(v["application_key"].(string)),
 			"enterprise_app_id": enterpriseAppId,
-			"linking_auth_code": utils.String(v["linking_auth_code"].(string)),
-			"linking_client_id": utils.String(v["linking_client_id"].(string)),
+			"linking_auth_code": pointer.To(v["linking_auth_code"].(string)),
+			"linking_client_id": pointer.To(v["linking_client_id"].(string)),
 			"redirect_uri":      redirectUri,
 			"id":                id,
 		},

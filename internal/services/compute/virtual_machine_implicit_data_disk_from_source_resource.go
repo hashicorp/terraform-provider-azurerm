@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -211,6 +211,8 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Create() sdk.ResourceF
 					model.Identity = nil
 					// fixes #1600
 					model.Resources = nil
+
+					// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 					err = client.CreateOrUpdateThenPoll(ctx, *virtualMachineId, *model, virtualmachines.DefaultCreateOrUpdateOperationOptions())
 					if err != nil {
 						return fmt.Errorf("creating %s: %+v", id, err)

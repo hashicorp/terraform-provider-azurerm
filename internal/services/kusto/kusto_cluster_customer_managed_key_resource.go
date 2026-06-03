@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto
@@ -122,8 +122,10 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 	if d.IsNewResource() {
 		// whilst this looks superflurious given encryption is enabled by default, due to the way
 		// the Azure API works this technically can be nil
-		if cluster.Model.Properties.KeyVaultProperties != nil {
-			return tf.ImportAsExistsError("azurerm_kusto_cluster_customer_managed_key", resourceID)
+		{
+			if cluster.Model.Properties.KeyVaultProperties != nil {
+				return tf.ImportAsExistsError("azurerm_kusto_cluster_customer_managed_key", resourceID)
+			}
 		}
 	}
 
@@ -173,7 +175,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 			keyVersion = ""
 			keyVaultURI = keyId.BaseUri()
 		} else {
-			return fmt.Errorf("Failed to parse '%s' as HSM key ID", managedHSMKeyId)
+			return fmt.Errorf("failed to parse '%s' as HSM key ID", managedHSMKeyId)
 		}
 	}
 
@@ -191,8 +193,8 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 		props.Properties.KeyVaultProperties.UserIdentity = pointer.To(v.(string))
 	}
 
-	err = clusterClient.UpdateThenPoll(ctx, *clusterID, props, clusters.UpdateOperationOptions{})
-	if err != nil {
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+	if err = clusterClient.UpdateThenPoll(ctx, *clusterID, props, clusters.UpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("updating Customer Managed Key for %s: %+v", *clusterID, err)
 	}
 
@@ -257,7 +259,7 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: `properties.keyVaultProperties.keyVaultUri` was nil", id)
 	}
 
-	isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+	isHSMURI, instanceName, domainSuffix, err := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
 	if err != nil {
 		return err
 	}

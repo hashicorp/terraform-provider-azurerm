@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive
@@ -10,13 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type cognitiveDeploymentModel struct {
@@ -167,8 +166,10 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"rai_policy_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C `raiPolicyName` has default value when `rai_policy_name` is not set. So, `O+C` is required otherwise it will incur difference.
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -208,13 +209,16 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(accountId.ID())
 
 			id := deployments.NewDeploymentID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &deployments.Deployment{
@@ -238,7 +242,7 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 
 			properties.Sku = expandDeploymentSkuModel(model.Sku)
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -406,13 +410,13 @@ func expandDeploymentSkuModel(inputList []DeploymentSkuModel) *deployments.Sku {
 		Name: input.Name,
 	}
 	if input.Capacity != 0 {
-		s.Capacity = utils.Int64(input.Capacity)
+		s.Capacity = pointer.To(input.Capacity)
 	}
 	if input.Family != "" {
-		s.Family = utils.String(input.Family)
+		s.Family = pointer.To(input.Family)
 	}
 	if input.Size != "" {
-		s.Size = utils.String(input.Size)
+		s.Size = pointer.To(input.Size)
 	}
 	if input.Tier != "" {
 		tier := deployments.SkuTier(input.Tier)

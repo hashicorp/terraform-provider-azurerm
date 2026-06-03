@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package template
@@ -9,7 +9,6 @@ import (
 	"text/template"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
-
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -74,48 +74,8 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"path": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"port": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"cookie_based_affinity": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
 						"affinity_cookie_name": {
 							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"host_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"pick_host_name_from_backend_address": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-
-						"request_timeout": {
-							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 
@@ -137,12 +97,9 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
-						"trusted_root_certificate_names": {
-							Type:     pluginsdk.TypeList,
+						"certificate_chain_validation_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
 						},
 
 						"connection_draining": {
@@ -163,7 +120,17 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
-						"probe_name": {
+						"cookie_based_affinity": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"dedicated_backend_connection_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"host_name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -173,9 +140,123 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"path": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"pick_host_name_from_backend_address": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"port": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
 						"probe_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
+						},
+
+						"probe_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"protocol": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"request_timeout": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"sni_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"sni_validation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"trusted_root_certificate_names": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
+
+			"backend": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"client_ip_preservation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"host_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"port": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"probe_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"probe_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"protocol": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"timeout_in_seconds": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"trusted_root_certificate_names": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
 						},
 					},
 				},
@@ -401,6 +482,77 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
+			"listener": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"frontend_ip_configuration_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"frontend_ip_configuration_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"frontend_port_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"frontend_port_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"host_names": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"protocol": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"ssl_certificate_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"ssl_certificate_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"ssl_profile_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"ssl_profile_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"fips_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -554,6 +706,59 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 
 						"rewrite_rule_set_id": {
 							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"routing_rule": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"backend_address_pool_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"backend_address_pool_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"backend_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"backend_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"listener_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"listener_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"priority": {
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 					},
@@ -742,52 +947,17 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"path": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
 						"host": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"interval": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"timeout": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"unhealthy_threshold": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"port": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"pick_host_name_from_backend_http_settings": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-
-						"minimum_servers": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
@@ -813,8 +983,48 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
-						"id": {
+						"minimum_servers": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"name": {
 							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"path": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"pick_host_name_from_backend_http_settings": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"port": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"protocol": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"proxy_protocol_header_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"timeout": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"unhealthy_threshold": {
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 					},
@@ -1372,6 +1582,14 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 				return fmt.Errorf("setting `backend_http_settings`: %+v", setErr)
 			}
 
+			backendSettings, err := flattenApplicationGatewayBackendSettings(props.BackendSettingsCollection)
+			if err != nil {
+				return fmt.Errorf("flattening `backend`: %+v", err)
+			}
+			if setErr := d.Set("backend", backendSettings); setErr != nil {
+				return fmt.Errorf("setting `backend`: %+v", setErr)
+			}
+
 			if setErr := d.Set("ssl_policy", flattenApplicationGatewaySslPolicy(props.SslPolicy)); setErr != nil {
 				return fmt.Errorf("setting `ssl_policy`: %+v", setErr)
 			}
@@ -1386,6 +1604,14 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 			}
 			if setErr := d.Set("http_listener", httpListeners); setErr != nil {
 				return fmt.Errorf("setting `http_listener`: %+v", setErr)
+			}
+
+			listeners, err := flattenApplicationGatewayListeners(props.Listeners)
+			if err != nil {
+				return fmt.Errorf("flattening `listener`: %+v", err)
+			}
+			if setErr := d.Set("listener", listeners); setErr != nil {
+				return fmt.Errorf("setting `listener`: %+v", setErr)
 			}
 
 			if setErr := d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(props.FrontendPorts)); setErr != nil {
@@ -1426,6 +1652,14 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 			}
 			if setErr := d.Set("request_routing_rule", requestRoutingRules); setErr != nil {
 				return fmt.Errorf("setting `request_routing_rule`: %+v", setErr)
+			}
+
+			routingRules, err := flattenApplicationGatewayRoutingRules(props.RoutingRules)
+			if err != nil {
+				return fmt.Errorf("flattening `routing_rule`: %+v", err)
+			}
+			if setErr := d.Set("routing_rule", routingRules); setErr != nil {
+				return fmt.Errorf("setting `routing_rule`: %+v", setErr)
 			}
 
 			redirectConfigurations, err := flattenApplicationGatewayRedirectConfigurations(props.RedirectConfigurations)

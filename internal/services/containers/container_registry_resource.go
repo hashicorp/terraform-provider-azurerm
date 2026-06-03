@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"sort"
@@ -16,19 +17,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/operation"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/replications"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/replications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -152,7 +152,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						},
 					},
 				},
@@ -270,50 +270,50 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			geoReplications := d.Get("georeplications").([]interface{})
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
 			if len(geoReplications) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
+				return errors.New("an ACR geo-replication can only be applied when using the Premium Sku")
 			}
 
 			// ensure location is different than any location of the geo-replication
 			var geoReplicationLocations []string
 			for _, v := range geoReplications {
 				v := v.(map[string]interface{})
-				geoReplicationLocations = append(geoReplicationLocations, azure.NormalizeLocation(v["location"]))
+				geoReplicationLocations = append(geoReplicationLocations, location.Normalize(v["location"].(string)))
 			}
 			location := location.Normalize(d.Get("location").(string))
 			for _, loc := range geoReplicationLocations {
 				if loc == location {
-					return fmt.Errorf("The `georeplications` list cannot contain the location where the Container Registry exists.")
+					return errors.New("the `georeplications` list cannot contain the location where the Container Registry exists")
 				}
 			}
 
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
 			if quarantinePolicyEnabled && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
+				return errors.New("an ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
 			}
 
 			retentionPolicyEnabled, ok := d.GetOk("retention_policy_in_days")
 			if ok && retentionPolicyEnabled.(int) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `retention_policy_in_days`")
+				return errors.New("an ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `retention_policy_in_days`")
 			}
 
 			trustPolicyEnabled, ok := d.GetOk("trust_policy_enabled")
 			if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `trust_policy_enabled` or set `trust_policy_enabled = false`")
+				return errors.New("an ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `trust_policy_enabled` or set `trust_policy_enabled = false`")
 			}
 
 			exportPolicyEnabled := d.Get("export_policy_enabled").(bool)
 			if !exportPolicyEnabled {
 				if !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-					return fmt.Errorf("ACR export policy can only be disabled when using the Premium Sku. If you are downgrading from a Premium SKU please unset `export_policy_enabled` or set `export_policy_enabled = true`")
+					return errors.New("an ACR export policy can only be disabled when using the Premium Sku. If you are downgrading from a Premium SKU please unset `export_policy_enabled` or set `export_policy_enabled = true`")
 				}
 				if d.Get("public_network_access_enabled").(bool) {
-					return fmt.Errorf("To disable export of artifacts, `public_network_access_enabled` must also be `false`")
+					return errors.New("to disable export of artifacts, `public_network_access_enabled` must also be `false`")
 				}
 			}
 
 			encryptionEnabled, ok := d.GetOk("encryption")
 			if ok && len(encryptionEnabled.([]interface{})) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR encryption can only be applied when using the Premium Sku.")
+				return errors.New("an ACR encryption can only be applied when using the Premium Sku")
 			}
 
 			// zone redundancy is only available for Premium Sku.
@@ -345,6 +345,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		r.Schema["encryption"].Computed = true
+		r.Schema["encryption"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 	}
 
 	return r
@@ -352,15 +353,14 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 
 func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
-	operationClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Operation
+	registriesClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for  Container Registry creation.")
 
 	id := registries.NewRegistryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -374,11 +374,11 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	sId := commonids.NewSubscriptionID(subscriptionId)
-	availabilityRequest := operation.RegistryNameCheckRequest{
+	availabilityRequest := registries.RegistryNameCheckRequest{
 		Name: id.RegistryName,
 		Type: "Microsoft.ContainerRegistry/registries",
 	}
-	resp, err := operationClient.RegistriesCheckNameAvailability(ctx, sId, availabilityRequest)
+	resp, err := registriesClient.CheckNameAvailability(ctx, sId, availabilityRequest)
 	if err != nil {
 		return fmt.Errorf("checking if the name %q was available: %+v", id.RegistryName, err)
 	}
@@ -406,7 +406,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	publicNetworkAccess := registries.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		if !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-			return fmt.Errorf("`public_network_access_enabled` can only be disabled for a Premium Sku.")
+			return errors.New("`public_network_access_enabled` can only be disabled for a Premium Sku")
 		}
 
 		publicNetworkAccess = registries.PublicNetworkAccessDisabled
@@ -455,9 +455,10 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// the ACR is being created so no previous geo-replication locations
 	var oldGeoReplicationLocations, newGeoReplicationLocations []replications.Replication
@@ -469,8 +470,6 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceContainerRegistryRead(d, meta)
 }
@@ -520,7 +519,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkAccess := registries.PublicNetworkAccessEnabled
 		if !d.Get("public_network_access_enabled").(bool) {
 			if !isPremiumSku {
-				return fmt.Errorf("`public_network_access_enabled` can only be disabled for a Premium Sku.")
+				return errors.New("`public_network_access_enabled` can only be disabled for a Premium Sku")
 			}
 
 			publicNetworkAccess = registries.PublicNetworkAccessDisabled
@@ -624,7 +623,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// geo replication is only supported by Premium Sku
 	if len(newReplications) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
+		return errors.New("an ACR geo-replication can only be applied when using the Premium Sku")
 	}
 
 	if hasGeoReplicationsChanges {
@@ -671,7 +670,6 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 
 func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registryId registries.RegistryId, oldGeoReplications []replications.Replication, newGeoReplications []replications.Replication) error {
 	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Replications
-	log.Printf("[INFO] preparing to apply geo-replications for Container Registry.")
 
 	oldReplications := map[string]replications.Replication{}
 	for _, replication := range oldGeoReplications {
@@ -1004,7 +1002,7 @@ func expandReplications(p []interface{}) []replications.Replication {
 	}
 	for _, v := range p {
 		value := v.(map[string]interface{})
-		location := azure.NormalizeLocation(value["location"])
+		location := location.Normalize(value["location"].(string))
 		tags := tags.Expand(value["tags"].(map[string]interface{}))
 		zoneRedundancy := replications.ZoneRedundancyDisabled
 		if value["zone_redundancy_enabled"].(bool) {

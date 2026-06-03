@@ -203,8 +203,7 @@ resource "azurerm_eventhub_namespace" "example" {
 
 resource "azurerm_eventhub" "example" {
   name                = "example-eventhub"
-  namespace_name      = azurerm_eventhub_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
+  namespace_id        = azurerm_eventhub_namespace.example.id
   partition_count     = 2
   message_retention   = 1
 }
@@ -230,16 +229,11 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   eventhub_name                  = azurerm_eventhub.example.name
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.example.id
 
-  log {
-    category = "SQLSecurityAuditEvents"
-    enabled  = true
-
-    retention_policy {
-      enabled = false
-    }
+  enabled_log {
+    category = "AuditEvent"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -278,7 +272,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MS SQL Server Extended Auditing Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Server Extended Auditing Policy.

@@ -42,7 +42,7 @@ resource "azurerm_data_factory_managed_private_endpoint" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -53,6 +53,8 @@ The following arguments are supported:
 * `target_resource_id` - (Required) The ID of the Private Link Enabled Remote Resource which this Data Factory Private Endpoint should be connected to. Changing this forces a new resource to be created.
 
 * `subresource_name` - (Optional) Specifies the sub resource name which the Data Factory Private Endpoint is able to connect to. Changing this forces a new resource to be created.
+
+~> **Note:** `subresource_name` must not be specified when `target_resource_id` is a Private Link Service. For all other target resources, `subresource_name` is required and must be at least 3 characters in length.
 
 * `fqdns` - (Optional) Fully qualified domain names. Changing this forces a new resource to be created.
 
@@ -66,7 +68,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Managed Private Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Managed Private Endpoint.

@@ -11,7 +11,7 @@ type PathError struct {
 	Path Path
 }
 
-func errorf(path Path, f string, args ...interface{}) error {
+func errorf(path Path, f string, args ...any) error {
 	// We need to copy the Path because often our caller builds it by
 	// continually mutating the same underlying buffer.
 	sPath := make(Path, len(path))
@@ -25,7 +25,7 @@ func errorf(path Path, f string, args ...interface{}) error {
 // NewErrorf creates a new PathError for the current path by passing the
 // given format and arguments to fmt.Errorf and then wrapping the result
 // similarly to NewError.
-func (p Path) NewErrorf(f string, args ...interface{}) error {
+func (p Path) NewErrorf(f string, args ...any) error {
 	return errorf(p, f, args...)
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -10,17 +10,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceComputeCluster() *pluginsdk.Resource {
@@ -125,6 +125,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
+							Sensitive:    true,
 							AtLeastOneOf: []string{"ssh.0.admin_password", "ssh.0.key_value"},
 						},
 						"key_value": {
@@ -199,20 +200,22 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	existing, err := client.ComputeGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ComputeGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
+		}
 	}
 
 	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
 	computeClusterAmlComputeProperties := machinelearningcomputes.AmlComputeProperties{
-		VMSize:                 utils.String(d.Get("vm_size").(string)),
+		VMSize:                 pointer.To(d.Get("vm_size").(string)),
 		VMPriority:             &vmPriority,
 		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
 		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
@@ -232,9 +235,9 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// to configuration files 'location' field...
 	computeClusterProperties := machinelearningcomputes.AmlCompute{
 		Properties:       &computeClusterAmlComputeProperties,
-		ComputeLocation:  utils.String(d.Get("location").(string)),
-		Description:      utils.String(d.Get("description").(string)),
-		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+		ComputeLocation:  pointer.To(d.Get("location").(string)),
+		Description:      pointer.To(d.Get("description").(string)),
+		DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
 	}
 
 	// NOTE: The 'ComputeResource' 'Location' field should always point
@@ -250,14 +253,9 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
-	future, err := client.ComputeCreateOrUpdate(ctx, id, computeClusterParameters)
-	if err != nil {
+	if err := client.ComputeCreateOrUpdateCallbackThenPoll(ctx, id, computeClusterParameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
 
 	return resourceComputeClusterRead(d, meta)
@@ -318,8 +316,8 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if location := computeResource.Model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := computeResource.Model.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 
 	identity, err := flattenIdentity(computeResource.Model.Identity)
@@ -426,8 +424,8 @@ func expandUserAccountCredentials(input []interface{}) *machinelearningcomputes.
 
 	return &machinelearningcomputes.UserAccountCredentials{
 		AdminUserName:         v["admin_username"].(string),
-		AdminUserPassword:     utils.String(v["admin_password"].(string)),
-		AdminUserSshPublicKey: utils.String(v["key_value"].(string)),
+		AdminUserPassword:     pointer.To(v["admin_password"].(string)),
+		AdminUserSshPublicKey: pointer.To(v["key_value"].(string)),
 	}
 }
 
