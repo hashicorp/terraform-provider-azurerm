@@ -207,7 +207,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge                     = "10%%"
+      maximum_surge                     = "10%%"
       drain_timeout_in_minutes      = %d
       node_soak_duration_in_minutes = %d
       undrainable_node_behavior     = %q
@@ -244,7 +244,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -279,7 +279,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size              = "Standard_DS3_v2"
     orchestrator_version = %q
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -301,7 +301,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   orchestrator_version  = %q
   upgrade_settings {
-    max_surge = "10%%"
+    maximum_surge = "10%%"
   }
   depends_on = [azurerm_kubernetes_automatic_cluster.test]
 }

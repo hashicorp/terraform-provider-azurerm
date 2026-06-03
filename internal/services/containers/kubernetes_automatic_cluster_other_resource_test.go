@@ -1015,7 +1015,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name       = "default"
     node_count = 1
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1041,7 +1041,7 @@ resource "azurerm_kubernetes_automatic_cluster" "import" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1076,7 +1076,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size                      = "Standard_DS3_v2"
     only_critical_addons_enabled = true
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1110,7 +1110,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size                     = "Standard_DS3_v2"
     temporary_name_for_rotation = "temp"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
     kubelet_config {
       cpu_manager_policy        = "static"
@@ -1195,7 +1195,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size                     = "Standard_DS3_v2"
     temporary_name_for_rotation = "temp"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
     kubelet_config {
       cpu_manager_policy    = "static"
@@ -1241,7 +1241,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size                     = "Standard_DS3_v2"
     temporary_name_for_rotation = "temp"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
     kubelet_config {
       cpu_manager_policy    = "static"
@@ -1287,9 +1287,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   linux_profile {
     admin_username = "acctestuser%d"
 
-    ssh_key {
-      key_data = "%s"
-    }
+    ssh_key_data = "%s"
   }
 
   default_node_pool {
@@ -1297,7 +1295,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1335,7 +1333,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
     node_labels = {
 %s
@@ -1372,7 +1370,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1408,7 +1406,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     kubelet_disk_type = "OS"
     workload_runtime  = "OCIContainer"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1441,7 +1439,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1474,7 +1472,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1507,7 +1505,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1544,7 +1542,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1580,9 +1578,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   linux_profile {
     admin_username = "acctestuser%d"
 
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
+    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   default_node_pool {
@@ -1590,7 +1586,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1621,9 +1617,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   linux_profile {
     admin_username = "acctestuser%d"
 
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
+    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   windows_profile {
@@ -1641,7 +1635,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 3
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1649,7 +1643,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     dns_service_ip = "10.10.0.10"
     service_cidr   = "10.10.0.0/16"
   }
@@ -1677,9 +1671,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   linux_profile {
     admin_username = "acctestuser%[1]d"
 
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
+    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   windows_profile {
@@ -1697,7 +1689,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 3
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1705,7 +1697,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     dns_service_ip = "10.10.0.10"
     service_cidr   = "10.10.0.0/16"
   }
@@ -1733,9 +1725,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   linux_profile {
     admin_username = "acctestuser%d"
 
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
+    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   windows_profile {
@@ -1750,7 +1740,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 3
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1758,7 +1748,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     dns_service_ip = "10.10.0.10"
     service_cidr   = "10.10.0.0/16"
   }
@@ -1867,9 +1857,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   linux_profile {
     admin_username = "acctestuser%d"
 
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
+    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   default_node_pool {
@@ -1877,7 +1865,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 3
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1885,7 +1873,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     dns_service_ip = "10.10.0.10"
     service_cidr   = "10.10.0.0/16"
   }
@@ -1923,7 +1911,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size    = "Standard_DS3_v2"
     node_count = 1
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -1955,7 +1943,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -1994,7 +1982,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -2031,18 +2019,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
     type = "SystemAssigned"
-  }
-  maintenance_window_node_os {
-    frequency  = "Daily"
-    interval   = 1
-    start_time = "07:00"
-    utc_offset = "+01:00"
-    duration   = 16
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -2156,7 +2137,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vnet_subnet_id                = azurerm_subnet.nodesubnet.id
     capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -2164,7 +2145,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     subnet_id = azurerm_subnet.apiserver.id
   }
 
-  network_profile {
+  network {
     outbound_type = "loadBalancer"
   }
 
@@ -2284,7 +2265,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     max_pods                      = %[3]d
     capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -2292,7 +2273,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     subnet_id = azurerm_subnet.apiserver.id
   }
 
-  network_profile {
+  network {
     outbound_type = "loadBalancer"
   }
 
@@ -2334,7 +2315,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -2385,7 +2366,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -2444,26 +2425,12 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
     type = "SystemAssigned"
   }
-  maintenance_window_node_os {
-    frequency = "AbsoluteMonthly"
-    interval  = 1
-    duration  = 9
-
-    day_of_month = 5
-    start_time   = "07:00"
-    utc_offset   = "+01:00"
-    start_date   = "%[3]s"
-
-    not_allowed {
-      end   = "%[4]s"
-      start = "%[3]s"
-    }
     not_allowed {
       end   = "%[4]s"
       start = "%[3]s"
@@ -2494,7 +2461,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count                  = 1
     ultra_ssd_enabled           = %t
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -2527,7 +2494,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -2561,7 +2528,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size    = "Standard_DS3_v2"
     os_sku     = "%s"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -2596,13 +2563,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
     type = "SystemAssigned"
   }
-  network_profile {
+  network {
     load_balancer_sku = "standard"
   }
 
@@ -2635,7 +2602,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -2673,7 +2640,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -2715,7 +2682,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -2752,7 +2719,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -2793,7 +2760,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -2831,7 +2798,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -2867,7 +2834,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -2905,7 +2872,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -2937,7 +2904,7 @@ resource "azurerm_kubernetes_automatic_cluster" "source" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -2968,7 +2935,7 @@ resource "azurerm_kubernetes_automatic_cluster" "source" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -2992,7 +2959,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size     = "Standard_DS3_v2"
     snapshot_id = data.azurerm_kubernetes_node_pool_snapshot.test.id
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -3026,7 +2993,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     gpu_instance = "MIG1g"
     gpu_driver   = "Install"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -3059,7 +3026,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size    = "Standard_DS3_v2"
     node_count = 1
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -3091,7 +3058,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size    = "Standard_DS3_v2"
     node_count = 1
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -3123,7 +3090,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name       = "default"
     node_count = 1
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -3156,7 +3123,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
   identity {
@@ -3192,7 +3159,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 

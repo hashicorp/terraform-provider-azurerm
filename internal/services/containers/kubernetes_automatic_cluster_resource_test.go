@@ -292,8 +292,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     host_encryption_enabled = true
     upgrade_settings {}
   }
-  network_profile {
-    load_balancer_profile {}
+  network {
+    load_balancer {}
     nat_gateway_profile {}
     web_app_routing {}
   }
@@ -328,7 +328,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name       = "default"
     node_count = 1
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -462,7 +462,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count     = 1
     vnet_subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -501,7 +501,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name       = "default"
     node_count = 1
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -541,7 +541,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name       = "default"
     node_count = 1
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -573,7 +573,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name       = "default"
     node_count = 1
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -736,12 +736,12 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name       = "default"
     node_count = 1
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
     vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
     outbound_type     = "loadBalancer"
   }
@@ -783,12 +783,12 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name       = "default"
     node_count = 1
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
     vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
     outbound_type     = "loadBalancer"
   }
@@ -828,12 +828,12 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name       = "default"
     node_count = 1
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
     vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
     outbound_type     = "loadBalancer"
   }

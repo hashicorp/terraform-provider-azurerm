@@ -104,9 +104,9 @@ func TestAccDataSourceKubernetesAutomaticCluster_advancedNetworkingAzure(t *test
 			Config: r.advancedNetworkingAzureConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.service_cidr").Exists(),
+				check.That(data.ResourceName).Key("network.0.network_plugin").Exists(),
+				check.That(data.ResourceName).Key("network.0.dns_service_ip").Exists(),
+				check.That(data.ResourceName).Key("network.0.service_cidr").Exists(),
 			),
 		},
 	})
@@ -121,9 +121,9 @@ func TestAccDataSourceKubernetesAutomaticCluster_advancedNetworkingAzureComplete
 			Config: r.advancedNetworkingAzureCompleteConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.service_cidr").Exists(),
+				check.That(data.ResourceName).Key("network.0.network_plugin").Exists(),
+				check.That(data.ResourceName).Key("network.0.dns_service_ip").Exists(),
+				check.That(data.ResourceName).Key("network.0.service_cidr").Exists(),
 			),
 		},
 	})

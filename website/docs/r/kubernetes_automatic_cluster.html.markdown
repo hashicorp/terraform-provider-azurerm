@@ -33,9 +33,9 @@ resource "azurerm_kubernetes_automatic_cluster" "example" {
   dns_prefix          = "exampleaks1"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_D3_v2"
+    name                  = "default"
+    node_count            = 1
+    virtual_machine_size  = "Standard_D3_v2"
   }
 
   identity {
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `ai_toolchain_operator_enabled` - (Optional) Specifies whether the AI Toolchain Operator should be enabled for the Cluster. Defaults to `false`.
 
-* `api_server_access_profile` - (Optional) An `api_server_access_profile` block as defined below.
+* `api_server_access` - (Optional) An `api_server_access` block as defined below.
 
 * `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
 
@@ -103,7 +103,7 @@ The following arguments are supported:
 
 -> **Note:** At this time HTTP Application Routing is not supported in Azure China or Azure US Government.
 
-* `http_proxy_config` - (Optional) A `http_proxy_config` block as defined below.
+* `proxy` - (Optional) A `proxy` block as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -137,9 +137,9 @@ The following arguments are supported:
 
 ~> **Note:** If deploying Managed Prometheus, the `monitor_metrics` properties are required to configure the cluster for metrics collection. If no value is needed, set properties to `null`.
 
-* `network_profile` - (Optional) A `network_profile` block as defined below. Changing this forces a new resource to be created.
+* `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.
 
-~> **Note:** If `network_profile` is not defined, `kubenet` profile will be used by default.
+~> **Note:** If `network` is not defined, `kubenet` profile will be used by default.
 
 * `node_os_upgrade_channel` - (Optional) The upgrade channel for this Kubernetes Cluster Nodes' OS Image. Possible values are `Unmanaged`, `SecurityPatch`, `NodeImage` and `None`. Defaults to `NodeImage`.
 
@@ -201,7 +201,7 @@ resource "azurerm_kubernetes_automatic_cluster" "example" {
 
 * `run_command_enabled` - (Optional) Whether to enable run command for the cluster or not. Defaults to `true`.
 
-* `service_mesh_profile` - (Optional) A `service_mesh_profile` block as defined below.
+* `service_mesh` - (Optional) A `service_mesh` block as defined below.
 
 * `storage_profile` - (Optional) A `storage_profile` block as defined below.
 
@@ -242,7 +242,7 @@ resource "azurerm_subnet" "virtual" {
 
 ---
 
-An `api_server_access_profile` block supports the following:
+An `api_server_access` block supports the following:
 
 * `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
 
@@ -252,7 +252,7 @@ An `api_server_access_profile` block supports the following:
 
 An `auto_scaler_profile` block supports the following:
 
-* `balance_similar_node_groups` - (Optional) Detect similar node groups and balance the number of nodes between them. Defaults to `false`.
+* `balance_similar_node_groups_enabled` - (Optional) Detect similar node groups and balance the number of nodes between them. Defaults to `false`.
 
 * `daemonset_eviction_for_empty_nodes_enabled` - (Optional) Whether DaemonSet pods will be gracefully terminated from empty nodes. Defaults to `false`.
 
@@ -260,17 +260,17 @@ An `auto_scaler_profile` block supports the following:
 
 * `expander` - (Optional) Expander to use. Possible values are `least-waste`, `priority`, `most-pods` and `random`. Defaults to `random`.
 
-* `ignore_daemonsets_utilization_enabled` - (Optional) Whether DaemonSet pods will be ignored when calculating resource utilization for scale down. Defaults to `false`.
+* `daemonset_ignore_utilization_enabled` - (Optional) Whether DaemonSet pods will be ignored when calculating resource utilization for scale down. Defaults to `false`.
 
-* `max_graceful_termination_sec` - (Optional) Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node.
+* `maximum_graceful_termination_in_seconds` - (Optional) Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node.
 
-* `max_node_provisioning_time` - (Optional) Maximum time the autoscaler waits for a node to be provisioned. Defaults to `15m`.
+* `maximum_node_provisioning_in_minutes` - (Optional) Maximum time the autoscaler waits for a node to be provisioned. Defaults to `15m`.
 
-* `max_unready_nodes` - (Optional) Maximum Number of allowed unready nodes. Defaults to `3`.
+* `maximum_unready_nodes` - (Optional) Maximum Number of allowed unready nodes. Defaults to `3`.
 
-* `max_unready_percentage` - (Optional) Maximum percentage of unready nodes the cluster autoscaler will stop if the percentage is exceeded. Defaults to `45`.
+* `maximum_unready_percentage` - (Optional) Maximum percentage of unready nodes the cluster autoscaler will stop if the percentage is exceeded. Defaults to `45`.
 
-* `new_pod_scale_up_delay` - (Optional) For scenarios like burst/batch scale where you don't want CA to act before the kubernetes scheduler could schedule all the pods, you can tell CA to ignore unscheduled pods before they're a certain age.
+* `new_pod_scale_up_delay_duration` - (Optional) For scenarios like burst/batch scale where you don't want CA to act before the kubernetes scheduler could schedule all the pods, you can tell CA to ignore unscheduled pods before they're a certain age.
 
 * `scale_down_delay_after_add` - (Optional) How long after the scale up of AKS nodes the scale down evaluation resumes.
 
@@ -278,19 +278,19 @@ An `auto_scaler_profile` block supports the following:
 
 * `scale_down_delay_after_failure` - (Optional) How long after scale down failure that scale down evaluation resumes.
 
-* `scan_interval` - (Optional) How often the AKS Cluster should be re-evaluated for scale up/down.
+* `scan_interval_in_seconds` - (Optional) How often the AKS Cluster should be re-evaluated for scale up/down.
 
-* `scale_down_unneeded` - (Optional) How long a node should be unneeded before it is eligible for scale down.
+* `scale_down_unneeded_in_minutes` - (Optional) How long a node should be unneeded before it is eligible for scale down.
 
-* `scale_down_unready` - (Optional) How long an unready node should be unneeded before it is eligible for scale down.
+* `scale_down_unready_in_minutes` - (Optional) How long an unready node should be unneeded before it is eligible for scale down.
 
 * `scale_down_utilization_threshold` - (Optional) Node utilization level, defined as sum of requested resources divided by capacity, below which a node can be considered for scale down.
 
-* `empty_bulk_delete_max` - (Optional) Maximum number of empty nodes that can be deleted at the same time.
+* `maximum_empty_bulk_delete` - (Optional) Maximum number of empty nodes that can be deleted at the same time.
 
-* `skip_nodes_with_local_storage` - (Optional) If `true` cluster autoscaler will never delete nodes with pods with local storage, for example, EmptyDir or HostPath.
+* `skip_nodes_with_local_storage_enabled` - (Optional) If `true` cluster autoscaler will never delete nodes with pods with local storage, for example, EmptyDir or HostPath.
 
-* `skip_nodes_with_system_pods` - (Optional) If `true` cluster autoscaler will never delete nodes with pods from kube-system (except for DaemonSet or mirror pods). Defaults to `true`.
+* `skip_nodes_with_system_pods_enabled` - (Optional) If `true` cluster autoscaler will never delete nodes with pods from kube-system (except for DaemonSet or mirror pods). Defaults to `true`.
 
 ---
 
@@ -310,7 +310,7 @@ A `confidential_computing` block supports the following:
 
 An `monitor_metrics` block supports the following:
 
-* `monitor_metrics_enabled` - (Optional) Specifies whether monitor metrics should be enabled. Defaults to `true`.
+* `enabled` - (Optional) Specifies whether monitor metrics should be enabled. Defaults to `true`.
 
 * `annotations_allowed` - (Optional) Specifies a comma-separated list of Kubernetes annotation keys that will be used in the resource's labels metric.
 
@@ -322,11 +322,11 @@ An `monitor_metrics` block supports the following:
 
 A `default_node_pool` block supports the following:
 
--> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
+-> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `snapshot_id`, `ultra_ssd_enabled`, `subnet_id`, `virtual_machine_size`, `zones`.
 
 * `name` - (Required) The name which should be used for the default Kubernetes Node Pool.
 
-* `vm_size` - (Optional) The size of the Virtual Machine, such as `Standard_DS2_v2`. `temporary_name_for_rotation` must be specified when attempting a resize.
+* `virtual_machine_size` - (Optional) The size of the Virtual Machine, such as `Standard_DS2_v2`. `temporary_name_for_rotation` must be specified when attempting a resize.
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 
@@ -384,7 +384,7 @@ A `default_node_pool` block supports the following:
 
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
-* `vnet_subnet_id` - (Optional) The ID of a Subnet where the Kubernetes Node Pool should exist.
+* `subnet_id` - (Optional) The ID of a Subnet where the Kubernetes Node Pool should exist.
 
 ~> **Note:** A Route Table must be configured on this Subnet.
 
@@ -488,7 +488,7 @@ A `linux_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
-* `ssh_key` - (Required) An `ssh_key` block as defined below.
+* `ssh_key_data` - (Required) The SSH public key data. Changing this forces a new resource to be created.
 
 ---
 
@@ -571,7 +571,7 @@ A `microsoft_defender` block supports the following:
 
 ---
 
-A `network_profile` block supports the following:
+A `network` block supports the following:
 
 * `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). Changing this forces a new resource to be created.
 
@@ -685,7 +685,7 @@ An `ingress_application_gateway` block supports the following:
 
 ---
 
-A `service_mesh_profile` block supports the following:
+A `service_mesh` block supports the following:
 
 * `mode` - (Required) The mode of the service mesh. Possible value is `Istio`.
 
@@ -847,7 +847,7 @@ A `gmsa` block supports the following:
 
 ---
 
-A `http_proxy_config` block supports the following:
+A `proxy` block supports the following:
 
 * `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP.
 
@@ -855,7 +855,7 @@ A `http_proxy_config` block supports the following:
 
 * `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
 
-~> **Note:** If you specify the `default_node_pool[0].vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
+~> **Note:** If you specify the `default_node_pool[0].subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
 
 -> **Note:** You may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore the changes to this field.
 
@@ -907,7 +907,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `node_resource_group_id` - The ID of the Resource Group containing the resources for this Managed Kubernetes Cluster.
 
-* `network_profile` - A `network_profile` block as defined below.
+* `network` - A `network` block as defined below.
 
 * `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
 
@@ -943,7 +943,7 @@ The `kubelet_identity` block exports the following:
 
 ---
 
-A `network_profile` block exports the following:
+A `network` block exports the following:
 
 * `load_balancer_profile` - A `load_balancer_profile` block as defined below.
 

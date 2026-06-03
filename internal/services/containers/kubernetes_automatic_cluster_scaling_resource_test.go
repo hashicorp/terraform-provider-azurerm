@@ -307,7 +307,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -315,7 +315,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
   }
 }
@@ -345,7 +345,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size                 = "Standard_DS3_v2"
     host_encryption_enabled = true
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -353,7 +353,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
   }
 }
@@ -382,7 +382,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_D4ads_v5"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -390,7 +390,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
   }
 }
@@ -420,7 +420,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count                  = 1
     vm_size                     = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -428,7 +428,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
   }
 }
@@ -459,7 +459,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size                     = "%s"
     host_encryption_enabled     = false
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -467,7 +467,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
   }
 }
@@ -510,7 +510,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
       }
     }
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -518,7 +518,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
   }
 }
@@ -562,7 +562,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
 
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -570,7 +570,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
   }
 }
@@ -601,7 +601,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     temporary_name_for_rotation = "temp"
     vm_size                     = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -609,7 +609,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
   }
 }
@@ -640,7 +640,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     os_disk_size_gb             = %d
     vm_size                     = "Standard_D4ads_v5"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -648,7 +648,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
   }
 }
@@ -677,7 +677,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = %d
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -685,7 +685,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  network_profile {
+  network {
     load_balancer_sku = "standard"
   }
 }
@@ -714,7 +714,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS3_v2"
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 
@@ -757,7 +757,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
       Hello = "World"
     }
     upgrade_settings {
-      max_surge = "10%%"
+      maximum_surge = "10%%"
     }
   }
 

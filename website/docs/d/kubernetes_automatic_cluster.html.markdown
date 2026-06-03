@@ -84,7 +84,7 @@ The following attributes are exported:
 
 * `microsoft_defender` - A `microsoft_defender` block as defined below.
 
-* `network_profile` - A `network_profile` block as documented below.
+* `network` - A `network` block as documented below.
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
 
@@ -106,7 +106,7 @@ The following attributes are exported:
 
 * `role_based_access_control_enabled` - Is Role Based Access Control enabled for this managed Kubernetes Cluster?
 
-* `service_mesh_profile` - A `service_mesh_profile` block as documented below.
+* `service_mesh` - A `service_mesh` block as documented below.
 
 * `service_principal` - A `service_principal` block as documented below.
 
@@ -158,9 +158,9 @@ An `agent_pool_profile` block exports the following:
 
 * `upgrade_settings` - A `upgrade_settings` block as documented below.
 
-* `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
+* `virtual_machine_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
-* `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
+* `subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
 * `zones` - A list of Availability Zones in which this Kubernetes Cluster is located.
 
@@ -253,7 +253,7 @@ A `windows_profile` block exports the following:
 
 ---
 
-A `network_profile` block exports the following:
+A `network` block exports the following:
 
 * `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
 
@@ -373,7 +373,7 @@ A `ssh_key` block exports the following:
 
 ---
 
-A `service_mesh_profile` block exports the following:
+A `service_mesh` block exports the following:
 
 * `mode` - The mode of the service mesh.
 
