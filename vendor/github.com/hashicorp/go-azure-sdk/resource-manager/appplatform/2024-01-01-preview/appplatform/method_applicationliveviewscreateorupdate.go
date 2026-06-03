@@ -62,9 +62,20 @@ func (c AppPlatformClient) ApplicationLiveViewsCreateOrUpdate(ctx context.Contex
 
 // ApplicationLiveViewsCreateOrUpdateThenPoll performs ApplicationLiveViewsCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) ApplicationLiveViewsCreateOrUpdateThenPoll(ctx context.Context, id ApplicationLiveViewId, input ApplicationLiveViewResource) error {
+	return c.ApplicationLiveViewsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ApplicationLiveViewsCreateOrUpdateCallbackThenPoll performs ApplicationLiveViewsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ApplicationLiveViewsCreateOrUpdateCallbackThenPoll(ctx context.Context, id ApplicationLiveViewId, input ApplicationLiveViewResource, callback func() error) error {
 	result, err := c.ApplicationLiveViewsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ApplicationLiveViewsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

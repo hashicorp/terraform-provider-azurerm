@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -20,6 +21,9 @@ import (
 type AppServiceHybridConnectionResource struct{}
 
 func TestAccAppServiceHybridConnection_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
 	r := AppServiceHybridConnectionResource{}
 
@@ -35,6 +39,9 @@ func TestAccAppServiceHybridConnection_basic(t *testing.T) {
 }
 
 func TestAccAppServiceHybridConnection_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
 	r := AppServiceHybridConnectionResource{}
 
@@ -57,6 +64,9 @@ func TestAccAppServiceHybridConnection_update(t *testing.T) {
 }
 
 func TestAccAppServiceHybridConnection_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
 	r := AppServiceHybridConnectionResource{}
 
@@ -72,6 +82,9 @@ func TestAccAppServiceHybridConnection_requiresImport(t *testing.T) {
 }
 
 func TestAccAppServiceHybridConnection_differentResourceGroup(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
 	r := AppServiceHybridConnectionResource{}
 
@@ -87,6 +100,9 @@ func TestAccAppServiceHybridConnection_differentResourceGroup(t *testing.T) {
 }
 
 func TestAccAppServiceHybridConnection_useSendKeyDeclaredOnHybridConnection(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
 	r := AppServiceHybridConnectionResource{}
 
@@ -107,7 +123,7 @@ func (r AppServiceHybridConnectionResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
+	resp, err := clients.Web.AppServicesClientV1.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil

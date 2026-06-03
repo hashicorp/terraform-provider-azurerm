@@ -36,6 +36,7 @@ type ProviderModel struct {
 	DisableCorrelationRequestId    types.Bool   `tfsdk:"disable_correlation_request_id"`
 	DisableTerraformPartnerId      types.Bool   `tfsdk:"disable_terraform_partner_id"`
 	StorageUseAzureAD              types.Bool   `tfsdk:"storage_use_azuread"`
+	EnhancedValidation             types.List   `tfsdk:"enhanced_validation"`
 	Features                       types.List   `tfsdk:"features"`
 	SkipProviderRegistration       types.Bool   `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
 	ResourceProviderRegistrations  types.String `tfsdk:"resource_provider_registrations"`
@@ -43,6 +44,9 @@ type ProviderModel struct {
 }
 
 type Features struct {
+	PersistIDOnCreateBeforePollingForCompletion                 types.Bool `tfsdk:"persist_id_on_create_before_polling_for_completion"`
+	SkipImportCheckOnCreateAndAllowOverwritingExistingResources types.Bool `tfsdk:"skip_import_check_on_create_and_allow_overwriting_existing_resources"`
+
 	APIManagement            types.List `tfsdk:"api_management"`
 	AppConfiguration         types.List `tfsdk:"app_configuration"`
 	ApplicationInsights      types.List `tfsdk:"application_insights"`
@@ -67,6 +71,9 @@ type Features struct {
 // FeaturesAttributes and the other block attribute vars are required for unit testing on the Load func
 // New features blocks and attributes must be added here and to unit tests.
 var FeaturesAttributes = map[string]attr.Type{
+	"persist_id_on_create_before_polling_for_completion":                   types.BoolType,
+	"skip_import_check_on_create_and_allow_overwriting_existing_resources": types.BoolType,
+
 	"api_management":             types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(APIManagementAttributes)),
 	"app_configuration":          types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(AppConfigurationAttributes)),
 	"application_insights":       types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ApplicationInsightsAttributes)),
@@ -280,4 +287,14 @@ type DatabricksWorkspace struct {
 
 var DatabricksWorkspaceAttributes = map[string]attr.Type{
 	"force_delete": types.BoolType,
+}
+
+type EnhancedValidationModel struct {
+	Locations         types.Bool `tfsdk:"locations"`
+	ResourceProviders types.Bool `tfsdk:"resource_providers"`
+}
+
+var EnhancedValidationModelAttributes = map[string]attr.Type{
+	"locations":          types.BoolType,
+	"resource_providers": types.BoolType,
 }

@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/validate"
@@ -37,6 +38,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name azurerm_redis_cache -service-package-name redis -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicWithSSL
+
+var redisCacheResourceName = "azurerm_redis_cache"
+
 var skuWeight = map[string]int8{
 	"Basic":    1,
 	"Standard": 2,
@@ -45,14 +50,15 @@ var skuWeight = map[string]int8{
 
 func resourceRedisCache() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceRedisCacheCreate,
-		Read:   resourceRedisCacheRead,
-		Update: resourceRedisCacheUpdate,
-		Delete: resourceRedisCacheDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := redisresources.ParseRediID(id)
-			return err
-		}),
+		Create:   resourceRedisCacheCreate,
+		Read:     resourceRedisCacheRead,
+		Update:   resourceRedisCacheUpdate,
+		Delete:   resourceRedisCacheDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&redisresources.RediId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&redisresources.RediId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
@@ -440,14 +446,17 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	defer cancel()
 
 	id := redisresources.NewRediID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.RedisGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.RedisGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_redis_cache", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_redis_cache", id.ID())
+		}
 	}
 
 	patchSchedule := expandRedisPatchSchedule(d)
@@ -471,7 +480,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := redisresources.RedisCreateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: redisresources.RedisCreateProperties{
-			DisableAccessKeyAuthentication: pointer.To(!(d.Get("access_keys_authentication_enabled").(bool))),
+			DisableAccessKeyAuthentication: pointer.To(!d.Get("access_keys_authentication_enabled").(bool)),
 			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: redisresources.Sku{
 				Capacity: int64(d.Get("capacity").(int)),
@@ -532,10 +541,15 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if err := client.RedisCreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.RedisCreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
+	// TODO: is this still required now that this is using polling methods from `go-azure-sdk`?
 	log.Printf("[DEBUG] Waiting for %s to become available", id)
 	deadline, ok := ctx.Deadline()
 	if !ok {
@@ -551,8 +565,6 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	if patchSchedule != nil {
 		patchScheduleRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
@@ -582,7 +594,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	parameters := redisresources.RedisUpdateParameters{
 		Properties: &redisresources.RedisUpdateProperties{
-			DisableAccessKeyAuthentication: pointer.To(!(d.Get("access_keys_authentication_enabled").(bool))),
+			DisableAccessKeyAuthentication: pointer.To(!d.Get("access_keys_authentication_enabled").(bool)),
 			MinimumTlsVersion:              pointer.To(redisresources.TlsVersion(d.Get("minimum_tls_version").(string))),
 			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: &redisresources.Sku{
@@ -671,13 +683,11 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 		patchSchedulesRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
 		if patchSchedule == nil || len(patchSchedule.Properties.ScheduleEntries) == 0 {
-			_, err = patchClient.PatchSchedulesDelete(ctx, patchSchedulesRedisId)
-			if err != nil {
+			if _, err = patchClient.PatchSchedulesDelete(ctx, patchSchedulesRedisId); err != nil {
 				return fmt.Errorf("deleting Patch Schedule for %s: %+v", *id, err)
 			}
 		} else {
-			_, err = patchClient.PatchSchedulesCreateOrUpdate(ctx, patchSchedulesRedisId, *patchSchedule)
-			if err != nil {
+			if _, err = patchClient.PatchSchedulesCreateOrUpdate(ctx, patchSchedulesRedisId, *patchSchedule); err != nil {
 				return fmt.Errorf("setting Patch Schedule for %s: %+v", *id, err)
 			}
 		}
@@ -688,7 +698,6 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.RedisResourcesClient
-	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -706,25 +715,17 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	keysResp, err := client.RedisListKeys(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("listing keys for %s: %+v", *id, err)
-	}
+	return resourceRedisCacheFlatten(ctx, meta.(*clients.Client), d, id, resp.Model, true)
+}
 
-	patchSchedulesRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
-	schedule, err := patchSchedulesClient.PatchSchedulesGet(ctx, patchSchedulesRedisId)
-	var patchSchedule []interface{}
-	if err == nil {
-		patchSchedule = flattenRedisPatchSchedules(*schedule.Model)
-	}
-	if err = d.Set("patch_schedule", patchSchedule); err != nil {
-		return fmt.Errorf("setting `patch_schedule`: %+v", err)
-	}
+func resourceRedisCacheFlatten(ctx context.Context, metaClient *clients.Client, d *pluginsdk.ResourceData, id *redisresources.RediId, redis *redisresources.RedisResource, fetchCompleteData bool) error {
+	client := metaClient.Redis.RedisResourcesClient
+	patchSchedulesClient := metaClient.Redis.PatchSchedulesClient
 
 	d.Set("name", id.RedisName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	if model := resp.Model; model != nil {
-		redisIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+	if redis != nil {
+		redisIdentity, err := identity.FlattenSystemAndUserAssignedMap(redis.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
@@ -732,10 +733,10 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		d.Set("location", location.Normalize(model.Location))
-		d.Set("zones", zones.FlattenUntyped(model.Zones))
+		d.Set("location", location.Normalize(redis.Location))
+		d.Set("zones", zones.FlattenUntyped(redis.Zones))
 
-		props := model.Properties
+		props := redis.Properties
 		d.Set("capacity", int(props.Sku.Capacity))
 		d.Set("family", string(props.Sku.Family))
 		d.Set("sku_name", string(props.Sku.Name))
@@ -786,18 +787,35 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `redis_configuration`: %+v", err)
 		}
 
-		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.PrimaryKey, true))
-		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.SecondaryKey, true))
-		d.Set("primary_access_key", keysResp.Model.PrimaryKey)
-		d.Set("secondary_access_key", keysResp.Model.SecondaryKey)
-		d.Set("access_keys_authentication_enabled", !pointer.From(props.DisableAccessKeyAuthentication))
+		if fetchCompleteData {
+			keysResp, err := client.RedisListKeys(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("listing keys for %s: %+v", *id, err)
+			}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.PrimaryKey, true))
+			d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.SecondaryKey, true))
+			d.Set("primary_access_key", keysResp.Model.PrimaryKey)
+			d.Set("secondary_access_key", keysResp.Model.SecondaryKey)
+			d.Set("access_keys_authentication_enabled", !pointer.From(props.DisableAccessKeyAuthentication))
+
+			patchSchedulesRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
+			schedule, err := patchSchedulesClient.PatchSchedulesGet(ctx, patchSchedulesRedisId)
+			var patchSchedule []interface{}
+			if err == nil {
+				patchSchedule = flattenRedisPatchSchedules(*schedule.Model)
+			}
+			if err = d.Set("patch_schedule", patchSchedule); err != nil {
+				return fmt.Errorf("setting `patch_schedule`: %+v", err)
+			}
+		}
+
+		if err := tags.FlattenAndSet(d, redis.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {

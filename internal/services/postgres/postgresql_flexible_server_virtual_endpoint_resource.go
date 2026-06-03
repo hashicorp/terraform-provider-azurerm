@@ -135,20 +135,19 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Create() sdk.ResourceFu
 				defer locks.UnlockByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
 			}
 
-			// This API can be a bit flaky if the same named resource is created/destroyed quickly
-			// usually waiting a minute or two before redeploying is enough to resolve the conflict
-			if err = client.CreateThenPoll(ctx, sourceEndpointId, virtualendpoints.VirtualEndpoint{
+			id := commonids.NewCompositeResourceID(&sourceEndpointId, &replicaEndpointId)
+
+			payload := virtualendpoints.VirtualEndpoint{
 				Name: &virtualEndpoint.Name,
 				Properties: &virtualendpoints.VirtualEndpointResourceProperties{
 					EndpointType: pointer.To(virtualendpoints.VirtualEndpointType(virtualEndpoint.Type)),
 					Members:      &[]string{replicaServerId.FlexibleServerName},
 				},
-			}); err != nil {
-				return fmt.Errorf("creating %s: %+v", sourceEndpointId, err)
 			}
 
-			id := commonids.NewCompositeResourceID(&sourceEndpointId, &replicaEndpointId)
-
+			if err = client.CreateCallbackThenPoll(ctx, sourceEndpointId, payload, metadata.SetIDCallback(id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", sourceEndpointId, err)
+			}
 			metadata.SetID(id)
 
 			return nil
@@ -316,8 +315,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 				if response.WasNotFound(resp.HttpResponse) {
 					virtualEndpointId = virtualendpoints.NewVirtualEndpointID(id.Second.SubscriptionId, id.Second.ResourceGroupName, id.Second.FlexibleServerName, id.Second.VirtualEndpointName)
 					// if the endpoint doesn't exist under the source server, look for it under the replica server
-					_, err = client.Get(ctx, virtualEndpointId)
-					if err != nil {
+					if _, err = client.Get(ctx, virtualEndpointId); err != nil {
 						return fmt.Errorf("retrieving %s: %+v", virtualEndpointId, err)
 					}
 					return fmt.Errorf("a fail-over has occurred and the `source_server_id` in the config is no longer the SourceServerId for the virtual endpoint. If you wish to change the `replica_server_id`, remove this resource from state and reimport it back in with the `replica_server_id` and `source_server_id` swapped")

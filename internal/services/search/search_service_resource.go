@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -137,6 +138,11 @@ func resourceSearchService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"primary_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -160,8 +166,9 @@ func resourceSearchService() *pluginsdk.Resource {
 						},
 
 						"key": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -219,13 +226,15 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	id := services.NewSearchServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, services.GetOperationOptions{})
-	if err != nil && !response.WasNotFound(existing.HttpResponse) {
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, services.GetOperationOptions{})
+		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_search_service", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_search_service", id.ID())
+		}
 	}
 
 	publicNetworkAccess := services.PublicNetworkAccessEnabled
@@ -343,11 +352,10 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		payload.Identity = expandedIdentity
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{})
+	err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d))
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceSearchServiceRead(d, meta)
@@ -574,6 +582,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			replicaCount := 1           // Default
 			publicNetworkAccess := true // publicNetworkAccess defaults to true...
 			cmkEnforcement := false     // cmkEnforcment defaults to false...
+			endpoint := ""
 			hostingMode := services.HostingModeDefault
 			localAuthEnabled := true
 			authFailureMode := ""
@@ -602,6 +611,10 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
 			}
 
+			if props.Endpoint != nil {
+				endpoint = pointer.From(props.Endpoint)
+			}
+
 			// I am using 'DisableLocalAuth' here because when you are in
 			// RBAC Only Mode, the 'props.AuthOptions' will be 'nil'...
 			if props.DisableLocalAuth != nil {
@@ -628,6 +641,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("replica_count", replicaCount)
 			d.Set("public_network_access_enabled", publicNetworkAccess)
 			d.Set("hosting_mode", hostingMode)
+			d.Set("endpoint", endpoint)
 			d.Set("customer_managed_key_enforcement_enabled", cmkEnforcement)
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 			d.Set("semantic_search_sku", semanticSearchSku)

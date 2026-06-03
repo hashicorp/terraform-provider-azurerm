@@ -248,6 +248,35 @@ func TestAccDataFactory_keyVaultKeyEncryption(t *testing.T) {
 	})
 }
 
+func TestAccDataFactory_keyVaultKeyEncryptionSystemAssignedUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.keyVaultKeyEncryptionSystemAssignedUserAssigned(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.keyVaultKeyEncryptionSystemAssignedUserAssigned(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.keyVaultKeyEncryptionSystemAssignedUserAssigned(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataFactory_keyVaultKeyEncryptionWithExistingDataFactoryAndManagedServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 	r := DataFactoryResource{}
@@ -375,7 +404,7 @@ func TestAccDataFactory_managedVirtualNetworkUpdated(t *testing.T) {
 	})
 }
 
-func (t DataFactoryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataFactoryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := factories.ParseFactoryID(state.ID)
 	if err != nil {
 		return nil, err
@@ -706,7 +735,59 @@ resource "azurerm_data_factory" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (DataFactoryResource) keyVaultKeyEncryption(data acceptance.TestData) string {
+func (r DataFactoryResource) keyVaultKeyEncryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%[1]s
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctest%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  customer_managed_key_id          = azurerm_key_vault_key.test.id
+  customer_managed_key_identity_id = azurerm_user_assigned_identity.test.id
+}
+`, r.keyVaultKeyEncryptionTemplate(data), data.RandomInteger)
+}
+
+func (r DataFactoryResource) keyVaultKeyEncryptionSystemAssignedUserAssigned(data acceptance.TestData, userAssigned bool) string {
+	userAssignedIdentityId := ""
+	if userAssigned {
+		userAssignedIdentityId = "customer_managed_key_identity_id = azurerm_user_assigned_identity.test.id"
+	}
+
+	return fmt.Sprintf(`
+
+
+%[1]s
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctest%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  customer_managed_key_id = azurerm_key_vault_key.test.id
+  %[3]s
+}
+`, r.keyVaultKeyEncryptionTemplate(data), data.RandomInteger, userAssignedIdentityId)
+}
+
+func (DataFactoryResource) keyVaultKeyEncryptionTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -774,22 +855,6 @@ resource "azurerm_key_vault_key" "test" {
     "unwrapKey",
     "wrapKey"
   ]
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctest%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id
-    ]
-  }
-
-  customer_managed_key_id          = azurerm_key_vault_key.test.id
-  customer_managed_key_identity_id = azurerm_user_assigned_identity.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
