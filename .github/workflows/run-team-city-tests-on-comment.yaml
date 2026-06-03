@@ -71,7 +71,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.2.0
         with:
-          go-version: '1.25'
+          go-version: '1.26'
 
       - name: Get tctest version
         id: tctest-version
