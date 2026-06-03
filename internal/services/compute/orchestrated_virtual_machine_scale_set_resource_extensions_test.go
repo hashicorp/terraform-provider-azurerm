@@ -375,7 +375,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "TestNetworkProfile"
+    name    = "TestNetworkProfile-%[1]d"
     primary = true
 
     ip_configuration {
