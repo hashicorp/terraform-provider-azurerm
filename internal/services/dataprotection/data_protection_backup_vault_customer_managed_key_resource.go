@@ -102,15 +102,15 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 				return fmt.Errorf("retrieving %s: `model` is nil", *id)
 			}
 
-      if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-        if resp.Model.Properties.SecuritySettings != nil && resp.Model.Properties.SecuritySettings.EncryptionSettings != nil {
-          if kekIdentity := resp.Model.Properties.SecuritySettings.EncryptionSettings.KekIdentity; kekIdentity != nil {
-            if *kekIdentity.IdentityType == backupvaultresources.IdentityTypeUserAssigned {
-              return errors.New("customer managed keys settings have been specified in `encryption_settings` block of `azurerm_data_protection_backup_vault` resource. `azurerm_data_protection_backup_vault_customer_managed_key` resource is not required and should be removed")
-            }
-          }
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if resp.Model.Properties.SecuritySettings != nil && resp.Model.Properties.SecuritySettings.EncryptionSettings != nil {
+					if kekIdentity := resp.Model.Properties.SecuritySettings.EncryptionSettings.KekIdentity; kekIdentity != nil {
+						if *kekIdentity.IdentityType == backupvaultresources.IdentityTypeUserAssigned {
+							return errors.New("customer managed keys settings have been specified in `encryption_settings` block of `azurerm_data_protection_backup_vault` resource. `azurerm_data_protection_backup_vault_customer_managed_key` resource is not required and should be removed")
+						}
+					}
 
-				  return metadata.ResourceRequiresImport(r.ResourceType(), *id)
+					return metadata.ResourceRequiresImport(r.ResourceType(), *id)
 				}
 			}
 
