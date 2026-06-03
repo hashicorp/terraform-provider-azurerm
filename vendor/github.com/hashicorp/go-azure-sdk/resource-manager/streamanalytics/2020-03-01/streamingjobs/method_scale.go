@@ -61,9 +61,20 @@ func (c StreamingJobsClient) Scale(ctx context.Context, id StreamingJobId, input
 
 // ScaleThenPoll performs Scale then polls until it's completed
 func (c StreamingJobsClient) ScaleThenPoll(ctx context.Context, id StreamingJobId, input ScaleStreamingJobParameters) error {
+	return c.ScaleCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ScaleCallbackThenPoll performs Scale, runs the optional callback function, then polls until it's completed
+func (c StreamingJobsClient) ScaleCallbackThenPoll(ctx context.Context, id StreamingJobId, input ScaleStreamingJobParameters, callback func() error) error {
 	result, err := c.Scale(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Scale: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

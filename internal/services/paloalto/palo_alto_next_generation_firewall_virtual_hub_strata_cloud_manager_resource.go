@@ -114,12 +114,14 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Create() sdk.Resou
 
 			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.FirewallsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.FirewallsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
@@ -150,10 +152,9 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Create() sdk.Resou
 				Tags:     tags.Expand(model.Tags),
 			}
 
-			if err = client.FirewallsCreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
+			if err = client.FirewallsCreateOrUpdateCallbackThenPoll(ctx, id, firewall, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil
