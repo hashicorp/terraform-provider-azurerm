@@ -6,6 +6,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_federated_identity_credential` - fix update logic, preventing import errors on updates [GH-32522]
 `azurerm_netapp_account` - the update function now uses the `PUT` operation to fix a removal issue with `active_directory` [GH-32494]
 * `azurerm_netapp_volume_group_oracle` - fix validation for the `application_identifier` property [GH-32499]
 * `azurerm_oracle_resource_anchor` - fix validation for the `name` property to allow hyphens [GH-32481]
