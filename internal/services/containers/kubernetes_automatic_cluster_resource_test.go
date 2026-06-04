@@ -449,12 +449,12 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                     = "acctestaks%[1]d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
   node_resource_group_name = "${azurerm_resource_group.test.name}-infra"
   dns_prefix               = "acctestaks%[1]d"
-  kubernetes_version  = %[3]q
+  kubernetes_version       = %[3]q
 
   default_node_pool {
     name       = "default"

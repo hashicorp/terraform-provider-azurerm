@@ -1192,10 +1192,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
+  name                     = "acctestaks%d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  dns_prefix               = "acctestaks%d"
   node_resource_group_name = "%s"
 
   default_node_pool {
@@ -1732,11 +1732,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                    = "acctestaks%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  dns_prefix              = "acctestaks%d"
-  kubernetes_version = %q
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = %q
 
   default_node_pool {
     name                 = "default"
