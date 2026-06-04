@@ -286,14 +286,16 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	resourceId := parse.NewIotSecuritySolutionID(subscriptionId, resourceGroup, name).ID()
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Security Center Iot Security Solution %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, resourceGroup, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Security Center Iot Security Solution %q (Resource Group %q): %+v", name, resourceGroup, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_iot_security_solution", resourceId)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_iot_security_solution", resourceId)
+			}
 		}
 	}
 
@@ -457,8 +459,8 @@ func expandIotSecuritySolutionAdditionalWorkspace(input []interface{}) *[]securi
 		v := item.(map[string]interface{})
 
 		dataTypes := make([]security.AdditionalWorkspaceDataType, 0)
-		for _, item := range *(utils.ExpandStringSlice(v["data_types"].(*pluginsdk.Set).List())) {
-			dataTypes = append(dataTypes, (security.AdditionalWorkspaceDataType)(item))
+		for _, item := range *utils.ExpandStringSlice(v["data_types"].(*pluginsdk.Set).List()) {
+			dataTypes = append(dataTypes, security.AdditionalWorkspaceDataType(item))
 		}
 
 		results = append(results, security.AdditionalWorkspacesProperties{
@@ -477,8 +479,8 @@ func expandIotSecuritySolutionDisabledDataSources(input []interface{}) *[]securi
 	}
 
 	disabledDataSources := make([]security.DataSource, 0)
-	for _, item := range *(utils.ExpandStringSlice(input)) {
-		disabledDataSources = append(disabledDataSources, (security.DataSource)(item))
+	for _, item := range *utils.ExpandStringSlice(input) {
+		disabledDataSources = append(disabledDataSources, security.DataSource(item))
 	}
 
 	return &disabledDataSources
@@ -517,7 +519,7 @@ func flattenIotSecuritySolutionAdditionalWorkspace(input *[]security.AdditionalW
 	for _, item := range *input {
 		rawDataTypes := make([]string, 0)
 		for _, item := range *item.DataTypes {
-			rawDataTypes = append(rawDataTypes, (string)(item))
+			rawDataTypes = append(rawDataTypes, string(item))
 		}
 		dataTypes := utils.FlattenStringSlice(&rawDataTypes)
 
@@ -542,7 +544,7 @@ func flattenIotSecuritySolutionDisabledDataSources(input *[]security.DataSource)
 
 	results := make([]string, 0)
 	for _, v := range *input {
-		results = append(results, (string)(v))
+		results = append(results, string(v))
 	}
 
 	return utils.FlattenStringSlice(&results)

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -81,12 +82,14 @@ func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta int
 
 	id := cosmosdb.NewCassandraKeyspaceID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	existing, err := client.CassandraResourcesGetCassandraKeyspace(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of creating %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.CassandraResourcesGetCassandraKeyspace(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of creating %s: %+v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_keyspace", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_keyspace", id.ID())
 	}
 
 	db := cosmosdb.CassandraKeyspaceCreateUpdateParameters{
@@ -108,7 +111,7 @@ func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta int
 		db.Properties.Options.AutoScaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
-	if err := client.CassandraResourcesCreateUpdateCassandraKeyspaceThenPoll(ctx, id, db); err != nil {
+	if err := client.CassandraResourcesCreateUpdateCassandraKeyspaceCallbackThenPoll(ctx, id, db, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

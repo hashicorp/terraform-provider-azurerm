@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -176,7 +177,7 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.AccountsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -218,7 +219,7 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	if err := client.AccountsCreateOrUpdateThenPoll(ctx, id, accountParameters); err != nil {
+	if err := client.AccountsCreateOrUpdateCallbackThenPoll(ctx, id, accountParameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

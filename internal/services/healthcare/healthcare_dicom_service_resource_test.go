@@ -26,7 +26,8 @@ func TestAccHealthCareDicomResource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -40,7 +41,8 @@ func TestAccHealthCareDicomResource_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -54,19 +56,22 @@ func TestAccHealthCareDicomResource_update(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -80,7 +85,8 @@ func TestAccHealthCareDicomResource_requiresImport(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})

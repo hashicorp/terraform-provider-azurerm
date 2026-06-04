@@ -60,9 +60,20 @@ func (c VolumesClient) BackupsUnderVolumeMigrateBackups(ctx context.Context, id 
 
 // BackupsUnderVolumeMigrateBackupsThenPoll performs BackupsUnderVolumeMigrateBackups then polls until it's completed
 func (c VolumesClient) BackupsUnderVolumeMigrateBackupsThenPoll(ctx context.Context, id VolumeId, input BackupsMigrationRequest) error {
+	return c.BackupsUnderVolumeMigrateBackupsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BackupsUnderVolumeMigrateBackupsCallbackThenPoll performs BackupsUnderVolumeMigrateBackups, runs the optional callback function, then polls until it's completed
+func (c VolumesClient) BackupsUnderVolumeMigrateBackupsCallbackThenPoll(ctx context.Context, id VolumeId, input BackupsMigrationRequest, callback func() error) error {
 	result, err := c.BackupsUnderVolumeMigrateBackups(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing BackupsUnderVolumeMigrateBackups: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

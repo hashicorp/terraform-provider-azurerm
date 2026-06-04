@@ -62,9 +62,20 @@ func (c ReplicationProtectionContainersClient) SwitchProtection(ctx context.Cont
 
 // SwitchProtectionThenPoll performs SwitchProtection then polls until it's completed
 func (c ReplicationProtectionContainersClient) SwitchProtectionThenPoll(ctx context.Context, id ReplicationProtectionContainerId, input SwitchProtectionInput) error {
+	return c.SwitchProtectionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SwitchProtectionCallbackThenPoll performs SwitchProtection, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectionContainersClient) SwitchProtectionCallbackThenPoll(ctx context.Context, id ReplicationProtectionContainerId, input SwitchProtectionInput, callback func() error) error {
 	result, err := c.SwitchProtection(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SwitchProtection: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
