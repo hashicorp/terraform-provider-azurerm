@@ -144,7 +144,7 @@ func TestAccCdnFrontDoorBatchRuleSet_routeConfigurationOverrideValidation(t *tes
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.invalidRouteConfigurationOverrideMissingQueryStringCachingBehavior(data),
-			ExpectError: regexp.MustCompile("the `route_configuration_override_action` block is not valid, the `query_string_caching_behavior` field must be set"),
+			ExpectError: regexp.MustCompile("the 'route_configuration_override_action' block is not valid, the 'query_string_caching_behavior' field must be set"),
 		},
 	})
 }
@@ -173,19 +173,27 @@ func TestAccCdnFrontDoorBatchRuleSet_conditionValidation(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.urlFilenameConditionOperator(data, "Contains"),
-			ExpectError: regexp.MustCompile("the `url_filename_condition` block is not valid, `match_values` must be set when `operator` is not `Any`"),
+			ExpectError: regexp.MustCompile(`"url_filename_condition" is invalid: the 'match_values' field must be set if the conditions 'operator' is not set to 'Any'`),
 		},
 		{
 			Config:      r.requestSchemeConditionOperatorAny(data),
-			ExpectError: regexp.MustCompile("the `request_scheme_condition` block is not valid, `match_values` must not be set when `operator` is `Any`"),
+			ExpectError: regexp.MustCompile(`"request_scheme_condition" is invalid: the 'match_values' field must not be set if the conditions 'operator' is set to 'Any'`),
+		},
+		{
+			Config:      r.requestSchemeConditionMissingMatchValues(data),
+			ExpectError: regexp.MustCompile("the `request_scheme_condition` block requires `match_values'|the `request_scheme_condition` block requires `match_values`"),
+		},
+		{
+			Config:      r.isDeviceConditionMissingMatchValues(data),
+			ExpectError: regexp.MustCompile("the `is_device_condition` block requires `match_values'|the `is_device_condition` block requires `match_values`"),
 		},
 		{
 			Config:      r.remoteAddressGeoMatchInvalid(data),
-			ExpectError: regexp.MustCompile("`remote_address_condition` is invalid: when `operator` is `GeoMatch` the values in `match_values` must be valid country codes"),
+			ExpectError: regexp.MustCompile(`"remote_address_condition" is invalid: when the 'operator' is set to 'GeoMatch' the value must be a valid country code`),
 		},
 		{
 			Config:      r.socketAddressConditionInvalidCIDR(data),
-			ExpectError: regexp.MustCompile("`socket_address_condition` is invalid: when `operator` is `IPMatch` the values in `match_values` must be valid IPv4 or IPv6 CIDRs"),
+			ExpectError: regexp.MustCompile(`"socket_address_condition" is invalid: when the 'operator' is set to 'IPMatch' the 'match_values' must be a valid IPv4 or IPv6 CIDR`),
 		},
 	})
 }
@@ -207,6 +215,40 @@ func TestAccCdnFrontDoorBatchRuleSet_rulesValidation(t *testing.T) {
 			Config:      r.unsortedRules(data),
 			ExpectError: regexp.MustCompile("the `rules` blocks must be declared in ascending `order`, got `2` before `1`"),
 		},
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_gapInRuleOrder(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontDoorBatchRuleSetResource{}
+	primaryRuleName := fmt.Sprintf("accTestBatchRulePrimary%d", data.RandomInteger)
+	gapRuleName := fmt.Sprintf("accTestBatchRuleGap%d", data.RandomInteger)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gapInRuleOrder(data, [2]int{0, 2}),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rules.#").HasValue("2"),
+				check.That(data.ResourceName).Key("rules.0.name").HasValue(primaryRuleName),
+				check.That(data.ResourceName).Key("rules.0.order").HasValue("0"),
+				check.That(data.ResourceName).Key("rules.1.name").HasValue(gapRuleName),
+				check.That(data.ResourceName).Key("rules.1.order").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.gapInRuleOrder(data, [2]int{1, 2}),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rules.#").HasValue("2"),
+				check.That(data.ResourceName).Key("rules.0.name").HasValue(primaryRuleName),
+				check.That(data.ResourceName).Key("rules.0.order").HasValue("1"),
+				check.That(data.ResourceName).Key("rules.1.name").HasValue(gapRuleName),
+				check.That(data.ResourceName).Key("rules.1.order").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -694,6 +736,80 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r CdnFrontDoorBatchRuleSetResource) requestSchemeConditionMissingMatchValues(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  rules {
+    name  = "accTestBatchRule%[2]d"
+    order = 1
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/index.html"
+        preserve_unmatched_path = false
+      }
+    }
+
+    conditions {
+      request_scheme_condition {
+        negate_condition = false
+        operator         = "Equal"
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorBatchRuleSetResource) isDeviceConditionMissingMatchValues(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  rules {
+    name  = "accTestBatchRule%[2]d"
+    order = 1
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/index.html"
+        preserve_unmatched_path = false
+      }
+    }
+
+    conditions {
+      is_device_condition {
+        negate_condition = false
+        operator         = "Equal"
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r CdnFrontDoorBatchRuleSetResource) remoteAddressGeoMatchInvalid(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -895,4 +1011,47 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r CdnFrontDoorBatchRuleSetResource) gapInRuleOrder(data acceptance.TestData, orders [2]int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  rules {
+    name  = "accTestBatchRulePrimary%[2]d"
+    order = %[4]d
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/first.html"
+        preserve_unmatched_path = false
+      }
+    }
+  }
+
+  rules {
+    name  = "accTestBatchRuleGap%[3]d"
+    order = %[5]d
+
+    actions {
+      url_rewrite_action {
+        source_pattern          = "/"
+        destination             = "/second.html"
+        preserve_unmatched_path = false
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, orders[0], orders[1])
 }

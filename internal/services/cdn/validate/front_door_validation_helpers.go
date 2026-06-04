@@ -88,24 +88,25 @@ func CdnFrontDoorSecretName(i interface{}, k string) (_ []string, errors []error
 }
 
 func CdnFrontDoorActionsBlock(actions []rules.DeliveryRuleAction) error {
-	urlRewrite := false
-	urlRedirect := false
+	urlRewriteCount := 0
+	urlRedirectCount := 0
+	routeConfigurationOverrideCount := 0
 
 	for _, rule := range actions {
 		if rule.DeliveryRuleAction().Name == rules.DeliveryRuleActionNameURLRewrite {
-			urlRewrite = true
+			urlRewriteCount++
 		}
 
 		if rule.DeliveryRuleAction().Name == rules.DeliveryRuleActionNameURLRedirect {
-			urlRedirect = true
+			urlRedirectCount++
+		}
+
+		if rule.DeliveryRuleAction().Name == rules.DeliveryRuleActionNameRouteConfigurationOverride {
+			routeConfigurationOverrideCount++
 		}
 	}
 
-	if urlRedirect && urlRewrite {
-		return fmt.Errorf("the %q and the %q are both present in the %q block which is invalid", "url_redirect_action", "url_rewrite_action", "actions")
-	}
-
-	return nil
+	return CdnFrontDoorValidateActionDefinitions(urlRewriteCount, urlRedirectCount, routeConfigurationOverrideCount, len(actions))
 }
 
 func CdnFrontDoorRuleName(i interface{}, k string) (_ []string, errors []error) {

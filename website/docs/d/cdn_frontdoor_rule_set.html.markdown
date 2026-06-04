@@ -1,20 +1,20 @@
 ---
 subcategory: "CDN"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_rule_set"
+page_title: "Azure Resource Manager: Data Source: azurerm_cdn_frontdoor_rule_set"
 description: |-
   Gets information about an existing Front Door (standard/premium) Rule Set.
 ---
 
 # Data Source: azurerm_cdn_frontdoor_rule_set
 
-Use this data source to access information about an existing Front Door (standard/premium) Rule Set.
+Gets information about an existing Front Door (standard/premium) Rule Set.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_cdn_frontdoor_rule_set" "example" {
-  name                = "existing-rule-set"
+  name                = "existingcdnfrontdoorruleset"
   profile_name        = "existing-profile"
   resource_group_name = "existing-resources"
 }
@@ -34,9 +34,9 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `batch_mode_enabled` - Whether this Front Door Rule Set uses batch mode for batch rule updates.
-
 * `id` - The ID of the Front Door Rule Set.
+
+* `batch_mode_enabled` - Whether `batch mode` is enabled.
 
 * `cdn_frontdoor_profile_id` - The ID of the Front Door Profile within which this Front Door Rule Set exists.
 

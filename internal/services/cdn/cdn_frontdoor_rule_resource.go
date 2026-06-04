@@ -276,12 +276,8 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									"cache_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(rules.RuleCacheBehaviorHonorOrigin),
-											string(rules.RuleCacheBehaviorOverrideAlways),
-											string(rules.RuleCacheBehaviorOverrideIfOriginMissing),
-											string(rules.RuleIsCompressionEnabledDisabled),
-										}, false),
+										ValidateFunc: validation.StringInSlice(PossibleValuesForRuleCacheBehavior(),
+											false),
 									},
 
 									// Made Optional for issue #19008
@@ -615,19 +611,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 			}
 
 			conditionBlock := conditions.AsValueSlice()[0].AsValueMap()
-			for _, conditionName := range []string{"request_scheme_condition", "is_device_condition"} {
-				conditionValue := conditionBlock[conditionName]
-				if conditionValue.IsNull() || conditionValue.LengthInt() == 0 {
-					continue
-				}
-
-				matchValues := conditionValue.AsValueSlice()[0].AsValueMap()["match_values"]
-				if matchValues.IsNull() || matchValues.LengthInt() == 0 {
-					return fmt.Errorf("the `%s` block requires `match_values`", conditionName)
-				}
-			}
-
-			return nil
+			return validateFrontDoorConditionBlocksRequireMatchValues(conditionBlock, []string{"request_scheme_condition", "is_device_condition"})
 		}),
 	}
 }
@@ -855,24 +839,8 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]rules.DeliveryRu
 		}
 
 		if expanded != nil {
-			if actionName == m.URLRewrite.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'url_rewrite_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
-			}
-
-			if actionName == m.URLRedirect.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'url_redirect_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
-			}
-
-			if actionName == m.RouteConfigurationOverride.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'route_configuration_override_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
-			}
-
 			results = append(results, *expanded...)
 		}
-	}
-
-	if len(results) > 5 {
-		return nil, fmt.Errorf("the 'actions' match block may only contain up to 5 match actions, got %d", len(results))
 	}
 
 	if err := validate.CdnFrontDoorActionsBlock(results); err != nil {

@@ -141,6 +141,16 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "example" {
     }
   }
 }
+
+resource "azurerm_cdn_frontdoor_route" "example" {
+  name                          = "example-cdn-frontdoor-route"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
+  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_batch_rule_set.example.id]
+  patterns_to_match             = ["/*"]
+  supported_protocols           = ["Http", "Https"]
+}
 ```
 
 ## Arguments Reference
@@ -153,7 +163,7 @@ The following arguments are supported:
 
 * `rules` - (Required) One or more `rules` blocks as defined below. The configured blocks represent the complete set of rules managed for this Front Door Batch Rule Set. The final rule ordering is determined by each block's `order` value.
 
--> **Note:** The `rules` blocks must be declared in ascending `order`. To insert, remove, or move a rule, update the full `rules` collection in the same ascending order that you want Terraform to store.
+~> **Note:** The `rules` blocks must be declared in ascending `order`. To insert, remove, or move a rule, update the full `rules` collection in the same ascending order that you want Terraform to store.
 
 ~> **Note:** Each `rules` block must use a unique `name` value and a unique `order` value.
 
@@ -163,7 +173,9 @@ A `rules` block supports the following:
 
 * `actions` - (Required) An `actions` block as defined below.
 
-* `name` - (Required) The name which should be used for this Front Door Batch Rule. Possible values must be between 1 and 260 characters in length, begin with a letter, and may contain only letters and numbers.
+* `name` - (Required) The name which should be used for this Front Door Batch Rule.
+
+-> **Note:** `name` must be between `1` and `260` characters in length, begin with a letter, and may contain only letters and numbers.
 
 * `order` - (Required) The order in which this rule will be applied for the Front Door Endpoint. Rules with a lesser `order` value are applied before rules with a greater `order` value. Possible values are `0` or greater.
 
@@ -221,9 +233,13 @@ A `response_header_action` block supports the following:
 
 A `route_configuration_override_action` block supports the following:
 
-* `cache_behavior` - (Optional) Controls how Front Door handles cache behavior for the response. Possible values are `HonorOrigin`, `OverrideAlways`, and `OverrideIfOriginMissing`.
+* `cache_behavior` - (Optional) Controls how Front Door handles cache behavior for the response. Possible values are `HonorOrigin`, `OverrideAlways`, `OverrideIfOriginMissing`, and `Disabled`.
 
-* `cache_duration` - (Optional) When Cache behavior is set to `OverrideAlways` or `OverrideIfOriginMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format (for example `365.23:59:59`). If the desired maximum cache duration is less than 1 day, the maximum cache duration should be specified in the `HH:MM:SS` format (for example `23:59:59`).
+~> **Note:** If `cache_behavior` is set to `Disabled`, you must not set `query_string_caching_behavior`, `query_string_parameters`, or `cache_duration`.
+
+* `cache_duration` - (Optional) When `cache_behavior` is set to `OverrideAlways` or `OverrideIfOriginMissing`, this field specifies the cache duration to use. The maximum allowed value is `365.23:59:59`. If the desired maximum cache duration is less than `1` day, specify it in the `HH:MM:SS` format, for example `23:59:59`.
+
+~> **Note:** `cache_duration` must not be set when `cache_behavior` is `HonorOrigin`.
 
 * `cdn_frontdoor_origin_group_id` - (Optional) The Front Door Origin Group resource ID that the request should be routed to. This overrides the configuration specified in the Front Door Endpoint route.
 
@@ -233,13 +249,15 @@ A `route_configuration_override_action` block supports the following:
 
 * `forwarding_protocol` - (Optional) The forwarding protocol the request is redirected as. This overrides the configuration specified in the associated route. Possible values are `MatchRequest`, `HttpOnly`, and `HttpsOnly`.
 
-~> **Note:** If `cdn_frontdoor_origin_group_id` is not defined, you cannot set `forwarding_protocol`.
+~> **Note:** If `cdn_frontdoor_origin_group_id` is set, `forwarding_protocol` is also required. If `cdn_frontdoor_origin_group_id` is not set, you must not set `forwarding_protocol`.
 
 * `query_string_caching_behavior` - (Optional) Controls how query strings contribute to the cache key. Possible values are `IgnoreQueryString`, `UseQueryString`, `IgnoreSpecifiedQueryStrings`, and `IncludeSpecifiedQueryStrings`.
 
+~> **Note:** When cache configuration is enabled and `cache_behavior` is not `Disabled`, `query_string_caching_behavior` is also required.
+
 * `query_string_parameters` - (Optional) A list of query string parameter names.
 
-~> **Note:** `query_string_parameters` is required when `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`.
+~> **Note:** `query_string_parameters` is required when `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`, and must not be set when `query_string_caching_behavior` is set to `UseQueryString` or `IgnoreQueryString`.
 
 ---
 
@@ -303,6 +321,8 @@ A `client_port_condition` block supports the following:
 * `match_values` - (Optional) One or more integer values representing the client port to match. If multiple values are specified, they are evaluated using `OR` logic.
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 
+~> **Note:** `match_values` is only optional when `operator` is set to `Any`.
+
 ---
 
 A `cookies_condition` block supports the following:
@@ -315,6 +335,8 @@ A `cookies_condition` block supports the following:
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `transforms` - (Optional) A condition transform. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode`, and `UrlEncode`.
 
+~> **Note:** `match_values` is only optional when `operator` is set to `Any`.
+
 ---
 
 A `host_name_condition` block supports the following:
@@ -325,6 +347,8 @@ A `host_name_condition` block supports the following:
 * `match_values` - (Optional) A list of one or more string values representing the request hostname to match. If multiple values are specified, they are evaluated using `OR` logic.
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `transforms` - (Optional) A condition transform. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode`, and `UrlEncode`.
+
+~> **Note:** `match_values` is only optional when `operator` is set to `Any`.
 
 ---
 
@@ -342,9 +366,11 @@ An `is_device_condition` block supports the following:
 
 -> **Note:** `is_device_condition` identifies requests made from a `Mobile` or `Desktop` device.
 
-* `match_values` - (Required) The device type to match. Possible values are `Mobile` and `Desktop`.
+* `match_values` - (Optional) The device type to match. Possible values are `Mobile` and `Desktop`.
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `operator` - (Optional) The only possible value is `Equal`. Defaults to `Equal`.
+
+~> **Note:** `match_values` is still required at plan time for `is_device_condition`, even though the released schema shape keeps this field optional for compatibility.
 
 ---
 
@@ -358,6 +384,8 @@ A `post_args_condition` block supports the following:
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `transforms` - (Optional) A condition transform. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode`, and `UrlEncode`.
 
+~> **Note:** `match_values` is only optional when `operator` is set to `Any`.
+
 ---
 
 A `query_string_condition` block supports the following:
@@ -369,6 +397,8 @@ A `query_string_condition` block supports the following:
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `transforms` - (Optional) A condition transform. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode`, and `UrlEncode`.
 
+~> **Note:** `match_values` is only optional when `operator` is set to `Any`.
+
 ---
 
 A `remote_address_condition` block supports the following:
@@ -378,6 +408,8 @@ A `remote_address_condition` block supports the following:
 * `match_values` - (Optional) For `IPMatch`, specify one or more IP address ranges. For `GeoMatch`, specify one or more country codes. If multiple values are specified, they are evaluated using `OR` logic.
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `operator` - (Optional) The type of remote address to match. Possible values are `Any`, `GeoMatch`, and `IPMatch`. Defaults to `IPMatch`.
+
+~> **Note:** `match_values` is only optional when `operator` is set to `Any`.
 
 ~> **Note:** When `operator` is set to `GeoMatch`, each value in `match_values` must be a two-letter uppercase country code.
 
@@ -408,6 +440,8 @@ A `request_header_condition` block supports the following:
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `transforms` - (Optional) A condition transform. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode`, and `UrlEncode`.
 
+~> **Note:** `match_values` is only optional when `operator` is set to `Any`.
+
 ---
 
 A `request_method_condition` block supports the following:
@@ -424,9 +458,11 @@ A `request_scheme_condition` block supports the following:
 
 -> **Note:** `request_scheme_condition` identifies requests that use the specified protocol.
 
-* `match_values` - (Required) The request protocol to match. Possible values are `HTTP` and `HTTPS`.
+* `match_values` - (Optional) The request protocol to match. Possible values are `HTTP` and `HTTPS`.
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `operator` - (Optional) The only possible value is `Equal`. Defaults to `Equal`.
+
+~> **Note:** `match_values` is still required at plan time for `request_scheme_condition`, even though the released schema shape keeps this field optional for compatibility.
 
 ---
 
@@ -439,13 +475,15 @@ A `request_uri_condition` block supports the following:
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `transforms` - (Optional) A condition transform. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode`, and `UrlEncode`.
 
+~> **Note:** `match_values` is only optional when `operator` is set to `Any`.
+
 ---
 
 A `server_port_condition` block supports the following:
 
 -> **Note:** `server_port_condition` identifies requests based on which Front Door server port accepted the request.
 
-* `match_values` - (Required) A list of one or more integer values representing the server port to match. Common values are `80` and `443`. If multiple values are specified, they are evaluated using `OR` logic.
+* `match_values` - (Required) A list of one or more integer values representing the server port to match. Possible values are `80` and `443`. If multiple values are specified, they are evaluated using `OR` logic.
 * `operator` - (Required) A condition operator. Possible values are `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual`, and `RegEx`.
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 
@@ -509,6 +547,8 @@ An `url_path_condition` block supports the following:
 * `match_values` - (Optional) One or more values representing the request path to match. Do not include the leading slash (`/`). If multiple values are specified, they are evaluated using `OR` logic.
 * `negate_condition` - (Optional) Whether to negate the condition. Possible values are `true` and `false`. Defaults to `false`.
 * `transforms` - (Optional) A condition transform. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode`, and `UrlEncode`.
+
+~> **Note:** `match_values` is only optional when `operator` is set to `Any`.
 
 ## Specifying IP Address Ranges
 
@@ -609,8 +649,8 @@ For rules that can transform strings, the following transforms are valid:
 | Uppercase | Converts the string to uppercase. |
 | Trim | Trims leading and trailing whitespace from the string. |
 | RemoveNulls | Removes null values from the string. |
-| URLEncode | URL-encodes the string. |
-| URLDecode | URL-decodes the string. |
+| UrlEncode | URL-encodes the string. |
+| UrlDecode | URL-decodes the string. |
 
 ## Attributes Reference
 

@@ -4,7 +4,6 @@
 package cdn
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -261,7 +261,7 @@ func cdnFrontDoorBatchRuleActionsSchema() *pluginsdk.Schema {
 					"query_string_caching_behavior": {Type: pluginsdk.TypeString, Optional: true, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRuleQueryStringCachingBehavior(), false)},
 					"query_string_parameters":       {Type: pluginsdk.TypeList, Optional: true, MaxItems: 100, Elem: &pluginsdk.Schema{Type: pluginsdk.TypeString}},
 					"compression_enabled":           {Type: pluginsdk.TypeBool, Optional: true},
-					"cache_behavior":                {Type: pluginsdk.TypeString, Optional: true, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRuleCacheBehavior(), false)},
+					"cache_behavior":                {Type: pluginsdk.TypeString, Optional: true, ValidateFunc: validation.StringInSlice(PossibleValuesForRuleCacheBehavior(), false)},
 					"cache_duration":                {Type: pluginsdk.TypeString, Optional: true, ValidateFunc: validate.CdnFrontDoorCacheDuration},
 				}},
 			},
@@ -362,11 +362,11 @@ func batchRequestMethodMatchValuesSchema() *pluginsdk.Schema {
 }
 
 func batchProtocolMatchValuesSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{Type: pluginsdk.TypeList, Required: true, MaxItems: 1, Elem: &pluginsdk.Schema{Type: pluginsdk.TypeString, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestSchemeMatchValue(), false)}}
+	return &pluginsdk.Schema{Type: pluginsdk.TypeList, Optional: true, MaxItems: 1, Elem: &pluginsdk.Schema{Type: pluginsdk.TypeString, Default: rules.RequestSchemeMatchValueHTTP, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestSchemeMatchValue(), false)}}
 }
 
 func batchIsDeviceMatchValuesSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{Type: pluginsdk.TypeList, Required: true, MaxItems: 1, Elem: &pluginsdk.Schema{Type: pluginsdk.TypeString, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForIsDeviceMatchValue(), false)}}
+	return &pluginsdk.Schema{Type: pluginsdk.TypeList, Optional: true, MaxItems: 1, Elem: &pluginsdk.Schema{Type: pluginsdk.TypeString, ValidateFunc: validation.StringInSlice(rules.PossibleValuesForIsDeviceMatchValue(), false)}}
 }
 
 func batchHTTPVersionMatchValuesSchema() *pluginsdk.Schema {
@@ -522,21 +522,13 @@ func batchRuleOrder(input azuresdkhacks.BatchRuleProperties) int64 {
 func expandCdnFrontDoorBatchRuleActions(input []CdnFrontDoorBatchRuleActionsModel) ([]rules.DeliveryRuleAction, error) {
 	results := make([]rules.DeliveryRuleAction, 0)
 	if len(input) == 0 {
-		return nil, errors.New("the `actions` block must contain at least one action")
+		return results, nil
 	}
 
 	actions := input[0]
-	if len(actions.URLRewriteAction) > 0 && len(actions.URLRedirectAction) > 0 {
-		return nil, errors.New("the `actions` block cannot contain both `url_rewrite_action` and `url_redirect_action`")
-	}
-	if len(actions.URLRewriteAction) > 1 {
-		return nil, fmt.Errorf("the `url_rewrite_action` block is only allowed once in `actions`, got %d", len(actions.URLRewriteAction))
-	}
-	if len(actions.URLRedirectAction) > 1 {
-		return nil, fmt.Errorf("the `url_redirect_action` block is only allowed once in `actions`, got %d", len(actions.URLRedirectAction))
-	}
-	if len(actions.RouteConfigurationOverrideAction) > 1 {
-		return nil, fmt.Errorf("the `route_configuration_override_action` block is only allowed once in `actions`, got %d", len(actions.RouteConfigurationOverrideAction))
+	totalCount := len(actions.URLRewriteAction) + len(actions.URLRedirectAction) + len(actions.RequestHeaderAction) + len(actions.ResponseHeaderAction) + len(actions.RouteConfigurationOverrideAction)
+	if err := validate.CdnFrontDoorValidateActionDefinitions(len(actions.URLRewriteAction), len(actions.URLRedirectAction), len(actions.RouteConfigurationOverrideAction), totalCount); err != nil {
+		return nil, err
 	}
 
 	for _, item := range actions.URLRedirectAction {
@@ -567,7 +559,7 @@ func expandCdnFrontDoorBatchRuleActions(input []CdnFrontDoorBatchRuleActionsMode
 	}
 
 	for _, item := range actions.RequestHeaderAction {
-		if err := validateHeaderAction("request_header_action", item); err != nil {
+		if err := validate.CdnFrontDoorValidateHeaderAction("request_header_action", item.HeaderAction, item.Value); err != nil {
 			return nil, err
 		}
 		results = append(results, rules.DeliveryRuleRequestHeaderAction{
@@ -582,7 +574,7 @@ func expandCdnFrontDoorBatchRuleActions(input []CdnFrontDoorBatchRuleActionsMode
 	}
 
 	for _, item := range actions.ResponseHeaderAction {
-		if err := validateHeaderAction("response_header_action", item); err != nil {
+		if err := validate.CdnFrontDoorValidateHeaderAction("response_header_action", item.HeaderAction, item.Value); err != nil {
 			return nil, err
 		}
 		results = append(results, rules.DeliveryRuleResponseHeaderAction{
@@ -609,13 +601,6 @@ func expandCdnFrontDoorBatchRuleActions(input []CdnFrontDoorBatchRuleActionsMode
 				CacheConfiguration:  cacheConfiguration,
 			},
 		})
-	}
-
-	if len(results) > 5 {
-		return nil, fmt.Errorf("the `actions` block may only contain up to 5 match actions, got %d", len(results))
-	}
-	if len(results) == 0 {
-		return nil, errors.New("the `actions` block must contain at least one action")
 	}
 
 	return results, nil
@@ -662,7 +647,11 @@ func flattenCdnFrontDoorBatchRuleActions(input *[]rules.DeliveryRuleAction) ([]C
 			})
 		case rules.DeliveryRuleActionNameRouteConfigurationOverride:
 			item := action.(rules.DeliveryRuleRouteConfigurationOverrideAction)
-			actions.RouteConfigurationOverrideAction = append(actions.RouteConfigurationOverrideAction, flattenRouteConfigurationOverrideAction(item.Parameters))
+			flattened, err := flattenRouteConfigurationOverrideAction(item.Parameters)
+			if err != nil {
+				return []CdnFrontDoorBatchRuleActionsModel{}, err
+			}
+			actions.RouteConfigurationOverrideAction = append(actions.RouteConfigurationOverrideAction, flattened)
 		default:
 			return []CdnFrontDoorBatchRuleActionsModel{}, fmt.Errorf("unsupported batch rule action %q encountered", action.DeliveryRuleAction().Name)
 		}
@@ -673,83 +662,55 @@ func flattenCdnFrontDoorBatchRuleActions(input *[]rules.DeliveryRuleAction) ([]C
 
 func expandRouteConfigurationOverrideAction(input CdnFrontDoorBatchRuleRouteConfigurationOverrideActionModel) (*rules.OriginGroupOverride, *rules.CacheConfiguration, error) {
 	var originGroupOverride *rules.OriginGroupOverride
-	if input.CdnFrontDoorOriginGroupID == "" && input.ForwardingProtocol == "" && input.QueryStringCachingBehavior == "" && len(input.QueryStringParameters) == 0 && !input.CompressionEnabled && input.CacheBehavior == "" && input.CacheDuration == "" {
-		return nil, nil, errors.New("the `route_configuration_override_action` block must define at least one field")
+	if err := validate.CdnFrontDoorValidateRouteConfigurationOverrideAction(validate.CdnFrontDoorRouteConfigurationOverrideInput{
+		OriginGroupID:              input.CdnFrontDoorOriginGroupID,
+		ForwardingProtocol:         input.ForwardingProtocol,
+		QueryStringCachingBehavior: input.QueryStringCachingBehavior,
+		QueryStringParameters:      input.QueryStringParameters,
+		CompressionEnabled:         input.CompressionEnabled,
+		CacheBehavior:              input.CacheBehavior,
+		CacheDuration:              input.CacheDuration,
+	}); err != nil {
+		return nil, nil, err
 	}
 
 	if input.CdnFrontDoorOriginGroupID != "" {
-		if input.ForwardingProtocol == "" {
-			return nil, nil, errors.New("the `route_configuration_override_action` block is not valid, the `forwarding_protocol` field must be set")
-		}
 		originGroupOverride = &rules.OriginGroupOverride{
 			OriginGroup:        &rules.ResourceReference{Id: pointer.To(input.CdnFrontDoorOriginGroupID)},
 			ForwardingProtocol: pointer.ToEnum[rules.ForwardingProtocol](input.ForwardingProtocol),
 		}
-	} else if input.ForwardingProtocol != "" {
-		return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, if the `cdn_frontdoor_origin_group_id` is not set you cannot define the `forwarding_protocol`, got %q", input.ForwardingProtocol)
 	}
 
 	var cacheConfiguration *rules.CacheConfiguration
 	if input.CacheBehavior != "" || input.QueryStringCachingBehavior != "" || len(input.QueryStringParameters) > 0 || input.CacheDuration != "" || input.CompressionEnabled {
 		cacheBehavior := input.CacheBehavior
-		if cacheBehavior == string(rules.RuleIsCompressionEnabledDisabled) {
-			if input.QueryStringCachingBehavior != "" {
-				return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, if the `cache_behavior` is set to `Disabled` you cannot define the `query_string_caching_behavior`, got %q", input.QueryStringCachingBehavior)
+		if cacheBehavior != string(rules.RuleIsCompressionEnabledDisabled) {
+			compressionEnabled := rules.RuleIsCompressionEnabledDisabled
+			if input.CompressionEnabled {
+				compressionEnabled = rules.RuleIsCompressionEnabledEnabled
 			}
 
-			if len(input.QueryStringParameters) != 0 {
-				return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, if the `cache_behavior` is set to `Disabled` you cannot define the `query_string_parameters`, got %d", len(input.QueryStringParameters))
+			cacheConfiguration = &rules.CacheConfiguration{
+				CacheBehavior:              pointer.ToEnum[rules.RuleCacheBehavior](cacheBehavior),
+				CacheDuration:              stringPointerOrNil(input.CacheDuration),
+				IsCompressionEnabled:       pointer.To(compressionEnabled),
+				QueryParameters:            stringPointerOrNil(strings.Join(input.QueryStringParameters, ",")),
+				QueryStringCachingBehavior: pointerOrNil(rules.RuleQueryStringCachingBehavior(input.QueryStringCachingBehavior)),
 			}
-
-			if input.CacheDuration != "" {
-				return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, if the `cache_behavior` is set to `Disabled` you cannot define the `cache_duration`, got %q", input.CacheDuration)
-			}
-		} else {
-			if cacheBehavior == "" {
-				return nil, nil, errors.New("the `route_configuration_override_action` block is not valid, the `cache_behavior` field must be set")
-			}
-
-			if input.QueryStringCachingBehavior == "" {
-				return nil, nil, errors.New("the `route_configuration_override_action` block is not valid, the `query_string_caching_behavior` field must be set")
-			}
-
-			if cacheBehavior != string(rules.RuleCacheBehaviorHonorOrigin) {
-				if input.CacheDuration == "" {
-					return nil, nil, errors.New("the `route_configuration_override_action` block is not valid, the `cache_duration` field must be set")
-				}
-			} else if input.CacheDuration != "" {
-				return nil, nil, errors.New("the `route_configuration_override_action` block is not valid, the `cache_duration` field must not be set if the `cache_behavior` is `HonorOrigin`")
-			}
-		}
-
-		if requiresQueryStringParameters(input.QueryStringCachingBehavior) && len(input.QueryStringParameters) == 0 {
-			return nil, nil, fmt.Errorf("the `route_configuration_override_action` block is not valid, the `query_string_parameters` field must be set when `query_string_caching_behavior` is %q", input.QueryStringCachingBehavior)
-		}
-		if len(input.QueryStringParameters) > 0 && (input.QueryStringCachingBehavior == string(rules.RuleQueryStringCachingBehaviorUseQueryString) || input.QueryStringCachingBehavior == string(rules.RuleQueryStringCachingBehaviorIgnoreQueryString)) {
-			return nil, nil, errors.New("the `route_configuration_override_action` block is not valid, `query_string_parameters` must not be set if the `query_string_caching_behavior` is `UseQueryStrings` or `IgnoreQueryStrings`")
-		}
-
-		compressionEnabled := rules.RuleIsCompressionEnabledDisabled
-		if input.CompressionEnabled {
-			compressionEnabled = rules.RuleIsCompressionEnabledEnabled
-		}
-
-		cacheConfiguration = &rules.CacheConfiguration{
-			CacheBehavior:              pointer.ToEnum[rules.RuleCacheBehavior](cacheBehavior),
-			CacheDuration:              stringPointerOrNil(input.CacheDuration),
-			IsCompressionEnabled:       pointer.To(compressionEnabled),
-			QueryParameters:            stringPointerOrNil(strings.Join(input.QueryStringParameters, ",")),
-			QueryStringCachingBehavior: pointerOrNil(rules.RuleQueryStringCachingBehavior(input.QueryStringCachingBehavior)),
 		}
 	}
 
 	return originGroupOverride, cacheConfiguration, nil
 }
 
-func flattenRouteConfigurationOverrideAction(input rules.RouteConfigurationOverrideActionParameters) CdnFrontDoorBatchRuleRouteConfigurationOverrideActionModel {
+func flattenRouteConfigurationOverrideAction(input rules.RouteConfigurationOverrideActionParameters) (CdnFrontDoorBatchRuleRouteConfigurationOverrideActionModel, error) {
 	output := CdnFrontDoorBatchRuleRouteConfigurationOverrideActionModel{}
 	if input.OriginGroupOverride != nil {
-		output.CdnFrontDoorOriginGroupID = pointer.From(input.OriginGroupOverride.OriginGroup.Id)
+		originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(pointer.From(input.OriginGroupOverride.OriginGroup.Id))
+		if err != nil {
+			return CdnFrontDoorBatchRuleRouteConfigurationOverrideActionModel{}, err
+		}
+		output.CdnFrontDoorOriginGroupID = originGroup.ID()
 		output.ForwardingProtocol = string(pointer.From(input.OriginGroupOverride.ForwardingProtocol))
 	}
 	if input.CacheConfiguration != nil {
@@ -759,22 +720,11 @@ func flattenRouteConfigurationOverrideAction(input rules.RouteConfigurationOverr
 		output.CacheDuration = pointer.From(input.CacheConfiguration.CacheDuration)
 		output.CompressionEnabled = pointer.From(input.CacheConfiguration.IsCompressionEnabled) == rules.RuleIsCompressionEnabledEnabled
 	}
-	return output
+	return output, nil
 }
 
 func validateHeaderAction(blockName string, input CdnFrontDoorBatchRuleHeaderActionModel) error {
-	if input.Value == "" {
-		if input.HeaderAction == string(rules.HeaderActionOverwrite) || input.HeaderAction == string(rules.HeaderActionAppend) {
-			return fmt.Errorf("the `%s` block is not valid, `value` cannot be empty if `header_action` is `Append` or `Overwrite`", blockName)
-		}
-	} else if input.HeaderAction == string(rules.HeaderActionDelete) {
-		return fmt.Errorf("the `%s` block is not valid, `value` must be empty if `header_action` is `Delete`", blockName)
-	}
-	return nil
-}
-
-func requiresQueryStringParameters(input string) bool {
-	return input == string(rules.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings) || input == string(rules.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings)
+	return validate.CdnFrontDoorValidateHeaderAction(blockName, input.HeaderAction, input.Value)
 }
 
 func expandCdnFrontDoorBatchRuleConditions(input []CdnFrontDoorBatchRuleConditionsModel) ([]rules.DeliveryRuleCondition, error) {
@@ -1143,23 +1093,11 @@ func expandSSLProtocolCondition(input CdnFrontDoorBatchRuleSSLProtocolConditionM
 }
 
 func validateStandardCondition(configName, operator string, matchValues []string) error {
-	if strings.EqualFold(operator, "Any") && len(matchValues) > 0 {
-		return fmt.Errorf("the `%s` block is not valid, `match_values` must not be set when `operator` is `Any`", configName)
-	}
-	if !strings.EqualFold(operator, "Any") && len(matchValues) == 0 {
-		return fmt.Errorf("the `%s` block is not valid, `match_values` must be set when `operator` is not `Any`", configName)
-	}
-	return nil
+	return validate.CdnFrontDoorValidateConditionMatchValues(configName, operator, matchValues)
 }
 
 func validateAnyCondition(configName, operator string, matchValues []string) error {
-	if strings.EqualFold(operator, "Any") && len(matchValues) > 0 {
-		return fmt.Errorf("the `%s` block is not valid, `match_values` must not be set when `operator` is `Any`", configName)
-	}
-	if !strings.EqualFold(operator, "Any") && len(matchValues) == 0 {
-		return fmt.Errorf("the `%s` block is not valid, `match_values` must be set when `operator` is not `Any`", configName)
-	}
-	return nil
+	return validate.CdnFrontDoorValidateConditionMatchValues(configName, operator, matchValues)
 }
 
 func batchRuleHasConditions(input CdnFrontDoorBatchRuleConditionsModel) bool {

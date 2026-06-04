@@ -12,6 +12,8 @@ Manages a Front Door (standard/premium) Rule Set.
 
 ## Example Usage
 
+~> **Note:** Azure Front Door Rule Set operations are currently affected by a service-side regression where unattached rule sets can fail with `400 Bad Request` until they are associated with a Front Door Route. The attached-route example below reflects the currently functional path while the service-side fix is pending.
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-cdn-frontdoor"
@@ -25,8 +27,48 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_rule_set" "example" {
-  name                     = "ExampleRuleSet"
+  name                     = "exampleruleset"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+}
+
+resource "azurerm_cdn_frontdoor_origin_group" "example" {
+  name                     = "example-origin-group"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
+}
+
+resource "azurerm_cdn_frontdoor_origin" "example" {
+  name                          = "example-origin"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  enabled                       = true
+
+  certificate_name_check_enabled = false
+  host_name                      = "contoso.com"
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "www.contoso.com"
+  priority                       = 1
+  weight                         = 1
+}
+
+resource "azurerm_cdn_frontdoor_endpoint" "example" {
+  name                     = "example-endpoint"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+}
+
+resource "azurerm_cdn_frontdoor_route" "example" {
+  name                          = "example-route"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
+  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.example.id]
+  patterns_to_match             = ["/*"]
+  supported_protocols           = ["Http", "Https"]
 }
 ```
 
@@ -36,9 +78,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Front Door Rule Set. Changing this forces a new resource to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile. Changing this forces a new resource to be created.
+* `cdn_frontdoor_profile_id` - (Required) The resource ID of the Front Door Profile where this Front Door Rule Set should be created. Changing this forces a new resource to be created.
 
-~> **Note:** This resource manages the non-batch Front Door Standard/Premium Rule Set path. To create a batch-mode Rule Set with inline `rules`, use `azurerm_cdn_frontdoor_batch_rule_set` instead.
+~> **Note:** This resource only supports the non-batch Front Door Standard/Premium Rule Set path. Existing or imported rule sets where `batch_mode_enabled` is `true` must be managed with `azurerm_cdn_frontdoor_batch_rule_set` instead.
 
 ## Attributes Reference
 
