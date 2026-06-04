@@ -62,9 +62,20 @@ func (c NetworkWatchersClient) GetAzureReachabilityReport(ctx context.Context, i
 
 // GetAzureReachabilityReportThenPoll performs GetAzureReachabilityReport then polls until it's completed
 func (c NetworkWatchersClient) GetAzureReachabilityReportThenPoll(ctx context.Context, id NetworkWatcherId, input AzureReachabilityReportParameters) error {
+	return c.GetAzureReachabilityReportCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GetAzureReachabilityReportCallbackThenPoll performs GetAzureReachabilityReport, runs the optional callback function, then polls until it's completed
+func (c NetworkWatchersClient) GetAzureReachabilityReportCallbackThenPoll(ctx context.Context, id NetworkWatcherId, input AzureReachabilityReportParameters, callback func() error) error {
 	result, err := c.GetAzureReachabilityReport(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GetAzureReachabilityReport: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

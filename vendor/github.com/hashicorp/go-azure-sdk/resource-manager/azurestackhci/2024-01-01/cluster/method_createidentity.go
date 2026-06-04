@@ -58,9 +58,20 @@ func (c ClusterClient) CreateIdentity(ctx context.Context, id ClusterId) (result
 
 // CreateIdentityThenPoll performs CreateIdentity then polls until it's completed
 func (c ClusterClient) CreateIdentityThenPoll(ctx context.Context, id ClusterId) error {
+	return c.CreateIdentityCallbackThenPoll(ctx, id, nil)
+}
+
+// CreateIdentityCallbackThenPoll performs CreateIdentity, runs the optional callback function, then polls until it's completed
+func (c ClusterClient) CreateIdentityCallbackThenPoll(ctx context.Context, id ClusterId, callback func() error) error {
 	result, err := c.CreateIdentity(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing CreateIdentity: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

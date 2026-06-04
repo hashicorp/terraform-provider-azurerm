@@ -319,32 +319,34 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 	idsdk := domainservices.NewDomainServiceID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, idsdk)
-		if err != nil {
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, idsdk)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", resourceErrorName, err)
+				}
+			}
+
 			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", resourceErrorName, err)
-			}
-		}
+				// Parse the replica sets and assume the first one returned to be the initial replica set
+				// This is a best effort and the user can choose any replica set if they structure their config accordingly
+				model := existing.Model
+				if model == nil {
+					return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing model", resourceErrorName)
+				}
+				props := model.Properties
+				if props == nil {
+					return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing properties", resourceErrorName)
+				}
+				replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
+				if len(replicaSets) == 0 {
+					return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", resourceErrorName)
+				}
+				initialReplicaSetId := replicaSets[0].(map[string]interface{})["id"].(string)
+				id := parse.NewDomainServiceID(subscriptionId, resourceGroup, name, initialReplicaSetId)
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			// Parse the replica sets and assume the first one returned to be the initial replica set
-			// This is a best effort and the user can choose any replica set if they structure their config accordingly
-			model := existing.Model
-			if model == nil {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing model", resourceErrorName)
+				return tf.ImportAsExistsError(DomainServiceResourceName, id.ID())
 			}
-			props := model.Properties
-			if props == nil {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing properties", resourceErrorName)
-			}
-			replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
-			if len(replicaSets) == 0 {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", resourceErrorName)
-			}
-			initialReplicaSetId := replicaSets[0].(map[string]interface{})["id"].(string)
-			id := parse.NewDomainServiceID(subscriptionId, resourceGroup, name, initialReplicaSetId)
-
-			return tf.ImportAsExistsError(DomainServiceResourceName, id.ID())
 		}
 	} else {
 		var err error
@@ -392,6 +394,7 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 		domainService.Properties.ReplicaSets = &replicaSets
 	}
 
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, idsdk, domainService); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", resourceErrorName, err)
 	}

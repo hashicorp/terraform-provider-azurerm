@@ -84,14 +84,16 @@ func (r VirtualMachineRestorePointCollectionResource) Create() sdk.ResourceFunc 
 
 			id := restorepointcollections.NewRestorePointCollectionID(subscriptionId, config.ResourceGroup, config.Name)
 
-			existing, err := client.Get(ctx, id, restorepointcollections.DefaultGetOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, restorepointcollections.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := restorepointcollections.RestorePointCollection{
@@ -104,7 +106,7 @@ func (r VirtualMachineRestorePointCollectionResource) Create() sdk.ResourceFunc 
 				Tags: tags.Expand(config.Tags),
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

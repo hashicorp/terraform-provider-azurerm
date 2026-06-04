@@ -6,7 +6,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -22,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -72,6 +72,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.LabServices/labplans",
 	"Microsoft.Logic/integrationServiceEnvironments",
 	"Microsoft.MachineLearningServices/workspaces",
+	"Microsoft.MessagingConnectors/connectors",
 	"Microsoft.Netapp/volumes",
 	"Microsoft.Network/applicationGateways",
 	"Microsoft.Network/dnsResolvers",
@@ -301,20 +302,20 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
-
 	id := commonids.NewSubnetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())
-	if err != nil {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_subnet", id.ID())
 		}
 	}
-
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_subnet", id.ID())
-	}
-
 	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
@@ -365,8 +366,12 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Properties: &properties,
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, subnet); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, subnet, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -378,7 +383,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
 	}
 
@@ -390,13 +395,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
-	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := vnetStateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for provisioning state of virtual network for %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
 	}
 
 	return resourceSubnetRead(d, meta)
