@@ -47,6 +47,14 @@ func TestAccFederatedIdentityCredential_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("subject").MatchesRegex(&rg),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
