@@ -15,18 +15,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccStorageSyncServerEndpoint_list_basic(t *testing.T) {
-	t.Skip("@mbfrahry: temporarily skipping as the server must be registered manually. Will come back to this when the server can be registered programmatically")
-
+func testAccStorageSyncServerEndpoint_list_basic(t *testing.T) {
 	r := StorageSyncServerEndpointResource{}
 	listResourceAddress := "azurerm_storage_sync_server_endpoint.list"
 	data := acceptance.BuildTestData(t, "azurerm_storage_sync_server_endpoint", "test")
 
 	resource.Test(t, resource.TestCase{
+		PreCheck: func() { acceptance.PreCheck(t) },
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"local": {
+				VersionConstraint: "=2.5.2",
+				Source:            "registry.terraform.io/hashicorp/local",
+			},
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
 				Config: r.basic(data),

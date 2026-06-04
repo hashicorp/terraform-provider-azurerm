@@ -23,6 +23,7 @@ func TestAccStorageSyncServerEndpointSequential(t *testing.T) {
 		"storageSyncServerEndpoint": {
 			"basic":            testAccStorageSyncServerEndpoint_basic,
 			"complete":         testAccStorageSyncServerEndpoint_complete,
+			"listBasic":        testAccStorageSyncServerEndpoint_list_basic,
 			"resourceIdentity": testAccStorageSyncServerEndpoint_resourceIdentity,
 		},
 	})
