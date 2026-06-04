@@ -62,9 +62,20 @@ func (c PlaywrightWorkspacesClient) CreateOrUpdate(ctx context.Context, id Playw
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
 func (c PlaywrightWorkspacesClient) CreateOrUpdateThenPoll(ctx context.Context, id PlaywrightWorkspaceId, input PlaywrightWorkspace) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateCallbackThenPoll performs CreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c PlaywrightWorkspacesClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id PlaywrightWorkspaceId, input PlaywrightWorkspace, callback func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
