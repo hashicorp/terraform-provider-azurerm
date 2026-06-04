@@ -176,14 +176,24 @@ func resourceSubnet() *pluginsdk.Resource {
 			"service_endpoint": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
-				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"service": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Microsoft.AzureActiveDirectory",
+								"Microsoft.AzureCosmosDB",
+								"Microsoft.CognitiveServices",
+								"Microsoft.ContainerRegistry",
+								"Microsoft.EventHub",
+								"Microsoft.KeyVault",
+								"Microsoft.ServiceBus",
+								"Microsoft.Sql",
+								"Microsoft.Storage",
+								"Microsoft.Storage.Global",
+								"Microsoft.Web",
+							}, false),
 						},
 						"network_identifier": {
 							Type:         pluginsdk.TypeString,
@@ -321,6 +331,8 @@ func resourceSubnet() *pluginsdk.Resource {
 			ConflictsWith: []string{"service_endpoint"},
 		}
 		resource.Schema["service_endpoint"].ConflictsWith = []string{"service_endpoints"}
+		// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
+		resource.Schema["service_endpoint"].Computed = true
 	}
 
 	return resource
@@ -746,13 +758,12 @@ func expandSubnetServiceEndpoint(input []interface{}) *[]subnets.ServiceEndpoint
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		svc := v["service"].(string)
 		endpoint := subnets.ServiceEndpointPropertiesFormat{
-			Service: &svc,
+			Service: pointer.To(v["service"].(string)),
 		}
 		if networkIdentifier := v["network_identifier"].(string); networkIdentifier != "" {
 			endpoint.NetworkIdentifier = &subnets.SubResource{
-				Id: &networkIdentifier,
+				Id: pointer.To(networkIdentifier),
 			}
 		}
 		endpoints = append(endpoints, endpoint)
@@ -769,13 +780,12 @@ func flattenSubnetServiceEndpoint(serviceEndpoints *[]subnets.ServiceEndpointPro
 	}
 
 	for _, endpoint := range *serviceEndpoints {
-		item := map[string]interface{}{}
-		if endpoint.Service != nil {
-			item["service"] = *endpoint.Service
+		item := map[string]interface{}{
+			"service": pointer.From(endpoint.Service),
 		}
 		networkIdentifier := ""
-		if endpoint.NetworkIdentifier != nil && endpoint.NetworkIdentifier.Id != nil {
-			networkIdentifier = *endpoint.NetworkIdentifier.Id
+		if endpoint.NetworkIdentifier != nil {
+			networkIdentifier = pointer.From(endpoint.NetworkIdentifier.Id)
 		}
 		item["network_identifier"] = networkIdentifier
 		endpoints = append(endpoints, item)

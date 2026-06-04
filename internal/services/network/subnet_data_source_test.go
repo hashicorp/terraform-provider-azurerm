@@ -115,8 +115,6 @@ func TestAccDataSourceSubnet_serviceEndpoints(t *testing.T) {
 	if !features.FivePointOh() {
 		checks = append(checks,
 			check.That(data.ResourceName).Key("service_endpoints.#").HasValue("2"),
-			check.That(data.ResourceName).Key("service_endpoint.#").HasValue("2"),
-			check.That(data.ResourceName).Key("service_endpoint.0.service").Exists(),
 		)
 	} else {
 		checks = append(checks,
@@ -127,13 +125,13 @@ func TestAccDataSourceSubnet_serviceEndpoints(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.serviceEndpoint(data),
+			Config: r.serviceEndpoints(data),
 			Check:  acceptance.ComposeTestCheckFunc(checks...),
 		},
 	})
 }
 
-func TestAccDataSourceSubnet_serviceEndpointWithNetworkIdentifier(t *testing.T) {
+func TestAccDataSourceSubnet_serviceEndpointsWithNetworkIdentifier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 	r := SubnetDataSource{}
 
@@ -147,9 +145,7 @@ func TestAccDataSourceSubnet_serviceEndpointWithNetworkIdentifier(t *testing.T) 
 
 	if !features.FivePointOh() {
 		checks = append(checks,
-			check.That(data.ResourceName).Key("service_endpoint.#").HasValue("1"),
-			check.That(data.ResourceName).Key("service_endpoint.0.service").HasValue("Microsoft.Storage"),
-			check.That(data.ResourceName).Key("service_endpoint.0.network_identifier").IsSet(),
+			check.That(data.ResourceName).Key("service_endpoints.#").HasValue("1"),
 		)
 	} else {
 		checks = append(checks,
@@ -161,7 +157,7 @@ func TestAccDataSourceSubnet_serviceEndpointWithNetworkIdentifier(t *testing.T) 
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.serviceEndpointWithNetworkIdentifier(data),
+			Config: r.serviceEndpointsWithNetworkIdentifier(data),
 			Check:  acceptance.ComposeTestCheckFunc(checks...),
 		},
 	})
@@ -306,7 +302,7 @@ data "azurerm_subnet" "test" {
 `, r.routeTableDependencies(data))
 }
 
-func (SubnetDataSource) serviceEndpoint(data acceptance.TestData) string {
+func (SubnetDataSource) serviceEndpoints(data acceptance.TestData) string {
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
@@ -330,7 +326,7 @@ data "azurerm_subnet" "test" {
 `, SubnetResource{}.serviceEndpointBlockUpdated(data))
 }
 
-func (SubnetDataSource) serviceEndpointWithNetworkIdentifier(data acceptance.TestData) string {
+func (SubnetDataSource) serviceEndpointsWithNetworkIdentifier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

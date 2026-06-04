@@ -699,6 +699,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `storage_share_id` property has been removed in favor of the `storage_share_url` property.
 
+### `azurerm_subnet`
+
+* The deprecated `service_endpoints` property has been removed in favour of the `service_endpoint` block.
+
+### `azurerm_virtual_network`
+
+* The deprecated `subnet.service_endpoints` property has been removed in favour of the `subnet.service_endpoint` block.
+
 ### `azurerm_mssql_virtual_machine`
 
 * The deprecated `auto_backup.encryption_enabled` property has been removed.

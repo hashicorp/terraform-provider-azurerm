@@ -67,7 +67,7 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 }
 
 func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	resourceSchema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -299,17 +299,27 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"service_endpoint": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
-						Computed:   true,
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
 						ConfigMode: pluginsdk.SchemaConfigModeAttr,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"service": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										"Microsoft.AzureActiveDirectory",
+										"Microsoft.AzureCosmosDB",
+										"Microsoft.CognitiveServices",
+										"Microsoft.ContainerRegistry",
+										"Microsoft.EventHub",
+										"Microsoft.KeyVault",
+										"Microsoft.ServiceBus",
+										"Microsoft.Sql",
+										"Microsoft.Storage",
+										"Microsoft.Storage.Global",
+										"Microsoft.Web",
+									}, false),
 								},
 								"network_identifier": {
 									Type:         pluginsdk.TypeString,
@@ -348,7 +358,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FivePointOh() {
-		subnetSchema := schema["subnet"].Elem.(*pluginsdk.Resource).Schema
+		subnetSchema := resourceSchema["subnet"].Elem.(*pluginsdk.Resource).Schema
 		subnetSchema["service_endpoints"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -360,9 +370,11 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			},
 			Set: pluginsdk.HashString,
 		}
+		// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
+		subnetSchema["service_endpoint"].Computed = true
 	}
 
-	return schema
+	return resourceSchema
 }
 
 func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -627,11 +639,11 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("subnet") {
-		subnets, routeTables, err := expandVirtualNetworkSubnets(ctx, *client, d.Get("subnet").(*pluginsdk.Set).List(), *id, d)
+		subnetList, routeTables, err := expandVirtualNetworkSubnets(ctx, *client, d.Get("subnet").(*pluginsdk.Set).List(), *id, d)
 		if err != nil {
 			return fmt.Errorf("expanding `subnet`: %+v", err)
 		}
-		payload.Properties.Subnets = subnets
+		payload.Properties.Subnets = subnetList
 
 		locks.MultipleByName(routeTables, routeTableResourceName)
 		defer locks.UnlockMultipleByName(routeTables, routeTableResourceName)
@@ -1133,10 +1145,7 @@ func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet, d *pluginsdk.
 					if !rawConfig.IsNull() && rawConfig.IsKnown() {
 						rawSubnets := rawConfig.AsValueMap()["subnet"]
 						if !rawSubnets.IsNull() && rawSubnets.IsKnown() {
-							name := ""
-							if subnet.Name != nil {
-								name = *subnet.Name
-							}
+							name := pointer.From(subnet.Name)
 							for _, rs := range rawSubnets.AsValueSlice() {
 								sm := rs.AsValueMap()
 								if sm["name"].IsKnown() && sm["name"].AsString() == name {
@@ -1351,13 +1360,12 @@ func expandVirtualNetworkSubnetServiceEndpoint(input []interface{}) *[]virtualne
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		svc := v["service"].(string)
 		endpoint := virtualnetworks.ServiceEndpointPropertiesFormat{
-			Service: &svc,
+			Service: pointer.To(v["service"].(string)),
 		}
 		if networkIdentifier := v["network_identifier"].(string); networkIdentifier != "" {
 			endpoint.NetworkIdentifier = &virtualnetworks.SubResource{
-				Id: &networkIdentifier,
+				Id: pointer.To(networkIdentifier),
 			}
 		}
 		endpoints = append(endpoints, endpoint)
@@ -1374,13 +1382,12 @@ func flattenVirtualNetworkSubnetServiceEndpoint(serviceEndpoints *[]virtualnetwo
 	}
 
 	for _, endpoint := range *serviceEndpoints {
-		item := map[string]interface{}{}
-		if endpoint.Service != nil {
-			item["service"] = *endpoint.Service
+		item := map[string]interface{}{
+			"service": pointer.From(endpoint.Service),
 		}
 		networkIdentifier := ""
-		if endpoint.NetworkIdentifier != nil && endpoint.NetworkIdentifier.Id != nil {
-			networkIdentifier = *endpoint.NetworkIdentifier.Id
+		if endpoint.NetworkIdentifier != nil {
+			networkIdentifier = pointer.From(endpoint.NetworkIdentifier.Id)
 		}
 		item["network_identifier"] = networkIdentifier
 		endpoints = append(endpoints, item)

@@ -441,10 +441,6 @@ func TestAccSubnet_serviceEndpointBlock(t *testing.T) {
 }
 
 func TestAccSubnet_serviceEndpointPolicy(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Skipping as `service_endpoints` is removed in v5.0 of the provider")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
 
@@ -1252,6 +1248,13 @@ resource "azurerm_subnet" "test" {
 }
 
 func (r SubnetResource) serviceEndpointPolicyUpdate(data acceptance.TestData) string {
+	serviceEndpointConfig := `service_endpoints = ["Microsoft.Sql"]`
+	if features.FivePointOh() {
+		serviceEndpointConfig = `
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }`
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -1266,10 +1269,10 @@ resource "azurerm_subnet" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   virtual_network_name        = azurerm_virtual_network.test.name
   address_prefixes            = ["10.0.2.0/24"]
-  service_endpoints           = ["Microsoft.Sql"]
+  %s
   service_endpoint_policy_ids = [azurerm_subnet_service_endpoint_storage_policy.test.id]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, serviceEndpointConfig)
 }
 
 func (r SubnetResource) updatedAddressPrefix(data acceptance.TestData) string {

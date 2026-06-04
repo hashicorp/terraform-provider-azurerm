@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1013,6 +1014,21 @@ resource "azurerm_virtual_network" "test" {
 }
 
 func (VirtualNetworkResource) subnet(data acceptance.TestData) string {
+	serviceEndpointSubnet1 := `service_endpoints = ["Microsoft.Sql", "Microsoft.Storage"]`
+	serviceEndpointSubnet2 := `service_endpoints = ["Microsoft.Storage"]`
+	if features.FivePointOh() {
+		serviceEndpointSubnet1 = `
+    service_endpoint {
+      service = "Microsoft.Sql"
+    }
+    service_endpoint {
+      service = "Microsoft.Storage"
+    }`
+		serviceEndpointSubnet2 = `
+    service_endpoint {
+      service = "Microsoft.Storage"
+    }`
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1040,7 +1056,7 @@ resource "azurerm_virtual_network" "test" {
     address_prefixes                              = ["10.0.1.0/24", "ace:cab:deca::/64"]
     private_link_service_network_policies_enabled = false
     private_endpoint_network_policies             = "Enabled"
-    service_endpoints                             = ["Microsoft.Sql", "Microsoft.Storage"]
+    %[3]s
     service_endpoint_policy_ids                   = [azurerm_subnet_service_endpoint_storage_policy.test.id]
 
     delegation {
@@ -1058,7 +1074,7 @@ resource "azurerm_virtual_network" "test" {
     name                                          = "subnet2"
     address_prefixes                              = ["10.0.2.0/24"]
     private_link_service_network_policies_enabled = false
-    service_endpoints                             = ["Microsoft.Storage"]
+    %[4]s
     service_endpoint_policy_ids                   = [azurerm_subnet_service_endpoint_storage_policy.test.id]
 
     delegation {
@@ -1076,10 +1092,17 @@ resource "azurerm_virtual_network" "test" {
     environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, serviceEndpointSubnet1, serviceEndpointSubnet2)
 }
 
 func (VirtualNetworkResource) subnetUpdated(data acceptance.TestData) string {
+	serviceEndpointConfig := `service_endpoints = ["Microsoft.Storage"]`
+	if features.FivePointOh() {
+		serviceEndpointConfig = `
+    service_endpoint {
+      service = "Microsoft.Storage"
+    }`
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1108,7 +1131,7 @@ resource "azurerm_virtual_network" "test" {
     default_outbound_access_enabled               = false
     private_link_service_network_policies_enabled = true
     private_endpoint_network_policies             = "Enabled"
-    service_endpoints                             = ["Microsoft.Storage"]
+    %[3]s
 
     delegation {
       name = "first"
@@ -1125,7 +1148,7 @@ resource "azurerm_virtual_network" "test" {
     environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, serviceEndpointConfig)
 }
 
 func (VirtualNetworkResource) subnetRouteTable(data acceptance.TestData) string {
