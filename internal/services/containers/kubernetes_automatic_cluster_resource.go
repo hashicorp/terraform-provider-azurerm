@@ -1103,7 +1103,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"maximum_surge": {
-									Type:         pluginsdk.TypeInt,
+									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Default:      "10%",
 									ValidateFunc: validation.StringIsNotEmpty,
