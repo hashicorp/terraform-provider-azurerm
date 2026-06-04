@@ -37,7 +37,7 @@ func resourceAppServiceSourceControlToken() *pluginsdk.Resource {
 			return nil
 		}),
 
-		DeprecationMessage: "The `azurerm_app_service_source_control_token` resource has been superseded by the `azurerm_source_control_token` resource. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_app_service_source_control_token` resource has been superseded by the `azurerm_source_control_token` resource. This resource will be removed in v5.0 of the AzureRM provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -71,11 +71,9 @@ func resourceAppServiceSourceControlToken() *pluginsdk.Resource {
 }
 
 func resourceAppServiceSourceControlTokenCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.BaseClient
+	client := meta.(*clients.Client).Web.BaseClientV1
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for App Service Source Control Token creation.")
 
 	token := d.Get("token").(string)
 	tokenSecret := d.Get("token_secret").(string)
@@ -95,13 +93,15 @@ func resourceAppServiceSourceControlTokenCreateUpdate(d *pluginsdk.ResourceData,
 		return fmt.Errorf("updating %s: %s", id, err)
 	}
 
-	d.SetId(id.Type)
+	if d.IsNewResource() {
+		d.SetId(id.Type)
+	}
 
 	return resourceAppServiceSourceControlTokenRead(d, meta)
 }
 
 func resourceAppServiceSourceControlTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.BaseClient
+	client := meta.(*clients.Client).Web.BaseClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	scmType := d.Id()
@@ -127,7 +127,7 @@ func resourceAppServiceSourceControlTokenRead(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceAppServiceSourceControlTokenDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.BaseClient
+	client := meta.(*clients.Client).Web.BaseClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -139,8 +139,6 @@ func resourceAppServiceSourceControlTokenDelete(d *pluginsdk.ResourceData, meta 
 
 	locks.ByName(scmType, appServiceSourceControlTokenResourceName)
 	defer locks.UnlockByName(scmType, appServiceSourceControlTokenResourceName)
-
-	log.Printf("[DEBUG] Deleting App Service Source Control Token (Type %q)", scmType)
 
 	properties := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{

@@ -61,9 +61,20 @@ func (c VirtualMachineInstancesClient) RestoreCheckpoint(ctx context.Context, id
 
 // RestoreCheckpointThenPoll performs RestoreCheckpoint then polls until it's completed
 func (c VirtualMachineInstancesClient) RestoreCheckpointThenPoll(ctx context.Context, id commonids.ScopeId, input VirtualMachineRestoreCheckpoint) error {
+	return c.RestoreCheckpointCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RestoreCheckpointCallbackThenPoll performs RestoreCheckpoint, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineInstancesClient) RestoreCheckpointCallbackThenPoll(ctx context.Context, id commonids.ScopeId, input VirtualMachineRestoreCheckpoint, callback func() error) error {
 	result, err := c.RestoreCheckpoint(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RestoreCheckpoint: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
