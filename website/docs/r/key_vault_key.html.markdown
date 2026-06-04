@@ -119,6 +119,8 @@ The following arguments are supported:
 
 * `release_policy` - (Optional) A `release_policy` block as defined below. Changing this forces a new resource to be created.
 
+-> **Note:** When `release_policy` is set, the key is automatically set as exportable by the provider as this is an API requirement.
+
 * `rotation_policy` - (Optional) A `rotation_policy` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
