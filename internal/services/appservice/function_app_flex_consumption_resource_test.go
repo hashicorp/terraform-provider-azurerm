@@ -198,6 +198,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaSystemIdentity(t *te
 		data.ImportStep("site_credential.0.password"),
 	})
 }
+
 func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaUserAssigned(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
