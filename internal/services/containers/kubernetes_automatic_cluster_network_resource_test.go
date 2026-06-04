@@ -2138,6 +2138,14 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 }
 
 func (KubernetesAutomaticClusterResource) privateClusterConfig(data acceptance.TestData, enablePrivateCluster bool) string {
+	privateClusterBlock := ""
+	if enablePrivateCluster {
+		privateClusterBlock = `
+  private_cluster {
+  }
+`
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2153,10 +2161,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-
-  private_cluster {
-  }
-
+%s
   linux_profile {
     admin_username = "acctestuser%d"
 
@@ -2179,7 +2184,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     load_balancer_sku = "standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enablePrivateCluster, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, privateClusterBlock, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) privateClusterWithPrivateDNSZoneConfig(data acceptance.TestData) string {
