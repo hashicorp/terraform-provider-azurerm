@@ -635,7 +635,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                        = "default"
     temporary_name_for_rotation = "temp"
     node_count                  = 1
-    os_disk_size_gb             = %d
+    os_disk_size_in_gb          = %d
     virtual_machine_size        = "Standard_D4ads_v5"
     upgrade_settings {
       maximum_surge = "10%%"

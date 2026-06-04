@@ -84,10 +84,10 @@ type AgentPoolProfileDataSourceModel struct {
 	MaxCount             int64                            `tfschema:"max_count"`
 	MinCount             int64                            `tfschema:"min_count"`
 	AutoScalingEnabled   bool                             `tfschema:"auto_scaling_enabled"`
-	VMSize               string                           `tfschema:"vm_size"`
+	VMSize               string                           `tfschema:"virtual_machine_size"`
 	Tags                 map[string]interface{}           `tfschema:"tags"`
 	OSDiskSizeGB         int64                            `tfschema:"os_disk_size_gb"`
-	VnetSubnetID         string                           `tfschema:"vnet_subnet_id"`
+	VnetSubnetID         string                           `tfschema:"subnet_id"`
 	OSType               string                           `tfschema:"os_type"`
 	OrchestratorVersion  string                           `tfschema:"orchestrator_version"`
 	MaxPods              int64                            `tfschema:"max_pods"`

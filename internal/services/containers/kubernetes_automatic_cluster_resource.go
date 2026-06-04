@@ -2133,7 +2133,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						ConflictsWith: []string{
 							"ingress_application_gateway.0.gateway_id",
 							"ingress_application_gateway.0.subnet_id",
-							"ingress_application_gateway.0.gateway_name",
 						},
 						AtLeastOneOf: []string{
 							"ingress_application_gateway.0.gateway_id",
@@ -2148,7 +2147,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						ConflictsWith: []string{
 							"ingress_application_gateway.0.gateway_id",
 							"ingress_application_gateway.0.subnet_cidr",
-							"ingress_application_gateway.0.gateway_name",
 						},
 						AtLeastOneOf: []string{
 							"ingress_application_gateway.0.gateway_id",
