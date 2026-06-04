@@ -1,6 +1,7 @@
 ## 4.76.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_key_vault_key` - add support for the `release_policy` block [GH-32478]
 * `action.azurerm_virtual_machine_power` - `power_action` now supports `deallocate` [GH-32492]
 
 FEATURES:
