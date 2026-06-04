@@ -731,15 +731,10 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 	d.Set("name", id.VaultName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	vaultUri := ""
-	if model != nil && model.Properties.VaultUri != nil {
-		vaultUri = *model.Properties.VaultUri
-	}
-	d.Set("vault_uri", vaultUri)
-
 	publicNetworkAccessEnabled := true
 
 	if model != nil {
+		d.Set("vault_uri", pointer.From(model.Properties.VaultUri))
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("tenant_id", model.Properties.TenantId)
 		d.Set("enabled_for_deployment", model.Properties.EnabledForDeployment)
@@ -788,6 +783,8 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
+	} else {
+		d.Set("vault_uri", "")
 	}
 
 	if includeResource {
@@ -802,7 +799,7 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 		//
 		// We don't know if the private endpoint has been created yet, so we need
 		// to ignore the error if the data plane call fails.
-		contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
+		contacts, err := managementClient.GetCertificateContacts(ctx, d.Get("vault_uri").(string))
 		if err != nil {
 			if publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
 				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
