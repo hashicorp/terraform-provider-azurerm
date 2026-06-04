@@ -93,7 +93,7 @@ resource "azurerm_storage_sync_server_endpoint" "test" {
   registered_server_id  = trimspace(data.local_file.server_id.content)
   server_local_path     = "D:\\SyncFolder"
 
-  depends_on = [azurerm_storage_sync_cloud_endpoint.test]
+  depends_on = [terraform_data.afs_register, azurerm_storage_sync_cloud_endpoint.test]
 }
 `, r.template(data), data.RandomString)
 }
@@ -117,7 +117,7 @@ resource "azurerm_storage_sync_server_endpoint" "test" {
   tier_files_older_than_days = 5
   local_cache_mode           = "UpdateLocallyCachedFiles"
 
-  depends_on = [azurerm_storage_sync_cloud_endpoint.test]
+  depends_on = [terraform_data.afs_register, azurerm_storage_sync_cloud_endpoint.test]
 }
 `, r.template(data), data.RandomString)
 }
@@ -263,6 +263,8 @@ resource "terraform_data" "afs_register" {
   provisioner "local-exec" {
     interpreter = ["bash", "-c"]
     command     = <<-EOT
+      az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" > /dev/null
+      az account set --subscription "$ARM_SUBSCRIPTION_ID"
       output=$(az vm run-command invoke \
         --resource-group '${azurerm_resource_group.test.name}' \
         --name '${azurerm_windows_virtual_machine.test.name}' \
@@ -312,6 +314,8 @@ resource "terraform_data" "afs_register" {
     when        = destroy
     interpreter = ["bash", "-c"]
     command     = <<-EOT
+      az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" > /dev/null
+      az account set --subscription "$ARM_SUBSCRIPTION_ID"
       sub=$(az account show --query id -o tsv)
       server_ids=$(az rest \
         --method GET \
