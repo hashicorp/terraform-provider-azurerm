@@ -291,9 +291,9 @@ func TestAccKubernetesAutomaticCluster_natGatewayProfile(t *testing.T) {
 			Config: r.natGatewayProfileConfig(data, 3, 10),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network.0.nat_gateway_profile.0.managed_outbound_ip_count").HasValue("3"),
-				check.That(data.ResourceName).Key("network.0.nat_gateway_profile.0.effective_outbound_ips.#").HasValue("3"),
-				check.That(data.ResourceName).Key("network.0.nat_gateway_profile.0.idle_timeout_in_minutes").HasValue("10"),
+				check.That(data.ResourceName).Key("network.0.nat_gateway.0.managed_outbound_ip_count").HasValue("3"),
+				check.That(data.ResourceName).Key("network.0.nat_gateway.0.effective_outbound_ips.#").HasValue("3"),
+				check.That(data.ResourceName).Key("network.0.nat_gateway.0.idle_timeout_in_minutes").HasValue("10"),
 			),
 		},
 		data.ImportStep(),
@@ -302,8 +302,8 @@ func TestAccKubernetesAutomaticCluster_natGatewayProfile(t *testing.T) {
 			Config: r.natGatewayProfileConfig(data, 4, 5),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network.0.nat_gateway_profile.0.managed_outbound_ip_count").HasValue("4"),
-				check.That(data.ResourceName).Key("network.0.nat_gateway_profile.0.idle_timeout_in_minutes").HasValue("5"),
+				check.That(data.ResourceName).Key("network.0.nat_gateway.0.managed_outbound_ip_count").HasValue("4"),
+				check.That(data.ResourceName).Key("network.0.nat_gateway.0.idle_timeout_in_minutes").HasValue("5"),
 			),
 		},
 		data.ImportStep(),
@@ -319,9 +319,9 @@ func TestAccKubernetesAutomaticCluster_managedNatGateway(t *testing.T) {
 			Config: r.managedNatGatewayConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network.0.nat_gateway_profile.0.idle_timeout_in_minutes").HasValue("4"),
-				check.That(data.ResourceName).Key("network.0.nat_gateway_profile.0.managed_outbound_ip_count").HasValue("1"),
-				check.That(data.ResourceName).Key("network.0.nat_gateway_profile.0.effective_outbound_ips.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network.0.nat_gateway.0.idle_timeout_in_minutes").HasValue("4"),
+				check.That(data.ResourceName).Key("network.0.nat_gateway.0.managed_outbound_ip_count").HasValue("1"),
+				check.That(data.ResourceName).Key("network.0.nat_gateway.0.effective_outbound_ips.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -908,13 +908,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -998,13 +998,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -1093,13 +1093,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -1188,13 +1188,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -1284,7 +1284,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1295,7 +1295,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -1384,7 +1384,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1395,7 +1395,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -1482,7 +1482,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1493,7 +1493,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -1575,7 +1575,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1586,7 +1586,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -1661,7 +1661,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1672,7 +1672,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -1745,7 +1745,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1756,7 +1756,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -1869,7 +1869,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     max_pods       = 60
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1881,7 +1881,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -2014,7 +2014,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     service_cidr      = "10.0.0.0/16"
     dns_service_ip    = "10.0.0.10"
     outbound_type     = "managedNATGateway"
-    nat_gateway_profile {
+    nat_gateway {
       managed_outbound_ip_count = %d
       idle_timeout_in_minutes   = %d
     }
@@ -2112,7 +2112,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name           = "default"
     node_count     = 1
     max_pods       = 60
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2123,7 +2123,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -2268,7 +2268,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2279,7 +2279,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -2393,7 +2393,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -2595,7 +2595,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2606,7 +2606,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -2704,7 +2704,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2715,7 +2715,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -2797,7 +2797,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2808,7 +2808,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -2901,7 +2901,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2912,7 +2912,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -3003,7 +3003,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3014,7 +3014,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -3100,7 +3100,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3111,7 +3111,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -3202,7 +3202,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3213,7 +3213,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -3317,7 +3317,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3328,7 +3328,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -3431,7 +3431,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3442,7 +3442,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
   network {
@@ -3545,7 +3545,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3557,7 +3557,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -3656,7 +3656,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3667,7 +3667,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -3851,7 +3851,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3862,7 +3862,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -4051,7 +4051,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -4062,7 +4062,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -4373,7 +4373,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -4384,7 +4384,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -4469,7 +4469,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -4479,7 +4479,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 
@@ -4552,8 +4552,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size        = "Standard_DS3_v2"
-    vnet_subnet_id = azurerm_subnet.test.id
+    virtual_machine_size = "Standard_DS3_v2"
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -4563,7 +4563,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
   network {
@@ -4726,7 +4726,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vnet_subnet_id = azurerm_subnet.test1.id
+    subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -4742,7 +4742,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     outbound_type     = "loadBalancer"
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test.id
   }
 }

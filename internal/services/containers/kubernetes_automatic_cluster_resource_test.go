@@ -294,8 +294,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
   network {
     load_balancer {}
-    nat_gateway_profile {}
-    web_app_routing {}
+    nat_gateway {}
   }
 
   identity {
@@ -460,13 +459,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vnet_subnet_id = azurerm_subnet.test1.id
+    subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test.id
   }
 
@@ -738,7 +737,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     upgrade_settings {
       maximum_surge = "10%%"
     }
-    vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
+    subnet_id = azurerm_subnet.vnet-nodepool.id
   }
 
   network {
@@ -757,7 +756,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     object_id                 = azurerm_user_assigned_identity.aks_kubelet.principal_id
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test.id
   }
 
@@ -785,7 +784,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     upgrade_settings {
       maximum_surge = "10%%"
     }
-    vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
+    subnet_id = azurerm_subnet.vnet-nodepool.id
   }
 
   network {
@@ -804,7 +803,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     object_id                 = azurerm_user_assigned_identity.aks_kubelet.principal_id
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test.id
   }
 
@@ -830,7 +829,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     upgrade_settings {
       maximum_surge = "10%%"
     }
-    vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
+    subnet_id = azurerm_subnet.vnet-nodepool.id
   }
 
   network {
@@ -844,7 +843,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test.id
   }
 

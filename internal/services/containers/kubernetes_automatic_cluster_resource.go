@@ -253,7 +253,7 @@ type WindowsProfileModel struct {
 	AdminUsername string      `tfschema:"admin_username"`
 	AdminPassword string      `tfschema:"admin_password"`
 	License       string      `tfschema:"license"`
-	GMSA          []GMSAModel `tfschema:"grounp_managed_service_accounts"`
+	GMSA          []GMSAModel `tfschema:"group_managed_service_accounts"`
 }
 
 type GMSAModel struct {
@@ -455,7 +455,7 @@ func (r KubernetesAutomaticClusterResource) CustomImporter() sdk.ResourceRunFunc
 
 		client := metadata.Client.Containers.KubernetesClustersClient
 		resp, err := client.Get(ctx, *id)
-		if err != nil || resp.Model == nil || resp.Model.Sku == nil {
+		if err != nil || resp.Model == nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
@@ -511,30 +511,30 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 
 				// Check windows_profile gmsa changes
-				if rd.HasChange("windows_profile.0.grounp_managed_service_accounts") {
-					old, new := rd.GetChange("windows_profile.0.grounp_managed_service_accounts")
+				if rd.HasChange("windows_profile.0.group_managed_service_accounts") {
+					old, new := rd.GetChange("windows_profile.0.group_managed_service_accounts")
 					oldList := old.([]interface{})
 					newList := new.([]interface{})
 					if len(oldList) > 0 && len(newList) == 0 {
-						if err := metadata.ResourceDiff.ForceNew("windows_profile.grounp_managed_service_accounts"); err != nil {
+						if err := metadata.ResourceDiff.ForceNew("windows_profile.group_managed_service_accounts"); err != nil {
 							return err
 						}
 					}
 				}
 
-				if rd.HasChange("windows_profile.0.grounp_managed_service_accounts.0.dns_server") {
-					old, new := rd.GetChange("windows_profile.0.grounp_managed_service_accounts.0.dns_server")
+				if rd.HasChange("windows_profile.0.group_managed_service_accounts.0.dns_server") {
+					old, new := rd.GetChange("windows_profile.0.group_managed_service_accounts.0.dns_server")
 					if old.(string) != "" && new.(string) == "" {
-						if err := metadata.ResourceDiff.ForceNew("windows_profile.grounp_managed_service_accounts.dns_server"); err != nil {
+						if err := metadata.ResourceDiff.ForceNew("windows_profile.group_managed_service_accounts.dns_server"); err != nil {
 							return err
 						}
 					}
 				}
 
-				if rd.HasChange("windows_profile.0.grounp_managed_service_accounts.0.root_domain") {
-					old, new := rd.GetChange("windows_profile.0.grounp_managed_service_accounts.0.root_domain")
+				if rd.HasChange("windows_profile.0.group_managed_service_accounts.0.root_domain") {
+					old, new := rd.GetChange("windows_profile.0.group_managed_service_accounts.0.root_domain")
 					if old.(string) != "" && new.(string) == "" {
-						if err := metadata.ResourceDiff.ForceNew("windows_profile.grounp_managed_service_accounts.root_domain"); err != nil {
+						if err := metadata.ResourceDiff.ForceNew("windows_profile.group_managed_service_accounts.root_domain"); err != nil {
 							return err
 						}
 					}
@@ -876,6 +876,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 											"net_ipv4_tcp_tw_reuse_enabled": {
 												Type:     pluginsdk.TypeBool,
 												Optional: true,
+												Default:  false,
 											},
 
 											"net_netfilter_nf_conntrack_buckets": {
@@ -1102,9 +1103,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"maximum_surge": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "10%%",
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									Default:      "10%",
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"drain_timeout_in_minutes": {
 									Type:     pluginsdk.TypeInt,
@@ -2018,7 +2020,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							string(managedclusters.LicenseTypeWindowsServer),
 						}, false),
 					},
-					"grounp_managed_service_accounts": {
+					"group_managed_service_accounts": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
@@ -2079,7 +2081,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 				},
 			},
 		},
-		// TODO maybe flatten
 		"confidential_computing": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,

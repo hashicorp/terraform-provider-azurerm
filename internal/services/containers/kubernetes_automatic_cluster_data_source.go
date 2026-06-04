@@ -34,7 +34,7 @@ type KubernetesAutomaticClusterDataSourceModel struct {
 	ResourceGroupName                          string                                     `tfschema:"resource_group_name"`
 	Location                                   string                                     `tfschema:"location"`
 	ACIConnectorLinux                          []ACIConnectorLinuxDataSourceModel         `tfschema:"aci_connector_linux"`
-	AgentPoolProfile                           []AgentPoolProfileDataSourceModel          `tfschema:"agent_pool_profile"`
+	AgentPoolProfile                           []AgentPoolProfileDataSourceModel          `tfschema:"agent_pool"`
 	AzureActiveDirectoryRoleBasedAccessControl []AzureActiveDirectoryRBACDataSourceModel  `tfschema:"azure_active_directory_role_based_access_control"`
 	AzurePolicyEnabled                         bool                                       `tfschema:"azure_policy_enabled"`
 	CurrentKubernetesVersion                   string                                     `tfschema:"current_kubernetes_version"`
@@ -252,7 +252,7 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 			},
 		},
 
-		"agent_pool_profile": {
+		"agent_pool": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -287,7 +287,7 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 						Computed: true,
 					},
 
-					"vm_size": {
+					"virtual_machine_size": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -299,7 +299,7 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 						Computed: true,
 					},
 
-					"vnet_subnet_id": {
+					"subnet_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},

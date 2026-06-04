@@ -23,7 +23,7 @@ func TestAccKubernetesAutomaticCluster_apiServerAuthorizedIPRanges(t *testing.T)
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
 				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
 				check.That(data.ResourceName).Key("default_node_pool.0.max_pods").Exists(),
-				check.That(data.ResourceName).Key("api_server_access_profile.0.authorized_ip_ranges.#").HasValue("3"),
+				check.That(data.ResourceName).Key("api_server_access.0.authorized_ip_ranges.#").HasValue("3"),
 			),
 		},
 		data.ImportStep(),
@@ -215,7 +215,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -231,7 +231,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     outbound_type     = "loadBalancer"
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
     authorized_ip_ranges = [
       "8.8.8.8/32",
@@ -306,7 +306,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vnet_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -322,7 +322,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     outbound_type     = "loadBalancer"
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test1.id
   }
 }
@@ -479,14 +479,14 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vnet_subnet_id = azurerm_subnet.test1.id
+    subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
   }
 
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test.id
   }
 
@@ -563,13 +563,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vnet_subnet_id = azurerm_subnet.test1.id
+    subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test.id
   }
 
@@ -664,13 +664,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vnet_subnet_id = azurerm_subnet.test1.id
+    subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
   }
 
-  api_server_access_profile {
+  api_server_access {
     subnet_id = azurerm_subnet.test.id
   }
 
