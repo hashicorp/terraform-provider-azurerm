@@ -203,11 +203,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
-      maximum_surge                     = "10%%"
+      maximum_surge                 = "10%%"
       drain_timeout_in_minutes      = %d
       node_soak_duration_in_minutes = %d
       undrainable_node_behavior     = %q
@@ -240,8 +240,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   kubernetes_version  = %q
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -297,7 +297,7 @@ func (r KubernetesAutomaticClusterResource) upgradeVersionsConfig(data acceptanc
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_automatic_cluster.test.id
-  virtual_machine_size = "Standard_DS3_v2"
+  virtual_machine_size  = "Standard_DS3_v2"
   node_count            = 1
   orchestrator_version  = %q
   upgrade_settings {

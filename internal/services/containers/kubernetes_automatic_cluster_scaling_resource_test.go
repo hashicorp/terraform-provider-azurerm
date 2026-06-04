@@ -303,8 +303,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -342,7 +342,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name                    = "default"
     node_count              = 1
-    virtual_machine_size = "Standard_DS3_v2"
+    virtual_machine_size    = "Standard_DS3_v2"
     host_encryption_enabled = true
     upgrade_settings {
       maximum_surge = "10%%"
@@ -378,8 +378,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_D4ads_v5"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -418,7 +418,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                        = "default"
     temporary_name_for_rotation = "temp"
     node_count                  = 1
-    virtual_machine_size = "Standard_DS3_v2"
+    virtual_machine_size        = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -456,7 +456,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                        = "default"
     temporary_name_for_rotation = "temp"
     node_count                  = 1
-    virtual_machine_size = "%s"
+    virtual_machine_size        = "%s"
     host_encryption_enabled     = false
     upgrade_settings {
       maximum_surge = "10%%"
@@ -495,7 +495,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                         = "default"
     temporary_name_for_rotation  = "temp"
     node_count                   = 1
-    virtual_machine_size = "%s"
+    virtual_machine_size         = "%s"
     node_public_ip_enabled       = true
     max_pods                     = 60
     only_critical_addons_enabled = true
@@ -546,7 +546,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                         = "default"
     temporary_name_for_rotation  = "temp"
     node_count                   = 1
-    virtual_machine_size = "Standard_D4ads_v5"
+    virtual_machine_size         = "Standard_D4ads_v5"
     node_public_ip_enabled       = true
     max_pods                     = 60
     only_critical_addons_enabled = true
@@ -599,7 +599,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                        = "default"
     node_count                  = 1
     temporary_name_for_rotation = "temp"
-    virtual_machine_size = "Standard_DS3_v2"
+    virtual_machine_size        = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -638,7 +638,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     temporary_name_for_rotation = "temp"
     node_count                  = 1
     os_disk_size_gb             = %d
-    virtual_machine_size = "Standard_D4ads_v5"
+    virtual_machine_size        = "Standard_D4ads_v5"
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -673,8 +673,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = %d
+    name                 = "default"
+    node_count           = %d
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -710,8 +710,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -749,8 +749,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
 
     tags = {

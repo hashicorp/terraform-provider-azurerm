@@ -906,9 +906,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -996,9 +996,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1091,9 +1091,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1186,9 +1186,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1282,9 +1282,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1382,9 +1382,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1480,9 +1480,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1573,9 +1573,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1659,9 +1659,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1743,9 +1743,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1867,10 +1867,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
-    max_pods       = 60
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
+    max_pods   = 60
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2109,10 +2109,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name           = "default"
-    node_count     = 1
-    max_pods       = 60
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 1
+    max_pods   = 60
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2266,9 +2266,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 1
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 1
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2377,7 +2377,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   linux_profile {
     admin_username = "acctestuser%d"
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   default_node_pool {
@@ -2593,9 +2593,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2702,9 +2702,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2795,9 +2795,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2899,9 +2899,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3001,9 +3001,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 1
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 1
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3098,9 +3098,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3200,9 +3200,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3311,13 +3311,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   linux_profile {
     admin_username = "acctestuser%d"
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3425,13 +3425,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   linux_profile {
     admin_username = "acctestuser%d"
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3539,13 +3539,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   linux_profile {
     admin_username = "acctestuser%d"
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3650,13 +3650,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   linux_profile {
     admin_username = "acctestuser%d"
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3845,13 +3845,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   linux_profile {
     admin_username = "acctestuser%d"
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -4045,13 +4045,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   linux_profile {
     admin_username = "acctestuser%d"
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -4080,6 +4080,14 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     no_proxy    = [%s]
   }
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -4218,7 +4226,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   linux_profile {
     admin_username = "acctestuser%d"
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   default_node_pool {
@@ -4257,6 +4265,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ]
   }
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
@@ -4367,13 +4376,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   linux_profile {
     admin_username = "acctestuser%d"
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 2
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -4402,6 +4411,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ]
   }
 }
+
+
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
@@ -4467,9 +4478,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
-    name           = "default"
-    node_count     = 1
-    subnet_id = azurerm_subnet.test.id
+    name       = "default"
+    node_count = 1
+    subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -4550,10 +4561,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
-    name           = "default"
-    node_count     = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
-    subnet_id = azurerm_subnet.test.id
+    subnet_id            = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -4724,9 +4735,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name           = "default"
-    node_count     = 1
-    subnet_id = azurerm_subnet.test1.id
+    name       = "default"
+    node_count = 1
+    subnet_id  = azurerm_subnet.test1.id
     upgrade_settings {
       maximum_surge = "10%%"
     }

@@ -411,51 +411,6 @@ func TestAccKubernetesAutomaticCluster_upgradeChannel(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_basicMaintenanceConfigAutoUpgrade(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicMaintenanceConfigAutoUpgrade(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_basicMaintenanceConfigDefault(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicMaintenanceConfigDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_basicMaintenanceConfigNodeOs(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicMaintenanceConfigNodeOs(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesAutomaticCluster_capacityReservationGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -490,123 +445,6 @@ func TestAccKubernetesAutomaticCluster_capacityReservationGroupCycling(t *testin
 			),
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_completeMaintenanceConfigAutoUpgrade(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completeMaintenanceConfigAutoUpgrade(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_completeMaintenanceConfigDefault(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completeMaintenanceConfigDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_completeMaintenanceConfigNodeOs(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completeMaintenanceConfigNodeOs(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_updateMaintenanceConfig(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicMaintenanceConfigDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.completeMaintenanceConfigDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicMaintenanceConfigDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicMaintenanceConfigAutoUpgrade(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.completeMaintenanceConfigAutoUpgrade(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicMaintenanceConfigAutoUpgrade(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-
-		{
-			Config: r.basicMaintenanceConfigNodeOs(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.completeMaintenanceConfigNodeOs(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicMaintenanceConfigNodeOs(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -1037,8 +875,8 @@ resource "azurerm_kubernetes_automatic_cluster" "import" {
   dns_prefix          = azurerm_kubernetes_automatic_cluster.test.dns_prefix
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1073,7 +911,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                         = "default"
     node_count                   = 1
     type                         = "VirtualMachineScaleSets"
-    virtual_machine_size = "Standard_DS3_v2"
+    virtual_machine_size         = "Standard_DS3_v2"
     only_critical_addons_enabled = true
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1107,7 +945,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name                        = "default"
     node_count                  = 1
-    virtual_machine_size = "Standard_DS3_v2"
+    virtual_machine_size        = "Standard_DS3_v2"
     temporary_name_for_rotation = "temp"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1192,7 +1030,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name                        = "default"
     node_count                  = 1
-    virtual_machine_size = "Standard_DS3_v2"
+    virtual_machine_size        = "Standard_DS3_v2"
     temporary_name_for_rotation = "temp"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1238,7 +1076,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name                        = "default"
     node_count                  = 1
-    virtual_machine_size = "Standard_DS3_v2"
+    virtual_machine_size        = "Standard_DS3_v2"
     temporary_name_for_rotation = "temp"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1291,8 +1129,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1329,8 +1167,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1366,8 +1204,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   node_resource_group = "%s"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1399,12 +1237,12 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name              = "default"
-    node_count        = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
-    fips_enabled      = true
-    kubelet_disk_type = "OS"
-    workload_runtime  = "OCIContainer"
+    fips_enabled         = true
+    kubelet_disk_type    = "OS"
+    workload_runtime     = "OCIContainer"
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1435,8 +1273,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1468,8 +1306,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1501,8 +1339,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1538,8 +1376,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1582,8 +1420,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1631,8 +1469,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource
   default_node_pool {
-    name       = "np"
-    node_count = 3
+    name                 = "np"
+    node_count           = 3
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1685,8 +1523,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource
   default_node_pool {
-    name       = "np"
-    node_count = 3
+    name                 = "np"
+    node_count           = 3
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1736,8 +1574,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource
   default_node_pool {
-    name       = "np"
-    node_count = 3
+    name                 = "np"
+    node_count           = 3
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1861,8 +1699,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "np"
-    node_count = 3
+    name                 = "np"
+    node_count           = 3
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1907,9 +1745,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   node_os_upgrade_channel = "NodeImage"
 
   default_node_pool {
-    name       = "default"
+    name                 = "default"
     virtual_machine_size = "Standard_DS3_v2"
-    node_count = 1
+    node_count           = 1
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1920,113 +1758,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
-}
-
-func (KubernetesAutomaticClusterResource) basicMaintenanceConfigAutoUpgrade(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-  maintenance_window_auto_upgrade {
-    frequency   = "Weekly"
-    interval    = 1
-    day_of_week = "Monday"
-    start_time  = "07:00"
-    utc_offset  = "+01:00"
-    duration    = 8
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (KubernetesAutomaticClusterResource) basicMaintenanceConfigDefault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-  maintenance_window {
-    allowed {
-      day   = "Monday"
-      hours = [1, 2]
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (KubernetesAutomaticClusterResource) basicMaintenanceConfigNodeOs(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) capacityReservationGroup(data acceptance.TestData) string {
@@ -2133,8 +1864,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name                          = "default"
     node_count                    = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    subnet_id = azurerm_subnet.nodesubnet.id
+    virtual_machine_size          = "Standard_DS3_v2"
+    subnet_id                     = azurerm_subnet.nodesubnet.id
     capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2260,8 +1991,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                          = "default"
     temporary_name_for_rotation   = "temp"
     node_count                    = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    subnet_id = azurerm_subnet.nodesubnet.id
+    virtual_machine_size          = "Standard_DS3_v2"
+    subnet_id                     = azurerm_subnet.nodesubnet.id
     max_pods                      = %[3]d
     capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
     upgrade_settings {
@@ -2290,154 +2021,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, maxPods)
-}
-
-func (KubernetesAutomaticClusterResource) completeMaintenanceConfigAutoUpgrade(data acceptance.TestData) string {
-	startDate := time.Now().Format("2006-01-02T00:00:00Z")
-	endDate := time.Now().AddDate(0, 0, 4).Format("2006-01-02T00:00:00Z")
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[2]d"
-  location = "%[1]s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-  maintenance_window_auto_upgrade {
-    frequency = "RelativeMonthly"
-    interval  = 2
-    duration  = 8
-
-    day_of_week = "Monday"
-    week_index  = "First"
-    start_time  = "07:00"
-    utc_offset  = "+01:00"
-    start_date  = "%[3]s"
-
-    not_allowed {
-      end   = "%[4]s"
-      start = "%[3]s"
-    }
-    not_allowed {
-      end   = "%[4]s"
-      start = "%[3]s"
-    }
-  }
-}
-`, data.Locations.Primary, data.RandomInteger, startDate, endDate)
-}
-
-func (KubernetesAutomaticClusterResource) completeMaintenanceConfigDefault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-  maintenance_window {
-    not_allowed {
-      end   = "2021-11-29T12:00:00Z"
-      start = "2021-11-26T03:00:00Z"
-    }
-    not_allowed {
-      end   = "2021-12-29T12:00:00Z"
-      start = "2021-12-26T03:00:00Z"
-    }
-    allowed {
-      day   = "Monday"
-      hours = [1, 2]
-    }
-    allowed {
-      day   = "Thursday"
-      hours = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
-    }
-    allowed {
-      day   = "Friday"
-      hours = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
-    }
-    allowed {
-      day   = "Saturday"
-      hours = [10, 11, 12, 13, 14, 15, 16]
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (KubernetesAutomaticClusterResource) completeMaintenanceConfigNodeOs(data acceptance.TestData) string {
-	startDate := time.Now().Format("2006-01-02T00:00:00Z")
-	endDate := time.Now().AddDate(0, 0, 4).Format("2006-01-02T00:00:00Z")
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[2]d"
-  location = "%[1]s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-    not_allowed {
-      end   = "%[4]s"
-      start = "%[3]s"
-    }
-  }
-}
-`, data.Locations.Primary, data.RandomInteger, startDate, endDate)
 }
 
 func (KubernetesAutomaticClusterResource) ultraSSD(data acceptance.TestData, ultraSSDEnabled bool) string {
@@ -2490,8 +2073,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2523,10 +2106,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
-    os_sku     = "%s"
+    os_sku               = "%s"
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2559,8 +2142,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2598,8 +2181,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2636,8 +2219,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2678,8 +2261,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2715,8 +2298,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2756,8 +2339,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2794,8 +2377,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2830,8 +2413,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2868,8 +2451,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2900,8 +2483,8 @@ resource "azurerm_kubernetes_automatic_cluster" "source" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2931,8 +2514,8 @@ resource "azurerm_kubernetes_automatic_cluster" "source" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2954,10 +2537,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]dnew"
   default_node_pool {
-    name        = "default"
-    node_count  = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
-    snapshot_id = data.azurerm_kubernetes_node_pool_snapshot.test.id
+    snapshot_id          = data.azurerm_kubernetes_node_pool_snapshot.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2987,11 +2570,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name         = "default"
-    node_count   = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_NC12s_v3"
-    gpu_instance = "MIG1g"
-    gpu_driver   = "Install"
+    gpu_instance         = "MIG1g"
+    gpu_driver           = "Install"
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3022,9 +2605,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name       = "default"
+    name                 = "default"
     virtual_machine_size = "Standard_DS3_v2"
-    node_count = 1
+    node_count           = 1
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3054,9 +2637,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
-    name       = "default"
+    name                 = "default"
     virtual_machine_size = "Standard_DS3_v2"
-    node_count = 1
+    node_count           = 1
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -3119,8 +2702,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -3155,8 +2738,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   ai_toolchain_operator_enabled = %[3]t
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"

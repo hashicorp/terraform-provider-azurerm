@@ -337,10 +337,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
-    subnet_id = azurerm_subnet.test.id
+    subnet_id            = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -434,14 +434,14 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   linux_profile {
     admin_username = "acctestuser%d"
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
-    subnet_id = azurerm_subnet.test.id
+    subnet_id            = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -511,8 +511,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -574,8 +574,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -638,8 +638,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -795,10 +795,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
-    subnet_id = azurerm_subnet.nodepool.id
+    subnet_id            = azurerm_subnet.nodepool.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -856,8 +856,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -900,8 +900,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -990,10 +990,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
-    subnet_id = azurerm_subnet.nodepool.id
+    subnet_id            = azurerm_subnet.nodepool.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1052,8 +1052,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1093,8 +1093,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1136,8 +1136,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1179,8 +1179,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name                 = "default"
+    node_count           = 1
     virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
@@ -1437,10 +1437,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
+    name                 = "default"
+    node_count           = 2
     virtual_machine_size = "Standard_DS3_v2"
-    subnet_id = azurerm_subnet.test.id
+    subnet_id            = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1555,10 +1555,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
+    name                 = "default"
+    node_count           = 2
     virtual_machine_size = "Standard_DS3_v2"
-    subnet_id = azurerm_subnet.test.id
+    subnet_id            = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }

@@ -33,9 +33,9 @@ resource "azurerm_kubernetes_automatic_cluster" "example" {
   dns_prefix          = "exampleaks1"
 
   default_node_pool {
-    name                  = "default"
-    node_count            = 1
-    virtual_machine_size  = "Standard_D3_v2"
+    name                 = "default"
+    node_count           = 1
+    virtual_machine_size = "Standard_D3_v2"
   }
 
   identity {
