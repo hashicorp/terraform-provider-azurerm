@@ -197,15 +197,17 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	id := queues.NewQueueID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_servicebus_queue", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_servicebus_queue", id.ID())
+			}
 		}
 	}
 
@@ -330,7 +332,9 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	if !d.IsNewResource() {
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	} else {
 		// wait for property update, api issue is being tracked:https://github.com/Azure/azure-rest-api-specs/issues/21445
 		log.Printf("[DEBUG] Waiting for %s status to become ready", id)
 		deadline, ok := ctx.Deadline()
@@ -351,7 +355,6 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceServiceBusQueueRead(d, meta)
 }
 

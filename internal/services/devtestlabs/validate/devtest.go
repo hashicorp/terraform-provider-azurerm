@@ -15,7 +15,8 @@ import (
 func DevTestLabName() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[A-Za-z0-9_-]+$"),
-		"Lab Name can only include alphanumeric characters, underscores, hyphens.")
+		"Lab Name can only include alphanumeric characters, underscores, hyphens.",
+	)
 }
 
 func DevTestVirtualMachineName(maxLength int) pluginsdk.SchemaValidateFunc {

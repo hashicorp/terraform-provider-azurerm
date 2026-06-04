@@ -61,9 +61,20 @@ func (c VirtualMachineScaleSetsClient) SetOrchestrationServiceState(ctx context.
 
 // SetOrchestrationServiceStateThenPoll performs SetOrchestrationServiceState then polls until it's completed
 func (c VirtualMachineScaleSetsClient) SetOrchestrationServiceStateThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input OrchestrationServiceStateInput) error {
+	return c.SetOrchestrationServiceStateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SetOrchestrationServiceStateCallbackThenPoll performs SetOrchestrationServiceState, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineScaleSetsClient) SetOrchestrationServiceStateCallbackThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input OrchestrationServiceStateInput, callback func() error) error {
 	result, err := c.SetOrchestrationServiceState(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SetOrchestrationServiceState: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

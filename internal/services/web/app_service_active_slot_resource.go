@@ -88,10 +88,12 @@ func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if err != nil {
 		return fmt.Errorf("swapping %s: %+v", id, err)
 	}
+
+	d.SetId(appServiceId.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("swapping %s: %+v", id, err)
 	}
-	d.SetId(appServiceId.ID())
 	return resourceAppServiceActiveSlotRead(d, meta)
 }
 

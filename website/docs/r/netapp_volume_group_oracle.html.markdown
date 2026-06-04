@@ -330,7 +330,7 @@ The following arguments are supported:
 
 * `account_name` - (Required) Name of the account where the application volume group belong to. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `application_identifier` - (Required) The SAP System ID, maximum 3 characters, e.g. `OR1`. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `application_identifier` - (Required) The Oracle System ID. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `group_description` - (Required) Volume group description. Changing this forces a new Application Volume Group to be created and data will be lost.
 

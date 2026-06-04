@@ -19,13 +19,13 @@ func ResourceAnchorName(i interface{}, k string) (warnings []string, errors []er
 
 	hasInvalidChar := false
 	for _, r := range v {
-		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
+		if !unicode.IsLetter(r) && !unicode.IsNumber(r) && r != '-' {
 			hasInvalidChar = true
 			break
 		}
 	}
 	if hasInvalidChar {
-		validationErrors = append(validationErrors, fmt.Errorf("%v must contain only letters and numbers", k))
+		validationErrors = append(validationErrors, fmt.Errorf("%v must contain only letters , numbers and hyphens", k))
 	}
 
 	if len(v) > 24 {

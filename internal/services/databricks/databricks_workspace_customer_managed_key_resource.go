@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -135,9 +136,13 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseURL, err)
 	}
 
-	// Only throw the import error if the keysource value has been set to something other than default...
-	if params.Encryption != nil && params.Encryption.Value != nil && keySource != workspaces.KeySourceDefault {
-		return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", id.ID())
+	if d.IsNewResource() {
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			// Only throw the import error if the keysource value has been set to something other than default...
+			if params.Encryption != nil && params.Encryption.Value != nil && keySource != workspaces.KeySourceDefault {
+				return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", id.ID())
+			}
+		}
 	}
 
 	// We need to pull all of the custom params from the parent
@@ -157,11 +162,17 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 
 	props := getProps(*workspace.Model, params)
 
-	if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
-		return fmt.Errorf("creating/updating Customer Managed Key for %s: %+v", *id, err)
+	if d.IsNewResource() {
+		if err = workspaceClient.CreateOrUpdateCallbackThenPoll(ctx, *id, props, sdk.SetIDCallback(meta, id, d)); err != nil {
+			return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
+			return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return databricksWorkspaceCustomerManagedKeyRead(d, meta)
 }
 

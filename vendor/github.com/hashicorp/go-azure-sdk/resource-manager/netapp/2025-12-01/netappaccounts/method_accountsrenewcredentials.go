@@ -57,9 +57,20 @@ func (c NetAppAccountsClient) AccountsRenewCredentials(ctx context.Context, id N
 
 // AccountsRenewCredentialsThenPoll performs AccountsRenewCredentials then polls until it's completed
 func (c NetAppAccountsClient) AccountsRenewCredentialsThenPoll(ctx context.Context, id NetAppAccountId) error {
+	return c.AccountsRenewCredentialsCallbackThenPoll(ctx, id, nil)
+}
+
+// AccountsRenewCredentialsCallbackThenPoll performs AccountsRenewCredentials, runs the optional callback function, then polls until it's completed
+func (c NetAppAccountsClient) AccountsRenewCredentialsCallbackThenPoll(ctx context.Context, id NetAppAccountId, callback func() error) error {
 	result, err := c.AccountsRenewCredentials(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing AccountsRenewCredentials: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

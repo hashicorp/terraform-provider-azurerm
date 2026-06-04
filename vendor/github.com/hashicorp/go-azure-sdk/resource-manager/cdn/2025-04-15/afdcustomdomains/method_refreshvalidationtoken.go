@@ -57,9 +57,20 @@ func (c AFDCustomDomainsClient) RefreshValidationToken(ctx context.Context, id C
 
 // RefreshValidationTokenThenPoll performs RefreshValidationToken then polls until it's completed
 func (c AFDCustomDomainsClient) RefreshValidationTokenThenPoll(ctx context.Context, id CustomDomainId) error {
+	return c.RefreshValidationTokenCallbackThenPoll(ctx, id, nil)
+}
+
+// RefreshValidationTokenCallbackThenPoll performs RefreshValidationToken, runs the optional callback function, then polls until it's completed
+func (c AFDCustomDomainsClient) RefreshValidationTokenCallbackThenPoll(ctx context.Context, id CustomDomainId, callback func() error) error {
 	result, err := c.RefreshValidationToken(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RefreshValidationToken: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

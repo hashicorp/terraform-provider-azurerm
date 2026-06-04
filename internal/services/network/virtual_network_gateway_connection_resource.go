@@ -6,7 +6,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"log"
 	"math"
 	"time"
 
@@ -22,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -379,19 +379,19 @@ func resourceVirtualNetworkGatewayConnectionCreate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway Connection creation.")
-
 	id := virtualnetworkgatewayconnections.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_network_gateway_connection", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_network_gateway_connection", id.ID())
+		}
 	}
 
 	var virtualNetworkGateway virtualnetworkgateways.VirtualNetworkGateway
@@ -427,9 +427,10 @@ func resourceVirtualNetworkGatewayConnectionCreate(d *pluginsdk.ResourceData, me
 		Properties: *properties,
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, connection); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, connection, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	if properties.SharedKey != nil && !d.IsNewResource() {
 		if err := client.SetSharedKeyThenPoll(ctx, id, virtualnetworkgatewayconnections.ConnectionSharedKey{
@@ -451,8 +452,6 @@ func resourceVirtualNetworkGatewayConnectionCreate(d *pluginsdk.ResourceData, me
 			return fmt.Errorf("waiting for update of %s: %+v", id, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceVirtualNetworkGatewayConnectionRead(d, meta)
 }
@@ -587,8 +586,6 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 	vnetGatewayClient := meta.(*clients.Client).Network.VirtualNetworkGateways
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway Connection update.")
 
 	id, err := virtualnetworkgatewayconnections.ParseConnectionID(d.Id())
 	if err != nil {
