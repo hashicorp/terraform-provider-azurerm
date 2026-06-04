@@ -733,7 +733,6 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-<<<<<<< HEAD
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]

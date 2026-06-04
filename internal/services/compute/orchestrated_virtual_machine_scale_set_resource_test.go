@@ -1866,7 +1866,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
-<<<<<<< HEAD
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1874,7 +1873,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-	%[3]s
+%[3]s
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%[1]d"

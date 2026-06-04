@@ -1856,7 +1856,6 @@ resource "azurerm_gallery_application_version" "test2" {
 	}
 	return fmt.Sprintf(`
 %[1]s
->>>>>>> main
 
 resource "azurerm_storage_account" "test" {
   name                            = "accteststr%[2]s"
@@ -1874,7 +1873,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_storage_blob" "test" {
-<<<<<<< HEAD
   name                 = "script"
   storage_container_id = azurerm_storage_container.test.id
   type                 = "Page"
@@ -1886,21 +1884,6 @@ resource "azurerm_storage_blob" "test2" {
   storage_container_id = azurerm_storage_container.test.id
   type                 = "Page"
   size                 = 512
-=======
-  name                   = "script"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 512
-}
-
-resource "azurerm_storage_blob" "test2" {
-  name                   = "script2"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 512
->>>>>>> main
 }
 
 resource "azurerm_shared_image_gallery" "test" {
@@ -1944,7 +1927,6 @@ resource "azurerm_gallery_application" "test2" {
   location          = azurerm_shared_image_gallery.test.location
   supported_os_type = "Linux"
 }
-
 
 resource "azurerm_gallery_application_version" "test2" {
   name                   = "0.0.1"
