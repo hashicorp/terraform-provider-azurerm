@@ -95,7 +95,7 @@ A `proxy` block supports the following:
 
 * `url` - (Required) The URL of the proxy server.
 
-* `username` - (Required) The username to connect to the proxy server.
+* `username` - (Optional) The username to connect to the proxy server.
 
 ---
 

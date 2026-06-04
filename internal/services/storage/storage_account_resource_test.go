@@ -212,7 +212,8 @@ func TestAccStorageAccount_blobConnectionString(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(check.That(data.ResourceName).ExistsInAzure(r),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("primary_blob_connection_string").Exists(),
 			),
 		},
@@ -1853,7 +1854,7 @@ func TestAccStorageAccount_invalidAccountKindForAccessTier(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.invalidAccountKindForAccessTier(data),
-			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts of kind set to one of:"),
+			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts where `kind` is set to one of:"),
 		},
 	})
 }

@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -442,15 +442,15 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 	client := clients.KeyVault
 	subscriptionId := clients.Account.SubscriptionId
 
-	id, err := parse.ParseNestedItemID(state.ID)
+	id, err := keyvault.ParseNestedItemID(state.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return nil, err
 	}
 
 	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-	keyVaultIdRaw, err := client.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := client.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseURL)
 	if err != nil || keyVaultIdRaw == nil {
-		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseURL, err)
 	}
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
@@ -459,11 +459,11 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 
 	ok, err := client.Exists(ctx, *keyVaultId)
 	if err != nil || !ok {
-		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
 	}
 
-	keysClient := client.DataPlaneKeyVaultClient.Keys.Clone(id.KeyVaultBaseUrl)
-	keyVersionId := keys.NewKeyversionID(id.KeyVaultBaseUrl, id.Name, "")
+	keysClient := client.DataPlaneKeyVaultClient.Keys.Clone(id.KeyVaultBaseURL)
+	keyVersionId := keys.NewKeyversionID(id.KeyVaultBaseURL, id.Name, "")
 	resp, err := keysClient.GetKey(ctx, keyVersionId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

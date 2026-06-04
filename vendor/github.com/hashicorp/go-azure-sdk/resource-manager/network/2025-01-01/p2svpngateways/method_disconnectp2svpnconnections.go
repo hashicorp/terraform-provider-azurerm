@@ -62,9 +62,20 @@ func (c P2sVpnGatewaysClient) DisconnectP2sVpnConnections(ctx context.Context, i
 
 // DisconnectP2sVpnConnectionsThenPoll performs DisconnectP2sVpnConnections then polls until it's completed
 func (c P2sVpnGatewaysClient) DisconnectP2sVpnConnectionsThenPoll(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId, input P2SVpnConnectionRequest) error {
+	return c.DisconnectP2sVpnConnectionsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DisconnectP2sVpnConnectionsCallbackThenPoll performs DisconnectP2sVpnConnections, runs the optional callback function, then polls until it's completed
+func (c P2sVpnGatewaysClient) DisconnectP2sVpnConnectionsCallbackThenPoll(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId, input P2SVpnConnectionRequest, callback func() error) error {
 	result, err := c.DisconnectP2sVpnConnections(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DisconnectP2sVpnConnections: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
