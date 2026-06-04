@@ -381,10 +381,12 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		schema["backend_storage"].Computed = true
 		schema["backend_storage"].Optional = true
 		schema["backend_storage"].Required = false
+		schema["backend_storage"].RequiredWith = []string{"deployment_storage"}
 
 		schema["deployment_storage"].Computed = true
 		schema["deployment_storage"].Optional = true
 		schema["deployment_storage"].Required = false
+		schema["deployment_storage"].RequiredWith = []string{"backend_storage"}
 
 		schema["storage_container_type"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
@@ -586,24 +588,23 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				endpoint, _ := url.Parse(functionAppFlexConsumption.StorageContainerEndpoint)
 				deploymentStorageName := strings.Split(endpoint.Host, ".")[0]
 
-				if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
+				if webapps.AuthenticationType(functionAppFlexConsumption.StorageAuthType) == webapps.AuthenticationTypeStorageAccountConnectionString {
 					deploymentStorage.Authentication.StorageAccountConnectionStringName = pointer.To(DeploymentStorageConnStr)
 					if functionAppFlexConsumption.StorageAccessKey == "" {
 						return fmt.Errorf("the storage account access key must be specified when using the storage key based access")
 					}
 					deploymentSaConStr = fmt.Sprintf(StorageStringFmt, deploymentStorageName, functionAppFlexConsumption.StorageAccessKey, *storageDomainSuffix)
-					if backendSaConStr == "" {
-						backendSaConStr = deploymentSaConStr
+					backendSaConStr = deploymentSaConStr
+				} else {
+					if webapps.AuthenticationType(functionAppFlexConsumption.StorageAuthType) == webapps.AuthenticationTypeUserAssignedIdentity {
+						if functionAppFlexConsumption.StorageUserAssignedIdentityID == "" {
+							return fmt.Errorf("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
+						}
+						deploymentStorage.Authentication.UserAssignedIdentityResourceId = pointer.To(functionAppFlexConsumption.StorageUserAssignedIdentityID)
 					}
-				} else if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeUserAssignedIdentity) {
-					if functionAppFlexConsumption.StorageUserAssignedIdentityID == "" {
-						return fmt.Errorf("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
-					}
-					if backendSaConStr == "" {
-						backendStorageUseMsi = true
-						backendSaConStr = deploymentStorageName
-					}
-					deploymentStorage.Authentication.UserAssignedIdentityResourceId = pointer.To(functionAppFlexConsumption.StorageUserAssignedIdentityID)
+					backendStorageUseMsi = true
+					backendSaConStr = deploymentStorageName
+					deploymentSaConStr = ""
 				}
 			}
 
@@ -1066,6 +1067,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 						if deploymentStorageKey == "" {
 							return fmt.Errorf("the storage account access key must be specified when using the storage key based access")
 						}
+						backendStorageUseMsi = false
 						backendSaConStr = fmt.Sprintf(StorageStringFmt, deploymentStorageName, deploymentStorageKey, *storageDomainSuffix)
 						deploymentStorage.Authentication.StorageAccountConnectionStringName = pointer.To(string(DeploymentStorageConnStr))
 					case webapps.AuthenticationTypeUserAssignedIdentity:
@@ -1076,6 +1078,10 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 						backendSaConStr = deploymentStorageName
 						deploymentSaConStrVal = ""
 						deploymentStorage.Authentication.UserAssignedIdentityResourceId = pointer.To(state.StorageUserAssignedIdentityID)
+					case webapps.AuthenticationTypeSystemAssignedIdentity:
+						backendStorageUseMsi = true
+						backendSaConStr = deploymentStorageName
+						deploymentSaConStrVal = ""
 					}
 					deploymentStorage.Authentication.Type = &storageAuthType
 				}

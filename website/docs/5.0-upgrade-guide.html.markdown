@@ -464,6 +464,7 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `storage_access_key` property has been removed in favour of the `deployment_storage.access_key`.
 * The deprecated `storage_user_assigned_identity_id` property has been removed in favour of the `deployment_storage.user_assigned_identity_id`.
 * In version 4.0, backend storage–related app_settings such as `AzureWebJobsStorage` reference `storage_container_endpoint` and `storage_access_key`. Starting from version 5.0, these will instead be managed via the `backend_storage` block.
+* In version 4.0, `backend_storage` are required with `deployment_storage`
 
 ### `azurerm_key_vault`
 

@@ -40,104 +40,6 @@ func TestAccFunctionAppFlexConsumption_FourPointOhBasic(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhAddBackendStorage(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Skipping as this resource was removed in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
-	r := FunctionAppFlexConsumptionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicFourPointOh(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.addBackendStorageFourPointOh(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
-func TestAccFunctionAppFlexConsumption_FourPointOhBackendStorageUpdate(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Skipping as this resource was removed in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
-	r := FunctionAppFlexConsumptionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicFourPointOh(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.addBackendStorageFourPointOh(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.backendStorageUpdateFourPointOh(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
-func TestAccFunctionAppFlexConsumption_FourPointOhBackendStorageUseMsi(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Skipping as this resource was removed in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
-	r := FunctionAppFlexConsumptionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.backendStorageUseMsiFourPointOh(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-	})
-}
-
-func TestAccFunctionAppFlexConsumption_FourPointOhBackendStorageUseKeyVault(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Skipping as this resource was removed in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
-	r := FunctionAppFlexConsumptionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.backendStorageUseKeyVaultFourPointOh(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-	})
-}
-
 func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUpdate(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
@@ -173,7 +75,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUpdate(t *tes
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageSchemaUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageIdentityUpdate(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
@@ -190,7 +92,61 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageSchemaUpdate(
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.deploymentStorageSchemaUpdateFourPointOh(data),
+			Config: r.storageSystemAssignedIdentityFourPointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.deploymentStorageUai1FourPointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUaiUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deploymentStorageUai1FourPointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.deploymentStorageUai2FourPointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchema(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicFourPointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -205,43 +161,8 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageSchemaUpdate(
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
-	})
-}
-
-func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUaiSchemaUpdate(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Skipping as this resource was removed in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
-	r := FunctionAppFlexConsumptionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.deploymentStorageUai1NoBackendStorage(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.deploymentStorageUai2NoBackendStorage(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.deploymentStorageUseUaiWithBackendSaFourPointOh(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.storageUserAssignedIdentity2(data),
+			Config: r.basicFourPointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -251,7 +172,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUaiSchemaUpda
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageSystemIdentitySchemaUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaSystemIdentity(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
@@ -268,7 +189,25 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageSystemIdentit
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.storageSystemAssignedIdentityWithBackendSaFourPointOh(data),
+			Config: r.storageSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaUserAssigned(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deploymentStorageUai1FourPointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -276,7 +215,34 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageSystemIdentit
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.storageSystemAssignedIdentity(data),
+			Config: r.storageUserAssignedIdentity1(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaStorageKvUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicFourPointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.backendStorageUseKeyVault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -1470,41 +1436,13 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = "${azurerm_storage_account.backend.primary_blob_endpoint}${azurerm_storage_container.test1.name}"
+  storage_container_endpoint  = "${azurerm_storage_account.backend.primary_blob_endpoint}${azurerm_storage_container.backend.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.backend.primary_access_key
   runtime_name                = "node"
   runtime_version             = "20"
   maximum_instance_count      = 50
   instance_memory_in_mb       = 2048
-
-  site_config {}
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r FunctionAppFlexConsumptionResource) deploymentStorageSchemaUpdateFourPointOh(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  deployment_storage {
-    container_endpoint = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-    access_key         = azurerm_storage_account.test.primary_access_key
-  }
-  runtime_name           = "node"
-  runtime_version        = "20"
-  maximum_instance_count = 50
-  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -1539,7 +1477,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) deploymentStorageUai1NoBackendStorage(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) deploymentStorageUai1FourPointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1573,7 +1511,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) deploymentStorageUai2NoBackendStorage(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) deploymentStorageUai2FourPointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1592,45 +1530,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
-
-  storage_container_type            = "blobContainer"
-  storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  storage_authentication_type       = "UserAssignedIdentity"
-  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                      = "node"
-  runtime_version                   = "20"
-  maximum_instance_count            = 50
-  instance_memory_in_mb             = 2048
-
-  site_config {}
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r FunctionAppFlexConsumptionResource) deploymentStorageUseUaiWithBackendSaFourPointOh(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_user_assigned_identity" "test2" {
-  name                = "acctest-uai2-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1673,131 +1572,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) storageSystemAssignedIdentityWithBackendSaFourPointOh(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  storage_container_type      = "blobContainer"
-  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  storage_authentication_type = "SystemAssignedIdentity"
-  runtime_name                = "node"
-  runtime_version             = "20"
-  maximum_instance_count      = 50
-  instance_memory_in_mb       = 2048
-
-  site_config {}
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r FunctionAppFlexConsumptionResource) addBackendStorageFourPointOh(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
-
-  storage_container_type      = "blobContainer"
-  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  storage_authentication_type = "StorageAccountConnectionString"
-  storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                = "node"
-  runtime_version             = "20"
-  maximum_instance_count      = 50
-  instance_memory_in_mb       = 2048
-
-  site_config {}
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r FunctionAppFlexConsumptionResource) backendStorageUpdateFourPointOh(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
-  storage_container_type      = "blobContainer"
-  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  storage_authentication_type = "StorageAccountConnectionString"
-  storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                = "node"
-  runtime_version             = "20"
-  maximum_instance_count      = 50
-  instance_memory_in_mb       = 2048
-
-  site_config {}
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r FunctionAppFlexConsumptionResource) backendStorageUseMsiFourPointOh(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  backend_storage {
-    name = azurerm_storage_account.test.name
-  }
-
-  storage_container_type      = "blobContainer"
-  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  storage_authentication_type = "StorageAccountConnectionString"
-  storage_access_key          = azurerm_storage_account.test.primary_access_key
-
-  runtime_name           = "node"
-  runtime_version        = "20"
-  maximum_instance_count = 50
-  instance_memory_in_mb  = 2048
-
-  site_config {}
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r FunctionAppFlexConsumptionResource) httpConcurrencyFourPointOh(data acceptance.TestData, httpConcurrency int64) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1827,98 +1601,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger, httpConcurrency)
 }
 
-func (r FunctionAppFlexConsumptionResource) backendStorageUseKeyVaultFourPointOh(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy    = true
-      recover_soft_deleted_key_vaults = true
-    }
-  }
-}
-
-%[1]s
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_key_vault" "test" {
-  name                       = "acctestkv-%[2]s"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "Get",
-    ]
-
-    secret_permissions = [
-      "Get",
-      "Delete",
-      "List",
-      "Purge",
-      "Recover",
-      "Set",
-    ]
-  }
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = azurerm_user_assigned_identity.test.principal_id
-
-    secret_permissions = [
-      "Get",
-      "List",
-    ]
-  }
-
-  tags = {
-    environment = "AccTest"
-  }
-}
-
-resource "azurerm_key_vault_secret" "test" {
-  name         = "secret-%[2]s"
-  value        = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key};EndpointSuffix=core.windows.net"
-  key_vault_id = azurerm_key_vault.test.id
-}
-
-resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  backend_storage {
-    key_vault_secret_id                 = azurerm_key_vault_secret.test.versionless_id
-    key_vault_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-  }
-
-  storage_container_type      = "blobContainer"
-  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  storage_authentication_type = "StorageAccountConnectionString"
-  storage_access_key          = azurerm_storage_account.test.primary_access_key
-
-  runtime_name           = "node"
-  runtime_version        = "20"
-  maximum_instance_count = 50
-  instance_memory_in_mb  = 2048
-
-  site_config {}
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
-  }
-}
-`, r.templateKeyVault(data), data.RandomString, data.RandomInteger)
-}
-
 func (r FunctionAppFlexConsumptionResource) connectionStringFourPointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1932,11 +1614,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
-
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1971,11 +1648,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
-
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -2034,11 +1706,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
-
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
@@ -2078,11 +1745,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
-
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -2197,11 +1859,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
-
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
@@ -2233,11 +1890,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
-
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -2273,11 +1925,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
-
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
@@ -2308,11 +1955,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
-
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -2382,11 +2024,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
-
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = azurerm_storage_container.test.id
   storage_authentication_type       = "UserAssignedIdentity"
@@ -2427,10 +2064,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = azurerm_storage_container.test.id
@@ -2472,10 +2105,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = azurerm_storage_container.test.id
@@ -2518,10 +2147,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = azurerm_storage_container.test.id
@@ -2591,10 +2216,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   service_plan_id           = azurerm_service_plan.test.id
   virtual_network_subnet_id = azurerm_subnet.test1.id
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -2738,7 +2359,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   }
 
   deployment_storage {
-    container_endpoint = "${azurerm_storage_account.backend.primary_blob_endpoint}${azurerm_storage_container.test1.name}"
+    container_endpoint = "${azurerm_storage_account.backend.primary_blob_endpoint}${azurerm_storage_container.backend.name}"
     access_key         = azurerm_storage_account.backend.primary_access_key
   }
   runtime_name           = "node"
@@ -2817,41 +2438,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) httpConcurrency(data acceptance.TestData, httpConcurrency int64) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
-
-  deployment_storage {
-    container_endpoint = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-    access_key         = azurerm_storage_account.test.primary_access_key
-  }
-
-  runtime_name           = "node"
-  runtime_version        = "20"
-  maximum_instance_count = 50
-  instance_memory_in_mb  = 2048
-  http_concurrency       = %d
-
-  site_config {}
-}
-`, r.template(data), data.RandomInteger, httpConcurrency)
-}
-
 func (r FunctionAppFlexConsumptionResource) backendStorageUseKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2915,7 +2501,7 @@ resource "azurerm_key_vault_secret" "test" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%[3]d"
+  name                = "acctest-LFA-%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -2942,6 +2528,148 @@ resource "azurerm_function_app_flex_consumption" "test" {
   }
 }
 `, r.templateKeyVault(data), data.RandomString, data.RandomInteger)
+}
+
+func (r FunctionAppFlexConsumptionResource) storageSystemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+
+  deployment_storage {
+    container_endpoint = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
+
+  site_config {}
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r FunctionAppFlexConsumptionResource) storageUserAssignedIdentity1(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+resource "azurerm_user_assigned_identity" "test1" {
+  name                = "acctest-uai1-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+
+  deployment_storage {
+    container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test1.id
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
+
+  site_config {}
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r FunctionAppFlexConsumptionResource) storageUserAssignedIdentity2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctest-uai2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+
+  deployment_storage {
+    container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
+
+  site_config {}
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r FunctionAppFlexConsumptionResource) httpConcurrency(data acceptance.TestData, httpConcurrency int64) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+
+  deployment_storage {
+    container_endpoint = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    access_key         = azurerm_storage_account.test.primary_access_key
+  }
+
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
+  http_concurrency       = %d
+
+  site_config {}
+}
+`, r.template(data), data.RandomInteger, httpConcurrency)
 }
 
 func (r FunctionAppFlexConsumptionResource) connectionString(data acceptance.TestData) string {
@@ -3363,10 +3091,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -3426,10 +3150,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -3489,10 +3209,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -3559,11 +3275,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
-
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type       = "UserAssignedIdentity"
@@ -3612,113 +3323,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   site_config {}
 }
 `, r.template(data), data.RandomInteger, nodeVersion)
-}
-
-func (r FunctionAppFlexConsumptionResource) storageSystemAssignedIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
-
-  deployment_storage {
-    container_endpoint = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  }
-  runtime_name           = "node"
-  runtime_version        = "20"
-  maximum_instance_count = 50
-  instance_memory_in_mb  = 2048
-
-  site_config {}
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r FunctionAppFlexConsumptionResource) storageUserAssignedIdentity1(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-resource "azurerm_user_assigned_identity" "test1" {
-  name                = "acctest-uai1-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
-
-  deployment_storage {
-    container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-    user_assigned_identity_id = azurerm_user_assigned_identity.test1.id
-  }
-  runtime_name           = "node"
-  runtime_version        = "20"
-  maximum_instance_count = 50
-  instance_memory_in_mb  = 2048
-
-  site_config {}
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r FunctionAppFlexConsumptionResource) storageUserAssignedIdentity2(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_user_assigned_identity" "test2" {
-  name                = "acctest-uai2-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  backend_storage {
-    name       = azurerm_storage_account.test.name
-    access_key = azurerm_storage_account.test.primary_access_key
-  }
-
-  deployment_storage {
-    container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-    user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  }
-  runtime_name           = "node"
-  runtime_version        = "20"
-  maximum_instance_count = 50
-  instance_memory_in_mb  = 2048
-
-  site_config {}
-}
-`, r.template(data), data.RandomInteger)
 }
 
 func (r FunctionAppFlexConsumptionResource) instanceMemoryUpdate(data acceptance.TestData, nodeVersion string) string {
@@ -4292,6 +3896,12 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_storage_container" "test1" {
   name                  = "acctestblobforfc1"
   storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "backend" {
+  name                  = "acctestblobforfcbk"
+  storage_account_name  = azurerm_storage_account.backend.name
   container_access_type = "private"
 }
 
