@@ -94,7 +94,7 @@ resource "azurerm_storage_sync_server_endpoint" "test" {
   registered_server_id  = trimspace(data.local_file.server_id.content)
   server_local_path     = "D:\\SyncFolder"
 
-  depends_on = [terraform_data.afs_register, azurerm_storage_sync_cloud_endpoint.test]
+  depends_on = [terraform_data.afs_server_id, azurerm_storage_sync_cloud_endpoint.test]
 }
 `, r.template(data), data.RandomString)
 }
@@ -118,7 +118,7 @@ resource "azurerm_storage_sync_server_endpoint" "test" {
   tier_files_older_than_days = 5
   local_cache_mode           = "UpdateLocallyCachedFiles"
 
-  depends_on = [terraform_data.afs_register, azurerm_storage_sync_cloud_endpoint.test]
+  depends_on = [terraform_data.afs_server_id, azurerm_storage_sync_cloud_endpoint.test]
 }
 `, r.template(data), data.RandomString)
 }
@@ -247,13 +247,44 @@ resource "azurerm_storage_sync_cloud_endpoint" "test" {
   file_share_name       = azurerm_storage_share.test.name
 }
 
-resource "terraform_data" "afs_register" {
+resource "azurerm_virtual_machine_run_command" "afs_register" {
+  name               = "afs-register"
+  location           = azurerm_resource_group.test.location
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
+
+  source {
+    script = <<-SCRIPT
+      $ErrorActionPreference = "Stop"
+      $disk = Get-Disk | Where-Object PartitionStyle -eq RAW | Select-Object -First 1
+      if ($disk) { $p = $disk | Initialize-Disk -PartitionStyle GPT -PassThru | New-Partition -AssignDriveLetter -UseMaximumSize; $p | Format-Volume -FileSystem NTFS | Out-Null }
+      New-Item -Path D:\SyncFolder -ItemType Directory -Force | Out-Null
+      New-Item -Path C:\Temp\AFS -ItemType Directory -Force | Out-Null
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      Invoke-WebRequest -Uri https://aka.ms/afs/agent/Server2016 -OutFile C:\Temp\AFS\StorageSyncAgent.msi -UseBasicParsing
+      Start-Process msiexec.exe -ArgumentList "/i","C:\Temp\AFS\StorageSyncAgent.msi","/qn","/norestart" -Wait -NoNewWindow
+      $waited = 0; while ((Get-Service FileSyncSvc -ErrorAction SilentlyContinue).Status -ne "Running" -and $waited -lt 180) { Start-Sleep 10; $waited += 10 }
+      if ((Get-Service FileSyncSvc -ErrorAction SilentlyContinue).Status -ne "Running") { throw "FileSyncSvc did not start within 3 minutes" }
+      Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope AllUsers
+      Install-Module -Name Az.Accounts -Force -AllowClobber -Scope AllUsers
+      Install-Module -Name Az.StorageSync -Force -AllowClobber -Scope AllUsers
+      Import-Module Az.Accounts -Force
+      Import-Module Az.StorageSync -Force
+      $subId = (Invoke-RestMethod -Uri "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -Headers @{Metadata="true"} -UseBasicParsing).compute.subscriptionId
+      Connect-AzAccount -Identity
+      Set-AzContext -Subscription $subId
+      Register-AzStorageSyncServer -ResourceGroupName "${azurerm_resource_group.test.name}" -StorageSyncServiceName "${azurerm_storage_sync.test.name}"
+    SCRIPT
+  }
+
   depends_on = [
-    azurerm_windows_virtual_machine.test,
     azurerm_virtual_machine_data_disk_attachment.test,
     azurerm_role_assignment.vm_filesync_admin,
     azurerm_storage_sync.test,
   ]
+}
+
+resource "terraform_data" "afs_server_id" {
+  depends_on = [azurerm_virtual_machine_run_command.afs_register]
 
   triggers_replace = {
     vm_id   = azurerm_windows_virtual_machine.test.id
@@ -266,48 +297,24 @@ resource "terraform_data" "afs_register" {
     command     = <<-EOT
       az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" > /dev/null
       az account set --subscription "$ARM_SUBSCRIPTION_ID"
-      output=$(az vm run-command invoke \
-        --resource-group '${azurerm_resource_group.test.name}' \
-        --name '${azurerm_windows_virtual_machine.test.name}' \
-        --command-id RunPowerShellScript \
-        --output json \
-        --scripts \
-          '$ErrorActionPreference = "Stop"' \
-          'try {' \
-          '  $disk = Get-Disk | Where-Object PartitionStyle -eq RAW | Select-Object -First 1; if ($disk) { $p = $disk | Initialize-Disk -PartitionStyle GPT -PassThru | New-Partition -AssignDriveLetter -UseMaximumSize; $p | Format-Volume -FileSystem NTFS | Out-Null }' \
-          '  New-Item -Path D:\SyncFolder -ItemType Directory -Force | Out-Null' \
-          '  New-Item -Path C:\Temp\AFS -ItemType Directory -Force | Out-Null' \
-          '  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12' \
-          '  Invoke-WebRequest -Uri https://aka.ms/afs/agent/Server2016 -OutFile C:\Temp\AFS\StorageSyncAgent.msi -UseBasicParsing' \
-          '  Start-Process msiexec.exe -ArgumentList "/i","C:\Temp\AFS\StorageSyncAgent.msi","/qn","/norestart" -Wait -NoNewWindow' \
-          '  $waited = 0; while ((Get-Service FileSyncSvc -ErrorAction SilentlyContinue).Status -ne "Running" -and $waited -lt 180) { Start-Sleep 10; $waited += 10 }' \
-          '  if ((Get-Service FileSyncSvc -ErrorAction SilentlyContinue).Status -ne "Running") { throw "FileSyncSvc did not start within 3 minutes" }' \
-          '  Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope AllUsers' \
-          '  Install-Module -Name Az.Accounts -Force -AllowClobber -Scope AllUsers' \
-          '  Install-Module -Name Az.StorageSync -Force -AllowClobber -Scope AllUsers' \
-          '  Import-Module Az.Accounts -Force' \
-          '  Import-Module Az.StorageSync -Force' \
-          '  $subId = (Invoke-RestMethod -Uri "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -Headers @{Metadata="true"} -UseBasicParsing).compute.subscriptionId' \
-          '  Connect-AzAccount -Identity' \
-          '  Set-AzContext -Subscription $subId' \
-          "  Register-AzStorageSyncServer -ResourceGroupName ${azurerm_resource_group.test.name} -StorageSyncServiceName ${azurerm_storage_sync.test.name}" \
-          '  Write-Output "REGISTRATION_COMPLETE"' \
-          '} catch { Write-Error $_; Write-Output "REGISTRATION_FAILED" }') \
-        || { echo "az vm run-command invoke failed"; exit 1; }
-      echo "=== AFS REGISTRATION OUTPUT ==="
-      echo "$output"
-      echo "================================"
-      if ! echo "$output" | grep -q "REGISTRATION_COMPLETE"; then
-        echo "ERROR: AFS server registration did not complete. See output above."
+      sub=$(az account show --query id -o tsv)
+      server_id=""
+      for i in $(seq 1 12); do
+        server_id=$(az rest \
+          --method GET \
+          --url "https://management.azure.com/subscriptions/$sub/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.StorageSync/storageSyncServices/${azurerm_storage_sync.test.name}/registeredServers?api-version=2020-03-01" \
+          --query 'value[0].id' -o tsv 2>/dev/null)
+        if [ -n "$server_id" ]; then
+          break
+        fi
+        echo "Attempt $i/12: registered server not yet visible in API, retrying in 30s..."
+        sleep 30
+      done
+      if [ -z "$server_id" ]; then
+        echo "ERROR: registered server ID not found after waiting"
         exit 1
       fi
-      sub=$(az account show --query id -o tsv)
-      server_id=$(az rest \
-        --method GET \
-        --url "https://management.azure.com/subscriptions/$sub/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.StorageSync/storageSyncServices/${azurerm_storage_sync.test.name}/registeredServers?api-version=2020-03-01" \
-        --query 'value[0].id' -o tsv)
       echo "$server_id" > "/tmp/afs_server_id_${azurerm_resource_group.test.name}.txt"
-      sleep 30
     EOT
   }
 
@@ -345,7 +352,7 @@ resource "terraform_data" "afs_register" {
 
 data "local_file" "server_id" {
   filename   = "/tmp/afs_server_id_${azurerm_resource_group.test.name}.txt"
-  depends_on = [terraform_data.afs_register]
+  depends_on = [terraform_data.afs_server_id]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
