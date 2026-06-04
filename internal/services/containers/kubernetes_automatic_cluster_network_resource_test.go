@@ -1305,7 +1305,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     service_cidr   = "10.10.0.0/16"
   }
 
-  service_mesh_profile {
+  service_mesh {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = %[3]t
     external_ingress_gateway_enabled = %[4]t
@@ -1501,7 +1501,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     outbound_type  = "loadBalancer"
     dns_service_ip = "10.10.0.10"
     service_cidr   = "10.10.0.0/16"
-    ip_versions    = [%[3]s]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, ipv)
@@ -1867,10 +1866,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 2
-    subnet_id  = azurerm_subnet.test.id
-    max_pods   = 60
+    name         = "default"
+    node_count   = 2
+    subnet_id    = azurerm_subnet.test.id
+    maximum_pods = 60
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1955,9 +1954,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 2
-    max_pods   = 60
+    name         = "default"
+    node_count   = 2
+    maximum_pods = 60
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -1996,9 +1995,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 2
-    max_pods   = 60
+    name         = "default"
+    node_count   = 2
+    maximum_pods = 60
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2109,10 +2108,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    max_pods   = 60
-    subnet_id  = azurerm_subnet.test.id
+    name         = "default"
+    node_count   = 1
+    maximum_pods = 60
+    subnet_id    = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -2150,11 +2149,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                    = "acctestaks%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  dns_prefix              = "acctestaks%d"
-  private_cluster_enabled = %t
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  private_cluster {
+  }
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -2252,12 +2253,14 @@ resource "azurerm_role_assignment" "vnet" {
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                    = "acctestaks%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  dns_prefix              = "acctestaks%d"
-  private_dns_zone_id     = azurerm_private_dns_zone.test.id
-  private_cluster_enabled = true
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  private_cluster {
+    private_dns_zone_id = azurerm_private_dns_zone.test.id
+  }
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -2368,12 +2371,14 @@ resource "azurerm_role_assignment" "test1" {
 
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                       = "acctestaks%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  private_dns_zone_id        = azurerm_private_dns_zone.test.id
-  private_cluster_enabled    = "true"
-  dns_prefix_private_cluster = "prefix"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  private_cluster {
+    private_dns_zone_id = azurerm_private_dns_zone.test.id
+    dns_prefix          = "prefix"
+  }
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -2421,12 +2426,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                    = "acctestaks%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  dns_prefix              = "acctestaks%d"
-  private_dns_zone_id     = "System"
-  private_cluster_enabled = "true"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  private_cluster {
+    private_dns_zone_id = "System"
+  }
 
   linux_profile {
     admin_username = "acctestuser%d"

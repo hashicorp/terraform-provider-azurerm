@@ -297,11 +297,10 @@ resource "azurerm_role_assignment" "network" {
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                    = "acctestaks%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  dns_prefix              = "acctestaks%d"
-  private_cluster_enabled = "false"
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
 
   default_node_pool {
     name       = "default"

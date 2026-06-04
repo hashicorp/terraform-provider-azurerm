@@ -1109,9 +1109,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"drain_timeout_in_minutes": {
-									Type:     pluginsdk.TypeInt,
-									Optional: true,
-									Default:  0,
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									Default:      0,
+									ValidateFunc: validation.IntAtLeast(0),
 								},
 								"node_soak_duration_in_minutes": {
 									Type:         pluginsdk.TypeInt,

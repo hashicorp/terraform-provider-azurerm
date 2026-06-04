@@ -63,7 +63,6 @@ func TestAccKubernetesAutomaticCluster_criticalAddonsTaint(t *testing.T) {
 			Config: r.criticalAddonsTaintConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.only_critical_addons_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -397,8 +396,6 @@ func TestAccKubernetesAutomaticCluster_upgradeChannel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
-	nodeOsUpgradeChannel := "node_os_upgrade_channel"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesAutomaticVersion),
@@ -407,7 +404,7 @@ func TestAccKubernetesAutomaticCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesAutomaticVersion),
 			),
 		},
-		data.ImportStep(nodeOsUpgradeChannel),
+		data.ImportStep(),
 	})
 }
 
@@ -908,11 +905,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                         = "default"
-    node_count                   = 1
-    type                         = "VirtualMachineScaleSets"
-    virtual_machine_size         = "Standard_DS3_v2"
-    only_critical_addons_enabled = true
+    name                 = "default"
+    node_count           = 1
+    virtual_machine_size = "Standard_DS3_v2"
     upgrade_settings {
       maximum_surge = "10%%"
     }
@@ -951,16 +946,16 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
       maximum_surge = "10%%"
     }
     kubelet_config {
-      cpu_manager_policy        = "static"
-      cpu_cfs_quota_enabled     = true
-      cpu_cfs_quota_period      = "10ms"
-      image_gc_high_threshold   = 90
-      image_gc_low_threshold    = 70
-      topology_manager_policy   = "best-effort"
-      allowed_unsafe_sysctls    = ["kernel.msg*", "net.core.somaxconn"]
-      container_log_max_size_mb = 100
-      container_log_max_files   = 10000
-      pod_max_pid               = 12345
+      cpu_manager_policy_static_enabled = true
+      cpu_cfs_quota_enabled             = true
+      cpu_cfs_quota_period              = "10ms"
+      image_gc_high_threshold           = 90
+      image_gc_low_threshold            = 70
+      topology_manager_policy           = "best-effort"
+      allowed_unsafe_sysctls            = ["kernel.msg*", "net.core.somaxconn"]
+      container_log_maximum_size_in_mb  = 100
+      container_log_maximum_files       = 10000
+      pod_maximum_pid                   = 12345
     }
 
     linux_os_config {
@@ -1036,9 +1031,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
       maximum_surge = "10%%"
     }
     kubelet_config {
-      cpu_manager_policy    = "static"
-      cpu_cfs_quota_enabled = true
-      cpu_cfs_quota_period  = "10ms"
+      cpu_manager_policy_static_enabled = true
+      cpu_cfs_quota_enabled             = true
+      cpu_cfs_quota_period              = "10ms"
     }
 
     linux_os_config {
@@ -1082,9 +1077,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
       maximum_surge = "10%%"
     }
     kubelet_config {
-      cpu_manager_policy    = "static"
-      cpu_cfs_quota_enabled = true
-      cpu_cfs_quota_period  = "10ms"
+      cpu_manager_policy_static_enabled = true
+      cpu_cfs_quota_enabled             = true
+      cpu_cfs_quota_period              = "10ms"
     }
 
     linux_os_config {
@@ -1201,7 +1196,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  node_resource_group = "%s"
+  node_resource_group_name = "%s"
 
   default_node_pool {
     name                 = "default"
@@ -1741,8 +1736,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   dns_prefix              = "acctestaks%d"
-  kubernetes_version      = %q
-  node_os_upgrade_channel = "NodeImage"
+  kubernetes_version = %q
 
   default_node_pool {
     name                 = "default"
@@ -1993,7 +1987,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count                    = 1
     virtual_machine_size          = "Standard_DS3_v2"
     subnet_id                     = azurerm_subnet.nodesubnet.id
-    max_pods                      = %[3]d
+    maximum_pods                  = %[3]d
     capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
     upgrade_settings {
       maximum_surge = "10%%"
@@ -2390,6 +2384,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   monitor_metrics {
+    enabled = true
   }
 }
   `, data.Locations.Primary, data.RandomInteger)
@@ -2426,6 +2421,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   monitor_metrics {
+    enabled             = true
     annotations_allowed = "pods=[k8s-annotation-1,k8s-annotation-n]"
     labels_allowed      = "namespaces=[k8s-label-1,k8s-label-n]"
   }
@@ -2574,7 +2570,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count           = 1
     virtual_machine_size = "Standard_NC12s_v3"
     gpu_instance         = "MIG1g"
-    gpu_driver           = "Install"
+    gpu_driver_enabled   = true
     upgrade_settings {
       maximum_surge = "10%%"
     }

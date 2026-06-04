@@ -492,16 +492,15 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                         = "default"
-    temporary_name_for_rotation  = "temp"
-    node_count                   = 1
-    virtual_machine_size         = "%s"
-    node_public_ip_enabled       = true
-    max_pods                     = 60
-    only_critical_addons_enabled = true
+    name                        = "default"
+    temporary_name_for_rotation = "temp"
+    node_count                  = 1
+    virtual_machine_size        = "%s"
+    node_public_ip_enabled      = true
+    maximum_pods                = 60
 
     kubelet_config {
-      pod_max_pid = 12346
+      pod_maximum_pid = 12346
     }
 
     linux_os_config {
@@ -543,16 +542,15 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                         = "default"
-    temporary_name_for_rotation  = "temp"
-    node_count                   = 1
-    virtual_machine_size         = "Standard_D4ads_v5"
-    node_public_ip_enabled       = true
-    max_pods                     = 60
-    only_critical_addons_enabled = true
+    name                        = "default"
+    temporary_name_for_rotation = "temp"
+    node_count                  = 1
+    virtual_machine_size        = "Standard_D4ads_v5"
+    node_public_ip_enabled      = true
+    maximum_pods                = 60
 
     kubelet_config {
-      pod_max_pid = 12347
+      pod_maximum_pid = 12347
     }
 
     linux_os_config {
