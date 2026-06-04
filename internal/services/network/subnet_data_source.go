@@ -85,26 +85,9 @@ func dataSourceSubnet() *pluginsdk.Resource {
 		resource.Schema["service_endpoints"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeList,
 			Computed:   true,
-			Deprecated: "The `service_endpoints` property has been superseded by the `service_endpoint` block and will be removed in v5.0 of the AzureRM Provider.",
+			Deprecated: "The `service_endpoints` list of strings will be replaced by a `service_endpoints` block in v5.0 of the AzureRM Provider.",
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
-			},
-		}
-
-		resource.Schema["service_endpoint"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"service": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"network_identifier": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
 			},
 		}
 	} else {
@@ -183,17 +166,12 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("route_table_id", routeTableId)
 
-			serviceEndpoint := flattenSubnetServiceEndpoint(props.ServiceEndpoints)
 			if !features.FivePointOh() {
-				serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
-				if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
+				if err := d.Set("service_endpoints", flattenSubnetServiceEndpoints(props.ServiceEndpoints)); err != nil {
 					return fmt.Errorf("setting `service_endpoints`: %+v", err)
 				}
-				if err := d.Set("service_endpoint", serviceEndpoint); err != nil {
-					return fmt.Errorf("setting `service_endpoint`: %+v", err)
-				}
 			} else {
-				if err := d.Set("service_endpoints", serviceEndpoint); err != nil {
+				if err := d.Set("service_endpoints", flattenSubnetServiceEndpoint(props.ServiceEndpoints)); err != nil {
 					return fmt.Errorf("setting `service_endpoints`: %+v", err)
 				}
 			}

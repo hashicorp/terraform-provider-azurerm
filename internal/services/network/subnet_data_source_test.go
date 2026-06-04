@@ -256,7 +256,7 @@ data "azurerm_subnet" "test" {
 `, r.routeTableDependencies(data))
 }
 
-func (SubnetDataSource) serviceEndpoint(data acceptance.TestData) string {
+func (SubnetDataSource) serviceEndpoints(data acceptance.TestData) string {
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
@@ -280,7 +280,7 @@ data "azurerm_subnet" "test" {
 `, SubnetResource{}.serviceEndpointBlockUpdated(data))
 }
 
-func (SubnetDataSource) serviceEndpointWithNetworkIdentifier(data acceptance.TestData) string {
+func (SubnetDataSource) serviceEndpointsWithNetworkIdentifier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

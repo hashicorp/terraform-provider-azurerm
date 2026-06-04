@@ -1028,6 +1028,16 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
 
+### `azurerm_subnet`
+
+* The deprecated `service_endpoints` property has been removed in favour of the `service_endpoint` block.
+
+### `azurerm_virtual_network`
+
+* The deprecated `subnet.service_endpoints` property has been removed in favour of the `subnet.service_endpoint` block.
+
+### `azurerm_mssql_virtual_machine`
+
 ### `azurerm_virtual_network_gateway_connection`
 
 * The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
