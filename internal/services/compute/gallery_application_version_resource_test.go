@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -274,6 +275,56 @@ func (r GalleryApplicationVersionResource) Exists(ctx context.Context, client *c
 }
 
 func (r GalleryApplicationVersionResource) template(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-compute-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_gallery_application" "test" {
+  name              = "acctest-app-%[2]d"
+  gallery_id        = azurerm_shared_image_gallery.test.id
+  location          = azurerm_resource_group.test.location
+  supported_os_type = "Linux"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestacc%[3]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestsc%[3]s"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "scripts"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Page" # Use Page Blob as a workaround to UnmanagedStorageAccount quota issue
+  size                   = 512
+}
+
+
+`, data.Locations.Primary, data.RandomInteger, data.RandomString)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -298,16 +349,17 @@ resource "azurerm_gallery_application" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "acctestacc%[3]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestsc%[3]s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
@@ -319,11 +371,11 @@ resource "azurerm_storage_blob" "test" {
   size                   = 512
 }
 
+
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (r GalleryApplicationVersionResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -346,7 +398,7 @@ resource "azurerm_gallery_application_version" "test" {
     regional_replica_count = 1
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func (r GalleryApplicationVersionResource) requiresImport(data acceptance.TestData) string {

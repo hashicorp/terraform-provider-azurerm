@@ -18,6 +18,9 @@ var defaultTerraformCoreVersion = "1.14.3"
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
 
+// This represents a cron view of Monday.
+const val defaultWeeklyDay = "2"
+
 // Cron value for any day of month
 const val defaultDaysOfMonth = "*"
 

@@ -92,5 +92,6 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		CustomCertSignalrServiceListResource{},
 		SignalRServiceListResource{},
 		WebPubSubListResource{},
+		WebPubSubSocketIOListResource{},
 	}
 }

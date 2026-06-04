@@ -58,9 +58,20 @@ func (c VirtualNetworkGatewayConnectionsClient) GetIkeSas(ctx context.Context, i
 
 // GetIkeSasThenPoll performs GetIkeSas then polls until it's completed
 func (c VirtualNetworkGatewayConnectionsClient) GetIkeSasThenPoll(ctx context.Context, id ConnectionId) error {
+	return c.GetIkeSasCallbackThenPoll(ctx, id, nil)
+}
+
+// GetIkeSasCallbackThenPoll performs GetIkeSas, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewayConnectionsClient) GetIkeSasCallbackThenPoll(ctx context.Context, id ConnectionId, callback func() error) error {
 	result, err := c.GetIkeSas(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GetIkeSas: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

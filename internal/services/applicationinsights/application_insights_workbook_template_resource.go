@@ -164,18 +164,20 @@ func (r ApplicationInsightsWorkbookTemplateResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.AppInsights.WorkbookTemplateClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := workbooktemplates.NewWorkbookTemplateID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.WorkbookTemplatesGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WorkbookTemplatesGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var templateDataValue interface{}
-			err = json.Unmarshal([]byte(model.TemplateData), &templateDataValue)
-			if err != nil {
+			if err := json.Unmarshal([]byte(model.TemplateData), &templateDataValue); err != nil {
 				return err
 			}
 

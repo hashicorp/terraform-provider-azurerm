@@ -109,13 +109,15 @@ func (r CustomCertSignalrServiceResource) Create() sdk.ResourceFunc {
 			locks.ByID(signalRServiceId.ID())
 			defer locks.UnlockByID(signalRServiceId.ID())
 
-			existing, err := client.CustomCertificatesGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing SignalR service custom cert error %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.CustomCertificatesGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing SignalR service custom cert error %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			customCert := signalr.CustomCertificate{
@@ -132,14 +134,14 @@ func (r CustomCertSignalrServiceResource) Create() sdk.ResourceFunc {
 				customCert.Properties.KeyVaultSecretVersion = pointer.To(certVersion)
 			}
 
-			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCert); err != nil {
-				return fmt.Errorf("creating signalR custom certificate: %s: %+v", id, err)
+			if err := client.CustomCertificatesCreateOrUpdateCallbackThenPoll(ctx, id, customCert, metadata.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
 				return err
 			}
+
 			return nil
 		},
 	}
