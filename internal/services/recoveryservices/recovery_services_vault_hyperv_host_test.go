@@ -105,7 +105,7 @@ func (HyperVHostTestResource) rebootVirtualMachine(ctx context.Context, clients 
 	return nil
 }
 
-func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData, adminPwd string) (steps []acceptance.TestStep) {
+func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData) (steps []acceptance.TestStep) {
 	return []acceptance.TestStep{
 		{
 			Config: r.recovery(data),
@@ -117,14 +117,14 @@ func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData, a
 			),
 		},
 		{
-			Config: r.hyperVTemplate(data, adminPwd), // split complete template into two parts to reboot the server.
+			Config: r.hyperVTemplate(data), // split complete template into two parts to reboot the server.
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_windows_virtual_machine.host"),
 				data.CheckWithClientForResource(r.rebootVirtualMachine, "azurerm_windows_virtual_machine.host"),
 			),
 		},
 		{
-			Config: r.template(data, adminPwd),
+			Config: r.template(data),
 		},
 	}
 }
@@ -152,6 +152,7 @@ locals {
   recovery_vault_name  = "acctest-nested-recovery-vault-%[1]d"
   recovery_site_name   = "acctest-nested-recovery-site-%[1]d"
   admin_name           = "acctestadmin"
+  admin_password       = "#D33p-7h0uGH7~42!"
   cert_name            = "acctestcert"
   storage_account_name = "acctestsa%[3]s"
 }
@@ -325,7 +326,7 @@ resource "azurerm_site_recovery_services_vault_hyperv_site" "test" {
 `, r.base(data))
 }
 
-func (r HyperVHostTestResource) hyperVTemplate(data acceptance.TestData, adminPwd string) string {
+func (r HyperVHostTestResource) hyperVTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -352,6 +353,7 @@ resource "azurerm_public_ip" "host" {
   resource_group_name = azurerm_resource_group.hybrid.name
   location            = azurerm_resource_group.hybrid.location
   allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "host" {
@@ -375,8 +377,9 @@ resource "azurerm_windows_virtual_machine" "host" {
   location            = azurerm_resource_group.hybrid.location
   size                = "Standard_D8as_v5"
   admin_username      = local.admin_name
-  admin_password      = "%[2]s"
-  computer_name       = "nested-Host"
+  admin_password      = local.admin_password
+
+  computer_name = "nested-Host"
 
   network_interface_ids = [
     azurerm_network_interface.host.id,
@@ -400,7 +403,7 @@ resource "azurerm_windows_virtual_machine" "host" {
 
   additional_unattend_content {
     setting = "AutoLogon"
-    content = "<AutoLogon><Password><Value>%[2]s</Value></Password><Enabled>true</Enabled><LogonCount>1</LogonCount><Username>${local.admin_name}</Username></AutoLogon>"
+    content = "<AutoLogon><Password><Value>${local.admin_password}</Value></Password><Enabled>true</Enabled><LogonCount>1</LogonCount><Username>${local.admin_name}</Username></AutoLogon>"
   }
 
   winrm_listener {
@@ -453,13 +456,13 @@ resource "azurerm_windows_virtual_machine" "host" {
 }
 
 
-%[3]s
+%[2]s
 
-%[4]s
-`, r.recovery(data), adminPwd, r.keyVault(), r.securityGroup())
+%[3]s
+`, r.recovery(data), r.keyVault(), r.securityGroup())
 }
 
-func (r HyperVHostTestResource) template(data acceptance.TestData, adminPwd string) string {
+func (r HyperVHostTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 # register the server could only be done by CustomScriptExtension because it requires local admin to run.
@@ -531,5 +534,5 @@ resource "azurerm_virtual_machine_extension" "script" {
   ]
 }
 
-`, r.hyperVTemplate(data, adminPwd), HostName)
+`, r.hyperVTemplate(data), HostName)
 }

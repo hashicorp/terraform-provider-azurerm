@@ -63,9 +63,20 @@ func (c AppPlatformClient) ConfigServersValidate(ctx context.Context, id commoni
 
 // ConfigServersValidateThenPoll performs ConfigServersValidate then polls until it's completed
 func (c AppPlatformClient) ConfigServersValidateThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input ConfigServerSettings) error {
+	return c.ConfigServersValidateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConfigServersValidateCallbackThenPoll performs ConfigServersValidate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ConfigServersValidateCallbackThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input ConfigServerSettings, callback func() error) error {
 	result, err := c.ConfigServersValidate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConfigServersValidate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

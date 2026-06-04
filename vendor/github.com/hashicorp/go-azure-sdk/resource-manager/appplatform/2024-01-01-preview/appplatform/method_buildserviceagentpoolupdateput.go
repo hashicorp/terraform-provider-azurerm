@@ -62,9 +62,20 @@ func (c AppPlatformClient) BuildServiceAgentPoolUpdatePut(ctx context.Context, i
 
 // BuildServiceAgentPoolUpdatePutThenPoll performs BuildServiceAgentPoolUpdatePut then polls until it's completed
 func (c AppPlatformClient) BuildServiceAgentPoolUpdatePutThenPoll(ctx context.Context, id AgentPoolId, input BuildServiceAgentPoolResource) error {
+	return c.BuildServiceAgentPoolUpdatePutCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BuildServiceAgentPoolUpdatePutCallbackThenPoll performs BuildServiceAgentPoolUpdatePut, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) BuildServiceAgentPoolUpdatePutCallbackThenPoll(ctx context.Context, id AgentPoolId, input BuildServiceAgentPoolResource, callback func() error) error {
 	result, err := c.BuildServiceAgentPoolUpdatePut(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing BuildServiceAgentPoolUpdatePut: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

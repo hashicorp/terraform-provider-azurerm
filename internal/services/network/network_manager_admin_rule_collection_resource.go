@@ -93,14 +93,16 @@ func (r ManagerAdminRuleCollectionResource) Create() sdk.ResourceFunc {
 
 			id := adminrulecollections.NewSecurityAdminConfigurationRuleCollectionID(configurationId.SubscriptionId, configurationId.ResourceGroupName,
 				configurationId.NetworkManagerName, configurationId.SecurityAdminConfigurationName, model.Name)
-			existing, err := client.Get(ctx, id)
 
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			adminRuleCollection := adminrulecollections.AdminRuleCollection{

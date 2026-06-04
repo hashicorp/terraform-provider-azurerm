@@ -152,7 +152,8 @@ func resourceStorageShare() *pluginsdk.Resource {
 						string(shares.HotAccessTier),
 						string(shares.CoolAccessTier),
 						string(shares.TransactionOptimizedAccessTier),
-					}, false),
+					}, false,
+				),
 			},
 
 			"rbac_scope_id": {
@@ -272,10 +273,11 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("checking for existing %s: %v", id, err)
 			}
 			if exists != nil && *exists {
-				return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+				}
 			}
 
-			log.Printf("[INFO] Creating Share %q in Storage Account %q", shareName, accountName)
 			input := shares.CreateInput{
 				QuotaInGB:       quota,
 				MetaData:        metaData,
@@ -310,14 +312,16 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	id := fileshares.NewShareID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
 
-	existing, err := sharesClient.Get(ctx, id, fileshares.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %q: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := sharesClient.Get(ctx, id, fileshares.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %q: %v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+		}
 	}
 
 	payload := fileshares.FileShare{
@@ -517,40 +521,29 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if d.HasChange("quota") {
-			log.Printf("[DEBUG] Updating the Quota for %s", id)
 			quota := d.Get("quota").(int)
 
 			if err = client.UpdateQuota(ctx, id.ShareName, quota); err != nil {
 				return fmt.Errorf("updating Quota for %s: %v", id, err)
 			}
-
-			log.Printf("[DEBUG] Updated the Quota for %s", id)
 		}
 
 		if d.HasChange("metadata") {
-			log.Printf("[DEBUG] Updating the MetaData for %s", id)
-
 			metaDataRaw := d.Get("metadata").(map[string]interface{})
 			metaData := ExpandMetaData(metaDataRaw)
 
 			if err = client.UpdateMetaData(ctx, id.ShareName, metaData); err != nil {
 				return fmt.Errorf("updating MetaData for %s: %v", id, err)
 			}
-
-			log.Printf("[DEBUG] Updated the MetaData for %s", id)
 		}
 
 		if d.HasChange("acl") {
-			log.Printf("[DEBUG] Updating the ACLs for %s", id)
-
 			aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 			acls := expandStorageShareACLsDeprecated(aclsRaw)
 
 			if err = client.UpdateACLs(ctx, id.ShareName, shares.SetAclInput{SignedIdentifiers: acls}); err != nil {
 				return fmt.Errorf("updating ACLs for %s: %v", id, err)
 			}
-
-			log.Printf("[DEBUG] Updated ACLs for %s", id)
 		}
 
 		if d.HasChange("access_tier") {
@@ -569,8 +562,6 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			if err != nil {
 				return fmt.Errorf("updating access tier %s: %+v", id, err)
 			}
-
-			log.Printf("[DEBUG] Updated Access Tier for %s", id)
 		}
 
 		return resourceStorageShareRead(d, meta)

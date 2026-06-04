@@ -27,7 +27,8 @@ func TestAccSearchSharedPrivateLinkServiceResource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("request_message").HasValue("please approve")),
+				check.That(data.ResourceName).Key("request_message").HasValue("please approve"),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -41,7 +42,8 @@ func TestAccSearchSharedPrivateLinkServiceResource_requiresImport(t *testing.T) 
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})

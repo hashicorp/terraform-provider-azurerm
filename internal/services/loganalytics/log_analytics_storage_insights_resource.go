@@ -70,14 +70,16 @@ func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, 
 	id := storageinsights.NewStorageInsightConfigID(workspace.SubscriptionId, resourceGroup, workspace.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.StorageInsightConfigsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for present of existing Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, id.WorkspaceName, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.StorageInsightConfigsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for present of existing Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, id.WorkspaceName, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_log_analytics_storage_insights", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_log_analytics_storage_insights", id.ID())
+			}
 		}
 	}
 
