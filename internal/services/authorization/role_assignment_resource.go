@@ -85,7 +85,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				ForceNew:         true,
 				ExactlyOneOf:     []string{"role_definition_id", "role_definition_name"},
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validation.StringMatch(regexp.MustCompile("(?i)^.*/providers/Microsoft.Authorization/roleDefinitions/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"), "should be in the format {scope}/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000"),
+				ValidateFunc:     roledefinitions.ValidateScopedRoleDefinitionID,
 			},
 
 			"role_definition_name": {
