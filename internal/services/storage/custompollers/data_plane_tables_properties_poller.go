@@ -44,7 +44,7 @@ func (d *DataPlaneTablesPropertiesPoller) Poll(ctx context.Context) (*pollers.Po
 		}, nil
 	}
 
-	if propertiesMatch(*resp, d.expected) {
+	if tablePropertiesMatch(*resp, d.expected) {
 		return &pollers.PollResult{
 			HttpResponse: nil,
 			PollInterval: 10 * time.Second,
@@ -59,7 +59,7 @@ func (d *DataPlaneTablesPropertiesPoller) Poll(ctx context.Context) (*pollers.Po
 	}, nil
 }
 
-func propertiesMatch(actual, expected tables.StorageServiceProperties) bool {
+func tablePropertiesMatch(actual, expected tables.StorageServiceProperties) bool {
 	if expected.Cors != nil {
 		if actual.Cors == nil {
 			return false

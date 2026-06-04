@@ -23,6 +23,8 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_table_properties -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "corsOnly"
+
 type AccountTablePropertiesResource struct{}
 
 var (
