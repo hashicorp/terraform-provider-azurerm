@@ -5,7 +5,7 @@ package cognitive
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -67,7 +67,7 @@ func cognitiveAccountConnectionListAccounts(ctx context.Context, metadata sdk.Re
 	switch {
 	case !data.CognitiveAccountName.IsNull():
 		if data.ResourceGroupName.IsNull() {
-			return nil, fmt.Errorf("`resource_group_name` is required when `cognitive_account_name` is specified")
+			return nil, errors.New("`resource_group_name` is required when `cognitive_account_name` is specified")
 		}
 
 		id := cognitiveservicesaccounts.NewAccountID(subscriptionID, data.ResourceGroupName.ValueString(), data.CognitiveAccountName.ValueString())
