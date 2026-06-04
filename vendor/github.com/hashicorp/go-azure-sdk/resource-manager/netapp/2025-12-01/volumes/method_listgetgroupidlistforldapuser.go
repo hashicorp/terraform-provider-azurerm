@@ -62,9 +62,20 @@ func (c VolumesClient) ListGetGroupIdListForLdapUser(ctx context.Context, id Vol
 
 // ListGetGroupIdListForLdapUserThenPoll performs ListGetGroupIdListForLdapUser then polls until it's completed
 func (c VolumesClient) ListGetGroupIdListForLdapUserThenPoll(ctx context.Context, id VolumeId, input GetGroupIdListForLdapUserRequest) error {
+	return c.ListGetGroupIdListForLdapUserCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ListGetGroupIdListForLdapUserCallbackThenPoll performs ListGetGroupIdListForLdapUser, runs the optional callback function, then polls until it's completed
+func (c VolumesClient) ListGetGroupIdListForLdapUserCallbackThenPoll(ctx context.Context, id VolumeId, input GetGroupIdListForLdapUserRequest, callback func() error) error {
 	result, err := c.ListGetGroupIdListForLdapUser(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ListGetGroupIdListForLdapUser: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
