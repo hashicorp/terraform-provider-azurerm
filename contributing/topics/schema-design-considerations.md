@@ -8,7 +8,7 @@ Below are a list of common patterns found in the Azure API and how these typical
 
 Users should be able to intuitively correlate Terraform configuration with the portal experience.
 
-For example, the `allowBlobPublicAccess` property from the [Storage Accounts REST API](https://learn.microsoft.com/rest/api/storagerp/storage-accounts/create?view=rest-storagerp-2025-08-01&tabs=HTTP) is called `Public network access` in the portal. In Terraform, the appropriate argument name should be `public_network_access_enabled`.
+For example, the `taggingCriteria` property from the [Backup Policy REST API](https://learn.microsoft.com/rest/api/dataprotection/backup-policies/create-or-update?view=rest-dataprotection-2026-03-01&tabs=HTTP#taggingcriteria) is called `Retention` / `Backup schedule` in the portal.
 
 In some cases where the portal experience is not yet available, or is not the primary experience, align with Azure CLI instead.
 
