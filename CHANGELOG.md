@@ -1,17 +1,17 @@
-## 4.76.0 (Unreleased)
+## 4.76.0 (June 04, 2026)
 
 ENHANCEMENTS:
-* `azurerm_key_vault_key` - add support for the `release_policy` block [GH-32478]
-* `action.azurerm_virtual_machine_power` - `power_action` now supports `deallocate` [GH-32492]
 
-FEATURES:
+* Action: `azurerm_virtual_machine_power` - `power_action` now supports `deallocate` ([#32492](https://github.com/hashicorp/terraform-provider-azurerm/issues/32492))
+* `azurerm_key_vault_key` - add support for the `release_policy` block ([#32478](https://github.com/hashicorp/terraform-provider-azurerm/issues/32478))
 
 BUG FIXES:
-* `azurerm_federated_identity_credential` - fix update logic, preventing import errors on updates [GH-32522]
-* `azurerm_netapp_account` - the update function now uses the `PUT` operation to fix a removal issue with the `active_directory` property [GH-32494]
-* `azurerm_netapp_account` - fix drift detection for the `active_directory` and `identity` properties [GH-32494]
-* `azurerm_netapp_volume_group_oracle` - fix validation for the `application_identifier` property [GH-32499]
-* `azurerm_oracle_resource_anchor` - fix validation for the `name` property to allow hyphens [GH-32481]
+
+* `azurerm_federated_identity_credential` - fix update logic, preventing import errors on updates ([#32522](https://github.com/hashicorp/terraform-provider-azurerm/issues/32522))
+* `azurerm_netapp_account` - the update function now uses the `PUT` operation to fix a removal issue with the `active_directory` property ([#32494](https://github.com/hashicorp/terraform-provider-azurerm/issues/32494))
+* `azurerm_netapp_account` - fix drift detection for the `active_directory` and `identity` properties ([#32494](https://github.com/hashicorp/terraform-provider-azurerm/issues/32494))
+* `azurerm_netapp_volume_group_oracle` - fix validation for the `application_identifier` property ([#32499](https://github.com/hashicorp/terraform-provider-azurerm/issues/32499))
+* `azurerm_oracle_resource_anchor` - fix validation for the `name` property to allow hyphens ([#32481](https://github.com/hashicorp/terraform-provider-azurerm/issues/32481))
 
 ## 4.75.0 (June 01, 2026)
 
