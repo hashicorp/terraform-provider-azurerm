@@ -70,11 +70,17 @@ func (r CognitiveAccountConnectionEntraIDResource) Arguments() map[string]*plugi
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(accountconnectionresource.ConnectionCategoryAIServices),
-				string(accountconnectionresource.ConnectionCategoryAzureStorageAccount),
+				string(accountconnectionresource.ConnectionCategoryApiManagement),
+				string(accountconnectionresource.ConnectionCategoryAppConfig),
 				string(accountconnectionresource.ConnectionCategoryAzureOpenAI),
+				string(accountconnectionresource.ConnectionCategoryAzureStorageAccount),
+				string(accountconnectionresource.ConnectionCategoryCognitiveService),
 				string(accountconnectionresource.ConnectionCategoryCognitiveSearch),
 				string(accountconnectionresource.ConnectionCategoryCosmosDb),
 				string(accountconnectionresource.ConnectionCategoryDatabricks),
+				string(accountconnectionresource.ConnectionCategoryManagedOnlineEndpoint),
+				string(accountconnectionresource.ConnectionCategoryMicrosoftFabric),
+				string(accountconnectionresource.ConnectionCategorySharepoint),
 			}, false),
 		},
 

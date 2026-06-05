@@ -82,6 +82,41 @@ func TestAccCognitiveAccountConnectionCustomKeys_update(t *testing.T) {
 			),
 		},
 		data.ImportStep("custom_keys", "metadata"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("custom_keys", "metadata"),
+	})
+}
+
+func TestAccCognitiveAccountConnectionCustomKeys_remoteA2ACategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_custom_keys", "test")
+	r := CognitiveAccountConnectionCustomKeysResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.remoteA2ACategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionCustomKeys_remoteToolCategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_custom_keys", "test")
+	r := CognitiveAccountConnectionCustomKeysResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.remoteToolCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 	})
 }
 
@@ -107,7 +142,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                       = "acctest-aiservices-%[1]d"
+  name                       = "acctest-cognitiveaccount-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -131,7 +166,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "openai" {
-  name                = "acctest-openai-%[2]d"
+  name                = "acctest-cognitiveaccount-openai-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "OpenAI"
@@ -165,7 +200,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "openai" {
-  name                = "acctest-openai-%[2]d"
+  name                = "acctest-cognitiveaccount-openai-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "OpenAI"
@@ -219,7 +254,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "openai2" {
-  name                = "acctest-openai2-%[2]d"
+  name                = "acctest-cognitiveaccount-openai2-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "OpenAI"
@@ -245,6 +280,48 @@ resource "azurerm_cognitive_account_connection_custom_keys" "test" {
   custom_keys = {
     primaryKey   = azurerm_cognitive_account.openai2.primary_access_key
     secondaryKey = azurerm_cognitive_account.openai2.secondary_access_key
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionCustomKeysResource) remoteA2ACategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_custom_keys" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "RemoteA2A"
+  target               = "https://a2a.example.com/"
+
+  custom_keys = {
+    apiKey = "test-api-key"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionCustomKeysResource) remoteToolCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_custom_keys" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "RemoteTool"
+  target               = "https://tool.example.com/"
+
+  custom_keys = {
+    apiKey = "test-api-key"
   }
 }
 `, r.template(data), data.RandomInteger)

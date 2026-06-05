@@ -10,6 +10,8 @@ description: |-
 
 Manages a Cognitive Services (Microsoft Foundry) Account Connection with Custom Keys authentication.
 
+-> **Note:** In the new Foundry experience, Account Connections are shown as tools under the Build blade.
+
 ## Example Usage
 
 ```hcl
@@ -71,13 +73,15 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
 
-* `category` - (Required) The category of the connection. The only possible value is `CustomKeys`. Changing this forces a new resource to be created.
+* `category` - (Required) The category of the connection. Possible values are `CustomKeys`, `RemoteA2A`, and `RemoteTool`. Changing this forces a new resource to be created.
 
 * `custom_keys` - (Required) A mapping of custom keys for authentication. All values in this map are sensitive.
 
 * `target` - (Required) The target endpoint or resource for the connection.
 
 * `metadata` - (Optional) A mapping of metadata key-value pairs for the connection.
+
+-> **Note:** To determine the `metadata` shape for a connection category, create an equivalent connection in the Azure Portal, retrieve its resource ID, then inspect it with `az rest --method get --url "{connection_resource_id}?api-version=2026-03-01"`.
 
 ## Attributes Reference
 

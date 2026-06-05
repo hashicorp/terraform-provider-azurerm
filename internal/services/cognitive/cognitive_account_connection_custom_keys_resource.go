@@ -66,10 +66,14 @@ func (r CognitiveAccountConnectionCustomKeysResource) Arguments() map[string]*pl
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&accountconnectionresource.AccountId{}),
 
 		"category": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice([]string{string(accountconnectionresource.ConnectionCategoryCustomKeys)}, false),
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(accountconnectionresource.ConnectionCategoryCustomKeys),
+				string(accountconnectionresource.ConnectionCategoryRemoteATwoA),
+				string(accountconnectionresource.ConnectionCategoryRemoteTool),
+			}, false),
 		},
 
 		"custom_keys": {
@@ -251,8 +255,10 @@ func (r CognitiveAccountConnectionCustomKeysResource) Update() sdk.ResourceFunc 
 				return fmt.Errorf("unexpected properties type for %s", *id)
 			}
 
-			props.Credentials = &accountconnectionresource.CustomKeys{
-				Keys: &model.CustomKeys,
+			if metadata.ResourceData.HasChange("custom_keys") {
+				props.Credentials = &accountconnectionresource.CustomKeys{
+					Keys: &model.CustomKeys,
+				}
 			}
 
 			if metadata.ResourceData.HasChange("target") {

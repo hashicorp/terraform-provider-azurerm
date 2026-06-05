@@ -79,6 +79,7 @@ func (r CognitiveAccountConnectionAccountKeyResource) Arguments() map[string]*pl
 			ValidateFunc: validation.StringInSlice([]string{string(accountconnectionresource.ConnectionCategoryAzureStorageAccount)}, false),
 		},
 
+		// `metadata` is required because all categories supported by this resource currently require metadata
 		"metadata": {
 			Type:     pluginsdk.TypeMap,
 			Required: true,
@@ -130,11 +131,13 @@ func (r CognitiveAccountConnectionAccountKeyResource) Create() sdk.ResourceFunc 
 			properties := accountconnectionresource.AccountKeyAuthTypeConnectionProperties{
 				AuthType: accountconnectionresource.ConnectionAuthTypeAccountKey,
 				Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
-				Metadata: pointer.To(model.Metadata),
 				Target:   pointer.To(model.Target),
 				Credentials: &accountconnectionresource.ConnectionAccountKey{
 					Key: pointer.To(model.AccountKey),
 				},
+			}
+			if len(model.Metadata) > 0 {
+				properties.Metadata = pointer.To(model.Metadata)
 			}
 
 			connection := accountconnectionresource.ConnectionPropertiesV2BasicResource{
@@ -193,12 +196,12 @@ func (r CognitiveAccountConnectionAccountKeyResource) Read() sdk.ResourceFunc {
 				base := model.Properties.ConnectionPropertiesV2()
 				state.Category = pointer.FromEnum(base.Category)
 				state.Target = pointer.From(base.Target)
-				state.Metadata = map[string]string{}
 
 				// Only include metadata fields that were in the original config.
 				// The API returns additional metadata fields beyond what was configured (e.g., `ApiVersion`,
 				// `DeploymentApiVersion`), which would cause unwanted diffs.
 				if len(currentState.Metadata) > 0 {
+					state.Metadata = map[string]string{}
 					apiMetadata := pointer.From(base.Metadata)
 
 					for configKey := range currentState.Metadata {
@@ -247,8 +250,10 @@ func (r CognitiveAccountConnectionAccountKeyResource) Update() sdk.ResourceFunc 
 				return fmt.Errorf("unexpected properties type for %s", *id)
 			}
 
-			props.Credentials = &accountconnectionresource.ConnectionAccountKey{
-				Key: pointer.To(model.AccountKey),
+			if metadata.ResourceData.HasChange("account_key") {
+				props.Credentials = &accountconnectionresource.ConnectionAccountKey{
+					Key: pointer.To(model.AccountKey),
+				}
 			}
 
 			if metadata.ResourceData.HasChange("target") {
