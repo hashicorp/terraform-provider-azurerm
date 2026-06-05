@@ -326,6 +326,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
+	enabledRbacAuthorization := d.Get("rbac_authorization_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	policies := d.Get("access_policy").([]interface{})
@@ -348,7 +349,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			EnabledForDeployment:         &enabledForDeployment,
 			EnabledForDiskEncryption:     &enabledForDiskEncryption,
 			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
-			EnableRbacAuthorization:      pointer.To(d.Get("rbac_authorization_enabled").(bool)),
+			EnableRbacAuthorization:      pointer.To(enabledRbacAuthorization),
 			NetworkAcls:                  networkAcls,
 
 			// @tombuildsstuff: as of 2020-12-15 this is now defaulted on, and appears to be so in all regions
