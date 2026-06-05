@@ -88,6 +88,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("api_server_access_profile.0.subnet_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != "" && new == ""
 			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				return validateDefaultNodePoolLocalDNSProfileRawConfig(d)
+			},
 			pluginsdk.ForceNewIf("default_node_pool.0.name", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
 				old, new := d.GetChange("default_node_pool.0.name")
 				defaultName := d.Get("default_node_pool.0.name")
