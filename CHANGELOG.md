@@ -1,7 +1,7 @@
 ## 4.77.0 (Unreleased)
 
 ENHANCEMENTS:
-* dependencies: update `go-azure-sdk` to `v0.20260603.1074745` [GH-32503]
+* dependencies: `go-azure-sdk` - update to `v0.20260603.1074745` [GH-32503]
 
 FEATURES:
 
