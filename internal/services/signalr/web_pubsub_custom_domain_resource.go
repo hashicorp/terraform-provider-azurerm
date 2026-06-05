@@ -3,7 +3,7 @@
 
 package signalr
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub_custom_domain -service-package-name signalr -properties "name" -compare-values "subscription_id:web_pubsub_id,resource_group_name:web_pubsub_id,web_pub_sub_name:web_pubsub_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub_custom_domain -service-package-name signalr -properties "name" -compare-values "subscription_id:web_pubsub_id,resource_group_name:web_pubsub_id,web_pubsub_name:web_pubsub_id"
 
 import (
 	"context"

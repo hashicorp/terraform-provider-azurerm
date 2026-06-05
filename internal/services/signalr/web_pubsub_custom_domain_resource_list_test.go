@@ -2,6 +2,7 @@ package signalr_test
 
 import (
 	"context"
+	"os"
 	"regexp"
 	"testing"
 
@@ -14,6 +15,10 @@ import (
 )
 
 func TestAccWebPubsubCustomDomainResource_listByWebPubSubID(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_custom_domain", "testlist")
 	r := WebPubsubCustomDomainResource{}
 
@@ -35,7 +40,7 @@ func TestAccWebPubsubCustomDomainResource_listByWebPubSubID(t *testing.T) {
 						"azurerm_web_pubsub_custom_domain.list",
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(`(?i)webpubsubcustom-domain-`)),
-							"web_pub_sub_name":    knownvalue.StringRegexp(regexp.MustCompile(`(?i)acctestwebpubsub-`)),
+							"web_pubsub_name":     knownvalue.StringRegexp(regexp.MustCompile(`(?i)acctestwebpubsub-`)),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(`(?i)acctestrg-`)),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
