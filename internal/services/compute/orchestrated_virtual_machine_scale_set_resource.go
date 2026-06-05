@@ -884,6 +884,13 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		props.Properties.VirtualMachineProfile = &virtualMachineProfile
 	}
 
+	// In legacy mode, send VirtualMachineProfile only when SecurityProfile is needed.
+	if isLegacy && virtualMachineProfile.SecurityProfile != nil {
+		props.Properties.VirtualMachineProfile = &virtualmachinescalesets.VirtualMachineScaleSetVMProfile{
+			SecurityProfile: virtualMachineProfile.SecurityProfile,
+		}
+	}
+
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Orchestrated %s: %w", id, err)
 	}

@@ -171,3 +171,41 @@ resource "azurerm_resource_group" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
+
+func TestAccOrchestratedVirtualMachineScaleSet_legacyEncryptionAtHost(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.legacyEncryptionAtHost(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("encryption_at_host_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("extensions_time_budget", "max_bid_price", "priority"),
+	})
+}
+
+func (r OrchestratedVirtualMachineScaleSetResource) legacyEncryptionAtHost(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  platform_fault_domain_count = 1
+
+  encryption_at_host_enabled = true
+
+  zones = ["1"]
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.legacyTemplate(data), data.RandomInteger)
+}
