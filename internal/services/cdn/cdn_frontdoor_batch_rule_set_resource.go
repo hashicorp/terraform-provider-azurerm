@@ -7,7 +7,9 @@ package cdn
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -69,7 +71,11 @@ func (r CdnFrontDoorBatchRuleSetResource) CustomizeDiff() sdk.ResourceFunc {
 				return err
 			}
 
-			rawConfig := metadata.ResourceData.GetRawConfig()
+			if err := validateCdnFrontDoorBatchRuleDiffQuota(metadata.ResourceDiff); err != nil {
+				return err
+			}
+
+			rawConfig := metadata.ResourceDiff.GetRawConfig()
 			if rawConfig.IsNull() {
 				return nil
 			}
@@ -98,6 +104,177 @@ func (r CdnFrontDoorBatchRuleSetResource) CustomizeDiff() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func validateCdnFrontDoorBatchRuleDiffQuota(diff *pluginsdk.ResourceDiff) error {
+	if diff == nil {
+		return nil
+	}
+
+	oldRaw, newRaw := diff.GetChange("rules")
+	oldRules, err := batchRuleDiffEntries(oldRaw)
+	if err != nil {
+		return fmt.Errorf("calculating the effective diff for `rules`: %+v", err)
+	}
+	newRules, err := batchRuleDiffEntries(newRaw)
+	if err != nil {
+		return fmt.Errorf("calculating the effective diff for `rules`: %+v", err)
+	}
+
+	names := make(map[string]struct{}, len(oldRules)+len(newRules))
+	for name := range oldRules {
+		names[name] = struct{}{}
+	}
+	for name := range newRules {
+		names[name] = struct{}{}
+	}
+
+	changedRules := 0
+	cacheOperations := 0
+	for name := range names {
+		oldRule, oldExists := oldRules[name]
+		newRule, newExists := newRules[name]
+
+		if oldExists == newExists && oldRule.signature == newRule.signature {
+			continue
+		}
+
+		changedRules++
+		if oldRule.usesCache || newRule.usesCache {
+			cacheOperations++
+		}
+	}
+
+	effectiveDiff := changedRules + cacheOperations
+	if effectiveDiff > 100 {
+		return fmt.Errorf("the effective diff for `rules` exceeds the service-side quota: got `%d` changed rules and `%d` cache operations, total `%d`, but the maximum allowed is `100`", changedRules, cacheOperations, effectiveDiff)
+	}
+
+	return nil
+}
+
+type batchRuleDiffEntry struct {
+	signature string
+	usesCache bool
+}
+
+func batchRuleDiffEntries(input interface{}) (map[string]batchRuleDiffEntry, error) {
+	results := make(map[string]batchRuleDiffEntry)
+	if input == nil {
+		return results, nil
+	}
+
+	rulesList, ok := input.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("expected a list of `rules`, got %T", input)
+	}
+
+	for _, item := range rulesList {
+		if item == nil {
+			continue
+		}
+
+		rule, ok := item.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("expected a `rules` block, got %T", item)
+		}
+
+		name, ok := rule["name"].(string)
+		if !ok || name == "" {
+			return nil, fmt.Errorf("expected each `rules` block to contain a non-empty `name`")
+		}
+
+		normalized, err := normalizeBatchRuleDiffValue(rule)
+		if err != nil {
+			return nil, fmt.Errorf("normalizing `rules[%s]`: %+v", name, err)
+		}
+
+		serialized, err := json.Marshal(normalized)
+		if err != nil {
+			return nil, fmt.Errorf("serializing `rules[%s]`: %+v", name, err)
+		}
+
+		results[name] = batchRuleDiffEntry{
+			signature: string(serialized),
+			usesCache: batchRuleUsesCache(rule),
+		}
+	}
+
+	return results, nil
+}
+
+func normalizeBatchRuleDiffValue(input interface{}) (interface{}, error) {
+	switch value := input.(type) {
+	case nil, string, bool, int, int32, int64, float32, float64:
+		return value, nil
+	case []interface{}:
+		results := make([]interface{}, 0, len(value))
+		for _, item := range value {
+			normalized, err := normalizeBatchRuleDiffValue(item)
+			if err != nil {
+				return nil, err
+			}
+			results = append(results, normalized)
+		}
+		return results, nil
+	case map[string]interface{}:
+		results := make(map[string]interface{}, len(value))
+		for key, item := range value {
+			normalized, err := normalizeBatchRuleDiffValue(item)
+			if err != nil {
+				return nil, err
+			}
+			results[key] = normalized
+		}
+		return results, nil
+	case *pluginsdk.Set:
+		items := value.List()
+		normalized := make([]string, 0, len(items))
+		for _, item := range items {
+			normalizedItem, err := normalizeBatchRuleDiffValue(item)
+			if err != nil {
+				return nil, err
+			}
+			serialized, err := json.Marshal(normalizedItem)
+			if err != nil {
+				return nil, err
+			}
+			normalized = append(normalized, string(serialized))
+		}
+		sort.Strings(normalized)
+		return normalized, nil
+	default:
+		return nil, fmt.Errorf("unsupported type %T", input)
+	}
+}
+
+func batchRuleUsesCache(input map[string]interface{}) bool {
+	actionsRaw, ok := input["actions"].([]interface{})
+	if !ok || len(actionsRaw) == 0 || actionsRaw[0] == nil {
+		return false
+	}
+
+	actions, ok := actionsRaw[0].(map[string]interface{})
+	if !ok {
+		return false
+	}
+
+	routeOverrides, ok := actions["route_configuration_override_action"].([]interface{})
+	if !ok || len(routeOverrides) == 0 || routeOverrides[0] == nil {
+		return false
+	}
+
+	routeOverride, ok := routeOverrides[0].(map[string]interface{})
+	if !ok {
+		return false
+	}
+
+	cacheBehavior, ok := routeOverride["cache_behavior"].(string)
+	if !ok || cacheBehavior == "" {
+		return false
+	}
+
+	return cacheBehavior != string(rules.RuleIsCompressionEnabledDisabled)
 }
 
 func (r CdnFrontDoorBatchRuleSetResource) Create() sdk.ResourceFunc {

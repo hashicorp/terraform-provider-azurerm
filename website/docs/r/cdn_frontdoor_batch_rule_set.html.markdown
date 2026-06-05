@@ -167,6 +167,8 @@ The following arguments are supported:
 
 ~> **Note:** Each `rules` block must use a unique `name` value and a unique `order` value.
 
+-> **Note:** The service accepts any unique integer `order` values and allows gaps between them. For example, a ruleset can use `order` values such as `1` and `100`. Terraform still requires the configured `rules` blocks to be written in ascending `order` so state remains stable.
+
 ---
 
 A `rules` block supports the following:
@@ -237,6 +239,8 @@ A `route_configuration_override_action` block supports the following:
 
 ~> **Note:** If `cache_behavior` is set to `Disabled`, you must not set `query_string_caching_behavior`, `query_string_parameters`, or `cache_duration`.
 
+-> **Note:** Enabling cache configuration in `route_configuration_override_action` affects the service-side quota used for rule operations, but it does not change the rule `order` values that the service expects.
+
 * `cache_duration` - (Optional) When `cache_behavior` is set to `OverrideAlways` or `OverrideIfOriginMissing`, this field specifies the cache duration to use. The maximum allowed value is `365.23:59:59`. If the desired maximum cache duration is less than `1` day, specify it in the `HH:MM:SS` format, for example `23:59:59`.
 
 ~> **Note:** `cache_duration` must not be set when `cache_behavior` is `HonorOrigin`.
@@ -258,6 +262,8 @@ A `route_configuration_override_action` block supports the following:
 * `query_string_parameters` - (Optional) A list of query string parameter names.
 
 ~> **Note:** `query_string_parameters` is required when `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`, and must not be set when `query_string_caching_behavior` is set to `UseQueryString` or `IgnoreQueryString`.
+
+~> **Note:** During a full replacement update, Terraform validates the effective diff for rule and cache operations during planning. If that diff exceeds the service-side quota, the plan fails even when the final desired ruleset would otherwise be within quota.
 
 ---
 

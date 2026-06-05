@@ -54,6 +54,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		CdnFrontDoorBatchRuleSetDataSource{},
 		CdnFrontDoorSecurityPolicyDataSource{},
 	}
 }

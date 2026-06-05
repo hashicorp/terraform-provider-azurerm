@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -249,6 +250,18 @@ func TestAccCdnFrontDoorBatchRuleSet_gapInRuleOrder(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_diffQuotaValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontDoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.diffQuotaExceeded(data, 51),
+			ExpectError: regexp.MustCompile("the effective diff for `rules` exceeds the service-side quota"),
+		},
 	})
 }
 
@@ -1054,4 +1067,40 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, orders[0], orders[1])
+}
+
+func (r CdnFrontDoorBatchRuleSetResource) diffQuotaExceeded(data acceptance.TestData, ruleCount int) string {
+	var rulesBuilder strings.Builder
+	for index := 0; index < ruleCount; index++ {
+		rulesBuilder.WriteString(fmt.Sprintf(`
+  rules {
+    name  = "accTestBatchRuleQuota%[1]d"
+    order = %[1]d
+
+    actions {
+      route_configuration_override_action {
+        cache_behavior                = "OverrideIfOriginMissing"
+        query_string_caching_behavior = "UseQueryString"
+        cache_duration                = "365.23:59:59"
+      }
+    }
+  }
+`, index+1))
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+%[3]s
+}
+`, r.template(data), data.RandomInteger, rulesBuilder.String())
 }
