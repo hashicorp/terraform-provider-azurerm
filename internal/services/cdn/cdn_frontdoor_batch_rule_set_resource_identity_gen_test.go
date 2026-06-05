@@ -12,9 +12,9 @@ import (
 	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 )
 
-func TestAccCdnFrontDoorBatchRuleSet_resourceIdentity(t *testing.T) {
+func TestAccCdnFrontdoorBatchRuleSet_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
-	r := CdnFrontDoorBatchRuleSetResource{}
+	r := CdnFrontdoorBatchRuleSetResource{}
 
 	checkedFields := map[string]struct{}{
 		"name":                {},

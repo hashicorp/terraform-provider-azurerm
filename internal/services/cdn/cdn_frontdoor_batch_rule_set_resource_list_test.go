@@ -20,7 +20,7 @@ import (
 
 func TestAccCdnFrontDoorBatchRuleSet_listByProfileID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "testlist1")
-	r := CdnFrontDoorBatchRuleSetResource{}
+	r := CdnFrontdoorBatchRuleSetResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -51,7 +51,7 @@ func TestAccCdnFrontDoorBatchRuleSet_listByProfileID(t *testing.T) {
 	})
 }
 
-func (r CdnFrontDoorBatchRuleSetResource) basicQuery(data acceptance.TestData) string {
+func (r CdnFrontdoorBatchRuleSetResource) basicQuery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -53,7 +53,7 @@ data "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   profile_name        = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
-`, CdnFrontDoorBatchRuleSetResource{}.complete(data))
+`, CdnFrontdoorBatchRuleSetResource{}.complete(data))
 }
 
 func (CdnFrontDoorBatchRuleSetDataSource) nonBatchRuleSet(data acceptance.TestData) string {

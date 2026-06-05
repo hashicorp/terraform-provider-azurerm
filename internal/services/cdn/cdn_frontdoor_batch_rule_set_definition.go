@@ -723,10 +723,6 @@ func flattenRouteConfigurationOverrideAction(input rules.RouteConfigurationOverr
 	return output, nil
 }
 
-func validateHeaderAction(blockName string, input CdnFrontDoorBatchRuleHeaderActionModel) error {
-	return validate.CdnFrontDoorValidateHeaderAction(blockName, input.HeaderAction, input.Value)
-}
-
 func expandCdnFrontDoorBatchRuleConditions(input []CdnFrontDoorBatchRuleConditionsModel) ([]rules.DeliveryRuleCondition, error) {
 	results := make([]rules.DeliveryRuleCondition, 0)
 	if len(input) == 0 {
