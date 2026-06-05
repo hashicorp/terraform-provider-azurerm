@@ -81,6 +81,23 @@ func dataSourceSubnet() *pluginsdk.Resource {
 		},
 	}
 
+	resource.Schema["service_endpoints"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"service": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"network_identifier": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+
 	if !features.FivePointOh() {
 		resource.Schema["service_endpoints"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeList,
@@ -88,23 +105,6 @@ func dataSourceSubnet() *pluginsdk.Resource {
 			Deprecated: "The `service_endpoints` list of strings will be replaced by a `service_endpoints` block in v5.0 of the AzureRM Provider.",
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
-			},
-		}
-	} else {
-		resource.Schema["service_endpoints"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"service": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"network_identifier": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
 			},
 		}
 	}

@@ -963,7 +963,13 @@ resource "azurerm_subnet" "main_subnet" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.0.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.ContainerRegistry"
+  }
 
   private_link_service_network_policies_enabled = false
 }
@@ -973,7 +979,13 @@ resource "azurerm_subnet" "worker_subnet" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.ContainerRegistry"
+  }
 }
  `, data.RandomInteger, data.Locations.Primary)
 }

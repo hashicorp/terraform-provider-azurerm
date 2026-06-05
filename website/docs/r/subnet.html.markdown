@@ -89,7 +89,7 @@ The following arguments are supported:
 
 !> **Note:** The `sharing_scope` property is only available to users who have been explicitly registered and granted access by the Azure Networking Product Group.
 
-* `service_endpoint` - (Optional) One or more `service_endpoint` blocks as defined below.
+* `service_endpoint` - (Optional) A `service_endpoint` as defined below.
 
 * `service_endpoint_policy_ids` - (Optional) The list of IDs of Service Endpoint Policies to associate with the subnet.
 
@@ -97,7 +97,7 @@ The following arguments are supported:
 
 A `service_endpoint` block supports the following:
 
-* `service` - (Required) The name of the Service endpoint to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage`, `Microsoft.Storage.Global` and `Microsoft.Web`.
+* `service` - (Required) The name of the Service endpoint to associate with the subnet. Possible values are `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.CognitiveService`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage`, `Microsoft.Storage.Global`, and `Microsoft.Web`.
 
 * `network_identifier` - (Optional) The ARM resource ID of the network identifier to associate with the service endpoint.
 

@@ -370,7 +370,6 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			},
 			Set: pluginsdk.HashString,
 		}
-		// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
 		subnetSchema["service_endpoint"].Computed = true
 	}
 
@@ -836,18 +835,7 @@ func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.Vir
 
 		subnetObj.Properties.ServiceEndpointPolicies = expandVirtualNetworkSubnetServiceEndpointPolicies(subnet["service_endpoint_policy_ids"].(*pluginsdk.Set).List())
 		if !features.FivePointOh() {
-			serviceEndpointsNull := true
-			rawSubnets := d.GetRawConfig().AsValueMap()["subnet"]
-			if !rawSubnets.IsNull() && rawSubnets.IsKnown() {
-				for _, rs := range rawSubnets.AsValueSlice() {
-					sm := rs.AsValueMap()
-					if sm["name"].IsKnown() && sm["name"].AsString() == name {
-						serviceEndpointsNull = sm["service_endpoints"].IsNull()
-						break
-					}
-				}
-			}
-			if !serviceEndpointsNull {
+			if virtualNetworkSubnetHasServiceEndpointsInConfig(d, name) {
 				serviceEndpointsRaw := subnet["service_endpoints"].(*pluginsdk.Set).List()
 				subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoints(serviceEndpointsRaw)
 			} else {
@@ -930,18 +918,7 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 
 			subnetObj.Properties.ServiceEndpointPolicies = expandVirtualNetworkSubnetServiceEndpointPolicies(subnet["service_endpoint_policy_ids"].(*pluginsdk.Set).List())
 			if !features.FivePointOh() {
-				serviceEndpointsNull := true
-				rawSubnets := d.GetRawConfig().AsValueMap()["subnet"]
-				if !rawSubnets.IsNull() && rawSubnets.IsKnown() {
-					for _, rs := range rawSubnets.AsValueSlice() {
-						sm := rs.AsValueMap()
-						if sm["name"].IsKnown() && sm["name"].AsString() == name {
-							serviceEndpointsNull = sm["service_endpoints"].IsNull()
-							break
-						}
-					}
-				}
-				if !serviceEndpointsNull {
+				if virtualNetworkSubnetHasServiceEndpointsInConfig(d, name) {
 					serviceEndpointsRaw := subnet["service_endpoints"].(*pluginsdk.Set).List()
 					subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoints(serviceEndpointsRaw)
 				} else {
@@ -1140,22 +1117,7 @@ func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet, d *pluginsdk.
 				}
 				output["route_table_id"] = routeTableId
 				if !features.FivePointOh() {
-					serviceEndpointsInConfig := false
-					rawConfig := d.GetRawConfig()
-					if !rawConfig.IsNull() && rawConfig.IsKnown() {
-						rawSubnets := rawConfig.AsValueMap()["subnet"]
-						if !rawSubnets.IsNull() && rawSubnets.IsKnown() {
-							name := pointer.From(subnet.Name)
-							for _, rs := range rawSubnets.AsValueSlice() {
-								sm := rs.AsValueMap()
-								if sm["name"].IsKnown() && sm["name"].AsString() == name {
-									serviceEndpointsInConfig = !sm["service_endpoints"].IsNull()
-									break
-								}
-							}
-						}
-					}
-					if serviceEndpointsInConfig {
+					if virtualNetworkSubnetHasServiceEndpointsInConfig(d, pointer.From(subnet.Name)) {
 						output["service_endpoints"] = flattenVirtualNetworkSubnetServiceEndpoints(props.ServiceEndpoints)
 					}
 					output["service_endpoint"] = flattenVirtualNetworkSubnetServiceEndpoint(props.ServiceEndpoints)
@@ -1274,6 +1236,24 @@ func expandVirtualNetworkSubnetServiceEndpointPolicies(input []interface{}) *[]v
 		output = append(output, virtualnetworks.ServiceEndpointPolicy{Id: &policy})
 	}
 	return &output
+}
+
+func virtualNetworkSubnetHasServiceEndpointsInConfig(d *pluginsdk.ResourceData, subnetName string) bool {
+	rawConfig := d.GetRawConfig()
+	if rawConfig.IsNull() || !rawConfig.IsKnown() {
+		return false
+	}
+	rawSubnets := rawConfig.AsValueMap()["subnet"]
+	if rawSubnets.IsNull() || !rawSubnets.IsKnown() {
+		return false
+	}
+	for _, rs := range rawSubnets.AsValueSlice() {
+		sm := rs.AsValueMap()
+		if sm["name"].IsKnown() && sm["name"].AsString() == subnetName {
+			return !sm["service_endpoints"].IsNull()
+		}
+	}
+	return false
 }
 
 func expandVirtualNetworkSubnetServiceEndpoints(input []interface{}) *[]virtualnetworks.ServiceEndpointPropertiesFormat {

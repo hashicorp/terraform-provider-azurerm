@@ -331,7 +331,6 @@ func resourceSubnet() *pluginsdk.Resource {
 			ConflictsWith: []string{"service_endpoint"},
 		}
 		resource.Schema["service_endpoint"].ConflictsWith = []string{"service_endpoints"}
-		// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
 		resource.Schema["service_endpoint"].Computed = true
 	}
 
@@ -558,7 +557,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if !features.FivePointOh() {
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "service_endpoints") {
+		if d.HasChange("service_endpoints") && !pluginsdk.IsExplicitlyNullInConfig(d, "service_endpoints") {
 			serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 			props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 		} else if d.HasChange("service_endpoint") {

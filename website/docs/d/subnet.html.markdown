@@ -36,7 +36,6 @@ output "subnet_id" {
 * `address_prefixes` - The address prefixes for the subnet.
 * `network_security_group_id` - The ID of the Network Security Group associated with the subnet.
 * `route_table_id` - The ID of the Route Table associated with this subnet.
-* `service_endpoints` - (**Deprecated**) A list of Service Endpoint names within this subnet. Superseded by `service_endpoint`.
 * `service_endpoint` - A list of `service_endpoint` blocks as defined below.
 * `default_outbound_access_enabled` - Is the default outbound access enabled for the subnet.
 * `private_endpoint_network_policies` - Enable or Disable network policies for the private endpoint on the subnet.

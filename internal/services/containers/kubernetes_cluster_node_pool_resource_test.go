@@ -3726,11 +3726,17 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.1.${count.index}.0/24"]
-  service_endpoints = [
-    "Microsoft.Storage.Global",
-    "Microsoft.AzureActiveDirectory",
-    "Microsoft.KeyVault"
-  ]
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
+
+  service_endpoint {
+    service = "Microsoft.AzureActiveDirectory"
+  }
+
+  service_endpoint {
+    service = "Microsoft.KeyVault"
+  }
 
   lifecycle {
     # AKS automatically configures subnet delegations when the subnets are assigned

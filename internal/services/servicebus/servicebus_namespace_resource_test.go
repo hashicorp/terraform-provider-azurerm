@@ -729,7 +729,9 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["172.17.0.0/24"]
 
-  service_endpoints = ["Microsoft.ServiceBus"]
+  service_endpoint {
+    service = "Microsoft.ServiceBus"
+  }
 }
 
 resource "azurerm_servicebus_namespace" "test" {
@@ -777,7 +779,9 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["172.17.0.0/24"]
 
-  service_endpoints = ["Microsoft.ServiceBus"]
+  service_endpoint {
+    service = "Microsoft.ServiceBus"
+  }
 }
 
 resource "azurerm_servicebus_namespace" "test" {
@@ -828,7 +832,9 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["172.17.0.0/24"]
 
-  service_endpoints = ["Microsoft.ServiceBus"]
+  service_endpoint {
+    service = "Microsoft.ServiceBus"
+  }
 }
 
 resource "azurerm_servicebus_namespace" "test" {

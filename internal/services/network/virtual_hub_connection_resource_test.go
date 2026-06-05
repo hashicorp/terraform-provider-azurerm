@@ -497,17 +497,41 @@ resource "azurerm_subnet" "test" {
   private_endpoint_network_policies             = "Disabled"
   private_link_service_network_policies_enabled = true
 
-  service_endpoints = [
-    "Microsoft.AzureActiveDirectory",
-    "Microsoft.AzureCosmosDB",
-    "Microsoft.ContainerRegistry",
-    "Microsoft.EventHub",
-    "Microsoft.KeyVault",
-    "Microsoft.ServiceBus",
-    "Microsoft.Sql",
-    "Microsoft.Storage",
-    "Microsoft.Web",
-  ]
+  service_endpoint {
+    service = "Microsoft.AzureActiveDirectory"
+  }
+
+  service_endpoint {
+    service = "Microsoft.AzureCosmosDB"
+  }
+
+  service_endpoint {
+    service = "Microsoft.ContainerRegistry"
+  }
+
+  service_endpoint {
+    service = "Microsoft.EventHub"
+  }
+
+  service_endpoint {
+    service = "Microsoft.KeyVault"
+  }
+
+  service_endpoint {
+    service = "Microsoft.ServiceBus"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Web"
+  }
 }
 
 resource "azurerm_virtual_wan" "test" {
