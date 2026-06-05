@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	sharedKeyWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-02-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -32,6 +32,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+const publicNetworkAccessTypeSecuredByPerimeter = "SecuredByPerimeter"
 
 func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -92,16 +94,26 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
-			"internet_ingestion_enabled": {
-				Type:     pluginsdk.TypeBool,
+			"internet_ingestion_access_type": {
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  true,
+				Default:  "Enabled",
+				ValidateFunc: validation.StringInSlice([]string{
+					string(workspaces.PublicNetworkAccessTypeEnabled),
+					string(workspaces.PublicNetworkAccessTypeDisabled),
+					publicNetworkAccessTypeSecuredByPerimeter,
+				}, false),
 			},
 
-			"internet_query_enabled": {
-				Type:     pluginsdk.TypeBool,
+			"internet_query_access_type": {
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  true,
+				Default:  "Enabled",
+				ValidateFunc: validation.StringInSlice([]string{
+					string(workspaces.PublicNetworkAccessTypeEnabled),
+					string(workspaces.PublicNetworkAccessTypeDisabled),
+					publicNetworkAccessTypeSecuredByPerimeter,
+				}, false),
 			},
 
 			// TODO 4.0: Clean up lacluster "workaround" to make it more readable and easier to understand. (@WodansSon already has the code written for the clean up)
@@ -200,6 +212,46 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			Optional:      true,
 			Computed:      true,
 			ConflictsWith: []string{"local_authentication_disabled"},
+		}
+
+		resource.Schema["internet_ingestion_access_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(workspaces.PublicNetworkAccessTypeEnabled),
+				string(workspaces.PublicNetworkAccessTypeDisabled),
+				publicNetworkAccessTypeSecuredByPerimeter,
+			}, false),
+			ConflictsWith: []string{"internet_ingestion_enabled"},
+		}
+
+		resource.Schema["internet_query_access_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(workspaces.PublicNetworkAccessTypeEnabled),
+				string(workspaces.PublicNetworkAccessTypeDisabled),
+				publicNetworkAccessTypeSecuredByPerimeter,
+			}, false),
+			ConflictsWith: []string{"internet_query_enabled"},
+		}
+
+		resource.Schema["internet_ingestion_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`internet_ingestion_enabled` has been deprecated in favour of `internet_ingestion_access_type` and will be removed in v5.0 of the AzureRM Provider",
+			ConflictsWith: []string{"internet_ingestion_access_type"},
+		}
+
+		resource.Schema["internet_query_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`internet_query_enabled` has been deprecated in favour of `internet_query_access_type` and will be removed in v5.0 of the AzureRM Provider",
+			ConflictsWith: []string{"internet_query_access_type"},
 		}
 	}
 
@@ -304,14 +356,28 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		sku.Name = workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight
 	}
 
-	internetIngestionEnabled := workspaces.PublicNetworkAccessTypeDisabled
-	if d.Get("internet_ingestion_enabled").(bool) {
-		internetIngestionEnabled = workspaces.PublicNetworkAccessTypeEnabled
-	}
+	var internetIngestionEnabled workspaces.PublicNetworkAccessType
+	var internetQueryEnabled workspaces.PublicNetworkAccessType
 
-	internetQueryEnabled := workspaces.PublicNetworkAccessTypeDisabled
-	if d.Get("internet_query_enabled").(bool) {
-		internetQueryEnabled = workspaces.PublicNetworkAccessTypeEnabled
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("internet_ingestion_access_type"); ok {
+			internetIngestionEnabled = workspaces.PublicNetworkAccessType(v.(string))
+		} else if d.Get("internet_ingestion_enabled").(bool) {
+			internetIngestionEnabled = workspaces.PublicNetworkAccessTypeEnabled
+		} else {
+			internetIngestionEnabled = workspaces.PublicNetworkAccessTypeDisabled
+		}
+
+		if v, ok := d.GetOk("internet_query_access_type"); ok {
+			internetQueryEnabled = workspaces.PublicNetworkAccessType(v.(string))
+		} else if d.Get("internet_query_enabled").(bool) {
+			internetQueryEnabled = workspaces.PublicNetworkAccessTypeEnabled
+		} else {
+			internetQueryEnabled = workspaces.PublicNetworkAccessTypeDisabled
+		}
+	} else {
+		internetIngestionEnabled = workspaces.PublicNetworkAccessType(d.Get("internet_ingestion_access_type").(string))
+		internetQueryEnabled = workspaces.PublicNetworkAccessType(d.Get("internet_query_access_type").(string))
 	}
 
 	allowResourceOnlyPermission := d.Get("allow_resource_only_permissions").(bool)
@@ -481,17 +547,31 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 		payload.Identity = expandedIdentity
 	}
 
-	if d.HasChange("internet_ingestion_enabled") {
-		props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessTypeDisabled)
-		if d.Get("internet_ingestion_enabled").(bool) {
-			props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessTypeEnabled)
+	if !features.FivePointOh() {
+		if d.HasChange("internet_ingestion_access_type") {
+			props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_ingestion_access_type").(string)))
+		} else if d.HasChange("internet_ingestion_enabled") {
+			props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessTypeDisabled)
+			if d.Get("internet_ingestion_enabled").(bool) {
+				props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessTypeEnabled)
+			}
 		}
-	}
 
-	if d.HasChange("internet_query_enabled") {
-		props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessTypeDisabled)
-		if d.Get("internet_query_enabled").(bool) {
-			props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessTypeEnabled)
+		if d.HasChange("internet_query_access_type") {
+			props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_query_access_type").(string)))
+		} else if d.HasChange("internet_query_enabled") {
+			props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessTypeDisabled)
+			if d.Get("internet_query_enabled").(bool) {
+				props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessTypeEnabled)
+			}
+		}
+	} else {
+		if d.HasChange("internet_ingestion_access_type") {
+			props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_ingestion_access_type").(string)))
+		}
+
+		if d.HasChange("internet_query_access_type") {
+			props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_query_access_type").(string)))
 		}
 	}
 
@@ -601,17 +681,29 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if props := model.Properties; props != nil {
-			internetIngestionEnabled := true
-			if props.PublicNetworkAccessForIngestion != nil {
-				internetIngestionEnabled = *props.PublicNetworkAccessForIngestion == workspaces.PublicNetworkAccessTypeEnabled
+			if v := props.PublicNetworkAccessForIngestion; v != nil {
+				d.Set("internet_ingestion_access_type", string(*v))
+				if !features.FivePointOh() {
+					d.Set("internet_ingestion_enabled", *v == workspaces.PublicNetworkAccessTypeEnabled)
+				}
+			} else {
+				d.Set("internet_ingestion_access_type", string(workspaces.PublicNetworkAccessTypeEnabled))
+				if !features.FivePointOh() {
+					d.Set("internet_ingestion_enabled", true)
+				}
 			}
-			d.Set("internet_ingestion_enabled", internetIngestionEnabled)
 
-			internetQueryEnabled := true
-			if props.PublicNetworkAccessForQuery != nil {
-				internetQueryEnabled = *props.PublicNetworkAccessForQuery == workspaces.PublicNetworkAccessTypeEnabled
+			if v := props.PublicNetworkAccessForQuery; v != nil {
+				d.Set("internet_query_access_type", string(*v))
+				if !features.FivePointOh() {
+					d.Set("internet_query_enabled", *v == workspaces.PublicNetworkAccessTypeEnabled)
+				}
+			} else {
+				d.Set("internet_query_access_type", string(workspaces.PublicNetworkAccessTypeEnabled))
+				if !features.FivePointOh() {
+					d.Set("internet_query_enabled", true)
+				}
 			}
-			d.Set("internet_query_enabled", internetQueryEnabled)
 
 			d.Set("workspace_id", pointer.From(props.CustomerId))
 

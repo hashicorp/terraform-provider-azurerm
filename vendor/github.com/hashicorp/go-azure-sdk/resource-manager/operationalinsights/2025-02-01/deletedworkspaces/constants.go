@@ -191,6 +191,118 @@ func parseWorkspaceEntityStatus(input string) (*WorkspaceEntityStatus, error) {
 	return &out, nil
 }
 
+type WorkspaceFailoverState string
+
+const (
+	WorkspaceFailoverStateActivating   WorkspaceFailoverState = "Activating"
+	WorkspaceFailoverStateActive       WorkspaceFailoverState = "Active"
+	WorkspaceFailoverStateDeactivating WorkspaceFailoverState = "Deactivating"
+	WorkspaceFailoverStateFailed       WorkspaceFailoverState = "Failed"
+	WorkspaceFailoverStateInactive     WorkspaceFailoverState = "Inactive"
+)
+
+func PossibleValuesForWorkspaceFailoverState() []string {
+	return []string{
+		string(WorkspaceFailoverStateActivating),
+		string(WorkspaceFailoverStateActive),
+		string(WorkspaceFailoverStateDeactivating),
+		string(WorkspaceFailoverStateFailed),
+		string(WorkspaceFailoverStateInactive),
+	}
+}
+
+func (s *WorkspaceFailoverState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkspaceFailoverState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseWorkspaceFailoverState(input string) (*WorkspaceFailoverState, error) {
+	vals := map[string]WorkspaceFailoverState{
+		"activating":   WorkspaceFailoverStateActivating,
+		"active":       WorkspaceFailoverStateActive,
+		"deactivating": WorkspaceFailoverStateDeactivating,
+		"failed":       WorkspaceFailoverStateFailed,
+		"inactive":     WorkspaceFailoverStateInactive,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := WorkspaceFailoverState(input)
+	return &out, nil
+}
+
+type WorkspaceReplicationState string
+
+const (
+	WorkspaceReplicationStateCanceled          WorkspaceReplicationState = "Canceled"
+	WorkspaceReplicationStateDisableRequested  WorkspaceReplicationState = "DisableRequested"
+	WorkspaceReplicationStateDisabling         WorkspaceReplicationState = "Disabling"
+	WorkspaceReplicationStateEnableRequested   WorkspaceReplicationState = "EnableRequested"
+	WorkspaceReplicationStateEnabling          WorkspaceReplicationState = "Enabling"
+	WorkspaceReplicationStateFailed            WorkspaceReplicationState = "Failed"
+	WorkspaceReplicationStateRollbackRequested WorkspaceReplicationState = "RollbackRequested"
+	WorkspaceReplicationStateRollingBack       WorkspaceReplicationState = "RollingBack"
+	WorkspaceReplicationStateSucceeded         WorkspaceReplicationState = "Succeeded"
+)
+
+func PossibleValuesForWorkspaceReplicationState() []string {
+	return []string{
+		string(WorkspaceReplicationStateCanceled),
+		string(WorkspaceReplicationStateDisableRequested),
+		string(WorkspaceReplicationStateDisabling),
+		string(WorkspaceReplicationStateEnableRequested),
+		string(WorkspaceReplicationStateEnabling),
+		string(WorkspaceReplicationStateFailed),
+		string(WorkspaceReplicationStateRollbackRequested),
+		string(WorkspaceReplicationStateRollingBack),
+		string(WorkspaceReplicationStateSucceeded),
+	}
+}
+
+func (s *WorkspaceReplicationState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkspaceReplicationState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseWorkspaceReplicationState(input string) (*WorkspaceReplicationState, error) {
+	vals := map[string]WorkspaceReplicationState{
+		"canceled":          WorkspaceReplicationStateCanceled,
+		"disablerequested":  WorkspaceReplicationStateDisableRequested,
+		"disabling":         WorkspaceReplicationStateDisabling,
+		"enablerequested":   WorkspaceReplicationStateEnableRequested,
+		"enabling":          WorkspaceReplicationStateEnabling,
+		"failed":            WorkspaceReplicationStateFailed,
+		"rollbackrequested": WorkspaceReplicationStateRollbackRequested,
+		"rollingback":       WorkspaceReplicationStateRollingBack,
+		"succeeded":         WorkspaceReplicationStateSucceeded,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := WorkspaceReplicationState(input)
+	return &out, nil
+}
+
 type WorkspaceSkuNameEnum string
 
 const (

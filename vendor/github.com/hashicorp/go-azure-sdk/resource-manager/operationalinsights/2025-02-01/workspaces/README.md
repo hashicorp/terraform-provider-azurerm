@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-02-01/workspaces` Documentation
 
-The `workspaces` SDK allows for interaction with Azure Resource Manager `operationalinsights` (API Version `2023-09-01`).
+The `workspaces` SDK allows for interaction with Azure Resource Manager `operationalinsights` (API Version `2025-02-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-02-01/workspaces"
 ```
 
 
@@ -45,6 +45,30 @@ ctx := context.TODO()
 id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 if err := client.DeleteThenPoll(ctx, id, workspaces.DefaultDeleteOperationOptions()); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `WorkspacesClient.Failback`
+
+```go
+ctx := context.TODO()
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
+
+if err := client.FailbackThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `WorkspacesClient.Failover`
+
+```go
+ctx := context.TODO()
+id := workspaces.NewLocationWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "workspaceName")
+
+if err := client.FailoverThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
