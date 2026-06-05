@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -684,14 +684,17 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 			}
 
 			id := tasks.NewTaskID(registryId.SubscriptionId, registryId.ResourceGroupName, registryId.RegistryName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			status := tasks.TaskStatusDisabled
@@ -729,7 +732,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 				params.Properties.LogTemplate = &model.LogTemplate
 			}
 
-			if err := client.CreateThenPoll(ctx, id, params); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, params, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -1528,7 +1531,7 @@ func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string
 
 		if credential.UserName != "" {
 			usernameType := tasks.SecretObjectTypeOpaque
-			if _, err := keyVaultParse.ParseNestedItemID(credential.UserName); err == nil {
+			if _, err := keyvault.ParseNestedItemID(credential.UserName, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny); err == nil {
 				usernameType = tasks.SecretObjectTypeVaultsecret
 			}
 			cred.UserName = &tasks.SecretObject{
@@ -1538,7 +1541,7 @@ func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string
 		}
 		if credential.Password != "" {
 			passwordType := tasks.SecretObjectTypeOpaque
-			if _, err := keyVaultParse.ParseNestedItemID(credential.Password); err == nil {
+			if _, err := keyvault.ParseNestedItemID(credential.Password, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny); err == nil {
 				passwordType = tasks.SecretObjectTypeVaultsecret
 			}
 			cred.Password = &tasks.SecretObject{
@@ -1578,7 +1581,7 @@ func patchRegistryTaskTriggerSourceTrigger(triggers []tasks.SourceTrigger, model
 
 	result := make([]tasks.SourceTrigger, len(triggers))
 	for i, trigger := range model.SourceTrigger {
-		t := (triggers)[i]
+		t := triggers[i]
 		if len(trigger.Auth) == 0 {
 			result[i] = t
 			continue

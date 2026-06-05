@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_test
@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -44,7 +45,7 @@ func TestAccCdnEndpointCustomDomain_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -65,7 +66,7 @@ func TestAccCdnEndpointCustomDomain_requiresImport(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -86,7 +87,7 @@ func TestAccCdnEndpointCustomDomain_httpsCdn(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -107,7 +108,7 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificate(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
 	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
 	r.preCheckUserManagedCertificate(t)
@@ -133,7 +134,7 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedSecret(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
 	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
 	r.preCheckUserManagedCertificate(t)
@@ -156,7 +157,7 @@ func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
 	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
 	r.preCheckUserManagedCertificate(t)
@@ -195,10 +196,10 @@ func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
 
 func (r CdnEndpointCustomDomainResource) preCheck(t *testing.T) {
 	if r.DNSZoneRG == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME` must be set for acceptance tests!")
+		t.Skipf("`ARM_TEST_DATA_RESOURCE_GROUP` must be set for acceptance tests!")
 	}
 	if r.DNSZoneName == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_NAME` must be set for acceptance tests!")
+		t.Skipf("`ARM_TEST_DNS_ZONE` must be set for acceptance tests!")
 	}
 }
 
@@ -220,11 +221,11 @@ func (r CdnEndpointCustomDomainResource) Exists(ctx context.Context, client *cli
 	resp, err := client.Cdn.CustomDomainsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CdnEndpointCustomDomainResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -242,7 +243,7 @@ func (r CdnEndpointCustomDomainResource) Destroy(ctx context.Context, client *cl
 		return nil, fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CdnEndpointCustomDomainResource) basic(data acceptance.TestData) string {

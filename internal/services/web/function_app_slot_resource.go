@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -40,7 +40,7 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: "The `azurerm_function_app_slot` resource has been superseded by the `azurerm_linux_function_app_slot` and `azurerm_windows_function_app_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_function_app_slot` resource has been superseded by the `azurerm_linux_function_app_slot` and `azurerm_windows_function_app_slot` resources. This resource will be removed in v5.0 of the AzureRM Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -221,7 +221,7 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 }
 
 func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,11 +231,9 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
 	}
 
-	log.Printf("[INFO] preparing arguments for AzureRM Function App Slot creation.")
-
 	id := parse.NewFunctionAppSlotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("function_app_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -248,7 +246,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	kind := "functionapp"
 	if osTypeRaw, ok := d.GetOk("os_type"); ok {
 		osType := osTypeRaw.(string)
@@ -281,10 +279,10 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:         utils.String(appServicePlanID),
-			Enabled:              utils.Bool(enabled),
-			HTTPSOnly:            utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			ServerFarmID:         pointer.To(appServicePlanID),
+			Enabled:              pointer.To(enabled),
+			HTTPSOnly:            pointer.To(httpsOnly),
+			DailyMemoryTimeQuota: pointer.To(int32(dailyMemoryTimeQuota)),
 			SiteConfig:           &siteConfig,
 		},
 	}
@@ -302,18 +300,18 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
+	d.SetId(id.ID())
+
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(id.ID())
-
 	authSettingsRaw := d.Get("auth_settings").([]interface{})
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
-		ID:                         utils.String(id.ID()),
+		ID:                         pointer.To(id.ID()),
 		SiteAuthSettingsProperties: &authSettings,
 	}
 
@@ -325,7 +323,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -339,7 +337,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	kind := "functionapp"
 	if osTypeRaw, ok := d.GetOk("os_type"); ok {
 		osType := osTypeRaw.(string)
@@ -381,10 +379,10 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:         utils.String(appServicePlanID),
-			Enabled:              utils.Bool(enabled),
-			HTTPSOnly:            utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			ServerFarmID:         pointer.To(appServicePlanID),
+			Enabled:              pointer.To(enabled),
+			HTTPSOnly:            pointer.To(httpsOnly),
+			DailyMemoryTimeQuota: pointer.To(int32(dailyMemoryTimeQuota)),
 			SiteConfig:           &siteConfig,
 		},
 	}
@@ -433,7 +431,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
 		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
-			ID:                         utils.String(d.Id()),
+			ID:                         pointer.To(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 
@@ -458,7 +456,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -519,8 +517,8 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	d.Set("os_type", osType)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := resp.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 
 	if props := resp.SiteProperties; props != nil {
@@ -608,7 +606,7 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func resourceFunctionAppSlotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -616,8 +614,6 @@ func resourceFunctionAppSlotDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting Function App Slot %q (Function App %q / Resource Group %q)", id.SlotName, id.SiteName, id.ResourceGroup)
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
@@ -694,9 +690,7 @@ func getFunctionAppSlotServiceTier(ctx context.Context, appServicePlanID string,
 		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanID, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.ServerFarmName, id.ResourceGroup)
-
-	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClient
+	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClientV1
 	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerFarmName)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanID, err)
@@ -732,7 +726,7 @@ func expandFunctionAppSlotConnectionStrings(d *pluginsdk.ResourceData) map[strin
 		csValue := vals["value"].(string)
 
 		output[csName] = &web.ConnStringValueTypePair{
-			Value: utils.String(csValue),
+			Value: pointer.To(csValue),
 			Type:  web.ConnectionStringType(csType),
 		}
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -69,6 +69,21 @@ func TestAccNatGateway_update(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
 				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("20"),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNatGateway_standardVTwo(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_nat_gateway", "test")
+	r := NatGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standardVTwo(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -207,4 +222,24 @@ resource "azurerm_nat_gateway_public_ip_prefix_association" "test" {
   public_ip_prefix_id = azurerm_public_ip_prefix.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (NatGatewayResource) standardVTwo(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-network-%d"
+  location = "%s"
+}
+
+resource "azurerm_nat_gateway" "test" {
+  name                = "acctestnatGateway-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "StandardV2"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

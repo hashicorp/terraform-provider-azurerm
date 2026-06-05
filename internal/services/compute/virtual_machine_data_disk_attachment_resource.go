@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -217,11 +217,13 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if d.IsNewResource() {
-		if existingIndex != -1 {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_data_disk_attachment", resourceId)
-		}
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if existingIndex != -1 {
+				return tf.ImportAsExistsError("azurerm_virtual_machine_data_disk_attachment", resourceId)
+			}
 
-		disks = append(disks, expandedDisk)
+			disks = append(disks, expandedDisk)
+		}
 	} else {
 		if existingIndex == -1 {
 			return fmt.Errorf("unable to find Disk %q attached to Virtual Machine %q ", name, parsedVirtualMachineId.String())
@@ -242,6 +244,7 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	// if there's too many disks we get a 409 back with:
 	//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
 	// which we're intentionally not wrapping, since the errors good.
+	// TODO: implement `CallbackThenPoll` on Create, requires updated resource ID implementing `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *parsedVirtualMachineId, *virtualMachine.Model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("updating %s with Disk %q: %+v", parsedVirtualMachineId, name, err)
 	}

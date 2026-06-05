@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks
@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/migration"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -69,11 +69,10 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
-			// Make this key vault key id and abstract everything from the string...
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultChildID,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 		},
 	}
@@ -91,7 +90,7 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	keyIdRaw := d.Get("key_vault_key_id").(string)
-	key, err := keyVaultParse.ParseNestedItemID(keyIdRaw)
+	key, err := keyvault.ParseNestedItemID(keyIdRaw, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return err
 	}
@@ -132,14 +131,18 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 
 	// make sure the key vault exists
 	subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionId, key.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionId, key.KeyVaultBaseURL)
 	if err != nil || keyVaultIdRaw == nil {
-		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseURL, err)
 	}
 
-	// Only throw the import error if the keysource value has been set to something other than default...
-	if params.Encryption != nil && params.Encryption.Value != nil && keySource != workspaces.KeySourceDefault {
-		return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", id.ID())
+	if d.IsNewResource() {
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			// Only throw the import error if the keysource value has been set to something other than default...
+			if params.Encryption != nil && params.Encryption.Value != nil && keySource != workspaces.KeySourceDefault {
+				return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", id.ID())
+			}
+		}
 	}
 
 	// We need to pull all of the custom params from the parent
@@ -153,17 +156,23 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 			KeySource:   pointer.To(workspaces.KeySourceMicrosoftPointKeyvault),
 			KeyName:     pointer.To(key.Name),
 			Keyversion:  pointer.To(key.Version),
-			Keyvaulturi: pointer.To(key.KeyVaultBaseUrl),
+			Keyvaulturi: pointer.To(key.KeyVaultBaseURL),
 		},
 	}
 
 	props := getProps(*workspace.Model, params)
 
-	if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
-		return fmt.Errorf("creating/updating Customer Managed Key for %s: %+v", *id, err)
+	if d.IsNewResource() {
+		if err = workspaceClient.CreateOrUpdateCallbackThenPoll(ctx, *id, props, sdk.SetIDCallback(meta, id, d)); err != nil {
+			return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
+			return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return databricksWorkspaceCustomerManagedKeyRead(d, meta)
 }
 
@@ -221,7 +230,7 @@ func databricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	d.Set("workspace_id", id.ID())
 
 	if keyVaultURI != "" {
-		key, err := keyVaultParse.NewNestedItemID(keyVaultURI, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
+		key, err := keyvault.NewNestedItemID(keyVaultURI, keyvault.NestedItemTypeKey, keyName, keyVersion)
 		if err == nil {
 			d.Set("key_vault_key_id", key.ID())
 		}
@@ -278,6 +287,7 @@ func getProps(workspace workspaces.Workspace, params *workspaces.WorkspaceCustom
 		Location: workspace.Location,
 		Sku:      workspace.Sku,
 		Properties: workspaces.WorkspaceProperties{
+			ComputeMode:            workspace.Properties.ComputeMode,
 			PublicNetworkAccess:    workspace.Properties.PublicNetworkAccess,
 			ManagedResourceGroupId: workspace.Properties.ManagedResourceGroupId,
 			Parameters:             params,

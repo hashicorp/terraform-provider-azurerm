@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -375,7 +375,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "TestNetworkProfile"
+    name    = "TestNetworkProfile-%[1]d"
     primary = true
 
     ip_configuration {

@@ -63,9 +63,20 @@ func (c P2sVpnGatewaysClient) GenerateVpnProfile(ctx context.Context, id commoni
 
 // GenerateVpnProfileThenPoll performs GenerateVpnProfile then polls until it's completed
 func (c P2sVpnGatewaysClient) GenerateVpnProfileThenPoll(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId, input P2SVpnProfileParameters) error {
+	return c.GenerateVpnProfileCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GenerateVpnProfileCallbackThenPoll performs GenerateVpnProfile, runs the optional callback function, then polls until it's completed
+func (c P2sVpnGatewaysClient) GenerateVpnProfileCallbackThenPoll(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId, input P2SVpnProfileParameters, callback func() error) error {
 	result, err := c.GenerateVpnProfile(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GenerateVpnProfile: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

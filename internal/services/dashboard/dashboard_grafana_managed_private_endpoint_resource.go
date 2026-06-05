@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dashboard
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedprivateendpointmodels"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -21,7 +22,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name dashboard_grafana_managed_private_endpoint -service-package-name dashboard -properties "name" -compare-values "subscription_id:grafana_id,resource_group_name:grafana_id,grafana_name:grafana_id"
+
 type ManagedPrivateEndpointResource struct{}
+
+var (
+	_ sdk.Resource             = ManagedPrivateEndpointResource{}
+	_ sdk.ResourceWithIdentity = ManagedPrivateEndpointResource{}
+)
+
+func (r ManagedPrivateEndpointResource) Identity() resourceids.ResourceId {
+	return &managedprivateendpointmodels.ManagedPrivateEndpointId{}
+}
 
 type ManagedPrivateEndpointModel struct {
 	Name                      string            `tfschema:"name"`
@@ -139,12 +151,14 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 			}
 			id := managedprivateendpointmodels.NewManagedPrivateEndpointID(subscriptionId, grafanaId.ResourceGroupName, grafanaId.GrafanaName, model.Name)
 
-			existing, err := client.ManagedPrivateEndpointsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ManagedPrivateEndpointsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			props := managedprivateendpointmodels.ManagedPrivateEndpointModel{
@@ -160,11 +174,14 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.ManagedPrivateEndpointsCreateThenPoll(ctx, id, props); err != nil {
+			if err := client.ManagedPrivateEndpointsCreateCallbackThenPoll(ctx, id, props, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -208,6 +225,10 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
 			return metadata.Encode(&state)
 		},
 	}
@@ -222,8 +243,6 @@ func (r ManagedPrivateEndpointResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			if err := client.ManagedPrivateEndpointsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

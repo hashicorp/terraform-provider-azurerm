@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,6 +6,8 @@ package network
 import (
 	"fmt"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -72,7 +74,7 @@ func resourceExpressRoutePortAuthorizationCreate(d *pluginsdk.ResourceData, meta
 
 	id := expressrouteportauthorizations.NewExpressRoutePortAuthorizationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_port_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -94,7 +96,7 @@ func resourceExpressRoutePortAuthorizationCreate(d *pluginsdk.ResourceData, meta
 	locks.ByID(portID.ID())
 	defer locks.UnlockByID(portID.ID())
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, properties, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

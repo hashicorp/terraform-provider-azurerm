@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -33,7 +33,8 @@ func (t TimeoutType) IngString() string {
 
 // GenLine generate a line for timeout if not exists
 func (t *TimeoutDiffItem) GenLine(rt string) string {
-	return fmt.Sprintf("* `%s` - (Defaults to %s) Used when %s the %s.",
+	return fmt.Sprintf(
+		"* `%s` - (Defaults to %s) Used when %s the %s.",
 		t.Type.String(),
 		t.ValueString(),
 		t.Type.IngString(),

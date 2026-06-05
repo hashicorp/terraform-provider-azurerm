@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web_test
@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -19,6 +21,9 @@ import (
 type AppServicePlanResource struct{}
 
 func TestAccAppServicePlan_basicWindows(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -36,6 +41,9 @@ func TestAccAppServicePlan_basicWindows(t *testing.T) {
 }
 
 func TestAccAppServicePlan_basicLinux(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -59,6 +67,9 @@ func TestAccAppServicePlan_basicLinux(t *testing.T) {
 }
 
 func TestAccAppServicePlan_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -74,6 +85,9 @@ func TestAccAppServicePlan_requiresImport(t *testing.T) {
 }
 
 func TestAccAppServicePlan_standardWindows(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -89,6 +103,9 @@ func TestAccAppServicePlan_standardWindows(t *testing.T) {
 }
 
 func TestAccAppServicePlan_premiumWindows(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -104,6 +121,9 @@ func TestAccAppServicePlan_premiumWindows(t *testing.T) {
 }
 
 func TestAccAppServicePlan_premiumWindowsUpdated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -127,6 +147,9 @@ func TestAccAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 }
 
 func TestAccAppServicePlan_completeWindows(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -152,6 +175,9 @@ func TestAccAppServicePlan_completeWindows(t *testing.T) {
 }
 
 func TestAccAppServicePlan_consumptionPlan(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -168,6 +194,9 @@ func TestAccAppServicePlan_consumptionPlan(t *testing.T) {
 }
 
 func TestAccAppServicePlan_linuxConsumptionPlan(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -183,6 +212,9 @@ func TestAccAppServicePlan_linuxConsumptionPlan(t *testing.T) {
 }
 
 func TestAccAppServicePlan_premiumConsumptionPlan(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -200,6 +232,9 @@ func TestAccAppServicePlan_premiumConsumptionPlan(t *testing.T) {
 }
 
 func TestAccAppServicePlan_basicWindowsContainer(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -219,6 +254,9 @@ func TestAccAppServicePlan_basicWindowsContainer(t *testing.T) {
 }
 
 func TestAccAppServicePlan_zoneRedundant(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -243,20 +281,20 @@ func (r AppServicePlanResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerFarmName)
+	resp, err := clients.Web.AppServicePlansClientV1.Get(ctx, id.ResourceGroup, id.ServerFarmName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving App Service Plan %q (Resource Group %q): %+v", id.ServerFarmName, id.ResourceGroup, err)
 	}
 
 	// The SDK defines 404 as an "ok" status code..
 	if utils.ResponseWasNotFound(resp.Response) {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r AppServicePlanResource) basicWindows(data acceptance.TestData) string {

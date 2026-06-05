@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -48,6 +48,7 @@ type ScheduledQueryRulesAlertV2Model struct {
 type ScheduledQueryRulesAlertV2ActionsModel struct {
 	ActionGroups     []string          `tfschema:"action_groups"`
 	CustomProperties map[string]string `tfschema:"custom_properties"`
+	EmailSubject     string            `tfschema:"email_subject"`
 }
 
 type ScheduledQueryRulesAlertV2CriteriaModel struct {
@@ -294,6 +295,11 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 							Type: pluginsdk.TypeString,
 						},
 					},
+					"email_subject": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 				},
 			},
 		},
@@ -419,13 +425,16 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Monitor.ScheduledQueryRulesV2Client
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := scheduledqueryrules.NewScheduledQueryRuleID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			kind := scheduledqueryrules.KindLogAlert
@@ -763,6 +772,16 @@ func expandScheduledQueryRulesAlertV2ActionsModel(inputList []ScheduledQueryRule
 		CustomProperties: &input.CustomProperties,
 	}
 
+	if input.EmailSubject != "" {
+		m := map[string]string{
+			"Email.Subject": input.EmailSubject,
+		}
+		output.ActionProperties = &m
+	} else {
+		m := map[string]string{}
+		output.ActionProperties = &m
+	}
+
 	return &output
 }
 
@@ -842,6 +861,12 @@ func flattenScheduledQueryRulesAlertV2ActionsModel(input *scheduledqueryrules.Ac
 
 	if input.CustomProperties != nil {
 		output.CustomProperties = *input.CustomProperties
+	}
+
+	if input.ActionProperties != nil {
+		if s, ok := (*input.ActionProperties)["Email.Subject"]; ok {
+			output.EmailSubject = s
+		}
 	}
 
 	return append(outputList, output)

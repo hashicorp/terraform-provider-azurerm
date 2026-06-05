@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -277,14 +277,17 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 			}
 
 			id := commonids.NewAppServiceEnvironmentID(subscriptionId, model.ResourceGroup, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			envelope := appserviceenvironments.AppServiceEnvironmentResource{
@@ -302,9 +305,11 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, envelope); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, envelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
+			metadata.SetID(id)
 
 			// Networking config cannot be sent in the initial create and must be updated post-creation.
 			aseNetworkConfig := appserviceenvironments.AseV3NetworkingConfiguration{
@@ -337,7 +342,6 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for Network Update for %s to complete: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -435,7 +439,7 @@ func (r AppServiceEnvironmentV3Resource) Delete() sdk.ResourceFunc {
 }
 
 func (r AppServiceEnvironmentV3Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AppServiceEnvironmentID
+	return commonids.ValidateAppServiceEnvironmentID
 }
 
 func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
@@ -449,7 +453,6 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state AppServiceEnvironmentV3Model
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -464,8 +467,6 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 			if model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
-
-			metadata.Logger.Infof("updating %s", id)
 
 			if metadata.ResourceData.HasChange("cluster_setting") {
 				model.Properties.ClusterSettings = expandClusterSettingsModel(state.ClusterSetting)

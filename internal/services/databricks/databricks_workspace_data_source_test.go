@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_test
@@ -60,7 +60,7 @@ func TestAccDatabricksWorkspaceDataSource_enhancedComplianceSecurity(t *testing.
 				check.That(data.ResourceName).Key("enhanced_security_compliance.#").HasValue("1"),
 				check.That(data.ResourceName).Key("enhanced_security_compliance.0.automatic_cluster_update_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("enhanced_security_compliance.0.compliance_security_profile_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("enhanced_security_compliance.0.compliance_security_profile_standards.#").HasValue("2"),
+				check.That(data.ResourceName).Key("enhanced_security_compliance.0.compliance_security_profile_standards.#").HasValue("5"),
 				check.That(data.ResourceName).Key("enhanced_security_compliance.0.enhanced_security_monitoring_enabled").HasValue("true"),
 			),
 		},
@@ -105,7 +105,7 @@ resource "azurerm_databricks_workspace" "test" {
   name                = "acctestDBW-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "standard"
+  sku                 = "premium"
 }
 
 data "azurerm_databricks_workspace" "test" {
@@ -260,7 +260,7 @@ resource "azurerm_databricks_workspace" "test" {
   enhanced_security_compliance {
     automatic_cluster_update_enabled      = true
     compliance_security_profile_enabled   = true
-    compliance_security_profile_standards = ["PCI_DSS", "HIPAA"]
+    compliance_security_profile_standards = ["PCI_DSS", "HIPAA", "HITRUST", "GERMANY_C5", "GERMANY_TISAX"]
     enhanced_security_monitoring_enabled  = true
   }
 }

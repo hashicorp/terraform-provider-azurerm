@@ -29,14 +29,14 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_share" "example" {
-  name                 = "sharename"
-  storage_account_name = azurerm_storage_account.example.name
-  quota                = 50
+  name               = "sharename"
+  storage_account_id = azurerm_storage_account.example.id
+  quota              = 50
 }
 
 resource "azurerm_storage_share_directory" "example" {
-  name             = "example"
-  storage_share_id = azurerm_storage_share.example.id
+  name              = "example"
+  storage_share_url = azurerm_storage_share.example.url
 }
 ```
 
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name (or path) of the Directory that should be created within this File Share. Changing this forces a new resource to be created.
 
-* `storage_share_id` - (Required) The Storage Share ID in which this file will be placed into. Changing this forces a new resource to be created.
+* `storage_share_url` - (Required) The Storage Share URL in which this file will be placed into. Changing this forces a new resource to be created.
 
 * `metadata` - (Optional) A mapping of metadata to assign to this Directory.
 

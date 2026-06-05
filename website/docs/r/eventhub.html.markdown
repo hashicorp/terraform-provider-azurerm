@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
 
-~> **Note:** `partition_count` cannot be changed unless Eventhub Namespace SKU is `Premium` and cannot be decreased.
+~> **Note:** When using a shared parent EventHub Namespace, `partition_count` cannot be changed unless the Eventhub Namespace SKU is `Premium`. When using a dedicated Event Hubs cluster, this restriction doesn't apply. In either case though, the `partition_count` cannot be decreased.
 
 ~> **Note:** When using a dedicated Event Hubs cluster, maximum value of `partition_count` is 1024. When using a shared parent EventHub Namespace, maximum value is 32.
 
@@ -101,6 +101,14 @@ A `destination` block supports the following:
 * `blob_container_name` - (Required) The name of the Container within the Blob Storage Account where messages should be archived.
 
 * `storage_account_id` - (Required) The ID of the Blob Storage Account where messages should be archived.
+
+* `storage_authentication_type` - (Optional) The identity used to authenticate the Blob Storage Account where messages should be archived. Possible values are `StorageSAS`, `SystemAssigned` or `UserAssigned`. Defaults to `StorageSAS`.
+
+* `storage_authentication_id` - (Optional) The id of the User Assigned Identity that is used to authenticate the Blob Storage Account where messages should be archived. 
+
+~> **Note:** The `SystemAssigned` or `UserAssigned` managed identity must be `enabled` on the parent eventhub namespace, in order for the capture feature to be configured.
+
+~> **Note:** The managed identity used by the capture feature must be granted the `Storage Blob Data Contributor` role.
 
 ## Attributes Reference
 

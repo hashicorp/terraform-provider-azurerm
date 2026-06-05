@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web_test
@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -19,6 +21,9 @@ import (
 type AppServiceActiveSlotResource struct{}
 
 func TestAccAppServiceActiveSlot_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
 	r := AppServiceActiveSlotResource{}
 
@@ -34,6 +39,9 @@ func TestAccAppServiceActiveSlot_basic(t *testing.T) {
 }
 
 func TestAccAppServiceActiveSlot_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
 	r := AppServiceActiveSlotResource{}
 
@@ -60,10 +68,10 @@ func (r AppServiceActiveSlotResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := clients.Web.AppServicesClientV1.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving App Service %q (Resource Group %s): %+v", id.SiteName, id.ResourceGroup, err)
 	}
@@ -74,7 +82,7 @@ func (r AppServiceActiveSlotResource) Exists(ctx context.Context, clients *clien
 
 	target := state.Attributes["resource_group_name"]
 
-	return utils.Bool(*resp.SlotSwapStatus.SourceSlotName == target), nil
+	return pointer.To(*resp.SlotSwapStatus.SourceSlotName == target), nil
 }
 
 func (AppServiceActiveSlotResource) basic(data acceptance.TestData) string {

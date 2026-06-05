@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -309,8 +310,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     pause_time_between_batches              = "PT30S"
   }
 
-  enable_automatic_updates = false
-
   depends_on = ["azurerm_lb_rule.test"]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, version)
@@ -368,15 +367,16 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func (r WindowsVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisites(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_public_ip" "source" {
   name                = "source-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "source" {
@@ -404,6 +404,46 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
   storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "blob"
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_public_ip" "source" {
+  name                = "source-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_network_interface" "source" {
+  name                = "sourcenic-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "source"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.source.id
+  }
+}
+
+resource "azurerm_storage_account" "test" {
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
@@ -458,11 +498,12 @@ resource "azurerm_image" "first" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Windows"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
-    size_gb  = 128
-    caching  = "None"
+    os_type      = "Windows"
+    os_state     = "Generalized"
+    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
+    size_gb      = 128
+    caching      = "None"
+    storage_type = "Standard_LRS"
   }
 }
 
@@ -472,11 +513,12 @@ resource "azurerm_image" "second" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Windows"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
-    size_gb  = 128
-    caching  = "None"
+    os_type      = "Windows"
+    os_state     = "Generalized"
+    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
+    size_gb      = 128
+    caching      = "None"
+    storage_type = "Standard_LRS"
   }
 
   depends_on = ["azurerm_image.first"]

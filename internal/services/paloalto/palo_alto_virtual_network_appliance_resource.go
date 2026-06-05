@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -91,14 +91,16 @@ func (r NetworkVirtualApplianceResource) Create() sdk.ResourceFunc {
 
 			loc := location.Normalize(pointer.From(hub.Model.Location))
 
-			existing, err := client.Get(ctx, id, networkvirtualappliances.DefaultGetOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, networkvirtualappliances.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			props := networkvirtualappliances.NetworkVirtualAppliancePropertiesFormat{
@@ -115,10 +117,9 @@ func (r NetworkVirtualApplianceResource) Create() sdk.ResourceFunc {
 				Properties: pointer.To(props),
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, appliance); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, appliance, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating Virtual Network Appliance for %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil

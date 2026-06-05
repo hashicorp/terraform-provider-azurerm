@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -9,18 +9,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePostgreSQLServerKey() *pluginsdk.Resource {
@@ -55,31 +55,31 @@ func resourcePostgreSQLServerKey() *pluginsdk.Resource {
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny),
 			},
 		},
 	}
 }
 
 func getPostgreSQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, subscriptionId string, keyVaultKeyURI string) (*string, error) {
-	keyVaultKeyID, err := keyVaultParse.ParseNestedItemID(keyVaultKeyURI)
+	keyVaultKeyID, err := keyvault.ParseNestedItemID(keyVaultKeyURI, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
 	if err != nil {
 		return nil, err
 	}
 	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyID.KeyVaultBaseUrl)
+	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyID.KeyVaultBaseURL)
 	if err != nil {
 		return nil, err
 	}
 	// function azure.GetKeyVaultIDFromBaseUrl returns nil with nil error when it does not find the keyvault by the keyvault URL
 	if keyVaultIDRaw == nil {
-		return nil, fmt.Errorf("cannot get the keyvault ID from keyvault URL %q", keyVaultKeyID.KeyVaultBaseUrl)
+		return nil, fmt.Errorf("cannot get the keyvault ID from keyvault URL %q", keyVaultKeyID.KeyVaultBaseURL)
 	}
 	keyVaultID, err := commonids.ParseKeyVaultID(*keyVaultIDRaw)
 	if err != nil {
 		return nil, err
 	}
-	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.VaultName, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
+	return pointer.To(fmt.Sprintf("%s_%s_%s", keyVaultID.VaultName, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
 }
 
 func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -107,22 +107,24 @@ func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta int
 		// This resource is a singleton, but its name can be anything.
 		// If you create a new key with different name with the old key, the service will not give you any warning but directly replace the old key with the new key.
 		// Therefore sometimes you cannot get the old key using the GET API since you may not know the name of the old key
-		resp, err := keysClient.List(ctx, *serverId)
-		if err != nil {
-			return fmt.Errorf("listing existing Keys in %s: %+v", serverId, err)
-		}
-		if resp.Model != nil && len(*resp.Model) >= 1 {
-			keys := *resp.Model
-			if rawId := keys[0].Id; rawId != nil && *rawId != "" {
-				id, err := serverkeys.ParseKeyID(*rawId)
-				if err != nil {
-					return fmt.Errorf("parsing existing Server Key ID %q: %+v", *rawId, err)
-				}
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := keysClient.List(ctx, *serverId)
+			if err != nil {
+				return fmt.Errorf("listing existing Keys in %s: %+v", serverId, err)
+			}
+			if resp.Model != nil && len(*resp.Model) >= 1 {
+				keys := *resp.Model
+				if rawId := keys[0].Id; rawId != nil && *rawId != "" {
+					id, err := serverkeys.ParseKeyID(*rawId)
+					if err != nil {
+						return fmt.Errorf("parsing existing Server Key ID %q: %+v", *rawId, err)
+					}
 
-				// API allows adding same key again with Create action, which would trigger revalidation of the key on the server.
-				// This is required to revalidate Replica server after creation.
-				if *rawId != id.ID() {
-					return tf.ImportAsExistsError("azurerm_postgresql_server_key", id.ID())
+					// API allows adding same key again with Create action, which would trigger revalidation of the key on the server.
+					// This is required to revalidate Replica server after creation.
+					if *rawId != id.ID() {
+						return tf.ImportAsExistsError("azurerm_postgresql_server_key", id.ID())
+					}
 				}
 			}
 		}
@@ -131,15 +133,21 @@ func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta int
 	param := serverkeys.ServerKey{
 		Properties: &serverkeys.ServerKeyProperties{
 			ServerKeyType: serverkeys.ServerKeyTypeAzureKeyVault,
-			Uri:           utils.String(d.Get("key_vault_key_id").(string)),
+			Uri:           pointer.To(d.Get("key_vault_key_id").(string)),
 		},
 	}
 
-	if err = keysClient.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := keysClient.CreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := keysClient.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourcePostgreSQLServerKeyRead(d, meta)
 }
 

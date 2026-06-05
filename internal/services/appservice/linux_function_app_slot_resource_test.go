@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -978,6 +978,23 @@ func TestAccLinuxFunctionAppSlot_appStackNode(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionAppSlot_appStackNode24(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackNode(data, SkuStandardPlan, "24"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|24"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -1025,6 +1042,15 @@ func TestAccLinuxFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|22"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.appStackNode(data, SkuStandardPlan, "24"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|24"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1549,6 +1575,42 @@ func TestAccLinuxFunctionAppSlot_basicWithTlsOnePointThree(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionAppSlot_tlsSettingUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.tlsCipherSuiteConfigured(data, SkuStandardPlan, "TLS_AES_128_GCM_SHA256"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.tlsCipherSuiteConfigured(data, SkuStandardPlan, "TLS_AES_256_GCM_SHA384"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // Configs
 
 func (r LinuxFunctionAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -1587,6 +1649,27 @@ resource "azurerm_linux_function_app_slot" "test" {
   site_config {}
 }
 `, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) tlsCipherSuiteConfigured(data acceptance.TestData, planSku string, tlsCipherSuiteValue string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    minimum_tls_cipher_suite = "%s"
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, tlsCipherSuiteValue)
 }
 
 func (r LinuxFunctionAppSlotResource) healthCheckPath(data acceptance.TestData, planSku string) string {
@@ -2487,7 +2570,7 @@ resource "azurerm_linux_function_app_slot" "test" {
   builtin_logging_enabled            = false
   client_certificate_enabled         = true
   client_certificate_mode            = "Required"
-  client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
+  client_certificate_exclusion_paths = ""
 
   connection_string {
     name  = "Second"
@@ -2575,8 +2658,9 @@ resource "azurerm_linux_function_app_slot" "test" {
       python_version = "3.9"
     }
 
-    minimum_tls_version     = "1.1"
-    scm_minimum_tls_version = "1.1"
+    minimum_tls_version      = "1.1"
+    scm_minimum_tls_version  = "1.1"
+    minimum_tls_cipher_suite = "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
 
     cors {
       allowed_origins = [
@@ -2670,7 +2754,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 
   builtin_logging_enabled            = false
   client_certificate_enabled         = true
-  client_certificate_mode            = "OptionalInteractiveUser"
+  client_certificate_mode            = "Required"
   client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
 
   connection_string {

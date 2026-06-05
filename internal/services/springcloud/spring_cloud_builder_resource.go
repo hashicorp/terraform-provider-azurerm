@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -123,14 +124,16 @@ func resourceSpringCloudBuildServiceBuilderCreateUpdate(d *pluginsdk.ResourceDat
 	id := parse.NewSpringCloudBuildServiceBuilderID(subscriptionId, springId.ResourceGroup, springId.SpringName, "default", d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_builder", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_spring_cloud_builder", id.ID())
+			}
 		}
 	}
 
@@ -145,11 +148,12 @@ func resourceSpringCloudBuildServiceBuilderCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSpringCloudBuildServiceBuilderRead(d, meta)
 }
 
@@ -212,7 +216,7 @@ func expandBuildServiceBuilderBuildPacksGroupPropertiesArray(input []interface{}
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, appplatform.BuildpacksGroupProperties{
-			Name:       utils.String(v["name"].(string)),
+			Name:       pointer.To(v["name"].(string)),
 			Buildpacks: expandBuildServiceBuilderBuildPackPropertiesArray(v["build_pack_ids"].([]interface{})),
 		})
 	}
@@ -225,8 +229,8 @@ func expandBuildServiceBuilderStackProperties(input []interface{}) *appplatform.
 	}
 	v := input[0].(map[string]interface{})
 	return &appplatform.StackProperties{
-		ID:      utils.String(v["id"].(string)),
-		Version: utils.String(v["version"].(string)),
+		ID:      pointer.To(v["id"].(string)),
+		Version: pointer.To(v["version"].(string)),
 	}
 }
 
@@ -234,7 +238,7 @@ func expandBuildServiceBuilderBuildPackPropertiesArray(input []interface{}) *[]a
 	results := make([]appplatform.BuildpackProperties, 0)
 	for _, item := range input {
 		results = append(results, appplatform.BuildpackProperties{
-			ID: utils.String(item.(string)),
+			ID: pointer.To(item.(string)),
 		})
 	}
 	return &results

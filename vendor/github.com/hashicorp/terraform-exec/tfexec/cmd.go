@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"iter"
 	"os"
 	"os/exec"
 	"runtime"
@@ -217,53 +218,70 @@ func (tf *Terraform) runTerraformCmdJSON(ctx context.Context, cmd *exec.Cmd, v i
 	return dec.Decode(v)
 }
 
-func (tf *Terraform) runTerraformCmdJSONLog(ctx context.Context, cmd *exec.Cmd) *LogMsgEmitter {
+func (tf *Terraform) runTerraformCmdJSONLog(ctx context.Context, cmd *exec.Cmd) iter.Seq[NextMessage] {
 	pr, pw := io.Pipe()
 	tf.SetStdout(pw)
 
+	emitter := newLogMsgEmitter(pr)
+
 	go func() {
-		_ = tf.runTerraformCmd(ctx, cmd)
-		// TODO: handle error
-		_ = pr.Close()
-		// TODO: handle error
-		_ = pw.Close()
-		// TODO: handle error
+		err := tf.runTerraformCmd(ctx, cmd)
+		emitter.done <- errors.Join(err, pw.Close())
 	}()
 
-	return newLogMsgEmitter(pr)
-}
-
-func newLogMsgEmitter(stdout io.ReadCloser) *LogMsgEmitter {
-	return &LogMsgEmitter{
-		scanner:            bufio.NewScanner(stdout),
-		stdoutReaderCloser: stdout,
+	return func(yield func(msg NextMessage) bool) {
+		for {
+			nextMsg := emitter.NextMessage()
+			ok := yield(nextMsg)
+			if !ok || nextMsg.Msg == nil {
+				return
+			}
+		}
 	}
 }
 
-type LogMsgEmitter struct {
-	scanner            *bufio.Scanner
-	stdoutReaderCloser io.Closer
+func newLogMsgEmitter(stdoutReader io.ReadCloser) *logMsgEmitter {
+	return &logMsgEmitter{
+		scanner:      bufio.NewScanner(stdoutReader),
+		stdoutReader: stdoutReader,
+		done:         make(chan error, 1),
+	}
 }
 
-// NextMessage returns next decoded message along with true until the last one.
+type logMsgEmitter struct {
+	scanner      *bufio.Scanner
+	stdoutReader io.Closer
+	done         chan error
+}
+
+type NextMessage struct {
+	Msg tfjson.LogMsg
+	Err error
+}
+
+// NextMessage returns next decoded message, if any, along with any errors.
 // Stdout reader is closed when the last message is received.
 //
-// Error returned can be related to decoding of the message (nil, true, error)
-// or closing of stdout reader (nil, false, error).
+// Error returned can be related to decoding of the message, the Terraform command
+// or closing of stdout reader.
 //
 // Any error coming from Terraform (such as wrong configuration syntax) is
 // represented as LogMsg of Level [tfjson.Error].
-func (e *LogMsgEmitter) NextMessage() (tfjson.LogMsg, bool, error) {
-	ok := e.scanner.Scan()
-	if !ok {
-		return nil, ok, nil
+func (e *logMsgEmitter) NextMessage() NextMessage {
+	if e.scanner.Scan() {
+		msg, err := tfjson.UnmarshalLogMessage(e.scanner.Bytes())
+		return NextMessage{
+			Msg: msg,
+			Err: err,
+		}
 	}
-	msg, err := tfjson.UnmarshalLogMessage(e.scanner.Bytes())
-	return msg, true, err
-}
 
-func (e *LogMsgEmitter) Err() error {
-	return e.scanner.Err()
+	err := <-e.done
+	err = errors.Join(err, e.scanner.Err(), e.stdoutReader.Close())
+	return NextMessage{
+		Msg: nil,
+		Err: err,
+	}
 }
 
 // mergeUserAgent does some minor deduplication to ensure we aren't

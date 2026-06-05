@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iotcentral
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -16,12 +17,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceIotCentralApplication() *pluginsdk.Resource {
@@ -114,15 +115,18 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	defer cancel()
 
 	id := apps.NewIotAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_iotcentral_application", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_iotcentral_application", id.ID())
+		}
 	}
 
 	inputs := apps.OperationInputs{
@@ -167,9 +171,10 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, app); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, app, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// Public Network Access can only be disabled after creation
 	if !d.Get("public_network_access_enabled").(bool) {
@@ -180,7 +185,6 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceIotCentralAppRead(d, meta)
 }
 
@@ -204,11 +208,11 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("sub_domain") {
-		existing.Model.Properties.Subdomain = utils.String(d.Get("sub_domain").(string))
+		existing.Model.Properties.Subdomain = pointer.To(d.Get("sub_domain").(string))
 	}
 
 	if d.HasChange("display_name") {
-		existing.Model.Properties.DisplayName = utils.String(d.Get("display_name").(string))
+		existing.Model.Properties.DisplayName = pointer.To(d.Get("display_name").(string))
 	}
 
 	if d.HasChange("sku") {
@@ -218,7 +222,7 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("template") {
-		existing.Model.Properties.Template = utils.String(d.Get("template").(string))
+		existing.Model.Properties.Template = pointer.To(d.Get("template").(string))
 	}
 
 	if d.HasChange("tags") {

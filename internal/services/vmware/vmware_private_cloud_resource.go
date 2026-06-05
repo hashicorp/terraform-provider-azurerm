@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package vmware
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVmwarePrivateCloud() *pluginsdk.Resource {
@@ -209,14 +208,17 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 	defer cancel()
 
 	id := privateclouds.NewPrivateCloudID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_vmware_private_cloud", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vmware_private_cloud", id.ID())
+		}
 	}
 
 	internet := privateclouds.InternetEnumDisabled
@@ -235,8 +237,8 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 			},
 			NetworkBlock:    d.Get("network_subnet_cidr").(string),
 			Internet:        &internet,
-			NsxtPassword:    utils.String(d.Get("nsxt_password").(string)),
-			VcenterPassword: utils.String(d.Get("vcenter_password").(string)),
+			NsxtPassword:    pointer.To(d.Get("nsxt_password").(string)),
+			VcenterPassword: pointer.To(d.Get("vcenter_password").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -245,6 +247,9 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	// TODO:
+	// @sreallymatt: this can likely be removed in favour of using polling methods from the SDK, however,
+	// we have no capacity to test this resource at the moment so leaving it be for now.
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
