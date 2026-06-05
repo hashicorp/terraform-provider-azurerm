@@ -348,6 +348,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			EnabledForDeployment:         &enabledForDeployment,
 			EnabledForDiskEncryption:     &enabledForDiskEncryption,
 			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
+			EnableRbacAuthorization:      pointer.To(d.Get("rbac_authorization_enabled").(bool)),
 			NetworkAcls:                  networkAcls,
 
 			// @tombuildsstuff: as of 2020-12-15 this is now defaulted on, and appears to be so in all regions
@@ -356,10 +357,6 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			EnableSoftDelete: pointer.To(true),
 		},
 		Tags: tags.Expand(t),
-	}
-
-	if v, ok := d.GetOk("rbac_authorization_enabled"); ok {
-		parameters.Properties.EnableRbacAuthorization = pointer.To(v.(bool))
 	}
 
 	if !features.FivePointOh() {
