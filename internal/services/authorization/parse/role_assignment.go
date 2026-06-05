@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
@@ -214,13 +215,17 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 	return &roleAssignmentId, nil
 }
 
-func RoleAssignmentName(scope string, principalId string, roleDefinitionId string) string {
+func RoleAssignmentName(scope string, principalId string, roleDefinitionId string) (string, error) {
 	namespace := uuid.Must(uuid.FromString("11fb06fb-712d-4ddd-98c7-e71bbd588830"))
 
 	normalizedScope := strings.TrimSuffix(strings.ToLower(scope), "/")
 	normalizedPrincipalId := strings.ToLower(principalId)
-	normalizedRoleDefinitionId := strings.ToLower(roleDefinitionId)
+	scopedRoleDefinitionId, err := roledefinitions.ParseScopedRoleDefinitionID(roleDefinitionId)
+	if err != nil {
+		return "", fmt.Errorf("parsing role definition ID %q: %+v", roleDefinitionId, err)
+	}
+	normalizedRoleDefinitionId := strings.ToLower(scopedRoleDefinitionId.RoleDefinitionId)
 	str := fmt.Sprintf("%s-%s-%s", normalizedScope, normalizedPrincipalId, normalizedRoleDefinitionId)
 
-	return uuid.NewV5(namespace, str).String()
+	return uuid.NewV5(namespace, str).String(), nil
 }

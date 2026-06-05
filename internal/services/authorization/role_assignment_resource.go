@@ -196,7 +196,10 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	principalId := d.Get("principal_id").(string)
 
 	if name == "" {
-		name = parse.RoleAssignmentName(scopeId.Scope, principalId, roleDefinitionId)
+		name, err = parse.RoleAssignmentName(scopeId.Scope, principalId, roleDefinitionId)
+		if err != nil {
+			return fmt.Errorf("generating role assignment name: %+v", err)
+		}
 	}
 
 	tenantId := ""
