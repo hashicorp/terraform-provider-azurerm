@@ -1057,7 +1057,7 @@ resource "azurerm_virtual_network" "test" {
     private_link_service_network_policies_enabled = false
     private_endpoint_network_policies             = "Enabled"
     %[3]s
-    service_endpoint_policy_ids                   = [azurerm_subnet_service_endpoint_storage_policy.test.id]
+    service_endpoint_policy_ids = [azurerm_subnet_service_endpoint_storage_policy.test.id]
 
     delegation {
       name = "nginx"
@@ -1075,7 +1075,7 @@ resource "azurerm_virtual_network" "test" {
     address_prefixes                              = ["10.0.2.0/24"]
     private_link_service_network_policies_enabled = false
     %[4]s
-    service_endpoint_policy_ids                   = [azurerm_subnet_service_endpoint_storage_policy.test.id]
+    service_endpoint_policy_ids = [azurerm_subnet_service_endpoint_storage_policy.test.id]
 
     delegation {
       name = "containers"

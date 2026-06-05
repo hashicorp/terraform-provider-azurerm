@@ -376,7 +376,6 @@ func resourceSubnet() *pluginsdk.Resource {
 			ConflictsWith: []string{"service_endpoint"},
 		}
 		resource.Schema["service_endpoint"].ConflictsWith = []string{"service_endpoints"}
-		// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
 		resource.Schema["service_endpoint"].Computed = true
 	}
 

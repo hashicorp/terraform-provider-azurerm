@@ -155,7 +155,7 @@ The `subnet` block supports:
 
 -> **Note:** If you declare the subnet inline inside `azurerm_virtual_network`, set `route_table_id` in that `subnet` block — do not also create an `azurerm_subnet_route_table_association` for the same subnet. The association resource is for when you manage the subnet as a separate `azurerm_subnet` resource.
 
-* `service_endpoint` - (Optional) One or more `service_endpoint` blocks as defined below.
+* `service_endpoint` - (Optional) A `service_endpoint` as defined below.
 
 * `service_endpoint_policy_ids` - (Optional) The list of IDs of Service Endpoint Policies to associate with the subnet.
 
@@ -163,7 +163,7 @@ The `subnet` block supports:
 
 A `service_endpoint` block supports the following:
 
-* `service` - (Required) The name of the Service endpoint to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage`, `Microsoft.Storage.Global` and `Microsoft.Web`.
+* `service` - (Required) The name of the Service endpoint to associate with the subnet. Possible values are `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.CognitiveService`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage`, `Microsoft.Storage.Global`, and `Microsoft.Web`.
 
 * `network_identifier` - (Optional) The ARM resource ID of the network identifier to associate with the service endpoint.
 
