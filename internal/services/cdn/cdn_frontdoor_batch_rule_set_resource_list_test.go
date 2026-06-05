@@ -62,7 +62,7 @@ provider "azurerm" {
 list "azurerm_cdn_frontdoor_batch_rule_set" "list" {
   provider = azurerm
   config {
-		cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+    cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
   }
 }
 `, r.basic(data))
