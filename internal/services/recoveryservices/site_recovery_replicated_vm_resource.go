@@ -46,10 +46,11 @@ import (
 
 func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSiteRecoveryReplicatedItemCreate,
-		Read:   resourceSiteRecoveryReplicatedItemRead,
-		Update: resourceSiteRecoveryReplicatedItemUpdate,
-		Delete: resourceSiteRecoveryReplicatedItemDelete,
+		Create:        resourceSiteRecoveryReplicatedItemCreate,
+		Read:          resourceSiteRecoveryReplicatedItemRead,
+		Update:        resourceSiteRecoveryReplicatedItemUpdate,
+		Delete:        resourceSiteRecoveryReplicatedItemDelete,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceSiteRecoveryReplicatedVMCustomizeDiff),
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ReplicationProtectedItemID(id)
 			return err
@@ -207,21 +208,18 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						"disk_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"staging_storage_account_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: commonids.ValidateStorageAccountID,
 						},
 
 						"target_resource_group_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: commonids.ValidateResourceGroupID,
 						},
 
@@ -240,7 +238,6 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						"target_disk_encryption_set_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ForceNew:     true,
 							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 						},
 
@@ -414,6 +411,66 @@ func diskEncryptionResource() *pluginsdk.Resource {
 	}
 
 	return args
+}
+
+func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	if !d.HasChange("managed_disk") {
+		return nil
+	}
+
+	oldRaw, newRaw := d.GetChange("managed_disk")
+	oldDisks, ok := oldRaw.(*pluginsdk.Set)
+	if !ok || oldDisks.Len() == 0 {
+		return nil
+	}
+
+	newDisks, ok := newRaw.(*pluginsdk.Set)
+	if !ok {
+		return nil
+	}
+
+	if siteRecoveryReplicatedVMManagedDiskChangeRequiresNew(oldDisks.List(), newDisks.List()) {
+		return d.ForceNew("managed_disk")
+	}
+
+	return nil
+}
+
+func siteRecoveryReplicatedVMManagedDiskChangeRequiresNew(oldDisks, newDisks []interface{}) bool {
+	if len(oldDisks) != len(newDisks) {
+		return true
+	}
+
+	newDisksById := make(map[string]map[string]interface{}, len(newDisks))
+	for _, raw := range newDisks {
+		disk := raw.(map[string]interface{})
+		newDisksById[strings.ToLower(siteRecoveryReplicatedVMManagedDiskValue(disk, "disk_id"))] = disk
+	}
+
+	for _, raw := range oldDisks {
+		oldDisk := raw.(map[string]interface{})
+		diskId := strings.ToLower(siteRecoveryReplicatedVMManagedDiskValue(oldDisk, "disk_id"))
+		newDisk, ok := newDisksById[diskId]
+		if !ok {
+			return true
+		}
+
+		for _, field := range []string{"staging_storage_account_id", "target_resource_group_id", "target_disk_encryption_set_id"} {
+			if siteRecoveryReplicatedVMManagedDiskValue(oldDisk, field) != siteRecoveryReplicatedVMManagedDiskValue(newDisk, field) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func siteRecoveryReplicatedVMManagedDiskValue(disk map[string]interface{}, field string) string {
+	if value, ok := disk[field].(string); ok {
+		return value
+	}
+
+	return ""
 }
 
 func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1013,12 +1070,62 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		if v, ok := m["disk_id"]; ok {
-			buf.WriteString(strings.ToLower(v.(string)))
+		for _, field := range []string{"disk_id", "staging_storage_account_id", "target_resource_group_id"} {
+			if fieldValue, ok := m[field].(string); ok {
+				buf.WriteString(strings.ToLower(fieldValue))
+			}
+			buf.WriteString("|")
 		}
+
+		for _, field := range []string{"target_disk_type", "target_replica_disk_type"} {
+			if fieldValue, ok := m[field].(string); ok {
+				buf.WriteString(fieldValue)
+			}
+			buf.WriteString("|")
+		}
+
+		if fieldValue, ok := m["target_disk_encryption_set_id"].(string); ok {
+			buf.WriteString(strings.ToLower(fieldValue))
+		}
+		buf.WriteString("|")
+		siteRecoveryReplicatedVMAppendTargetDiskEncryptionHash(&buf, m["target_disk_encryption"])
 	}
 
 	return pluginsdk.HashString(buf.String())
+}
+
+func siteRecoveryReplicatedVMAppendTargetDiskEncryptionHash(buf *bytes.Buffer, input interface{}) {
+	encryptionList, ok := input.([]interface{})
+	if !ok || len(encryptionList) == 0 {
+		return
+	}
+
+	encryption, ok := encryptionList[0].(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	siteRecoveryReplicatedVMAppendDiskEncryptionKeyHash(buf, encryption, "disk_encryption_key", "secret_url", "vault_id")
+	siteRecoveryReplicatedVMAppendDiskEncryptionKeyHash(buf, encryption, "key_encryption_key", "key_url", "vault_id")
+}
+
+func siteRecoveryReplicatedVMAppendDiskEncryptionKeyHash(buf *bytes.Buffer, encryption map[string]interface{}, blockName, firstField, secondField string) {
+	keyList, ok := encryption[blockName].([]interface{})
+	if !ok || len(keyList) == 0 {
+		return
+	}
+
+	key, ok := keyList[0].(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	for _, field := range []string{firstField, secondField} {
+		if fieldValue, ok := key[field].(string); ok {
+			buf.WriteString(fieldValue)
+		}
+		buf.WriteString("|")
+	}
 }
 
 func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (*replicationprotecteditems.ReplicationProtectedItem, error) {
