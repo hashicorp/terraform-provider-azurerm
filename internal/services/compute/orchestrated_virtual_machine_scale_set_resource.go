@@ -361,6 +361,15 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				return false
 			}),
 
+			// encryption_at_host_enabled requires a full VM profile
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				_, hasSkuName := diff.GetOk("sku_name")
+				if v, ok := diff.GetOk("encryption_at_host_enabled"); ok && v.(bool) && !hasSkuName {
+					return fmt.Errorf("`sku_name` must be configured when `encryption_at_host_enabled` is set")
+				}
+				return nil
+			}),
+
 			// SKU Profile validation
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				skuName, hasSkuName := diff.GetOk("sku_name")
@@ -882,13 +891,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		props.Properties.VirtualMachineProfile = &virtualMachineProfile
-	}
-
-	// In legacy mode, send VirtualMachineProfile only when SecurityProfile is needed.
-	if isLegacy && virtualMachineProfile.SecurityProfile != nil {
-		props.Properties.VirtualMachineProfile = &virtualmachinescalesets.VirtualMachineScaleSetVMProfile{
-			SecurityProfile: virtualMachineProfile.SecurityProfile,
-		}
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {

@@ -5,6 +5,7 @@ package compute_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -178,13 +179,9 @@ func TestAccOrchestratedVirtualMachineScaleSet_legacyEncryptionAtHost(t *testing
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.legacyEncryptionAtHost(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("encryption_at_host_enabled").HasValue("true"),
-			),
+			Config:      r.legacyEncryptionAtHost(data),
+			ExpectError: regexp.MustCompile("`sku_name` must be configured when `encryption_at_host_enabled` is set"),
 		},
-		data.ImportStep("extensions_time_budget", "max_bid_price", "priority"),
 	})
 }
 
