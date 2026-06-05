@@ -79,12 +79,19 @@ func (r CognitiveAccountConnectionApiKeyResource) Arguments() map[string]*plugin
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(accountconnectionresource.ConnectionCategoryAIServices),
+				string(accountconnectionresource.ConnectionCategoryApiManagement),
 				string(accountconnectionresource.ConnectionCategoryApiKey),
+				string(accountconnectionresource.ConnectionCategoryAppConfig),
 				string(accountconnectionresource.ConnectionCategoryAppInsights),
 				string(accountconnectionresource.ConnectionCategoryAzureOpenAI),
+				string(accountconnectionresource.ConnectionCategoryBingLLMSearch),
+				string(accountconnectionresource.ConnectionCategoryCognitiveService),
 				string(accountconnectionresource.ConnectionCategoryCognitiveSearch),
+				string(accountconnectionresource.ConnectionCategoryGroundingWithBingSearch),
 				string(accountconnectionresource.ConnectionCategoryGroundingWithCustomSearch),
+				string(accountconnectionresource.ConnectionCategoryModelGateway),
 				string(accountconnectionresource.ConnectionCategoryOpenAI),
+				string(accountconnectionresource.ConnectionCategoryPinecone),
 				string(accountconnectionresource.ConnectionCategorySerp),
 				string(accountconnectionresource.ConnectionCategoryServerless),
 			}, false),
@@ -115,12 +122,10 @@ func (r CognitiveAccountConnectionApiKeyResource) CustomizeDiff() sdk.ResourceFu
 				return fmt.Errorf("decoding diff: %+v", err)
 			}
 
-			switch model.Category {
-			case string(accountconnectionresource.ConnectionCategoryOpenAI), string(accountconnectionresource.ConnectionCategorySerp):
-				return nil
-			}
-
-			if metadata.ResourceDiff.GetRawConfig().GetAttr("target").IsNull() {
+			if model.Category != string(accountconnectionresource.ConnectionCategoryOpenAI) &&
+				model.Category != string(accountconnectionresource.ConnectionCategoryPinecone) &&
+				model.Category != string(accountconnectionresource.ConnectionCategorySerp) &&
+				metadata.ResourceDiff.GetRawConfig().GetAttr("target").IsNull() {
 				return fmt.Errorf("`target` must be specified when `category` is `%s`", model.Category)
 			}
 
@@ -285,8 +290,10 @@ func (r CognitiveAccountConnectionApiKeyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("unexpected properties type for %s", *id)
 			}
 
-			props.Credentials = &accountconnectionresource.ConnectionApiKey{
-				Key: pointer.To(model.ApiKey),
+			if metadata.ResourceData.HasChange("api_key") {
+				props.Credentials = &accountconnectionresource.ConnectionApiKey{
+					Key: pointer.To(model.ApiKey),
+				}
 			}
 
 			if metadata.ResourceData.HasChange("target") {

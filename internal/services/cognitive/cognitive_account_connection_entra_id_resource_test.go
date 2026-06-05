@@ -66,6 +66,13 @@ func TestAccCognitiveAccountConnectionEntraID_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("metadata"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 	})
 }
@@ -154,6 +161,90 @@ func TestAccCognitiveAccountConnectionEntraID_databricksCategory(t *testing.T) {
 	})
 }
 
+func TestAccCognitiveAccountConnectionEntraID_apiManagementCategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.apiManagementCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionEntraID_appConfigCategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appConfigCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionEntraID_cognitiveServiceCategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cognitiveServiceCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionEntraID_managedOnlineEndpointCategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedOnlineEndpointCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionEntraID_microsoftFabricCategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.microsoftFabricCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionEntraID_sharepointCategory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sharepointCategory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (r CognitiveAccountConnectionEntraIdResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := accountconnectionresource.ParseConnectionID(state.ID)
 	if err != nil {
@@ -176,7 +267,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                       = "acctest-aiservices-%[1]d"
+  name                       = "acctest-cognitiveaccount-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -217,7 +308,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "openai" {
-  name                = "acctest-openai-%[2]d"
+  name                = "acctest-cognitiveaccount-openai-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "OpenAI"
@@ -269,6 +360,12 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
   cognitive_account_id = azurerm_cognitive_account.test.id
   category             = "Databricks"
   target               = "https://workspace2-%[2]d.databricks.net/"
+
+  metadata = {
+    "ApiType" : "Azure",
+    "azure_databricks_connection_type" : "job",
+    "job_id" : "123"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -282,7 +379,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "aiservices" {
-  name                       = "acctest-aisvc2-%[2]d"
+  name                       = "acctest-cognitiveaccount2-%[2]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -426,6 +523,112 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
   cognitive_account_id = azurerm_cognitive_account.test.id
   category             = "Databricks"
   target               = "https://workspace%[2]d.databricks.net/"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionEntraIdResource) apiManagementCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_entra_id" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "ApiManagement"
+  target               = "https://api-management.example.com/"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionEntraIdResource) appConfigCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_entra_id" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "AppConfig"
+  target               = "https://app-config.example.com/"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionEntraIdResource) cognitiveServiceCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_entra_id" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "CognitiveService"
+  target               = "https://cognitive-service.example.com/"
+
+  metadata = {
+    kind = "AIServices"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionEntraIdResource) managedOnlineEndpointCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_entra_id" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "ManagedOnlineEndpoint"
+  target               = "https://endpoint.example.com/"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionEntraIdResource) microsoftFabricCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_entra_id" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "MicrosoftFabric"
+  target               = "https://fabric.microsoft.com/"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionEntraIdResource) sharepointCategory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_connection_entra_id" "test" {
+  name                 = "acctest-conn-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "Sharepoint"
+  target               = "https://contoso.sharepoint.com/"
 }
 `, r.template(data), data.RandomInteger)
 }

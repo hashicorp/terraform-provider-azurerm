@@ -67,6 +67,13 @@ func TestAccCognitiveAccountConnectionAccountKey_update(t *testing.T) {
 			),
 		},
 		data.ImportStep("account_key", "metadata"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("account_key", "metadata"),
 	})
 }
 
@@ -92,7 +99,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                       = "acctest-aiservices-%[1]d"
+  name                       = "acctest-cognitiveaccount-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -116,7 +123,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctsa%[3]d"
+  name                     = "acctsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -136,7 +143,7 @@ resource "azurerm_cognitive_account_connection_account_key" "test" {
     location   = azurerm_storage_account.test.location
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger%1000000)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r CognitiveAccountConnectionAccountKeyResource) requiresImport(data acceptance.TestData) string {
@@ -168,7 +175,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_storage_account" "test2" {
-  name                     = "acctsb%[3]d"
+  name                     = "acctsb%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -188,5 +195,5 @@ resource "azurerm_cognitive_account_connection_account_key" "test" {
     location   = azurerm_storage_account.test2.location
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger%1000000)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }

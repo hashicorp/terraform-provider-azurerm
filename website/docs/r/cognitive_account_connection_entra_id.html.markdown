@@ -10,6 +10,8 @@ description: |-
 
 Manages a Cognitive Services (Microsoft Foundry) Account Connection with Entra ID (formerly Azure Active Directory) authentication.
 
+-> **Note:** In the new Foundry experience, Account Connections are shown as tools under the Build blade.
+
 ## Example Usage
 
 ```hcl
@@ -66,11 +68,15 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
 
-* `category` - (Required) The category of the connection. Possible values are `AIServices`, `AzureOpenAI`, `AzureStorageAccount`, `CognitiveSearch`, `CosmosDb`, and `Databricks`. Changing this forces a new resource to be created.
+* `category` - (Required) The category of the connection. Possible values are `AIServices`, `ApiManagement`, `AppConfig`, `AzureOpenAI`, `AzureStorageAccount`, `CognitiveSearch`, `CognitiveService`, `CosmosDb`, `Databricks`, `ManagedOnlineEndpoint`, `MicrosoftFabric`, and `Sharepoint`. Changing this forces a new resource to be created.
 
 * `target` - (Required) The target endpoint or resource for the connection.
 
+~> **Note:** `target` must be an absolute HTTP or HTTPS URL when `category` is `AzureStorageAccount`.
+
 * `metadata` - (Optional) A mapping of metadata key-value pairs for the connection.
+
+~> **Note:** The `metadata` map must include `resourceId` when `category` is `AIServices` or `AzureStorageAccount`, `apiType` when `category` is `AzureOpenAI`, and `kind` when `category` is `CognitiveService`. To determine the full `metadata` shape for a connection category, create an equivalent connection in the Azure Portal, retrieve its resource ID, then inspect it with `az rest --method get --url "{connection_resource_id}?api-version=2026-03-01"`.
 
 ## Attributes Reference
 

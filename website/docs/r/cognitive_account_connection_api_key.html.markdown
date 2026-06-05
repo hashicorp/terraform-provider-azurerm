@@ -10,6 +10,8 @@ description: |-
 
 Manages a Cognitive Services (Microsoft Foundry) Account Connection with API Key authentication.
 
+-> **Note:** In the new Foundry experience, Account Connections are shown as tools under the Build blade.
+
 ## Example Usage
 
 ```hcl
@@ -69,13 +71,15 @@ The following arguments are supported:
 
 * `api_key` - (Required) The API key for authentication. This field is sensitive.
 
-* `category` - (Required) The category of the connection. Possible values are `AIServices`, `ApiKey`, `AppInsights`, `AzureOpenAI`, `CognitiveSearch`, `GroundingWithCustomSearch`, `OpenAI`, `Serp`, and `Serverless`. Changing this forces a new resource to be created.
+* `category` - (Required) The category of the connection. Possible values are `AIServices`, `ApiKey`, `ApiManagement`, `AppConfig`, `AppInsights`, `AzureOpenAI`, `BingLLMSearch`, `CognitiveSearch`, `CognitiveService`, `GroundingWithBingSearch`, `GroundingWithCustomSearch`, `ModelGateway`, `OpenAI`, `Pinecone`, `Serp`, and `Serverless`. Changing this forces a new resource to be created.
 
 * `metadata` - (Optional) A mapping of metadata key-value pairs for the connection.
 
+~> **Note:** The `metadata` map must include `resourceId` when `category` is `AIServices`, `apiType` when `category` is `AzureOpenAI`, `location` when `category` is `BingLLMSearch`, and `kind` when `category` is `CognitiveService`. To determine the full `metadata` shape for a connection category, create an equivalent connection in the Azure Portal, retrieve its resource ID, then inspect it with `az rest --method get --url "{connection_resource_id}?api-version=2026-03-01"`.
+
 * `target` - (Optional) The target endpoint or resource for the connection.
 
-~> **Note:** `target` must be specified unless `category` is set to `OpenAI` or `Serp`.
+~> **Note:** `target` must be specified unless `category` is set to `OpenAI`, `Pinecone`, or `Serp`.
 
 ## Attributes Reference
 

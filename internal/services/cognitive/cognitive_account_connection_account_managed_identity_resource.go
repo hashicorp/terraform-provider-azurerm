@@ -5,7 +5,6 @@ package cognitive
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -54,39 +53,6 @@ type CognitiveAccountConnectionAccountManagedIdentityModel struct {
 	Target             string            `tfschema:"target"`
 }
 
-type accountManagedIdentityConnectionProperties struct {
-	Category *accountconnectionresource.ConnectionCategory `json:"category,omitempty"`
-	Metadata *map[string]string                            `json:"metadata,omitempty"`
-	Target   *string                                       `json:"target,omitempty"`
-}
-
-func (s accountManagedIdentityConnectionProperties) ConnectionPropertiesV2() accountconnectionresource.BaseConnectionPropertiesV2Impl {
-	return accountconnectionresource.BaseConnectionPropertiesV2Impl{
-		AuthType: accountconnectionresource.ConnectionAuthTypeAccountManagedIdentity,
-		Category: s.Category,
-		Metadata: s.Metadata,
-		Target:   s.Target,
-	}
-}
-
-func (s accountManagedIdentityConnectionProperties) MarshalJSON() ([]byte, error) {
-	type alias accountManagedIdentityConnectionProperties
-	wrapper := struct {
-		alias
-		AuthType string `json:"authType"`
-	}{
-		alias:    alias(s),
-		AuthType: string(accountconnectionresource.ConnectionAuthTypeAccountManagedIdentity),
-	}
-
-	encoded, err := json.Marshal(wrapper)
-	if err != nil {
-		return nil, fmt.Errorf("marshaling accountManagedIdentityConnectionProperties: %+v", err)
-	}
-
-	return encoded, nil
-}
-
 func (r CognitiveAccountConnectionAccountManagedIdentityResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -99,12 +65,18 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) Arguments() ma
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&accountconnectionresource.AccountId{}),
 
 		"category": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice([]string{string(accountconnectionresource.ConnectionCategoryAzureKeyVault)}, false),
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(accountconnectionresource.ConnectionCategoryAIServices),
+				string(accountconnectionresource.ConnectionCategoryAzureKeyVault),
+				string(accountconnectionresource.ConnectionCategoryAzureOpenAI),
+				string(accountconnectionresource.ConnectionCategoryAzureStorageAccount),
+			}, false),
 		},
 
+		// `metadata` is required because all categories supported by this resource currently require metadata
 		"metadata": {
 			Type:     pluginsdk.TypeMap,
 			Required: true,
@@ -153,10 +125,13 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) Create() sdk.R
 				}
 			}
 
-			properties := accountManagedIdentityConnectionProperties{
+			properties := accountconnectionresource.BaseConnectionPropertiesV2Impl{
+				AuthType: accountconnectionresource.ConnectionAuthTypeAccountManagedIdentity,
 				Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
-				Metadata: pointer.To(model.Metadata),
 				Target:   pointer.To(model.Target),
+			}
+			if len(model.Metadata) > 0 {
+				properties.Metadata = pointer.To(model.Metadata)
 			}
 
 			connection := accountconnectionresource.ConnectionPropertiesV2BasicResource{
@@ -214,9 +189,9 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) Read() sdk.Res
 				base := model.Properties.ConnectionPropertiesV2()
 				state.Category = pointer.FromEnum(base.Category)
 				state.Target = pointer.From(base.Target)
-				state.Metadata = map[string]string{}
 
 				if len(currentState.Metadata) > 0 {
+					state.Metadata = map[string]string{}
 					apiMetadata := pointer.From(base.Metadata)
 
 					for configKey := range currentState.Metadata {
@@ -260,10 +235,14 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) Update() sdk.R
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			properties := accountManagedIdentityConnectionProperties{
-				Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
-				Metadata: pointer.To(model.Metadata),
-				Target:   pointer.To(model.Target),
+			properties := resp.Model.Properties.ConnectionPropertiesV2()
+
+			if metadata.ResourceData.HasChange("target") {
+				properties.Target = pointer.To(model.Target)
+			}
+
+			if metadata.ResourceData.HasChange("metadata") {
+				properties.Metadata = pointer.To(model.Metadata)
 			}
 
 			connection := accountconnectionresource.ConnectionPropertiesV2BasicResource{

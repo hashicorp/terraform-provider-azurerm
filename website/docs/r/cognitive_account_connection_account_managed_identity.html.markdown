@@ -10,6 +10,8 @@ description: |-
 
 Manages a Cognitive Services (Microsoft Foundry) Account Connection with Account Managed Identity authentication.
 
+-> **Note:** In the new Foundry experience, Account Connections are shown as tools under the Build blade.
+
 ## Example Usage
 
 ```hcl
@@ -64,13 +66,17 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
 
-* `category` - (Required) The category of the connection. The only possible value is `AzureKeyVault`. Changing this forces a new resource to be created.
+* `category` - (Required) The category of the connection. Possible values are `AIServices`, `AzureKeyVault`, `AzureOpenAI`, and `AzureStorageAccount`. Changing this forces a new resource to be created.
 
 ~> **Note:** Only one Account Managed Identity connection with the `AzureKeyVault` category can exist per Cognitive Services Account.
 
 * `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
 
+~> **Note:** The `metadata` map must include `resourceId` when `category` is `AIServices`, `AzureKeyVault`, or `AzureStorageAccount`, and must include `apiType` when `category` is `AzureOpenAI`. To determine the full `metadata` shape for a connection category, create an equivalent connection in the Azure Portal, retrieve its resource ID, then inspect it with `az rest --method get --url "{connection_resource_id}?api-version=2026-03-01"`.
+
 * `target` - (Required) The target endpoint or resource for the connection.
+
+~> **Note:** `target` must be an absolute HTTPS URL when `category` is `AzureStorageAccount`.
 
 ## Attributes Reference
 
