@@ -90,6 +90,9 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				return old != "" && new == ""
 			}),
 			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+				return validateNodePoolLocalDNSProfileRawConfig(d)
+			},
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
 				priority := d.Get("priority").(string)
 				isSpot := priority == string(agentpools.ScaleSetPrioritySpot)
 
@@ -1965,11 +1968,7 @@ func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) m
 }
 
 func schemaNodePoolResourceLocalDNSProfile() *pluginsdk.Schema {
-	return schemaNodePoolLocalDNSProfile([]string{
-		"local_dns_profile.0.kube_dns_override",
-		"local_dns_profile.0.mode",
-		"local_dns_profile.0.vnet_dns_override",
-	})
+	return schemaNodePoolLocalDNSProfile()
 }
 
 func expandAgentPoolLocalDNSProfile(input []interface{}) *agentpools.LocalDNSProfile {

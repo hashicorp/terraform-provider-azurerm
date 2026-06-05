@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -677,40 +678,36 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 }
 
 func schemaDefaultNodePoolLocalDNSProfile() *pluginsdk.Schema {
-	return schemaNodePoolLocalDNSProfile([]string{
-		"default_node_pool.0.local_dns_profile.0.kube_dns_override",
-		"default_node_pool.0.local_dns_profile.0.mode",
-		"default_node_pool.0.local_dns_profile.0.vnet_dns_override",
-	})
+	return schemaNodePoolLocalDNSProfile()
 }
 
-func schemaNodePoolLocalDNSProfile(atLeastOneOf []string) *pluginsdk.Schema {
+func schemaNodePoolLocalDNSProfile() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"kube_dns_override": schemaLocalDNSOverride(atLeastOneOf),
+				"kube_dns_override": schemaLocalDNSOverride(),
 
 				"mode": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					Default:      string(managedclusters.LocalDNSModePreferred),
 					ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForLocalDNSMode(), false),
-					AtLeastOneOf: atLeastOneOf,
 				},
 
-				"vnet_dns_override": schemaLocalDNSOverride(atLeastOneOf),
+				"vnet_dns_override": schemaLocalDNSOverride(),
 			},
 		},
 	}
 }
 
-func schemaLocalDNSOverride(atLeastOneOf []string) *pluginsdk.Schema {
+func schemaLocalDNSOverride() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeSet,
-		Optional:     true,
-		AtLeastOneOf: atLeastOneOf,
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		Set:      localDNSOverrideHash,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"domain": {
@@ -722,53 +719,167 @@ func schemaLocalDNSOverride(atLeastOneOf []string) *pluginsdk.Schema {
 				"cache_duration_in_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
+					Default:      3600,
 					ValidateFunc: validation.IntAtLeast(1),
 				},
 
 				"forward_destination": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					Default:      string(managedclusters.LocalDNSForwardDestinationClusterCoreDNS),
 					ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForLocalDNSForwardDestination(), false),
 				},
 
 				"forward_policy": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					Default:      string(managedclusters.LocalDNSForwardPolicySequential),
 					ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForLocalDNSForwardPolicy(), false),
 				},
 
 				"max_concurrent": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
+					Default:      1000,
 					ValidateFunc: validation.IntAtLeast(1),
 				},
 
 				"protocol": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					Default:      string(managedclusters.LocalDNSProtocolPreferUDP),
 					ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForLocalDNSProtocol(), false),
 				},
 
 				"query_logging": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					Default:      string(managedclusters.LocalDNSQueryLoggingError),
 					ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForLocalDNSQueryLogging(), false),
 				},
 
 				"serve_stale": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					Default:      string(managedclusters.LocalDNSServeStaleImmediate),
 					ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForLocalDNSServeStale(), false),
 				},
 
 				"serve_stale_duration": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
+					Default:      3600,
 					ValidateFunc: validation.IntAtLeast(1),
 				},
 			},
 		},
 	}
+}
+
+func localDNSOverrideHash(v interface{}) int {
+	if m, ok := v.(map[string]interface{}); ok {
+		if domain, ok := m["domain"].(string); ok {
+			return pluginsdk.HashString(domain)
+		}
+	}
+
+	return 0
+}
+
+func validateDefaultNodePoolLocalDNSProfileRawConfig(d *pluginsdk.ResourceDiff) error {
+	rawConfig := d.GetRawConfig()
+	if !localDNSRawValueCanIterate(rawConfig) {
+		return nil
+	}
+
+	defaultNodePoolRaw, ok := rawConfig.AsValueMap()["default_node_pool"]
+	if !ok {
+		return nil
+	}
+
+	for _, defaultNodePool := range localDNSRawValueSlice(defaultNodePoolRaw) {
+		if !localDNSRawValueCanIterate(defaultNodePool) {
+			continue
+		}
+
+		localDNSProfileRaw, ok := defaultNodePool.AsValueMap()["local_dns_profile"]
+		if !ok {
+			continue
+		}
+
+		if err := validateLocalDNSProfileRawConfig(localDNSProfileRaw, "default_node_pool.local_dns_profile"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateNodePoolLocalDNSProfileRawConfig(d *pluginsdk.ResourceDiff) error {
+	rawConfig := d.GetRawConfig()
+	if !localDNSRawValueCanIterate(rawConfig) {
+		return nil
+	}
+
+	localDNSProfileRaw, ok := rawConfig.AsValueMap()["local_dns_profile"]
+	if !ok {
+		return nil
+	}
+
+	return validateLocalDNSProfileRawConfig(localDNSProfileRaw, "local_dns_profile")
+}
+
+func validateLocalDNSProfileRawConfig(input cty.Value, path string) error {
+	for _, localDNSProfileRaw := range localDNSRawValueSlice(input) {
+		if !localDNSRawValueCanIterate(localDNSProfileRaw) {
+			continue
+		}
+
+		localDNSProfile := localDNSProfileRaw.AsValueMap()
+		for _, key := range []string{"kube_dns_override", "vnet_dns_override"} {
+			if raw, ok := localDNSProfile[key]; ok {
+				if err := validateLocalDNSOverrideRawConfig(raw, fmt.Sprintf("%s.%s", path, key)); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func validateLocalDNSOverrideRawConfig(input cty.Value, path string) error {
+	seen := make(map[string]struct{})
+	for _, overrideRaw := range localDNSRawValueSlice(input) {
+		if !localDNSRawValueCanIterate(overrideRaw) {
+			continue
+		}
+
+		domainRaw, ok := overrideRaw.AsValueMap()["domain"]
+		if !ok || domainRaw.IsNull() || !domainRaw.IsKnown() {
+			continue
+		}
+
+		domain := domainRaw.AsString()
+		if _, ok := seen[domain]; ok {
+			return fmt.Errorf("duplicate `domain` value %q was found in `%s`; each domain must be specified only once", domain, path)
+		}
+		seen[domain] = struct{}{}
+	}
+
+	return nil
+}
+
+func localDNSRawValueSlice(input cty.Value) []cty.Value {
+	if !localDNSRawValueCanIterate(input) {
+		return nil
+	}
+
+	return input.AsValueSlice()
+}
+
+func localDNSRawValueCanIterate(input cty.Value) bool {
+	return !input.IsNull() && input.IsKnown() && input.CanIterateElements()
 }
 
 func upgradeSettingsSchemaClusterDefaultNodePool() *pluginsdk.Schema {
