@@ -3847,7 +3847,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 }
 
 func (KubernetesClusterNodePoolResource) parallelPodSubnetConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	return fmt.Sprintf(
+		`
 provider "azurerm" {
   features {}
 }

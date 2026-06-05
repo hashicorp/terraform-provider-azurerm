@@ -87,9 +87,20 @@ func (c VirtualNetworkGatewaysClient) GetBgpPeerStatus(ctx context.Context, id V
 
 // GetBgpPeerStatusThenPoll performs GetBgpPeerStatus then polls until it's completed
 func (c VirtualNetworkGatewaysClient) GetBgpPeerStatusThenPoll(ctx context.Context, id VirtualNetworkGatewayId, options GetBgpPeerStatusOperationOptions) error {
+	return c.GetBgpPeerStatusCallbackThenPoll(ctx, id, options, nil)
+}
+
+// GetBgpPeerStatusCallbackThenPoll performs GetBgpPeerStatus, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) GetBgpPeerStatusCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, options GetBgpPeerStatusOperationOptions, callback func() error) error {
 	result, err := c.GetBgpPeerStatus(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing GetBgpPeerStatus: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

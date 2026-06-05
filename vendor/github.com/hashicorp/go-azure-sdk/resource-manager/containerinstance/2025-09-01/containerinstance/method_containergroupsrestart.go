@@ -56,9 +56,20 @@ func (c ContainerInstanceClient) ContainerGroupsRestart(ctx context.Context, id 
 
 // ContainerGroupsRestartThenPoll performs ContainerGroupsRestart then polls until it's completed
 func (c ContainerInstanceClient) ContainerGroupsRestartThenPoll(ctx context.Context, id ContainerGroupId) error {
+	return c.ContainerGroupsRestartCallbackThenPoll(ctx, id, nil)
+}
+
+// ContainerGroupsRestartCallbackThenPoll performs ContainerGroupsRestart, runs the optional callback function, then polls until it's completed
+func (c ContainerInstanceClient) ContainerGroupsRestartCallbackThenPoll(ctx context.Context, id ContainerGroupId, callback func() error) error {
 	result, err := c.ContainerGroupsRestart(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ContainerGroupsRestart: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

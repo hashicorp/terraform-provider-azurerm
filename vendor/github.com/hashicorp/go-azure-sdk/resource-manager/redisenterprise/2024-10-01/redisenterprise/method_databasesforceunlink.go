@@ -61,9 +61,20 @@ func (c RedisEnterpriseClient) DatabasesForceUnlink(ctx context.Context, id Data
 
 // DatabasesForceUnlinkThenPoll performs DatabasesForceUnlink then polls until it's completed
 func (c RedisEnterpriseClient) DatabasesForceUnlinkThenPoll(ctx context.Context, id DatabaseId, input ForceUnlinkParameters) error {
+	return c.DatabasesForceUnlinkCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DatabasesForceUnlinkCallbackThenPoll performs DatabasesForceUnlink, runs the optional callback function, then polls until it's completed
+func (c RedisEnterpriseClient) DatabasesForceUnlinkCallbackThenPoll(ctx context.Context, id DatabaseId, input ForceUnlinkParameters, callback func() error) error {
 	result, err := c.DatabasesForceUnlink(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DatabasesForceUnlink: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

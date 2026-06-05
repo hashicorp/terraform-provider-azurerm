@@ -61,9 +61,20 @@ func (c VirtualWANsClient) VpnSitesConfigurationDownload(ctx context.Context, id
 
 // VpnSitesConfigurationDownloadThenPoll performs VpnSitesConfigurationDownload then polls until it's completed
 func (c VirtualWANsClient) VpnSitesConfigurationDownloadThenPoll(ctx context.Context, id VirtualWANId, input GetVpnSitesConfigurationRequest) error {
+	return c.VpnSitesConfigurationDownloadCallbackThenPoll(ctx, id, input, nil)
+}
+
+// VpnSitesConfigurationDownloadCallbackThenPoll performs VpnSitesConfigurationDownload, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) VpnSitesConfigurationDownloadCallbackThenPoll(ctx context.Context, id VirtualWANId, input GetVpnSitesConfigurationRequest, callback func() error) error {
 	result, err := c.VpnSitesConfigurationDownload(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing VpnSitesConfigurationDownload: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

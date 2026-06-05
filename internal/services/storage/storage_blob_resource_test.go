@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
@@ -1002,7 +1003,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) encryptionScope(data acceptance.TestData, content string) string {
-	template := r.template(data, "blob")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1026,7 +1026,7 @@ resource "azurerm_storage_blob" "test" {
 %[3]s
 EOT
 }
-`, template, data.RandomInteger, content)
+`, r.template(data, "blob"), data.RandomInteger, content)
 }
 
 func (r StorageBlobResource) encryptionScopeUpdateMetadata(data acceptance.TestData, content string) string {
@@ -1342,7 +1342,8 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) template(data acceptance.TestData, accessLevel string) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1360,6 +1361,28 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_container" "test" {
   name                  = "test"
   storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
+	}
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestacc%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
