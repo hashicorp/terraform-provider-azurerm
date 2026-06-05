@@ -1467,7 +1467,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   service_mesh {
-    mode                             = "Istio"
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
     revisions                        = ["asm-1-27"]
@@ -1582,7 +1581,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   service_mesh {
-    mode                             = "Istio"
     internal_ingress_gateway_enabled = false
     external_ingress_gateway_enabled = false
     revisions                        = %[3]s

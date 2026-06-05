@@ -1456,7 +1456,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   windows_profile {
     admin_username = "azureuser"
     admin_password = "P@55W0rd1234!h@2h1C0rP"
-    gmsa {
+    group_managed_service_accounts {
       dns_server  = "10.10.0.10/2"
       root_domain = "contoso.com"
     }
@@ -1510,7 +1510,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   windows_profile {
     admin_username = "azureuser"
     admin_password = "P@55W0rd1234!h@2h1C0rP"
-    gmsa {
+    group_managed_service_accounts {
       dns_server  = "vnet"
       root_domain = "vnet"
     }

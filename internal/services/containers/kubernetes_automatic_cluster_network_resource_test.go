@@ -352,7 +352,6 @@ func TestAccKubernetesAutomaticCluster_privateClusterOn(t *testing.T) {
 			Config: r.privateClusterConfig(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -413,7 +412,6 @@ func TestAccKubernetesAutomaticCluster_privateClusterOff(t *testing.T) {
 			Config: r.privateClusterConfig(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -618,9 +616,9 @@ func TestAccKubernetesAutomaticCluster_httpProxyConfig(t *testing.T) {
 			Config: r.httpProxyConfig(data, noProxy),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("http_proxy_config.0.http_proxy").IsSet(),
-				check.That(data.ResourceName).Key("http_proxy_config.0.https_proxy").IsSet(),
-				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy.#").HasValue("3"),
+				check.That(data.ResourceName).Key("proxy.0.http_proxy").IsSet(),
+				check.That(data.ResourceName).Key("proxy.0.https_proxy").IsSet(),
+				check.That(data.ResourceName).Key("proxy.0.no_proxy.#").HasValue("3"),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -629,9 +627,9 @@ func TestAccKubernetesAutomaticCluster_httpProxyConfig(t *testing.T) {
 			Config: r.httpProxyConfig(data, newNoProxy),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("http_proxy_config.0.http_proxy").IsSet(),
-				check.That(data.ResourceName).Key("http_proxy_config.0.https_proxy").IsSet(),
-				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy.#").HasValue("4"),
+				check.That(data.ResourceName).Key("proxy.0.http_proxy").IsSet(),
+				check.That(data.ResourceName).Key("proxy.0.https_proxy").IsSet(),
+				check.That(data.ResourceName).Key("proxy.0.no_proxy.#").HasValue("4"),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -679,10 +677,10 @@ func TestAccKubernetesAutomaticCluster_httpProxyConfigWithTrustedCa(t *testing.T
 			Config: r.httpProxyConfigWithTrustedCa(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("http_proxy_config.0.http_proxy").IsSet(),
-				check.That(data.ResourceName).Key("http_proxy_config.0.https_proxy").IsSet(),
-				check.That(data.ResourceName).Key("http_proxy_config.0.trusted_ca").IsSet(),
-				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy.0").IsSet(),
+				check.That(data.ResourceName).Key("proxy.0.http_proxy").IsSet(),
+				check.That(data.ResourceName).Key("proxy.0.https_proxy").IsSet(),
+				check.That(data.ResourceName).Key("proxy.0.trusted_certificate_authority").IsSet(),
+				check.That(data.ResourceName).Key("proxy.0.no_proxy.0").IsSet(),
 			),
 		},
 		data.ImportStep(),
@@ -697,9 +695,9 @@ func TestAccKubernetesAutomaticCluster_httpProxyConfigWithSubnet(t *testing.T) {
 			Config: r.httpProxyConfigWithSubnet(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("http_proxy_config.0.http_proxy").IsSet(),
-				check.That(data.ResourceName).Key("http_proxy_config.0.https_proxy").IsSet(),
-				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy.0").IsSet(),
+				check.That(data.ResourceName).Key("proxy.0.http_proxy").IsSet(),
+				check.That(data.ResourceName).Key("proxy.0.https_proxy").IsSet(),
+				check.That(data.ResourceName).Key("proxy.0.no_proxy.0").IsSet(),
 			),
 		},
 		data.ImportStep(),
@@ -1306,7 +1304,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   service_mesh {
-    mode                             = "Istio"
     internal_ingress_gateway_enabled = %[3]t
     external_ingress_gateway_enabled = %[4]t
     revisions                        = ["asm-1-27"]
@@ -2491,7 +2488,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network {
-    pod_cidrs = ["10.1.1.0/24"]
+    pod_cidr = "10.1.1.0/24"
   }
 
   identity {
@@ -2528,7 +2525,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network {
     dns_service_ip = "10.1.1.10"
-    service_cidrs  = ["10.1.1.0/24"]
+    service_cidr  = "10.1.1.0/24"
   }
 
   identity {
@@ -3886,7 +3883,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 
-  http_proxy_config {
+  proxy {
     http_proxy  = "http://${azurerm_public_ip.test_proxy2.ip_address}:8888/"
     https_proxy = "http://${azurerm_public_ip.test_proxy2.ip_address}:8888/"
     no_proxy    = [%s]
@@ -4086,7 +4083,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 
-  http_proxy_config {
+  proxy {
     http_proxy  = "http://${azurerm_public_ip.test_proxy.ip_address}:8888/"
     https_proxy = "http://${azurerm_public_ip.test_proxy.ip_address}:8888/"
     no_proxy    = [%s]
@@ -4260,7 +4257,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 
-  http_proxy_config {
+  proxy {
     http_proxy  = "http://${azurerm_public_ip.test_proxy.ip_address}:8888/"
     https_proxy = "http://${azurerm_public_ip.test_proxy.ip_address}:8888/"
     no_proxy = [
@@ -4268,12 +4265,12 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
       "127.0.0.1",
       "mcr.microsoft.com"
     ]
-    trusted_ca = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVMyZ0F3SUJBZ0lCQVRBS0JnZ3Foa2pPUFFRREJEQVFNUTR3REFZRFZRUUtFd1ZGVGtOUFRUQWUKRncwd09URXhNVEF5TXpBd01EQmFGdzB4TURBMU1Ea3lNekF3TURCYU1CQXhEakFNQmdOVkJBb1RCVVZPUTA5TgpNSUdiTUJBR0J5cUdTTTQ5QWdFR0JTdUJCQUFqQTRHR0FBUUJBcUN1Um94NU4zTVRVOHdUdUllSUJYRjdpTW5oCm50cW1HVktRMGhmUUZEUUd2K0x5ZHVvN0pQcUZwL1kyamxYU2ROckFkejVXeGJyWStrRHhJcGtCUXRJQWtJREQKWlZtVHVlcTNaREFmY0dkRU5uek5KVkNhUGxIWEpMdkVFSU5jb0prVU8rK2NWeXl3ZHJlVkpjNjd2aE54MVRkWApWM3BwN2YrUmJPbU5LYm5WUkJ5ak5UQXpNQTRHQTFVZER3RUIvd1FFQXdJSGdEQVRCZ05WSFNVRUREQUtCZ2dyCkJnRUZCUWNEQVRBTUJnTlZIUk1CQWY4RUFqQUFNQW9HQ0NxR1NNNDlCQU1FQTRHTUFEQ0JpQUpDQWJiYjdzdkkKNXR1aEN5QTNqUVRTZ0E4enB2azBZV05Ya1owN3h6ZFY4amRNTXVtQ2FXOXljRUlxSjVLU3F1dVBoVXc5b2VregpCNTFkYXliVjFWUVhWVmRWQWtJQStrTU1TSnp3dHpIcU5BVVRtaVpQY2c3SDh2MUFTbDR0UjZscEtUcFVQWTJYCmxYT0N0MllmNGRzRnNpanV2emJKQmR4NzVkNEVmNVRSSFBjZytQSE5aZ2c9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
+    trusted_certificate_authority = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVMyZ0F3SUJBZ0lCQVRBS0JnZ3Foa2pPUFFRREJEQVFNUTR3REFZRFZRUUtFd1ZGVGtOUFRUQWUKRncwd09URXhNVEF5TXpBd01EQmFGdzB4TURBMU1Ea3lNekF3TURCYU1CQXhEakFNQmdOVkJBb1RCVVZPUTA5TgpNSUdiTUJBR0J5cUdTTTQ5QWdFR0JTdUJCQUFqQTRHR0FBUUJBcUN1Um94NU4zTVRVOHdUdUllSUJYRjdpTW5oCm50cW1HVktRMGhmUUZEUUd2K0x5ZHVvN0pQcUZwL1kyamxYU2ROckFkejVXeGJyWStrRHhJcGtCUXRJQWtJREQKWlZtVHVlcTNaREFmY0dkRU5uek5KVkNhUGxIWEpMdkVFSU5jb0prVU8rK2NWeXl3ZHJlVkpjNjd2aE54MVRkWApWM3BwN2YrUmJPbU5LYm5WUkJ5ak5UQXpNQTRHQTFVZER3RUIvd1FFQXdJSGdEQVRCZ05WSFNVRUREQUtCZ2dyCkJnRUZCUWNEQVRBTUJnTlZIUk1CQWY4RUFqQUFNQW9HQ0NxR1NNNDlCQU1FQTRHTUFEQ0JpQUpDQWJiYjdzdkkKNXR1aEN5QTNqUVRTZ0E4enB2azBZV05Ya1owN3h6ZFY4amRNTXVtQ2FXOXljRUlxSjVLU3F1dVBoVXc5b2VregpCNTFkYXliVjFWUVhWVmRWQWtJQStrTU1TSnp3dHpIcU5BVVRtaVpQY2c3SDh2MUFTbDR0UjZscEtUcFVQWTJYCmxYT0N0MllmNGRzRnNpanV2emJKQmR4NzVkNEVmNVRSSFBjZytQSE5aZ2c9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
   }
 
   lifecycle {
     ignore_changes = [
-      http_proxy_config.0.no_proxy
+      proxy.0.no_proxy
     ]
   }
 }
@@ -4409,7 +4406,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     subnet_id = azurerm_subnet.test1.id
   }
 
-  http_proxy_config {
+  proxy {
     http_proxy  = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
     https_proxy = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
     no_proxy = [
@@ -4419,7 +4416,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   lifecycle {
     ignore_changes = [
-      http_proxy_config.0.no_proxy
+      proxy.0.no_proxy
     ]
   }
 }

@@ -283,7 +283,7 @@ type DefaultNodePoolModel struct {
 	GPUDriver                  bool                      `tfschema:"gpu_driver_enabled"`
 	KubeletDiskType            string                    `tfschema:"kubelet_disk_type"`
 	MaxPods                    int64                     `tfschema:"maximum_pods"`
-	NodeNetworkProfile         []NodeNetworkProfileModel `tfschema:"node_network_profile"`
+	NodeNetworkProfile         []NodeNetworkProfileModel `tfschema:"node_network"`
 	NodeCount                  int64                     `tfschema:"node_count"`
 	NodeLabels                 map[string]string         `tfschema:"node_labels"`
 	NodePublicIPPrefixID       string                    `tfschema:"node_public_ip_prefix_id"`
@@ -970,7 +970,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						},
 					},
 
-					"node_network_profile": {
+					"node_network": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
@@ -1228,6 +1228,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							privatezones.ValidatePrivateDnsZoneID,
 							validation.StringInSlice([]string{
 								"System",
+								//TODO see if none as default breaks it
 								"None",
 							}, false),
 						),
@@ -3462,11 +3463,10 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel)
 	config := input[0]
 
 	loadBalancerSku := config.LoadBalancerSKU
-	outboundType := config.OutboundType
 
 	networkProfile := managedclusters.ContainerServiceNetworkProfile{
 		LoadBalancerSku: pointer.To(managedclusters.LoadBalancerSku(loadBalancerSku)),
-		OutboundType:    pointer.To(managedclusters.OutboundType(outboundType)),
+		OutboundType:    pointer.ToEnum[managedclusters.OutboundType](config.OutboundType),
 		IPFamilies:      &[]managedclusters.IPFamily{"IPv4"},
 	}
 
@@ -3474,7 +3474,6 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel)
 		if !strings.EqualFold(loadBalancerSku, "standard") {
 			return nil, fmt.Errorf("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerSku)
 		}
-
 		networkProfile.LoadBalancerProfile = expandAutomaticLoadBalancerProfile(config.LoadBalancerProfile)
 	}
 
