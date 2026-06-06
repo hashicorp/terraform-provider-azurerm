@@ -203,7 +203,7 @@ func cdnFrontDoorBatchRulesSchema() *pluginsdk.Schema {
 	}
 }
 
-// lintignore:AZSD002 The `rules` block is repeatable, so Plugin SDK cannot use schema-level AtLeastOneOf paths here. Non-empty `actions` and `route_configuration_override_action` blocks are enforced in expand validation.
+// lintignore:AZSD002 The `rules` block is repeatable, so Plugin SDK cannot use schema-level AtLeastOneOf paths here. The requirement that each rule define at least one action is enforced per rule in provider validation, and the batch rules API accepts an empty `route_configuration_override_action` block.
 func cdnFrontDoorBatchRuleActionsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -508,6 +508,10 @@ func validateCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleRuleModel) erro
 			return fmt.Errorf("the `rules` blocks must be declared in ascending `order`, got `%d` before `%d`", lastOrder, item.Order)
 		}
 
+		if err := validate.CdnFrontDoorValidateActionDefinitions(batchRuleActionCounts(item.Actions)); err != nil {
+			return err
+		}
+
 		lastOrder = item.Order
 		haveLastOrder = true
 	}
@@ -519,6 +523,20 @@ func batchRuleOrder(input azuresdkhacks.BatchRuleProperties) int64 {
 	return pointer.From(input.Order)
 }
 
+func batchRuleActionCounts(input []CdnFrontDoorBatchRuleActionsModel) (int, int, int, int) {
+	if len(input) == 0 {
+		return 0, 0, 0, 0
+	}
+
+	actions := input[0]
+	urlRewriteCount := len(actions.URLRewriteAction)
+	urlRedirectCount := len(actions.URLRedirectAction)
+	routeConfigurationOverrideCount := len(actions.RouteConfigurationOverrideAction)
+	totalCount := urlRewriteCount + urlRedirectCount + len(actions.RequestHeaderAction) + len(actions.ResponseHeaderAction) + routeConfigurationOverrideCount
+
+	return urlRewriteCount, urlRedirectCount, routeConfigurationOverrideCount, totalCount
+}
+
 func expandCdnFrontDoorBatchRuleActions(input []CdnFrontDoorBatchRuleActionsModel) ([]rules.DeliveryRuleAction, error) {
 	results := make([]rules.DeliveryRuleAction, 0)
 	if len(input) == 0 {
@@ -526,8 +544,8 @@ func expandCdnFrontDoorBatchRuleActions(input []CdnFrontDoorBatchRuleActionsMode
 	}
 
 	actions := input[0]
-	totalCount := len(actions.URLRewriteAction) + len(actions.URLRedirectAction) + len(actions.RequestHeaderAction) + len(actions.ResponseHeaderAction) + len(actions.RouteConfigurationOverrideAction)
-	if err := validate.CdnFrontDoorValidateActionDefinitions(len(actions.URLRewriteAction), len(actions.URLRedirectAction), len(actions.RouteConfigurationOverrideAction), totalCount); err != nil {
+	urlRewriteCount, urlRedirectCount, routeConfigurationOverrideCount, totalCount := batchRuleActionCounts(input)
+	if err := validate.CdnFrontDoorValidateActionDefinitions(urlRewriteCount, urlRedirectCount, routeConfigurationOverrideCount, totalCount); err != nil {
 		return nil, err
 	}
 

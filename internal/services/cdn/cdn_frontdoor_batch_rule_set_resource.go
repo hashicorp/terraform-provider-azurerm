@@ -8,6 +8,7 @@ package cdn
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"time"
@@ -181,7 +182,7 @@ func batchRuleDiffEntries(input interface{}) (map[string]batchRuleDiffEntry, err
 
 		name, ok := rule["name"].(string)
 		if !ok || name == "" {
-			return nil, fmt.Errorf("expected each `rules` block to contain a non-empty `name`")
+			return nil, errors.New("expected each `rules` block to contain a non-empty `name`")
 		}
 
 		normalized, err := normalizeBatchRuleDiffValue(rule)
@@ -296,14 +297,16 @@ func (r CdnFrontDoorBatchRuleSetResource) Create() sdk.ResourceFunc {
 			ruleSetId := rules.NewRuleSetID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, model.Name)
 			ruleSetResourceId := legacyrulesets.NewRuleSetID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, model.Name)
 
-			existing, err := batchModeRuleSetClient.Get(ctx, ruleSetResourceId)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("retrieving %s: %+v", ruleSetResourceId, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := batchModeRuleSetClient.Get(ctx, ruleSetResourceId)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("retrieving %s: %+v", ruleSetResourceId, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), ruleSetId)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), ruleSetId)
+				}
 			}
 
 			payload, err := expandCdnFrontDoorBatchRuleSetPayload(true, model)

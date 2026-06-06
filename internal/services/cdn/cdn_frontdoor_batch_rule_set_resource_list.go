@@ -76,7 +76,16 @@ func (CdnFrontDoorBatchRuleSetListResource) List(ctx context.Context, request li
 		return
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
+		return
+	}
+
 	stream.Results = func(push func(list.ListResult) bool) {
+		iteratorCtx, cancel := context.WithDeadline(context.Background(), deadline)
+		defer cancel()
+
 		for _, item := range resp.Items {
 			if item.Id == nil {
 				continue
@@ -84,15 +93,15 @@ func (CdnFrontDoorBatchRuleSetListResource) List(ctx context.Context, request li
 
 			ruleSetID, err := rules.ParseRuleSetID(*item.Id)
 			if err != nil {
-				result := request.NewListResult(ctx)
+				result := request.NewListResult(iteratorCtx)
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing `rule set id`", err)
 				return
 			}
 
 			ruleSetResourceId := legacyrulesets.NewRuleSetID(ruleSetID.SubscriptionId, ruleSetID.ResourceGroupName, ruleSetID.ProfileName, ruleSetID.RuleSetName)
-			detailedResp, err := batchModeRuleSetClient.Get(ctx, ruleSetResourceId)
+			detailedResp, err := batchModeRuleSetClient.Get(iteratorCtx, ruleSetResourceId)
 			if err != nil {
-				result := request.NewListResult(ctx)
+				result := request.NewListResult(iteratorCtx)
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("retrieving `%s`", batchRuleSetResource.ResourceType()), err)
 				return
 			}
@@ -100,7 +109,7 @@ func (CdnFrontDoorBatchRuleSetListResource) List(ctx context.Context, request li
 				continue
 			}
 
-			result := request.NewListResult(ctx)
+			result := request.NewListResult(iteratorCtx)
 			result.DisplayName = ruleSetID.RuleSetName
 
 			meta := sdk.NewResourceMetaData(metadata.Client, batchRuleSetResource)
@@ -111,7 +120,7 @@ func (CdnFrontDoorBatchRuleSetListResource) List(ctx context.Context, request li
 				return
 			}
 
-			sdk.EncodeListResult(ctx, meta.ResourceData, &result)
+			sdk.EncodeListResult(iteratorCtx, meta.ResourceData, &result)
 			if result.Diagnostics.HasError() {
 				push(result)
 				return

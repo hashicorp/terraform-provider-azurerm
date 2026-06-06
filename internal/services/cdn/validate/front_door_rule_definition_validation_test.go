@@ -24,6 +24,10 @@ func TestCdnFrontDoorValidateActionDefinitions(t *testing.T) {
 			total: 5,
 		},
 		{
+			name:        "empty actions invalid",
+			errContains: "must define at least one action",
+		},
+		{
 			name:        "duplicate url rewrite",
 			urlRewrite:  2,
 			total:       2,

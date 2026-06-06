@@ -4,6 +4,7 @@
 package validate
 
 import (
+	"errors"
 	"fmt"
 
 	cdnrules "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
@@ -21,6 +22,10 @@ type CdnFrontDoorRouteConfigurationOverrideInput struct {
 }
 
 func CdnFrontDoorValidateActionDefinitions(urlRewriteCount, urlRedirectCount, routeConfigurationOverrideCount, totalCount int) error {
+	if totalCount == 0 {
+		return errors.New("the `actions` block must define at least one action")
+	}
+
 	if urlRewriteCount > 1 {
 		return fmt.Errorf("the 'url_rewrite_action' is only allowed once in the 'actions' match block, got %d", urlRewriteCount)
 	}
@@ -107,7 +112,7 @@ func CdnFrontDoorValidateRouteConfigurationOverrideAction(input CdnFrontDoorRout
 	// documented at the shared validation point so it is not lost when callers are refactored.
 	if input.OriginGroupID != "" {
 		if input.ForwardingProtocol == "" {
-			return fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'forwarding_protocol' field must be set")
+			return errors.New("the 'route_configuration_override_action' block is not valid, the 'forwarding_protocol' field must be set")
 		}
 	} else if input.ForwardingProtocol != "" {
 		return fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cdn_frontdoor_origin_group_id' is not set you cannot define the 'forwarding_protocol', got %q", input.ForwardingProtocol)
@@ -135,11 +140,11 @@ func CdnFrontDoorValidateRouteConfigurationOverrideAction(input CdnFrontDoorRout
 	}
 
 	if input.CacheBehavior == "" {
-		return fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_behavior' field must be set")
+		return errors.New("the 'route_configuration_override_action' block is not valid, the 'cache_behavior' field must be set")
 	}
 
 	if input.QueryStringCachingBehavior == "" {
-		return fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'query_string_caching_behavior' field must be set")
+		return errors.New("the 'route_configuration_override_action' block is not valid, the 'query_string_caching_behavior' field must be set")
 	}
 
 	// `HonorOrigin` must not carry an explicit cache duration. Keep this service quirk
@@ -147,18 +152,18 @@ func CdnFrontDoorValidateRouteConfigurationOverrideAction(input CdnFrontDoorRout
 	// attached to the behavior after refactors.
 	if input.CacheBehavior != string(cdnrules.RuleCacheBehaviorHonorOrigin) {
 		if input.CacheDuration == "" {
-			return fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must be set")
+			return errors.New("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must be set")
 		}
 	} else if input.CacheDuration != "" {
-		return fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must not be set if the 'cache_behavior' is 'HonorOrigin'")
+		return errors.New("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must not be set if the 'cache_behavior' is 'HonorOrigin'")
 	}
 
 	if (input.QueryStringCachingBehavior == string(cdnrules.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings) || input.QueryStringCachingBehavior == string(cdnrules.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings)) && len(input.QueryStringParameters) == 0 {
-		return fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' cannot be empty if the 'query_string_caching_behavior' is set to 'IncludeSpecifiedQueryStrings' or 'IgnoreSpecifiedQueryStrings'")
+		return errors.New("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' cannot be empty if the 'query_string_caching_behavior' is set to 'IncludeSpecifiedQueryStrings' or 'IgnoreSpecifiedQueryStrings'")
 	}
 
 	if len(input.QueryStringParameters) > 0 && (input.QueryStringCachingBehavior == string(cdnrules.RuleQueryStringCachingBehaviorUseQueryString) || input.QueryStringCachingBehavior == string(cdnrules.RuleQueryStringCachingBehaviorIgnoreQueryString)) {
-		return fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' must not be set if the'query_string_caching_behavior' is set to 'UseQueryStrings' or 'IgnoreQueryStrings'")
+		return errors.New("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' must not be set if the'query_string_caching_behavior' is set to 'UseQueryStrings' or 'IgnoreQueryStrings'")
 	}
 
 	return nil

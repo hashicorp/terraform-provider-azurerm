@@ -287,12 +287,12 @@ func cdnFrontDoorBatchRuleConditionsComputedSchema() *pluginsdk.Schema {
 
 func batchConditionComputedSchema(matchValuesSchema *pluginsdk.Schema, includeTransforms bool, selectorField string) *pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
-		"operator": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 		"negate_condition": {
 			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+		"operator": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"match_values": matchValuesSchema,
