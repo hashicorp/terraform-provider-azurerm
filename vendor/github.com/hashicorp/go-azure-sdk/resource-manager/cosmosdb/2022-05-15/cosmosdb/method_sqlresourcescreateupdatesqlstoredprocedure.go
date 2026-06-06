@@ -62,9 +62,20 @@ func (c CosmosDBClient) SqlResourcesCreateUpdateSqlStoredProcedure(ctx context.C
 
 // SqlResourcesCreateUpdateSqlStoredProcedureThenPoll performs SqlResourcesCreateUpdateSqlStoredProcedure then polls until it's completed
 func (c CosmosDBClient) SqlResourcesCreateUpdateSqlStoredProcedureThenPoll(ctx context.Context, id StoredProcedureId, input SqlStoredProcedureCreateUpdateParameters) error {
+	return c.SqlResourcesCreateUpdateSqlStoredProcedureCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SqlResourcesCreateUpdateSqlStoredProcedureCallbackThenPoll performs SqlResourcesCreateUpdateSqlStoredProcedure, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) SqlResourcesCreateUpdateSqlStoredProcedureCallbackThenPoll(ctx context.Context, id StoredProcedureId, input SqlStoredProcedureCreateUpdateParameters, callback func() error) error {
 	result, err := c.SqlResourcesCreateUpdateSqlStoredProcedure(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SqlResourcesCreateUpdateSqlStoredProcedure: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

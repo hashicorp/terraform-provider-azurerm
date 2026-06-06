@@ -62,9 +62,20 @@ func (c VirtualWANsClient) VirtualHubsCreateOrUpdate(ctx context.Context, id Vir
 
 // VirtualHubsCreateOrUpdateThenPoll performs VirtualHubsCreateOrUpdate then polls until it's completed
 func (c VirtualWANsClient) VirtualHubsCreateOrUpdateThenPoll(ctx context.Context, id VirtualHubId, input VirtualHub) error {
+	return c.VirtualHubsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// VirtualHubsCreateOrUpdateCallbackThenPoll performs VirtualHubsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) VirtualHubsCreateOrUpdateCallbackThenPoll(ctx context.Context, id VirtualHubId, input VirtualHub, callback func() error) error {
 	result, err := c.VirtualHubsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing VirtualHubsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

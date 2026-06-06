@@ -352,7 +352,7 @@ resource "azurerm_postgresql_flexible_server" "primary" {
   name                          = "acctest%[1]d-primary-pg"
   resource_group_name           = azurerm_resource_group.primary.name
   location                      = azurerm_resource_group.primary.location
-  version                       = "13"
+  version                       = "16"
   public_network_access_enabled = false
   administrator_login           = "adminTerraform"
   administrator_password        = "maLTq5SnDBrWfyban7Wz"

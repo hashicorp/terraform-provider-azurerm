@@ -58,9 +58,20 @@ func (c FailoverGroupsClient) ForceFailoverAllowDataLoss(ctx context.Context, id
 
 // ForceFailoverAllowDataLossThenPoll performs ForceFailoverAllowDataLoss then polls until it's completed
 func (c FailoverGroupsClient) ForceFailoverAllowDataLossThenPoll(ctx context.Context, id FailoverGroupId) error {
+	return c.ForceFailoverAllowDataLossCallbackThenPoll(ctx, id, nil)
+}
+
+// ForceFailoverAllowDataLossCallbackThenPoll performs ForceFailoverAllowDataLoss, runs the optional callback function, then polls until it's completed
+func (c FailoverGroupsClient) ForceFailoverAllowDataLossCallbackThenPoll(ctx context.Context, id FailoverGroupId, callback func() error) error {
 	result, err := c.ForceFailoverAllowDataLoss(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ForceFailoverAllowDataLoss: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

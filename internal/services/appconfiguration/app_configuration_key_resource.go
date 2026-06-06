@@ -173,7 +173,6 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
 			// allow some time for role permission to be propagated
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be propagated", model.Key)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Forbidden"},
 				Target:                    []string{"Error", "Exists", "NotFound"},
@@ -187,17 +186,19 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", model.Key, err)
 			}
 
-			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
-			if err != nil {
-				if v, ok := err.(autorest.DetailedError); ok {
-					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("checking for presence of existing %s: %+v", nestedItemId, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
+				if err != nil {
+					if v, ok := err.(autorest.DetailedError); ok {
+						if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+							return fmt.Errorf("checking for presence of existing %s: %+v", nestedItemId, err)
+						}
+					} else {
+						return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
 					}
-				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
+				} else if kv.StatusCode == 200 {
+					return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 				}
-			} else if kv.StatusCode == 200 {
-				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 
 			entity := appconfiguration.KeyValue{
@@ -230,7 +231,6 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			// https://github.com/Azure/AppConfiguration/issues/763
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q to be provisioned", model.Key)
 			stateConf = &pluginsdk.StateChangeConf{
 				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},

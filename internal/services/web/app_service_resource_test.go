@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -22,6 +23,9 @@ import (
 type AppServiceResource struct{}
 
 func TestAccAppService_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -42,6 +46,9 @@ func TestAccAppService_basic(t *testing.T) {
 }
 
 func TestAccAppService_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -57,6 +64,9 @@ func TestAccAppService_requiresImport(t *testing.T) {
 }
 
 func TestAccAppService_movingAppService(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -77,6 +87,9 @@ func TestAccAppService_movingAppService(t *testing.T) {
 }
 
 func TestAccAppService_freeTier(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -92,6 +105,9 @@ func TestAccAppService_freeTier(t *testing.T) {
 }
 
 func TestAccAppService_sharedTier(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -107,6 +123,9 @@ func TestAccAppService_sharedTier(t *testing.T) {
 }
 
 func TestAccAppService_32Bit(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -123,6 +142,9 @@ func TestAccAppService_32Bit(t *testing.T) {
 }
 
 func TestAccAppService_backup(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -167,6 +189,9 @@ func TestAccAppService_backup(t *testing.T) {
 }
 
 func TestAccAppService_http2Enabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -183,6 +208,9 @@ func TestAccAppService_http2Enabled(t *testing.T) {
 }
 
 func TestAccAppService_alwaysOn(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -199,6 +227,9 @@ func TestAccAppService_alwaysOn(t *testing.T) {
 }
 
 func TestAccAppService_appCommandLine(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -215,6 +246,9 @@ func TestAccAppService_appCommandLine(t *testing.T) {
 }
 
 func TestAccAppService_httpsOnly(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -231,6 +265,9 @@ func TestAccAppService_httpsOnly(t *testing.T) {
 }
 
 func TestAccAppService_clientCertEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -254,6 +291,9 @@ func TestAccAppService_clientCertEnabled(t *testing.T) {
 }
 
 func TestAccAppService_clientCertEnabledWithMode(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -271,6 +311,9 @@ func TestAccAppService_clientCertEnabledWithMode(t *testing.T) {
 }
 
 func TestAccAppService_appSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -287,6 +330,9 @@ func TestAccAppService_appSettings(t *testing.T) {
 }
 
 func TestAccAppService_appSettingsVnetRouteAll(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -304,6 +350,9 @@ func TestAccAppService_appSettingsVnetRouteAll(t *testing.T) {
 }
 
 func TestAccAppService_siteConfigVnetRouteAll(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -320,6 +369,9 @@ func TestAccAppService_siteConfigVnetRouteAll(t *testing.T) {
 }
 
 func TestAccAppService_clientAffinityEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -336,6 +388,9 @@ func TestAccAppService_clientAffinityEnabled(t *testing.T) {
 }
 
 func TestAccAppService_clientAffinityDisabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -352,6 +407,9 @@ func TestAccAppService_clientAffinityDisabled(t *testing.T) {
 }
 
 func TestAccAppService_enableManageServiceIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -369,6 +427,9 @@ func TestAccAppService_enableManageServiceIdentity(t *testing.T) {
 }
 
 func TestAccAppService_updateResourceByEnablingManageServiceIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -393,6 +454,9 @@ func TestAccAppService_updateResourceByEnablingManageServiceIdentity(t *testing.
 }
 
 func TestAccAppService_userAssignedIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -411,6 +475,9 @@ func TestAccAppService_userAssignedIdentity(t *testing.T) {
 }
 
 func TestAccAppService_clientAffinityUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -435,6 +502,9 @@ func TestAccAppService_clientAffinityUpdate(t *testing.T) {
 }
 
 func TestAccAppService_connectionStrings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -457,6 +527,9 @@ func TestAccAppService_connectionStrings(t *testing.T) {
 }
 
 func TestAccAppService_storageAccounts(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -480,6 +553,9 @@ func TestAccAppService_storageAccounts(t *testing.T) {
 }
 
 func TestAccAppService_oneIpv4Restriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -497,6 +573,9 @@ func TestAccAppService_oneIpv4Restriction(t *testing.T) {
 }
 
 func TestAccAppService_oneIpv6Restriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -514,6 +593,9 @@ func TestAccAppService_oneIpv6Restriction(t *testing.T) {
 }
 
 func TestAccAppService_completeIpRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -579,6 +661,9 @@ func TestAccAppService_completeIpRestriction(t *testing.T) {
 }
 
 func TestAccAppService_oneVNetSubnetIpRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -594,6 +679,9 @@ func TestAccAppService_oneVNetSubnetIpRestriction(t *testing.T) {
 }
 
 func TestAccAppService_multipleVNetSubnetIpRestrictionUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -626,6 +714,9 @@ func TestAccAppService_multipleVNetSubnetIpRestrictionUpdate(t *testing.T) {
 }
 
 func TestAccAppService_mixedIpRestrictionUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -658,6 +749,9 @@ func TestAccAppService_mixedIpRestrictionUpdate(t *testing.T) {
 }
 
 func TestAccAppService_zeroedIpRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -690,6 +784,9 @@ func TestAccAppService_zeroedIpRestriction(t *testing.T) {
 }
 
 func TestAccAppService_zeroedIpRestrictionHeaders(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -759,6 +856,9 @@ func TestAccAppService_zeroedIpRestrictionHeaders(t *testing.T) {
 }
 
 func TestAccAppService_manyIpRestrictions(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -778,6 +878,9 @@ func TestAccAppService_manyIpRestrictions(t *testing.T) {
 }
 
 func TestAccAppService_scmUseMainIPRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -793,6 +896,9 @@ func TestAccAppService_scmUseMainIPRestriction(t *testing.T) {
 }
 
 func TestAccAppService_scmOneIpRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -808,6 +914,9 @@ func TestAccAppService_scmOneIpRestriction(t *testing.T) {
 }
 
 func TestAccAppService_completeScmIpRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -837,6 +946,9 @@ func TestAccAppService_completeScmIpRestriction(t *testing.T) {
 }
 
 func TestAccAppService_oneVNetSubnetScmIpRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -852,6 +964,9 @@ func TestAccAppService_oneVNetSubnetScmIpRestriction(t *testing.T) {
 }
 
 func TestAccAppService_zeroedScmIpRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -884,6 +999,9 @@ func TestAccAppService_zeroedScmIpRestriction(t *testing.T) {
 }
 
 func TestAccAppService_manyScmIpRestrictions(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -899,6 +1017,9 @@ func TestAccAppService_manyScmIpRestrictions(t *testing.T) {
 }
 
 func TestAccAppService_defaultDocuments(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -917,6 +1038,9 @@ func TestAccAppService_defaultDocuments(t *testing.T) {
 }
 
 func TestAccAppService_enabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -933,6 +1057,9 @@ func TestAccAppService_enabled(t *testing.T) {
 }
 
 func TestAccAppService_localMySql(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -949,6 +1076,9 @@ func TestAccAppService_localMySql(t *testing.T) {
 }
 
 func TestAccAppService_applicationBlobStorageLogs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -979,6 +1109,9 @@ func TestAccAppService_applicationBlobStorageLogs(t *testing.T) {
 }
 
 func TestAccAppService_httpFileSystemLogs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1001,6 +1134,9 @@ func TestAccAppService_httpFileSystemLogs(t *testing.T) {
 }
 
 func TestAccAppService_httpBlobStorageLogs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1023,6 +1159,9 @@ func TestAccAppService_httpBlobStorageLogs(t *testing.T) {
 }
 
 func TestAccAppService_httpFileSystemAndStorageBlobLogs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1038,6 +1177,9 @@ func TestAccAppService_httpFileSystemAndStorageBlobLogs(t *testing.T) {
 }
 
 func TestAccAppService_managedPipelineMode(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1054,6 +1196,9 @@ func TestAccAppService_managedPipelineMode(t *testing.T) {
 }
 
 func TestAccAppService_detailedErrorMessagesLogs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1077,6 +1222,9 @@ func TestAccAppService_detailedErrorMessagesLogs(t *testing.T) {
 }
 
 func TestAccAzureRMAppService_failedRequestTracingLogs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1100,6 +1248,9 @@ func TestAccAzureRMAppService_failedRequestTracingLogs(t *testing.T) {
 }
 
 func TestAccAppService_tagsUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1125,6 +1276,9 @@ func TestAccAppService_tagsUpdate(t *testing.T) {
 }
 
 func TestAccAppService_remoteDebugging(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1142,6 +1296,9 @@ func TestAccAppService_remoteDebugging(t *testing.T) {
 }
 
 func TestAccAppService_windowsDotNet2(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1158,6 +1315,9 @@ func TestAccAppService_windowsDotNet2(t *testing.T) {
 }
 
 func TestAccAppService_windowsDotNet4(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1174,6 +1334,9 @@ func TestAccAppService_windowsDotNet4(t *testing.T) {
 }
 
 func TestAccAppService_windowsDotNet5(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1190,6 +1353,9 @@ func TestAccAppService_windowsDotNet5(t *testing.T) {
 }
 
 func TestAccAppService_windowsDotNet6(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1206,6 +1372,9 @@ func TestAccAppService_windowsDotNet6(t *testing.T) {
 }
 
 func TestAccAppService_windowsDotNetUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1242,6 +1411,9 @@ func TestAccAppService_windowsDotNetUpdate(t *testing.T) {
 }
 
 func TestAccAppService_windowsJava7Java(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1260,6 +1432,9 @@ func TestAccAppService_windowsJava7Java(t *testing.T) {
 }
 
 func TestAccAppService_windowsJava8Java(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1278,6 +1453,9 @@ func TestAccAppService_windowsJava8Java(t *testing.T) {
 }
 
 func TestAccAppService_windowsJava11Java(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1296,6 +1474,9 @@ func TestAccAppService_windowsJava11Java(t *testing.T) {
 }
 
 func TestAccAppService_windowsJava7Jetty(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1314,6 +1495,9 @@ func TestAccAppService_windowsJava7Jetty(t *testing.T) {
 }
 
 func TestAccAppService_windowsJava8Jetty(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1332,6 +1516,9 @@ func TestAccAppService_windowsJava8Jetty(t *testing.T) {
 }
 
 func TestAccAppService_windowsJava11Jetty(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1350,6 +1537,9 @@ func TestAccAppService_windowsJava11Jetty(t *testing.T) {
 }
 
 func TestAccAppService_windowsJava7Tomcat(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1368,6 +1558,9 @@ func TestAccAppService_windowsJava7Tomcat(t *testing.T) {
 }
 
 func TestAccAppService_windowsJava8Tomcat(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1386,6 +1579,9 @@ func TestAccAppService_windowsJava8Tomcat(t *testing.T) {
 }
 
 func TestAccAppService_windowsJava11Tomcat(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1404,6 +1600,9 @@ func TestAccAppService_windowsJava11Tomcat(t *testing.T) {
 }
 
 func TestAccAppService_windowsPHP7(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1420,6 +1619,9 @@ func TestAccAppService_windowsPHP7(t *testing.T) {
 }
 
 func TestAccAppService_windowsPython(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1436,6 +1638,9 @@ func TestAccAppService_windowsPython(t *testing.T) {
 }
 
 func TestAccAppService_webSockets(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1452,6 +1657,9 @@ func TestAccAppService_webSockets(t *testing.T) {
 }
 
 func TestAccAppService_scmType(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1470,6 +1678,9 @@ func TestAccAppService_scmType(t *testing.T) {
 }
 
 func TestAccAppService_withSourceControl(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1485,6 +1696,9 @@ func TestAccAppService_withSourceControl(t *testing.T) {
 }
 
 func TestAccAppService_withSourceControlUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1507,6 +1721,9 @@ func TestAccAppService_withSourceControlUpdate(t *testing.T) {
 }
 
 func TestAccAppService_ftpsState(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1523,6 +1740,9 @@ func TestAccAppService_ftpsState(t *testing.T) {
 }
 
 func TestAccAppService_healthCheckPath(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1539,6 +1759,9 @@ func TestAccAppService_healthCheckPath(t *testing.T) {
 }
 
 func TestAccAppService_numberOfWorkers(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1556,6 +1779,9 @@ func TestAccAppService_numberOfWorkers(t *testing.T) {
 
 // Note: to specify `linux_fx_version` the App Service Plan must be of `kind = "Linux"`, and `reserved = true`
 func TestAccAppService_linuxFxVersion(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1571,6 +1797,9 @@ func TestAccAppService_linuxFxVersion(t *testing.T) {
 }
 
 func TestAccAppService_minTls(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1595,6 +1824,9 @@ func TestAccAppService_minTls(t *testing.T) {
 }
 
 func TestAccAppService_corsSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1613,6 +1845,9 @@ func TestAccAppService_corsSettings(t *testing.T) {
 }
 
 func TestAccAppService_authSettingsAdditionalLoginParams(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1636,6 +1871,9 @@ func TestAccAppService_authSettingsAdditionalLoginParams(t *testing.T) {
 }
 
 func TestAccAppService_authSettingsAdditionalAllowedExternalRedirectUrls(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1660,6 +1898,9 @@ func TestAccAppService_authSettingsAdditionalAllowedExternalRedirectUrls(t *test
 }
 
 func TestAccAppService_authSettingsRuntimeVersion(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1683,6 +1924,9 @@ func TestAccAppService_authSettingsRuntimeVersion(t *testing.T) {
 }
 
 func TestAccAppService_authSettingsTokenRefreshExtensionHours(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1706,6 +1950,9 @@ func TestAccAppService_authSettingsTokenRefreshExtensionHours(t *testing.T) {
 }
 
 func TestAccAppService_authSettingsUnauthenticatedClientAction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1729,6 +1976,9 @@ func TestAccAppService_authSettingsUnauthenticatedClientAction(t *testing.T) {
 }
 
 func TestAccAppService_authSettingsTokenStoreEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1752,6 +2002,9 @@ func TestAccAppService_authSettingsTokenStoreEnabled(t *testing.T) {
 }
 
 func TestAccAppService_aadAuthSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1774,6 +2027,9 @@ func TestAccAppService_aadAuthSettings(t *testing.T) {
 }
 
 func TestAccAppService_facebookAuthSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1793,6 +2049,9 @@ func TestAccAppService_facebookAuthSettings(t *testing.T) {
 }
 
 func TestAccAppService_googleAuthSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1812,6 +2071,9 @@ func TestAccAppService_googleAuthSettings(t *testing.T) {
 }
 
 func TestAccAppService_microsoftAuthSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1831,6 +2093,9 @@ func TestAccAppService_microsoftAuthSettings(t *testing.T) {
 }
 
 func TestAccAppService_twitterAuthSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1849,6 +2114,9 @@ func TestAccAppService_twitterAuthSettings(t *testing.T) {
 }
 
 func TestAccAppService_multiAuthSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1886,6 +2154,9 @@ func TestAccAppService_multiAuthSettings(t *testing.T) {
 }
 
 func TestAccAppService_basicWindowsContainer(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1903,6 +2174,9 @@ func TestAccAppService_basicWindowsContainer(t *testing.T) {
 }
 
 func TestAccAppService_AcrManageIdentityCredentials(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1918,6 +2192,9 @@ func TestAccAppService_AcrManageIdentityCredentials(t *testing.T) {
 }
 
 func TestAccAppService_AcrUserAssignedIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1933,6 +2210,9 @@ func TestAccAppService_AcrUserAssignedIdentity(t *testing.T) {
 }
 
 func TestAccAppService_keyVaultUserAssignedIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1953,7 +2233,7 @@ func (r AppServiceResource) Exists(ctx context.Context, clients *clients.Client,
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := clients.Web.AppServicesClientV1.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil
