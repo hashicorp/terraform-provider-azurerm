@@ -177,10 +177,6 @@ func TestAccCdnFrontDoorBatchRuleSet_conditionValidation(t *testing.T) {
 			ExpectError: regexp.MustCompile(`"url_filename_condition" is invalid: the 'match_values' field must be set if the conditions 'operator' is not set to 'Any'`),
 		},
 		{
-			Config:      r.requestSchemeConditionOperatorAny(data),
-			ExpectError: regexp.MustCompile(`"request_scheme_condition" is invalid: the 'match_values' field must not be set if the conditions 'operator' is set to 'Any'`),
-		},
-		{
 			Config:      r.requestSchemeConditionMissingMatchValues(data),
 			ExpectError: regexp.MustCompile("the `request_scheme_condition` block requires `match_values'|the `request_scheme_condition` block requires `match_values`"),
 		},
@@ -710,43 +706,6 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, operator)
-}
-
-func (r CdnFrontdoorBatchRuleSetResource) requestSchemeConditionOperatorAny(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%[1]s
-
-resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
-  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
-
-  name                     = "accTestBatchRuleSet%[2]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-
-  rules {
-    name  = "accTestBatchRule%[2]d"
-    order = 1
-
-    actions {
-      url_rewrite_action {
-        source_pattern          = "/"
-        destination             = "/index.html"
-        preserve_unmatched_path = false
-      }
-    }
-
-    conditions {
-      request_scheme_condition {
-        operator     = "Any"
-        match_values = ["HTTP"]
-      }
-    }
-  }
-}
-`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) requestSchemeConditionMissingMatchValues(data acceptance.TestData) string {

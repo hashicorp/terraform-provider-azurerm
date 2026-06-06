@@ -33,7 +33,7 @@ func TestAccCdnFrontDoorBatchRuleSet_listByProfileID(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicQuery(data),
+				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast("azurerm_cdn_frontdoor_batch_rule_set.list", 1),
 					querycheck.ExpectIdentity(
@@ -51,19 +51,13 @@ func TestAccCdnFrontDoorBatchRuleSet_listByProfileID(t *testing.T) {
 	})
 }
 
-func (r CdnFrontdoorBatchRuleSetResource) basicQuery(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
+func (r CdnFrontdoorBatchRuleSetResource) basicQuery() string {
+	return `
 list "azurerm_cdn_frontdoor_batch_rule_set" "list" {
   provider = azurerm
   config {
     cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
   }
 }
-`, r.basic(data))
+`
 }
