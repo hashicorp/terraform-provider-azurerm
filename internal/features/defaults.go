@@ -25,6 +25,7 @@ func Default() UserFeatures {
 			PurgeSoftDeleteOnDestroy: true,
 		},
 		KeyVault: KeyVaultFeatures{
+			CheckPublicAvailability:          true,
 			PurgeSoftDeleteOnDestroy:         true,
 			PurgeSoftDeletedKeysOnDestroy:    true,
 			PurgeSoftDeletedCertsOnDestroy:   true,
