@@ -169,6 +169,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ConflictsWith: []string{
 					"proximity_placement_group_id",
 				},
+				RequiredWith: []string{"sku_name"},
 			},
 
 			"data_disk": OrchestratedVirtualMachineScaleSetDataDiskSchema(),
@@ -177,8 +178,9 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"additional_capabilities": OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema(),
 
 			"encryption_at_host_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				RequiredWith: []string{"sku_name"},
 			},
 
 			"eviction_policy": {
@@ -190,6 +192,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDeallocate),
 					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDelete),
 				}, false),
+				RequiredWith: []string{"sku_name"},
 			},
 
 			"extension_operations_enabled": {
@@ -207,6 +210,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional:     true,
 				Default:      "PT1H30M",
 				ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
+				RequiredWith: []string{"sku_name"},
 			},
 
 			// whilst the Swagger defines multiple at this time only UAI is supported
@@ -227,6 +231,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 					return false
 				},
+				RequiredWith: []string{"sku_name"},
 			},
 
 			"max_bid_price": {
@@ -234,6 +239,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional:     true,
 				Default:      -1,
 				ValidateFunc: computeValidate.SpotMaxPrice,
+				RequiredWith: []string{"sku_name"},
 			},
 
 			"plan": planSchema(),
@@ -253,6 +259,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					string(virtualmachinescalesets.VirtualMachinePriorityTypesRegular),
 					string(virtualmachinescalesets.VirtualMachinePriorityTypesSpot),
 				}, false),
+				RequiredWith: []string{"sku_name"},
 			},
 
 			"proximity_placement_group_id": {
@@ -293,15 +300,17 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ConflictsWith: []string{
 					"source_image_reference",
 				},
+				RequiredWith: []string{"sku_name"},
 			},
 
 			"source_image_reference": sourceImageReferenceSchemaOrchestratedVMSS(),
 
 			"zone_balance": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-				Default:  false,
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      false,
+				RequiredWith: []string{"sku_name"},
 			},
 
 			"termination_notification": OrchestratedVirtualMachineScaleSetTerminationNotificationSchema(),
@@ -333,6 +342,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsBase64,
+				RequiredWith: []string{"sku_name"},
 			},
 
 			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
@@ -359,15 +369,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				}
 
 				return false
-			}),
-
-			// encryption_at_host_enabled requires a full VM profile
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				_, hasSkuName := diff.GetOk("sku_name")
-				if v, ok := diff.GetOk("encryption_at_host_enabled"); ok && v.(bool) && !hasSkuName {
-					return fmt.Errorf("`sku_name` must be configured when `encryption_at_host_enabled` is set")
-				}
-				return nil
 			}),
 
 			// SKU Profile validation
@@ -480,6 +481,23 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				return nil
 			}),
 		),
+	}
+
+	for _, field := range []string{
+		"automatic_instance_repair",
+		"boot_diagnostics",
+		"data_disk",
+		"extension",
+		"identity",
+		"network_interface",
+		"os_disk",
+		"os_profile",
+		"plan",
+		"priority_mix",
+		"source_image_reference",
+		"termination_notification",
+	} {
+		resource.Schema[field].RequiredWith = []string{"sku_name"}
 	}
 
 	if !features.FivePointOh() {
