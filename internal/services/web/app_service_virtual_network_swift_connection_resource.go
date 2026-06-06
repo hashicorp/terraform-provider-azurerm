@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkpoller "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -86,11 +85,12 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Resource
 		}
 	}
 
-	locks.ByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
-	defer locks.UnlockByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
+	virtualNetworkID := commonids.NewVirtualNetworkID(subnetID.SubscriptionId, subnetID.ResourceGroupName, subnetID.VirtualNetworkName)
+	locks.ByID(virtualNetworkID.ID())
+	defer locks.UnlockByID(virtualNetworkID.ID())
 
-	locks.ByName(subnetID.SubnetName, network.SubnetResourceName)
-	defer locks.UnlockByName(subnetID.SubnetName, network.SubnetResourceName)
+	locks.ByID(subnetID.ID())
+	defer locks.UnlockByID(subnetID.ID())
 
 	connectionEnvelope := webapps.SwiftVirtualNetwork{
 		Properties: &webapps.SwiftVirtualNetworkProperties{
@@ -196,11 +196,12 @@ func resourceAppServiceVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.Resource
 		return err
 	}
 
-	locks.ByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
-	defer locks.UnlockByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
+	virtualNetworkID := commonids.NewVirtualNetworkID(subnetID.SubscriptionId, subnetID.ResourceGroupName, subnetID.VirtualNetworkName)
+	locks.ByID(virtualNetworkID.ID())
+	defer locks.UnlockByID(virtualNetworkID.ID())
 
-	locks.ByName(subnetID.SubnetName, network.SubnetResourceName)
-	defer locks.UnlockByName(subnetID.SubnetName, network.SubnetResourceName)
+	locks.ByID(subnetID.ID())
+	defer locks.UnlockByID(subnetID.ID())
 
 	existing.Model.Properties.SubnetResourceId = pointer.To(d.Get("subnet_id").(string))
 
@@ -244,11 +245,12 @@ func resourceAppServiceVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Resource
 		return err
 	}
 
-	locks.ByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
-	defer locks.UnlockByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
+	virtualNetworkID := commonids.NewVirtualNetworkID(subnetID.SubscriptionId, subnetID.ResourceGroupName, subnetID.VirtualNetworkName)
+	locks.ByID(virtualNetworkID.ID())
+	defer locks.UnlockByID(virtualNetworkID.ID())
 
-	locks.ByName(subnetID.SubnetName, network.SubnetResourceName)
-	defer locks.UnlockByName(subnetID.SubnetName, network.SubnetResourceName)
+	locks.ByID(subnetID.ID())
+	defer locks.UnlockByID(subnetID.ID())
 
 	if _, err := client.DeleteSwiftVirtualNetwork(ctx, appID); err != nil {
 		return fmt.Errorf("deleting Swift Network Connection for %s: %w", id, err)

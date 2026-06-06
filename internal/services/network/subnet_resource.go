@@ -316,8 +316,9 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			return tf.ImportAsExistsError("azurerm_subnet", id.ID())
 		}
 	}
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	virtualNetworkId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.SubscriptionId, id.VirtualNetworkName)
+	locks.ByID(virtualNetworkId.ID())
+	defer locks.UnlockByID(virtualNetworkId.ID())
 
 	properties := subnets.SubnetPropertiesFormat{}
 	if value, ok := d.GetOk("address_prefixes"); ok {
@@ -413,11 +414,12 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	virtualNetworkId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.SubscriptionId, id.VirtualNetworkName)
+	locks.ByID(virtualNetworkId.ID())
+	defer locks.UnlockByID(virtualNetworkId.ID())
 
-	locks.ByName(id.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
@@ -638,11 +640,12 @@ func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	virtualNetworkId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.SubscriptionId, id.VirtualNetworkName)
+	locks.ByID(virtualNetworkId.ID())
+	defer locks.UnlockByID(virtualNetworkId.ID())
 
-	locks.ByName(id.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

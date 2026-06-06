@@ -72,11 +72,12 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	locks.ByName(routeTableId.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(routeTableId.RouteTableName, routeTableResourceName)
+	locks.ByID(routeTableId.ID())
+	defer locks.UnlockByID(routeTableId.ID())
 
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	virtualNetworkId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.SubscriptionId, id.VirtualNetworkName)
+	locks.ByID(virtualNetworkId.ID())
+	defer locks.UnlockByID(virtualNetworkId.ID())
 
 	subnet, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
@@ -218,16 +219,17 @@ func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta i
 	}
 
 	// once we have the route table id to lock on, lock on that
-	parsedRouteTableId, err := routetables.ParseRouteTableID(*props.RouteTable.Id)
+	routeTableId, err := routetables.ParseRouteTableID(*props.RouteTable.Id)
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(parsedRouteTableId.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(parsedRouteTableId.RouteTableName, routeTableResourceName)
+	locks.ByID(routeTableId.ID())
+	defer locks.UnlockByID(routeTableId.ID())
 
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	virtualNetworkId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.SubscriptionId, id.VirtualNetworkName)
+	locks.ByID(virtualNetworkId.ID())
+	defer locks.UnlockByID(virtualNetworkId.ID())
 
 	// then re-retrieve it to ensure we've got the latest state
 	read, err = client.Get(ctx, *id, subnets.DefaultGetOperationOptions())

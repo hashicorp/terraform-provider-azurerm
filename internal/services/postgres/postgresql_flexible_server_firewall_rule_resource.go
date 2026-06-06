@@ -86,8 +86,8 @@ func resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.Resou
 
 	id := firewallrules.NewFirewallRuleID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, d.Get("name").(string))
 
-	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	locks.ByID(serverId.ID())
+	defer locks.UnlockByID(serverId.ID())
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -167,8 +167,9 @@ func resourcePostgresqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	serverID := firewallrules.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	locks.ByID(serverID.ID())
+	defer locks.UnlockByID(serverID.ID())
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)

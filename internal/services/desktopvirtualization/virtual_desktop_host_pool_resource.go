@@ -23,8 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var hostPoolResourceType = "azurerm_virtual_desktop_host_pool"
-
 func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceVirtualDesktopHostPoolCreate,
@@ -282,8 +280,8 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	locks.ByName(id.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(id.HostPoolName, hostPoolResourceType)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	payload := hostpool.HostPoolPatch{}
 
@@ -416,8 +414,8 @@ func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	locks.ByName(id.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(id.HostPoolName, hostPoolResourceType)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	options := hostpool.DeleteOperationOptions{
 		Force: pointer.To(true),

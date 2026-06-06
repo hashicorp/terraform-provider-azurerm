@@ -89,8 +89,9 @@ func resourcePostgresqlFlexibleServerAdministratorCreate(d *pluginsdk.ResourceDa
 
 	id := administratorsmicrosoftentra.NewAdministratorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("object_id").(string))
 
-	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	serverId := administratorsmicrosoftentra.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	locks.ByID(serverId.ID())
+	defer locks.UnlockByID(serverId.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.AdministratorsMicrosoftEntraGet(ctx, id)
@@ -168,8 +169,9 @@ func resourcePostgresqlFlexibleServerAdministratorDelete(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	serverId := administratorsmicrosoftentra.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	locks.ByID(serverId.ID())
+	defer locks.UnlockByID(serverId.ID())
 
 	if err := client.AdministratorsMicrosoftEntraDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

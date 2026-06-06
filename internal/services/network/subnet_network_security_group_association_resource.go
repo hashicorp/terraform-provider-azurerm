@@ -72,14 +72,15 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	locks.ByName(networkSecurityGroupId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(networkSecurityGroupId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+	locks.ByID(networkSecurityGroupId.ID())
+	defer locks.UnlockByID(networkSecurityGroupId.ID())
 
-	locks.ByName(subnetId.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(subnetId.VirtualNetworkName, VirtualNetworkResourceName)
+	virtualNetworkID := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
+	locks.ByID(virtualNetworkID.ID())
+	defer locks.UnlockByID(virtualNetworkID.ID())
 
-	locks.ByName(subnetId.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(subnetId.SubnetName, SubnetResourceName)
+	locks.ByID(subnetId.ID())
+	defer locks.UnlockByID(subnetId.ID())
 
 	subnet, err := client.Get(ctx, *subnetId, subnets.DefaultGetOperationOptions())
 	if err != nil {
@@ -226,14 +227,15 @@ func resourceSubnetNetworkSecurityGroupAssociationDelete(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	locks.ByName(networkSecurityGroupId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(networkSecurityGroupId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+	locks.ByID(networkSecurityGroupId.ID())
+	defer locks.UnlockByID(networkSecurityGroupId.ID())
 
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	virtualNetworkID := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(virtualNetworkID.ID())
+	defer locks.UnlockByID(virtualNetworkID.ID())
 
-	locks.ByName(id.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// then re-retrieve it to ensure we've got the latest state
 	read, err = client.Get(ctx, *id, subnets.DefaultGetOperationOptions())

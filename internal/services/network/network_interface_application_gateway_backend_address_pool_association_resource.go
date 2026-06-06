@@ -8,8 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -17,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -77,8 +76,8 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCrea
 		return err
 	}
 
-	locks.ByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(networkInterfaceId.ID())
+	defer locks.UnlockByID(networkInterfaceId.ID())
 
 	resp, err := client.Get(ctx, *networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
@@ -228,8 +227,8 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDele
 		return err
 	}
 
-	locks.ByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(id.First.ID())
+	defer locks.UnlockByID(id.First.ID())
 
 	networkInterfaceId := commonids.NewNetworkInterfaceID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.NetworkInterfaceName)
 

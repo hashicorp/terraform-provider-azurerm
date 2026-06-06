@@ -146,8 +146,8 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 		return err
 	}
 
-	locks.ByName(id.StorageAccountName, storageAccountResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := storageClient.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
@@ -427,8 +427,8 @@ func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	locks.ByName(id.StorageAccountName, storageAccountResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// confirm it still exists prior to trying to update it, else we'll get an error
 	storageAccount, err := storageClient.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())

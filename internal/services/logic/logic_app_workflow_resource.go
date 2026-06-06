@@ -28,8 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var logicAppResourceName = "azurerm_logic_app"
-
 func resourceLogicAppWorkflow() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceLogicAppWorkflowCreate,
@@ -380,8 +378,8 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	locks.ByName(id.WorkflowName, logicAppResourceName)
-	defer locks.UnlockByName(id.WorkflowName, logicAppResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	read, err := client.Get(ctx, *id)
 	if err != nil {
@@ -588,8 +586,8 @@ func resourceLogicAppWorkflowDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	locks.ByName(id.WorkflowName, logicAppResourceName)
-	defer locks.UnlockByName(id.WorkflowName, logicAppResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	resp, err := client.Delete(ctx, *id)
 	if err != nil {

@@ -8,18 +8,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routefilters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuits"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuitconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuitpeerings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -247,8 +247,9 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta in
 
 	id := commonids.NewExpressRouteCircuitPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("peering_type").(string))
 
-	locks.ByName(id.CircuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(id.CircuitName, expressRouteCircuitResourceName)
+	expressRouteCircuitID := expressroutecircuits.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName)
+	locks.ByID(expressRouteCircuitID.ID())
+	defer locks.UnlockByID(expressRouteCircuitID.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
@@ -359,8 +360,9 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	locks.ByName(id.CircuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(id.CircuitName, expressRouteCircuitResourceName)
+	expressRouteCircuitID := expressroutecircuits.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName)
+	locks.ByID(expressRouteCircuitID.ID())
+	defer locks.UnlockByID(expressRouteCircuitID.ID())
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
@@ -542,8 +544,9 @@ func resourceExpressRouteCircuitPeeringDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	locks.ByName(id.CircuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(id.CircuitName, expressRouteCircuitResourceName)
+	expressRouteCircuitID := expressroutecircuits.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName)
+	locks.ByID(expressRouteCircuitID.ID())
+	defer locks.UnlockByID(expressRouteCircuitID.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

@@ -9,8 +9,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -22,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	lbvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -246,8 +245,8 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		EnableAcceleratedNetworking: &enableAcceleratedNetworking,
 	}
 
-	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if auxiliaryMode, hasAuxiliaryMode := d.GetOk("auxiliary_mode"); hasAuxiliaryMode {
 		properties.AuxiliaryMode = pointer.To(networkinterfaces.NetworkInterfaceAuxiliaryMode(auxiliaryMode.(string)))
@@ -323,8 +322,8 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// first get the existing one so that we can pull things as needed
 	existing, err := client.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
@@ -545,8 +544,8 @@ func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {

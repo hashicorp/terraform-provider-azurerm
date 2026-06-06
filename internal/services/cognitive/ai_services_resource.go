@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	cognitiveValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -349,19 +348,20 @@ func (AIServices) Create() sdk.ResourceFunc {
 			networkACLs, subnetIds := expandNetworkACLs(model.NetworkACLs)
 
 			// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
-			virtualNetworkNames := make([]string, 0)
+			virtualNetworkIDs := make([]string, 0)
 			for _, v := range subnetIds {
 				subnetId, err := commonids.ParseSubnetID(v)
 				if err != nil {
 					return err
 				}
-				if !utils.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
-					virtualNetworkNames = append(virtualNetworkNames, subnetId.VirtualNetworkName)
+				virtualNetworkID := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
+				if !utils.SliceContainsValue(virtualNetworkIDs, virtualNetworkID.ID()) {
+					virtualNetworkIDs = append(virtualNetworkIDs, virtualNetworkID.ID())
 				}
 			}
 
-			locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
-			defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+			locks.MultipleByID(&virtualNetworkIDs)
+			defer locks.UnlockMultipleByID(&virtualNetworkIDs)
 
 			props := cognitiveservicesaccounts.Account{
 				Kind:     pointer.To("AIServices"),
@@ -517,23 +517,24 @@ func (AIServices) Update() sdk.ResourceFunc {
 			props := resp.Model
 			if metadata.ResourceData.HasChange("network_acls") {
 				networkACLs, subnetIds := expandNetworkACLs(model.NetworkACLs)
-				locks.MultipleByName(&subnetIds, network.VirtualNetworkResourceName)
-				defer locks.UnlockMultipleByName(&subnetIds, network.VirtualNetworkResourceName)
+				locks.MultipleByID(&subnetIds)
+				defer locks.UnlockMultipleByID(&subnetIds)
 
 				// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
-				virtualNetworkNames := make([]string, 0)
+				virtualNetworkIDs := make([]string, 0)
 				for _, v := range subnetIds {
 					subnetId, err := commonids.ParseSubnetIDInsensitively(v)
 					if err != nil {
 						return err
 					}
-					if !utils.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
-						virtualNetworkNames = append(virtualNetworkNames, subnetId.VirtualNetworkName)
+					virtualNetworkID := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
+					if !utils.SliceContainsValue(virtualNetworkIDs, virtualNetworkID.ID()) {
+						virtualNetworkIDs = append(virtualNetworkIDs, virtualNetworkID.ID())
 					}
 				}
 
-				locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
-				defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+				locks.MultipleByID(&virtualNetworkIDs)
+				defer locks.UnlockMultipleByID(&virtualNetworkIDs)
 
 				props.Properties.NetworkAcls = networkACLs
 			}

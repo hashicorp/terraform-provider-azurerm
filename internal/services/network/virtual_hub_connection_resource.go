@@ -201,16 +201,16 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 
 	id := virtualwans.NewHubVirtualNetworkConnectionID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroupName, virtualHubId.VirtualHubName, d.Get("name").(string))
 
-	locks.ByName(virtualHubId.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(virtualHubId.VirtualHubName, virtualHubResourceName)
+	locks.ByID(virtualHubId.ID())
+	defer locks.UnlockByID(virtualHubId.ID())
 
 	remoteVirtualNetworkId, err := commonids.ParseVirtualNetworkID(d.Get("remote_virtual_network_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(remoteVirtualNetworkId.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(remoteVirtualNetworkId.VirtualNetworkName, VirtualNetworkResourceName)
+	locks.ByID(remoteVirtualNetworkId.ID())
+	defer locks.UnlockByID(remoteVirtualNetworkId.ID())
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -315,8 +315,9 @@ func resourceVirtualHubConnectionDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	locks.ByName(id.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
+	virtualHubId := virtualwans.NewVirtualHubID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName)
+	locks.ByID(virtualHubId.ID())
+	defer locks.UnlockByID(virtualHubId.ID())
 
 	if err := client.HubVirtualNetworkConnectionsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

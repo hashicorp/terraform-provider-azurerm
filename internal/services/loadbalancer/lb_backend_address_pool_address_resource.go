@@ -134,8 +134,8 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			locks.ByName(poolId.BackendAddressPoolName, backendAddressPoolResourceName)
-			defer locks.UnlockByName(poolId.BackendAddressPoolName, backendAddressPoolResourceName)
+			locks.ByID(poolId.ID())
+			defer locks.UnlockByID(poolId.ID())
 
 			// Backend Addresses can not be created for Basic sku, so we have to check
 			plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: subscriptionId, ResourceGroupName: poolId.ResourceGroupName, LoadBalancerName: poolId.LoadBalancerName}
@@ -339,10 +339,10 @@ func (r BackendAddressPoolAddressResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			locks.ByName(id.BackendAddressPoolName, backendAddressPoolResourceName)
-			defer locks.UnlockByName(id.BackendAddressPoolName, backendAddressPoolResourceName)
-
 			poolId := loadbalancers.NewLoadBalancerBackendAddressPoolID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+			locks.ByID(poolId.ID())
+			defer locks.UnlockByID(poolId.ID())
+
 			pool, err := lbClient.LoadBalancerBackendAddressPoolsGet(ctx, poolId)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", poolId, err)
@@ -411,15 +411,15 @@ func (r BackendAddressPoolAddressResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			locks.ByName(id.BackendAddressPoolName, backendAddressPoolResourceName)
-			defer locks.UnlockByName(id.BackendAddressPoolName, backendAddressPoolResourceName)
+			poolId := loadbalancers.NewLoadBalancerBackendAddressPoolID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+			locks.ByID(poolId.ID())
+			defer locks.UnlockByID(poolId.ID())
 
 			var model BackendAddressPoolAddressModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			poolId := loadbalancers.NewLoadBalancerBackendAddressPoolID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
 			pool, err := lbClient.LoadBalancerBackendAddressPoolsGet(ctx, poolId)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)

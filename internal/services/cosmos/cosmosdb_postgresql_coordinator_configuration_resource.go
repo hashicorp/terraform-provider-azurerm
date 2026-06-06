@@ -86,15 +86,15 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Create() sdk.Resourc
 			}
 
 			client := metadata.Client.Cosmos.ConfigurationsClient
-			clusterId, err := configurations.ParseServerGroupsv2ID(model.ClusterId)
+			clusterID, err := configurations.ParseServerGroupsv2ID(model.ClusterId)
 			if err != nil {
 				return err
 			}
 
-			id := configurations.NewCoordinatorConfigurationID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ServerGroupsv2Name, model.Name)
+			id := configurations.NewCoordinatorConfigurationID(clusterID.SubscriptionId, clusterID.ResourceGroupName, clusterID.ServerGroupsv2Name, model.Name)
 
-			locks.ByName(id.ServerGroupsv2Name, CosmosDbPostgreSQLClusterResourceName)
-			defer locks.UnlockByName(id.ServerGroupsv2Name, CosmosDbPostgreSQLClusterResourceName)
+			locks.ByID(clusterID.ID())
+			defer locks.UnlockByID(clusterID.ID())
 
 			parameters := configurations.ServerConfiguration{
 				Properties: &configurations.ServerConfigurationProperties{
@@ -122,8 +122,9 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Update() sdk.Resourc
 				return err
 			}
 
-			locks.ByName(id.ServerGroupsv2Name, CosmosDbPostgreSQLClusterResourceName)
-			defer locks.UnlockByName(id.ServerGroupsv2Name, CosmosDbPostgreSQLClusterResourceName)
+			clusterID := configurations.NewServerGroupsv2ID(id.SubscriptionId, id.ResourceGroupName, id.ServerGroupsv2Name)
+			locks.ByID(clusterID.ID())
+			defer locks.UnlockByID(clusterID.ID())
 
 			var model CosmosDbPostgreSQLCoordinatorConfigurationModel
 			if err := metadata.Decode(&model); err != nil {
@@ -198,8 +199,9 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Delete() sdk.Resourc
 				return err
 			}
 
-			locks.ByName(id.ServerGroupsv2Name, CosmosDbPostgreSQLClusterResourceName)
-			defer locks.UnlockByName(id.ServerGroupsv2Name, CosmosDbPostgreSQLClusterResourceName)
+			clusterID := configurations.NewServerGroupsv2ID(id.SubscriptionId, id.ResourceGroupName, id.ServerGroupsv2Name)
+			locks.ByID(clusterID.ID())
+			defer locks.UnlockByID(clusterID.ID())
 
 			resp, err := client.GetCoordinator(ctx, *id)
 			if err != nil {

@@ -20,8 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var appServiceSourceControlTokenResourceName = "azurerm_app_service_source_control_token"
-
 func resourceAppServiceSourceControlToken() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceAppServiceSourceControlTokenCreateUpdate,
@@ -79,8 +77,8 @@ func resourceAppServiceSourceControlTokenCreateUpdate(d *pluginsdk.ResourceData,
 	tokenSecret := d.Get("token_secret").(string)
 	id := parse.NewAppServiceSourceControlTokenID(d.Get("type").(string))
 
-	locks.ByName(id.Type, appServiceSourceControlTokenResourceName)
-	defer locks.UnlockByName(id.Type, appServiceSourceControlTokenResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	properties := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{
@@ -137,8 +135,8 @@ func resourceAppServiceSourceControlTokenDelete(d *pluginsdk.ResourceData, meta 
 	token := ""
 	tokenSecret := ""
 
-	locks.ByName(scmType, appServiceSourceControlTokenResourceName)
-	defer locks.UnlockByName(scmType, appServiceSourceControlTokenResourceName)
+	locks.ByID(scmType)
+	defer locks.UnlockByID(scmType)
 
 	properties := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{

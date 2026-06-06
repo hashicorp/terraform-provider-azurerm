@@ -91,8 +91,8 @@ func resourceVirtualHubBgpConnectionCreate(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	locks.ByName(virtHubId.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(virtHubId.VirtualHubName, virtualHubResourceName)
+	locks.ByID(virtHubId.ID())
+	defer locks.UnlockByID(virtHubId.ID())
 
 	id := commonids.NewVirtualHubBGPConnectionID(virtHubId.SubscriptionId, virtHubId.ResourceGroupName, virtHubId.VirtualHubName, d.Get("name").(string))
 
@@ -181,8 +181,9 @@ func resourceVirtualHubBgpConnectionDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	locks.ByName(id.HubName, virtualHubResourceName)
-	defer locks.UnlockByName(id.HubName, virtualHubResourceName)
+	virtHubId := virtualwans.NewVirtualHubID(id.SubscriptionId, id.ResourceGroupName, id.HubName)
+	locks.ByID(virtHubId.ID())
+	defer locks.UnlockByID(virtHubId.ID())
 
 	if err := client.VirtualHubBgpConnectionDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

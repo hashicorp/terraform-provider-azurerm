@@ -96,8 +96,9 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	iothubName := d.Get("iothub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	locks.ByName(iothubName, IothubResourceName)
-	defer locks.UnlockByName(iothubName, IothubResourceName)
+	iotHubID := parse.NewIotHubID(subscriptionId, resourceGroup, iothubName)
+	locks.ByID(iotHubID.ID())
+	defer locks.UnlockByID(iotHubID.ID())
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -226,8 +227,9 @@ func resourceArmIotHubEnrichmentDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	locks.ByName(id.IotHubName, IothubResourceName)
-	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
+	iotHubID := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
+	locks.ByID(iotHubID.ID())
+	defer locks.UnlockByID(iotHubID.ID())
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {

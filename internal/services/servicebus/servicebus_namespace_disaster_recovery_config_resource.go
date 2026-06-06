@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -151,8 +152,9 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resour
 		return err
 	}
 
-	locks.ByName(id.NamespaceName, serviceBusNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, serviceBusNamespaceResourceName)
+	servicebusNamespaceID := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	locks.ByID(servicebusNamespaceID.ID())
+	defer locks.UnlockByID(servicebusNamespaceID.ID())
 
 	if d.HasChange("partner_namespace_id") {
 		if _, err := client.BreakPairing(ctx, *id); err != nil {

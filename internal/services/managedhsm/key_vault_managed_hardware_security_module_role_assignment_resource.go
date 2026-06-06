@@ -142,8 +142,8 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
-			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+			locks.ByID(managedHsmId.ID())
+			defer locks.UnlockByID(managedHsmId.ID())
 
 			id := parse.NewManagedHSMDataPlaneRoleAssignmentID(endpoint.ManagedHSMName, endpoint.DomainSuffix, config.Scope, config.Name)
 
@@ -260,8 +260,8 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("unable to determine the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}
 
-			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
-			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+			locks.ByID(managedHsmId.ID())
+			defer locks.UnlockByID(managedHsmId.ID())
 
 			if _, err := client.Delete(ctx, id.BaseURI(), id.Scope, id.RoleAssignmentName); err != nil {
 				return fmt.Errorf("deleting %s: %v", id.ID(), err)

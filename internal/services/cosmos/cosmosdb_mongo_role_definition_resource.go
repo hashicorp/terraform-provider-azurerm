@@ -139,8 +139,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 			mongoRoleDefinitionId := fmt.Sprintf("%s.%s", databaseId.MongodbDatabaseName, model.RoleName)
 			id := mongorbacs.NewMongodbRoleDefinitionID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.DatabaseAccountName, mongoRoleDefinitionId)
 
-			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
-			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+			cosmosdbAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+			locks.ByID(cosmosdbAccountID.ID())
+			defer locks.UnlockByID(cosmosdbAccountID.ID())
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.MongoDBResourcesGetMongoRoleDefinition(ctx, id)
@@ -185,8 +186,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
-			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+			cosmosdbAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+			locks.ByID(cosmosdbAccountID.ID())
+			defer locks.UnlockByID(cosmosdbAccountID.ID())
 
 			var model CosmosDbMongoRoleDefinitionResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -277,8 +279,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
-			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+			cosmosdbAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+			locks.ByID(cosmosdbAccountID.ID())
+			defer locks.UnlockByID(cosmosdbAccountID.ID())
 
 			if err := client.MongoDBResourcesDeleteMongoRoleDefinitionThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

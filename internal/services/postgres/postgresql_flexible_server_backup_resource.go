@@ -81,8 +81,8 @@ func (r PostgresqlFlexibleServerBackupResource) Create() sdk.ResourceFunc {
 
 			id := backupsautomaticandondemand.NewBackupID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, model.Name)
 
-			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+			locks.ByID(serverId.ID())
+			defer locks.UnlockByID(serverId.ID())
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.BackupsAutomaticAndOnDemandGet(ctx, id)
@@ -150,8 +150,9 @@ func (r PostgresqlFlexibleServerBackupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+			serverId := backupsautomaticandondemand.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+			locks.ByID(serverId.ID())
+			defer locks.UnlockByID(serverId.ID())
 
 			if err := client.BackupsAutomaticAndOnDemandDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

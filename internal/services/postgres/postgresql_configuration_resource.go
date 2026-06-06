@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -72,8 +73,9 @@ func resourcePostgreSQLConfigurationCreate(d *pluginsdk.ResourceData, meta inter
 	id := configurations.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	// TODO: support RequiresImport - this is possible to tell if it's the non-default value from the API (see Delete)
 
-	locks.ByName(id.ServerName, postgreSQLServerResourceName)
-	defer locks.UnlockByName(id.ServerName, postgreSQLServerResourceName)
+	serverId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
+	locks.ByID(serverId.ID())
+	defer locks.UnlockByID(serverId.ID())
 
 	properties := configurations.Configuration{
 		Properties: &configurations.ConfigurationProperties{
@@ -133,8 +135,9 @@ func resourcePostgreSQLConfigurationDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	locks.ByName(id.ServerName, postgreSQLServerResourceName)
-	defer locks.UnlockByName(id.ServerName, postgreSQLServerResourceName)
+	serverId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
+	locks.ByID(serverId.ID())
+	defer locks.UnlockByID(serverId.ID())
 
 	// "delete" = resetting this to the default value
 	resp, err := client.Get(ctx, *id)

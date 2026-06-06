@@ -72,12 +72,15 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	locks.ByName(gatewayId.NatGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(gatewayId.NatGatewayName, natGatewayResourceName)
-	locks.ByName(subnetId.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(subnetId.VirtualNetworkName, VirtualNetworkResourceName)
-	locks.ByName(subnetId.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(subnetId.SubnetName, SubnetResourceName)
+	locks.ByID(gatewayId.ID())
+	defer locks.UnlockByID(gatewayId.ID())
+
+	virtualNetworkID := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
+	locks.ByID(virtualNetworkID.ID())
+	defer locks.UnlockByID(virtualNetworkID.ID())
+
+	locks.ByID(subnetId.ID())
+	defer locks.UnlockByID(subnetId.ID())
 
 	subnet, err := client.Get(ctx, *subnetId, subnets.DefaultGetOperationOptions())
 	if err != nil {
@@ -219,10 +222,12 @@ func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	locks.ByName(gatewayId.NatGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(gatewayId.NatGatewayName, natGatewayResourceName)
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	locks.ByID(gatewayId.ID())
+	defer locks.UnlockByID(gatewayId.ID())
+
+	virtualNetworkID := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(virtualNetworkID.ID())
+	defer locks.UnlockByID(virtualNetworkID.ID())
 
 	subnet, err = client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {

@@ -127,12 +127,12 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Create() sdk.ResourceFu
 			sourceEndpointId := virtualendpoints.NewVirtualEndpointID(sourceServerId.SubscriptionId, sourceServerId.ResourceGroupName, sourceServerId.FlexibleServerName, virtualEndpoint.Name)
 			replicaEndpointId := virtualendpoints.NewVirtualEndpointID(replicaServerId.SubscriptionId, replicaServerId.ResourceGroupName, replicaServerId.FlexibleServerName, virtualEndpoint.Name)
 
-			locks.ByName(sourceEndpointId.FlexibleServerName, postgresqlFlexibleServerResourceName)
-			defer locks.UnlockByName(sourceEndpointId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+			locks.ByID(sourceServerId.ID())
+			defer locks.UnlockByID(sourceServerId.ID())
 
 			if replicaServerId.FlexibleServerName != replicaEndpointId.FlexibleServerName {
-				locks.ByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
-				defer locks.UnlockByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+				locks.ByID(replicaServerId.ID())
+				defer locks.UnlockByID(replicaServerId.ID())
 			}
 
 			id := commonids.NewCompositeResourceID(&sourceEndpointId, &replicaEndpointId)
@@ -213,7 +213,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 					replicaServerId := state.SourceServerId
 
 					if len(*props.Members) == 2 {
-						replicaServer, err := lookupFlexibleServerByName(ctx, flexibleServerClient, virtualEndpointId, (*props.Members)[1], state.SourceServerId)
+						replicaServer, err := lookupFlexibleServerByID(ctx, flexibleServerClient, virtualEndpointId, (*props.Members)[1], state.SourceServerId)
 						if err != nil {
 							return err
 						}
@@ -280,8 +280,9 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Delete() sdk.ResourceFu
 				}
 			}
 
-			locks.ByName(virtualEndpointId.FlexibleServerName, postgresqlFlexibleServerResourceName)
-			defer locks.UnlockByName(virtualEndpointId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+			serverID := servers.NewFlexibleServerID(virtualEndpointId.SubscriptionId, virtualEndpointId.ResourceGroupName, virtualEndpointId.FlexibleServerName)
+			locks.ByID(serverID.ID())
+			defer locks.UnlockByID(serverID.ID())
 
 			if err := client.DeleteThenPoll(ctx, virtualEndpointId); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -328,12 +329,13 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 				return err
 			}
 
-			locks.ByName(id.First.FlexibleServerName, postgresqlFlexibleServerResourceName)
-			defer locks.UnlockByName(id.First.FlexibleServerName, postgresqlFlexibleServerResourceName)
+			serverID := servers.NewFlexibleServerID(virtualEndpointId.SubscriptionId, virtualEndpointId.ResourceGroupName, virtualEndpointId.FlexibleServerName)
+			locks.ByID(serverID.ID())
+			defer locks.UnlockByID(serverID.ID())
 
 			if replicaServerId.FlexibleServerName != id.First.FlexibleServerName {
-				locks.ByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
-				defer locks.UnlockByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+				locks.ByID(replicaServerId.ID())
+				defer locks.UnlockByID(replicaServerId.ID())
 			}
 
 			endpointId := virtualendpoints.NewVirtualEndpointID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.FlexibleServerName, virtualEndpoint.Name)
@@ -358,7 +360,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 
 // The flexible endpoint API does not store the location/rg information on replicas it only stores the name.
 // This lookup is safe because replicas for a given source server are *not* allowed to have identical names
-func lookupFlexibleServerByName(ctx context.Context, flexibleServerClient *servers.ServersClient, virtualEndpointId virtualendpoints.VirtualEndpointId, replicaServerName string, sourceServerId string) (*servers.Server, error) {
+func lookupFlexibleServerByID(ctx context.Context, flexibleServerClient *servers.ServersClient, virtualEndpointId virtualendpoints.VirtualEndpointId, replicaServerName string, sourceServerId string) (*servers.Server, error) {
 	postgresServers, err := flexibleServerClient.ListBySubscriptionCompleteMatchingPredicate(ctx, commonids.NewSubscriptionID(virtualEndpointId.SubscriptionId), servers.ServerOperationPredicate{
 		Name: &replicaServerName,
 	})

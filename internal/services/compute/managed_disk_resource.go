@@ -810,16 +810,14 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 		// check instanceView State
 
-		locks.ByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
-		defer locks.UnlockByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
+		locks.ByID(virtualMachineId.ID())
+		defer locks.UnlockByID(virtualMachineId.ID())
 
-		err = resourceManagedDiskUpdateWithVmShutDown(ctx, meta.(*clients.Client), id, virtualMachineId, diskUpdate, shouldDetach)
-		if err != nil {
+		if err := resourceManagedDiskUpdateWithVmShutDown(ctx, meta.(*clients.Client), id, virtualMachineId, diskUpdate, shouldDetach); err != nil {
 			return err
 		}
 	} else { // otherwise, just update it
-		err := client.UpdateThenPoll(ctx, *id, diskUpdate)
-		if err != nil {
+		if err := client.UpdateThenPoll(ctx, *id, diskUpdate); err != nil {
 			return fmt.Errorf("expanding managed disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}

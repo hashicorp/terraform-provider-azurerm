@@ -97,11 +97,13 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	locks.ByName(id.EventhubName, eventHubResourceName)
-	defer locks.UnlockByName(id.EventhubName, eventHubResourceName)
+	eventhubID := eventhubs.NewEventhubID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventhubName)
+	locks.ByID(eventhubID.ID())
+	defer locks.UnlockByID(eventhubID.ID())
 
-	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+	namespaceID := eventhubs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	locks.ByID(namespaceID.ID())
+	defer locks.UnlockByID(namespaceID.ID())
 
 	parameters := authorizationruleseventhubs.AuthorizationRule{
 		Name: &id.AuthorizationRuleName,
@@ -196,11 +198,13 @@ func resourceEventHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	locks.ByName(id.EventhubName, eventHubResourceName)
-	defer locks.UnlockByName(id.EventhubName, eventHubResourceName)
+	eventhubID := eventhubs.NewEventhubID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventhubName)
+	locks.ByID(eventhubID.ID())
+	defer locks.UnlockByID(eventhubID.ID())
 
-	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+	namespaceID := eventhubs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	locks.ByID(namespaceID.ID())
+	defer locks.UnlockByID(namespaceID.ID())
 
 	if resp, err := eventhubClient.DeleteAuthorizationRule(ctx, *id); err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {

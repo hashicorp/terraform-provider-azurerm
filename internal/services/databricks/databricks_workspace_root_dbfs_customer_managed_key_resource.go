@@ -90,8 +90,8 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	locks.ByName(id.WorkspaceName, "azurerm_databricks_workspace")
-	defer locks.UnlockByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := workspaceClient.Get(ctx, *id)
 	if err != nil {
@@ -231,8 +231,8 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	locks.ByName(id.WorkspaceName, "azurerm_databricks_workspace")
-	defer locks.UnlockByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := workspaceClient.Get(ctx, *id)
 	if err != nil {
@@ -308,8 +308,8 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyDelete(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	locks.ByName(id.WorkspaceName, "azurerm_databricks_workspace")
-	defer locks.UnlockByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {

@@ -33,10 +33,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-const (
-	postgreSQLServerResourceName = "azurerm_postgresql_server"
-)
-
 var skuList = []string{
 	"B_Gen4_1",
 	"B_Gen4_2",

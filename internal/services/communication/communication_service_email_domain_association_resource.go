@@ -81,11 +81,11 @@ func (r EmailDomainAssociationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			locks.ByName(communicationServiceId.CommunicationServiceName, "azurerm_communication_service")
-			defer locks.UnlockByName(communicationServiceId.CommunicationServiceName, "azurerm_communication_service")
+			locks.ByID(communicationServiceId.ID())
+			defer locks.UnlockByID(communicationServiceId.ID())
 
-			locks.ByName(eMailServiceDomainId.DomainName, "azurerm_email_communication_service_domain")
-			defer locks.UnlockByName(eMailServiceDomainId.DomainName, "azurerm_email_communication_service_domain")
+			locks.ByID(eMailServiceDomainId.ID())
+			defer locks.UnlockByID(eMailServiceDomainId.ID())
 
 			existingEMailServiceDomain, err := domainClient.Get(ctx, *eMailServiceDomainId)
 			if err != nil && !response.WasNotFound(existingEMailServiceDomain.HttpResponse) {
@@ -182,11 +182,11 @@ func (EmailDomainAssociationResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			locks.ByName(communicationServiceId.CommunicationServiceName, "azurerm_communication_service")
-			defer locks.UnlockByName(communicationServiceId.CommunicationServiceName, "azurerm_communication_service")
+			locks.ByID(communicationServiceId.ID())
+			defer locks.UnlockByID(communicationServiceId.ID())
 
-			locks.ByName(eMailServiceDomainId.DomainName, "azurerm_email_communication_service_domain")
-			defer locks.UnlockByName(eMailServiceDomainId.DomainName, "azurerm_email_communication_service_domain")
+			locks.ByID(eMailServiceDomainId.ID())
+			defer locks.UnlockByID(eMailServiceDomainId.ID())
 
 			existingEMailServiceDomain, err := domainClient.Get(ctx, *eMailServiceDomainId)
 			if err != nil && !response.WasNotFound(existingEMailServiceDomain.HttpResponse) {
@@ -264,11 +264,11 @@ func (EmailDomainAssociationResource) Delete() sdk.ResourceFunc {
 			communicationServiceId := id.First
 			eMailServiceDomainId := id.Second
 
-			locks.ByName(communicationServiceId.CommunicationServiceName, "azurerm_communication_service")
-			defer locks.UnlockByName(communicationServiceId.CommunicationServiceName, "azurerm_communication_service")
+			locks.ByID(communicationServiceId.ID())
+			defer locks.UnlockByID(communicationServiceId.ID())
 
-			locks.ByName(eMailServiceDomainId.DomainName, "azurerm_email_communication_service_domain")
-			defer locks.UnlockByName(eMailServiceDomainId.DomainName, "azurerm_email_communication_service_domain")
+			locks.ByID(eMailServiceDomainId.ID())
+			defer locks.UnlockByID(eMailServiceDomainId.ID())
 
 			existingEMailServiceDomain, err := domainClient.Get(ctx, *eMailServiceDomainId)
 			if err != nil && !response.WasNotFound(existingEMailServiceDomain.HttpResponse) {

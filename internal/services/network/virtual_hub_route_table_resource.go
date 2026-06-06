@@ -131,8 +131,8 @@ func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	locks.ByName(virtHubId.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(virtHubId.VirtualHubName, virtualHubResourceName)
+	locks.ByID(virtHubId.ID())
+	defer locks.UnlockByID(virtHubId.ID())
 
 	id := virtualwans.NewHubRouteTableID(virtHubId.SubscriptionId, virtHubId.ResourceGroupName, virtHubId.VirtualHubName, d.Get("name").(string))
 
@@ -179,8 +179,8 @@ func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	locks.ByName(virtHubId.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(virtHubId.VirtualHubName, virtualHubResourceName)
+	locks.ByID(virtHubId.ID())
+	defer locks.UnlockByID(virtHubId.ID())
 
 	id, err := virtualwans.ParseHubRouteTableID(d.Id())
 	if err != nil {
@@ -266,8 +266,9 @@ func resourceVirtualHubRouteTableDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	locks.ByName(id.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
+	virtualHubID := virtualwans.NewVirtualHubID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName)
+	locks.ByID(virtualHubID.ID())
+	defer locks.UnlockByID(virtualHubID.ID())
 
 	if err := client.HubRouteTablesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

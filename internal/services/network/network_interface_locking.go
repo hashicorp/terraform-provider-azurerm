@@ -11,30 +11,30 @@ import (
 )
 
 type networkInterfaceIPConfigurationLockingDetails struct {
-	subnetNamesToLock         []string
-	virtualNetworkNamesToLock []string
+	subnetIDsToLock         []string
+	virtualNetworkIDsToLock []string
 }
 
 func (details networkInterfaceIPConfigurationLockingDetails) lock() {
-	locks.MultipleByName(&details.virtualNetworkNamesToLock, VirtualNetworkResourceName)
-	locks.MultipleByName(&details.subnetNamesToLock, SubnetResourceName)
+	locks.MultipleByID(&details.virtualNetworkIDsToLock)
+	locks.MultipleByID(&details.subnetIDsToLock)
 }
 
 func (details networkInterfaceIPConfigurationLockingDetails) unlock() {
-	locks.UnlockMultipleByName(&details.subnetNamesToLock, SubnetResourceName)
-	locks.UnlockMultipleByName(&details.virtualNetworkNamesToLock, VirtualNetworkResourceName)
+	locks.UnlockMultipleByID(&details.subnetIDsToLock)
+	locks.UnlockMultipleByID(&details.virtualNetworkIDsToLock)
 }
 
 func determineResourcesToLockFromIPConfiguration(input *[]networkinterfaces.NetworkInterfaceIPConfiguration) (*networkInterfaceIPConfigurationLockingDetails, error) {
 	if input == nil {
 		return &networkInterfaceIPConfigurationLockingDetails{
-			subnetNamesToLock:         []string{},
-			virtualNetworkNamesToLock: []string{},
+			subnetIDsToLock:         []string{},
+			virtualNetworkIDsToLock: []string{},
 		}, nil
 	}
 
-	subnetNamesToLock := make([]string, 0)
-	virtualNetworkNamesToLock := make([]string, 0)
+	subnetIDsToLock := make([]string, 0)
+	virtualNetworkIDsToLock := make([]string, 0)
 
 	for _, config := range *input {
 		if config.Properties == nil || config.Properties.Subnet == nil || config.Properties.Subnet.Id == nil {
@@ -46,20 +46,18 @@ func determineResourcesToLockFromIPConfiguration(input *[]networkinterfaces.Netw
 			return nil, err
 		}
 
-		virtualNetworkName := id.VirtualNetworkName
-		subnetName := id.SubnetName
-
-		if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
-			virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+		virtualNetworkID := commonids.NewVirtualNetworkID(id.SubscriptionId, id.SubscriptionId, id.VirtualNetworkName)
+		if !utils.SliceContainsValue(virtualNetworkIDsToLock, virtualNetworkID.ID()) {
+			virtualNetworkIDsToLock = append(virtualNetworkIDsToLock, virtualNetworkID.ID())
 		}
 
-		if !utils.SliceContainsValue(subnetNamesToLock, subnetName) {
-			subnetNamesToLock = append(subnetNamesToLock, subnetName)
+		if !utils.SliceContainsValue(subnetIDsToLock, id.ID()) {
+			subnetIDsToLock = append(subnetIDsToLock, id.ID())
 		}
 	}
 
 	return &networkInterfaceIPConfigurationLockingDetails{
-		subnetNamesToLock:         subnetNamesToLock,
-		virtualNetworkNamesToLock: virtualNetworkNamesToLock,
+		subnetIDsToLock:         subnetIDsToLock,
+		virtualNetworkIDsToLock: virtualNetworkIDsToLock,
 	}, nil
 }

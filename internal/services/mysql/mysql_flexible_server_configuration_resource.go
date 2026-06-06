@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -86,8 +87,9 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 
 	id := configurations.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
+	flexibleServerID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	locks.ByID(flexibleServerID.ID())
+	defer locks.UnlockByID(flexibleServerID.ID())
 
 	if err := client.UpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
@@ -111,8 +113,9 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
+	flexibleServerID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	locks.ByID(flexibleServerID.ID())
+	defer locks.UnlockByID(flexibleServerID.ID())
 
 	payload := configurations.Configuration{
 		Properties: &configurations.ConfigurationProperties{
@@ -177,8 +180,9 @@ func resourceMySQLFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
+	flexibleServerID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	locks.ByID(flexibleServerID.ID())
+	defer locks.UnlockByID(flexibleServerID.ID())
 
 	// "delete" = resetting this to the default value
 	resp, err := client.Get(ctx, *id)

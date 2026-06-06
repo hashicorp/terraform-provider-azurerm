@@ -207,8 +207,8 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 
 			// need a lock for hsm subresource create/update/delete, or API may respond error as below
 			// Status=409 Code="Conflict" Message="There was a conflict while trying to delete the role assignment.
-			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
-			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+			locks.ByID(managedHsmId.ID())
+			defer locks.UnlockByID(managedHsmId.ID())
 
 			scope := keyvault.RoleScopeGlobal
 			id := parse.NewManagedHSMDataPlaneRoleDefinitionID(endpoint.ManagedHSMName, endpoint.DomainSuffix, string(scope), config.Name)
@@ -298,8 +298,8 @@ func (r KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("unable to determine the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}
 
-			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
-			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+			locks.ByID(managedHsmId.ID())
+			defer locks.UnlockByID(managedHsmId.ID())
 
 			result, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName)
 			if err != nil {
@@ -359,8 +359,8 @@ func (r KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("unable to determine the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}
 
-			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
-			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+			locks.ByID(managedHsmId.ID())
+			defer locks.UnlockByID(managedHsmId.ID())
 
 			var model KeyVaultMHSMRoleDefinitionModel
 			if err = metadata.Decode(&model); err != nil {
@@ -418,8 +418,8 @@ func (r KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("unable to determine the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}
 
-			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
-			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+			locks.ByID(managedHsmId.ID())
+			defer locks.UnlockByID(managedHsmId.ID())
 
 			// TODO: @manicminer: when migrating to go-azure-sdk, the SDK should auto-retry on 409 responses
 			// (these occur when a recently deleted assignment for the role has not yet fully replicated)

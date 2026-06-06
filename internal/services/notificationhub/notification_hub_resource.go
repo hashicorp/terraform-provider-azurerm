@@ -24,8 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var notificationHubResourceName = "azurerm_notification_hub"
-
 const (
 	apnsProductionName     = "Production"
 	apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"

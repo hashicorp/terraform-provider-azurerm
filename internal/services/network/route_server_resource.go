@@ -10,8 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -23,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -131,8 +130,8 @@ func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id := virtualwans.NewVirtualHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.VirtualHubName, "azurerm_route_server")
-	defer locks.UnlockByName(id.VirtualHubName, "azurerm_route_server")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.VirtualHubsGet(ctx, id)
@@ -210,8 +209,8 @@ func resourceRouteServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	locks.ByName(id.VirtualHubName, "azurerm_route_server")
-	defer locks.UnlockByName(id.VirtualHubName, "azurerm_route_server")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.VirtualHubsGet(ctx, *id)
 	if err != nil {

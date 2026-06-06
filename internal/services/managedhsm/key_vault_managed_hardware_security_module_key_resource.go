@@ -202,8 +202,8 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewManagedHSMDataPlaneVersionlessKeyID(endpoint.ManagedHSMName, endpoint.DomainSuffix, config.Name)
 
-			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
-			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+			locks.ByID(managedHsmId.ID())
+			defer locks.UnlockByID(managedHsmId.ID())
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.GetKey(ctx, endpoint.BaseURI(), id.KeyName, "")

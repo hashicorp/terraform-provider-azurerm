@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -125,8 +126,9 @@ func resourceIotHubDPSSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, 
 
 	iothubDpsId := commonids.NewProvisioningServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_dps_name").(string))
 
-	locks.ByName(iothubDpsId.ProvisioningServiceName, IothubResourceName)
-	defer locks.UnlockByName(iothubDpsId.ProvisioningServiceName, IothubResourceName)
+	iotHubID := parse.NewIotHubID(iothubDpsId.SubscriptionId, iothubDpsId.ResourceGroupName, iothubDpsId.ProvisioningServiceName)
+	locks.ByID(iotHubID.ID())
+	defer locks.UnlockByID(iotHubID.ID())
 
 	iothubDps, err := client.Get(ctx, iothubDpsId)
 	if err != nil {
@@ -275,8 +277,9 @@ func resourceIotHubDPSSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	locks.ByName(id.ProvisioningServiceName, IothubResourceName)
-	defer locks.UnlockByName(id.ProvisioningServiceName, IothubResourceName)
+	iotHubID := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroupName, id.ProvisioningServiceName)
+	locks.ByID(iotHubID.ID())
+	defer locks.UnlockByID(iotHubID.ID())
 
 	iothubDpsId := commonids.NewProvisioningServiceID(id.SubscriptionId, id.ResourceGroupName, id.ProvisioningServiceName)
 	iothubDps, err := client.Get(ctx, iothubDpsId)

@@ -319,8 +319,8 @@ func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta int
 	if len(*routes) != 0 && routes != nil {
 		for _, route := range *routes {
 			// lock the route resource for update...
-			locks.ByName(route.RouteName, cdnFrontDoorRouteResourceName)
-			defer locks.UnlockByName(route.RouteName, cdnFrontDoorRouteResourceName)
+			locks.ByID(route.ID())
+			defer locks.UnlockByID(route.ID())
 
 			// Check to see if the route still exists and grab its properties...
 			// NOTE: cdnFrontDoorRouteResourceName is defined in the "cdn_frontdoor_route_disable_link_to_default_domain_resource" file
