@@ -8,6 +8,8 @@ description: |-
 
 # Data Source: azurerm_oracle_gi_versions
 
+!> **Note:** The `azurerm_oracle_gi_versions` data source has been deprecated in favour of the `azurerm_oracle_grid_infrastructure_versions` data source. Please use `azurerm_oracle_grid_infrastructure_versions` instead.
+
 This data source provides the list of GI Versions in Oracle Cloud Infrastructure Database service.
 
 Gets a list of supported GI versions.
