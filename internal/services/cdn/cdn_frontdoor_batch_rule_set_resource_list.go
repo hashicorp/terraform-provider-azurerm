@@ -91,7 +91,7 @@ func (CdnFrontDoorBatchRuleSetListResource) List(ctx context.Context, request li
 				continue
 			}
 
-			ruleSetID, err := rules.ParseRuleSetID(*item.Id)
+			ruleSetID, err := rules.ParseRuleSetIDInsensitively(*item.Id)
 			if err != nil {
 				result := request.NewListResult(iteratorCtx)
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing `rule set id`", err)

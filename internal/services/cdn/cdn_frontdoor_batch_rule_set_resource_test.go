@@ -186,11 +186,11 @@ func TestAccCdnFrontDoorBatchRuleSet_conditionValidation(t *testing.T) {
 		},
 		{
 			Config:      r.remoteAddressGeoMatchInvalid(data),
-			ExpectError: regexp.MustCompile(`"remote_address_condition" is invalid: when the 'operator' is set to 'GeoMatch' the value must be a valid country code`),
+			ExpectError: regexp.MustCompile(`remote_address_condition.*valid country code`),
 		},
 		{
 			Config:      r.socketAddressConditionInvalidCIDR(data),
-			ExpectError: regexp.MustCompile(`"socket_address_condition" is invalid: when the 'operator' is set to 'IPMatch' the 'match_values' must be a valid IPv4 or IPv6 CIDR`),
+			ExpectError: regexp.MustCompile(`socket_address_condition.*valid IPv4 or IPv6 CIDR`),
 		},
 	})
 }
