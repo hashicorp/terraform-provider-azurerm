@@ -84,6 +84,8 @@ The following arguments are supported:
 
 * `threat_intel_mode` - (Optional) The operation mode for threat intelligence-based filtering. Possible values are: `Off`, `Alert` and `Deny`. Defaults to `Alert`.
 
+* `autoscale_configuration` - (Optional) An `autoscale_configuration` block as documented below.
+
 * `virtual_hub` - (Optional) A `virtual_hub` block as documented below.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Azure Firewall should be located. Changing this forces a new Azure Firewall to be created.
@@ -133,6 +135,14 @@ A `virtual_hub` block supports the following:
 * `virtual_hub_id` - (Required) Specifies the ID of the Virtual Hub where the Firewall resides in.
 
 * `public_ip_count` - (Optional) Specifies the number of public IPs to assign to the Firewall. Defaults to `1`.
+
+---
+
+An `autoscale_configuration` block supports the following:
+
+* `min_capacity` - (Required) The minimum number of capacity units for this Azure Firewall. Must be at least `2`.
+
+* `max_capacity` - (Required) The maximum number of capacity units for this Azure Firewall. Must be at least `2` and greater than or equal to `min_capacity`.
 
 ## Attributes Reference
 
