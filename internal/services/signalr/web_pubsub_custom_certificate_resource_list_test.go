@@ -16,7 +16,7 @@ import (
 
 func TestAccCustomCertWebPubsub_listByWebPubSubID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_custom_certificate", "testlist")
-	r := CustomCertWebPubsubResource{}
+	r := WebPubsubCustomCertificateResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -36,7 +36,7 @@ func TestAccCustomCertWebPubsub_listByWebPubSubID(t *testing.T) {
 						"azurerm_web_pubsub_custom_certificate.list",
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(data.RandomString)),
-							"web_pub_sub_name":    knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"web_pubsub_name":     knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
@@ -47,7 +47,7 @@ func TestAccCustomCertWebPubsub_listByWebPubSubID(t *testing.T) {
 	})
 }
 
-func (r CustomCertWebPubsubResource) basicListQuery() string {
+func (r WebPubsubCustomCertificateResource) basicListQuery() string {
 	return `
 list "azurerm_web_pubsub_custom_certificate" "list" {
   provider = azurerm

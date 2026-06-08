@@ -20,7 +20,7 @@ func TestAccWebPubsubCustomCertificate_resourceIdentity(t *testing.T) {
 		"name":                {},
 		"resource_group_name": {},
 		"subscription_id":     {},
-		"web_pub_sub_name":    {},
+		"web_pubsub_name":     {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
@@ -31,7 +31,7 @@ func TestAccWebPubsubCustomCertificate_resourceIdentity(t *testing.T) {
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_web_pubsub_custom_certificate.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_web_pubsub_custom_certificate.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("web_pubsub_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_web_pubsub_custom_certificate.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("web_pubsub_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_web_pubsub_custom_certificate.test", tfjsonpath.New("web_pub_sub_name"), tfjsonpath.New("web_pubsub_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_web_pubsub_custom_certificate.test", tfjsonpath.New("web_pubsub_name"), tfjsonpath.New("web_pubsub_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
