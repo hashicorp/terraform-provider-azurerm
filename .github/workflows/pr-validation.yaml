@@ -91,12 +91,12 @@ jobs:
 
   depscheck-save-artifacts:
     needs: depscheck
-    if: failure()
+    if: always() && needs.depscheck.result == 'failure'
     uses: ./.github/workflows/save-artifacts.yaml
 
   depscheck-on-fail:
     needs: depscheck
-    if: failure()
+    if: always() && needs.depscheck.result == 'failure'
     uses: ./.github/workflows/comment-ci-failure.yaml
     with:
       check_name: "Vendor Dependencies Check"
@@ -130,12 +130,12 @@ jobs:
 
   fmtcheck-save-artifacts:
     needs: fmtcheck
-    if: failure()
+    if: always() && needs.fmtcheck.result == 'failure'
     uses: ./.github/workflows/save-artifacts.yaml
 
   fmtcheck-on-fail:
     needs: fmtcheck
-    if: failure()
+    if: always() && needs.fmtcheck.result == 'failure'
     uses: ./.github/workflows/comment-ci-failure.yaml
     with:
       check_name: "GoLang Formatting Check"
@@ -168,12 +168,12 @@ jobs:
 
   shellcheck-save-artifacts:
     needs: shellcheck
-    if: failure()
+    if: always() && needs.shellcheck.result == 'failure'
     uses: ./.github/workflows/save-artifacts.yaml
 
   shellcheck-on-fail:
     needs: shellcheck
-    if: failure()
+    if: always() && needs.shellcheck.result == 'failure'
     uses: ./.github/workflows/comment-ci-failure.yaml
     with:
       check_name: "ShellCheck Scripts"
@@ -211,12 +211,12 @@ jobs:
 
   website-lint-save-artifacts:
     needs: website-lint
-    if: failure()
+    if: always() && needs.website-lint.result == 'failure'
     uses: ./.github/workflows/save-artifacts.yaml
 
   website-lint-on-fail:
     needs: website-lint
-    if: failure()
+    if: always() && needs.website-lint.result == 'failure'
     uses: ./.github/workflows/comment-ci-failure.yaml
     with:
       check_name: "Website Linting"
@@ -249,12 +249,12 @@ jobs:
 
   document-validate-save-artifacts:
     needs: document-validate
-    if: failure()
+    if: always() && needs.document-validate.result == 'failure'
     uses: ./.github/workflows/save-artifacts.yaml
 
   document-validate-on-fail:
     needs: document-validate
-    if: failure()
+    if: always() && needs.document-validate.result == 'failure'
     uses: ./.github/workflows/comment-ci-failure.yaml
     with:
       check_name: "Document Validation"
@@ -297,12 +297,12 @@ jobs:
 
   build-save-artifacts:
     needs: build
-    if: failure()
+    if: always() && needs.build.result == 'failure'
     uses: ./.github/workflows/save-artifacts.yaml
 
   build-on-fail:
     needs: build
-    if: failure()
+    if: always() && needs.build.result == 'failure'
     uses: ./.github/workflows/comment-ci-failure.yaml
     with:
       check_name: "GoLang Compilation"
@@ -349,12 +349,12 @@ jobs:
 
   golangci-lint-save-artifacts:
     needs: golangci-lint
-    if: failure()
+    if: always() && needs.golangci-lint.result == 'failure'
     uses: ./.github/workflows/save-artifacts.yaml
 
   golangci-lint-on-fail:
     needs: golangci-lint
-    if: failure()
+    if: always() && needs.golangci-lint.result == 'failure'
     uses: ./.github/workflows/comment-ci-failure.yaml
     with:
       check_name: "GoLang Linting"
@@ -398,12 +398,12 @@ jobs:
 
   tflint-save-artifacts:
     needs: tflint
-    if: failure()
+    if: always() && needs.tflint.result == 'failure'
     uses: ./.github/workflows/save-artifacts.yaml
 
   tflint-on-fail:
     needs: tflint
-    if: failure()
+    if: always() && needs.tflint.result == 'failure'
     uses: ./.github/workflows/comment-ci-failure.yaml
     with:
       check_name: "Terraform Schema Linting"
@@ -444,12 +444,12 @@ jobs:
 
   gencheck-save-artifacts:
     needs: gencheck
-    if: failure()
+    if: always() && needs.gencheck.result == 'failure'
     uses: ./.github/workflows/save-artifacts.yaml
 
   gencheck-on-fail:
     needs: gencheck
-    if: failure()
+    if: always() && needs.gencheck.result == 'failure'
     uses: ./.github/workflows/comment-ci-failure.yaml
     with:
       check_name: "Generation Check"
@@ -506,12 +506,12 @@ jobs:
 
   unit-tests-save-artifacts:
     needs: unit-tests
-    if: failure()
+    if: always() && needs.unit-tests.result == 'failure'
     uses: ./.github/workflows/save-artifacts.yaml
 
   unit-tests-on-fail:
     needs: unit-tests
-    if: failure()
+    if: always() && needs.unit-tests.result == 'failure'
     uses: ./.github/workflows/comment-ci-failure.yaml
     with:
       check_name: "Unit Tests"
@@ -554,12 +554,12 @@ jobs:
 
   validate-examples-save-artifacts:
     needs: validate-examples
-    if: failure()
+    if: always() && needs.validate-examples.result == 'failure'
     uses: ./.github/workflows/save-artifacts.yaml
 
   validate-examples-on-fail:
     needs: validate-examples
-    if: failure()
+    if: always() && needs.validate-examples.result == 'failure'
     uses: ./.github/workflows/comment-ci-failure.yaml
     with:
       check_name: "Validate Examples"
