@@ -91,14 +91,16 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 
 	id := configurationassignments.NewScopedConfigurationAssignmentID(virtualMachineScaleSetId.ID(), maintenanceConfigurationId.MaintenanceConfigurationName)
 
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine_scale_set", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine_scale_set", id.ID())
+		}
 	}
 
 	configurationAssignment := configurationassignments.ConfigurationAssignment{

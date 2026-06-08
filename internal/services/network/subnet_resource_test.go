@@ -518,7 +518,7 @@ func TestAccSubnet_updateServiceDelegation(t *testing.T) {
 	})
 }
 
-func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return nil, err

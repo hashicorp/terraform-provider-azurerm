@@ -235,15 +235,17 @@ func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
 
 			id := jobs.NewJobID(subscriptionId, model.ResourceGroup, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			registries, err := helpers.ExpandContainerAppJobRegistries(model.Registries)
@@ -291,7 +293,7 @@ func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
 				job.Properties.WorkloadProfileName = pointer.To(model.WorkloadProfileName)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, job); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, job, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -331,7 +333,7 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 				state.Tags = tags.Flatten(model.Tags)
 				if model.Identity != nil {
 					if model.Identity != nil {
-						ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To((identity.SystemAndUserAssignedMap)(*model.Identity)))
+						ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
 						if err != nil {
 							return err
 						}

@@ -85,7 +85,8 @@ func (client SecurityMLAnalyticsSettingsClient) ListPreparer(ctx context.Context
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/securityMLAnalyticsSettings", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
+		autorest.WithQueryParameters(queryParameters),
+	)
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -102,7 +103,8 @@ func (client SecurityMLAnalyticsSettingsClient) ListResponder(resp *http.Respons
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
+		autorest.ByClosing(),
+	)
 	result.Response = autorest.Response{Response: resp}
 	return
 }

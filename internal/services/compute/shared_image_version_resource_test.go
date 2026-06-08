@@ -538,7 +538,6 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) imageVersionBlobURI(data acceptance.TestData) string {
-	template := r.setup(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -577,7 +576,7 @@ resource "azurerm_shared_image_version" "test" {
     regional_replica_count = 1
   }
 }
-`, template, data.RandomInteger)
+`, r.setup(data), data.RandomInteger)
 }
 
 func (r SharedImageVersionResource) imageVersionUefiSettingsTemplates(data acceptance.TestData, signatureTemplateNames string) string {

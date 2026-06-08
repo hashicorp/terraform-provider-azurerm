@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `false`.
 
-* `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot`, `Cool`, `Cold` and `Premium`. Defaults to `Hot`.
+* `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot`, `Cool`, `Cold`, `Smart` and `Premium`. Defaults to `Hot`.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Storage Account should exist. Changing this forces a new Storage Account to be created.
 
@@ -180,7 +180,7 @@ The following arguments are supported:
 
 * `sas_policy` - (Optional) A `sas_policy` block as defined below.
 
-* `allowed_copy_scope` - (Optional) Restrict copy to and from Storage Accounts within an AAD tenant or with Private Links to the same VNet. Possible values are `AAD` and `PrivateLink`.
+* `allowed_copy_scope` - (Optional) The permitted scope for copy operations between storage accounts. Possible values are `AAD`, `PrivateLink` and `All`.
 
 * `sftp_enabled` - (Optional) Boolean, enable SFTP for the storage account
 
@@ -652,4 +652,4 @@ terraform import azurerm_storage_account.storageAcc1 /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage` - 2025-06-01
+* `Microsoft.Storage` - 2025-08-01

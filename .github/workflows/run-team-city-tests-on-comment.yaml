@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Check team membership
         id: check-membership
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.GH_MEMEBERSHIP_CHECK_TOKEN }}
           script: |
@@ -71,7 +71,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.2.0
         with:
-          go-version: '1.25'
+          go-version: '1.26'
 
       - name: Get tctest version
         id: tctest-version
@@ -92,16 +92,75 @@ jobs:
         run: |
           go install github.com/katbyte/tctest@latest
 
+      - name: Get PR commit SHA
+        id: get-pr-sha
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            const sha = pr.data.head.sha;
+            core.setOutput('sha', sha);
+            core.info(`PR head SHA: ${sha}`);
+            return sha;
+
       - name: Run tctest
+        id: run-tctest
         run: |
           PR_NUMBER=${{ github.event.issue.number }}
           COMMENT_BODY="${{ github.event.comment.body }}"
+          PR_SHA="${{ steps.get-pr-sha.outputs.sha }}"
+
+          # Parse flags from comment
+          # Extract everything after /test
+          FLAGS_STRING=$(echo "$COMMENT_BODY" | sed 's|^/test[[:space:]]*||')
+
+          # Initialize default values
+          beta=false
+          service=""
+
+          # Parse flags using getopts
+          # Convert FLAGS_STRING to array for getopts
+          eval set -- $FLAGS_STRING
+
+          while getopts ":bs:" opt; do
+            case "$opt" in
+              b) beta=true ;;
+              s) service="$OPTARG" ;;
+              *)
+                echo "Usage: /test [-b] [-s service_name]"
+                echo "  -b: Test beta version"
+                echo "  -s: Specify service name"
+                exit 1
+                ;;
+            esac
+          done
+
           echo "Running tctest for PR #${PR_NUMBER}"
-          tctest pr ${PR_NUMBER} --properties "POST_GITHUB_COMMENT=true"
+          echo "PR commit SHA: ${PR_SHA}"
+          echo "Beta version: ${beta}"
+          echo "Service: ${service:-all}"
+
+          # Run tctest with parsed flags
+          if [ "$service" != "" ]; then
+            tctest pr ${PR_NUMBER} -c --service "$service" --properties "TRACKING_ID=${PR_SHA}"
+            if [ "$beta" = true ]; then
+              tctest pr ${PR_NUMBER} -c --service "$service" --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
+            fi
+          else
+            tctest pr ${PR_NUMBER} -c --properties "TRACKING_ID=${PR_SHA}"
+            if [ "$beta" = true ]; then
+              tctest pr ${PR_NUMBER} -c --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
+            fi
+          fi
 
       - name: Comment on success
         if: success()
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -114,7 +173,7 @@ jobs:
 
       - name: Comment on failure
         if: failure()
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -131,7 +190,7 @@ jobs:
     if: needs.check-team-membership.outputs.is-team-member == 'false'
     steps:
       - name: Comment unauthorized
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
