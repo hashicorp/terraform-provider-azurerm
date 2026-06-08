@@ -331,7 +331,7 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - uses: golangci/golangci-lint-action@db582008a42febd596419635a5abc9d9815daa9c # v9
+      - uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # v9
         with:
           version: 'v2.4.0'
           install-mode: 'goinstall'
