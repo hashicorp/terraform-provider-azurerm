@@ -53,8 +53,6 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(keyVaultHSMCustomizeDiff),
-
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -145,38 +143,41 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				},
 			},
 
-			"security_domain_key_vault_certificate_ids": {
-				Type:         pluginsdk.TypeList,
-				MinItems:     3,
-				MaxItems:     10,
-				Optional:     true,
-				RequiredWith: []string{"security_domain_quorum"},
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate),
-				},
-			},
-
-			"security_domain_quorum": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				RequiredWith: []string{"security_domain_key_vault_certificate_ids"},
-				ValidateFunc: validation.IntBetween(2, 10),
-			},
-
-			"security_domain_encrypted_data": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
 			// https://github.com/Azure/azure-rest-api-specs/issues/13365
 			"tags": commonschema.Tags(),
 		},
 	}
 
 	if !features.FivePointOh() {
-		r.Schema["security_domain_key_vault_certificate_ids"].Elem.(*pluginsdk.Schema).ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+		r.CustomizeDiff = pluginsdk.CustomizeDiffShim(keyVaultHSMCustomizeDiff)
+
+		r.Schema["security_domain_key_vault_certificate_ids"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeList,
+			MinItems:     3,
+			MaxItems:     10,
+			Optional:     true,
+			RequiredWith: []string{"security_domain_quorum"},
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny),
+			},
+			Deprecated: "the `security_domain_key_vault_certificate_ids` property has been deprecated in favour of the `azurerm_key_vault_managed_hardware_security_module_security_domain` resource and will be removed in version 5.0 of the AzureRM Provider.",
+		}
+
+		r.Schema["security_domain_quorum"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			RequiredWith: []string{"security_domain_key_vault_certificate_ids"},
+			ValidateFunc: validation.IntBetween(2, 10),
+			Deprecated:   "the `security_domain_quorum` property has been deprecated in favour of the `azurerm_key_vault_managed_hardware_security_module_security_domain` resource and will be removed in version 5.0 of the AzureRM Provider.",
+		}
+
+		r.Schema["security_domain_encrypted_data"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Sensitive:  true,
+			Deprecated: "the `security_domain_encrypted_data` property has been deprecated in favour of the `azurerm_key_vault_managed_hardware_security_module_security_domain` resource and will be removed in version 5.0 of the AzureRM Provider.",
+		}
 	}
 
 	return r
@@ -245,20 +246,22 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 	}
 	client.AddToCache(id, dataPlaneUri)
 
-	// security domain download to activate this module
-	if ok := d.HasChange("security_domain_key_vault_certificate_ids"); ok {
-		// get hsm uri
-		resp, err := client.ManagedHsmClient.Get(ctx, id)
-		if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
-			return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
-		}
+	if !features.FivePointOh() {
+		// security domain download to activate this module
+		if ok := d.HasChange("security_domain_key_vault_certificate_ids"); ok {
+			// get hsm uri
+			resp, err := client.ManagedHsmClient.Get(ctx, id)
+			if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
+				return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
+			}
 
-		keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
-		encData, err := securityDomainDownload(ctx, client.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
-		if err != nil {
-			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
+			keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
+			encData, err := securityDomainDownload(ctx, client.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
+			if err != nil {
+				return fmt.Errorf("downloading security domain for %q: %+v", id, err)
+			}
+			d.Set("security_domain_encrypted_data", encData)
 		}
-		d.Set("security_domain_encrypted_data", encData)
 	}
 
 	return resourceArmKeyVaultManagedHardwareSecurityModuleRead(d, meta)
@@ -305,20 +308,22 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 		}
 	}
 
-	// security domain download to activate this module
-	if ok := d.HasChange("security_domain_key_vault_certificate_ids"); ok {
-		// get hsm uri
-		resp, err := hsmClient.Get(ctx, *id)
-		if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
-			return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
-		}
+	if !features.FivePointOh() {
+		// security domain download to activate this module
+		if ok := d.HasChange("security_domain_key_vault_certificate_ids"); ok {
+			// get hsm uri
+			resp, err := hsmClient.Get(ctx, *id)
+			if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
+				return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
+			}
 
-		keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
-		encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
-		if err != nil {
-			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
+			keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
+			encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
+			if err != nil {
+				return fmt.Errorf("downloading security domain for %q: %+v", id, err)
+			}
+			d.Set("security_domain_encrypted_data", encData)
 		}
-		d.Set("security_domain_encrypted_data", encData)
 	}
 
 	return nil

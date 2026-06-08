@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -69,6 +70,10 @@ func testAccKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) {
 }
 
 func testAccKeyVaultManagedHardwareSecurityModule_download(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("The inline security domain properties are deprecated and removed in 5.0. See TestAccKeyVaultManagedHardwareSecurityModuleSecurityDomain_basic instead.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module", "test")
 	r := KeyVaultManagedHardwareSecurityModuleResource{}
 
