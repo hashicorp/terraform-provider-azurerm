@@ -574,14 +574,14 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone)
 	if !providerfeatures.FivePointOh() {
 		resourceProviderRegistrationSet = getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
-	}
 
-	if !data.SkipProviderRegistration.IsNull() && !data.SkipProviderRegistration.ValueBool() {
-		if resourceProviderRegistrationSet != resourceproviders.ProviderRegistrationsLegacy {
-			diags.Append(diag.NewErrorDiagnostic("resource provider registration misconfiguration", "provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable"))
+		if !data.SkipProviderRegistration.IsNull() && !data.SkipProviderRegistration.ValueBool() {
+			if resourceProviderRegistrationSet != resourceproviders.ProviderRegistrationsLegacy {
+				diags.Append(diag.NewErrorDiagnostic("resource provider registration misconfiguration", "provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable"))
+			}
+
+			resourceProviderRegistrationSet = resourceproviders.ProviderRegistrationsNone
 		}
-
-		resourceProviderRegistrationSet = resourceproviders.ProviderRegistrationsNone
 	}
 
 	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(resourceProviderRegistrationSet)
