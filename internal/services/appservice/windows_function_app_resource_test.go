@@ -4281,7 +4281,6 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
-// TODO 4.0 enable the vnet_image_pull_enabled property for app running in ase env
 func (r WindowsFunctionAppResource) withASEV3(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

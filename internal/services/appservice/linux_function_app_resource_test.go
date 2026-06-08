@@ -653,7 +653,6 @@ func TestAccLinuxFunctionApp_elasticPremiumCompleteWithVnetProperties(t *testing
 	})
 }
 
-// TODO 4.0 remove post 4.0
 func TestAccLinuxFunctionApp_elasticPremiumComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -3830,7 +3829,6 @@ resource "azurerm_linux_function_app" "test" {
 `, r.storageContainerTemplate(data, SkuElasticPremiumPlan), data.RandomInteger)
 }
 
-// TODO 4.0 remove this test case as it's replaced by vNetIntegration_subnet1WithVnetProperties
 func (r LinuxFunctionAppResource) elasticComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

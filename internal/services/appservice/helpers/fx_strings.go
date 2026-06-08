@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 const (
@@ -95,9 +96,12 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 
 	case FxStringPrefixPython:
 		result.PythonVersion = parts[1]
+	}
 
-	case FxStringPrefixRuby:
-		result.RubyVersion = parts[1]
+	if !features.FivePointOh() {
+		if FxStringPrefix(strings.ToUpper(parts[0])) == FxStringPrefixRuby {
+			result.RubyVersion = parts[1]
+		}
 	}
 
 	return result
