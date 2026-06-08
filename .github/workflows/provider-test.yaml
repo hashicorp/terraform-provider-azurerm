@@ -44,7 +44,7 @@ jobs:
           go-version-file: ./.go-version
 
       - name: Azure CLI login (using OIDC)
-        uses: azure/login@93381592711f247e165c389ebb30b596c84cdc48 # v3
+        uses: azure/login@532459ea530d8321f2fb9bb10d1e0bcf23869a43 # v3
         with:
           client-id: ${{ secrets.ARM_CLIENT_ID }}
           tenant-id: ${{ secrets.ARM_TENANT_ID }}
