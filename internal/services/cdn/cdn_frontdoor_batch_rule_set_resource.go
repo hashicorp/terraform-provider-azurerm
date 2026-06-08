@@ -295,13 +295,13 @@ func (r CdnFrontDoorBatchRuleSetResource) Create() sdk.ResourceFunc {
 			}
 
 			ruleSetId := rules.NewRuleSetID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, model.Name)
-			ruleSetResourceId := legacyrulesets.NewRuleSetID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, model.Name)
+			ruleSetClientId := legacyrulesets.NewRuleSetID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := batchModeRuleSetClient.Get(ctx, ruleSetResourceId)
+				existing, err := batchModeRuleSetClient.Get(ctx, ruleSetClientId)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
-						return fmt.Errorf("retrieving %s: %+v", ruleSetResourceId, err)
+						return fmt.Errorf("retrieving %s: %+v", ruleSetClientId, err)
 					}
 				}
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -314,12 +314,12 @@ func (r CdnFrontDoorBatchRuleSetResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := batchModeRuleSetClient.CreateThenPoll(ctx, ruleSetResourceId, payload); err != nil {
-				return fmt.Errorf("creating %s: %+v", ruleSetResourceId, err)
+			if err := batchModeRuleSetClient.CreateThenPoll(ctx, ruleSetClientId, payload); err != nil {
+				return fmt.Errorf("creating %s: %+v", ruleSetClientId, err)
 			}
 
 			metadata.SetID(&ruleSetId)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &ruleSetId)
 		},
 	}
 }
@@ -335,8 +335,8 @@ func (r CdnFrontDoorBatchRuleSetResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			ruleSetResourceId := legacyrulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
-			resp, err := batchModeRuleSetClient.Get(ctx, ruleSetResourceId)
+			ruleSetClientId := legacyrulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
+			resp, err := batchModeRuleSetClient.Get(ctx, ruleSetClientId)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -369,14 +369,14 @@ func (r CdnFrontDoorBatchRuleSetResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			ruleSetResourceId := legacyrulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
+			ruleSetClientId := legacyrulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
 
 			payload, err := expandCdnFrontDoorBatchRuleSetPayload(true, model)
 			if err != nil {
 				return err
 			}
 
-			if err := batchModeRuleSetClient.CreateThenPoll(ctx, ruleSetResourceId, payload); err != nil {
+			if err := batchModeRuleSetClient.CreateThenPoll(ctx, ruleSetClientId, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -396,7 +396,8 @@ func (r CdnFrontDoorBatchRuleSetResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := batchModeRuleSetClient.DeleteThenPoll(ctx, legacyrulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)); err != nil {
+			ruleSetClientId := legacyrulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
+			if err := batchModeRuleSetClient.DeleteThenPoll(ctx, ruleSetClientId); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
