@@ -87,7 +87,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
   role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.officer.resource_manager_id
   principal_id       = data.azurerm_client_config.current.object_id
 }
-`, KeyVaultManagedHardwareSecurityModuleResource{}.download(data, 3))
+`, KeyVaultManagedHardwareSecurityModuleSecurityDomainResource{}.template(data, 3, 2))
 }
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) customRole(data acceptance.TestData) string {

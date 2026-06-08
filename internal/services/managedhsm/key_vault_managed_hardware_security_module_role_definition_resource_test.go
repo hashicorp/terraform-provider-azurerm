@@ -117,5 +117,5 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "t
 }
 
 func (r KeyVaultMHSMRoleDefinitionResource) template(data acceptance.TestData) string {
-	return KeyVaultManagedHardwareSecurityModuleResource{}.download(data, 3)
+	return KeyVaultManagedHardwareSecurityModuleSecurityDomainResource{}.template(data, 3, 2)
 }
