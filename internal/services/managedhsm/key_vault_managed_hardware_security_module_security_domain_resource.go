@@ -33,7 +33,7 @@ func (r KeyVaultMHSMSecurityDomainResource) ModelObject() interface{} {
 type KeyVaultMHSMSecurityDomainResourceSchema struct {
 	ManagedHSMID   string   `tfschema:"managed_hsm_id"`
 	CertificateIds []string `tfschema:"security_domain_key_vault_certificate_ids"`
-	Quorum         int      `tfschema:"security_domain_quorum"`
+	Quorum         int64    `tfschema:"security_domain_quorum"`
 	EncryptedData  string   `tfschema:"security_domain_encrypted_data"`
 }
 
@@ -111,7 +111,7 @@ func (r KeyVaultMHSMSecurityDomainResource) Create() sdk.ResourceFunc {
 				certs[i] = v
 			}
 
-			encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, certs, config.Quorum)
+			encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, certs, int(config.Quorum))
 			if err != nil {
 				return fmt.Errorf("downloading security domain for %q: %+v", managedHsmId, err)
 			}
@@ -178,7 +178,7 @@ func (r KeyVaultMHSMSecurityDomainResource) Update() sdk.ResourceFunc {
 				certs[i] = v
 			}
 
-			encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, certs, config.Quorum)
+			encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, certs, int(config.Quorum)) // Note: Casting here is safe due to max value of `10`
 			if err != nil {
 				return fmt.Errorf("downloading security domain for %q: %+v", managedHsmId, err)
 			}

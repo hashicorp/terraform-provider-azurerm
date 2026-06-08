@@ -14,7 +14,8 @@ import (
 
 type KeyVaultManagedHardwareSecurityModuleSecurityDomainResource struct{}
 
-func TestAccKeyVaultManagedHardwareSecurityModuleSecurityDomain_basic(t *testing.T) {
+// Note: Due to serialisation of this resource's testing, we're combining basic and update tests into a single test.
+func testAccKeyVaultManagedHardwareSecurityModuleSecurityDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_security_domain", "test")
 	r := KeyVaultManagedHardwareSecurityModuleSecurityDomainResource{}
 
@@ -40,7 +41,7 @@ func (r KeyVaultManagedHardwareSecurityModuleSecurityDomainResource) basic(data 
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleSecurityDomainResource) update(data acceptance.TestData) string {
-	return r.template(data, 4, 2)
+	return r.template(data, 5, 3)
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleSecurityDomainResource) template(data acceptance.TestData, certCount int, quorum int) string {

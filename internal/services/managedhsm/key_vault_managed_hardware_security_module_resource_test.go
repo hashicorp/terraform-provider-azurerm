@@ -51,6 +51,9 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 			"rotationPolicy":     testAccMHSMKeyRotationPolicy_all,
 			"data_source":        testAccKeyVaultMHSMKeyDataSource_basic,
 		},
+		"securityDomain": {
+			"combined": testAccKeyVaultManagedHardwareSecurityModuleSecurityDomain_basic,
+		},
 	})
 }
 
