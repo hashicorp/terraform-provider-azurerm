@@ -90,6 +90,20 @@ func TestAccVirtualDesktopApplication_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccVirtualDesktopApplication_appAttachPackage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application", "test")
+	r := VirtualDesktopApplicationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appAttachPackage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (VirtualDesktopApplicationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := application.ParseApplicationID(state.ID)
 	if err != nil {
@@ -201,4 +215,28 @@ resource "azurerm_virtual_desktop_application" "import" {
 
 }
 `, r.basic(data))
+}
+
+func (r VirtualDesktopApplicationResource) appAttachPackage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_desktop_application_group" "test" {
+  name                = "acctest-vdag-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  host_pool_id        = azurerm_virtual_desktop_host_pool.test.id
+  type                = "RemoteApp"
+}
+
+resource "azurerm_virtual_desktop_application" "test" {
+  name                         = "acctest-vdapp-%[2]d"
+  application_group_id         = azurerm_virtual_desktop_application_group.test.id
+  application_type             = "MsixApplication"
+  command_line_argument_policy = "DoNotAllow"
+  icon_path                    = "\\\\${azurerm_storage_account.test.name}.file.core.windows.net\\${azurerm_storage_share.test.name}\\${azurerm_storage_share_file.test7.name}"
+  msix_package_application_id  = azurerm_virtual_desktop_app_attach_package.test.package_applications[0].app_id
+  msix_package_family_name     = azurerm_virtual_desktop_app_attach_package.test.package_family_name
+}
+`, VirtualDesktopAppAttachPackageResource{}.complete(data), data.RandomInteger)
 }

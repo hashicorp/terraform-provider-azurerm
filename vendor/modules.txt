@@ -525,6 +525,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04
 github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan
 github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/sessionhost
 github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/workspace
+github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/appattachpackage
+github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/msiximage
 github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01
 github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/attachednetworkconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/catalogs

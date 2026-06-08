@@ -13,20 +13,30 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/sessionhost"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/workspace"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/appattachpackage"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/msiximage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
+	AppAttachPackagesClient *appattachpackage.AppAttachPackageClient
 	ApplicationGroupsClient *applicationgroup.ApplicationGroupClient
 	ApplicationsClient      *application.ApplicationClient
 	DesktopsClient          *desktop.DesktopClient
 	HostPoolsClient         *hostpool.HostPoolClient
+	MsixImagesClient        *msiximage.MsixImageClient
 	SessionHostsClient      *sessionhost.SessionHostClient
 	ScalingPlansClient      *scalingplan.ScalingPlanClient
 	WorkspacesClient        *workspace.WorkspaceClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
+	appAttachPackagesClient, err := appattachpackage.NewAppAttachPackageClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AppAttachPackages Client: %+v", err)
+	}
+	o.Configure(appAttachPackagesClient.Client, o.Authorizers.ResourceManager)
+
 	applicationGroupsClient, err := applicationgroup.NewApplicationGroupClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ApplicationGroups Client: %+v", err)
@@ -51,6 +61,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(hostPoolsClient.Client, o.Authorizers.ResourceManager)
 
+	msixImagesClient, err := msiximage.NewMsixImageClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building MsixImages Client: %+v", err)
+	}
+	o.Configure(msixImagesClient.Client, o.Authorizers.ResourceManager)
+
 	sessionHostsClient, err := sessionhost.NewSessionHostClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building SessionHost Client: %+v", err)
@@ -70,10 +86,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(workspacesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
+		AppAttachPackagesClient: appAttachPackagesClient,
 		ApplicationGroupsClient: applicationGroupsClient,
 		ApplicationsClient:      applicationsClient,
 		DesktopsClient:          desktopsClient,
 		HostPoolsClient:         hostPoolsClient,
+		MsixImagesClient:        msixImagesClient,
 		SessionHostsClient:      sessionHostsClient,
 		ScalingPlansClient:      scalingPlansClient,
 		WorkspacesClient:        workspacesClient,
