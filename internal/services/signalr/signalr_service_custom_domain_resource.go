@@ -3,7 +3,7 @@
 
 package signalr
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name signalr_service_custom_domain -service-package-name signalr -properties "name" -compare-values "subscription_id:signalr_service_id,resource_group_name:signalr_service_id,signal_r_name:signalr_service_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name signalr_service_custom_domain -service-package-name signalr -properties "name" -compare-values "subscription_id:signalr_service_id,resource_group_name:signalr_service_id,signalr_name:signalr_service_id"
 
 import (
 	"context"
@@ -125,7 +125,7 @@ func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 					},
 				},
 			}
-			if err := client.CustomDomainsCreateOrUpdateCallbackThenPoll(ctx, id, customDomainObj, metadata.SetIDCallback(&id)); err != nil {
+			if err := client.CustomDomainsCreateOrUpdateCallbackThenPoll(ctx, id, customDomainObj, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)

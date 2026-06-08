@@ -2,6 +2,7 @@ package signalr_test
 
 import (
 	"context"
+	"os"
 	"regexp"
 	"testing"
 
@@ -16,6 +17,10 @@ import (
 )
 
 func TestAccSignalrServiceCustomDomainResource_listBySignalRServiceID(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_domain", "testlist")
 	r := SignalrServiceCustomDomainResource{}
 
@@ -37,7 +42,7 @@ func TestAccSignalrServiceCustomDomainResource_listBySignalRServiceID(t *testing
 						"azurerm_signalr_service_custom_domain.list",
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile("signalrcustom-domain-")),
-							"signal_r_name":       knownvalue.StringRegexp(regexp.MustCompile("acctestSignalR-")),
+							"signalr_name":        knownvalue.StringRegexp(regexp.MustCompile("acctestSignalR-")),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile("acctestRG-")),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
@@ -48,7 +53,7 @@ func TestAccSignalrServiceCustomDomainResource_listBySignalRServiceID(t *testing
 						[]querycheck.KnownValueCheck{
 							{
 								Path:       tfjsonpath.New("domain_name"),
-								KnownValue: knownvalue.StringExact("signalr.wpstftestzone.com"),
+								KnownValue: knownvalue.StringRegexp(regexp.MustCompile(`signalr-.*\.azurerm-acctest\.sourceoftruth\.co\.uk`)),
 							},
 							{
 								Path:       tfjsonpath.New("signalr_custom_certificate_id"),
