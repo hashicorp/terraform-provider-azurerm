@@ -18,6 +18,7 @@ Manages a Key Vault Managed Hardware Security Module Security Domain.
 provider "azurerm" {
   features {}
 }
+
 data "azurerm_client_config" "current" {
 }
 

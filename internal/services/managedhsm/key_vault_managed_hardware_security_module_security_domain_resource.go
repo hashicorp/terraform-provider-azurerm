@@ -2,15 +2,24 @@ package managedhsm
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	keyvault2 "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultMHSMSecurityDomainResource struct{}
@@ -139,8 +148,8 @@ func (r KeyVaultMHSMSecurityDomainResource) Read() sdk.ResourceFunc {
 	}
 }
 
-// Update doesn't make any changes to the resource, it's only used for re-downloading the security domain.
-// e.g. Compromised keys, key rotation, etc.
+// Update doesn't make any changes to the resource, it's only used for re-downloading the security domain with updated
+// encryption conditions. e.g. Compromised keys, key rotation, etc.
 func (r KeyVaultMHSMSecurityDomainResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -189,4 +198,81 @@ func (r KeyVaultMHSMSecurityDomainResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func securityDomainDownload(ctx context.Context, sdClient *keyvault2.HSMSecurityDomainClient, keyClient keyvault2.BaseClient, vaultBaseUrl string, certIds []interface{}, quorum int) (encDataStr string, err error) {
+	var param keyvault2.CertificateInfoObject
+
+	param.Required = pointer.To(int32(quorum))
+	certs := make([]keyvault2.SecurityDomainJSONWebKey, 0, len(certIds))
+	for _, certID := range certIds {
+		certIDStr, ok := certID.(string)
+		if !ok {
+			continue
+		}
+
+		nestedItemType := keyvault.NestedItemTypeCertificate
+		if !features.FivePointOh() {
+			nestedItemType = keyvault.NestedItemTypeAny
+		}
+
+		keyID, err := keyvault.ParseNestedItemID(certIDStr, keyvault.VersionTypeVersioned, nestedItemType)
+		if err != nil {
+			return "", fmt.Errorf("parsing %q: %+v", certIDStr, err)
+		}
+		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseURL, keyID.Name, keyID.Version)
+		if err != nil {
+			return "", fmt.Errorf("retrieving key %s: %v", certID, err)
+		}
+		if certRes.Cer == nil {
+			return "", fmt.Errorf("got nil key for %s", certID)
+		}
+		cert := keyvault2.SecurityDomainJSONWebKey{
+			Kty:    pointer.To("RSA"),
+			KeyOps: &[]string{""},
+			Alg:    pointer.To("RSA-OAEP-256"),
+		}
+		if certRes.Policy != nil && certRes.Policy.KeyProperties != nil {
+			cert.Kty = pointer.To(string(certRes.Policy.KeyProperties.KeyType))
+		}
+		x5c := ""
+		if contents := certRes.Cer; contents != nil {
+			x5c = base64.StdEncoding.EncodeToString(*contents)
+		}
+		cert.X5c = &[]string{x5c}
+
+		sum256 := sha256.Sum256([]byte(x5c))
+		s256Dst := make([]byte, base64.StdEncoding.EncodedLen(len(sum256)))
+		base64.URLEncoding.Encode(s256Dst, sum256[:])
+		cert.X5tS256 = pointer.To(string(s256Dst))
+		certs = append(certs, cert)
+	}
+	param.Certificates = &certs
+
+	future, err := sdClient.Download(ctx, vaultBaseUrl, param)
+	if err != nil {
+		return "", fmt.Errorf("downloading for %s: %v", vaultBaseUrl, err)
+	}
+
+	originResponse := future.Response()
+	data, err := io.ReadAll(originResponse.Body)
+	if err != nil {
+		return "", err
+	}
+	var encData struct {
+		Value string `json:"value"`
+	}
+
+	err = json.Unmarshal(data, &encData)
+	if err != nil {
+		return "", fmt.Errorf("unmarshal EncData: %v", err)
+	}
+
+	pollerType := custompollers.NewHSMDownloadPoller(sdClient, vaultBaseUrl)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return "", fmt.Errorf("waiting for security domain to download: %+v", err)
+	}
+
+	return encData.Value, err
 }
