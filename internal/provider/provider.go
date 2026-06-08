@@ -619,10 +619,12 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	// Skip this if we're running VCR, it creates too much noise in the cassette
-	if os.Getenv("TC_TEST_VIA_VCR") == "" {
-		if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
-			return nil, diag.FromErr(err)
+	if features.EnhancedValidation.ResourceProviders {
+		// Skip this if we're running VCR, it creates too much noise in the cassette
+		if os.Getenv("TC_TEST_VIA_VCR") == "" {
+			if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
+				return nil, diag.FromErr(err)
+			}
 		}
 	}
 
