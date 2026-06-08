@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Check team membership
         id: check-membership
-        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           github-token: ${{ secrets.GH_MEMEBERSHIP_CHECK_TOKEN }}
           script: |
@@ -94,7 +94,7 @@ jobs:
 
       - name: Get PR commit SHA
         id: get-pr-sha
-        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -160,7 +160,7 @@ jobs:
 
       - name: Comment on success
         if: success()
-        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -173,7 +173,7 @@ jobs:
 
       - name: Comment on failure
         if: failure()
-        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -190,7 +190,7 @@ jobs:
     if: needs.check-team-membership.outputs.is-team-member == 'false'
     steps:
       - name: Comment unauthorized
-        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
