@@ -38,9 +38,10 @@ type ProviderModel struct {
 	StorageUseAzureAD              types.Bool   `tfsdk:"storage_use_azuread"`
 	EnhancedValidation             types.List   `tfsdk:"enhanced_validation"`
 	Features                       types.List   `tfsdk:"features"`
-	SkipProviderRegistration       types.Bool   `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
 	ResourceProviderRegistrations  types.String `tfsdk:"resource_provider_registrations"`
 	ResourceProvidersToRegister    types.List   `tfsdk:"resource_providers_to_register"`
+
+	SkipProviderRegistration types.Bool `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
 }
 
 type Features struct {
@@ -177,16 +178,18 @@ var TemplateDeploymentAttributes = map[string]attr.Type{
 
 type VirtualMachine struct {
 	DeleteOsDiskOnDeletion           types.Bool `tfsdk:"delete_os_disk_on_deletion"`
-	GracefulShutdown                 types.Bool `tfsdk:"graceful_shutdown"` // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 	SkipShutdownAndForceDelete       types.Bool `tfsdk:"skip_shutdown_and_force_delete"`
 	DetachImplicitDataDiskOnDeletion types.Bool `tfsdk:"detach_implicit_data_disk_on_deletion"`
+
+	GracefulShutdown types.Bool `tfsdk:"graceful_shutdown"` // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 }
 
 var VirtualMachineAttributes = map[string]attr.Type{
 	"delete_os_disk_on_deletion":            types.BoolType,
 	"detach_implicit_data_disk_on_deletion": types.BoolType,
-	"graceful_shutdown":                     types.BoolType, // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 	"skip_shutdown_and_force_delete":        types.BoolType,
+
+	"graceful_shutdown": types.BoolType, // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 }
 
 type VirtualMachineScaleSet struct {
