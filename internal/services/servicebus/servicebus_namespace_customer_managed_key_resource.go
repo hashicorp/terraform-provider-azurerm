@@ -129,7 +129,7 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Create() sdk.ResourceFunc
 				},
 			}
 
-			if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *payload, metadata.SetIDCallback(id)); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *payload, metadata.SetIDAndIdentityCallback(id)); err != nil {
 				return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
 			}
 			metadata.SetID(id)
