@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether to enable traffic over the public interface. Defaults to `true`.
 
-* `sku` - (Optional) The name of the SKU used for the Grafana instance. Possible values are `Standard` and `Essential`. Defaults to `Standard`. Changing this forces a new Dashboard Grafana to be created.
+* `sku` - (Optional) The name of the SKU used for the Grafana instance. Possible values are `Standard`. Defaults to `Standard`. Changing this forces a new Dashboard Grafana to be created.
 
 * `sku_size` - (Optional) The size of the SKU used for the Grafana instance. Possible values are `X1` and `X2`. Defaults to `X1`. Changing this forces a new Dashboard Grafana to be created.
 

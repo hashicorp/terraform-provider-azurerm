@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -83,6 +84,10 @@ func TestAccDashboardGrafana_update(t *testing.T) {
 }
 
 func TestAccDashboardGrafana_withSku(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("the `Essential` SKU is no longer supported in v5.0 of the AzureRM provider")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
 	r := DashboardGrafanaResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -211,7 +212,6 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  "Standard",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Standard",
-				"Essential",
 			}, false),
 		},
 
@@ -231,6 +231,27 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  false,
 		},
+	}
+
+	if !features.FivePointOh() {
+		arguments["sku"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  "Standard",
+			ValidateFunc: validation.All(
+				validation.StringInSlice([]string{
+					"Standard",
+					"Essential",
+				}, false),
+				func(v interface{}, k string) (warnings []string, errors []error) {
+					if val, ok := v.(string); ok && val == "Essential" {
+						warnings = append(warnings, "the `Essential` value for `sku` is deprecated and will be removed in v5.0 of the AzureRM provider")
+					}
+					return
+				},
+			),
+		}
 	}
 
 	return arguments
