@@ -105,15 +105,17 @@ func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *pluginsdk.Resourc
 
 	id := datasources.NewDataSourceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("workspace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_event", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_event", id.ID())
+			}
 		}
 	}
 
@@ -129,7 +131,10 @@ func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *pluginsdk.Resourc
 		return fmt.Errorf("creating Windows Event %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourceLogAnalyticsDataSourceWindowsEventRead(d, meta)
 }
 

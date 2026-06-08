@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -20,6 +21,10 @@ import (
 type StaticSiteResource struct{}
 
 func TestAccAzureStaticSite_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -38,6 +43,10 @@ func TestAccAzureStaticSite_basic(t *testing.T) {
 }
 
 func TestAccAzureStaticSite_withSystemAssignedIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -56,6 +65,10 @@ func TestAccAzureStaticSite_withSystemAssignedIdentity(t *testing.T) {
 }
 
 func TestAccAzureStaticSite_identity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -93,6 +106,10 @@ func TestAccAzureStaticSite_identity(t *testing.T) {
 }
 
 func TestAccAzureStaticSite_withSystemAssignedUserAssignedIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -111,6 +128,10 @@ func TestAccAzureStaticSite_withSystemAssignedUserAssignedIdentity(t *testing.T)
 }
 
 func TestAccAzureStaticSite_withUserAssignedIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -128,6 +149,10 @@ func TestAccAzureStaticSite_withUserAssignedIdentity(t *testing.T) {
 }
 
 func TestAccAzureStaticSite_basicUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -156,6 +181,10 @@ func TestAccAzureStaticSite_basicUpdate(t *testing.T) {
 }
 
 func TestAccAzureStaticSite_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -171,6 +200,10 @@ func TestAccAzureStaticSite_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureStaticSite_appSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 	r := StaticSiteResource{}
 
@@ -207,7 +240,7 @@ func (r StaticSiteResource) Exists(ctx context.Context, clients *clients.Client,
 		return nil, err
 	}
 
-	resp, err := clients.Web.StaticSitesClient.GetStaticSite(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Web.StaticSitesClientV1.GetStaticSite(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil

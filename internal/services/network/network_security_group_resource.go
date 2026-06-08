@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -205,15 +207,17 @@ func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := networksecuritygroups.NewNetworkSecurityGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, networksecuritygroups.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, networksecuritygroups.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_network_security_group", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_network_security_group", id.ID())
+		}
 	}
 
 	sgRules, sgErr := expandSecurityRules(d)
@@ -233,7 +237,7 @@ func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interfac
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, sg); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, sg, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -540,19 +544,23 @@ func validateSecurityRule(sgRule map[string]interface{}) error {
 
 	if sourcePortRange != "" && sourcePortRanges.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"source_port_range\" and \"source_port_ranges\" can be used per security rule"))
+			"only one of \"source_port_range\" and \"source_port_ranges\" can be used per security rule",
+		))
 	}
 	if destinationPortRange != "" && destinationPortRanges.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"destination_port_range\" and \"destination_port_ranges\" can be used per security rule"))
+			"only one of \"destination_port_range\" and \"destination_port_ranges\" can be used per security rule",
+		))
 	}
 	if sourceAddressPrefix != "" && sourceAddressPrefixes.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"source_address_prefix\" and \"source_address_prefixes\" can be used per security rule"))
+			"only one of \"source_address_prefix\" and \"source_address_prefixes\" can be used per security rule",
+		))
 	}
 	if destinationAddressPrefix != "" && destinationAddressPrefixes.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"destination_address_prefix\" and \"destination_address_prefixes\" can be used per security rule"))
+			"only one of \"destination_address_prefix\" and \"destination_address_prefixes\" can be used per security rule",
+		))
 	}
 
 	return err.ErrorOrNil()

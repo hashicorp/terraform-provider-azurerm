@@ -165,7 +165,9 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 		if exists {
 			if id.InboundNatPoolName == *existingNatPool.Name {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_lb_nat_pool", *existingNatPool.Id)
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_lb_nat_pool", *existingNatPool.Id)
+					}
 				}
 
 				// this pool is being updated/reapplied remove old copy from the slice
@@ -175,13 +177,15 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 		model.Properties.InboundNatPools = &natPools
 
-		err = client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-		if err != nil {
+		// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+		if err = client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 			return fmt.Errorf("creating/updating %s : %+v", id, err)
 		}
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceArmLoadBalancerNatPoolRead(d, meta)
 }

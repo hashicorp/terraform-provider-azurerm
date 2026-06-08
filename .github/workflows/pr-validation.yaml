@@ -1,0 +1,572 @@
+---
+name: PR Validation
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+on:
+  pull_request:
+    types: ['opened', 'synchronize', 'reopened']
+
+concurrency:
+  group: 'pr-validation-${{ github.event.pull_request.number || github.run_id }}'
+  cancel-in-progress: true
+
+jobs:
+
+  # ==========================================
+  # PATH FILTERING LOGIC
+  # ==========================================
+  # We use dorny/paths-filter to only run heavy checks when relevant files change.
+  # 
+  # How to add a new Phase 1 job:
+  # 1. Add a new filter to the `paths-filter` job below.
+  # 2. In your job, add `needs: paths-filter` and `if: needs.paths-filter.outputs.<your-filter> == 'true'`.
+  # 
+  # How to add a new Phase 2/3 job:
+  # 1. It must depend on paths-filter and ALL Phase 1 jobs it needs.
+  # 2. Because GitHub Actions skips downstream jobs if any `needs` dependency is skipped,
+  #    you MUST use the following boilerplate `if` condition to ensure it runs correctly:
+  #    if: |
+  #      always() && 
+  #      needs.paths-filter.outputs.<your-filter> == 'true' &&
+  #      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && ...
+  # ==========================================
+
+  paths-filter:
+    runs-on: ubuntu-latest
+    outputs:
+      website: ${{ steps.filter.outputs.website }}
+      go: ${{ steps.filter.outputs.go }}
+      scripts: ${{ steps.filter.outputs.scripts }}
+      examples: ${{ steps.filter.outputs.examples }}
+      vendor: ${{ steps.filter.outputs.vendor }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            website:
+              - 'website/**'
+            go:
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+            scripts:
+              - 'scripts/**'
+              - '**/*.sh'
+            examples:
+              - 'examples/**'
+            vendor:
+              - 'vendor/**'
+              - 'go.mod'
+              - 'go.sum'
+
+  # ==========================================
+  # Phase 1: Fail-Fast
+  # ==========================================
+
+  depscheck:
+    needs: paths-filter
+    if: needs.paths-filter.outputs.vendor == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: bash scripts/gogetcookie.sh
+      - run: make depscheck
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Vendor Dependencies Check failed."
+          echo ""
+          echo "Do not modify files in the vendor/ directory directly."
+          echo "Instead, update dependencies in go.mod and run 'go mod tidy && go mod vendor' to sync the vendor directory."
+          echo "Then run 'make depscheck' locally to verify before pushing."
+
+  depscheck-save-artifacts:
+    needs: depscheck
+    if: failure()
+    uses: ./.github/workflows/save-artifacts.yaml
+
+  depscheck-on-fail:
+    needs: depscheck
+    if: failure()
+    uses: ./.github/workflows/comment-ci-failure.yaml
+    with:
+      check_name: "Vendor Dependencies Check"
+
+  depscheck-on-success:
+    needs: depscheck
+    if: success() && needs.depscheck.result == 'success'
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    with:
+      check_name: "Vendor Dependencies Check"
+
+  # ------------------------------------------
+
+  fmtcheck:
+    needs: paths-filter
+    if: needs.paths-filter.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: make fmtcheck
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::GoLang Formatting Check failed."
+          echo ""
+          echo "Run 'make fmtcheck' locally to check Go files for formatting issues."
+          echo "You can run 'make fmt' to automatically format Go files with gofmt."
+
+  fmtcheck-save-artifacts:
+    needs: fmtcheck
+    if: failure()
+    uses: ./.github/workflows/save-artifacts.yaml
+
+  fmtcheck-on-fail:
+    needs: fmtcheck
+    if: failure()
+    uses: ./.github/workflows/comment-ci-failure.yaml
+    with:
+      check_name: "GoLang Formatting Check"
+
+  fmtcheck-on-success:
+    needs: fmtcheck
+    if: success() && needs.fmtcheck.result == 'success'
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    with:
+      check_name: "GoLang Formatting Check"
+
+  # ------------------------------------------
+
+  shellcheck:
+    needs: paths-filter
+    if: needs.paths-filter.outputs.scripts == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Run ShellCheck
+        run: make shellcheck
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::ShellCheck failed."
+          echo ""
+          echo "Run 'make shellcheck' locally to check shell scripts for issues."
+          echo "ShellCheck identifies common shell scripting pitfalls and bugs."
+          echo "See https://www.shellcheck.net/wiki/ for explanations of each warning code."
+
+  shellcheck-save-artifacts:
+    needs: shellcheck
+    if: failure()
+    uses: ./.github/workflows/save-artifacts.yaml
+
+  shellcheck-on-fail:
+    needs: shellcheck
+    if: failure()
+    uses: ./.github/workflows/comment-ci-failure.yaml
+    with:
+      check_name: "ShellCheck Scripts"
+
+  shellcheck-on-success:
+    needs: shellcheck
+    if: success() && needs.shellcheck.result == 'success'
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    with:
+      check_name: "ShellCheck Scripts"
+
+  # ------------------------------------------
+
+  website-lint:
+    needs: paths-filter
+    if: needs.paths-filter.outputs.website == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: bash scripts/gogetcookie.sh
+      - run: make tools
+      - run: make website-lint
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Website Linting failed."
+          echo ""
+          echo "Run 'make website-lint' locally."
+          echo "Check your documentation files under website/ for formatting or validation issues."
+          echo "Common issues include: missing required frontmatter fields, incorrect markdown formatting,"
+          echo "or mismatched resource documentation with the schema definition."
+
+  website-lint-save-artifacts:
+    needs: website-lint
+    if: failure()
+    uses: ./.github/workflows/save-artifacts.yaml
+
+  website-lint-on-fail:
+    needs: website-lint
+    if: failure()
+    uses: ./.github/workflows/comment-ci-failure.yaml
+    with:
+      check_name: "Website Linting"
+
+  website-lint-on-success:
+    needs: website-lint
+    if: success() && needs.website-lint.result == 'success'
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    with:
+      check_name: "Website Linting"
+
+  # ------------------------------------------
+
+  document-validate:
+    runs-on: custom-linux-large
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: ./.go-version
+      - run: bash scripts/gogetcookie.sh
+      - run: make document-validate
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Document Validation failed."
+          echo ""
+          echo "Run 'make document-validate' locally."
+          echo "Check your documentation files under website/ for formatting or validation issues against the resource schema."
+
+  document-validate-save-artifacts:
+    needs: document-validate
+    if: failure()
+    uses: ./.github/workflows/save-artifacts.yaml
+
+  document-validate-on-fail:
+    needs: document-validate
+    if: failure()
+    uses: ./.github/workflows/comment-ci-failure.yaml
+    with:
+      check_name: "Document Validation"
+
+  document-validate-on-success:
+    needs: document-validate
+    if: success()
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    with:
+      check_name: "Document Validation"
+
+  # ==========================================
+  # Phase 2 & 3: Heavy Checks
+  # ==========================================
+
+  build:
+    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    if: |
+      always() && 
+      needs.paths-filter.outputs.go == 'true' &&
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
+      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: bash scripts/gogetcookie.sh
+      - name: Build Provider
+        run: go build -v -o /dev/null main.go
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::GoLang Compilation failed."
+          echo ""
+          echo "Run 'go build' or 'make build' locally to identify compilation errors."
+
+  build-save-artifacts:
+    needs: build
+    if: failure()
+    uses: ./.github/workflows/save-artifacts.yaml
+
+  build-on-fail:
+    needs: build
+    if: failure()
+    uses: ./.github/workflows/comment-ci-failure.yaml
+    with:
+      check_name: "GoLang Compilation"
+
+  build-on-success:
+    needs: build
+    if: success() && needs.build.result == 'success'
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    with:
+      check_name: "GoLang Compilation"
+
+  # ------------------------------------------
+
+  golangci-lint:
+    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    if: |
+      always() && 
+      needs.paths-filter.outputs.go == 'true' &&
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
+      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
+    runs-on: custom-linux-large
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - uses: golangci/golangci-lint-action@db582008a42febd596419635a5abc9d9815daa9c # v9
+        with:
+          version: 'v2.4.0'
+          install-mode: 'goinstall'
+          args: -v ./...
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::GoLang Linting failed."
+          echo ""
+          echo "Run the Go linter locally: golangci-lint run -v ./internal/..."
+          echo "Fix any reported issues before pushing. Common issues include:"
+          echo "  - Unused variables or imports"
+          echo "  - Error return values not checked"
+          echo "  - Formatting issues (run 'gofmt -w .')"
+
+  golangci-lint-save-artifacts:
+    needs: golangci-lint
+    if: failure()
+    uses: ./.github/workflows/save-artifacts.yaml
+
+  golangci-lint-on-fail:
+    needs: golangci-lint
+    if: failure()
+    uses: ./.github/workflows/comment-ci-failure.yaml
+    with:
+      check_name: "GoLang Linting"
+
+  golangci-lint-on-success:
+    needs: golangci-lint
+    if: success() && needs.golangci-lint.result == 'success'
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    with:
+      check_name: "GoLang Linting"
+
+  # ------------------------------------------
+
+  tflint:
+    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    if: |
+      always() && 
+      needs.paths-filter.outputs.go == 'true' &&
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
+      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
+    runs-on: custom-linux-medium
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: bash scripts/gogetcookie.sh
+      - run: make tools
+      - run: make tflint
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Terraform Schema Linting failed."
+          echo ""
+          echo "Run 'make tflint' locally to reproduce and fix the errors."
+          echo "This check validates Terraform schema definitions in your resource and data source code."
+          echo "Common issues include: missing descriptions, incorrect type definitions,"
+          echo "or schema validation rules that don't match the API."
+
+  tflint-save-artifacts:
+    needs: tflint
+    if: failure()
+    uses: ./.github/workflows/save-artifacts.yaml
+
+  tflint-on-fail:
+    needs: tflint
+    if: failure()
+    uses: ./.github/workflows/comment-ci-failure.yaml
+    with:
+      check_name: "Terraform Schema Linting"
+
+  tflint-on-success:
+    needs: tflint
+    if: success() && needs.tflint.result == 'success'
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    with:
+      check_name: "Terraform Schema Linting"
+
+  # ------------------------------------------
+
+  gencheck:
+    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    if: |
+      always() && 
+      needs.paths-filter.outputs.go == 'true' &&
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
+      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
+    runs-on: custom-linux-large
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: bash scripts/gogetcookie.sh
+      - run: make gencheck
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Generation Check failed."
+          echo ""
+          echo "Run 'make generate' locally to regenerate auto-generated code, then commit the changes."
+          echo "This check ensures that generated files are up to date with their source definitions."
+
+  gencheck-save-artifacts:
+    needs: gencheck
+    if: failure()
+    uses: ./.github/workflows/save-artifacts.yaml
+
+  gencheck-on-fail:
+    needs: gencheck
+    if: failure()
+    uses: ./.github/workflows/comment-ci-failure.yaml
+    with:
+      check_name: "Generation Check"
+
+  gencheck-on-success:
+    needs: gencheck
+    if: success() && needs.gencheck.result == 'success'
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    with:
+      check_name: "Generation Check"
+
+  # ------------------------------------------
+
+  unit-tests:
+    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    if: |
+      always() && 
+      needs.paths-filter.outputs.go == 'true' &&
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
+      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
+    runs-on: custom-linux-xl
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          cache-dependency-path: go.mod
+          go-version-file: ./.go-version
+      - name: '[Diagnostic] Report Go module cache and build cache disk usage'
+        run: 'du -h -d 0 $(go env GOMODCACHE) $(go env GOCACHE) || true'
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@v1.13.0
+      - run: bash scripts/gogetcookie.sh
+      - name: Run tests
+        run: |
+          gotestsum \
+           --format pkgname-and-test-fails \
+           --format-hide-empty-pkg -- \
+           -timeout=30s \
+           -parallel=32 \
+           -run='^Test[^A]|^TestA[^c]|^TestAc[^c]' \
+           ./...
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Unit Tests failed."
+          echo ""
+          echo "Run 'make test' locally to reproduce and fix the failing tests."
+          echo "If you have added a new resource or data source, ensure you have added"
+          echo "the corresponding unit tests. Check the test output above for details"
+          echo "on which tests failed and why."
+
+  unit-tests-save-artifacts:
+    needs: unit-tests
+    if: failure()
+    uses: ./.github/workflows/save-artifacts.yaml
+
+  unit-tests-on-fail:
+    needs: unit-tests
+    if: failure()
+    uses: ./.github/workflows/comment-ci-failure.yaml
+    with:
+      check_name: "Unit Tests"
+
+  unit-tests-on-success:
+    needs: unit-tests
+    if: success() && needs.unit-tests.result == 'success'
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    with:
+      check_name: "Unit Tests"
+
+  # ------------------------------------------
+
+  validate-examples:
+    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    if: |
+      always() && 
+      needs.paths-filter.outputs.examples == 'true' &&
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
+      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
+    runs-on: custom-linux-small
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: bash scripts/gogetcookie.sh
+      - run: make tools
+      - run: make validate-examples
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Example Validation failed."
+          echo ""
+          echo "Run 'make validate-examples' locally to check that your example"
+          echo "Terraform configurations under examples/ are valid."
+          echo "Ensure all examples use valid HCL syntax and reference existing resources."
+
+  validate-examples-save-artifacts:
+    needs: validate-examples
+    if: failure()
+    uses: ./.github/workflows/save-artifacts.yaml
+
+  validate-examples-on-fail:
+    needs: validate-examples
+    if: failure()
+    uses: ./.github/workflows/comment-ci-failure.yaml
+    with:
+      check_name: "Validate Examples"
+
+  validate-examples-on-success:
+    needs: validate-examples
+    if: success() && needs.validate-examples.result == 'success'
+    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    with:
+      check_name: "Validate Examples"

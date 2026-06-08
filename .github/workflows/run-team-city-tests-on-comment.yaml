@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Check team membership
         id: check-membership
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9
         with:
           github-token: ${{ secrets.GH_MEMEBERSHIP_CHECK_TOKEN }}
           script: |
@@ -69,9 +69,9 @@ jobs:
       TCTEST_REPO: terraform-providers/terraform-provider-azurerm
     steps:
       - name: Setup Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.2.0
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
-          go-version: '1.25'
+          go-version: '1.26'
 
       - name: Get tctest version
         id: tctest-version
@@ -82,7 +82,7 @@ jobs:
 
       - name: Cache tctest binary
         id: cache-tctest
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: ~/go/bin/tctest
           key: tctest-${{ runner.os }}-${{ steps.tctest-version.outputs.version }}
@@ -94,7 +94,7 @@ jobs:
 
       - name: Get PR commit SHA
         id: get-pr-sha
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -114,12 +114,53 @@ jobs:
           PR_NUMBER=${{ github.event.issue.number }}
           COMMENT_BODY="${{ github.event.comment.body }}"
           PR_SHA="${{ steps.get-pr-sha.outputs.sha }}"
+
+          # Parse flags from comment
+          # Extract everything after /test
+          FLAGS_STRING=$(echo "$COMMENT_BODY" | sed 's|^/test[[:space:]]*||')
+
+          # Initialize default values
+          beta=false
+          service=""
+
+          # Parse flags using getopts
+          # Convert FLAGS_STRING to array for getopts
+          eval set -- $FLAGS_STRING
+
+          while getopts ":bs:" opt; do
+            case "$opt" in
+              b) beta=true ;;
+              s) service="$OPTARG" ;;
+              *)
+                echo "Usage: /test [-b] [-s service_name]"
+                echo "  -b: Test beta version"
+                echo "  -s: Specify service name"
+                exit 1
+                ;;
+            esac
+          done
+
           echo "Running tctest for PR #${PR_NUMBER}"
           echo "PR commit SHA: ${PR_SHA}"
-          tctest pr ${PR_NUMBER} -c --properties "TRACKING_ID=${PR_SHA}"
+          echo "Beta version: ${beta}"
+          echo "Service: ${service:-all}"
+
+          # Run tctest with parsed flags
+          if [ "$service" != "" ]; then
+            tctest pr ${PR_NUMBER} -c --service "$service" --properties "TRACKING_ID=${PR_SHA}"
+            if [ "$beta" = true ]; then
+              tctest pr ${PR_NUMBER} -c --service "$service" --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
+            fi
+          else
+            tctest pr ${PR_NUMBER} -c --properties "TRACKING_ID=${PR_SHA}"
+            if [ "$beta" = true ]; then
+              tctest pr ${PR_NUMBER} -c --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
+            fi
+          fi
+
       - name: Comment on success
         if: success()
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -132,7 +173,7 @@ jobs:
 
       - name: Comment on failure
         if: failure()
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -149,7 +190,7 @@ jobs:
     if: needs.check-team-membership.outputs.is-team-member == 'false'
     steps:
       - name: Comment unauthorized
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
