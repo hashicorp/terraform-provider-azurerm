@@ -19,7 +19,7 @@ import (
 
 func TestAccCustomCertSignalrService_listBySignalRServiceID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_certificate", "testlist")
-	r := CustomCertSignalrServiceResource{}
+	r := SignalrServiceCustomCertificateResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -39,7 +39,7 @@ func TestAccCustomCertSignalrService_listBySignalRServiceID(t *testing.T) {
 						"azurerm_signalr_service_custom_certificate.list",
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(data.RandomString)),
-							"signal_r_name":       knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"signalr_name":        knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
@@ -50,7 +50,7 @@ func TestAccCustomCertSignalrService_listBySignalRServiceID(t *testing.T) {
 	})
 }
 
-func (r CustomCertSignalrServiceResource) basicListQuery() string {
+func (r SignalrServiceCustomCertificateResource) basicListQuery() string {
 	return `
 list "azurerm_signalr_service_custom_certificate" "list" {
   provider = azurerm

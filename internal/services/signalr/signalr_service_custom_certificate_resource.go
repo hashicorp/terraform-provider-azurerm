@@ -3,7 +3,7 @@
 
 package signalr
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name signalr_service_custom_certificate -service-package-name signalr -properties "name" -compare-values "subscription_id:signalr_service_id,resource_group_name:signalr_service_id,signal_r_name:signalr_service_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name signalr_service_custom_certificate -service-package-name signalr -properties "name" -compare-values "subscription_id:signalr_service_id,resource_group_name:signalr_service_id,signalr_name:signalr_service_id"
 
 import (
 	"context"
@@ -134,7 +134,7 @@ func (r CustomCertSignalrServiceResource) Create() sdk.ResourceFunc {
 				customCert.Properties.KeyVaultSecretVersion = pointer.To(certVersion)
 			}
 
-			if err := client.CustomCertificatesCreateOrUpdateCallbackThenPoll(ctx, id, customCert, metadata.SetIDCallback(&id)); err != nil {
+			if err := client.CustomCertificatesCreateOrUpdateCallbackThenPoll(ctx, id, customCert, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)
@@ -235,21 +235,19 @@ func signalrServiceCustomCertificateDeleteRefreshFunc(ctx context.Context, clien
 }
 
 func (r CustomCertSignalrServiceResource) flatten(metadata sdk.ResourceMetaData, id *signalr.CustomCertificateId, cert *signalr.CustomCertificate) error {
-	if cert == nil {
-		return fmt.Errorf("got nil custom certificate model")
-	}
-
-	certVersion := pointer.From(cert.Properties.KeyVaultSecretVersion)
-	nestedItem, err := keyvault.NewNestedItemID(cert.Properties.KeyVaultBaseUri, keyvault.NestedItemTypeCertificate, cert.Properties.KeyVaultSecretName, certVersion)
-	if err != nil {
-		return err
-	}
-
 	state := CustomCertSignalrServiceResourceModel{
-		Name:               id.CustomCertificateName,
-		SignalRServiceId:   signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID(),
-		CustomCertId:       nestedItem.ID(),
-		CertificateVersion: certVersion,
+		Name:             id.CustomCertificateName,
+		SignalRServiceId: signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID(),
+	}
+
+	if cert != nil {
+		certVersion := pointer.From(cert.Properties.KeyVaultSecretVersion)
+		nestedItem, err := keyvault.NewNestedItemID(cert.Properties.KeyVaultBaseUri, keyvault.NestedItemTypeCertificate, cert.Properties.KeyVaultSecretName, certVersion)
+		if err != nil {
+			return err
+		}
+		state.CustomCertId = nestedItem.ID()
+		state.CertificateVersion = certVersion
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {

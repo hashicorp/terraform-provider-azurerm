@@ -19,7 +19,7 @@ func TestAccSignalrServiceCustomCertificate_resourceIdentity(t *testing.T) {
 	checkedFields := map[string]struct{}{
 		"name":                {},
 		"resource_group_name": {},
-		"signal_r_name":       {},
+		"signalr_name":        {},
 		"subscription_id":     {},
 	}
 
@@ -30,7 +30,7 @@ func TestAccSignalrServiceCustomCertificate_resourceIdentity(t *testing.T) {
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_signalr_service_custom_certificate.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_signalr_service_custom_certificate.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_signalr_service_custom_certificate.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("signalr_service_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_signalr_service_custom_certificate.test", tfjsonpath.New("signal_r_name"), tfjsonpath.New("signalr_service_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_signalr_service_custom_certificate.test", tfjsonpath.New("signalr_name"), tfjsonpath.New("signalr_service_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_signalr_service_custom_certificate.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("signalr_service_id")),
 			},
 		},
