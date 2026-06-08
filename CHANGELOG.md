@@ -2,8 +2,11 @@
 
 ENHANCEMENTS:
 * dependencies: `go-azure-sdk` - update to `v0.20260603.1074745` [GH-32503]
+* `azurerm_machine_learning_workspace` - add support for the `storage_account_access_type` property [GH-32514]
 
 FEATURES:
+
+* **New List Resource:** `azurerm_web_pubsub_custom_domain` [GH-32186]
 
 BUG FIXES:
 
