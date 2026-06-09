@@ -2233,7 +2233,7 @@ resource "time_sleep" "wait_for_sql_mi_subnet_settle" {
     azurerm_subnet_route_table_association.test,
   ]
 
-  destroy_duration = "5m"
+  destroy_duration = "15m"
 }
   `, data.RandomInteger, location)
 }
@@ -2492,7 +2492,7 @@ resource "time_sleep" "wait_for_secondary_sql_mi_subnet_settle" {
     azurerm_subnet_route_table_association.secondary,
   ]
 
-  destroy_duration = "5m"
+  destroy_duration = "15m"
 }
   `, data.RandomInteger, data.Locations.Secondary)
 }
@@ -2751,7 +2751,7 @@ resource "time_sleep" "wait_for_secondary_2_sql_mi_subnet_settle" {
     azurerm_subnet_route_table_association.secondary_2,
   ]
 
-  destroy_duration = "5m"
+  destroy_duration = "15m"
 }
 `, data.RandomInteger, data.Locations.Secondary)
 }
@@ -2959,7 +2959,7 @@ resource "time_sleep" "wait_for_test2_sql_mi_subnet_settle" {
     azurerm_subnet_route_table_association.test2,
   ]
 
-  destroy_duration = "5m"
+  destroy_duration = "15m"
 }
 
 resource "azurerm_mssql_managed_instance" "test" {
