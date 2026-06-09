@@ -4,9 +4,13 @@
 package network
 
 import (
+	"context"
+	"errors"
 	"fmt"
-	"log"
+	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -65,13 +69,11 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(publicipprefixes.PublicIPPrefixSkuNameStandard),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipprefixes.PublicIPPrefixSkuNameStandard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(publicipprefixes.PublicIPPrefixSkuNameStandard),
+				ValidateFunc: validation.StringInSlice(publicipprefixes.PossibleValuesForPublicIPPrefixSkuName(), false),
 			},
 
 			"sku_tier": {
@@ -110,6 +112,17 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				skuTier := d.Get("sku_tier").(string)
+				sku := d.Get("sku").(string)
+				if strings.EqualFold(skuTier, string(publicipprefixes.PublicIPPrefixSkuTierGlobal)) && !strings.EqualFold(sku, string(publicipprefixes.PublicIPPrefixSkuNameStandard)) {
+					return errors.New("`sku` must be set to `Standard` when `sku_tier` is set to `Global`")
+				}
+				return nil
+			}),
+		),
 	}
 }
 
@@ -119,18 +132,18 @@ func resourcePublicIpPrefixCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Public IP Prefix creation.")
-
 	id := publicipprefixes.NewPublicIPPrefixID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, publicipprefixes.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, publicipprefixes.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_public_ip_prefix", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_public_ip_prefix", id.ID())
+		}
 	}
 
 	publicIpPrefix := publicipprefixes.PublicIPPrefix{
@@ -157,7 +170,7 @@ func resourcePublicIpPrefixCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		publicIpPrefix.Zones = &zones
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, publicIpPrefix); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, publicIpPrefix, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

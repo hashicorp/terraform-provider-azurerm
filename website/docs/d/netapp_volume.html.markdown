@@ -63,6 +63,8 @@ The following attributes are exported:
 
 * `data_protection_backup_policy` - A data protecion backup policy block
 
+* `data_protection_advanced_ransomware` - An Advanced Ransomware Protection (ARP) data protection block.
+
 * `volume_path` - The unique file path of the volume.
 
 * `smb_non_browsable_enabled` - Limits clients from browsing for an SMB share.
@@ -97,6 +99,14 @@ A `data_protection_backup_policy` block supports the following:
 
 ---
 
+A `data_protection_advanced_ransomware` block exports the following:
+
+* `protection_enabled` - Whether the Advanced Ransomware Protection feature is enabled.
+
+~> **Note:** For performance considerations and supported regions, please refer to the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-netapp-files/ransomware-configure).
+
+---
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
@@ -107,4 +117,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-06-01
+* `Microsoft.NetApp` - 2025-12-01

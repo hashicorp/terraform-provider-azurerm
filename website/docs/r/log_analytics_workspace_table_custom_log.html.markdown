@@ -31,7 +31,7 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "example" {
 
   column {
     name = "TimeGenerated"
-    type = "datetime"
+    type = "dateTime"
   }
 }
 ```
@@ -70,7 +70,7 @@ A `column` block supports the following:
 
 * `name` - (Required) Specifies the name of the column.
 
-* `type` - (Required) The data type of the column. Possible values are `boolean`, `datetime`, `dynamic`, `guid`, `int`, `long`, `real`, and `string`.
+* `type` - (Required) The data type of the column. Possible values are `boolean`, `dateTime`, `dynamic`, `guid`, `int`, `long`, `real`, and `string`.
 
 * `description` - (Optional) The description of the column.
 
@@ -100,7 +100,7 @@ A `standard_column` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Workspace Table Custom Log.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Workspace Table Custom Log.

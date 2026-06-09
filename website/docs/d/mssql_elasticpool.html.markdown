@@ -42,6 +42,8 @@ output "elasticpool_id" {
 
 * `location` - Specifies the supported Azure location where the resource exists.
 
+* `high_availability_replica_count` - Specifies the number of high availability replicas for the elastic pool.
+
 * `max_size_gb` - The max data size of the elastic pool in gigabytes.
 
 * `max_size_bytes` - The max data size of the elastic pool in bytes.

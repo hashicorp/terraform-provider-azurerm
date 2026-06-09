@@ -199,12 +199,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			},
 
 			// Advanced feature flags
-			"skip_provider_registration": schema.BoolAttribute{
-				Optional:           true,
-				Description:        "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
-				DeprecationMessage: "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
-			},
-
 			"storage_use_azuread": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
@@ -261,6 +255,16 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 					listvalidator.SizeBetween(1, 1),
 				},
 				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"persist_id_on_create_before_polling_for_completion": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Whether to set the resource ID into state before polling asynchronous operations for completion. Defaults to `false`.",
+						},
+						"skip_import_check_on_create_and_allow_overwriting_existing_resources": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
+						},
+					},
 					Blocks: map[string]schema.Block{
 						"api_management": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
@@ -529,6 +533,12 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 		response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["virtual_machine"].(schema.ListNestedBlock).NestedObject.Attributes["graceful_shutdown"] = schema.BoolAttribute{
 			Optional:           true,
 			DeprecationMessage: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
+		}
+
+		response.Schema.Attributes["skip_provider_registration"] = schema.BoolAttribute{
+			Optional:           true,
+			Description:        "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
+			DeprecationMessage: "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
 		}
 	}
 }

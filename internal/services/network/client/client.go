@@ -8,8 +8,8 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts"
 	network_2025_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/bastionhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeteraccessrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterprofiles"

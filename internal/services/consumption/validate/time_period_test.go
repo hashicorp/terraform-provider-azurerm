@@ -12,7 +12,8 @@ func TestConsumptionBudgetTimePeriodStartDate(t *testing.T) {
 	// Set up time for testing
 	now := time.Now()
 	validTime := time.Date(
-		now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+		now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC,
+	)
 
 	cases := []struct {
 		Input         string
