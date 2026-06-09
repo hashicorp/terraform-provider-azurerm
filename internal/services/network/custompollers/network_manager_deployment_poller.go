@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
@@ -53,7 +54,7 @@ func (p networkManagerDeploymentPoller) Poll(ctx context.Context) (*pollers.Poll
 		return result, nil
 	}
 
-	if *(*resp.Model.Value)[0].DeploymentStatus == networkmanagers.DeploymentStatusDeployed {
+	if pointer.From((*resp.Model.Value)[0].DeploymentStatus) == networkmanagers.DeploymentStatusDeployed {
 		result.Status = pollers.PollingStatusSucceeded
 		return result, nil
 	}
