@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
@@ -51,9 +50,9 @@ type LogicAppResourceModel struct {
 	SCMPublishBasicAuthEnabled  bool                                       `tfschema:"scm_publish_basic_authentication_enabled"`
 	SiteConfig                  []helpers.LogicAppSiteConfig               `tfschema:"site_config"`
 	ConnectionStrings           []helpers.ConnectionString                 `tfschema:"connection_string"`
-	StorageAccountName          string                                     `tfschema:"storage_account_name"`
-	StorageAccountAccessKey     string                                     `tfschema:"storage_account_access_key"`
-	StorageKeyVaultSecretID     string                                     `tfschema:"storage_key_vault_secret_id"`
+	StorageAccountName             string                                     `tfschema:"storage_account_name"`
+	StorageAccountAccessKey        string                                     `tfschema:"storage_account_access_key"`
+	StorageAccountConnectionString string                                     `tfschema:"storage_account_connection_string"`
 	PublicNetworkAccess         string                                     `tfschema:"public_network_access"`
 	StorageAccountShareName     string                                     `tfschema:"storage_account_share_name"`
 	Version                     string                                     `tfschema:"version"`
@@ -73,8 +72,7 @@ var (
 	logicAppStdKind   = "functionapp,workflowapp"
 	logicAppLinuxKind = "functionapp,linux,container,workflowapp"
 
-	storageConnectionStringFmt           = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
-	storageKeyVaultReferenceFmt          = "@Microsoft.KeyVault(SecretUri=%s)"
+	storageConnectionStringFmt = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
 	storageAppSettingName                = "AzureWebJobsStorage"
 	contentShareAppSettingName           = "WEBSITE_CONTENTSHARE"
 	contentFileConnStringAppSettingName  = "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
@@ -209,7 +207,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: storageValidate.StorageAccountName,
 			ExactlyOneOf: []string{
 				"storage_account_name",
-				"storage_key_vault_secret_id",
+				"storage_account_connection_string",
 			},
 		},
 
@@ -218,19 +216,21 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
+			RequiredWith: []string{
+				"storage_account_name",
+			},
 			ConflictsWith: []string{
-				"storage_key_vault_secret_id",
+				"storage_account_connection_string",
 			},
 		},
 
-		"storage_key_vault_secret_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Sensitive:    true,
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
+		"storage_account_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Optional:  true,
+			Sensitive: true,
 			ExactlyOneOf: []string{
 				"storage_account_name",
-				"storage_key_vault_secret_id",
+				"storage_account_connection_string",
 			},
 		},
 
@@ -671,11 +671,7 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 
 				connectionString := appSettings[storageAppSettingName]
 
-				if strings.HasPrefix(connectionString, "@Microsoft.KeyVault") {
-					trimmed := strings.TrimPrefix(connectionString, "@Microsoft.KeyVault(SecretUri=")
-					trimmed = strings.TrimSuffix(trimmed, ")")
-					state.StorageKeyVaultSecretID = trimmed
-				} else {
+				if strings.Contains(connectionString, "AccountName=") && strings.Contains(connectionString, "AccountKey=") {
 					for _, part := range strings.Split(connectionString, ";") {
 						if strings.HasPrefix(part, "AccountName") {
 							accountNameParts := strings.Split(part, "AccountName=")
@@ -690,6 +686,8 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 							}
 						}
 					}
+				} else {
+					state.StorageAccountConnectionString = connectionString
 				}
 
 				if v, ok := appSettings[functionVersionAppSettingName]; ok {
@@ -981,8 +979,8 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 	appKindPropValue := "workflowApp"
 
 	var storageConnection string
-	if d.StorageKeyVaultSecretID != "" {
-		storageConnection = fmt.Sprintf(storageKeyVaultReferenceFmt, d.StorageKeyVaultSecretID)
+	if d.StorageAccountConnectionString != "" {
+		storageConnection = d.StorageAccountConnectionString
 	} else {
 		storageConnection = fmt.Sprintf(
 			"DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s",
@@ -1351,12 +1349,11 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 	oMap := f(old)
 	cMap := f(new)
 
-	if metadata.ResourceData.HasChange("storage_key_vault_secret_id") {
-		kvSecretID := metadata.ResourceData.Get("storage_key_vault_secret_id").(string)
-		if kvSecretID != "" {
-			kvRef := fmt.Sprintf(storageKeyVaultReferenceFmt, kvSecretID)
-			eMap[storageAppSettingName] = kvRef
-			eMap[contentFileConnStringAppSettingName] = kvRef
+	if metadata.ResourceData.HasChange("storage_account_connection_string") {
+		connString := metadata.ResourceData.Get("storage_account_connection_string").(string)
+		if connString != "" {
+			eMap[storageAppSettingName] = connString
+			eMap[contentFileConnStringAppSettingName] = connString
 		}
 	} else if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
 		accountName := metadata.ResourceData.Get("storage_account_name").(string)

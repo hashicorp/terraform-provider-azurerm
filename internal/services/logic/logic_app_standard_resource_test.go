@@ -2648,29 +2648,29 @@ resource "azurerm_logic_app_standard" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func TestAccLogicAppStandard_storageKeyVaultSecret(t *testing.T) {
+func TestAccLogicAppStandard_storageAccountConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageKeyVaultSecret(data),
+			Config: r.storageAccountConnectionString(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_key_vault_secret_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("storage_account_connection_string").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLogicAppStandard_storageKeyVaultSecretUpdate(t *testing.T) {
+func TestAccLogicAppStandard_storageAccountConnectionStringUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageKeyVaultSecretNameKey(data),
+			Config: r.storageAccountConnectionStringNameKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_name").IsNotEmpty(),
@@ -2678,15 +2678,15 @@ func TestAccLogicAppStandard_storageKeyVaultSecretUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.storageKeyVaultSecret(data),
+			Config: r.storageAccountConnectionString(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_key_vault_secret_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("storage_account_connection_string").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.storageKeyVaultSecretNameKey(data),
+			Config: r.storageAccountConnectionStringNameKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_name").IsNotEmpty(),
@@ -2696,7 +2696,7 @@ func TestAccLogicAppStandard_storageKeyVaultSecretUpdate(t *testing.T) {
 	})
 }
 
-func (r LogicAppStandardResource) storageKeyVaultSecretNameKey(data acceptance.TestData) string {
+func (r LogicAppStandardResource) storageAccountConnectionStringNameKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -2791,7 +2791,7 @@ resource "azurerm_logic_app_standard" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r LogicAppStandardResource) storageKeyVaultSecret(data acceptance.TestData) string {
+func (r LogicAppStandardResource) storageAccountConnectionString(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -2880,7 +2880,7 @@ resource "azurerm_logic_app_standard" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_service_plan.test.id
-  storage_key_vault_secret_id = azurerm_key_vault_secret.test.versionless_id
+  storage_account_connection_string = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.test.versionless_id})"
 
   key_vault_reference_identity_id = azurerm_user_assigned_identity.test.id
 
