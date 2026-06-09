@@ -78,21 +78,21 @@ func dataSourceSubnet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
-		},
-	}
 
-	resource.Schema["service_endpoints"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"service": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-				"network_identifier": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+			"service_endpoints": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"service": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"network_identifier": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
 				},
 			},
 		},

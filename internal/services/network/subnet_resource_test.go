@@ -366,14 +366,14 @@ func TestAccSubnet_serviceEndpoints(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("service_endpoints", "service_endpoint"),
+		data.ImportStep(),
 		{
 			Config: r.serviceEndpointsUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("service_endpoints", "service_endpoint"),
+		data.ImportStep(),
 		{
 			// remove them
 			Config: r.basic(data),
@@ -388,7 +388,7 @@ func TestAccSubnet_serviceEndpoints(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("service_endpoints", "service_endpoint"),
+		data.ImportStep(),
 	})
 }
 

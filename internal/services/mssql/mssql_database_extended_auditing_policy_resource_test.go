@@ -510,10 +510,6 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
     azurerm_storage_account.test,
   ]
 }
-
-
-
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Client().SubscriptionID)
 }
 
