@@ -25,7 +25,7 @@ func TestAccDataSourceSharedImageVersions_basic(t *testing.T) {
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -52,7 +52,7 @@ func TestAccDataSourceSharedImageVersions_tagsFilterError(t *testing.T) {
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -72,7 +72,7 @@ func TestAccDataSourceSharedImageVersions_tagsFilter(t *testing.T) {
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
