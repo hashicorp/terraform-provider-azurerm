@@ -248,7 +248,7 @@ resource "azurerm_storage_sync_cloud_endpoint" "test" {
 }
 
 resource "azurerm_virtual_machine_run_command" "afs_register" {
-  name               = "afs-register"
+  name               = "afs-register-%[1]d"
   location           = azurerm_resource_group.test.location
   virtual_machine_id = azurerm_windows_virtual_machine.test.id
 
