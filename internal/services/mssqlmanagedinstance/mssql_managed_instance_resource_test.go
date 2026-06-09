@@ -2216,6 +2216,19 @@ resource "azurerm_subnet_route_table_association" "test" {
 # The service needs time to remove the network intent policy before test teardown updates the subnet.
 resource "time_sleep" "wait_for_sql_mi_subnet_settle" {
   depends_on = [
+    azurerm_network_security_rule.allow_management_inbound_1,
+    azurerm_network_security_rule.allow_misubnet_inbound_1,
+    azurerm_network_security_rule.allow_health_probe_inbound_1,
+    azurerm_network_security_rule.allow_tds_inbound_1,
+    azurerm_network_security_rule.allow_redirect_inbound_1,
+    azurerm_network_security_rule.allow_geodr_inbound_1,
+    azurerm_network_security_rule.deny_all_inbound_1,
+    azurerm_network_security_rule.allow_management_outbound_1,
+    azurerm_network_security_rule.allow_misubnet_outbound_1,
+    azurerm_network_security_rule.allow_redirect_outbound_1,
+    azurerm_network_security_rule.allow_geodr_outbound_1,
+    azurerm_network_security_rule.deny_all_outbound_1,
+    azurerm_route_table.test,
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
   ]
@@ -2462,6 +2475,19 @@ resource "azurerm_subnet_route_table_association" "secondary" {
 # The service needs time to remove the network intent policy before test teardown updates the subnet.
 resource "time_sleep" "wait_for_secondary_sql_mi_subnet_settle" {
   depends_on = [
+    azurerm_network_security_rule.allow_management_inbound_2,
+    azurerm_network_security_rule.allow_misubnet_inbound_2,
+    azurerm_network_security_rule.allow_health_probe_inbound_2,
+    azurerm_network_security_rule.allow_tds_inbound_2,
+    azurerm_network_security_rule.allow_redirect_inbound_2,
+    azurerm_network_security_rule.allow_geodr_inbound_2,
+    azurerm_network_security_rule.deny_all_inbound_2,
+    azurerm_network_security_rule.allow_management_outbound_2,
+    azurerm_network_security_rule.allow_misubnet_outbound_2,
+    azurerm_network_security_rule.allow_redirect_outbound_2,
+    azurerm_network_security_rule.allow_geodr_outbound_2,
+    azurerm_network_security_rule.deny_all_outbound_2,
+    azurerm_route_table.secondary,
     azurerm_subnet_network_security_group_association.secondary,
     azurerm_subnet_route_table_association.secondary,
   ]
@@ -2708,6 +2734,19 @@ resource "azurerm_subnet_route_table_association" "secondary_2" {
 # The service needs time to remove the network intent policy before test teardown updates the subnet.
 resource "time_sleep" "wait_for_secondary_2_sql_mi_subnet_settle" {
   depends_on = [
+    azurerm_network_security_rule.allow_management_inbound_3,
+    azurerm_network_security_rule.allow_misubnet_inbound_3,
+    azurerm_network_security_rule.allow_health_probe_inbound_3,
+    azurerm_network_security_rule.allow_tds_inbound_3,
+    azurerm_network_security_rule.allow_redirect_inbound_3,
+    azurerm_network_security_rule.allow_geodr_inbound_3,
+    azurerm_network_security_rule.deny_all_inbound_3,
+    azurerm_network_security_rule.allow_management_outbound_3,
+    azurerm_network_security_rule.allow_misubnet_outbound_3,
+    azurerm_network_security_rule.allow_redirect_outbound_3,
+    azurerm_network_security_rule.allow_geodr_outbound_3,
+    azurerm_network_security_rule.deny_all_outbound_3,
+    azurerm_route_table.secondary_2,
     azurerm_subnet_network_security_group_association.secondary_2,
     azurerm_subnet_route_table_association.secondary_2,
   ]
@@ -2903,6 +2942,19 @@ resource "azurerm_subnet_network_security_group_association" "test2" {
 # The service needs time to remove the network intent policy before test teardown updates the subnet.
 resource "time_sleep" "wait_for_test2_sql_mi_subnet_settle" {
   depends_on = [
+    azurerm_network_security_rule.allow_management_inbound_1,
+    azurerm_network_security_rule.allow_misubnet_inbound_1,
+    azurerm_network_security_rule.allow_health_probe_inbound_1,
+    azurerm_network_security_rule.allow_tds_inbound_1,
+    azurerm_network_security_rule.allow_redirect_inbound_1,
+    azurerm_network_security_rule.allow_geodr_inbound_1,
+    azurerm_network_security_rule.deny_all_inbound_1,
+    azurerm_network_security_rule.allow_management_outbound_1,
+    azurerm_network_security_rule.allow_misubnet_outbound_1,
+    azurerm_network_security_rule.allow_redirect_outbound_1,
+    azurerm_network_security_rule.allow_geodr_outbound_1,
+    azurerm_network_security_rule.deny_all_outbound_1,
+    azurerm_route_table.test,
     azurerm_subnet_network_security_group_association.test2,
     azurerm_subnet_route_table_association.test2,
   ]
