@@ -33,32 +33,32 @@ import (
 type LogicAppResource struct{}
 
 type LogicAppResourceModel struct {
-	Name                        string                                     `tfschema:"name"`
-	ResourceGroupName           string                                     `tfschema:"resource_group_name"`
-	Location                    string                                     `tfschema:"location"`
-	AppServicePlanId            string                                     `tfschema:"app_service_plan_id"`
-	AppSettings                 map[string]string                          `tfschema:"app_settings"`
-	UseExtensionBundle          bool                                       `tfschema:"use_extension_bundle"`
-	BundleVersion               string                                     `tfschema:"bundle_version"`
-	ClientAffinityEnabled       bool                                       `tfschema:"client_affinity_enabled"`
-	ClientCertificateMode       string                                     `tfschema:"client_certificate_mode"`
-	Enabled                     bool                                       `tfschema:"enabled"`
-	FtpPublishBasicAuthEnabled  bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	HTTPSOnly                   bool                                       `tfschema:"https_only"`
-	Identity                    []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	KeyvaultReferenceIdentityId string                                     `tfschema:"key_vault_reference_identity_id"`
-	SCMPublishBasicAuthEnabled  bool                                       `tfschema:"scm_publish_basic_authentication_enabled"`
-	SiteConfig                  []helpers.LogicAppSiteConfig               `tfschema:"site_config"`
-	ConnectionStrings           []helpers.ConnectionString                 `tfschema:"connection_string"`
+	Name                           string                                     `tfschema:"name"`
+	ResourceGroupName              string                                     `tfschema:"resource_group_name"`
+	Location                       string                                     `tfschema:"location"`
+	AppServicePlanId               string                                     `tfschema:"app_service_plan_id"`
+	AppSettings                    map[string]string                          `tfschema:"app_settings"`
+	UseExtensionBundle             bool                                       `tfschema:"use_extension_bundle"`
+	BundleVersion                  string                                     `tfschema:"bundle_version"`
+	ClientAffinityEnabled          bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertificateMode          string                                     `tfschema:"client_certificate_mode"`
+	Enabled                        bool                                       `tfschema:"enabled"`
+	FtpPublishBasicAuthEnabled     bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	HTTPSOnly                      bool                                       `tfschema:"https_only"`
+	Identity                       []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	KeyvaultReferenceIdentityId    string                                     `tfschema:"key_vault_reference_identity_id"`
+	SCMPublishBasicAuthEnabled     bool                                       `tfschema:"scm_publish_basic_authentication_enabled"`
+	SiteConfig                     []helpers.LogicAppSiteConfig               `tfschema:"site_config"`
+	ConnectionStrings              []helpers.ConnectionString                 `tfschema:"connection_string"`
 	StorageAccountName             string                                     `tfschema:"storage_account_name"`
 	StorageAccountAccessKey        string                                     `tfschema:"storage_account_access_key"`
 	StorageAccountConnectionString string                                     `tfschema:"storage_account_connection_string"`
-	PublicNetworkAccess         string                                     `tfschema:"public_network_access"`
-	StorageAccountShareName     string                                     `tfschema:"storage_account_share_name"`
-	Version                     string                                     `tfschema:"version"`
-	VNETContentShareEnabled     bool                                       `tfschema:"vnet_content_share_enabled"`
-	VirtualNetworkSubnetId      string                                     `tfschema:"virtual_network_subnet_id"`
-	Tags                        map[string]string                          `tfschema:"tags"`
+	PublicNetworkAccess            string                                     `tfschema:"public_network_access"`
+	StorageAccountShareName        string                                     `tfschema:"storage_account_share_name"`
+	Version                        string                                     `tfschema:"version"`
+	VNETContentShareEnabled        bool                                       `tfschema:"vnet_content_share_enabled"`
+	VirtualNetworkSubnetId         string                                     `tfschema:"virtual_network_subnet_id"`
+	Tags                           map[string]string                          `tfschema:"tags"`
 
 	CustomDomainVerificationId  string                           `tfschema:"custom_domain_verification_id"`
 	DefaultHostname             string                           `tfschema:"default_hostname"`
@@ -72,7 +72,7 @@ var (
 	logicAppStdKind   = "functionapp,workflowapp"
 	logicAppLinuxKind = "functionapp,linux,container,workflowapp"
 
-	storageConnectionStringFmt = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	storageConnectionStringFmt           = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
 	storageAppSettingName                = "AzureWebJobsStorage"
 	contentShareAppSettingName           = "WEBSITE_CONTENTSHARE"
 	contentFileConnStringAppSettingName  = "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
@@ -205,6 +205,9 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
+			RequiredWith: []string{
+				"storage_account_access_key",
+			},
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_account_connection_string",
@@ -671,7 +674,14 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 
 				connectionString := appSettings[storageAppSettingName]
 
-				if strings.Contains(connectionString, "AccountName=") && strings.Contains(connectionString, "AccountKey=") {
+				// Determine how to populate state based on which attribute the user configured.
+				// If storage_account_connection_string is in the current state/config, store the
+				// raw value there regardless of its content (it could be a KV reference or even
+				// a standard connection string). Otherwise, parse into name/key fields.
+				switch {
+				case metadata.ResourceData.Get("storage_account_connection_string").(string) != "":
+					state.StorageAccountConnectionString = connectionString
+				case strings.Contains(connectionString, "AccountName=") && strings.Contains(connectionString, "AccountKey="):
 					for _, part := range strings.Split(connectionString, ";") {
 						if strings.HasPrefix(part, "AccountName") {
 							accountNameParts := strings.Split(part, "AccountName=")
@@ -686,7 +696,7 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 							}
 						}
 					}
-				} else {
+				default:
 					state.StorageAccountConnectionString = connectionString
 				}
 
@@ -1354,6 +1364,13 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 		if connString != "" {
 			eMap[storageAppSettingName] = connString
 			eMap[contentFileConnStringAppSettingName] = connString
+		} else if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
+			accountName := metadata.ResourceData.Get("storage_account_name").(string)
+			accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
+			suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
+
+			eMap[storageAppSettingName] = fmt.Sprintf(storageConnectionStringFmt, accountName, accountAccessKey, *suffix)
+			eMap[contentFileConnStringAppSettingName] = fmt.Sprintf(storageConnectionStringFmt, accountName, accountAccessKey, *suffix)
 		}
 	} else if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
 		accountName := metadata.ResourceData.Get("storage_account_name").(string)
