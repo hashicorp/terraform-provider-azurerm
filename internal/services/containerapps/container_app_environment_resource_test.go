@@ -606,8 +606,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  enabled_metric {
+  metric {
     category = "AllMetrics"
+    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -656,8 +657,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  enabled_metric {
+  metric {
     category = "AllMetrics"
+    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -703,8 +705,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  enabled_metric {
+  metric {
     category = "AllMetrics"
+    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -751,8 +754,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  enabled_metric {
+  metric {
     category = "AllMetrics"
+    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -800,38 +804,12 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  enabled_metric {
+  metric {
     category = "AllMetrics"
+    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
-}
-
-func (r ContainerAppEnvironmentResource) completeWithoutWorkloadProfile(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%[1]s
-
-resource "azurerm_container_app_environment" "test" {
-  name                       = "acctest-CAEnv%[2]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  logs_destination           = "log-analytics"
-  infrastructure_subnet_id   = azurerm_subnet.control.id
-
-  internal_load_balancer_enabled = true
-  zone_redundancy_enabled        = true
-
-  tags = {
-    Foo    = "Bar"
-    secret = "sauce"
-  }
-}
-`, r.templateVnetSubnetNotDelegated(data), data.RandomInteger)
 }
 
 func (r ContainerAppEnvironmentResource) consumptionWorkloadProfile(data acceptance.TestData) string {
@@ -1105,8 +1083,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  enabled_metric {
+  metric {
     category = "AllMetrics"
+    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -1158,27 +1137,6 @@ resource "azurerm_subnet" "control" {
 }
 
 
-`, r.template(data), data.RandomInteger)
-}
-
-func (r ContainerAppEnvironmentResource) templateVnetSubnetNotDelegated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-%[1]s
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[2]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "control" {
-  name                 = "control-plane"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.0.0/23"]
-}
 `, r.template(data), data.RandomInteger)
 }
 
@@ -1299,8 +1257,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  enabled_metric {
+  metric {
     category = "AllMetrics"
+    enabled  = true
   }
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary, alt.tenantId, alt.subscriptionId)
