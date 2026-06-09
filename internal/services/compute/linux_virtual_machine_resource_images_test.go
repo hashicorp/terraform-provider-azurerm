@@ -228,6 +228,12 @@ resource "azurerm_linux_virtual_machine" "source" {
     sku       = "22_04-lts"
     version   = "latest"
   }
+
+  custom_data = base64encode(<<-EOT
+    #!/bin/bash
+    sudo waagent -verbose -deprovision+user -force
+  EOT
+  )
 }
 `, r.imageFromExistingMachineDependencies(data), data.RandomInteger)
 }

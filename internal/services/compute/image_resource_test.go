@@ -12,15 +12,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -216,87 +212,6 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 			var cancel context.CancelFunc
 			ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
 			defer cancel()
-		}
-
-		// these are nested in a Set in the Legacy VM resource, simpler to compute them
-		userName := fmt.Sprintf("testadmin%d", data.RandomInteger)
-		password := fmt.Sprintf("Password1234!%d", data.RandomInteger)
-
-		// first retrieve the Virtual Machine, since we need to find
-		nicIdRaw := state.Attributes["network_interface_ids.0"]
-		nicId, err := commonids.ParseNetworkInterfaceID(nicIdRaw)
-		if err != nil {
-			return err
-		}
-
-		log.Printf("[DEBUG] Retrieving Network Interface..")
-		nic, err := client.Network.NetworkInterfaces.Get(ctx, *nicId, networkinterfaces.DefaultGetOperationOptions())
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", *nicId, err)
-		}
-
-		publicIpRaw := ""
-		if model := nic.Model; model != nil {
-			if props := model.Properties; props != nil {
-				if configs := props.IPConfigurations; configs != nil {
-					for _, config := range *props.IPConfigurations {
-						if configProps := config.Properties; configProps != nil {
-							if configProps.PublicIPAddress == nil {
-								continue
-							}
-
-							if configProps.PublicIPAddress.Id == nil {
-								continue
-							}
-
-							publicIpRaw = *configProps.PublicIPAddress.Id
-							break
-						}
-					}
-				}
-			}
-		}
-		if publicIpRaw == "" {
-			return fmt.Errorf("retrieving %s: could not determine Public IP Address ID", *nicId)
-		}
-
-		log.Printf("[DEBUG] Retrieving Public IP Address %q..", publicIpRaw)
-		publicIpId, err := commonids.ParsePublicIPAddressID(publicIpRaw)
-		if err != nil {
-			return err
-		}
-
-		publicIpAddress, err := client.Network.PublicIPAddresses.Get(ctx, *publicIpId, publicipaddresses.DefaultGetOperationOptions())
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", *publicIpId, err)
-		}
-		fqdn := ""
-
-		if model := publicIpAddress.Model; model != nil {
-			if props := model.Properties; props != nil {
-				if dns := props.DnsSettings; dns != nil {
-					if dns.Fqdn != nil {
-						fqdn = *dns.Fqdn
-					}
-				}
-			}
-		}
-		if fqdn == "" {
-			return fmt.Errorf("unable to determine FQDN for %q", *publicIpId)
-		}
-
-		log.Printf("[DEBUG] Running Generalization Command..")
-		sshGeneralizationCommand := ssh.Runner{
-			Hostname: fqdn,
-			Port:     22,
-			Username: userName,
-			Password: password,
-			CommandsToRun: []string{
-				ssh.LinuxAgentDeprovisionCommand,
-			},
-		}
-		if err := sshGeneralizationCommand.Run(ctx); err != nil {
-			return fmt.Errorf("Bad: running generalization command: %+v", err)
 		}
 
 		log.Printf("[DEBUG] Deallocating VM..")
@@ -499,6 +414,12 @@ resource "azurerm_virtual_machine" "testsource" {
   os_profile_linux_config {
     disable_password_authentication = false
   }
+
+  custom_data = base64encode(<<-EOT
+    #!/bin/bash
+    sudo waagent -verbose -deprovision+user -force
+  EOT
+  )
 
   tags = {
     environment = "Dev"
