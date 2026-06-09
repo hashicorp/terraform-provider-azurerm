@@ -3,6 +3,8 @@
 
 package signalr
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub_custom_domain -service-package-name signalr -properties "name" -compare-values "subscription_id:web_pubsub_id,resource_group_name:web_pubsub_id,web_pubsub_name:web_pubsub_id"
+
 import (
 	"context"
 	"fmt"
@@ -10,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -24,9 +27,18 @@ type CustomDomainWebPubsubModel struct {
 	WebPubsubCustomCertificateId string `tfschema:"web_pubsub_custom_certificate_id"`
 }
 
+const webPubsubCustomDomainResourceType = "azurerm_web_pubsub_custom_domain"
+
 type CustomDomainWebPubsubResource struct{}
 
-var _ sdk.Resource = CustomDomainWebPubsubResource{}
+var (
+	_ sdk.Resource             = CustomDomainWebPubsubResource{}
+	_ sdk.ResourceWithIdentity = CustomDomainWebPubsubResource{}
+)
+
+func (r CustomDomainWebPubsubResource) Identity() resourceids.ResourceId {
+	return &webpubsub.CustomDomainId{}
+}
 
 func (r CustomDomainWebPubsubResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -69,7 +81,7 @@ func (r CustomDomainWebPubsubResource) ModelObject() interface{} {
 }
 
 func (r CustomDomainWebPubsubResource) ResourceType() string {
-	return "azurerm_web_pubsub_custom_domain"
+	return webPubsubCustomDomainResourceType
 }
 
 func (r CustomDomainWebPubsubResource) Create() sdk.ResourceFunc {
@@ -115,10 +127,13 @@ func (r CustomDomainWebPubsubResource) Create() sdk.ResourceFunc {
 					},
 				},
 			}
-			if err := client.CustomDomainsCreateOrUpdateCallbackThenPoll(ctx, id, customDomainObj, metadata.SetIDCallback(&id)); err != nil {
+			if err := client.CustomDomainsCreateOrUpdateCallbackThenPoll(ctx, id, customDomainObj, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -143,28 +158,7 @@ func (r CustomDomainWebPubsubResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			webPubsubId := webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID()
-
-			state := CustomDomainWebPubsubModel{
-				Name:        id.CustomDomainName,
-				WebPubsubId: webPubsubId,
-			}
-
-			if model := resp.Model; model != nil {
-				props := model.Properties
-				webPubsubCustomCertificateId := ""
-				if props.CustomCertificate.Id != nil {
-					webPubsubCustomCertificateID, err := webpubsub.ParseCustomCertificateIDInsensitively(*props.CustomCertificate.Id)
-					if err != nil {
-						return fmt.Errorf("parsing web pubsub custom cert id for %s: %+v", id, err)
-					}
-					webPubsubCustomCertificateId = webPubsubCustomCertificateID.ID()
-				}
-				state.WebPubsubCustomCertificateId = webPubsubCustomCertificateId
-				state.DomainName = props.DomainName
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
@@ -227,4 +221,30 @@ func webPubsubCustomDomainDeleteRefreshFunc(ctx context.Context, client *webpubs
 
 		return res, "Exists", nil
 	}
+}
+
+func (r CustomDomainWebPubsubResource) flatten(metadata sdk.ResourceMetaData, id *webpubsub.CustomDomainId, model *webpubsub.CustomDomain) error {
+	state := CustomDomainWebPubsubModel{
+		Name:        id.CustomDomainName,
+		WebPubsubId: webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID(),
+	}
+
+	if model != nil {
+		props := model.Properties
+		state.DomainName = props.DomainName
+
+		if props.CustomCertificate.Id != nil {
+			webPubsubCustomCertificateID, err := webpubsub.ParseCustomCertificateIDInsensitively(*props.CustomCertificate.Id)
+			if err != nil {
+				return fmt.Errorf("parsing web pubsub custom cert id for %s: %+v", *id, err)
+			}
+			state.WebPubsubCustomCertificateId = webPubsubCustomCertificateID.ID()
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
