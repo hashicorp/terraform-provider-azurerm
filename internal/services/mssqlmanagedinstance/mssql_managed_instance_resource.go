@@ -22,12 +22,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceadministrators"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -469,13 +466,6 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewSqlManagedInstanceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			subnetId, err := commonids.ParseSubnetIDInsensitively(model.SubnetId)
-			if err != nil {
-				return fmt.Errorf("parsing `subnet_id`: %+v", err)
-			}
-			locks.ByID(subnetId.ID())
-			defer locks.UnlockByID(subnetId.ID())
-
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id, managedinstances.GetOperationOptions{})
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -872,83 +862,14 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			var state MsSqlManagedInstanceModel
-			if err := metadata.Decode(&state); err != nil {
-				return err
-			}
-
-			var subnetId *commonids.SubnetId
-			if state.SubnetId != "" {
-				parsedSubnetId, err := commonids.ParseSubnetIDInsensitively(state.SubnetId)
-				if err != nil {
-					log.Printf("[WARN] Unable to parse subnet ID %q before deleting %s: %+v", state.SubnetId, *id, err)
-				} else {
-					subnetId = parsedSubnetId
-					locks.ByID(subnetId.ID())
-					defer locks.UnlockByID(subnetId.ID())
-				}
-			}
-
 			err = client.DeleteThenPoll(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			if subnetId == nil {
-				return nil
-			}
-
-			remainingInstancesInSubnet, err := otherMsSqlManagedInstancesExistInSubnet(ctx, client, *id, *subnetId)
-			if err != nil {
-				log.Printf("[WARN] Unable to determine if other SQL Managed Instances remain in subnet %s after deleting %s; skipping network intent policy cleanup wait: %+v", subnetId.ID(), *id, err)
-				return nil
-			}
-			if remainingInstancesInSubnet {
-				log.Printf("[DEBUG] Skipping network intent policy cleanup wait for subnet %s because another SQL Managed Instance still uses the subnet", subnetId.ID())
-				return nil
-			}
-
-			log.Printf("[DEBUG] Waiting for SQL Managed Instance network intent policy cleanup on subnet %s", subnetId.ID())
-			pollerType := custompollers.NewManagedInstanceSubnetNetworkIntentPolicyPollerDefault(metadata.Client.Network.Subnets, *subnetId)
-			poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-			if err := poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("[WARN] waiting for SQL Managed Instance network intent policy cleanup on subnet %s: %+v", subnetId.ID(), err)
-			}
-
 			return nil
 		},
 	}
-}
-
-func otherMsSqlManagedInstancesExistInSubnet(ctx context.Context, client *managedinstances.ManagedInstancesClient, currentId commonids.SqlManagedInstanceId, subnetId commonids.SubnetId) (bool, error) {
-	subscriptionId := commonids.NewSubscriptionID(currentId.SubscriptionId)
-
-	instances, err := client.ListComplete(ctx, subscriptionId, managedinstances.DefaultListOperationOptions())
-	if err != nil {
-		return false, fmt.Errorf("listing SQL Managed Instances in subscription %q: %+v", currentId.SubscriptionId, err)
-	}
-
-	for _, instance := range instances.Items {
-		if instance.Id != nil && strings.EqualFold(*instance.Id, currentId.ID()) {
-			continue
-		}
-
-		if instance.Properties == nil || instance.Properties.SubnetId == nil {
-			continue
-		}
-
-		instanceSubnetId, err := commonids.ParseSubnetIDInsensitively(*instance.Properties.SubnetId)
-		if err != nil {
-			log.Printf("[WARN] Unable to parse subnet ID %q for SQL Managed Instance %q: %+v", *instance.Properties.SubnetId, pointer.From(instance.Name), err)
-			continue
-		}
-
-		if strings.EqualFold(instanceSubnetId.ID(), subnetId.ID()) {
-			return true, nil
-		}
-	}
-
-	return false, nil
 }
 
 func (r MsSqlManagedInstanceResource) expandIdentity(input []identity.SystemOrUserAssignedList) *identity.LegacySystemAndUserAssignedMap {
