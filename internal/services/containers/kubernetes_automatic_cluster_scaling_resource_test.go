@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/agentpools"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -57,7 +57,7 @@ func TestAccKubernetesAutomaticCluster_updateVmSizeAfterFailureWithTempAndDefaul
 						defer cancel()
 					}
 
-					client := clients.Containers.AgentPoolsClient
+					client := clients.Containers_v2026_04_01.AgentPoolsClient
 
 					id, err := commonids.ParseKubernetesClusterID(state.Attributes["id"])
 					if err != nil {
@@ -115,7 +115,7 @@ func TestAccKubernetesAutomaticCluster_updateVmSizeAfterFailureWithTempWithoutDe
 						defer cancel()
 					}
 
-					client := clients.Containers.AgentPoolsClient
+					client := clients.Containers_v2026_04_01.AgentPoolsClient
 
 					id, err := commonids.ParseKubernetesClusterID(state.Attributes["id"])
 					if err != nil {

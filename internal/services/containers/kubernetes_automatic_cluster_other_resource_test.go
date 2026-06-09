@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -635,7 +635,7 @@ func TestAccKubernetesAutomaticCluster_snapshotId(t *testing.T) {
 						ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
 						defer cancel()
 					}
-					client := clients.Containers.SnapshotClient
+					client := clients.Containers_v2026_04_01.SnapshotClient
 					clusterId, err := commonids.ParseKubernetesClusterID(state.ID)
 					if err != nil {
 						return err
@@ -673,7 +673,7 @@ func TestAccKubernetesAutomaticCluster_snapshotId(t *testing.T) {
 						ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
 						defer cancel()
 					}
-					client := clients.Containers.SnapshotClient
+					client := clients.Containers_v2026_04_01.SnapshotClient
 					clusterId, err := commonids.ParseKubernetesClusterID(state.ID)
 					if err != nil {
 						return err
@@ -959,40 +959,40 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
 
     linux_os_config {
-      transparent_huge_page                = "always"
+      transparent_huge_page                 = "always"
       transparent_huge_page_defragmentation = "always"
-      swap_file_size_in_mb                 = 300
+      swap_file_size_in_mb                  = 300
 
       sysctl_config {
-        fs_aio_max_nr                      = 65536
-        fs_file_max                        = 100000
-        fs_inotify_max_user_watches        = 1000000
-        fs_nr_open                         = 1048576
-        kernel_threads_max                 = 200000
-        net_core_netdev_max_backlog        = 1800
-        net_core_optmem_max                = 30000
-        net_core_rmem_max                  = 300000
-        net_core_rmem_default              = 300000
-        net_core_somaxconn                 = 5000
-        net_core_wmem_default              = 300000
-        net_core_wmem_max                  = 300000
-        net_ipv4_ip_local_port_range_min   = 32768
+        fs_aio_max_nr                        = 65536
+        fs_file_max                          = 100000
+        fs_inotify_max_user_watches          = 1000000
+        fs_nr_open                           = 1048576
+        kernel_threads_max                   = 200000
+        net_core_netdev_max_backlog          = 1800
+        net_core_optmem_max                  = 30000
+        net_core_rmem_max                    = 300000
+        net_core_rmem_default                = 300000
+        net_core_somaxconn                   = 5000
+        net_core_wmem_default                = 300000
+        net_core_wmem_max                    = 300000
+        net_ipv4_ip_local_port_range_min     = 32768
         net_ipv4_ip_local_port_range_maximum = 60000
-        net_ipv4_neigh_default_gc_thresh1  = 128
-        net_ipv4_neigh_default_gc_thresh2  = 512
-        net_ipv4_neigh_default_gc_thresh3  = 1024
-        net_ipv4_tcp_fin_timeout           = 60
-        net_ipv4_tcp_keepalive_probes      = 9
-        net_ipv4_tcp_keepalive_time        = 6000
-        net_ipv4_tcp_max_syn_backlog       = 2048
-        net_ipv4_tcp_max_tw_buckets        = 100000
-        net_ipv4_tcp_tw_reuse_enabled      = true
-        net_ipv4_tcp_keepalive_intvl       = 70
-        net_netfilter_nf_conntrack_buckets = 65536
-        net_netfilter_nf_conntrack_max     = 200000
-        vm_max_map_count                   = 65536
-        vm_swappiness                      = 45
-        vm_vfs_cache_pressure              = 80
+        net_ipv4_neigh_default_gc_thresh1    = 128
+        net_ipv4_neigh_default_gc_thresh2    = 512
+        net_ipv4_neigh_default_gc_thresh3    = 1024
+        net_ipv4_tcp_fin_timeout             = 60
+        net_ipv4_tcp_keepalive_probes        = 9
+        net_ipv4_tcp_keepalive_time          = 6000
+        net_ipv4_tcp_max_syn_backlog         = 2048
+        net_ipv4_tcp_max_tw_buckets          = 100000
+        net_ipv4_tcp_tw_reuse_enabled        = true
+        net_ipv4_tcp_keepalive_intvl         = 70
+        net_netfilter_nf_conntrack_buckets   = 65536
+        net_netfilter_nf_conntrack_max       = 200000
+        vm_max_map_count                     = 65536
+        vm_swappiness                        = 45
+        vm_vfs_cache_pressure                = 80
       }
     }
   }
@@ -1790,7 +1790,7 @@ resource "azurerm_subnet" "apiserver" {
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
-      name = "Microsoft.ContainerService/managedClusters"
+      name = "Microsoft.Containers_v2026_04_01ervice/managedClusters"
     }
   }
 }
@@ -1925,7 +1925,7 @@ resource "azurerm_subnet" "apiserver" {
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
-      name = "Microsoft.ContainerService/managedClusters"
+      name = "Microsoft.Containers_v2026_04_01ervice/managedClusters"
     }
   }
 }

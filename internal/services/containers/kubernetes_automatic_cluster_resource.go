@@ -6,6 +6,7 @@ package containers
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -37,6 +38,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	client "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client_2026-04-01"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 
@@ -57,6 +59,7 @@ type KubernetesAutomaticClusterModel struct {
 	DefaultNodePool                 []DefaultNodePoolModel              `tfschema:"default_node_pool"`
 	DiskEncryptionSetID             string                              `tfschema:"disk_encryption_set_id"`
 	DNSPrefix                       string                              `tfschema:"dns_prefix"`
+	HostedSystemProfile             []HostedSystemProfile               `tfschema:"hosted_system"`
 	HTTPProxyConfig                 []HTTPProxyConfigModel              `tfschema:"proxy"`
 	Identity                        []identity.SystemOrUserAssignedList `tfschema:"identity"`
 	ImageCleanerIntervalHours       int64                               `tfschema:"image_cleaner_interval_in_hours"`
@@ -143,6 +146,12 @@ type AzureActiveDirectoryRBACModel struct {
 type BootstrapProfileModel struct {
 	ArtifactSource      string `tfschema:"artifact_source"`
 	ContainerRegistryID string `tfschema:"container_registry_id"`
+}
+
+type HostedSystemProfile struct {
+	Enabled            bool   `tfschema:"enabled"`
+	NodeSubnetID       string `tfschema:"node_subnet_id"`
+	SystemNodeSubnetID string `tfschema:"system_node_subnet_id"`
 }
 
 type HTTPProxyConfigModel struct {
@@ -454,7 +463,7 @@ func (r KubernetesAutomaticClusterResource) CustomImporter() sdk.ResourceRunFunc
 			return err
 		}
 
-		client := metadata.Client.Containers.KubernetesClustersClient
+		client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
 		resp, err := client.Get(ctx, *id)
 		if err != nil || resp.Model == nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -1192,8 +1201,37 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: containerValidate.KubernetesDNSPrefix,
 		},
 
+		"hosted_system": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"node_subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						RequiredWith: []string{"hosted_system.0.system_node_subnet_id", "api_server_access.0.subnet_id"},
+						ValidateFunc: commonids.ValidateSubnetID,
+					},
+					"system_node_subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						RequiredWith: []string{"hosted_system.0.node_subnet_id", "api_server_access.0.subnet_id"},
+						ValidateFunc: commonids.ValidateSubnetID,
+					},
+				},
+			},
+		},
+
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
-go
+
 		"image_cleaner_interval_in_hours": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
@@ -2412,7 +2450,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.KubernetesClustersClient
+			client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
 			keyVaultsClient := metadata.Client.KeyVault
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
@@ -2465,7 +2503,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `default_node_pool`: %+v", err)
 			}
 
-			agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
+			agentProfile := ConvertDefaultNodePoolToAgentPoolTyped(agentProfiles)
 			if prop := agentProfile.Properties; prop != nil {
 				if nodePoolVersion := prop.CurrentOrchestratorVersion; nodePoolVersion != nil {
 					if model.KubernetesVersion != "" && model.KubernetesVersion != *nodePoolVersion {
@@ -2474,7 +2512,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			addonProfiles, err := expandKubernetesAutomaticClusterAddOns(&model, metadata.Client.Containers.Environment)
+			addonProfiles, err := expandKubernetesAutomaticClusterAddOns(&model, metadata.Client.Containers_v2026_04_01.Environment)
 			if err != nil {
 				return fmt.Errorf("expanding addons: %+v", err)
 			}
@@ -2509,6 +2547,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 					AzureMonitorProfile:    expandKubernetesAutomaticClusterAzureMonitorProfile(model.MonitorMetrics),
 					KubernetesVersion:      pointer.To(model.KubernetesVersion),
 					BootstrapProfile:       expandKubernetesAutomaticClusterBootstrapProfile(model.BootstrapProfile),
+					HostedSystemProfile:    expandKubernetesAutomaticClusterHostedSystemProfile(model.HostedSystemProfile),
 					LinuxProfile:           expandKubernetesAutomaticClusterLinuxProfile(model.LinuxProfile),
 					WindowsProfile:         expandKubernetesAutomaticClusterWindowsProfile(model.WindowsProfile),
 					MetricsProfile:         expandKubernetesAutomaticClusterMetricsProfile(model.CostAnalysisEnabled),
@@ -2581,7 +2620,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.KubernetesClustersClient
+			client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -2606,7 +2645,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 }
 
 func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadata sdk.ResourceMetaData, id *commonids.KubernetesClusterId, model *managedclusters.ManagedCluster) error {
-	client := metadata.Client.Containers.KubernetesClustersClient
+	client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
 
 	credentials, err := client.ListClusterUserCredentials(ctx, *id, managedclusters.ListClusterUserCredentialsOperationOptions{})
 	if err != nil {
@@ -2701,6 +2740,8 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 			state.BootstrapProfile = flattenKubernetesAutomaticClusterBootstrapProfile(props.BootstrapProfile)
 
+			state.HostedSystemProfile = flattenKubernetesAutomaticClusterHostedSystemProfile(props.HostedSystemProfile)
+
 			state.UpgradeOverride = flattenKubernetesAutomaticClusterUpgradeOverride(props.UpgradeSettings)
 
 			state.StorageProfile = flattenKubernetesAutomaticClusterStorageProfile(props.StorageProfile)
@@ -2732,7 +2773,7 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 		state.Identity = flattenIdentityModel(model.Identity)
 
-		kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentials(credentials.Model, "clusterUser")
+		kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentialsTyped(credentials.Model, "clusterUser")
 		state.KubeConfigRaw = pointer.From(kubeConfigRaw)
 		for _, item := range kubeConfig {
 			if config, ok := item.(map[string]interface{}); ok {
@@ -2759,7 +2800,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers
+			client := metadata.Client.Containers_v2026_04_01
 			clusterClient := client.KubernetesClustersClient
 			nodePoolsClient := client.AgentPoolsClient
 			keyVaultsClient := metadata.Client.KeyVault
@@ -2827,7 +2868,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				agentProfile := ConvertDefaultNodePoolToAgentPool(props.AgentPoolProfiles)
+				agentProfile := ConvertDefaultNodePoolToAgentPoolTyped(props.AgentPoolProfiles)
 				defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, *agentProfile.Name)
 
 				// if a users specified a version - confirm that version is supported on the cluster
@@ -2841,7 +2882,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 						currentNodePoolVersion = *v
 					}
 
-					if err := validateNodePoolAutomaticSupportsVersion(ctx, client, currentNodePoolVersion, defaultNodePoolId, *nodePoolVersion); err != nil {
+					if err := validateNodePoolAutomaticSupportsVersionTyped(ctx, client, currentNodePoolVersion, defaultNodePoolId, *nodePoolVersion); err != nil {
 						return err
 					}
 				}
@@ -2914,7 +2955,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 
 					// if the temp node pool already exists due to a previous failure, don't bother spinning it up
 					if tempExisting.Model == nil {
-						if err := retryNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
+						if err := retryNodePoolCreationTyped(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
 							return fmt.Errorf("creating temporary %s: %w", tempNodePoolId, err)
 						}
 					}
@@ -2927,7 +2968,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 					}
 
 					// create the default node pool with the new vm size
-					if err := retryNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
+					if err := retryNodePoolCreationTyped(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
 						// if creation of the default node pool fails we automatically fall back to the temporary node pool
 						// in func findDefaultNodePool
 						return fmt.Errorf("creating default %s: %w", defaultNodePoolId, err)
@@ -2951,7 +2992,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				metadata.ResourceData.HasChange("ingress_application_gateway") ||
 				metadata.ResourceData.HasChange("key_vault_secrets_provider") ||
 				metadata.ResourceData.HasChange("open_service_mesh_enabled") {
-				addonProfiles, err := expandKubernetesAutomaticClusterAddOns(&model, metadata.Client.Containers.Environment)
+				addonProfiles, err := expandKubernetesAutomaticClusterAddOns(&model, metadata.Client.Containers_v2026_04_01.Environment)
 				if err != nil {
 					return fmt.Errorf("expanding addons: %w", err)
 				}
@@ -3022,6 +3063,11 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("bootstrap_profile") {
 				props.BootstrapProfile = expandKubernetesAutomaticClusterBootstrapProfile(model.BootstrapProfile)
+				updateCluster = true
+			}
+
+			if metadata.ResourceData.HasChange("hosted_system") {
+				props.HostedSystemProfile = expandKubernetesAutomaticClusterHostedSystemProfile(model.HostedSystemProfile)
 				updateCluster = true
 			}
 
@@ -3102,7 +3148,7 @@ func (r KubernetesAutomaticClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.KubernetesClustersClient
+			client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -3236,6 +3282,28 @@ func expandKubernetesAutomaticClusterBootstrapProfile(input []BootstrapProfileMo
 		ArtifactSource:      pointer.ToEnum[managedclusters.ArtifactSource](config.ArtifactSource),
 		ContainerRegistryId: containerRegistryID,
 	}
+}
+
+func expandKubernetesAutomaticClusterHostedSystemProfile(input []HostedSystemProfile) *managedclusters.ManagedClusterHostedSystemProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	config := input[0]
+
+	profile := &managedclusters.ManagedClusterHostedSystemProfile{
+		Enabled: pointer.To(config.Enabled),
+	}
+
+	if config.NodeSubnetID != "" {
+		profile.NodeSubnetID = pointer.To(config.NodeSubnetID)
+	}
+
+	if config.SystemNodeSubnetID != "" {
+		profile.SystemNodeSubnetID = pointer.To(config.SystemNodeSubnetID)
+	}
+
+	return profile
 }
 
 func expandKubernetesAutomaticClusterLinuxProfile(input []LinuxProfileModel) *managedclusters.ContainerServiceLinuxProfile {
@@ -4495,6 +4563,18 @@ func flattenKubernetesAutomaticClusterBootstrapProfile(profile *managedclusters.
 	}}
 }
 
+func flattenKubernetesAutomaticClusterHostedSystemProfile(profile *managedclusters.ManagedClusterHostedSystemProfile) []HostedSystemProfile {
+	if profile == nil {
+		return []HostedSystemProfile{}
+	}
+
+	return []HostedSystemProfile{{
+		Enabled:            pointer.From(profile.Enabled),
+		NodeSubnetID:       pointer.From(profile.NodeSubnetID),
+		SystemNodeSubnetID: pointer.From(profile.SystemNodeSubnetID),
+	}}
+}
+
 func flattenKubernetesAutomaticClusterAzureActiveDirectoryRBAC(profile *managedclusters.ManagedClusterAADProfile) []AzureActiveDirectoryRBACModel {
 	if profile == nil || profile.Managed == nil || !*profile.Managed {
 		return []AzureActiveDirectoryRBACModel{}
@@ -5477,7 +5557,7 @@ func expandKubernetesAutomaticClusterAddOns(input *KubernetesAutomaticClusterMod
 		}
 	}
 
-	return filterUnsupportedKubernetesAddOns(addonProfiles, env)
+	return filterUnsupportedKubernetesAddOnsTyped(addonProfiles, env)
 }
 
 func flattenKubernetesAutomaticClusterAddOns(profile map[string]managedclusters.ManagedClusterAddonProfile) (
@@ -5490,7 +5570,7 @@ func flattenKubernetesAutomaticClusterAddOns(profile map[string]managedclusters.
 	omsAgent []OMSAgentModel,
 	openServiceMeshEnabled bool,
 ) {
-	aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey)
+	aciConnector := kubernetesAddonProfileLocateTyped(profile, aciConnectorKey)
 	if aciConnector.Enabled {
 		subnetName := ""
 		if v := aciConnector.Config; v != nil && (*v)["SubnetName"] != "" {
@@ -5505,10 +5585,10 @@ func flattenKubernetesAutomaticClusterAddOns(profile map[string]managedclusters.
 		}}
 	}
 
-	confidentialComputingProfile := kubernetesAddonProfileLocate(profile, confidentialComputingKey)
+	confidentialComputingProfile := kubernetesAddonProfileLocateTyped(profile, confidentialComputingKey)
 	if confidentialComputingProfile.Enabled {
 		quoteHelperEnabled := false
-		if v := kubernetesAddonProfilelocateInConfig(confidentialComputingProfile.Config, "ACCSGXQuoteHelperEnabled"); v != "" && v != "false" {
+		if v := kubernetesAddonProfileLocateTypedInConfig(confidentialComputingProfile.Config, "ACCSGXQuoteHelperEnabled"); v != "" && v != "false" {
 			quoteHelperEnabled = true
 		}
 		confidentialComputing = []ConfidentialComputingModel{{
@@ -5516,25 +5596,25 @@ func flattenKubernetesAutomaticClusterAddOns(profile map[string]managedclusters.
 		}}
 	}
 
-	httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey)
+	httpApplicationRouting := kubernetesAddonProfileLocateTyped(profile, httpApplicationRoutingKey)
 	httpApplicationRoutingEnabled = httpApplicationRouting.Enabled
 
-	if v := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != "" {
+	if v := kubernetesAddonProfileLocateTypedInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != "" {
 		httpApplicationRoutingZoneName = v
 	}
 
-	omsAgentProfile := kubernetesAddonProfileLocate(profile, omsAgentKey)
+	omsAgentProfile := kubernetesAddonProfileLocateTyped(profile, omsAgentKey)
 	if omsAgentProfile.Enabled {
 		workspaceID := ""
 		useAADAuth := false
 
-		if v := kubernetesAddonProfilelocateInConfig(omsAgentProfile.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
+		if v := kubernetesAddonProfileLocateTypedInConfig(omsAgentProfile.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
 			if lawid, err := workspaces.ParseWorkspaceIDInsensitively(v); err == nil {
 				workspaceID = lawid.ID()
 			}
 		}
 
-		if v := kubernetesAddonProfilelocateInConfig(omsAgentProfile.Config, "useAADAuth"); v != "false" && v != "" {
+		if v := kubernetesAddonProfileLocateTypedInConfig(omsAgentProfile.Config, "useAADAuth"); v != "false" && v != "" {
 			useAADAuth = true
 		}
 
@@ -5547,30 +5627,30 @@ func flattenKubernetesAutomaticClusterAddOns(profile map[string]managedclusters.
 		}}
 	}
 
-	ingressApplicationGatewayProfile := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey)
+	ingressApplicationGatewayProfile := kubernetesAddonProfileLocateTyped(profile, ingressApplicationGatewayKey)
 	if ingressApplicationGatewayProfile.Enabled {
 		gatewayId := ""
-		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGatewayProfile.Config, "applicationGatewayId"); v != "" {
+		if v := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGatewayProfile.Config, "applicationGatewayId"); v != "" {
 			gatewayId = v
 		}
 
 		gatewayName := ""
-		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGatewayProfile.Config, "applicationGatewayName"); v != "" {
+		if v := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGatewayProfile.Config, "applicationGatewayName"); v != "" {
 			gatewayName = v
 		}
 
 		effectiveGatewayId := ""
-		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGatewayProfile.Config, "effectiveApplicationGatewayId"); v != "" {
+		if v := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGatewayProfile.Config, "effectiveApplicationGatewayId"); v != "" {
 			effectiveGatewayId = v
 		}
 
 		subnetCIDR := ""
-		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGatewayProfile.Config, "subnetCIDR"); v != "" {
+		if v := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGatewayProfile.Config, "subnetCIDR"); v != "" {
 			subnetCIDR = v
 		}
 
 		subnetId := ""
-		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGatewayProfile.Config, "subnetId"); v != "" {
+		if v := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGatewayProfile.Config, "subnetId"); v != "" {
 			subnetId = v
 		}
 
@@ -5586,14 +5666,14 @@ func flattenKubernetesAutomaticClusterAddOns(profile map[string]managedclusters.
 		}}
 	}
 
-	openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey)
+	openServiceMesh := kubernetesAddonProfileLocateTyped(profile, openServiceMeshKey)
 	openServiceMeshEnabled = openServiceMesh.Enabled
 
-	azureKeyVaultSecretsProviderProfile := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey)
+	azureKeyVaultSecretsProviderProfile := kubernetesAddonProfileLocateTyped(profile, azureKeyvaultSecretsProviderKey)
 	if azureKeyVaultSecretsProviderProfile.Enabled {
 		rotationPollInterval := ""
 
-		if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProviderProfile.Config, "rotationPollInterval"); v != "" {
+		if v := kubernetesAddonProfileLocateTypedInConfig(azureKeyVaultSecretsProviderProfile.Config, "rotationPollInterval"); v != "" {
 			rotationPollInterval = v
 		}
 
@@ -5666,4 +5746,299 @@ func flattenSecretIdentityTyped(input []ConnectorIdentityModel) []SecretIdentity
 		ObjectID:               input[0].ObjectID,
 		UserAssignedIdentityID: input[0].UserAssignedIdentityID,
 	}}
+}
+
+func ConvertDefaultNodePoolToAgentPoolTyped(input *[]managedclusters.ManagedClusterAgentPoolProfile) agentpools.AgentPool {
+	defaultCluster := (*input)[0]
+
+	agentpool := agentpools.AgentPool{
+		Name: &defaultCluster.Name,
+		Properties: &agentpools.ManagedClusterAgentPoolProfileProperties{
+			CapacityReservationGroupID: defaultCluster.CapacityReservationGroupID,
+			Count:                      defaultCluster.Count,
+			VMSize:                     defaultCluster.VMSize,
+			OsDiskSizeGB:               defaultCluster.OsDiskSizeGB,
+			VnetSubnetID:               defaultCluster.VnetSubnetID,
+			MaxPods:                    defaultCluster.MaxPods,
+			MaxCount:                   defaultCluster.MaxCount,
+			MinCount:                   defaultCluster.MinCount,
+			EnableAutoScaling:          defaultCluster.EnableAutoScaling,
+			EnableEncryptionAtHost:     defaultCluster.EnableEncryptionAtHost,
+			EnableFIPS:                 defaultCluster.EnableFIPS,
+			EnableUltraSSD:             defaultCluster.EnableUltraSSD,
+			OrchestratorVersion:        defaultCluster.OrchestratorVersion,
+			ProximityPlacementGroupID:  defaultCluster.ProximityPlacementGroupID,
+			AvailabilityZones:          defaultCluster.AvailabilityZones,
+			EnableNodePublicIP:         defaultCluster.EnableNodePublicIP,
+			NodePublicIPPrefixID:       defaultCluster.NodePublicIPPrefixID,
+			SpotMaxPrice:               defaultCluster.SpotMaxPrice,
+			NodeLabels:                 defaultCluster.NodeLabels,
+			NodeTaints:                 defaultCluster.NodeTaints,
+			PodSubnetID:                defaultCluster.PodSubnetID,
+			Tags:                       defaultCluster.Tags,
+		},
+	}
+
+	if osDisktypeNodePool := defaultCluster.OsDiskType; osDisktypeNodePool != nil {
+		osDisktype := agentpools.OSDiskType(string(*osDisktypeNodePool))
+		agentpool.Properties.OsDiskType = &osDisktype
+	}
+	if kubeletConfigNodePool := defaultCluster.KubeletConfig; kubeletConfigNodePool != nil {
+		kubeletConfig := agentpools.KubeletConfig{
+			AllowedUnsafeSysctls:  kubeletConfigNodePool.AllowedUnsafeSysctls,
+			ContainerLogMaxFiles:  kubeletConfigNodePool.ContainerLogMaxFiles,
+			ContainerLogMaxSizeMB: kubeletConfigNodePool.ContainerLogMaxSizeMB,
+			CpuCfsQuota:           kubeletConfigNodePool.CpuCfsQuota,
+			CpuCfsQuotaPeriod:     kubeletConfigNodePool.CpuCfsQuotaPeriod,
+			CpuManagerPolicy:      kubeletConfigNodePool.CpuManagerPolicy,
+			FailSwapOn:            kubeletConfigNodePool.FailSwapOn,
+			ImageGcHighThreshold:  kubeletConfigNodePool.ImageGcHighThreshold,
+			ImageGcLowThreshold:   kubeletConfigNodePool.ImageGcLowThreshold,
+			PodMaxPids:            kubeletConfigNodePool.PodMaxPids,
+			TopologyManagerPolicy: kubeletConfigNodePool.TopologyManagerPolicy,
+		}
+		agentpool.Properties.KubeletConfig = &kubeletConfig
+	}
+	if linuxOsConfigRaw := defaultCluster.LinuxOSConfig; linuxOsConfigRaw != nil {
+		linuxOsConfig := agentpools.LinuxOSConfig{
+			SwapFileSizeMB:             linuxOsConfigRaw.SwapFileSizeMB,
+			TransparentHugePageDefrag:  linuxOsConfigRaw.TransparentHugePageDefrag,
+			TransparentHugePageEnabled: linuxOsConfigRaw.TransparentHugePageEnabled,
+		}
+		if sysctlsRaw := linuxOsConfigRaw.Sysctls; sysctlsRaw != nil {
+			linuxOsConfig.Sysctls = pointer.To(agentpools.SysctlConfig(*sysctlsRaw))
+		}
+		agentpool.Properties.LinuxOSConfig = &linuxOsConfig
+	}
+	if networkProfileRaw := defaultCluster.NetworkProfile; networkProfileRaw != nil {
+		networkProfile := agentpools.AgentPoolNetworkProfile{}
+		if allowedHostPortsRaw := networkProfileRaw.AllowedHostPorts; allowedHostPortsRaw != nil {
+			allowedHostPorts := make([]agentpools.PortRange, 0)
+			for _, allowedHostPortRaw := range *allowedHostPortsRaw {
+				allowedHostPorts = append(allowedHostPorts, agentpools.PortRange{
+					PortStart: allowedHostPortRaw.PortStart,
+					PortEnd:   allowedHostPortRaw.PortEnd,
+					Protocol:  pointer.To(agentpools.Protocol(pointer.From(allowedHostPortRaw.Protocol))),
+				})
+			}
+			networkProfile.AllowedHostPorts = &allowedHostPorts
+		}
+		networkProfile.ApplicationSecurityGroups = networkProfileRaw.ApplicationSecurityGroups
+		if nodePublicIPTagsRaw := networkProfileRaw.NodePublicIPTags; nodePublicIPTagsRaw != nil {
+			ipTags := make([]agentpools.IPTag, 0)
+			for _, ipTagRaw := range *nodePublicIPTagsRaw {
+				ipTags = append(ipTags, agentpools.IPTag{
+					IPTagType: ipTagRaw.IPTagType,
+					Tag:       ipTagRaw.Tag,
+				})
+			}
+			networkProfile.NodePublicIPTags = &ipTags
+		}
+		agentpool.Properties.NetworkProfile = &networkProfile
+	}
+	if osTypeNodePool := defaultCluster.OsType; osTypeNodePool != nil {
+		agentpool.Properties.OsType = pointer.To(agentpools.OSType(string(*osTypeNodePool)))
+	}
+	if osSku := defaultCluster.OsSKU; osSku != nil {
+		agentpool.Properties.OsSKU = pointer.To(agentpools.OSSKU(*osSku))
+	}
+	if kubeletDiskTypeNodePool := defaultCluster.KubeletDiskType; kubeletDiskTypeNodePool != nil {
+		agentpool.Properties.KubeletDiskType = pointer.To(agentpools.KubeletDiskType(string(*kubeletDiskTypeNodePool)))
+	}
+	if agentPoolTypeNodePool := defaultCluster.Type; agentPoolTypeNodePool != nil {
+		agentpool.Properties.Type = pointer.To(agentpools.AgentPoolType(string(*agentPoolTypeNodePool)))
+	}
+	if scaleSetPriorityNodePool := defaultCluster.ScaleSetPriority; scaleSetPriorityNodePool != nil {
+		agentpool.Properties.ScaleSetPriority = pointer.To(agentpools.ScaleSetPriority(string(*scaleSetPriorityNodePool)))
+	}
+	if scaleSetEvictionPolicyNodePool := defaultCluster.ScaleSetEvictionPolicy; scaleSetEvictionPolicyNodePool != nil {
+		agentpool.Properties.ScaleSetEvictionPolicy = pointer.To(agentpools.ScaleSetEvictionPolicy(string(*scaleSetEvictionPolicyNodePool)))
+	}
+	if modeNodePool := defaultCluster.Mode; modeNodePool != nil {
+		agentpool.Properties.Mode = pointer.To(agentpools.AgentPoolMode(string(*modeNodePool)))
+	}
+	if scaleDownModeNodePool := defaultCluster.ScaleDownMode; scaleDownModeNodePool != nil {
+		agentpool.Properties.ScaleDownMode = pointer.To(agentpools.ScaleDownMode(string(*scaleDownModeNodePool)))
+	}
+	agentpool.Properties.UpgradeSettings = &agentpools.AgentPoolUpgradeSettings{}
+	if upgradeSettingsNodePool := defaultCluster.UpgradeSettings; upgradeSettingsNodePool != nil {
+		if upgradeSettingsNodePool.MaxSurge != nil && *upgradeSettingsNodePool.MaxSurge != "" {
+			agentpool.Properties.UpgradeSettings.MaxSurge = upgradeSettingsNodePool.MaxSurge
+		}
+		if upgradeSettingsNodePool.DrainTimeoutInMinutes != nil {
+			agentpool.Properties.UpgradeSettings.DrainTimeoutInMinutes = upgradeSettingsNodePool.DrainTimeoutInMinutes
+		}
+		if upgradeSettingsNodePool.NodeSoakDurationInMinutes != nil {
+			agentpool.Properties.UpgradeSettings.NodeSoakDurationInMinutes = upgradeSettingsNodePool.NodeSoakDurationInMinutes
+		}
+		if upgradeSettingsNodePool.UndrainableNodeBehavior != nil {
+			agentpool.Properties.UpgradeSettings.UndrainableNodeBehavior = pointer.To(agentpools.UndrainableNodeBehavior(*upgradeSettingsNodePool.UndrainableNodeBehavior))
+		}
+	}
+	if workloadRuntimeNodePool := defaultCluster.WorkloadRuntime; workloadRuntimeNodePool != nil {
+		agentpool.Properties.WorkloadRuntime = pointer.To(agentpools.WorkloadRuntime(string(*workloadRuntimeNodePool)))
+	}
+
+	if creationData := defaultCluster.CreationData; creationData != nil {
+		if creationData.SourceResourceId != nil {
+			agentpool.Properties.CreationData = &agentpools.CreationData{
+				SourceResourceId: creationData.SourceResourceId,
+			}
+		}
+	}
+
+	if defaultCluster.GpuInstanceProfile != nil {
+		agentpool.Properties.GpuInstanceProfile = pointer.To(agentpools.GPUInstanceProfile(*defaultCluster.GpuInstanceProfile))
+	}
+
+	return agentpool
+}
+
+// when the Kubernetes Cluster is updated in the Portal - Azure updates the casing on the keys
+// meaning what's submitted could be different to what's returned..
+func kubernetesAddonProfileLocateTyped(profile map[string]managedclusters.ManagedClusterAddonProfile, key string) managedclusters.ManagedClusterAddonProfile {
+	for k, v := range profile {
+		if strings.EqualFold(k, key) {
+			return v
+		}
+	}
+
+	return managedclusters.ManagedClusterAddonProfile{}
+}
+
+// when the Kubernetes Cluster is updated in the Portal - Azure updates the casing on the keys
+// meaning what's submitted could be different to what's returned..
+// Related issue: https://github.com/Azure/azure-rest-api-specs/issues/10716
+func kubernetesAddonProfileLocateTypedInConfig(config *map[string]string, key string) string {
+	if config == nil {
+		return ""
+	}
+
+	for k, v := range *config {
+		if strings.EqualFold(k, key) {
+			return v
+		}
+	}
+
+	return ""
+}
+
+func validateKubernetesAutomaticClusterTyped(model *KubernetesAutomaticClusterModel, cluster *managedclusters.ManagedCluster) error {
+	identityExists := len(model.Identity) > 0
+
+	if cluster == nil {
+		if !identityExists {
+			return fmt.Errorf("either an `identity` or `service_principal` block must be specified for cluster authentication")
+		}
+	} else {
+		servicePrincipalExistsOnCluster := false
+		if props := cluster.Properties; props != nil {
+			if sp := props.ServicePrincipalProfile; sp != nil {
+				if cid := sp.ClientId; cid != "" {
+					// if it's MSI we ignore the block
+					servicePrincipalExistsOnCluster = !strings.EqualFold(cid, "msi")
+				}
+			}
+		}
+
+		// a non-MI Service Principal exists on the cluster, but not locally
+		if servicePrincipalExistsOnCluster {
+			return fmt.Errorf("the Service Principal block cannot be removed once it has been set")
+		}
+		// Check if the user has a Service Principal block defined, but the Cluster's been upgraded to use MSI
+	}
+	return nil
+}
+
+func validateNodePoolAutomaticSupportsVersionTyped(ctx context.Context, client *client.Client, currentNodePoolVersion string, defaultNodePoolId agentpools.AgentPoolId, desiredNodePoolVersion string) error {
+	// confirm the version being used is >= the version of the control plane
+	clusterId := commonids.NewKubernetesClusterID(defaultNodePoolId.SubscriptionId, defaultNodePoolId.ResourceGroupName, defaultNodePoolId.ManagedClusterName)
+	resp, err := client.AgentPoolsClient.GetAvailableAgentPoolVersions(ctx, clusterId)
+	if err != nil {
+		return fmt.Errorf("retrieving Available Agent Pool Versions for %s: %w", defaultNodePoolId, err)
+	}
+	versionExists := false
+	supportedVersions := make([]string, 0)
+
+	// when updating a cluster running a deprecated version of k8s then the validation should pass
+	if currentNodePoolVersion == desiredNodePoolVersion {
+		versionExists = true
+	}
+
+	// when creating a new cluster or upgrading the desired version should be supported
+	if versions := resp.Model; !versionExists && versions != nil && versions.Properties.AgentPoolVersions != nil {
+		for _, version := range *versions.Properties.AgentPoolVersions {
+			if version.KubernetesVersion == nil {
+				continue
+			}
+
+			v := *version.KubernetesVersion
+			supportedVersions = append(supportedVersions, v)
+			// alias versions (major.minor) are also fine as the latest supported GA patch version is chosen automatically in this case
+			if v == desiredNodePoolVersion || v[:strings.LastIndex(v, ".")] == desiredNodePoolVersion {
+				versionExists = true
+			}
+		}
+	}
+
+	if !versionExists {
+		clusterId := commonids.NewKubernetesClusterID(defaultNodePoolId.SubscriptionId, defaultNodePoolId.ResourceGroupName, defaultNodePoolId.ManagedClusterName)
+		cluster, err := client.KubernetesClustersClient.Get(ctx, clusterId)
+		if err != nil {
+			if !response.WasStatusCode(cluster.HttpResponse, http.StatusUnauthorized) {
+				return fmt.Errorf("retrieving %s: %w", clusterId, err)
+			}
+		}
+
+		// nilable since a user may not necessarily have access, and this is trying to be helpful
+		var clusterVersion *string
+		if clusterModel := cluster.Model; clusterModel != nil && clusterModel.Properties != nil {
+			clusterVersion = clusterModel.Properties.CurrentKubernetesVersion
+		}
+
+		return errAutomaticClusterControlPlaneMustBeUpgraded(defaultNodePoolId.ResourceGroupName, defaultNodePoolId.ManagedClusterName, defaultNodePoolId.AgentPoolName, clusterVersion, desiredNodePoolVersion, supportedVersions)
+	}
+
+	return nil
+}
+
+func retryNodePoolCreationTyped(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
+	// retries the creation of a node pool 3 times
+	var err error
+	for attempt := 0; attempt < 3; attempt++ {
+		if err = client.CreateOrUpdateThenPoll(ctx, id, profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err == nil {
+			return nil
+		}
+	}
+
+	return err
+}
+
+func filterUnsupportedKubernetesAddOnsTyped(input map[string]managedclusters.ManagedClusterAddonProfile, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
+	filter := func(input map[string]managedclusters.ManagedClusterAddonProfile, key string) (map[string]managedclusters.ManagedClusterAddonProfile, error) {
+		output := input
+		if v, ok := output[key]; ok {
+			if v.Enabled {
+				return nil, fmt.Errorf("the addon %q is not supported for a Kubernetes Cluster located in %q", key, env.Name)
+			}
+
+			// otherwise it's disabled by default, so just remove it
+			delete(output, key)
+		}
+
+		return output, nil
+	}
+
+	output := input
+	if unsupportedAddons, ok := unsupportedAddonsForEnvironment[env.Name]; ok {
+		for _, key := range unsupportedAddons {
+			out, err := filter(output, key)
+			if err != nil {
+				return nil, err
+			}
+
+			output = out
+		}
+	}
+	return &output, nil
 }

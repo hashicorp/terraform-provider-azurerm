@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -924,7 +924,7 @@ func (KubernetesAutomaticClusterDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.KubernetesClustersClient
+			client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state KubernetesAutomaticClusterDataSourceModel
@@ -1108,7 +1108,7 @@ func flattenKubernetesAutomaticClusterCredentials(model *managedclusters.Credent
 }
 
 func flattenKubernetesAutomaticClusterDataSourceACIConnectorLinux(profile map[string]managedclusters.ManagedClusterAddonProfile) []ACIConnectorLinuxDataSourceModel {
-	aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey)
+	aciConnector := kubernetesAddonProfileLocateTyped(profile, aciConnectorKey)
 	if !aciConnector.Enabled {
 		return []ACIConnectorLinuxDataSourceModel{}
 	}
@@ -1124,32 +1124,32 @@ func flattenKubernetesAutomaticClusterDataSourceACIConnectorLinux(profile map[st
 }
 
 func flattenKubernetesAutomaticClusterDataSourceAzurePolicy(profile map[string]managedclusters.ManagedClusterAddonProfile) bool {
-	azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey)
+	azurePolicy := kubernetesAddonProfileLocateTyped(profile, azurePolicyKey)
 	return azurePolicy.Enabled
 }
 
 func flattenKubernetesAutomaticClusterDataSourceHTTPApplicationRouting(profile map[string]managedclusters.ManagedClusterAddonProfile) (bool, string) {
-	httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey)
+	httpApplicationRouting := kubernetesAddonProfileLocateTyped(profile, httpApplicationRoutingKey)
 	enabled := httpApplicationRouting.Enabled
-	zoneName := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName")
+	zoneName := kubernetesAddonProfileLocateTypedInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName")
 	return enabled, zoneName
 }
 
 func flattenKubernetesAutomaticClusterDataSourceOMSAgent(profile map[string]managedclusters.ManagedClusterAddonProfile) []OMSAgentDataSourceModel {
-	omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey)
+	omsAgent := kubernetesAddonProfileLocateTyped(profile, omsAgentKey)
 	if !omsAgent.Enabled {
 		return []OMSAgentDataSourceModel{}
 	}
 
 	workspaceID := ""
-	if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
+	if v := kubernetesAddonProfileLocateTypedInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
 		if lawid, err := workspaces.ParseWorkspaceID(v); err == nil {
 			workspaceID = lawid.ID()
 		}
 	}
 
 	useAADAuth := false
-	if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "useAADAuth"); v != "false" && v != "" {
+	if v := kubernetesAddonProfileLocateTypedInConfig(omsAgent.Config, "useAADAuth"); v != "false" && v != "" {
 		useAADAuth = true
 	}
 
@@ -1163,16 +1163,16 @@ func flattenKubernetesAutomaticClusterDataSourceOMSAgent(profile map[string]mana
 }
 
 func flattenKubernetesAutomaticClusterDataSourceIngressApplicationGateway(profile map[string]managedclusters.ManagedClusterAddonProfile) []IngressApplicationGatewayDataSourceModel {
-	ingressApplicationGateway := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey)
+	ingressApplicationGateway := kubernetesAddonProfileLocateTyped(profile, ingressApplicationGatewayKey)
 	if !ingressApplicationGateway.Enabled {
 		return []IngressApplicationGatewayDataSourceModel{}
 	}
 
-	gatewayId := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayId")
-	gatewayName := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayName")
-	effectiveGatewayId := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId")
-	subnetCIDR := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetCIDR")
-	subnetId := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetId")
+	gatewayId := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGateway.Config, "applicationGatewayId")
+	gatewayName := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGateway.Config, "applicationGatewayName")
+	effectiveGatewayId := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId")
+	subnetCIDR := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGateway.Config, "subnetCIDR")
+	subnetId := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGateway.Config, "subnetId")
 
 	ingressApplicationGatewayIdentity := flattenKubernetesAutomaticClusterDataSourceIngressAppGatewayIdentity(ingressApplicationGateway.Identity)
 
@@ -1187,22 +1187,22 @@ func flattenKubernetesAutomaticClusterDataSourceIngressApplicationGateway(profil
 }
 
 func flattenKubernetesAutomaticClusterDataSourceOpenServiceMesh(profile map[string]managedclusters.ManagedClusterAddonProfile) bool {
-	openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey)
+	openServiceMesh := kubernetesAddonProfileLocateTyped(profile, openServiceMeshKey)
 	return openServiceMesh.Enabled
 }
 
 func flattenKubernetesAutomaticClusterDataSourceKeyVaultSecretsProvider(profile map[string]managedclusters.ManagedClusterAddonProfile) []KeyVaultSecretsProviderDataSourceModel {
-	azureKeyVaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey)
+	azureKeyVaultSecretsProvider := kubernetesAddonProfileLocateTyped(profile, azureKeyvaultSecretsProviderKey)
 	if !azureKeyVaultSecretsProvider.Enabled {
 		return []KeyVaultSecretsProviderDataSourceModel{}
 	}
 
 	enableSecretRotation := false
-	if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProvider.Config, "enableSecretRotation"); v != "false" && v != "" {
+	if v := kubernetesAddonProfileLocateTypedInConfig(azureKeyVaultSecretsProvider.Config, "enableSecretRotation"); v != "false" && v != "" {
 		enableSecretRotation = true
 	}
 
-	rotationPollInterval := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProvider.Config, "rotationPollInterval")
+	rotationPollInterval := kubernetesAddonProfileLocateTypedInConfig(azureKeyVaultSecretsProvider.Config, "rotationPollInterval")
 
 	azureKeyvaultSecretsProviderIdentity := flattenKubernetesAutomaticClusterDataSourceSecretIdentity(azureKeyVaultSecretsProvider.Identity)
 
@@ -1660,4 +1660,44 @@ func flattenKubernetesAutomaticClusterDataSourceKeyVaultKms(input *managedcluste
 		KeyVaultKeyID:         keyVaultKeyID,
 		KeyVaultNetworkAccess: keyVaultNetworkAccess,
 	}}
+}
+
+func flattenKubernetesClusterCredentialsTyped(model *managedclusters.CredentialResults, configName string) (*string, []interface{}) {
+	if model == nil || model.Kubeconfigs == nil || len(*model.Kubeconfigs) < 1 {
+		return nil, []interface{}{}
+	}
+
+	for _, c := range *model.Kubeconfigs {
+		if c.Name == nil || *c.Name != configName {
+			continue
+		}
+		if kubeConfigRaw := c.Value; kubeConfigRaw != nil {
+			rawConfig := *kubeConfigRaw
+			if base64IsEncoded(*kubeConfigRaw) {
+				rawConfig = base64Decode(*kubeConfigRaw)
+			}
+
+			var flattenedKubeConfig []interface{}
+
+			if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
+				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
+				if err != nil {
+					return pointer.To(rawConfig), []interface{}{}
+				}
+
+				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
+			} else {
+				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
+				if err != nil {
+					return pointer.To(rawConfig), []interface{}{}
+				}
+
+				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
+			}
+
+			return pointer.To(rawConfig), flattenedKubeConfig
+		}
+	}
+
+	return nil, []interface{}{}
 }

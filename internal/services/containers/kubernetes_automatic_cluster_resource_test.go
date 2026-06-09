@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -174,7 +174,7 @@ func (t KubernetesAutomaticClusterResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.Containers.KubernetesClustersClient.Get(ctx, *id)
+	resp, err := clients.Containers_v2026_04_01.KubernetesClustersClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Kubernetes Cluster (%s): %+v", id.String(), err)
 	}
@@ -195,7 +195,7 @@ func (KubernetesAutomaticClusterResource) updateDefaultNodePoolAgentCount(nodeCo
 		resourceGroup := state.Attributes["resource_group_name"]
 
 		agentPoolId := agentpools.NewAgentPoolID(clients.Account.SubscriptionId, resourceGroup, clusterName, nodePoolName)
-		nodePool, err := clients.Containers.AgentPoolsClient.Get(ctx, agentPoolId)
+		nodePool, err := clients.Containers_v2026_04_01.AgentPoolsClient.Get(ctx, agentPoolId)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on agentPoolsClient: %+v", err)
 		}
@@ -210,7 +210,7 @@ func (KubernetesAutomaticClusterResource) updateDefaultNodePoolAgentCount(nodeCo
 
 		nodePool.Model.Properties.Count = pointer.To(int64(nodeCount))
 
-		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
+		err = clients.Containers_v2026_04_01.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
 		}
@@ -393,7 +393,7 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      name    = "Microsoft.ContainerService/managedClusters"
+      name    = "Microsoft.Containers_v2026_04_01ervice/managedClusters"
     }
   }
 }
@@ -675,7 +675,7 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      name    = "Microsoft.ContainerService/managedClusters"
+      name    = "Microsoft.Containers_v2026_04_01ervice/managedClusters"
     }
   }
 }

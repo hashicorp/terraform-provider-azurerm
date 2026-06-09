@@ -2525,7 +2525,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network {
     dns_service_ip = "10.1.1.10"
-    service_cidr  = "10.1.1.0/24"
+    service_cidr   = "10.1.1.0/24"
   }
 
   identity {
@@ -2576,6 +2576,14 @@ resource "azurerm_subnet" "test1" {
   }
 }
 
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestsubnet2%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.1.0/24"]
+}
+
+
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -2604,10 +2612,16 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 2
-    vnet_subnet_id  = azurerm_subnet.test.id
+
     upgrade_settings {
       maximum_surge = "10%%"
     }
+  }
+
+  hosted_system {
+    enabled               = true
+    node_subnet_id        = azurerm_subnet.test.id
+    system_node_subnet_id = azurerm_subnet.test2.id
   }
 
   identity {
@@ -2624,7 +2638,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     load_balancer_sku = "standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) standardLoadBalancerCompleteConfig(data acceptance.TestData) string {

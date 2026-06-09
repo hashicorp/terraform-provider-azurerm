@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/managedclusters"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -37,7 +37,7 @@ func (KubernetesAutomaticClusterListResource) List(ctx context.Context, request 
 		return
 	}
 
-	client := metadata.Client.Containers.KubernetesClustersClient
+	client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {

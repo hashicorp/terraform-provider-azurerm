@@ -11,37 +11,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 )
-
-func validateKubernetesAutomaticClusterTyped(model *KubernetesAutomaticClusterModel, cluster *managedclusters.ManagedCluster) error {
-	identityExists := len(model.Identity) > 0
-
-	if cluster == nil {
-		if !identityExists {
-			return fmt.Errorf("either an `identity` or `service_principal` block must be specified for cluster authentication")
-		}
-	} else {
-		servicePrincipalExistsOnCluster := false
-		if props := cluster.Properties; props != nil {
-			if sp := props.ServicePrincipalProfile; sp != nil {
-				if cid := sp.ClientId; cid != "" {
-					// if it's MSI we ignore the block
-					servicePrincipalExistsOnCluster = !strings.EqualFold(cid, "msi")
-				}
-			}
-		}
-
-		// a non-MI Service Principal exists on the cluster, but not locally
-		if servicePrincipalExistsOnCluster {
-			return fmt.Errorf("the Service Principal block cannot be removed once it has been set")
-		}
-		// Check if the user has a Service Principal block defined, but the Cluster's been upgraded to use MSI
-	}
-	return nil
-}
 
 // returned when the Control Plane for the AKS Cluster must be upgraded in order to deploy this version to the Node Pool
 var errAutomaticClusterControlPlaneMustBeUpgraded = func(resourceGroup, clusterName, nodePoolName string, clusterVersion *string, desiredNodePoolVersion string, availableVersions []string) error {
