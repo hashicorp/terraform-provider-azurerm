@@ -5,6 +5,7 @@ package compute_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -41,6 +42,31 @@ func TestAccWindowsVirtualMachine_authPasswordWriteOnly(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_authPasswordMissing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.authPasswordMissing(data),
+			ExpectError: regexp.MustCompile("one of `admin_password` or `admin_password_wo_version` must be specified when `admin_username` is specified"),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_authPasswordKnownAfterApply(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.authPasswordKnownAfterApply(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
+	})
+}
+
 func (r WindowsVirtualMachineResource) authPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -52,6 +78,71 @@ resource "azurerm_windows_virtual_machine" "test" {
   size                = "Standard_F2"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) authPasswordKnownAfterApply(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "random_password" "test" {
+  length           = 16
+  special          = true
+  override_special = "_%%@!"
+}
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = random_password.test.result
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) authPasswordMissing(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
