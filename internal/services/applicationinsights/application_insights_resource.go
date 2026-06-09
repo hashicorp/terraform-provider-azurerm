@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights -test-name basicForResourceIdentity -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
+
 package applicationinsights
 
 import (
@@ -17,6 +19,7 @@ import (
 	billing "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentfeaturesandpricingapis"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
@@ -32,10 +35,10 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 		Update: resourceApplicationInsightsUpdate,
 		Delete: resourceApplicationInsightsDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := components.ParseComponentID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&components.ComponentId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&components.ComponentId{}),
+		},
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -184,13 +187,14 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := components.NewComponentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.ComponentsGet(ctx, id)
-
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ComponentsGet(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_application_insights", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_application_insights", id.ID())
 	}
 
 	internetIngestionEnabled := components.PublicNetworkAccessTypeDisabled
@@ -236,6 +240,11 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 
 	if _, err := client.ComponentsCreateOrUpdate(ctx, id, insightProperties); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	read, err := client.ComponentsGet(ctx, id)
@@ -321,8 +330,6 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	d.SetId(id.ID())
-
 	return resourceApplicationInsightsRead(d, meta)
 }
 
@@ -404,7 +411,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -517,7 +524,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("daily_data_cap_in_gb") {
-		billingProps.DataVolumeCap.Cap = pointer.To(d.Get(("daily_data_cap_in_gb")).(float64))
+		billingProps.DataVolumeCap.Cap = pointer.To(d.Get("daily_data_cap_in_gb").(float64))
 	}
 
 	if d.HasChange("daily_data_cap_notifications_disabled") {

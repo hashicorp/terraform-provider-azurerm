@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -300,19 +301,20 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration creation.")
-
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	resourceId := configurationstores.NewConfigurationStoreID(subscriptionId, resourceGroup, name)
-	existing, err := client.Get(ctx, resourceId)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, resourceId)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_app_configuration", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_app_configuration", resourceId.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -330,7 +332,6 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 			}
 			// if the soft deleted is not found, skip the recovering
 		} else {
-			log.Printf("[DEBUG] Soft Deleted App Configuration exists, marked for recover")
 			recoverSoftDeleted = true
 		}
 	}
@@ -378,7 +379,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 	parameters.Identity = identity
 
-	if err := client.CreateThenPoll(ctx, resourceId, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, resourceId, parameters, sdk.SetIDCallback(meta, &resourceId, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
@@ -415,7 +416,6 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration update.")
 	id, err := configurationstores.ParseConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
@@ -680,7 +680,9 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		d.Set("replica", replica)
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -1019,7 +1021,6 @@ func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, 
 
 func deleteReplicas(ctx context.Context, replicaClient *replicas.ReplicasClient, operationClient *operations.OperationsClient, configurationStoreReplicaIds []replicas.ReplicaId) error {
 	for _, configurationStoreReplicaId := range configurationStoreReplicaIds {
-		log.Printf("[DEBUG] Deleting Replica %q", configurationStoreReplicaId)
 		if err := replicaClient.DeleteThenPoll(ctx, configurationStoreReplicaId); err != nil {
 			return fmt.Errorf("deleting replica %q: %+v", configurationStoreReplicaId, err)
 		}

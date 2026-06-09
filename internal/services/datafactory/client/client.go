@@ -9,7 +9,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimedisableinteractivequery"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimeenableinteractivequery"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedvirtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/pipelines"
@@ -18,13 +21,16 @@ import (
 )
 
 type Client struct {
-	Factories                 *factories.FactoriesClient
-	Credentials               *credentials.CredentialsClient
-	DataFlowClient            *dataflows.DataFlowsClient
-	IntegrationRuntimesClient *integrationruntimes.IntegrationRuntimesClient
-	ManagedPrivateEndpoints   *managedprivateendpoints.ManagedPrivateEndpointsClient
-	ManagedVirtualNetworks    *managedvirtualnetworks.ManagedVirtualNetworksClient
-	PipelinesClient           *pipelines.PipelinesClient
+	Factories                                       *factories.FactoriesClient
+	Credentials                                     *credentials.CredentialsClient
+	DataFlowClient                                  *dataflows.DataFlowsClient
+	IntegrationRuntimeDisableInteractiveQueryClient *integrationruntimedisableinteractivequery.IntegrationRuntimeDisableInteractiveQueryClient
+	IntegrationRuntimeEnableInteractiveQueryClient  *integrationruntimeenableinteractivequery.IntegrationRuntimeEnableInteractiveQueryClient
+	IntegrationRuntimesClient                       *integrationruntimes.IntegrationRuntimesClient
+	LinkedServicesClient                            *linkedservices.LinkedServicesClient
+	ManagedPrivateEndpoints                         *managedprivateendpoints.ManagedPrivateEndpointsClient
+	ManagedVirtualNetworks                          *managedvirtualnetworks.ManagedVirtualNetworksClient
+	PipelinesClient                                 *pipelines.PipelinesClient
 
 	// TODO: convert to using hashicorp/go-azure-sdk
 	DatasetClient       *datafactory.DatasetsClient
@@ -57,6 +63,24 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(integrationRuntimesClient.Client, o.Authorizers.ResourceManager)
 
+	integrationRuntimeDisableInteractiveQueryClient, err := integrationruntimedisableinteractivequery.NewIntegrationRuntimeDisableInteractiveQueryClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Integration Runtime Disable Interactive Query Client: %+v", err)
+	}
+	o.Configure(integrationRuntimeDisableInteractiveQueryClient.Client, o.Authorizers.ResourceManager)
+
+	integrationRuntimeEnableInteractiveQueryClient, err := integrationruntimeenableinteractivequery.NewIntegrationRuntimeEnableInteractiveQueryClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Integration Runtime Enable Interactive Query Client: %+v", err)
+	}
+	o.Configure(integrationRuntimeEnableInteractiveQueryClient.Client, o.Authorizers.ResourceManager)
+
+	linkedServicesClient, err := linkedservices.NewLinkedServicesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Linked Services client: %+v", err)
+	}
+	o.Configure(linkedServicesClient.Client, o.Authorizers.ResourceManager)
+
 	managedPrivateEndpointsClient, err := managedprivateendpoints.NewManagedPrivateEndpointsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ManagedPrivateEndpoints client: %+v", err)
@@ -86,13 +110,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&TriggersClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		Factories:                 factoriesClient,
-		Credentials:               credentialsClient,
-		DataFlowClient:            dataFlowClient,
-		IntegrationRuntimesClient: integrationRuntimesClient,
-		ManagedPrivateEndpoints:   managedPrivateEndpointsClient,
-		ManagedVirtualNetworks:    managedVirtualNetworksClient,
-		PipelinesClient:           PipelinesClient,
+		Factories:      factoriesClient,
+		Credentials:    credentialsClient,
+		DataFlowClient: dataFlowClient,
+		IntegrationRuntimeDisableInteractiveQueryClient: integrationRuntimeDisableInteractiveQueryClient,
+		IntegrationRuntimeEnableInteractiveQueryClient:  integrationRuntimeEnableInteractiveQueryClient,
+		IntegrationRuntimesClient:                       integrationRuntimesClient,
+		LinkedServicesClient:                            linkedServicesClient,
+		ManagedPrivateEndpoints:                         managedPrivateEndpointsClient,
+		ManagedVirtualNetworks:                          managedVirtualNetworksClient,
+		PipelinesClient:                                 PipelinesClient,
 
 		// TODO: port to `hashicorp/go-azure-sdk`
 		DatasetClient:       &DatasetClient,

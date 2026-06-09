@@ -15,6 +15,20 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	featuresMap := map[string]*pluginsdk.Schema{
+		"persist_id_on_create_before_polling_for_completion": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Whether to set the resource ID into state before polling asynchronous operations for completion. Defaults to `false`.",
+		},
+
+		"skip_import_check_on_create_and_allow_overwriting_existing_resources": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
+		},
+
 		// lintignore:XS003
 		"api_management": {
 			Type:     pluginsdk.TypeList,
@@ -472,6 +486,14 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	val := input[0].(map[string]interface{})
+
+	if v, ok := val["persist_id_on_create_before_polling_for_completion"]; ok {
+		featuresMap.PersistIDOnCreateBeforePollingForCompletion = v.(bool)
+	}
+
+	if v, ok := val["skip_import_check_on_create_and_allow_overwriting_existing_resources"]; ok {
+		featuresMap.SkipImportCheckOnCreateAndAllowOverwritingExistingResources = v.(bool)
+	}
 
 	if raw, ok := val["api_management"]; ok {
 		items := raw.([]interface{})

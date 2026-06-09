@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -387,18 +388,18 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server creation.")
-
 	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_postgresql_server", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_postgresql_server", id.ID())
+		}
 	}
 
 	mode := servers.CreateMode(d.Get("create_mode").(string))
@@ -518,9 +519,10 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err = client.CreateThenPoll(ctx, id, server); err != nil {
+	if err = client.CreateCallbackThenPoll(ctx, id, server, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	log.Printf("[DEBUG] Waiting for %s to become available", id)
 	stateConf := &pluginsdk.StateChangeConf{
@@ -535,8 +537,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
-
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
 		securityAlertId := serversecurityalertpolicies.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
 		alert := expandSecurityAlertPolicy(v)
@@ -549,7 +549,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	// Issue tracking the REST API update failure: https://github.com/Azure/azure-rest-api-specs/issues/14117
 	if mode == servers.CreateModeReplica {
-		log.Printf("[INFO] updating `public_network_access_enabled` and `identity` for %s", id)
 		properties := servers.ServerUpdateParameters{
 			Identity: expandedIdentity,
 			Properties: &servers.ServerUpdateParametersProperties{
@@ -563,7 +562,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if mode == servers.CreateModePointInTimeRestore {
-		log.Printf("[INFO] updating `public_network_access_enabled` for %s", id)
 		properties := servers.ServerUpdateParameters{
 			Properties: &servers.ServerUpdateParametersProperties{
 				PublicNetworkAccess: &publicAccess,
@@ -852,7 +850,9 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

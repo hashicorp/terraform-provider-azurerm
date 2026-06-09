@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshotpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/snapshotpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -224,7 +224,7 @@ func resourceNetAppSnapshotPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := snapshotpolicies.NewSnapshotPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -255,7 +255,7 @@ func resourceNetAppSnapshotPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 
 	// Waiting for snapshot policy be completely provisioned
 	log.Printf("[DEBUG] Waiting for %s to complete", id)
-	if err := waitForSnapshotPolicyCreation(ctx, client, id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
+	if err := waitForSnapshotPolicyCreation(ctx, client, id, d.Timeout(pluginsdk.TimeoutCreate)); err != nil {
 		return err
 	}
 
@@ -336,7 +336,9 @@ func resourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `monthly_schedule`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

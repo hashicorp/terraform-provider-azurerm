@@ -19,8 +19,8 @@ type AzureDatabricksLinkedServiceTypeProperties struct {
 	InstancePoolId              *interface{}            `json:"instancePoolId,omitempty"`
 	NewClusterCustomTags        *map[string]interface{} `json:"newClusterCustomTags,omitempty"`
 	NewClusterDriverNodeType    *interface{}            `json:"newClusterDriverNodeType,omitempty"`
-	NewClusterEnableElasticDisk *bool                   `json:"newClusterEnableElasticDisk,omitempty"`
-	NewClusterInitScripts       *[]string               `json:"newClusterInitScripts,omitempty"`
+	NewClusterEnableElasticDisk *interface{}            `json:"newClusterEnableElasticDisk,omitempty"`
+	NewClusterInitScripts       *interface{}            `json:"newClusterInitScripts,omitempty"`
 	NewClusterLogDestination    *interface{}            `json:"newClusterLogDestination,omitempty"`
 	NewClusterNodeType          *interface{}            `json:"newClusterNodeType,omitempty"`
 	NewClusterNumOfWorker       *interface{}            `json:"newClusterNumOfWorker,omitempty"`
@@ -44,8 +44,8 @@ func (s *AzureDatabricksLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte)
 		InstancePoolId              *interface{}            `json:"instancePoolId,omitempty"`
 		NewClusterCustomTags        *map[string]interface{} `json:"newClusterCustomTags,omitempty"`
 		NewClusterDriverNodeType    *interface{}            `json:"newClusterDriverNodeType,omitempty"`
-		NewClusterEnableElasticDisk *bool                   `json:"newClusterEnableElasticDisk,omitempty"`
-		NewClusterInitScripts       *[]string               `json:"newClusterInitScripts,omitempty"`
+		NewClusterEnableElasticDisk *interface{}            `json:"newClusterEnableElasticDisk,omitempty"`
+		NewClusterInitScripts       *interface{}            `json:"newClusterInitScripts,omitempty"`
 		NewClusterLogDestination    *interface{}            `json:"newClusterLogDestination,omitempty"`
 		NewClusterNodeType          *interface{}            `json:"newClusterNodeType,omitempty"`
 		NewClusterNumOfWorker       *interface{}            `json:"newClusterNumOfWorker,omitempty"`

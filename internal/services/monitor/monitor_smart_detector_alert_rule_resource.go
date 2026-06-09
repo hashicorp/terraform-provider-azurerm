@@ -95,7 +95,8 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 						string(smartdetectoralertrules.SeveritySevTwo),
 						string(smartdetectoralertrules.SeveritySevThree),
 						string(smartdetectoralertrules.SeveritySevFour),
-					}, false),
+					}, false,
+				),
 			},
 
 			"frequency": {
@@ -167,14 +168,16 @@ func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData
 	id := smartdetectoralertrules.NewSmartDetectorAlertRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, smartdetectoralertrules.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, smartdetectoralertrules.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_monitor_smart_detector_alert_rule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_monitor_smart_detector_alert_rule", id.ID())
+			}
 		}
 	}
 
@@ -260,7 +263,9 @@ func resourceMonitorSmartDetectorAlertRuleRead(d *pluginsdk.ResourceData, meta i
 				return fmt.Errorf("setting `action_group`: %+v", err)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

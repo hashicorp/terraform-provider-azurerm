@@ -63,9 +63,20 @@ func (c ProfilesClient) CanMigrate(ctx context.Context, id commonids.ResourceGro
 
 // CanMigrateThenPoll performs CanMigrate then polls until it's completed
 func (c ProfilesClient) CanMigrateThenPoll(ctx context.Context, id commonids.ResourceGroupId, input CanMigrateParameters) error {
+	return c.CanMigrateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CanMigrateCallbackThenPoll performs CanMigrate, runs the optional callback function, then polls until it's completed
+func (c ProfilesClient) CanMigrateCallbackThenPoll(ctx context.Context, id commonids.ResourceGroupId, input CanMigrateParameters, callback func() error) error {
 	result, err := c.CanMigrate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CanMigrate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

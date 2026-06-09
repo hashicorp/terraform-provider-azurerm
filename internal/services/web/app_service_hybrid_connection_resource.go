@@ -39,7 +39,7 @@ func resourceAppServiceHybridConnection() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: "The `azurerm_app_service_hybrid_connection` resource has been superseded by the `azurerm_function_app_hybrid_connection` and `azurerm_web_app_hybrid_connection` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_app_service_hybrid_connection` resource has been superseded by the `azurerm_function_app_hybrid_connection` and `azurerm_web_app_hybrid_connection` resources. This resource will be removed in v5.0 of the AzureRM Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -114,7 +114,7 @@ func resourceAppServiceHybridConnection() *pluginsdk.Resource {
 }
 
 func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -127,15 +127,17 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 	id := parse.NewHybridConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), relayId.NamespaceName, relayId.HybridConnectionName)
 
 	if d.IsNewResource() {
-		existing, err := client.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_app_service_hybrid_connection", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_app_service_hybrid_connection", id.ID())
+			}
 		}
 	}
 
@@ -151,18 +153,19 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 		},
 	}
 
-	_, err = client.CreateOrUpdateHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName, connectionEnvelope)
-	if err != nil {
+	if _, err = client.CreateOrUpdateHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName, connectionEnvelope); err != nil {
 		return fmt.Errorf("failed creating %s: %s", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceAppServiceHybridConnectionRead(d, meta)
 }
 
 func resourceAppServiceHybridConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	relayClient := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -223,7 +226,7 @@ func resourceAppServiceHybridConnectionRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceAppServiceHybridConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

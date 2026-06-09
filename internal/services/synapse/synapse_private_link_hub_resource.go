@@ -67,14 +67,16 @@ func resourceSynapsePrivateLinkHubCreate(d *pluginsdk.ResourceData, meta interfa
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	id := parse.NewPrivateLinkHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_synapse_private_link_hub", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_synapse_private_link_hub", id.ID())
+		}
 	}
 
 	privateLinkHubInfo := synapse.PrivateLinkHub{
@@ -82,8 +84,7 @@ func resourceSynapsePrivateLinkHubCreate(d *pluginsdk.ResourceData, meta interfa
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	_, err = client.CreateOrUpdate(ctx, privateLinkHubInfo, id.ResourceGroup, id.Name)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, privateLinkHubInfo, id.ResourceGroup, id.Name); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -134,8 +135,7 @@ func resourceSynapsePrivateLinkHubUpdate(d *pluginsdk.ResourceData, meta interfa
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
 
-		_, err := client.Update(ctx, privateLinkHubPatchInfo, id.ResourceGroup, id.Name)
-		if err != nil {
+		if _, err := client.Update(ctx, privateLinkHubPatchInfo, id.ResourceGroup, id.Name); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}

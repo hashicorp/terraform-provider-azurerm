@@ -114,14 +114,16 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewJobID(poolId.SubscriptionId, poolId.ResourceGroupName, poolId.BatchAccountName, poolId.PoolName, model.Name)
 
-			existing, err := r.getJob(ctx, client, id)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := r.getJob(ctx, client, id)
+				if err != nil {
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			params := batchDataplane.JobAddParameter{
@@ -261,8 +263,7 @@ func (r BatchJobResource) addJob(ctx context.Context, client *batchDataplane.Job
 	deadline, _ := ctx.Deadline()
 	now := time.Now()
 	timeout := deadline.Sub(now)
-	_, err := client.Add(ctx, job, pointer.To(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now})
-	if err != nil {
+	if _, err := client.Add(ctx, job, pointer.To(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
 	return nil

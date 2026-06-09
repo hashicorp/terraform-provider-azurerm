@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -98,15 +100,17 @@ func resourceRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	id := routes.NewRouteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("route_table_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_route", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_route", id.ID())
+		}
 	}
 
 	locks.ByName(id.RouteTableName, routeTableResourceName)
@@ -124,7 +128,7 @@ func resourceRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		route.Properties.NextHopIPAddress = pointer.To(v.(string))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, route); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, route, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -200,12 +204,15 @@ func resourceRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceRouteFlatten(d, id, resp.Model)
+}
 
+func resourceRouteFlatten(d *pluginsdk.ResourceData, id *routes.RouteId, model *routes.Route) error {
 	d.Set("name", id.RouteName)
 	d.Set("route_table_name", id.RouteTableName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("address_prefix", props.AddressPrefix)
 			d.Set("next_hop_type", string(props.NextHopType))

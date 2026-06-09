@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/application"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name batch_application -service-package-name batch -properties "name,resource_group_name,batch_account_name:account_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
 
 func resourceBatchApplication() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -33,10 +36,7 @@ func resourceBatchApplication() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := application.ParseApplicationID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&application.ApplicationId{}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -73,6 +73,10 @@ func resourceBatchApplication() *pluginsdk.Resource {
 				ValidateFunc: validate.ApplicationDisplayName,
 			},
 		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&application.ApplicationId{}),
+		},
 	}
 }
 
@@ -84,14 +88,16 @@ func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	id := application.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_batch_application", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_batch_application", id.ID())
+		}
 	}
 
 	allowUpdates := d.Get("allow_updates").(bool)
@@ -111,6 +117,9 @@ func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceBatchApplicationRead(d, meta)
 }
@@ -147,7 +156,7 @@ func resourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceBatchApplicationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

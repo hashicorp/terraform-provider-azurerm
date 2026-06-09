@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -615,19 +617,20 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine creation.")
 	id := virtualmachines.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_machine", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_virtual_machine", id.ID())
+			}
 		}
 	}
 
@@ -726,10 +729,16 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	locks.ByName(id.VirtualMachineName, compute2.VirtualMachineResourceName)
 	defer locks.UnlockByName(id.VirtualMachineName, compute2.VirtualMachineResourceName)
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, vm, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, vm, virtualmachines.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, vm, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
 	read, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
 		return err
@@ -740,8 +749,6 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	if read.Model.Id == nil {
 		return fmt.Errorf("retrieving %s: `id` was nil", id)
 	}
-
-	d.SetId(id.ID())
 
 	ipAddress, err := determineVirtualMachineIPAddress(ctx, meta, read.Model.Properties)
 	if err != nil {
@@ -892,7 +899,9 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) err
 				}
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -936,7 +945,8 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 		model := virtualMachine.Model
 		if model == nil {
-			return fmt.Errorf("deleting Disks for %s - `model` was nil", id)
+			log.Printf("[DEBUG] deleting Disks for %s - `model` was nil, skipping", id)
+			return nil
 		}
 		props := model.Properties
 		if props == nil {
@@ -948,7 +958,6 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if deleteOsDisk {
-			log.Printf("[INFO] delete_os_disk_on_termination is enabled, deleting disk from %s", id)
 			osDisk := storageProfile.OsDisk
 			if osDisk == nil {
 				return fmt.Errorf("deleting OS Disk for %s - `osDisk` was nil", id)
@@ -970,8 +979,6 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 		// delete Data disks if opted in
 		if deleteDataDisks {
-			log.Printf("[INFO] delete_data_disks_on_termination is enabled, deleting each data disk from %s", id)
-
 			dataDisks := storageProfile.DataDisks
 			if dataDisks == nil {
 				return fmt.Errorf("deleting Data Disks for %s: `dataDisks` was nil", id)

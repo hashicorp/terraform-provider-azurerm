@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/certificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -52,14 +52,15 @@ func (r ApiManagementWorkspaceCertificateResource) IDValidationFunc() pluginsdk.
 }
 
 func (r ApiManagementWorkspaceCertificateResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,78}[a-zA-Z0-9])?$`),
-				"The `name` must be 1–80 characters, using only letters, numbers, or hyphens, and not starting or ending with a hyphen."),
+				"The `name` must be 1–80 characters, using only letters, numbers, or hyphens, and not starting or ending with a hyphen.",
+			),
 		},
 
 		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
@@ -75,7 +76,7 @@ func (r ApiManagementWorkspaceCertificateResource) Arguments() map[string]*plugi
 		"key_vault_secret_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.NestedItemIdWithOptionalVersion,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 			ExactlyOneOf: []string{"certificate_data_base64", "key_vault_secret_id"},
 		},
 
@@ -94,6 +95,12 @@ func (r ApiManagementWorkspaceCertificateResource) Arguments() map[string]*plugi
 			RequiredWith: []string{"key_vault_secret_id"},
 		},
 	}
+
+	if !features.FivePointOh() {
+		args["key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	}
+
+	return args
 }
 
 func (r ApiManagementWorkspaceCertificateResource) Attributes() map[string]*pluginsdk.Schema {
@@ -132,13 +139,16 @@ func (r ApiManagementWorkspaceCertificateResource) Create() sdk.ResourceFunc {
 			}
 
 			id := certificate.NewWorkspaceCertificateID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.ServiceName, workspaceId.WorkspaceId, model.Name)
-			existing, err := client.WorkspaceCertificateGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WorkspaceCertificateGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := certificate.CertificateCreateOrUpdateParameters{
@@ -146,7 +156,12 @@ func (r ApiManagementWorkspaceCertificateResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.KeyVaultSecretId != "" {
-				parsedSecretId, err := parse.ParseOptionallyVersionedNestedItemID(model.KeyVaultSecretId)
+				nestedItemType := keyvault.NestedItemTypeSecret
+				if !features.FivePointOh() {
+					nestedItemType = keyvault.NestedItemTypeAny
+				}
+
+				parsedSecretId, err := keyvault.ParseNestedItemID(model.KeyVaultSecretId, keyvault.VersionTypeAny, nestedItemType)
 				if err != nil {
 					return err
 				}
@@ -275,10 +290,15 @@ func (r ApiManagementWorkspaceCertificateResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("key_vault_secret_id") {
 				if model.KeyVaultSecretId != "" {
-					parsedSecretId, err := parse.ParseOptionallyVersionedNestedItemID(model.KeyVaultSecretId)
+					nestedItemType := keyvault.NestedItemTypeSecret
+					if !features.FivePointOh() {
+						nestedItemType = keyvault.NestedItemTypeAny
+					}
+					parsedSecretId, err := keyvault.ParseNestedItemID(model.KeyVaultSecretId, keyvault.VersionTypeAny, nestedItemType)
 					if err != nil {
 						return err
 					}
+
 					if parameters.Properties.KeyVault == nil {
 						parameters.Properties.KeyVault = &certificate.KeyVaultContractCreateProperties{}
 					}

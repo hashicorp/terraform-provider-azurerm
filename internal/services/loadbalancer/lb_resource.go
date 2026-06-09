@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -270,20 +271,20 @@ func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Load Balancer creation.")
-
 	id := loadbalancers.NewLoadBalancerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	// Casting because of a bug in provider ID generation due to a data issue that needs investigation.
-	existing, err := client.Get(ctx, loadbalancers.ProviderLoadBalancerId(id), loadbalancers.GetOperationOptions{})
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, loadbalancers.ProviderLoadBalancerId(id), loadbalancers.GetOperationOptions{})
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_lb", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_lb", id.ID())
+		}
 	}
 
 	if strings.EqualFold(d.Get("sku_tier").(string), string(loadbalancers.LoadBalancerSkuTierGlobal)) {
@@ -312,8 +313,7 @@ func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Properties:       pointer.To(properties),
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, loadbalancers.ProviderLoadBalancerId(id), loadBalancer)
-	if err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, loadbalancers.ProviderLoadBalancerId(id), loadBalancer, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -379,7 +379,9 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

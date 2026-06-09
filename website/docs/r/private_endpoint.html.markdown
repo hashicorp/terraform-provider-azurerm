@@ -304,7 +304,7 @@ A `private_dns_zone_configs` block exports:
 
 * `id` - The ID of the Private DNS Zone Config.
 
-* `private_dns_zone_id` - A list of IP Addresses
+* `private_dns_zone_id` - The ID of the Private DNS Zone that the config belongs to.
 
 * `record_sets` - A `record_sets` block as defined below.
 
@@ -312,17 +312,8 @@ A `private_dns_zone_configs` block exports:
 
 A `private_service_connection` block exports:
 
-* `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
+* `private_ip_address` - The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
 
----
-
-An `ip_configuration` block exports:
-
-* `name` - (Required) The Name of the IP Configuration.
-
-* `private_ip_address` - (Required) The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
-
-* `subresource_name` - (Required) The subresource this IP address applies to, which corresponds to the `group_id`.
 
 ---
 

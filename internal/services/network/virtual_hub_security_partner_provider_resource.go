@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/securitypartnerproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -83,15 +84,17 @@ func resourceVirtualHubSecurityPartnerProviderCreate(d *pluginsdk.ResourceData, 
 
 	id := securitypartnerproviders.NewSecurityPartnerProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_hub_security_partner_provider", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_hub_security_partner_provider", id.ID())
+		}
 	}
 
 	parameters := securitypartnerproviders.SecurityPartnerProvider{
@@ -108,7 +111,7 @@ func resourceVirtualHubSecurityPartnerProviderCreate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -150,7 +153,9 @@ func resourceVirtualHubSecurityPartnerProviderRead(d *pluginsdk.ResourceData, me
 				d.Set("virtual_hub_id", props.VirtualHub.Id)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

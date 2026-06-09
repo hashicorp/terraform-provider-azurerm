@@ -18,11 +18,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -38,7 +39,7 @@ const (
 )
 
 func resourceSynapseWorkspace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceSynapseWorkspaceCreate,
 		Read:   resourceSynapseWorkspaceRead,
 		Update: resourceSynapseWorkspaceUpdate,
@@ -244,7 +245,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 						"key_versionless_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
 						},
 
 						// Default to cmk to ensure backwards compatibility with previous version that hardcoded the key name to cmk
@@ -271,6 +272,12 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_versionless_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
+	}
+
+	return r
 }
 
 func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -281,14 +288,17 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	defer cancel()
 
 	id := parse.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_synapse_workspace", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_synapse_workspace", id.ID())
+		}
 	}
 
 	managedVirtualNetwork := ""
@@ -355,6 +365,8 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
@@ -376,7 +388,6 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSynapseWorkspaceRead(d, meta)
 }
 

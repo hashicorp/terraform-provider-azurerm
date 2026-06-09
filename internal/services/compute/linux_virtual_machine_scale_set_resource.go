@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -111,15 +112,17 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	exists, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(exists.HttpResponse) {
-			return fmt.Errorf("checking for existing Linux %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		exists, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(exists.HttpResponse) {
+				return fmt.Errorf("checking for existing Linux %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(exists.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", id.ID())
+		if !response.WasNotFound(exists.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", id.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -464,11 +467,9 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		props.Properties.ZoneBalance = pointer.To(v.(bool))
 	}
 
-	log.Printf("[DEBUG] Creating Linux %s", id)
-	if err := client.CreateOrUpdateThenPoll(ctx, id, props, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Linux %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] %s was created", id)
 
 	d.SetId(id.ID())
 
@@ -1082,7 +1083,9 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				}
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1138,15 +1141,12 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 		log.Printf("[DEBUG] Unable to scale instances to `0` since the `sku` block is nil - trying to delete anyway")
 	}
 
-	log.Printf("[DEBUG] Deleting Linux %s", id)
 	// @ArcturusZhang (mimicking from linux_virtual_machine_pluginsdk.go): sending `nil` here omits this value from being sent
 	// which matches the previous behaviour - we're only splitting this out so it's clear why
 	// TODO: support force deletion once it's out of Preview, if applicable
 	if err := client.DeleteThenPoll(ctx, *id, virtualmachinescalesets.DefaultDeleteOperationOptions()); err != nil {
 		return fmt.Errorf("deleting Linux %s: %+v", id, err)
 	}
-
-	log.Printf("[DEBUG] Deleted Linux %s", id)
 
 	return nil
 }

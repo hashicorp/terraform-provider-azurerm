@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -274,15 +275,18 @@ func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta interf
 	defer cancel()
 
 	id := virtualwans.NewVpnServerConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.VpnServerConfigurationsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_vpn_server_configuration", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.VpnServerConfigurationsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vpn_server_configuration", id.ID())
+		}
 	}
 
 	aadAuthenticationRaw := d.Get("azure_active_directory_authentication").([]interface{})
@@ -370,7 +374,7 @@ func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta interf
 		Tags:       tags.Expand(t),
 	}
 
-	if err := client.VpnServerConfigurationsCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.VpnServerConfigurationsCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -427,7 +431,7 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 			}
 
-			flattenedRadius := flattenVpnServerConfigurationRadius(props)
+			flattenedRadius := flattenVpnServerConfigurationRadius(props, d)
 			if err := d.Set("radius", flattenedRadius); err != nil {
 				return fmt.Errorf("setting `radius`: %+v", err)
 			}
@@ -819,7 +823,7 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 	}
 }
 
-func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurationProperties) []interface{} {
+func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurationProperties, d *pluginsdk.ResourceData) []interface{} {
 	if input == nil || (input.RadiusServerAddress == nil && (input.RadiusServers == nil || len(*input.RadiusServers) == 0)) {
 		return []interface{}{}
 	}
@@ -866,11 +870,12 @@ func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurati
 
 	servers := make([]interface{}, 0)
 	if input.RadiusServers != nil && len(*input.RadiusServers) > 0 {
-		for _, v := range *input.RadiusServers {
+		for i, v := range *input.RadiusServers {
 			servers = append(servers, map[string]interface{}{
 				"address": v.RadiusServerAddress,
-				"secret":  pointer.From(v.RadiusServerSecret),
-				"score":   pointer.From(v.RadiusServerScore),
+				// setting this because the azure api does not return the secret, so need to read it in from the config
+				"secret": d.Get(fmt.Sprintf("radius.0.server.%d.secret", i)),
+				"score":  pointer.From(v.RadiusServerScore),
 			})
 		}
 	}

@@ -8,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -154,7 +156,6 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 						"internet_security_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							ForceNew: true,
 							Default:  false,
 						},
 					},
@@ -196,15 +197,17 @@ func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 
 	id := commonids.NewVirtualWANP2SVPNGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.P2sVpnGatewaysGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.P2sVpnGatewaysGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_point_to_site_vpn_gateway", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_point_to_site_vpn_gateway", id.ID())
+		}
 	}
 
 	parameters := virtualwans.P2SVpnGateway{
@@ -227,7 +230,7 @@ func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 		parameters.Properties.CustomDnsServers = customDNSServers
 	}
 
-	if err := client.P2sVpnGatewaysCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.P2sVpnGatewaysCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -346,7 +349,9 @@ func resourcePointToSiteVPNGatewayRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("routing_preference_internet_enabled", routingPreferenceInternetEnabled)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

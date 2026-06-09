@@ -26,7 +26,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name resource_group -service-package-name resource -properties "name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name resource_group -properties "name"
+
+const resourceGroupResourceName = "azurerm_resource_group"
 
 func resourceResourceGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -70,15 +72,17 @@ func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	id := commonids.NewResourceGroupID(meta.(*clients.Client).Account.SubscriptionId, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_resource_group", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError(resourceGroupResourceName, id.ID())
+		}
 	}
 
 	parameters := resourcegroups.ResourceGroup{
@@ -97,7 +101,7 @@ func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	// custom poller to account for replication delays in the eventual consistency responses of newly created RG resources
 	pollerType := custompollers.NewResourceGroupCreatePoller(client, id)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err = poller.PollUntilDone(ctx); err != nil {
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return err
 	}
 
@@ -157,11 +161,21 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("reading resource group: %+v", err)
 	}
 
+	if err := resourceResourceGroupFlatten(d, id, resp.Model); err != nil {
+		return fmt.Errorf("encoding %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceResourceGroupFlatten(d *pluginsdk.ResourceData, id *commonids.ResourceGroupId, group *resourcegroups.ResourceGroup) error {
 	d.Set("name", id.ResourceGroupName)
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-		d.Set("managed_by", pointer.From(model.ManagedBy))
-		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+
+	if group != nil {
+		d.Set("location", location.Normalize(group.Location))
+		d.Set("managed_by", pointer.From(group.ManagedBy))
+
+		if err := tags.FlattenAndSet(d, group.Tags); err != nil {
 			return err
 		}
 	}

@@ -77,9 +77,20 @@ func (c NetworkInterfacesClient) GetEffectiveRouteTable(ctx context.Context, id 
 
 // GetEffectiveRouteTableThenPoll performs GetEffectiveRouteTable then polls until it's completed
 func (c NetworkInterfacesClient) GetEffectiveRouteTableThenPoll(ctx context.Context, id commonids.NetworkInterfaceId) error {
+	return c.GetEffectiveRouteTableCallbackThenPoll(ctx, id, nil)
+}
+
+// GetEffectiveRouteTableCallbackThenPoll performs GetEffectiveRouteTable, runs the optional callback function, then polls until it's completed
+func (c NetworkInterfacesClient) GetEffectiveRouteTableCallbackThenPoll(ctx context.Context, id commonids.NetworkInterfaceId, callback func() error) error {
 	result, err := c.GetEffectiveRouteTable(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GetEffectiveRouteTable: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

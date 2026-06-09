@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -98,6 +99,21 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"script_level": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(scripts.ScriptLevelDatabase),
+				ValidateFunc: validation.StringInSlice(scripts.PossibleValuesForScriptLevel(), false),
+			},
+
+			"principal_permissions_action": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(scripts.PrincipalPermissionsActionRetainPermissionOnScriptCompletion),
+				ValidateFunc: validation.StringInSlice(scripts.PossibleValuesForPrincipalPermissionsAction(), false),
+			},
 		},
 	}
 }
@@ -113,14 +129,16 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	id := scripts.NewScriptID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.KustoClusterName, databaseId.KustoDatabaseName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %q: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_kusto_script", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_kusto_script", id.ID())
+			}
 		}
 	}
 
@@ -152,11 +170,25 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 		parameters.Properties.ScriptContent = pointer.To(scriptContent.(string))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating %q: %+v", id, err)
+	if scriptLevel, ok := d.GetOk("script_level"); ok {
+		parameters.Properties.ScriptLevel = pointer.ToEnum[scripts.ScriptLevel](scriptLevel.(string))
 	}
 
-	d.SetId(id.ID())
+	if principalPermissionsAction, ok := d.GetOk("principal_permissions_action"); ok {
+		parameters.Properties.PrincipalPermissionsAction = pointer.ToEnum[scripts.PrincipalPermissionsAction](principalPermissionsAction.(string))
+	}
+
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+	}
+
 	return resourceKustoDatabaseScriptRead(d, meta)
 }
 
@@ -187,6 +219,12 @@ func resourceKustoDatabaseScriptRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("continue_on_errors_enabled", props.ContinueOnErrors)
 			d.Set("force_an_update_when_value_changed", props.ForceUpdateTag)
 			d.Set("url", props.ScriptURL)
+			if props.ScriptLevel != nil {
+				d.Set("script_level", pointer.FromEnum(props.ScriptLevel))
+			}
+			if props.PrincipalPermissionsAction != nil {
+				d.Set("principal_permissions_action", pointer.FromEnum(props.PrincipalPermissionsAction))
+			}
 		}
 	}
 	return nil

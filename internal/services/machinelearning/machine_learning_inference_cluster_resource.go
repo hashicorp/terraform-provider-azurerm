@@ -13,11 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -152,14 +153,16 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 	computeId := machinelearningcomputes.NewComputeID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
 
 	// Check if Inference Cluster already exists
-	existing, err := client.ComputeGet(ctx, computeId)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing Inference Cluster %q in Workspace %q (Resource Group %q): %s", name, workspaceID.WorkspaceName, workspaceID.ResourceGroupName, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ComputeGet(ctx, computeId)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing Inference Cluster %q in Workspace %q (Resource Group %q): %s", name, workspaceID.WorkspaceName, workspaceID.ResourceGroupName, err)
+			}
 		}
-	}
-	if existing.Model != nil && *existing.Model.Id != "" {
-		return tf.ImportAsExistsError("azurerm_machine_learning_inference_cluster", *existing.Model.Id)
+		if existing.Model != nil && *existing.Model.Id != "" {
+			return tf.ImportAsExistsError("azurerm_machine_learning_inference_cluster", *existing.Model.Id)
+		}
 	}
 
 	// Get AKS Compute Properties
@@ -189,15 +192,11 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.ComputeCreateOrUpdate(ctx, computeId, inferenceClusterParameters)
-	if err != nil {
+	id := machinelearningcomputes.NewComputeID(meta.(*clients.Client).Account.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
+
+	if err := client.ComputeCreateOrUpdateCallbackThenPoll(ctx, computeId, inferenceClusterParameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspaceID.WorkspaceName, workspaceID.ResourceGroupName, err)
 	}
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspaceID.ResourceGroupName, workspaceID.ResourceGroupName, err)
-	}
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := machinelearningcomputes.NewComputeID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 	d.SetId(id.ID())
 
 	return resourceAksInferenceClusterRead(d, meta)

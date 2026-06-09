@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2023-09-04/openshiftclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2025-07-25/openshiftclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -190,7 +190,7 @@ func TestAccOpenShiftCluster_basicResourceGroupName(t *testing.T) {
 }
 
 func (t OpenShiftClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := openshiftclusters.ParseProviderOpenShiftClusterID(state.ID)
+	id, err := openshiftclusters.ParseOpenShiftClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.14.16"
+    version = "4.19.20"
   }
 
   network_profile {
@@ -316,11 +316,11 @@ resource "azuread_application" "test2" {
 }
 
 resource "azuread_service_principal" "test2" {
-  application_id = azuread_application.test2.application_id
+  client_id = azuread_application.test2.client_id
 }
 
 resource "azuread_service_principal_password" "test2" {
-  service_principal_id = azuread_service_principal.test2.object_id
+  service_principal_id = azuread_service_principal.test2.id
 }
 
 resource "azurerm_role_assignment" "role_network3" {
@@ -336,7 +336,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.14.16"
+    version = "4.19.20"
   }
 
   network_profile {
@@ -365,7 +365,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test2.application_id
+    client_id     = azuread_application.test2.client_id
     client_secret = azuread_service_principal_password.test2.value
   }
 
@@ -393,7 +393,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain      = "aro-%[3]s.com"
-    version     = "4.14.16"
+    version     = "4.19.20"
     pull_secret = <<SECRET
 %[4]s
 SECRET
@@ -448,7 +448,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.14.16"
+    version = "4.19.20"
   }
 
   network_profile {
@@ -501,7 +501,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.14.16"
+    version = "4.19.20"
   }
 
   network_profile {
@@ -553,7 +553,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain       = "aro-%[3]s.com"
-    version      = "4.14.16"
+    version      = "4.19.20"
     fips_enabled = true
   }
 
@@ -662,7 +662,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.14.16"
+    version = "4.19.20"
   }
 
   network_profile {
@@ -798,7 +798,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.14.16"
+    version = "4.19.20"
   }
 
   network_profile {
@@ -857,7 +857,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain                      = "aro-%[3]s.com"
-    version                     = "4.14.16"
+    version                     = "4.19.20"
     managed_resource_group_name = "acctestrg-aro-infra-%[3]s"
   }
 
@@ -902,7 +902,6 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 func (OpenShiftClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  skip_provider_registration = true
   features {
     key_vault {
       recover_soft_deleted_key_vaults    = false
@@ -927,12 +926,12 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
+  service_principal_id = azuread_service_principal.test.id
 }
 
 data "azuread_service_principal" "redhatopenshift" {
   // This is the Azure Red Hat OpenShift RP service principal id, do NOT delete it
-  application_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
+  client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 
 resource "azurerm_role_assignment" "role_network1" {

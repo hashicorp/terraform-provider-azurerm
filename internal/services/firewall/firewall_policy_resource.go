@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -65,15 +66,17 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	id := firewallpolicies.NewFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id, firewallpolicies.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id, firewallpolicies.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if resp.Model != nil {
-			return tf.ImportAsExistsError("azurerm_firewall_policy", id.ID())
+			if resp.Model != nil {
+				return tf.ImportAsExistsError("azurerm_firewall_policy", id.ID())
+			}
 		}
 	}
 
@@ -135,13 +138,19 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 	defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, props); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
 
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, props); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	return resourceFirewallPolicyRead(d, meta)
@@ -167,11 +176,14 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+	return resourceFirewallPolicySetFlatten(d, id, resp.Model)
+}
 
+func resourceFirewallPolicySetFlatten(d *pluginsdk.ResourceData, id *firewallpolicies.FirewallPolicyId, model *firewallpolicies.FirewallPolicy) error {
 	d.Set("name", id.FirewallPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {

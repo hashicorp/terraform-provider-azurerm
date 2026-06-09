@@ -3,6 +3,8 @@
 
 package communication
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name email_communication_service_domain -properties "name" -compare-values "subscription_id:email_service_id,resource_group_name:email_service_id,email_service_name:email_service_id"
+
 import (
 	"context"
 	"fmt"
@@ -12,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -20,9 +23,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = EmailCommunicationServiceDomainResource{}
+var (
+	_ sdk.ResourceWithUpdate   = EmailCommunicationServiceDomainResource{}
+	_ sdk.ResourceWithIdentity = EmailCommunicationServiceDomainResource{}
+)
 
 type EmailCommunicationServiceDomainResource struct{}
+
+func (EmailCommunicationServiceDomainResource) Identity() resourceids.ResourceId {
+	return &domains.DomainId{}
+}
 
 type EmailCommunicationServiceDomainResourceModel struct {
 	Name                          string            `tfschema:"name"`
@@ -130,12 +140,14 @@ func (r EmailCommunicationServiceDomainResource) Create() sdk.ResourceFunc {
 
 			id := domains.NewDomainID(subscriptionId, eMailServiceID.ResourceGroupName, eMailServiceID.EmailServiceName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &domains.DomainProperties{
@@ -154,11 +166,14 @@ func (r EmailCommunicationServiceDomainResource) Create() sdk.ResourceFunc {
 				Tags:       pointer.To(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -280,6 +295,10 @@ func (EmailCommunicationServiceDomainResource) Read() sdk.ResourceFunc {
 				}
 
 				state.Tags = pointer.From(model.Tags)
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

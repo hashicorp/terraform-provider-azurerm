@@ -12,12 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/namedvalue"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -25,7 +27,7 @@ import (
 )
 
 func resourceApiManagementNamedValue() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceApiManagementNamedValueCreateUpdate,
 		Read:   resourceApiManagementNamedValueRead,
 		Update: resourceApiManagementNamedValueCreateUpdate,
@@ -65,7 +67,7 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 						"secret_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 						},
 						"identity_client_id": {
 							Type:         pluginsdk.TypeString,
@@ -100,6 +102,12 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["value_from_key_vault"].Elem.(*pluginsdk.Resource).Schema["secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	}
+
+	return r
 }
 
 func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -111,15 +119,17 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 	id := namedvalue.NewNamedValueID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf(" checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf(" checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_property", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_property", id.ID())
+			}
 		}
 	}
 
@@ -143,12 +153,16 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 		parameters.Properties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters, namedvalue.CreateOrUpdateOperationOptions{})
-	if err != nil {
-		return fmt.Errorf("creating or updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, namedvalue.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, namedvalue.CreateOrUpdateOperationOptions{}); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceApiManagementNamedValueRead(d, meta)
 }
