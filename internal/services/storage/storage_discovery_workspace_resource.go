@@ -168,17 +168,6 @@ func (r StorageDiscoveryWorkspaceResource) CustomizeDiff() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			diff := metadata.ResourceDiff
-			for i := 0; i < storageDiscoveryWorkspaceMaxScopes; i++ {
-				for _, field := range []string{"display_name", "resource_types", "tag_keys_only", "tags"} {
-					path := fmt.Sprintf("scope.%d.%s", i, field)
-					if diff.HasChange(path) {
-						if err := diff.ForceNew(path); err != nil {
-							return err
-						}
-					}
-				}
-			}
-
 			workspaceRootsRaw := diff.Get("workspace_root")
 			if workspaceRootsRaw == nil {
 				return nil
@@ -239,17 +228,12 @@ func (r StorageDiscoveryWorkspaceResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			sku := storagediscoveryworkspaces.StorageDiscoverySkuStandard
-			if model.Sku != "" {
-				sku = storagediscoveryworkspaces.StorageDiscoverySku(model.Sku)
-			}
-
 			payload := storagediscoveryworkspaces.StorageDiscoveryWorkspace{
 				Location: location.Normalize(model.Location),
 				Properties: &storagediscoveryworkspaces.StorageDiscoveryWorkspaceProperties{
 					WorkspaceRoots: model.WorkspaceRoot,
 					Scopes:         expandStorageDiscoveryScopes(model.Scope),
-					Sku:            &sku,
+					Sku:            pointer.ToEnum[storagediscoveryworkspaces.StorageDiscoverySku](model.Sku),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -266,7 +250,7 @@ func (r StorageDiscoveryWorkspaceResource) Create() sdk.ResourceFunc {
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
 				return err
 			}
-			return metadata.Encode(&model)
+			return nil
 		},
 	}
 }
@@ -302,13 +286,7 @@ func (r StorageDiscoveryWorkspaceResource) Read() sdk.ResourceFunc {
 				if props := resp.Model.Properties; props != nil {
 					state.Description = pointer.From(props.Description)
 					state.WorkspaceRoot = props.WorkspaceRoots
-
-					sku := string(storagediscoveryworkspaces.StorageDiscoverySkuStandard)
-					if props.Sku != nil {
-						sku = string(*props.Sku)
-					}
-					state.Sku = sku
-
+					state.Sku = pointer.FromEnum(props.Sku)
 					state.Scope = flattenStorageDiscoveryScopes(props.Scopes)
 				}
 			}
@@ -346,8 +324,7 @@ func (r StorageDiscoveryWorkspaceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("sku") {
-				sku := storagediscoveryworkspaces.StorageDiscoverySku(model.Sku)
-				payload.Properties.Sku = &sku
+				payload.Properties.Sku = pointer.ToEnum[storagediscoveryworkspaces.StorageDiscoverySku](model.Sku)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
