@@ -56,9 +56,20 @@ func (c VolumesClient) PerformReplicationTransfer(ctx context.Context, id Volume
 
 // PerformReplicationTransferThenPoll performs PerformReplicationTransfer then polls until it's completed
 func (c VolumesClient) PerformReplicationTransferThenPoll(ctx context.Context, id VolumeId) error {
+	return c.PerformReplicationTransferCallbackThenPoll(ctx, id, nil)
+}
+
+// PerformReplicationTransferCallbackThenPoll performs PerformReplicationTransfer, runs the optional callback function, then polls until it's completed
+func (c VolumesClient) PerformReplicationTransferCallbackThenPoll(ctx context.Context, id VolumeId, callback func() error) error {
 	result, err := c.PerformReplicationTransfer(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing PerformReplicationTransfer: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

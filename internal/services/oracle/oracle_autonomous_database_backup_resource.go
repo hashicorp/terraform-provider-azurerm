@@ -109,12 +109,14 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				model.Name,
 			)
 
-			existingBackup, err := getBackupFromOCI(ctx, client, dbId, id)
-			if err != nil {
-				return fmt.Errorf("checking for existing backup: %+v", err)
-			}
-			if existingBackup != nil {
-				return metadata.ResourceRequiresImport(r.ResourceType(), &id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existingBackup, err := getBackupFromOCI(ctx, client, dbId, id)
+				if err != nil {
+					return fmt.Errorf("checking for existing backup: %+v", err)
+				}
+				if existingBackup != nil {
+					return metadata.ResourceRequiresImport(r.ResourceType(), &id)
+				}
 			}
 
 			param := autonomousdatabasebackups.AutonomousDatabaseBackup{
@@ -125,11 +127,11 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

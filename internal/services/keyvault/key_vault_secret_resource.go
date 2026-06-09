@@ -142,15 +142,17 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	secretId := secrets.NewSecretID(*keyVaultBaseUrl, name)
 	secretVersionId := secrets.NewSecretversionID(secretId.BaseURI, secretId.SecretName, "")
 
-	existing, err := client.GetSecret(ctx, secretVersionId)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing Secret %q (Key Vault %q): %s", name, *keyVaultBaseUrl, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetSecret(ctx, secretVersionId)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing Secret %q (Key Vault %q): %s", name, *keyVaultBaseUrl, err)
+			}
 		}
-	}
 
-	if model := existing.Model; model != nil && pointer.From(model.Id) != "" {
-		return tf.ImportAsExistsError("azurerm_key_vault_secret", *model.Id)
+		if model := existing.Model; model != nil && pointer.From(model.Id) != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_secret", *model.Id)
+		}
 	}
 
 	value := d.Get("value").(string)

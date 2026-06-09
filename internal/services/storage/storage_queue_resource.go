@@ -182,7 +182,9 @@ func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("checking for existing %s: %v", id, err)
 			}
 			if exists != nil && *exists {
-				return tf.ImportAsExistsError("azurerm_storage_queue", id)
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_storage_queue", id)
+				}
 			}
 
 			if err = queuesDataPlaneClient.Create(ctx, queueName, metaData); err != nil {
@@ -202,14 +204,16 @@ func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	id := storagequeues.NewQueueID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, queueName)
 
-	existing, err := queueClient.QueueGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %q: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := queueClient.QueueGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %q: %v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_queue", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_queue", id.ID())
+		}
 	}
 
 	payload := storagequeues.StorageQueue{

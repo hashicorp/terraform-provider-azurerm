@@ -104,15 +104,17 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.GetStorageAccount(ctx, *keyVaultBaseUrl, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Managed Storage Account %q (Key Vault %q): %s", name, *keyVaultId, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetStorageAccount(ctx, *keyVaultBaseUrl, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Managed Storage Account %q (Key Vault %q): %s", name, *keyVaultId, err)
+				}
 			}
-		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_managed_storage_account", *existing.ID)
+			if existing.ID != nil && *existing.ID != "" {
+				return tf.ImportAsExistsError("azurerm_key_vault_managed_storage_account", *existing.ID)
+			}
 		}
 	}
 

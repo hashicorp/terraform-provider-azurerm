@@ -669,7 +669,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						string(pool.DiffDiskPlacementCacheDisk),
-					}, false),
+					}, false,
+				),
 			},
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,
@@ -881,15 +882,17 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	id := pool.NewPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_batch_pool", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_batch_pool", id.ID())
+		}
 	}
 
 	parameters := pool.Pool{
@@ -1114,7 +1117,6 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating the MetaData for %s", *id)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 
 		parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)

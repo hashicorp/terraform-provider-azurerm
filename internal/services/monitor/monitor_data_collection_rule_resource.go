@@ -766,7 +766,8 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 										Type: pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(
 											datacollectionrules.PossibleValuesForKnownSyslogDataSourceFacilityNames(),
-											false),
+											false,
+										),
 									},
 								},
 								"log_levels": {
@@ -776,7 +777,8 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(
-											datacollectionrules.PossibleValuesForKnownSyslogDataSourceLogLevels(), false),
+											datacollectionrules.PossibleValuesForKnownSyslogDataSourceLogLevels(), false,
+										),
 									},
 								},
 								// lintignore:S013
@@ -866,7 +868,8 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 					"AgentDirectToStore",
 					"WorkspaceTransforms",
 				},
-				false),
+				false,
+			),
 		},
 
 		"stream_declaration": {
@@ -930,7 +933,6 @@ func (r DataCollectionRuleResource) ModelObject() interface{} {
 func (r DataCollectionRuleResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			metadata.Logger.Info("Decoding state..")
 			var state DataCollectionRule
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -940,14 +942,15 @@ func (r DataCollectionRuleResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := datacollectionrules.NewDataCollectionRuleID(subscriptionId, state.ResourceGroupName, state.Name)
-			metadata.Logger.Infof("creating %s", id)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			dataSources, err := expandDataCollectionRuleDataSources(state.DataSources)
@@ -999,11 +1002,9 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving %s", *id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					metadata.Logger.Infof("%s was not found - removing from state!", *id)
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -1068,7 +1069,6 @@ func (r DataCollectionRuleResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Monitor.DataCollectionRulesClient
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
@@ -1153,7 +1153,6 @@ func (r DataCollectionRuleResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s..", *id)
 			resp, err := client.Delete(ctx, *id, datacollectionrules.DefaultDeleteOperationOptions())
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
