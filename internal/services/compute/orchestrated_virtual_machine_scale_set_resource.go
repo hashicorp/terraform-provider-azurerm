@@ -483,6 +483,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 		),
 	}
 
+	// The following attributes do not get updated unless this resource is in legacy mode. We'll add `RequiredWith` to make sure those attributes are specified if `sku_name` is specified.
 	for _, field := range []string{
 		"automatic_instance_repair",
 		"boot_diagnostics",
