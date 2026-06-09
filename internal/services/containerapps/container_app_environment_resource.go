@@ -121,9 +121,9 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"infrastructure_resource_group_name": {
-			Type:                  pluginsdk.TypeString,
-			Optional:              true,
-      // Note: O+C - value is computed by Azure when `infrastructure_resource_group_name` is not configured
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C - value is computed by Azure when `infrastructure_resource_group_name` is not configured
 			Computed:              true,
 			ForceNew:              true,
 			RequiredWith:          []string{"workload_profile"},
@@ -419,6 +419,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					// `DiffSuppressFunc` behavior of `workload_profile` does not suppress `diff` when `workload_profile` is not configured. The codes below are used to suppress `diff` under this situation
 					if len(state.WorkloadProfiles) == 1 && len(existingState.WorkloadProfiles) == 0 && state.WorkloadProfiles[0].WorkloadProfileType == string(helpers.WorkloadProfileSkuConsumption) {
 						state.WorkloadProfiles = make([]helpers.WorkloadProfileModel, 0)
+					}
 
 					if props.CustomDomainConfiguration != nil {
 						state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
