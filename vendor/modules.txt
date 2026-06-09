@@ -1864,4 +1864,3 @@ gopkg.in/yaml.v3
 ## explicit; go 1.19
 software.sslmate.com/src/go-pkcs12
 software.sslmate.com/src/go-pkcs12/internal/rc2
-# github.com/hashicorp/go-azure-sdk => ./dummy
