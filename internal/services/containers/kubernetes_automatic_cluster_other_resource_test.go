@@ -959,9 +959,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
 
     linux_os_config {
-      transparent_huge_page        = "always"
-      transparent_huge_page_defrag = "always"
-      swap_file_size_mb            = 300
+      transparent_huge_page                = "always"
+      transparent_huge_page_defragmentation = "always"
+      swap_file_size_in_mb                 = 300
 
       sysctl_config {
         fs_aio_max_nr                      = 65536
@@ -977,7 +977,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
         net_core_wmem_default              = 300000
         net_core_wmem_max                  = 300000
         net_ipv4_ip_local_port_range_min   = 32768
-        net_ipv4_ip_local_port_range_max   = 60000
+        net_ipv4_ip_local_port_range_maximum = 60000
         net_ipv4_neigh_default_gc_thresh1  = 128
         net_ipv4_neigh_default_gc_thresh2  = 512
         net_ipv4_neigh_default_gc_thresh3  = 1024
@@ -986,7 +986,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
         net_ipv4_tcp_keepalive_time        = 6000
         net_ipv4_tcp_max_syn_backlog       = 2048
         net_ipv4_tcp_max_tw_buckets        = 100000
-        net_ipv4_tcp_tw_reuse              = true
+        net_ipv4_tcp_tw_reuse_enabled      = true
         net_ipv4_tcp_keepalive_intvl       = 70
         net_netfilter_nf_conntrack_buckets = 65536
         net_netfilter_nf_conntrack_max     = 200000

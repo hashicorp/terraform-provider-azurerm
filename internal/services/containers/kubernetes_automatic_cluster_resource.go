@@ -297,6 +297,7 @@ type DefaultNodePoolModel struct {
 	SnapshotID                 string                    `tfschema:"snapshot_id"`
 	HostGroupID                string                    `tfschema:"host_group_id"`
 	UpgradeSettings            []UpgradeSettingsModel    `tfschema:"upgrade_settings"`
+	WorkloadRuntime            string                    `tfschema:"workload_runtime"`
 	NodePublicIPEnabled        bool                      `tfschema:"node_public_ip_enabled"`
 	HostEncryptionEnabled      bool                      `tfschema:"host_encryption_enabled"`
 }
@@ -335,7 +336,7 @@ type SysctlConfigModel struct {
 	NetCoreWmemDefault             int64 `tfschema:"net_core_wmem_default"`
 	NetCoreWmemMax                 int64 `tfschema:"net_core_wmem_max"`
 	NetIPv4IPLocalPortRangeMin     int64 `tfschema:"net_ipv4_ip_local_port_range_min"`
-	NetIPv4IPLocalPortRangeMax     int64 `tfschema:"net_ipv4_ip_local_port_range_maximum"`
+	NetIPv4IPLocalPortRangeMax     int64 `tfschema:"net_ipv4_ip_local_port_range_max"`
 	NetIPv4NeighDefaultGcThresh1   int64 `tfschema:"net_ipv4_neigh_default_gc_thresh1"`
 	NetIPv4NeighDefaultGcThresh2   int64 `tfschema:"net_ipv4_neigh_default_gc_thresh2"`
 	NetIPv4NeighDefaultGcThresh3   int64 `tfschema:"net_ipv4_neigh_default_gc_thresh3"`
@@ -813,7 +814,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 												ValidateFunc: validation.IntBetween(1024, 60999),
 											},
 
-											"net_ipv4_ip_local_port_range_maximum": {
+											"net_ipv4_ip_local_port_range_max": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(32768, 65535),
@@ -1129,6 +1130,14 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						},
 					},
 
+					"workload_runtime": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.WorkloadRuntimeOCIContainer),
+						}, false),
+					},
+
 					"virtual_machine_size": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -1228,7 +1237,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							privatezones.ValidatePrivateDnsZoneID,
 							validation.StringInSlice([]string{
 								"System",
-								//TODO see if none as default breaks it
+								// TODO see if none as default breaks it
 								"None",
 							}, false),
 						),
@@ -4678,10 +4687,10 @@ func expandClusterNodePoolSysctlConfigTyped(input []SysctlConfigModel) (*managed
 
 	if (config.NetIPv4IPLocalPortRangeMin != 0 && config.NetIPv4IPLocalPortRangeMax == 0) ||
 		(config.NetIPv4IPLocalPortRangeMin == 0 && config.NetIPv4IPLocalPortRangeMax != 0) {
-		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` and `net_ipv4_ip_local_port_range_maximum` should both be set or unset")
+		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` and `net_ipv4_ip_local_port_range_max` should both be set or unset")
 	}
 	if config.NetIPv4IPLocalPortRangeMin > config.NetIPv4IPLocalPortRangeMax {
-		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` should be no larger than `net_ipv4_ip_local_port_range_maximum`")
+		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` should be no larger than `net_ipv4_ip_local_port_range_max`")
 	}
 	if config.NetIPv4IPLocalPortRangeMin != 0 && config.NetIPv4IPLocalPortRangeMax != 0 {
 		result.NetIPv4IPLocalPortRange = pointer.To(fmt.Sprintf("%d %d", config.NetIPv4IPLocalPortRangeMin, config.NetIPv4IPLocalPortRangeMax))
@@ -5177,7 +5186,9 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 		profile.ProximityPlacementGroupID = pointer.To(raw.ProximityPlacementGroupID)
 	}
 
-	profile.WorkloadRuntime = pointer.To(managedclusters.WorkloadRuntimeOCIContainer)
+	if raw.WorkloadRuntime != "" {
+		profile.WorkloadRuntime = pointer.To(managedclusters.WorkloadRuntime(raw.WorkloadRuntime))
+	}
 
 	if raw.CapacityReservationGroupID != "" {
 		profile.CapacityReservationGroupID = pointer.To(raw.CapacityReservationGroupID)
@@ -5323,6 +5334,10 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 
 	if agentPool.CapacityReservationGroupID != nil {
 		result.CapacityReservationGroupID = pointer.From(agentPool.CapacityReservationGroupID)
+	}
+
+	if agentPool.WorkloadRuntime != nil {
+		result.WorkloadRuntime = string(pointer.From(agentPool.WorkloadRuntime))
 	}
 
 	if agentPool.KubeletDiskType != nil {

@@ -2604,7 +2604,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 2
-    subnet_id  = azurerm_subnet.test.id
+    vnet_subnet_id  = azurerm_subnet.test.id
     upgrade_settings {
       maximum_surge = "10%%"
     }
