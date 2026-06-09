@@ -197,13 +197,16 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   tenant_id                = data.azurerm_client_config.current.tenant_id
   admin_object_ids         = [data.azurerm_client_config.current.object_id]
   purge_protection_enabled = false
+}
 
+resource "azurerm_key_vault_managed_hardware_security_module_security_domain" "test" {
+  managed_hsm_id                            = azurerm_key_vault_managed_hardware_security_module.test.id
   security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.cert : cert.id]
   security_domain_quorum                    = 3
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
-  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module_security_domain.test.id // Note: 1:1 relationship with the MHSM resource and uses the same ID.
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad22"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"
@@ -211,7 +214,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test1" {
-  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module_security_domain.test.id // Note: 1:1 relationship with the MHSM resource and uses the same ID.
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad23"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/515eb02d-2335-4d2d-92f2-b1cbdf9c3778"

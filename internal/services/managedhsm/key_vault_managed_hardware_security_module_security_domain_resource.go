@@ -96,14 +96,14 @@ func (r KeyVaultMHSMSecurityDomainResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			managedHsmId, err := managedhsms.ParseManagedHSMID(config.ManagedHSMID)
+			id, err := managedhsms.ParseManagedHSMID(config.ManagedHSMID)
 			if err != nil {
 				return err
 			}
 
-			resp, err := hsmClient.Get(ctx, *managedHsmId)
+			resp, err := hsmClient.Get(ctx, *id)
 			if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
-				return fmt.Errorf("got nil HSMUri for %s: %+v", managedHsmId, err)
+				return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
 			}
 
 			certs := make([]interface{}, len(config.CertificateIds))
@@ -113,12 +113,12 @@ func (r KeyVaultMHSMSecurityDomainResource) Create() sdk.ResourceFunc {
 
 			encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, certs, int(config.Quorum))
 			if err != nil {
-				return fmt.Errorf("downloading security domain for %q: %+v", managedHsmId, err)
+				return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 			}
 
 			config.EncryptedData = encData
 
-			metadata.SetID(managedHsmId)
+			metadata.SetID(id)
 			return metadata.Encode(&config)
 		},
 	}
@@ -130,17 +130,17 @@ func (r KeyVaultMHSMSecurityDomainResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			hsmClient := metadata.Client.ManagedHSMs.ManagedHsmClient
 
-			managedHsmId, err := managedhsms.ParseManagedHSMID(metadata.ResourceData.Id())
+			id, err := managedhsms.ParseManagedHSMID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := hsmClient.Get(ctx, *managedHsmId)
+			resp, err := hsmClient.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(*managedHsmId)
+					return metadata.MarkAsGone(*id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", managedHsmId, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			return nil
@@ -163,14 +163,14 @@ func (r KeyVaultMHSMSecurityDomainResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			managedHsmId, err := managedhsms.ParseManagedHSMID(config.ManagedHSMID)
+			id, err := managedhsms.ParseManagedHSMID(config.ManagedHSMID)
 			if err != nil {
 				return err
 			}
 
-			resp, err := hsmClient.Get(ctx, *managedHsmId)
+			resp, err := hsmClient.Get(ctx, *id)
 			if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
-				return fmt.Errorf("got nil HSMUri for %s: %+v", managedHsmId, err)
+				return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
 			}
 
 			certs := make([]interface{}, len(config.CertificateIds))
@@ -180,7 +180,7 @@ func (r KeyVaultMHSMSecurityDomainResource) Update() sdk.ResourceFunc {
 
 			encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, certs, int(config.Quorum)) // Note: Casting here is safe due to max value of `10`
 			if err != nil {
-				return fmt.Errorf("downloading security domain for %q: %+v", managedHsmId, err)
+				return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 			}
 
 			config.EncryptedData = encData
