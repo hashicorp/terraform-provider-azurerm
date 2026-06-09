@@ -589,6 +589,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -644,6 +645,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -677,6 +679,7 @@ resource "azurerm_mssql_managed_instance" "import" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 }
 `, r.complete(data))
@@ -717,6 +720,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -762,6 +766,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -809,6 +814,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -855,6 +861,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -900,6 +907,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -945,6 +953,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -989,6 +998,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -1034,6 +1044,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -1078,6 +1089,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   identity {
@@ -1126,6 +1138,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   identity {
@@ -1180,6 +1193,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   identity {
@@ -1236,6 +1250,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -1279,6 +1294,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -1304,6 +1320,7 @@ resource "azurerm_mssql_managed_instance" "secondary" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -1344,6 +1361,7 @@ resource "azurerm_mssql_managed_instance" "secondary" {
   depends_on = [
     azurerm_subnet_network_security_group_association.secondary,
     azurerm_subnet_route_table_association.secondary,
+    time_sleep.wait_for_secondary_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -1376,6 +1394,7 @@ resource "azurerm_mssql_managed_instance" "secondary" {
   depends_on = [
     azurerm_subnet_network_security_group_association.secondary,
     azurerm_subnet_route_table_association.secondary,
+    time_sleep.wait_for_secondary_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -1418,6 +1437,7 @@ resource "azurerm_mssql_managed_instance" "secondary" {
   depends_on = [
     azurerm_subnet_network_security_group_association.secondary,
     azurerm_subnet_route_table_association.secondary,
+    time_sleep.wait_for_secondary_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -1444,6 +1464,7 @@ resource "azurerm_mssql_managed_instance" "secondary_2" {
   depends_on = [
     azurerm_subnet_network_security_group_association.secondary_2,
     azurerm_subnet_route_table_association.secondary_2,
+    time_sleep.wait_for_secondary_2_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -1477,6 +1498,7 @@ resource "azurerm_mssql_managed_instance" "secondary" {
   depends_on = [
     azurerm_subnet_network_security_group_association.secondary,
     azurerm_subnet_route_table_association.secondary,
+    time_sleep.wait_for_secondary_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -1502,6 +1524,7 @@ resource "azurerm_mssql_managed_instance" "secondary_2" {
   depends_on = [
     azurerm_subnet_network_security_group_association.secondary_2,
     azurerm_subnet_route_table_association.secondary_2,
+    time_sleep.wait_for_secondary_2_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -1697,6 +1720,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
@@ -1791,6 +1815,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
@@ -1868,6 +1893,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
@@ -1946,7 +1972,8 @@ resource "azurerm_mssql_managed_instance" "test" {
 
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
-    azurerm_subnet_route_table_association.test
+    azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
@@ -2185,6 +2212,16 @@ resource "azurerm_subnet_route_table_association" "test" {
   subnet_id      = azurerm_subnet.test.id
   route_table_id = azurerm_route_table.test.id
 }
+
+# The service needs time to remove the network intent policy before test teardown updates the subnet.
+resource "time_sleep" "wait_for_sql_mi_subnet_settle" {
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  destroy_duration = "5m"
+}
   `, data.RandomInteger, location)
 }
 
@@ -2420,6 +2457,16 @@ resource "azurerm_subnet_network_security_group_association" "secondary" {
 resource "azurerm_subnet_route_table_association" "secondary" {
   subnet_id      = azurerm_subnet.secondary.id
   route_table_id = azurerm_route_table.secondary.id
+}
+
+# The service needs time to remove the network intent policy before test teardown updates the subnet.
+resource "time_sleep" "wait_for_secondary_sql_mi_subnet_settle" {
+  depends_on = [
+    azurerm_subnet_network_security_group_association.secondary,
+    azurerm_subnet_route_table_association.secondary,
+  ]
+
+  destroy_duration = "5m"
 }
   `, data.RandomInteger, data.Locations.Secondary)
 }
@@ -2657,6 +2704,16 @@ resource "azurerm_subnet_route_table_association" "secondary_2" {
   subnet_id      = azurerm_subnet.secondary_2.id
   route_table_id = azurerm_route_table.secondary_2.id
 }
+
+# The service needs time to remove the network intent policy before test teardown updates the subnet.
+resource "time_sleep" "wait_for_secondary_2_sql_mi_subnet_settle" {
+  depends_on = [
+    azurerm_subnet_network_security_group_association.secondary_2,
+    azurerm_subnet_route_table_association.secondary_2,
+  ]
+
+  destroy_duration = "5m"
+}
 `, data.RandomInteger, data.Locations.Secondary)
 }
 
@@ -2697,6 +2754,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -2742,6 +2800,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -2786,6 +2845,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
   ]
 
   tags = {
@@ -2840,6 +2900,16 @@ resource "azurerm_subnet_network_security_group_association" "test2" {
   network_security_group_id = azurerm_network_security_group.test.id
 }
 
+# The service needs time to remove the network intent policy before test teardown updates the subnet.
+resource "time_sleep" "wait_for_test2_sql_mi_subnet_settle" {
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test2,
+    azurerm_subnet_route_table_association.test2,
+  ]
+
+  destroy_duration = "5m"
+}
+
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -2857,8 +2927,10 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+    time_sleep.wait_for_sql_mi_subnet_settle,
     azurerm_subnet_network_security_group_association.test2,
     azurerm_subnet_route_table_association.test2,
+    time_sleep.wait_for_test2_sql_mi_subnet_settle,
   ]
 
   tags = {
