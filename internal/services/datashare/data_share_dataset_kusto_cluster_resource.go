@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_share_dataset_kusto_cluster -service-package-name datashare -properties "name" -compare-values "resource_group_name:share_id,account_name:share_id,share_name:share_id" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_share_dataset_kusto_cluster -service-package-name datashare -properties "name" -compare-values "subscription_id:share_id,resource_group_name:share_id,account_name:share_id,share_name:share_id"
 
 func resourceDataShareDataSetKustoCluster() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -85,14 +85,16 @@ func resourceDataShareDataSetKustoClusterCreate(d *pluginsdk.ResourceData, meta 
 	}
 	id := dataset.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroupName, shareId.AccountName, shareId.ShareName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_data_share_dataset_kusto_cluster", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_data_share_dataset_kusto_cluster", id.ID())
+		}
 	}
 
 	dataSet := dataset.KustoClusterDataSet{

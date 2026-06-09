@@ -16,10 +16,18 @@ func TestAccVirtualMachineExtension_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
 	r := VirtualMachineExtensionResource{}
 
+	checkedFields := map[string]struct{}{
+		"name":                 {},
+		"resource_group_name":  {},
+		"subscription_id":      {},
+		"virtual_machine_name": {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_virtual_machine_extension.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_virtual_machine_extension.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_machine_extension.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("virtual_machine_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_machine_extension.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("virtual_machine_id")),

@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/validate"
@@ -136,15 +137,18 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	id := subscriptionAlias.NewAliasID(aliasName)
-	existing, err := aliasClient.AliasGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existence of Subscription by Alias %q: %+v", id.AliasName, err)
-		}
-	}
 
-	if model := existing.Model; model != nil && model.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_subscription", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := aliasClient.AliasGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existence of Subscription by Alias %q: %+v", id.AliasName, err)
+			}
+		}
+
+		if model := existing.Model; model != nil && model.Properties != nil {
+			return tf.ImportAsExistsError("azurerm_subscription", id.ID())
+		}
 	}
 
 	locks.ByName(aliasName, SubscriptionResourceName)
@@ -212,9 +216,10 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		req.Properties.BillingScope = pointer.To(d.Get("billing_scope_id").(string))
 	}
 
-	if err := aliasClient.AliasCreateThenPoll(ctx, id, req); err != nil {
+	if err := aliasClient.AliasCreateCallbackThenPoll(ctx, id, req, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating new Subscription (Alias %q): %+v", aliasName, err)
 	}
+	d.SetId(id.ID())
 
 	alias, err := aliasClient.AliasGet(ctx, id)
 	if err != nil || alias.Model == nil || alias.Model.Properties == nil || alias.Model.Properties.SubscriptionId == nil {
@@ -241,12 +246,10 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				Tags: t,
 			},
 		}
-		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
+		if _, err := tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
 			return fmt.Errorf("setting tags on %s: %+v", id, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceSubscriptionRead(d, meta)
 }

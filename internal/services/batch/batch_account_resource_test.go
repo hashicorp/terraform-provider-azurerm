@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	batchaccount "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -194,7 +194,8 @@ func TestAccBatchAccount_authenticationModesUpdate(t *testing.T) {
 			Config: r.authenticationModesUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("0")),
+				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("0"),
+			),
 		},
 	})
 }
@@ -336,7 +337,7 @@ func (t BatchAccountResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, err
 	}
 
-	resp, err := clients.Batch.AccountClient.BatchAccountGet(ctx, *id)
+	resp, err := clients.Batch.AccountClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

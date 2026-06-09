@@ -8,3 +8,7 @@ const defaultApiVersion = "2025-02-15"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/namespacetopics/2025-02-15"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

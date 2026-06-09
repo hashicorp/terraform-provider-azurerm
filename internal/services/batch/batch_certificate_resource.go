@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	certificate "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificate"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -110,8 +110,6 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Batch certificate creation.")
-
 	cert := d.Get("certificate").(string)
 	format := d.Get("format").(string)
 	password := d.Get("password").(string)
@@ -124,8 +122,8 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	if d.IsNewResource() {
-		existing, err := client.CertificateGet(ctx, id)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
@@ -136,6 +134,7 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 			return tf.ImportAsExistsError("azurerm_batch_certificate", id.ID())
 		}
 	}
+
 	certificateProperties := certificate.CertificateCreateOrUpdateProperties{
 		Data:                cert,
 		Format:              pointer.To(certificate.CertificateFormat(format)),
@@ -150,8 +149,7 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 		Properties: &certificateProperties,
 	}
 
-	_, err := client.CertificateCreate(ctx, id, parameters, certificate.CertificateCreateOperationOptions{})
-	if err != nil {
+	if _, err := client.Create(ctx, id, parameters, certificate.CreateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -169,7 +167,7 @@ func resourceBatchCertificateRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.CertificateGet(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -219,8 +217,6 @@ func resourceBatchCertificateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Batch certificate update.")
-
 	id, err := certificate.ParseCertificateID(d.Id())
 	if err != nil {
 		return err
@@ -247,12 +243,11 @@ func resourceBatchCertificateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		},
 	}
 
-	if _, err = client.CertificateUpdate(ctx, *id, parameters, certificate.CertificateUpdateOperationOptions{}); err != nil {
+	if _, err = client.Update(ctx, *id, parameters, certificate.UpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	_, err = client.CertificateGet(ctx, *id)
-	if err != nil {
+	if _, err = client.Get(ctx, *id); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
@@ -269,7 +264,7 @@ func resourceBatchCertificateDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	if err := client.CertificateDeleteThenPoll(ctx, *id); err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

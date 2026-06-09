@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -223,7 +223,7 @@ func TestAccContainerRegistry_networkAccessProfileIp(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkAccessProfileNetworkRuleSetRemoved(data, "Basic"),
+			Config: r.networkAccessProfileNetworkRuleSetRemoved(data, "Premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -694,12 +694,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-acr-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
+  name                = "testacccr%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
@@ -729,12 +729,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-acr-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
+  name                = "testacccr%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
@@ -754,12 +754,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-acr-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
+  name                = "testacccr%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"

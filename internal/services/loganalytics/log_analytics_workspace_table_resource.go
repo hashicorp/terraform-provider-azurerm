@@ -6,13 +6,12 @@ package loganalytics
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -40,8 +39,8 @@ func (r LogAnalyticsWorkspaceTableResource) CustomizeDiff() sdk.ResourceFunc {
 			rd := metadata.ResourceDiff
 
 			if string(tables.TablePlanEnumBasic) == rd.Get("plan").(string) {
-				if _, ok := rd.GetOk("retention_in_days"); ok {
-					return fmt.Errorf("cannot set retention_in_days because the retention is fixed at eight days on Basic plan")
+				if v, ok := rd.GetOk("retention_in_days"); ok && v.(int) != 30 {
+					return fmt.Errorf("cannot set retention_in_days because the retention is fixed at 30 days on Basic plan")
 				}
 			}
 
@@ -114,12 +113,13 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.LogAnalytics.TablesClient
 
 			tableName := model.Name
-			log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace Table %s update.", tableName)
 
 			workspaceId, err := workspaces.ParseWorkspaceID(model.WorkspaceId)
 			if err != nil {
 				return fmt.Errorf("invalid workspace object ID for table %s: %s", tableName, err)
 			}
+
+			// TODO: Import check
 
 			id := tables.NewTableID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, tableName)
 
@@ -142,7 +142,7 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 				updateInput.Properties.TotalRetentionInDays = pointer.To(model.TotalRetentionInDays)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, updateInput, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("failed to update table %s in workspace %s in resource group %s: %s", tableName, workspaceId.WorkspaceName, workspaceId.ResourceGroupName, err)
 			}
 

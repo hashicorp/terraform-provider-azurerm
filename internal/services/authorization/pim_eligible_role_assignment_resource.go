@@ -251,12 +251,14 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewPimRoleAssignmentID(config.Scope, config.RoleDefinitionId, config.PrincipalId)
 
-			schedule, err := findRoleEligibilitySchedule(ctx, schedulesClient, id)
-			if err != nil {
-				return err
-			}
-			if schedule != nil {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				schedule, err := findRoleEligibilitySchedule(ctx, schedulesClient, id)
+				if err != nil {
+					return err
+				}
+				if schedule != nil {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			scheduleInfo := &roleeligibilityschedulerequests.RoleEligibilityScheduleRequestPropertiesScheduleInfo{

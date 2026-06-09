@@ -36,13 +36,13 @@ The following arguments are supported:
 
 * `email_addresses` - (Required) Specifies a list of email addresses which the Anomaly Alerts are send to.
 
-* `email_subject` - (Required) The email subject of the Cost Anomaly Alerts. Maximum length of the subject is 70.
+* `email_subject` - (Required) The email subject of the Cost Anomaly Alerts. Maximum length of the subject is 50.
 
 * `notification_email` - (Optional) The email address of the point of contact that should get the unsubscribe requests and notification emails.
 
 ---
 
-* `message` - (Optional) The message of the Cost Anomaly Alert. Maximum length of the message is 250.
+* `message` - (Optional) The message of the Cost Anomaly Alert. Maximum length of the message is 100.
 
 ## Attributes Reference
 

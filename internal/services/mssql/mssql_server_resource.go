@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/restorabledroppeddatabases"
@@ -28,8 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -167,7 +167,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			"transparent_data_encryption_key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"primary_user_assigned_identity_id": {
@@ -251,15 +251,17 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id := commonids.NewSqlServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, servers.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, servers.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_mssql_server", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_mssql_server", id.ID())
+		}
 	}
 
 	props := servers.Server{
@@ -310,19 +312,11 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("transparent_data_encryption_key_vault_key_id"); ok {
-		keyVaultKeyId := v.(string)
-
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(v.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
-			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+			return err
 		}
-
-		if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
-			// NOTE: msSql requires the versioned key URL...
-			props.Properties.KeyId = pointer.To(keyId.ID())
-		} else {
-			return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
-		}
+		props.Properties.KeyId = pointer.To(keyId.ID())
 	}
 
 	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
@@ -341,8 +335,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Properties.MinimalTlsVersion = pointer.To(servers.MinimalTlsVersion(v.(string)))
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, props)
-	if err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -393,6 +386,63 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	if d.HasChange("azuread_administrator") {
+		log.Printf("[INFO] Expanding 'azuread_administrator' to see if we need Create or Delete")
+		if adminProps := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminProps != nil {
+			err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminProps))
+			if err != nil {
+				return fmt.Errorf("updating Azure Active Directory Administrator %s: %+v", id, err)
+			}
+		} else {
+			if _, err := adminClient.Get(ctx, *id); err != nil {
+				return fmt.Errorf("retrieving Azure Active Directory Administrator %s: %+v", id, err)
+			}
+
+			err = adminClient.DeleteThenPoll(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("deleting Azure Active Directory Administrator %s: %+v", id, err)
+			}
+		}
+	}
+
+	// The `AzureADOnlyAuthentication` cannot be updated by `serversClient`,
+	// Service return `Invalid value given for parameter AzureADOnlyAuthentication. Specify a valid parameter value.` in that case.
+	if d.HasChange("azuread_administrator") && d.HasChange("azuread_administrator.0.azuread_authentication_only") {
+		if aadOnlyAuthenticationEnabled := expandMsSqlServerAADOnlyAuthentication(d.Get("azuread_administrator").([]interface{})); aadOnlyAuthenticationEnabled {
+			aadOnlyAuthenticationProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
+				Properties: &serverazureadonlyauthentications.AzureADOnlyAuthProperties{
+					AzureADOnlyAuthentication: true,
+				},
+			}
+
+			err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationProps)
+			if err != nil {
+				return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
+			}
+		} else {
+			resp, err := aadOnlyAuthenticationsClient.Delete(ctx, *id)
+			if err != nil {
+				log.Printf("[INFO] Deletion of Azure Active Directory Only Authentication failed for %s: %+v", pointer.From(id), err)
+				return fmt.Errorf("deleting Azure Active Directory Only Authentications for %s: %+v", pointer.From(id), err)
+			}
+
+			// NOTE: This call does not return a future it returns a response, but you will get a future back if the status code is 202...
+			// https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-only-authentications/delete?view=rest-sql-2023-05-01-preview&tabs=HTTP
+			if response.WasStatusCode(resp.HttpResponse, 202) {
+				// NOTE: It was accepted but not completed, it is now an async operation...
+				// create a custom poller and wait for it to complete as 'Succeeded'...
+				log.Printf("[INFO] Delete Azure Active Directory Only Administrators response was a 202 WaitForStateContext...")
+
+				initialDelayDuration := 5 * time.Second
+				pollerType := custompollers.NewMsSqlServerDeleteServerAzureADOnlyAuthenticationPoller(aadOnlyAuthenticationsClient, pointer.From(id))
+				poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("waiting for the deletion of the Azure Active Directory Only Administrator: %+v", err)
+				}
+			}
+		}
+	}
+
 	existing, err := client.Get(ctx, *id, servers.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -412,22 +462,17 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if d.HasChange("transparent_data_encryption_key_vault_key_id") {
-			keyVaultKeyId := d.Get(("transparent_data_encryption_key_vault_key_id")).(string)
-
-			keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+			keyId, err := keyvault.ParseNestedItemID(d.Get("transparent_data_encryption_key_vault_key_id").(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 			if err != nil {
-				return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+				return err
 			}
-
-			if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
-				payload.Properties.KeyId = pointer.To(keyId.ID())
-			} else {
-				return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
-			}
+			payload.Properties.KeyId = pointer.To(keyId.ID())
 		}
 
-		if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
-			payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityID.(string))
+		// The `primary_user_assigned_identity_id` is an `O+C` property, when it's being removed from configuration.
+		// `HasChange()` will be `true`, but `GetOk()` will be `false`. So use `d.Get()` to read the value.
+		if d.HasChange("primary_user_assigned_identity_id") {
+			payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(d.Get("primary_user_assigned_identity_id").(string))
 		}
 
 		payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagDisabled)
@@ -465,70 +510,15 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if d.HasChange("azuread_administrator") {
-		log.Printf("[INFO] Expanding 'azuread_administrator' to see if we need Create or Delete")
-		if adminProps := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminProps != nil {
-			err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminProps))
-			if err != nil {
-				return fmt.Errorf("updating Azure Active Directory Administrator %s: %+v", id, err)
-			}
-		} else {
-			_, err := adminClient.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving Azure Active Directory Administrator %s: %+v", id, err)
-			}
-
-			err = adminClient.DeleteThenPoll(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("deleting Azure Active Directory Administrator %s: %+v", id, err)
-			}
+	if d.HasChange("connection_policy") {
+		connection := serverconnectionpolicies.ServerConnectionPolicy{
+			Properties: &serverconnectionpolicies.ServerConnectionPolicyProperties{
+				ConnectionType: serverconnectionpolicies.ServerConnectionType(d.Get("connection_policy").(string)),
+			},
 		}
-	}
-
-	if d.HasChange("azuread_administrator") && d.HasChange("azuread_administrator.0.azuread_authentication_only") {
-		if aadOnlyAuthenticationEnabled := expandMsSqlServerAADOnlyAuthentication(d.Get("azuread_administrator").([]interface{})); aadOnlyAuthenticationEnabled {
-			aadOnlyAuthenticationProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
-				Properties: &serverazureadonlyauthentications.AzureADOnlyAuthProperties{
-					AzureADOnlyAuthentication: true,
-				},
-			}
-
-			err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationProps)
-			if err != nil {
-				return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
-			}
-		} else {
-			resp, err := aadOnlyAuthenticationsClient.Delete(ctx, *id)
-			if err != nil {
-				log.Printf("[INFO] Deletion of Azure Active Directory Only Authentication failed for %s: %+v", pointer.From(id), err)
-				return fmt.Errorf("deleting Azure Active Directory Only Authentications for %s: %+v", pointer.From(id), err)
-			}
-
-			// NOTE: This call does not return a future it returns a response, but you will get a future back if the status code is 202...
-			// https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-only-authentications/delete?view=rest-sql-2023-05-01-preview&tabs=HTTP
-			if response.WasStatusCode(resp.HttpResponse, 202) {
-				// NOTE: It was accepted but not completed, it is now an async operation...
-				// create a custom poller and wait for it to complete as 'Succeeded'...
-				log.Printf("[INFO] Delete Azure Active Directory Only Administrators response was a 202 WaitForStateContext...")
-
-				initialDelayDuration := 5 * time.Second
-				pollerType := custompollers.NewMsSqlServerDeleteServerAzureADOnlyAuthenticationPoller(aadOnlyAuthenticationsClient, pointer.From(id))
-				poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-				if err := poller.PollUntilDone(ctx); err != nil {
-					return fmt.Errorf("waiting for the deletion of the Azure Active Directory Only Administrator: %+v", err)
-				}
-			}
+		if err = connectionClient.CreateOrUpdateThenPoll(ctx, *id, connection); err != nil {
+			return fmt.Errorf("updating Connection Policy for %s: %+v", id, err)
 		}
-	}
-
-	connection := serverconnectionpolicies.ServerConnectionPolicy{
-		Properties: &serverconnectionpolicies.ServerConnectionPolicyProperties{
-			ConnectionType: serverconnectionpolicies.ServerConnectionType(d.Get("connection_policy").(string)),
-		},
-	}
-
-	if err = connectionClient.CreateOrUpdateThenPoll(ctx, *id, connection); err != nil {
-		return fmt.Errorf("updating Connection Policy for %s: %+v", id, err)
 	}
 
 	if d.HasChange("express_vulnerability_assessment_enabled") {
@@ -553,9 +543,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
-	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
-	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
-	vaClient := meta.(*clients.Client).MSSQL.SqlVulnerabilityAssessmentSettingsClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -574,11 +562,18 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		return fmt.Errorf("retrieving SQL Server %s: %v", id, err)
 	}
+	return resourceMssqlServerSetFlatten(ctx, d, id, resp.Model, meta.(*clients.Client))
+}
+
+func resourceMssqlServerSetFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *commonids.SqlServerId, model *servers.Server, metaClient *clients.Client) error {
+	connectionClient := metaClient.MSSQL.ServerConnectionPoliciesClient
+	restorableDroppedDatabasesClient := metaClient.MSSQL.RestorableDroppedDatabasesClient
+	vaClient := metaClient.MSSQL.SqlVulnerabilityAssessmentSettingsClient
 
 	d.Set("name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)

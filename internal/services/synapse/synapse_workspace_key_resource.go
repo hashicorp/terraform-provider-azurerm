@@ -12,9 +12,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,7 +24,7 @@ import (
 )
 
 func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceSynapseWorkspaceKeysCreateUpdate,
 		Read:   resourceSynapseWorkspaceKeyRead,
 		Update: resourceSynapseWorkspaceKeysCreateUpdate,
@@ -56,7 +57,7 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 			"customer_managed_key_versionless_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
 			},
 
 			"active": {
@@ -65,11 +66,16 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["customer_managed_key_versionless_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
+	}
+
+	return r
 }
 
 func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.KeysClient
-	// workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -78,6 +84,8 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if err != nil {
 		return err
 	}
+
+	// TODO: import check?
 
 	key := d.Get("customer_managed_key_versionless_id")
 	keyName := d.Get("customer_managed_key_name").(string)
@@ -110,6 +118,11 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("empty or nil ID returned for Synapse Key 'cmk'")
 	}
 
+	if d.IsNewResource() {
+		id := parse.NewWorkspaceKeysID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, actualKeyName)
+		d.SetId(id.ID())
+	}
+
 	// If the state of the key in the response (from Azure) is not equal to the desired target state (from plan/config), we'll wait until that change is complete
 	if isActiveCMK != *keyresult.IsActiveCMK {
 		updateWait := synapseKeysWaitForStateChange(ctx, meta, d.Timeout(pluginsdk.TimeoutUpdate), workspaceId.ResourceGroup, workspaceId.Name, actualKeyName, strconv.FormatBool(*keyresult.IsActiveCMK), strconv.FormatBool(isActiveCMK))
@@ -118,9 +131,6 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("waiting for Synapse Keys to finish updating '%q' (Workspace Group %q): %v", actualKeyName, workspaceId.Name, err)
 		}
 	}
-
-	id := parse.NewWorkspaceKeysID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, actualKeyName)
-	d.SetId(id.ID())
 
 	return resourceSynapseWorkspaceKeyRead(d, meta)
 }
@@ -174,8 +184,7 @@ func resourceSynapseWorkspaceKeysDelete(d *pluginsdk.ResourceData, meta interfac
 
 	// Azure only lets you delete keys that are not active
 	if !*keyresult.IsActiveCMK {
-		_, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName)
-		if err != nil {
+		if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName); err != nil {
 			return fmt.Errorf("unable to delete key %s in workspace %s: %v", id.KeyName, id.WorkspaceName, err)
 		}
 	}

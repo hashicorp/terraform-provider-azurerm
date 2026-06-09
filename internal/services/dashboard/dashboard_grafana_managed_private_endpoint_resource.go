@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name dashboard_grafana_managed_private_endpoint -service-package-name dashboard -properties "name" -compare-values "resource_group_name:grafana_id,grafana_name:grafana_id" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name dashboard_grafana_managed_private_endpoint -service-package-name dashboard -properties "name" -compare-values "subscription_id:grafana_id,resource_group_name:grafana_id,grafana_name:grafana_id"
 
 type ManagedPrivateEndpointResource struct{}
 
@@ -151,12 +151,14 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 			}
 			id := managedprivateendpointmodels.NewManagedPrivateEndpointID(subscriptionId, grafanaId.ResourceGroupName, grafanaId.GrafanaName, model.Name)
 
-			existing, err := client.ManagedPrivateEndpointsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ManagedPrivateEndpointsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			props := managedprivateendpointmodels.ManagedPrivateEndpointModel{
@@ -172,7 +174,7 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.ManagedPrivateEndpointsCreateThenPoll(ctx, id, props); err != nil {
+			if err := client.ManagedPrivateEndpointsCreateCallbackThenPoll(ctx, id, props, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -241,8 +243,6 @@ func (r ManagedPrivateEndpointResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			if err := client.ManagedPrivateEndpointsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

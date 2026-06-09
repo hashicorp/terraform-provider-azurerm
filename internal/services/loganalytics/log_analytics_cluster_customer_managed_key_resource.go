@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -93,9 +94,11 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
 	}
 
-	if props.KeyVaultProperties != nil {
-		if keyProps := *props.KeyVaultProperties; keyProps.KeyName != nil && *keyProps.KeyName != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_cluster_customer_managed_key", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if props.KeyVaultProperties != nil {
+			if keyProps := *props.KeyVaultProperties; keyProps.KeyName != nil && *keyProps.KeyName != "" {
+				return tf.ImportAsExistsError("azurerm_log_analytics_cluster_customer_managed_key", id.ID())
+			}
 		}
 	}
 
@@ -117,9 +120,10 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		KeyVersion:  pointer.To(keyId.Version),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *model, sdk.SetIDCallback(meta, id, d)); err != nil {
 		return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
 	}
+	d.SetId(id.ID())
 
 	updateWait, err := logAnalyticsClusterWaitForState(ctx, client, *id)
 	if err != nil {
@@ -129,7 +133,6 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("waiting for %s to finish adding Customer Managed Key: %+v", *id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceLogAnalyticsClusterCustomerManagedKeyRead(d, meta)
 }
 

@@ -10,6 +10,10 @@ func Default() UserFeatures {
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
 		},
+		EnhancedValidation: EnhancedValidationFeatures{
+			Locations:         !FivePointOh(),
+			ResourceProviders: !FivePointOh(),
+		},
 		AppConfiguration: AppConfigurationFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,

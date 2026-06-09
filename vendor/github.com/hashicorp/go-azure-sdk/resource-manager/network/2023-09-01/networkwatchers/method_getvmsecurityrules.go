@@ -62,9 +62,20 @@ func (c NetworkWatchersClient) GetVMSecurityRules(ctx context.Context, id Networ
 
 // GetVMSecurityRulesThenPoll performs GetVMSecurityRules then polls until it's completed
 func (c NetworkWatchersClient) GetVMSecurityRulesThenPoll(ctx context.Context, id NetworkWatcherId, input SecurityGroupViewParameters) error {
+	return c.GetVMSecurityRulesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GetVMSecurityRulesCallbackThenPoll performs GetVMSecurityRules, runs the optional callback function, then polls until it's completed
+func (c NetworkWatchersClient) GetVMSecurityRulesCallbackThenPoll(ctx context.Context, id NetworkWatcherId, input SecurityGroupViewParameters, callback func() error) error {
 	result, err := c.GetVMSecurityRules(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GetVMSecurityRules: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -30,6 +30,7 @@ func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
 		AutomationConnectionTypeResource{},
 		AutomationRuntimeEnvironmentResource{},
+		AutomationRuntimeEnvironmentPackageResource{},
 		HybridRunbookWorkerGroupResource{},
 		HybridRunbookWorkerResource{},
 		PowerShell72ModuleResource{},
@@ -115,5 +116,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		AutomationAccountListResource{},
+	}
 }

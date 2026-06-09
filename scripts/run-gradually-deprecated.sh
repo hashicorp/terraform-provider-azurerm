@@ -2,6 +2,105 @@
 # Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
+# This script checks for gradually deprecated functions, deprecated data sources,
+# and unclear error messages.
+#
+# If there are valid exceptions to the rules (e.g. using d.Get in delete functions
+# for best-effort cleanups), violations can be ignored using a comment directive.
+#
+# The ignore directive can be placed on the same line as the violation, or on the
+# line immediately before it, e.g.:
+#
+#   // lintignore: <rule>
+#
+# Available rule categories for ignore directives:
+#   - gradually-deprecated : for rules checked in runGraduallyDeprecatedFunctions
+#   - deprecated           : for rules checked in runDeprecatedFunctions (e.g., d.SetId(""))
+#   - unclear-error        : for rules checked in checkForUnclearErrorMessages
+#
+# Examples:
+#   d.SetId("") // lintignore: deprecated
+#
+#   // lintignore: gradually-deprecated
+#   val := d.Get("something")
+
+
+# Checks if a given line in a file is ignored using `lintignore: <rule>`
+# Arguments:
+#   $1: file path
+#   $2: line number
+#   $3: rule name (e.g. "gradually-deprecated")
+#   $4: line content (optional)
+function is_ignored {
+  local file="$1"
+  local line_num="$2"
+  local rule="$3"
+  local line_content="$4"
+
+  # If line_content is not provided, read it from the file
+  if [ -z "$line_content" ]; then
+    line_content=$(sed -n "${line_num}p" "$file")
+  fi
+
+  # Check if the line itself contains lintignore:<rule> (allowing optional spaces)
+  if echo "$line_content" | grep -q "lintignore:[[:space:]]*${rule}"; then
+    return 0
+  fi
+
+  # Check if the preceding line exists and contains lintignore:<rule>
+  if [ "$line_num" -gt 1 ]; then
+    local prev_line_num=$((line_num - 1))
+    local prev_line
+    prev_line=$(sed -n "${prev_line_num}p" "$file")
+    if echo "$prev_line" | grep -q "lintignore:[[:space:]]*${rule}"; then
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+# Filters grep results (in the format file:line:content) and prints only those that are NOT ignored
+# Arguments:
+#   $1: results string
+#   $2: rule name (e.g. "gradually-deprecated")
+# Returns 1 if all violations are ignored (i.e. no unignored violations), 0 otherwise.
+function filter_violations {
+  local results="$1"
+  local rule="$2"
+  local has_unignored=1
+
+  if [ -z "$results" ]; then
+    return 1
+  fi
+
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    # Extract file, line number, and content
+    # Format is file:line:content
+    local file
+    local line_num
+    local content
+    file=$(echo "$line" | cut -d: -f1)
+    line_num=$(echo "$line" | cut -d: -f2)
+    content=$(echo "$line" | cut -d: -f3-)
+
+    # If the line number is not a number, it's not a standard grep -H -n output, skip or treat as unignored
+    if ! [[ "$line_num" =~ ^[0-9]+$ ]]; then
+      echo "$line"
+      has_unignored=0
+      continue
+    fi
+
+    if ! is_ignored "$file" "$line_num" "$rule" "$content"; then
+      echo "$line"
+      has_unignored=0
+    fi
+  done <<< "$results"
+
+  return "$has_unignored"
+}
+
 
 function runGraduallyDeprecatedFunctions {
   echo "==> Checking for use of gradually deprecated functions..."
@@ -9,20 +108,17 @@ function runGraduallyDeprecatedFunctions {
   IFS=$'\n' read -r -d '' -a flist < <(git diff --diff-filter=AMRC origin/main --name-only --merge-base)
 
   for f in "${flist[@]}"; do
-    # require resources to be imported is now hard-coded on - but only checking for additions
-    grep -H -n "features\.ShouldResourcesBeImported" "$f" && {
-        echo "The Feature Flag for 'ShouldResourcesBeImported' will be deprecated in the future"
-        echo "and shouldn't be used in new resources - please remove new usages of the"
-        echo "'ShouldResourcesBeImported' function from these changes - since this is now enabled"
-        echo "by default."
-        echo ""
-        echo "In the future this function will be marked as Deprecated - however it's not for"
-        echo "the moment to not conflict with open Pull Requests."
-        exit 1
-    }
+    # Only check Go files
+    if [[ "$f" != *.go ]]; then
+      continue
+    fi
 
-    # using Resource ID Formatters/Parsers
-    grep -H -n "d\.SetId(\\*" "$f" && {
+    # using Resource ID Formatters/Parsers
+    violations=$(grep -H -n "d\.SetId(\\*" "$f")
+    if [ -n "$violations" ]; then
+      unignored=$(filter_violations "$violations" "gradually-deprecated")
+      if [ -n "$unignored" ]; then
+        echo "$unignored"
         echo "Due to the Azure API returning the Resource ID's inconsistently - Terraform"
         echo "now manages it's own Resource ID's, all new resources should use a generated"
         echo "Resource ID Formatter and Parser."
@@ -57,26 +153,30 @@ function runGraduallyDeprecatedFunctions {
         echo "however existing (unmodified) resources can continue to use the Azure ID"
         echo "for the moment - but over time these will be switched across."
         exit 1
-    }
+      fi
+    fi
 
     # check for new combined CreateUpdate methods
     line=$(grep -H -n "Create:.*CreateUpdate," "$f" -m1)
     if [ "$line" != "" ];
     then
-      git diff --diff-filter=AMC origin/main -U0 "$f" | grep -q "+.*Create:.*CreateUpdate," && {
-        echo "$line"
-        echo "New Resources should no longer use combined CreateUpdate methods, please"
-        echo "split these into two separate Create and Update methods."
-        echo ""
-        echo "Existing resources can continue to use combined CreateUpdate methods"
-        echo "for the moment - but over time these will be split into separate Create and"
-        echo "Update methods."
-        exit 1
-      }
+      unignored=$(filter_violations "$line" "gradually-deprecated")
+      if [ -n "$unignored" ]; then
+        git diff --diff-filter=AMC origin/main -U0 "$f" | grep -q "+.*Create:.*CreateUpdate," && {
+          echo "$unignored"
+          echo "New Resources should no longer use combined CreateUpdate methods, please"
+          echo "split these into two separate Create and Update methods."
+          echo ""
+          echo "Existing resources can continue to use combined CreateUpdate methods"
+          echo "for the moment - but over time these will be split into separate Create and"
+          echo "Update methods."
+          exit 1
+        }
+      fi
     fi
 
     # exceptions to avoid false positives and legacy resources should have their original behaviour preserved
-    exceptions=("run-gradually-deprecated" "/legacy/" "network/ip_group_cidr_resource.go" "network/network_security_group_resource.go" "internal/provider" "vendor/")
+    exceptions=("run-gradually-deprecated" "/legacy/" "network/ip_group_cidr_resource.go" "network/network_security_group_resource.go" "internal/provider" "vendor/" "internal/acceptance/testing.go")
     toSkip=false
     for e in "${exceptions[@]}"; do
       isThisException=$(echo "$f" | grep "$e")
@@ -90,134 +190,187 @@ function runGraduallyDeprecatedFunctions {
       deleteFuncName=$(grep -o "Delete: .*," "$f" -m1 | grep -o " .*Delete"| tr -d " ")
       if [ "$deleteFuncName" != "" ];
       then
-        deleteMethod=$(cat -n $f | sed -n -e "/func $deleteFuncName.*$/,/[[:digit:]]*\treturn nil/{ /func $deleteFuncName$/d; /[[:digit:]]*\treturn nil/d; p; }")
+        deleteMethod=$(cat -n "$f" | sed -n -e "/func $deleteFuncName.*$/,/[[:digit:]]*\treturn nil/{ /func $deleteFuncName$/d; /[[:digit:]]*\treturn nil/d; p; }")
         foundGet=$(echo "$deleteMethod" | grep "d\.Get(.*)" -m1)
         if [ "$foundGet" != "" ];
         then
-          echo "$f $foundGet"
-          echo "Please do not use 'd.Get' within the Delete function as this does not work as expected in Delete"
-          exit 1
+          line_num=$(echo "$foundGet" | awk '{print $1}')
+          # shellcheck disable=SC2001
+          content=$(echo "$foundGet" | sed 's/^[[:space:]]*[0-9]*[[:space:]]*//')
+          unignored=$(filter_violations "$f:$line_num:$content" "gradually-deprecated")
+          if [ -n "$unignored" ]; then
+            echo "$f $foundGet"
+            echo "Please do not use 'd.Get' within the Delete function as this does not work as expected in Delete"
+            exit 1
+          fi
         fi
       else
         # check for Get in typed resource
         deleteFuncName=" Delete() sdk.ResourceFunc "
-        deleteMethod=$(cat -n $f | sed -n -e "/$deleteFuncName.*$/,/[[:digit:]]*\t\t\treturn nil/{ /$deleteFuncName.*$/d; /[[:digit:]]*\t\t\treturn nil/d; p; }")
+        deleteMethod=$(cat -n "$f" | sed -n -e "/$deleteFuncName.*$/,/[[:digit:]]*\t\t\treturn nil/{ /$deleteFuncName.*$/d; /[[:digit:]]*\t\t\treturn nil/d; p; }")
         foundGet=$(echo "$deleteMethod" | grep "metadata.ResourceData.Get" -m1)
         if [ "$foundGet" != "" ];
         then
+          line_num=$(echo "$foundGet" | awk '{print $1}')
+          # shellcheck disable=SC2001
+          content=$(echo "$foundGet" | sed 's/^[[:space:]]*[0-9]*[[:space:]]*//')
+          unignored=$(filter_violations "$f:$line_num:$content" "gradually-deprecated")
+          if [ -n "$unignored" ]; then
             echo "$f $foundGet"
             echo "Please do not use 'metadata.ResourceData.Get' within the Delete function as this does not work as expected in Delete"
             exit 1
           fi
         fi
+      fi
 
-        # require Azure SDK clients are created with the resource manager endpoint specified
-        grep -H -n "Client(o.SubscriptionId)" "$f" && {
-            echo "The Azure SDK (track1 & kermit) clients should be created with the function NewFoosClientWithBaseURI() "
-            echo "that has the resource manager endpoint explicitly specified. These can be found in:"
-            echo "* $f"
-            exit 1
-        }
+      # require Azure SDK clients are created with the resource manager endpoint specified
+      violations=$(grep -H -n "Client(o.SubscriptionId)" "$f")
+      if [ -n "$violations" ]; then
+        unignored=$(filter_violations "$violations" "gradually-deprecated")
+        if [ -n "$unignored" ]; then
+          echo "The Azure SDK (track1 & kermit) clients should be created with the function NewFoosClientWithBaseURI() "
+          echo "that has the resource manager endpoint explicitly specified. These can be found in:"
+          echo "$unignored"
+          exit 1
+        fi
+      fi
 
-        # Resource IDs shouldn't be compared by using a.ID() == b.ID() - but instead use the resourceids.Match method
-        grep -H -n ".ID() ==" "$f" && {
-            echo "Resource IDs should not be compared by using a.ID() == b.ID(), but instead use 'resourceids.Match(a, b)"
-            echo "which can be found in the Go package 'github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids'."
-            echo "These can be found in:"
-            echo "* $f"
-            exit 1
-        }
+      # Resource IDs shouldn't be compared by using a.ID() == b.ID() - but instead use the resourceids.Match method
+      violations=$(grep -H -n ".ID() ==" "$f")
+      if [ -n "$violations" ]; then
+        unignored=$(filter_violations "$violations" "gradually-deprecated")
+        if [ -n "$unignored" ]; then
+          echo "Resource IDs should not be compared by using a.ID() == b.ID(), but instead use 'resourceids.Match(a, b)"
+          echo "which can be found in the Go package 'github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids'."
+          echo "These can be found in:"
+          echo "$unignored"
+          exit 1
+        fi
+      fi
 
-        # The case-aware comparisons feature flag is problematic until the rollout is completed
-        grep -H -n "\.TreatUserSpecifiedSegmentsAsCaseInsensitive =" "$f" && {
-            echo "The case-aware comparisons feature is not ready for usage and should not be configured/exposed at this time."
-            echo "There's a substantial number of dependencies required for this to not cause more problems then it solves"
-            echo "and as such this is not supported in any form at this point-in-time."
-            echo "Please remove the assignment to 'features.TreatUserSpecifiedSegmentsAsCaseInsensitive', which can be found in:"
-            echo "* $f"
-            exit 1
-        }
+      # The case-aware comparisons feature flag is problematic until the rollout is completed
+      violations=$(grep -H -n "\.TreatUserSpecifiedSegmentsAsCaseInsensitive =" "$f")
+      if [ -n "$violations" ]; then
+        unignored=$(filter_violations "$violations" "gradually-deprecated")
+        if [ -n "$unignored" ]; then
+          echo "The case-aware comparisons feature is not ready for usage and should not be configured/exposed at this time."
+          echo "There's a substantial number of dependencies required for this to not cause more problems then it solves"
+          echo "and as such this is not supported in any form at this point-in-time."
+          echo "Please remove the assignment to 'features.TreatUserSpecifiedSegmentsAsCaseInsensitive', which can be found in:"
+          echo "$unignored"
+          exit 1
+        fi
+      fi
 
-        ## Test Configurations should NOT use os.GetEnv to load credentials and use these in tests
-        ## Instead a User Assigned Identity should be created as a part of the Test Configuration with as
-        ## minimal permissions as possible - which can then be cleaned up as a part of the test.
+      ## Test Configurations should NOT use os.GetEnv to load credentials and use these in tests
+      ## Instead a User Assigned Identity should be created as a part of the Test Configuration with as
+      ## minimal permissions as possible - which can then be cleaned up as a part of the test.
 
-        # Ensure the Test Configuration doesn't use the Client ID
-        grep -H -n "os.Getenv(\"ARM_CLIENT_ID\")" "$f" && {
-            echo "A usage of 'os.Getenv('ARM_CLIENT_ID') has been detected in:"
-            echo "* $f"
-            echo ""
-            echo "Test Configurations should NOT use 'os.Getenv' to obtain credentials, instead these should"
-            echo "create a User Assigned Identity using the 'azurerm_user_assigned_identity' resource, grant"
-            echo "it permissions as required - and use that instead of reusing the credentials used for testing purposes."
-            exit 1
-        }
+      # Ensure the Test Configuration doesn't use the Client ID
+      violations=$(grep -H -n "os.Getenv(\"ARM_CLIENT_ID\")" "$f")
+      if [ -n "$violations" ]; then
+        unignored=$(filter_violations "$violations" "gradually-deprecated")
+        if [ -n "$unignored" ]; then
+          echo "A usage of 'os.Getenv('ARM_CLIENT_ID') has been detected in:"
+          echo "$unignored"
+          echo ""
+          echo "Test Configurations should NOT use 'os.Getenv' to obtain credentials, instead these should"
+          echo "create a User Assigned Identity using the 'azurerm_user_assigned_identity' resource, grant"
+          echo "it permissions as required - and use that instead of reusing the credentials used for testing purposes."
+          exit 1
+        fi
+      fi
 
-        # Ensure the Test Configuration doesn't use the Client Secret
-        grep -H -n "os.Getenv(\"ARM_CLIENT_SECRET\")" "$f" && {
-            echo "A usage of 'os.Getenv('ARM_CLIENT_SECRET') has been detected in:"
-            echo "* $f"
-            echo ""
-            echo "Test Configurations should NOT use 'os.Getenv' to obtain credentials, instead these should"
-            echo "create a User Assigned Identity using the 'azurerm_user_assigned_identity' resource, grant"
-            echo "it permissions as required - and use that instead of reusing the credentials used for testing purposes."
-            exit 1
-        }
+      # Ensure the Test Configuration doesn't use the Client Secret
+      violations=$(grep -H -n "os.Getenv(\"ARM_CLIENT_SECRET\")" "$f")
+      if [ -n "$violations" ]; then
+        unignored=$(filter_violations "$violations" "gradually-deprecated")
+        if [ -n "$unignored" ]; then
+          echo "A usage of 'os.Getenv('ARM_CLIENT_SECRET') has been detected in:"
+          echo "$unignored"
+          echo ""
+          echo "Test Configurations should NOT use 'os.Getenv' to obtain credentials, instead these should"
+          echo "create a User Assigned Identity using the 'azurerm_user_assigned_identity' resource, grant"
+          echo "it permissions as required - and use that instead of reusing the credentials used for testing purposes."
+          exit 1
+        fi
+      fi
 
-        # Ensure the Test Configuration doesn't use the Client Secret
-        grep -H -n "os.Getenv(\"ARM_CLIENT_SECRET_ALT\")" "$f" && {
-            echo "A usage of 'os.Getenv('ARM_CLIENT_SECRET_ALT') has been detected in:"
-            echo "* $f"
-            echo ""
-            echo "Test Configurations should NOT use 'os.Getenv' to obtain credentials, instead these should"
-            echo "create a User Assigned Identity using the 'azurerm_user_assigned_identity' resource, grant"
-            echo "it permissions as required - and use that instead of reusing the credentials used for testing purposes."
-            exit 1
-        }
+      # Ensure the Test Configuration doesn't use the Client Secret
+      violations=$(grep -H -n "os.Getenv(\"ARM_CLIENT_SECRET_ALT\")" "$f")
+      if [ -n "$violations" ]; then
+        unignored=$(filter_violations "$violations" "gradually-deprecated")
+        if [ -n "$unignored" ]; then
+          echo "A usage of 'os.Getenv('ARM_CLIENT_SECRET_ALT') has been detected in:"
+          echo "$unignored"
+          echo ""
+          echo "Test Configurations should NOT use 'os.Getenv' to obtain credentials, instead these should"
+          echo "create a User Assigned Identity using the 'azurerm_user_assigned_identity' resource, grant"
+          echo "it permissions as required - and use that instead of reusing the credentials used for testing purposes."
+          exit 1
+        fi
+      fi
     fi
 
   done
 }
 
 function checkForUnclearErrorMessages {
-  result=$(grep -R "invalid format of " ./internal)
-  if [ "$result" != "" ];
+  violations=$(grep -R -n "invalid format of " ./internal)
+  if [ -n "$violations" ];
   then
-    echo "The error messages in these files aren't descriptive, please add more"
-    echo "context for how users can fix these. For example, changing \"invalid"
-    echo "format of 'foo'\" can clearer as \"'foo' must start with letter, can"
-    echo "contain both letters and numbers and must end with a letter\"."
-    echo ""
-    echo "$result"
-    exit 1
+    unignored=$(filter_violations "$violations" "unclear-error")
+    if [ -n "$unignored" ]; then
+      echo "The error messages in these files aren't descriptive, please add more"
+      echo "context for how users can fix these. For example, changing \"invalid"
+      echo "format of 'foo'\" can clearer as \"'foo' must start with letter, can"
+      echo "contain both letters and numbers and must end with a letter\"."
+      echo ""
+      echo "$unignored"
+      exit 1
+    fi
   fi
 }
 
 function runDeprecatedFunctions {
   echo "==> Checking for use of deprecated functions..."
-  result=$(grep -Ril "d.setid(\"\")" ./internal/services/**/*data_source*.go)
-  if [ "$result" != "" ];
-  then
-    echo "Data Sources should return an error when a resource cannot be found rather than"
-    echo "setting an empty ID (by calling 'd.SetId("")'."
-    echo ""
-    echo "Please remove the references to 'd.SetId("") from the Data Sources listed below"
-    echo "and raise an error instead:"
-    echo ""
-    echo "$result"
-    exit 1
-  fi
-  result=$(grep -Ril "markasgone" ./internal/services/**/*data_source*.go)
-  if [ "$result" != "" ];
-  then
-    echo "Data Sources should return an error when a resource cannot be found rather than"
-    echo "marking the resource as gone."
-    echo ""
-    echo "Please remove the references to 'metadata.MarkAsGone' from the Data Sources listed below"
-    echo "and raise an error instead:"
-    echo ""
-    echo "$result"
-    exit 1
+
+  # Find all data source files
+  local files
+  files=$(find ./internal/services -name "*data_source*.go")
+  if [ -n "$files" ]; then
+    # check for d.SetId("")
+    local violations
+    violations=$(echo "$files" | xargs grep -H -n -i "d\.SetId(\"\")" 2>/dev/null)
+    if [ -n "$violations" ]; then
+      unignored=$(filter_violations "$violations" "deprecated")
+      if [ -n "$unignored" ]; then
+        echo "Data Sources should return an error when a resource cannot be found rather than"
+        echo "setting an empty ID (by calling 'd.SetId(\"\")')."
+        echo ""
+        echo "Please remove the references to 'd.SetId(\"\")' from the Data Sources listed below"
+        echo "and raise an error instead:"
+        echo ""
+        echo "$unignored"
+        exit 1
+      fi
+    fi
+
+    # check for markasgone
+    violations=$(echo "$files" | xargs grep -H -n -i "markasgone" 2>/dev/null)
+    if [ -n "$violations" ]; then
+      unignored=$(filter_violations "$violations" "deprecated")
+      if [ -n "$unignored" ]; then
+        echo "Data Sources should return an error when a resource cannot be found rather than"
+        echo "marking the resource as gone."
+        echo ""
+        echo "Please remove the references to 'metadata.MarkAsGone' from the Data Sources listed below"
+        echo "and raise an error instead:"
+        echo ""
+        echo "$unignored"
+        exit 1
+      fi
+    fi
   fi
 }
 
