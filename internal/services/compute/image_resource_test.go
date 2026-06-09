@@ -409,17 +409,17 @@ resource "azurerm_virtual_machine" "testsource" {
     computer_name  = "mdimagetestsource"
     admin_username = local.admin_username
     admin_password = local.admin_password
+
+    custom_data = base64encode(<<-EOT
+      #!/bin/bash
+      sudo waagent -verbose -deprovision+user -force
+    EOT
+    )
   }
 
   os_profile_linux_config {
     disable_password_authentication = false
   }
-
-  custom_data = base64encode(<<-EOT
-    #!/bin/bash
-    sudo waagent -verbose -deprovision+user -force
-  EOT
-  )
 
   tags = {
     environment = "Dev"
