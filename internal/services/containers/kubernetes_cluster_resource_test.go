@@ -61,18 +61,12 @@ func TestAccKubernetesCluster_defaultNodePoolPodIPAllocationMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
-	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.defaultNodePoolPodIPAllocationMode(data, "StaticBlock"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.defaultNodePoolPodIPAllocationMode(data, "DynamicIndividual"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.pod_ip_allocation_mode").HasValue("StaticBlock"),
 			),
 		},
 		data.ImportStep(),

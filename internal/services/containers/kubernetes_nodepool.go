@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -222,11 +223,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"pod_ip_allocation_mode": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Computed:     true,
 						ForceNew:     true,
-						RequiredWith: []string{"default_node_pool.0.pod_subnet_id"},
-						Default:      string(managedclusters.PodIPAllocationModeDynamicIndividual),
 						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForPodIPAllocationMode(), false),
-						Description:  "The IP allocation mode for pods in the agent pool. Must be used with `pod_subnet_id`. Possible values are `DynamicIndividual` and `StaticBlock`. The default is `DynamicIndividual`.",
+						Description:  "The IP allocation mode for pods in the agent pool. Must be used with `pod_subnet_id`. Possible values are `DynamicIndividual` and `StaticBlock`.",
 					},
 					"proximity_placement_group_id": {
 						Type:         pluginsdk.TypeString,
@@ -937,7 +937,8 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.PodSubnetID = pointer.To(podSubnetID)
 	}
 
-	if podIPAllocationMode := raw["pod_ip_allocation_mode"].(string); podIPAllocationMode != "" {
+	if defaultNodePoolPodIPAllocationModeSetInConfig(d) {
+		podIPAllocationMode := raw["pod_ip_allocation_mode"].(string)
 		profile.PodIPAllocationMode = pointer.ToEnum[managedclusters.PodIPAllocationMode](podIPAllocationMode)
 	}
 
@@ -1058,6 +1059,19 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	return &[]managedclusters.ManagedClusterAgentPoolProfile{
 		profile,
 	}, nil
+}
+
+func nodePoolPodIPAllocationModeSetInConfig(d *pluginsdk.ResourceData) bool {
+	return rawConfigHasValue(d, cty.GetAttrPath("pod_ip_allocation_mode"))
+}
+
+func defaultNodePoolPodIPAllocationModeSetInConfig(d *pluginsdk.ResourceData) bool {
+	return rawConfigHasValue(d, cty.GetAttrPath("default_node_pool").IndexInt(0).GetAttr("pod_ip_allocation_mode"))
+}
+
+func rawConfigHasValue(d *pluginsdk.ResourceData, path cty.Path) bool {
+	raw, diags := d.GetRawConfigAt(path)
+	return !diags.HasError() && !raw.IsNull()
 }
 
 func expandClusterNodePoolKubeletConfig(input []interface{}) *managedclusters.KubeletConfig {

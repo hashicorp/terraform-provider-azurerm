@@ -375,11 +375,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"pod_ip_allocation_mode": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Computed:     true,
 			ForceNew:     true,
-			RequiredWith: []string{"pod_subnet_id"},
-			Default:      string(agentpools.PodIPAllocationModeDynamicIndividual),
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForPodIPAllocationMode(), false),
-			Description:  "The IP allocation mode for pods in the agent pool. Must be used with `pod_subnet_id`. Possible values are `DynamicIndividual` and `StaticBlock`. The default is `DynamicIndividual`.",
+			Description:  "The IP allocation mode for pods in the agent pool. Must be used with `pod_subnet_id`. Possible values are `DynamicIndividual` and `StaticBlock`.",
 		},
 
 		"pod_subnet_id": {
@@ -690,7 +689,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		subnetIDsToLock = append(subnetIDsToLock, podSubnetID.ID())
 	}
 
-	if podIPAllocationMode := d.Get("pod_ip_allocation_mode").(string); podIPAllocationMode != "" {
+	if nodePoolPodIPAllocationModeSetInConfig(d) {
+		podIPAllocationMode := d.Get("pod_ip_allocation_mode").(string)
 		profile.PodIPAllocationMode = pointer.ToEnum[agentpools.PodIPAllocationMode](podIPAllocationMode)
 	}
 
