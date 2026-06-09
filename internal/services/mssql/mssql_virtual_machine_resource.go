@@ -37,9 +37,9 @@ import (
 
 func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceMsSqlVirtualMachineCreateUpdate,
+		Create: resourceMsSqlVirtualMachineCreate,
 		Read:   resourceMsSqlVirtualMachineRead,
-		Update: resourceMsSqlVirtualMachineCreateUpdate,
+		Update: resourceMsSqlVirtualMachineUpdate,
 		Delete: resourceMsSqlVirtualMachineDelete,
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceMsSqlVirtualMachineCustomDiff),
@@ -492,7 +492,7 @@ func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *pluginsdk.Res
 	return nil
 }
 
-func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
 	vmclient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -504,17 +504,15 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	id := sqlvirtualmachines.NewSqlVirtualMachineID(vmId.SubscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName)
 
-	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id, sqlvirtualmachines.GetOperationOptions{Expand: pointer.To("*")})
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for present of existing %s: %+v", id, err)
-				}
-			}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, sqlvirtualmachines.GetOperationOptions{Expand: pointer.To("*")})
+		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_mssql_virtual_machine", id.ID())
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 			}
+		}
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_mssql_virtual_machine", id.ID())
 		}
 	}
 
@@ -581,24 +579,18 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if d.IsNewResource() {
-		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
-			return fmt.Errorf("creating %s: %+v", id, err)
-		}
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
 
-		d.SetId(id.ID())
-		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-			return err
-		}
-	} else {
-		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	// Wait for the auto backup settings to take effect
 	// See: https://github.com/Azure/azure-rest-api-specs/issues/12818
-	if autoBackup := d.Get("auto_backup"); (d.IsNewResource() && len(autoBackup.([]interface{})) > 0) || (!d.IsNewResource() && d.HasChange("auto_backup")) {
+	if autoBackup := d.Get("auto_backup"); len(autoBackup.([]interface{})) > 0 {
 		log.Printf("[DEBUG] Waiting for SQL Virtual Machine %q AutoBackupSettings to take effect", d.Id())
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"Retry", "Pending"},
@@ -606,12 +598,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 			Refresh:                   resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx, client, d),
 			MinTimeout:                1 * time.Minute,
 			ContinuousTargetOccurence: 2,
-		}
-
-		if d.IsNewResource() {
-			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-		} else {
-			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 		}
 
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
@@ -621,7 +608,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	// Wait for the auto patching settings to take effect
 	// See: https://github.com/Azure/azure-rest-api-specs/issues/12818
-	if autoPatching := d.Get("auto_patching"); (d.IsNewResource() && len(autoPatching.([]interface{})) > 0) || (!d.IsNewResource() && d.HasChange("auto_patching")) {
+	if autoPatching := d.Get("auto_patching"); len(autoPatching.([]interface{})) > 0 {
 		log.Printf("[DEBUG] Waiting for SQL Virtual Machine %q AutoPatchingSettings to take effect", d.Id())
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"Retry", "Pending"},
@@ -629,12 +616,173 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 			Refresh:                   resourceMsSqlVirtualMachineAutoPatchingSettingsRefreshFunc(ctx, client, d),
 			MinTimeout:                1 * time.Minute,
 			ContinuousTargetOccurence: 2,
+			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 		}
 
-		if d.IsNewResource() {
-			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-		} else {
-			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for SQL Virtual Machine %q AutoPatchingSettings to take effect: %+v", d.Id(), err)
+		}
+	}
+
+	return resourceMsSqlVirtualMachineRead(d, meta)
+}
+
+func resourceMsSqlVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := sqlvirtualmachines.ParseSqlVirtualMachineID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id, sqlvirtualmachines.GetOperationOptions{Expand: pointer.To("*")})
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	existingProps := *existing.Model.Properties
+
+	// The API returns a lot of properties that aren't set by TF in create and break if returned on update
+	// so use the existingProps to populate a fresh payload and update from there
+	mgmt := &sqlvirtualmachines.ServerConfigurationsManagementSettings{}
+	if existingMgmt := existingProps.ServerConfigurationsManagementSettings; existingMgmt != nil {
+		mgmt.AdditionalFeaturesServerConfigurations = existingMgmt.AdditionalFeaturesServerConfigurations
+		mgmt.SqlConnectivityUpdateSettings = existingMgmt.SqlConnectivityUpdateSettings
+		mgmt.SqlInstanceSettings = existingMgmt.SqlInstanceSettings
+	}
+
+	props := &sqlvirtualmachines.SqlVirtualMachineProperties{
+		AutoBackupSettings:                     existingProps.AutoBackupSettings,
+		AutoPatchingSettings:                   existingProps.AutoPatchingSettings,
+		AssessmentSettings:                     existingProps.AssessmentSettings,
+		KeyVaultCredentialSettings:             existingProps.KeyVaultCredentialSettings,
+		WsfcDomainCredentials:                  existingProps.WsfcDomainCredentials,
+		SqlVirtualMachineGroupResourceId:       existingProps.SqlVirtualMachineGroupResourceId,
+		ServerConfigurationsManagementSettings: mgmt,
+		SqlManagement:                          existingProps.SqlManagement,
+		SqlServerLicenseType:                   existingProps.SqlServerLicenseType,
+		StorageConfigurationSettings:           existingProps.StorageConfigurationSettings,
+		VirtualMachineResourceId:               existingProps.VirtualMachineResourceId,
+	}
+
+	payload := sqlvirtualmachines.SqlVirtualMachine{
+		Location:   existing.Model.Location,
+		Properties: props,
+		Tags:       existing.Model.Tags,
+	}
+
+	if d.HasChange("auto_backup") {
+		autoBackupSettings, err := expandSqlVirtualMachineAutoBackupSettings(d.Get("auto_backup").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `auto_backup`: %+v", err)
+		}
+		props.AutoBackupSettings = autoBackupSettings
+	}
+
+	if d.HasChange("auto_patching") {
+		props.AutoPatchingSettings = expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{}))
+	}
+
+	if d.HasChange("assessment") {
+		props.AssessmentSettings = expandSqlVirtualMachineAssessmentSettings(d.Get("assessment").([]interface{}))
+	}
+
+	if d.HasChange("key_vault_credential") {
+		props.KeyVaultCredentialSettings = expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{}))
+	}
+
+	if d.HasChange("wsfc_domain_credential") {
+		props.WsfcDomainCredentials = expandSqlVirtualMachineWsfcDomainCredentials(d.Get("wsfc_domain_credential").([]interface{}))
+	}
+
+	if d.HasChange("sql_virtual_machine_group_id") {
+		var sqlVmGroupId string
+		if sqlVmGroupId = d.Get("sql_virtual_machine_group_id").(string); sqlVmGroupId != "" {
+			parsedVmGroupId, err := sqlvirtualmachinegroups.ParseSqlVirtualMachineGroupIDInsensitively(sqlVmGroupId)
+			if err != nil {
+				return err
+			}
+			sqlVmGroupId = parsedVmGroupId.ID()
+		}
+		props.SqlVirtualMachineGroupResourceId = pointer.To(sqlVmGroupId)
+	}
+
+	if d.HasChange("storage_configuration") {
+		props.StorageConfigurationSettings = expandSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration").([]interface{}))
+	}
+
+	if d.HasChange("r_services_enabled") {
+		mgmt.AdditionalFeaturesServerConfigurations = &sqlvirtualmachines.AdditionalFeaturesServerConfigurations{
+			IsRServicesEnabled: pointer.To(d.Get("r_services_enabled").(bool)),
+		}
+	}
+
+	if d.HasChange("sql_connectivity_port") || d.HasChange("sql_connectivity_type") || d.HasChange("sql_connectivity_update_password") || d.HasChange("sql_connectivity_update_username") {
+		connectivityType := sqlvirtualmachines.ConnectivityType(d.Get("sql_connectivity_type").(string))
+		mgmt.SqlConnectivityUpdateSettings = &sqlvirtualmachines.SqlConnectivityUpdateSettings{
+			ConnectivityType:      &connectivityType,
+			Port:                  pointer.To(int64(d.Get("sql_connectivity_port").(int))),
+			SqlAuthUpdatePassword: pointer.To(d.Get("sql_connectivity_update_password").(string)),
+			SqlAuthUpdateUserName: pointer.To(d.Get("sql_connectivity_update_username").(string)),
+		}
+	}
+
+	if d.HasChange("sql_instance") {
+		sqlInstance, err := expandSqlVirtualMachineSQLInstance(d.Get("sql_instance").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `sql_instance`: %+v", err)
+		}
+		mgmt.SqlInstanceSettings = sqlInstance
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	if d.HasChange("tags") {
+		err = client.UpdateThenPoll(ctx, *id, sqlvirtualmachines.SqlVirtualMachineUpdate{Tags: tags.Expand(d.Get("tags").(map[string]interface{}))})
+		if err != nil {
+			return fmt.Errorf("updating tags for %s: %+v", id, err)
+		}
+	}
+
+	// Wait for the auto backup settings to take effect
+	// See: https://github.com/Azure/azure-rest-api-specs/issues/12818
+	if d.HasChange("auto_backup") {
+		log.Printf("[DEBUG] Waiting for SQL Virtual Machine %q AutoBackupSettings to take effect", d.Id())
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:                   []string{"Retry", "Pending"},
+			Target:                    []string{"Updated"},
+			Refresh:                   resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx, client, d),
+			MinTimeout:                1 * time.Minute,
+			ContinuousTargetOccurence: 2,
+			Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
+		}
+
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for SQL Virtual Machine %q AutoBackupSettings to take effect: %+v", d.Id(), err)
+		}
+	}
+
+	// Wait for the auto patching settings to take effect
+	// See: https://github.com/Azure/azure-rest-api-specs/issues/12818
+	if d.HasChange("auto_patching") {
+		log.Printf("[DEBUG] Waiting for SQL Virtual Machine %q AutoPatchingSettings to take effect", d.Id())
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:                   []string{"Retry", "Pending"},
+			Target:                    []string{"Updated"},
+			Refresh:                   resourceMsSqlVirtualMachineAutoPatchingSettingsRefreshFunc(ctx, client, d),
+			MinTimeout:                1 * time.Minute,
+			ContinuousTargetOccurence: 2,
+			Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
 		}
 
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {

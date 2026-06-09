@@ -180,7 +180,7 @@ func TestAccMsSqlVirtualMachine_toggleAutoPatching(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.basicWithSystemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -350,6 +350,15 @@ func TestAccMsSqlVirtualMachine_assessmentSettings(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			// removing the `assessment` block must clear the settings on the API
+			Config: r.basicWithSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("assessment.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -483,39 +492,144 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctest-VM-%[1]d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_F2s"
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = "acctest-VM-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  size                = "Standard_F2s"
+  admin_username      = "testadmin"
+  admin_password      = "Password1234!"
+  computer_name       = "winhost01"
+  timezone            = "Pacific Standard Time"
 
-  delete_os_disk_on_termination = true
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
 
-  storage_image_reference {
+  os_disk {
+    caching              = "ReadOnly"
+    storage_account_type = "Premium_LRS"
+  }
+
+  source_image_reference {
     publisher = "MicrosoftSQLServer"
-    offer     = "SQL2017-WS2016"
+    offer     = "SQL2019-WS2019"
     sku       = "SQLDEV"
     version   = "latest"
   }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
 
-  storage_os_disk {
-    name              = "acctvm-%[1]dOSDisk"
-    caching           = "ReadOnly"
-    create_option     = "FromImage"
-    managed_disk_type = "Premium_LRS"
+func (MssqlVirtualMachineResource) templateWithSystemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+     # TODO explain in comment
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+provider "azuread" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VN-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-SN-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/24"]
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_public_ip" "vm" {
+  name                = "acctest-PIP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctest-NSG-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_network_security_rule" "MSSQLRule" {
+  name                        = "MSSQLRule"
+  resource_group_name         = azurerm_resource_group.test.name
+  priority                    = 1001
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = 1433
+  source_address_prefix       = "167.220.255.0/25"
+  destination_address_prefix  = "*"
+  network_security_group_name = azurerm_network_security_group.test.name
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctest-NIC-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.vm.id
+  }
+}
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = "acctest-VM-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  size                = "Standard_F2s"
+  admin_username      = "testadmin"
+  admin_password      = "Password1234!"
+  computer_name       = "winhost01"
+  timezone            = "Pacific Standard Time"
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  identity {
+    type = "SystemAssigned"
   }
 
-  os_profile {
-    computer_name  = "winhost01"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
+  os_disk {
+    caching              = "ReadOnly"
+    storage_account_type = "Premium_LRS"
   }
 
-  os_profile_windows_config {
-    timezone                  = "Pacific Standard Time"
-    provision_vm_agent        = true
-    enable_automatic_upgrades = true
+  source_image_reference {
+    publisher = "MicrosoftSQLServer"
+    offer     = "SQL2019-WS2019"
+    sku       = "SQLDEV"
+    version   = "latest"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -526,10 +640,21 @@ func (r MssqlVirtualMachineResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 }
 `, r.template(data))
+}
+
+func (r MssqlVirtualMachineResource) basicWithSystemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+}
+`, r.templateWithSystemAssignedIdentity(data))
 }
 
 func (r MssqlVirtualMachineResource) requiresImport(data acceptance.TestData) string {
@@ -548,7 +673,7 @@ func (r MssqlVirtualMachineResource) complete(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id               = azurerm_virtual_machine.test.id
+  virtual_machine_id               = azurerm_windows_virtual_machine.test.id
   sql_license_type                 = "PAYG"
   r_services_enabled               = true
   sql_connectivity_port            = 1433
@@ -556,7 +681,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_connectivity_update_password = "Password1234!"
   sql_connectivity_update_username = "sqllogin"
 }
-`, r.template(data))
+`, r.templateWithSystemAssignedIdentity(data))
 }
 
 func (r MssqlVirtualMachineResource) update(data acceptance.TestData) string {
@@ -564,7 +689,7 @@ func (r MssqlVirtualMachineResource) update(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id               = azurerm_virtual_machine.test.id
+  virtual_machine_id               = azurerm_windows_virtual_machine.test.id
   sql_license_type                 = "PAYG"
   r_services_enabled               = false
   sql_connectivity_port            = 1533
@@ -572,7 +697,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_connectivity_update_password = "Password12344321!"
   sql_connectivity_update_username = "sqlloginupdate"
 }
-`, r.template(data))
+`, r.templateWithSystemAssignedIdentity(data))
 }
 
 func (r MssqlVirtualMachineResource) withAutoPatching(data acceptance.TestData) string {
@@ -580,7 +705,7 @@ func (r MssqlVirtualMachineResource) withAutoPatching(data acceptance.TestData) 
 %[1]s
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   auto_patching {
@@ -589,7 +714,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     maintenance_window_starting_hour       = 2
   }
 }
-`, r.template(data))
+`, r.templateWithSystemAssignedIdentity(data))
 }
 
 func (r MssqlVirtualMachineResource) withAutoPatchingUpdated(data acceptance.TestData) string {
@@ -597,7 +722,7 @@ func (r MssqlVirtualMachineResource) withAutoPatchingUpdated(data acceptance.Tes
 %[1]s
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   auto_patching {
@@ -606,7 +731,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     maintenance_window_starting_hour       = 4
   }
 }
-`, r.template(data))
+`, r.templateWithSystemAssignedIdentity(data))
 }
 
 func (r MssqlVirtualMachineResource) withAutoBackupAutoSchedule(data acceptance.TestData) string {
@@ -622,7 +747,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   auto_backup {
@@ -633,7 +758,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     system_databases_backup_enabled = false
   }
 }
-`, r.template(data), data.RandomString)
+`, r.templateWithSystemAssignedIdentity(data), data.RandomString)
 }
 
 func (r MssqlVirtualMachineResource) withAutoBackupManualSchedule(data acceptance.TestData) string {
@@ -649,7 +774,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   auto_backup {
@@ -667,7 +792,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     }
   }
 }
-`, r.template(data), data.RandomString)
+`, r.templateWithSystemAssignedIdentity(data), data.RandomString)
 }
 
 func (r MssqlVirtualMachineResource) withAutoBackupManualScheduleDaysOfWeek(data acceptance.TestData) string {
@@ -683,7 +808,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   auto_backup {
@@ -701,7 +826,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     }
   }
 }
-`, r.template(data), data.RandomString)
+`, r.templateWithSystemAssignedIdentity(data), data.RandomString)
 }
 
 func (r MssqlVirtualMachineResource) withAutoBackupManualScheduleDaysOfWeekUpdated(data acceptance.TestData) string {
@@ -717,7 +842,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   auto_backup {
@@ -735,7 +860,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     }
   }
 }
-`, r.template(data), data.RandomString)
+`, r.templateWithSystemAssignedIdentity(data), data.RandomString)
 }
 
 func (r MssqlVirtualMachineResource) withAutoBackupAutoSchedule_AndDeprecatedEncryptionEnabled(data acceptance.TestData) string {
@@ -751,7 +876,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   auto_backup {
@@ -763,7 +888,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     system_databases_backup_enabled = false
   }
 }
-`, r.template(data), data.RandomString)
+`, r.templateWithSystemAssignedIdentity(data), data.RandomString)
 }
 
 func (r MssqlVirtualMachineResource) withAutoBackupManualSchedule_AndDeprecatedEncryptionEnabled(data acceptance.TestData) string {
@@ -779,7 +904,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   auto_backup {
@@ -798,7 +923,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     }
   }
 }
-`, r.template(data), data.RandomString)
+`, r.templateWithSystemAssignedIdentity(data), data.RandomString)
 }
 
 func (r MssqlVirtualMachineResource) withKeyVault(data acceptance.TestData) string {
@@ -865,11 +990,11 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_application_password" "test" {
-  application_id = azuread_application.test.object_id
+  application_id = azuread_application.test.id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
   key_vault_credential {
     name                     = "acctestkv"
@@ -945,11 +1070,11 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_application_password" "test" {
-  application_object_id = azuread_application.test.object_id
+  application_id = azuread_application.test.id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
   key_vault_credential {
     name                     = "acctestkv2"
@@ -966,7 +1091,7 @@ func (r MssqlVirtualMachineResource) sqlInstanceDefault(data acceptance.TestData
 %[1]s
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   sql_instance {}
@@ -979,7 +1104,7 @@ func (r MssqlVirtualMachineResource) sqlInstanceUpdated(data acceptance.TestData
 %[1]s
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   sql_instance {
@@ -997,7 +1122,7 @@ func (r MssqlVirtualMachineResource) sqlInstanceCollation(data acceptance.TestDa
 %[1]s
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   sql_instance {
@@ -1012,7 +1137,7 @@ func (r MssqlVirtualMachineResource) sqlInstanceInstantFileInitializationEnabled
 %[1]s
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   sql_instance {
@@ -1027,7 +1152,7 @@ func (r MssqlVirtualMachineResource) sqlInstanceLockPagesInMemoryEnabled(data ac
 %[1]s
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   sql_instance {
@@ -1052,13 +1177,13 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   managed_disk_id    = azurerm_managed_disk.test.id
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   lun                = "0"
   caching            = "None"
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   storage_configuration {
@@ -1104,13 +1229,13 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   managed_disk_id    = azurerm_managed_disk.test.id
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   lun                = "0"
   caching            = "None"
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   depends_on = [
@@ -1135,13 +1260,13 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   managed_disk_id    = azurerm_managed_disk.test.id
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   lun                = "0"
   caching            = "None"
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   storage_configuration {
@@ -1179,7 +1304,7 @@ func (r MssqlVirtualMachineResource) assessmentSettingsWeekly(data acceptance.Te
 %[1]s
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   assessment {
@@ -1190,7 +1315,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     }
   }
 }
-`, r.template(data))
+`, r.templateWithSystemAssignedIdentity(data))
 }
 
 func (r MssqlVirtualMachineResource) assessmentSettingsMonthly(data acceptance.TestData) string {
@@ -1198,7 +1323,7 @@ func (r MssqlVirtualMachineResource) assessmentSettingsMonthly(data acceptance.T
 %[1]s
 
 resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   sql_license_type   = "PAYG"
 
   assessment {
@@ -1209,7 +1334,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     }
   }
 }
-`, r.template(data))
+`, r.templateWithSystemAssignedIdentity(data))
 }
 
 func (r MssqlVirtualMachineResource) sqlVirtualMachineGroup(data acceptance.TestData) string {
@@ -1280,6 +1405,10 @@ resource "azurerm_windows_virtual_machine" "client" {
   network_interface_ids = [
     azurerm_network_interface.client.id,
   ]
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   os_disk {
     caching              = "ReadWrite"
