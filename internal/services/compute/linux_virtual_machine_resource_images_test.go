@@ -27,7 +27,7 @@ func TestAccLinuxVirtualMachine_imageFromImage(t *testing.T) {
 			Config: r.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.source"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
 		{
@@ -74,7 +74,7 @@ func TestAccLinuxVirtualMachine_imageFromCommunitySharedImageGallery(t *testing.
 			Config: r.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.source"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
 		{
@@ -97,7 +97,7 @@ func TestAccLinuxVirtualMachine_imageFromSharedImageGallery(t *testing.T) {
 			Config: r.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.source"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
 		{
@@ -230,9 +230,9 @@ resource "azurerm_linux_virtual_machine" "source" {
   }
 
   custom_data = base64encode(<<-EOT
-    #!/bin/bash
-    sudo waagent -verbose -deprovision+user -force
-  EOT
+#!/bin/bash
+sudo waagent -verbose -deprovision+user -force
+EOT
   )
 }
 `, r.imageFromExistingMachineDependencies(data), data.RandomInteger)

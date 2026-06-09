@@ -24,7 +24,7 @@ func TestAccDataSourceAzureRMImages_basic(t *testing.T) {
 			Config: ImageResource{}.setupUnmanagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -47,7 +47,7 @@ func TestAccDataSourceAzureRMImages_tagsFilterError(t *testing.T) {
 			Config: ImageResource{}.setupUnmanagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -67,7 +67,7 @@ func TestAccDataSourceAzureRMImages_tagsFilter(t *testing.T) {
 			Config: ImageResource{}.setupUnmanagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{

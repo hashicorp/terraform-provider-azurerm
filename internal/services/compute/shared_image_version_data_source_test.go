@@ -23,7 +23,7 @@ func TestAccDataSourceSharedImageVersion_basic(t *testing.T) {
 			Config: SharedImageVersionResource{}.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -47,7 +47,7 @@ func TestAccDataSourceSharedImageVersion_latest(t *testing.T) {
 			Config: SharedImageVersionResource{}.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -74,7 +74,7 @@ func TestAccDataSourceSharedImageVersion_excludeFromLatest(t *testing.T) {
 			Config: SharedImageVersionResource{}.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -100,7 +100,7 @@ func TestAccDataSourceSharedImageVersion_recent(t *testing.T) {
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -125,7 +125,7 @@ func TestAccDataSourceSharedImageVersion_sortVersionsBySemver(t *testing.T) {
 			Config: SharedImageVersionResource{}.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{

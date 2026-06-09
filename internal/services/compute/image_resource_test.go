@@ -34,7 +34,7 @@ func TestAccImage_standaloneImage(t *testing.T) {
 			Config: r.setupUnmanagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -57,7 +57,7 @@ func TestAccImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 			Config: r.setupUnmanagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -80,7 +80,7 @@ func TestAccImage_requiresImport(t *testing.T) {
 			Config: r.setupUnmanagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -103,7 +103,7 @@ func TestAccImage_customImageFromVMWithUnmanagedDisks(t *testing.T) {
 			Config: r.setupUnmanagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -126,7 +126,7 @@ func TestAccImage_customImageFromVMWithManagedDisks(t *testing.T) {
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -149,7 +149,7 @@ func TestAccImage_customImageFromVMSSWithUnmanagedDisks(t *testing.T) {
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -171,7 +171,7 @@ func TestAccImage_standaloneImageEncrypt(t *testing.T) {
 			Config: r.setupUnmanagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -201,7 +201,7 @@ func (ImageResource) Exists(ctx context.Context, clients *clients.Client, state 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
+func (ImageResource) generalizeVirtualMachine() func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 		if err != nil {
@@ -411,9 +411,9 @@ resource "azurerm_virtual_machine" "testsource" {
     admin_password = local.admin_password
 
     custom_data = base64encode(<<-EOT
-      #!/bin/bash
-      sudo waagent -verbose -deprovision+user -force
-    EOT
+#!/bin/bash
+sudo waagent -verbose -deprovision+user -force
+EOT
     )
   }
 

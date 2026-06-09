@@ -30,7 +30,7 @@ func TestAccSharedImageVersion_basic(t *testing.T) {
 			Config: r.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -64,7 +64,7 @@ func TestAccSharedImageVersion_storageAccountTypeLrs(t *testing.T) {
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -90,7 +90,7 @@ func TestAccSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -164,7 +164,7 @@ func TestAccSharedImageVersion_diskEncryptionSetID(t *testing.T) {
 			Config: r.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -190,7 +190,7 @@ func TestAccSharedImageVersion_endOfLifeDate(t *testing.T) {
 			Config: r.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -220,7 +220,7 @@ func TestAccSharedImageVersion_replicationMode(t *testing.T) {
 			Config: r.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -243,7 +243,7 @@ func TestAccSharedImageVersion_replicatedRegionDeletion(t *testing.T) {
 			Config: r.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -267,7 +267,7 @@ func TestAccSharedImageVersion_requiresImport(t *testing.T) {
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
