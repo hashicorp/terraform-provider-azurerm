@@ -232,7 +232,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -254,7 +254,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -276,7 +276,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -331,7 +331,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "import" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -353,7 +353,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "import" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -375,7 +375,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "import" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -440,7 +440,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -462,7 +462,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -485,7 +485,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -685,7 +685,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -707,7 +707,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -730,7 +730,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
