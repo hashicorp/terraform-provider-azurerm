@@ -62,9 +62,20 @@ func (c StorageDiscoveryWorkspacesClient) Report(ctx context.Context, id Provide
 
 // ReportThenPoll performs Report then polls until it's completed
 func (c StorageDiscoveryWorkspacesClient) ReportThenPoll(ctx context.Context, id ProviderStorageDiscoveryWorkspaceId, input GetReportContent) error {
+	return c.ReportCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ReportCallbackThenPoll performs Report, runs the optional callback function, then polls until it's completed
+func (c StorageDiscoveryWorkspacesClient) ReportCallbackThenPoll(ctx context.Context, id ProviderStorageDiscoveryWorkspaceId, input GetReportContent, callback func() error) error {
 	result, err := c.Report(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Report: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
