@@ -119,12 +119,14 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			"msix_package_application_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"msix_package_family_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -196,9 +198,7 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 		payload.Properties.MsixPackageFamilyName = pointer.To(msixPackageFamilyName)
 	}
 
-	if applicationType := d.Get("application_type").(string); applicationType != "" {
-		payload.Properties.ApplicationType = pointer.ToEnum[application.RemoteApplicationType](applicationType)
-	}
+	payload.Properties.ApplicationType = pointer.ToEnum[application.RemoteApplicationType](d.Get("application_type").(string))
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
@@ -279,13 +279,25 @@ func resourceVirtualDesktopApplicationDelete(d *pluginsdk.ResourceData, meta int
 func virtualDesktopApplicationCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	_, pathOk := d.GetOk("path")
 	applicationType, applicationTypeOk := d.GetOk("application_type")
+	msixPackageApplicationId := d.GetRawConfig().AsValueMap()["msix_package_application_id"]
+	msixPackageFamilyName := d.GetRawConfig().AsValueMap()["msix_package_family_name"]
 
 	if applicationTypeOk && applicationType == string(application.RemoteApplicationTypeMsixApplication) {
 		if pathOk {
 			return errors.New("`path` cannot be set when `application_type` is `MsixApplication`")
 		}
-	} else if !pathOk {
-		return errors.New("`path` must be set when `application_type` is not `MsixApplication`")
+
+		if msixPackageApplicationId.IsNull() || msixPackageFamilyName.IsNull() {
+			return errors.New("`msix_package_application_id` and `msix_package_family_name` must be set when `application_type` is `MsixApplication`")
+		}
+	} else {
+		if !pathOk {
+			return errors.New("`path` must be set when `application_type` is not `MsixApplication`")
+		}
+
+		if !msixPackageApplicationId.IsNull() || !msixPackageFamilyName.IsNull() {
+			return errors.New("`application_type` must be set as `MsixApplication` when `msix_package_application_id` or `msix_package_family_name` is set")
+		}
 	}
 
 	return nil

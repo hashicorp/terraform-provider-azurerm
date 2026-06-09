@@ -191,6 +191,7 @@ resource "azurerm_virtual_desktop_application_group" "test" {
 resource "azurerm_virtual_desktop_application" "test" {
   name                         = "acctestAG%d"
   application_group_id         = azurerm_virtual_desktop_application_group.test.id
+  application_type             = "InBuilt"
   friendly_name                = "Google Chrome"
   description                  = "Chromium based web browser"
   path                         = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
