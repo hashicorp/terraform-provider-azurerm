@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -53,7 +54,7 @@ func TestAccVirtualMachineRunCommand_recreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
 	r := VirtualMachineRunCommandTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basicWithScriptError(data),
 			ExpectError: regexp.MustCompile("running the command"),
@@ -307,6 +308,102 @@ resource "azurerm_virtual_machine_run_command" "test" {
 }
 
 func (r VirtualMachineRunCommandTestResource) complete(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestacc${var.random_string}"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestsc${var.random_integer}"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_blob" "test1" {
+  name                   = "script1"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source_content         = "echo 'hello world'"
+}
+
+resource "azurerm_storage_blob" "test2" {
+  name                   = "output"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Append"
+}
+
+resource "azurerm_storage_blob" "test3" {
+  name                   = "error"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Append"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_virtual_machine_run_command" "test" {
+  location           = azurerm_resource_group.test.location
+  name               = "acctestvmrc-${var.random_string}"
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  run_as_password    = "Pa-${var.random_string}"
+  run_as_user        = "adminuser"
+  error_blob_uri     = azurerm_storage_blob.test3.id
+  output_blob_uri    = azurerm_storage_blob.test2.id
+
+  error_blob_managed_identity {
+    client_id = azurerm_user_assigned_identity.test.client_id
+  }
+
+  output_blob_managed_identity {
+    client_id = azurerm_user_assigned_identity.test.client_id
+  }
+
+  source {
+    script_uri = azurerm_storage_blob.test1.id
+    script_uri_managed_identity {
+      client_id = azurerm_user_assigned_identity.test.client_id
+    }
+  }
+
+  parameter {
+    name  = "acctestvmrc-${var.random_string}"
+    value = "val-${var.random_string}"
+  }
+
+  protected_parameter {
+    name  = "acctestvmrc-${var.random_string}"
+    value = "val-${var.random_string}"
+  }
+
+  tags = {
+    environment = "terraform-acctests"
+    some_key    = "some-value"
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test,
+  ]
+}
+`, r.template(data))
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -315,16 +412,17 @@ provider "azurerm" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc${var.random_string}"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "acctestacc${var.random_string}"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestsc${var.random_integer}"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
@@ -403,7 +501,8 @@ resource "azurerm_virtual_machine_run_command" "test" {
 }
 
 func (r VirtualMachineRunCommandTestResource) storageBlobSystemIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 provider "azurerm" {
@@ -411,11 +510,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc${var.random_string}"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "acctestacc${var.random_string}"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -488,10 +588,95 @@ resource "azurerm_virtual_machine_run_command" "test" {
   ]
 }
 `, r.template(data))
+	}
+	return fmt.Sprintf(`
+	%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestacc${var.random_string}"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestsc${var.random_integer}"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_blob" "test1" {
+  name                 = "script1"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source_content       = "echo 'hello world'"
+}
+
+resource "azurerm_storage_blob" "test2" {
+  name                 = "output"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Append"
+}
+
+resource "azurerm_storage_blob" "test3" {
+  name                 = "error"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Append"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_linux_virtual_machine.test.identity[0].principal_id
+}
+
+resource "azurerm_virtual_machine_run_command" "test" {
+  location           = azurerm_resource_group.test.location
+  name               = "acctestvmrc-${var.random_string}"
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  run_as_password    = "Pa-${var.random_string}"
+  run_as_user        = "adminuser"
+  error_blob_uri     = azurerm_storage_blob.test3.id
+  output_blob_uri    = azurerm_storage_blob.test2.id
+
+  source {
+    script_uri = azurerm_storage_blob.test1.id
+    script_uri_managed_identity {
+      client_id = azurerm_linux_virtual_machine.test.identity[0].principal_id
+    }
+  }
+
+  parameter {
+    name  = "acctestvmrc-${var.random_string}"
+    value = "val-${var.random_string}"
+  }
+
+  protected_parameter {
+    name  = "acctestvmrc-${var.random_string}"
+    value = "val-${var.random_string}"
+  }
+
+  tags = {
+    environment = "terraform-acctests"
+    some_key    = "some-value"
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test,
+  ]
+}
+`, r.template(data))
 }
 
 func (r VirtualMachineRunCommandTestResource) storageBlobSAS(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 provider "azurerm" {
@@ -499,11 +684,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc${var.random_string}"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "acctestacc${var.random_string}"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -532,6 +718,106 @@ resource "azurerm_storage_blob" "test3" {
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
   type                   = "Append"
+}
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+  signed_version    = "2019-10-10"
+  start             = "2023-04-01T00:00:00Z"
+  expiry            = "2123-04-01T00:00:00Z"
+
+  resource_types {
+    service   = false
+    container = false
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+
+  permissions {
+    read    = true
+    write   = true
+    delete  = false
+    list    = false
+    add     = true
+    create  = true
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+
+resource "azurerm_virtual_machine_run_command" "test" {
+  location           = azurerm_resource_group.test.location
+  name               = "acctestvmrc-${var.random_string}"
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  run_as_password    = "Pa-${var.random_string}"
+  run_as_user        = "adminuser"
+  error_blob_uri     = "${azurerm_storage_blob.test3.id}${data.azurerm_storage_account_sas.test.sas}"
+  output_blob_uri    = "${azurerm_storage_blob.test2.id}${data.azurerm_storage_account_sas.test.sas}"
+
+  source {
+    script_uri = "${azurerm_storage_blob.test1.id}${data.azurerm_storage_account_sas.test.sas}"
+  }
+
+  parameter {
+    name  = "acctestvmrc-${var.random_string}"
+    value = "val-${var.random_string}"
+  }
+
+  tags = {
+    environment = "terraform-acctests"
+    some_key    = "some-value"
+  }
+}
+`, r.template(data))
+	}
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestacc${var.random_string}"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestsc${var.random_integer}"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_blob" "test1" {
+  name                 = "script1"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source_content       = "echo 'hello world'"
+}
+
+resource "azurerm_storage_blob" "test2" {
+  name                 = "output"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Append"
+}
+
+resource "azurerm_storage_blob" "test3" {
+  name                 = "error"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Append"
 }
 
 data "azurerm_storage_account_sas" "test" {
