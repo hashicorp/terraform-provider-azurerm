@@ -5,9 +5,12 @@ package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -100,7 +103,7 @@ func resourceBastionHost() *pluginsdk.Resource {
 						},
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
@@ -164,6 +167,11 @@ func resourceBastionHost() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"private_only_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": commonschema.Tags(),
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
@@ -177,6 +185,29 @@ func resourceBastionHost() *pluginsdk.Resource {
 				}
 				return false
 			}),
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+				sku := bastionhosts.BastionHostSkuName(d.Get("sku").(string))
+
+				// GetRawConfig is used because `public_ip_address_id` may reference another resource and be unknown during plan.
+				// d.Get() returns "" for unknown values, which would incorrectly trigger the required check.
+				// By inspecting the raw config, we can distinguish between "not set" and "unknown" and skip validation when unknown.
+				rawConfig := d.GetRawConfig()
+				ipConfigRaw := rawConfig.AsValueMap()["ip_configuration"]
+
+				// Basic and Standard SKUs require public_ip_address_id; Developer uses virtual_network_id instead.
+				// Premium without public_ip_address_id enables private-only mode.
+				if sku != bastionhosts.BastionHostSkuNamePremium && sku != bastionhosts.BastionHostSkuNameDeveloper {
+					if ipConfigRaw.IsNull() || !ipConfigRaw.IsKnown() || len(ipConfigRaw.AsValueSlice()) == 0 {
+						return errors.New("`ip_configuration` with `public_ip_address_id` is required when `sku` is `Basic` or `Standard`")
+					}
+					pipRaw := ipConfigRaw.AsValueSlice()[0].AsValueMap()["public_ip_address_id"]
+					if pipRaw.IsKnown() && (pipRaw.IsNull() || pipRaw.AsString() == "") {
+						return errors.New("`public_ip_address_id` must be set in `ip_configuration` when `sku` is `Basic` or `Standard`")
+					}
+				}
+
+				return nil
+			},
 		),
 	}
 }
@@ -228,15 +259,17 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("`session_recording_enabled` is only supported when `sku` is `Premium`")
 	}
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_bastion_host", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_bastion_host", id.ID())
+		}
 	}
 
 	parameters := bastionhosts.BastionHost{
@@ -279,6 +312,11 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		parameters.Properties.EnableSessionRecording = pointer.To(sessionRecordingEnabled)
 	}
 
+	if sku == bastionhosts.BastionHostSkuNamePremium {
+		_, ok := d.GetOk("ip_configuration.0.public_ip_address_id")
+		parameters.Properties.EnablePrivateOnlyBastion = pointer.To(!ok)
+	}
+
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		parameters.Zones = pointer.To(zones)
@@ -296,7 +334,7 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("`virtual_network_id` is required when `sku` is `Developer`")
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -450,6 +488,7 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("shareable_link_enabled", props.EnableShareableLink)
 			d.Set("tunneling_enabled", props.EnableTunneling)
 			d.Set("session_recording_enabled", props.EnableSessionRecording)
+			d.Set("private_only_enabled", props.EnablePrivateOnlyBastion)
 
 			virtualNetworkId := ""
 			if vnet := props.VirtualNetwork; vnet != nil {
@@ -507,21 +546,23 @@ func expandBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]bastion
 	property := input[0].(map[string]interface{})
 	ipConfName := property["name"].(string)
 	subID := property["subnet_id"].(string)
-	pipID := property["public_ip_address_id"].(string)
 
-	return &[]bastionhosts.BastionHostIPConfiguration{
-		{
-			Name: &ipConfName,
-			Properties: &bastionhosts.BastionHostIPConfigurationPropertiesFormat{
-				Subnet: bastionhosts.SubResource{
-					Id: &subID,
-				},
-				PublicIPAddress: &bastionhosts.SubResource{
-					Id: &pipID,
-				},
+	ipConfig := bastionhosts.BastionHostIPConfiguration{
+		Name: &ipConfName,
+		Properties: &bastionhosts.BastionHostIPConfigurationPropertiesFormat{
+			Subnet: bastionhosts.SubResource{
+				Id: &subID,
 			},
 		},
 	}
+
+	if pipID, ok := property["public_ip_address_id"].(string); ok && pipID != "" {
+		ipConfig.Properties.PublicIPAddress = &bastionhosts.SubResource{
+			Id: &pipID,
+		}
+	}
+
+	return &[]bastionhosts.BastionHostIPConfiguration{ipConfig}
 }
 
 func flattenBastionHostIPConfiguration(ipConfigs *[]bastionhosts.BastionHostIPConfiguration) []interface{} {

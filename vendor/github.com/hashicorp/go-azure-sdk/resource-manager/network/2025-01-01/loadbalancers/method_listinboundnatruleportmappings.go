@@ -62,9 +62,20 @@ func (c LoadBalancersClient) ListInboundNatRulePortMappings(ctx context.Context,
 
 // ListInboundNatRulePortMappingsThenPoll performs ListInboundNatRulePortMappings then polls until it's completed
 func (c LoadBalancersClient) ListInboundNatRulePortMappingsThenPoll(ctx context.Context, id BackendAddressPoolId, input QueryInboundNatRulePortMappingRequest) error {
+	return c.ListInboundNatRulePortMappingsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ListInboundNatRulePortMappingsCallbackThenPoll performs ListInboundNatRulePortMappings, runs the optional callback function, then polls until it's completed
+func (c LoadBalancersClient) ListInboundNatRulePortMappingsCallbackThenPoll(ctx context.Context, id BackendAddressPoolId, input QueryInboundNatRulePortMappingRequest, callback func() error) error {
 	result, err := c.ListInboundNatRulePortMappings(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ListInboundNatRulePortMappings: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

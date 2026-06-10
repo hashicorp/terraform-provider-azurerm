@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
@@ -140,6 +141,22 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				"madvise",
 				"never",
 			}, false),
+		}
+
+		resource.Schema["kubelet_config"].Elem.(*pluginsdk.Resource).Schema["container_log_max_line"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"kubelet_config.0.container_log_max_files"},
+			Deprecated:    "`container_log_max_line` has been renamed to `container_log_max_files` to align with the API property name and will be removed in v5.0 of the AzureRM Provider",
+			ValidateFunc:  validation.IntAtLeast(2),
+		}
+		resource.Schema["kubelet_config"].Elem.(*pluginsdk.Resource).Schema["container_log_max_files"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"kubelet_config.0.container_log_max_line"},
+			ValidateFunc:  validation.IntAtLeast(2),
 		}
 	}
 
@@ -300,6 +317,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"node_image_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"orchestrator_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -333,6 +355,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 				string(agentpools.OSSKUAzureLinuxThree),
 				string(agentpools.OSSKUUbuntu),
 				string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
+				string(agentpools.OSSKUUbuntuTwoFourZeroFour),
 				string(agentpools.OSSKUWindowsTwoZeroOneNine),
 				string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 			}, false),
@@ -498,7 +521,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
 
-	log.Printf("[DEBUG] Retrieving %s...", *clusterId)
 	cluster, err := clustersClient.Get(ctx, *clusterId)
 	if err != nil {
 		if response.WasNotFound(cluster.HttpResponse) {
@@ -525,15 +547,17 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("multiple node pools are only supported when the Default Node Pool uses a VMScaleSet (but %s doesn't)", *clusterId)
 	}
 
-	existing, err := poolsClient.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := poolsClient.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", id.ID())
+		}
 	}
 
 	count := d.Get("node_count").(int)
@@ -649,20 +673,20 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.OsDiskType = pointer.To(agentpools.OSDiskType(osDiskType))
 	}
 
-	subnetsToLock := make([]string, 0)
+	subnetIDsToLock := make([]string, 0)
 	if podSubnetID != nil {
 		// Lock pod subnet to avoid race condition with AKS
 		profile.PodSubnetID = pointer.To(podSubnetID.ID())
-		subnetsToLock = append(subnetsToLock, podSubnetID.SubnetName)
+		subnetIDsToLock = append(subnetIDsToLock, podSubnetID.ID())
 	}
 
 	if nodeSubnetID != nil {
 		// Lock node subnet to avoid race condition with AKS
 		profile.VnetSubnetID = pointer.To(nodeSubnetID.ID())
-		subnetsToLock = append(subnetsToLock, nodeSubnetID.SubnetName)
+		subnetIDsToLock = append(subnetIDsToLock, nodeSubnetID.ID())
 	}
-	locks.MultipleByName(&subnetsToLock, network.SubnetResourceName)
-	defer locks.UnlockMultipleByName(&subnetsToLock, network.SubnetResourceName)
+	locks.MultipleByID(&subnetIDsToLock)
+	defer locks.UnlockMultipleByID(&subnetIDsToLock)
 
 	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
 		profile.HostGroupID = pointer.To(hostGroupID)
@@ -729,10 +753,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Properties: &profile,
 	}
 
-	err = poolsClient.CreateOrUpdateThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions())
-	if err != nil {
+	if err := poolsClient.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
 	timeout, ok := ctx.Deadline()
@@ -755,7 +779,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
@@ -772,7 +795,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	d.Partial(true)
 
-	log.Printf("[DEBUG] Retrieving existing %s..", *id)
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
@@ -1070,7 +1092,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 		log.Printf("[DEBUG] Cycled Node Pool..")
 	} else {
-		log.Printf("[DEBUG] Updating existing %s..", *id)
 		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
@@ -1201,6 +1222,8 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
+
+		d.Set("node_image_version", props.NodeImageVersion)
 
 		// NOTE: workaround for migration from 2022-01-02-preview (<3.12.0) to 2022-03-02-preview (>=3.12.0). Before terraform apply is run against the new API, Azure will respond only with currentOrchestratorVersion, orchestratorVersion will be absent. More details: https://github.com/hashicorp/terraform-provider-azurerm/issues/17833#issuecomment-1227583353
 		if props.OrchestratorVersion != nil {
@@ -1384,8 +1407,13 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 	if v := raw["container_log_max_size_mb"].(int); v != 0 {
 		result.ContainerLogMaxSizeMB = pointer.To(int64(v))
 	}
-	if v := raw["container_log_max_line"].(int); v != 0 {
+	if v := raw["container_log_max_files"].(int); v != 0 {
 		result.ContainerLogMaxFiles = pointer.To(int64(v))
+	}
+	if !features.FivePointOh() {
+		if v := raw["container_log_max_line"].(int); v != 0 {
+			result.ContainerLogMaxFiles = pointer.To(int64(v))
+		}
 	}
 	if v := raw["pod_max_pid"].(int); v != 0 {
 		result.PodMaxPids = pointer.To(int64(v))

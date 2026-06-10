@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -1252,7 +1254,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 }
 
 func (HDInsightInteractiveQueryClusterResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1275,7 +1278,32 @@ resource "azurerm_storage_container" "test" {
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-hdi-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctest"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (HDInsightInteractiveQueryClusterResource) gen2template(data acceptance.TestData) string {

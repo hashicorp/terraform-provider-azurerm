@@ -86,13 +86,13 @@ func TestAccDataSourceKeyVault_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("tenant_id").Exists(),
 				check.That(data.ResourceName).Key("sku_name").Exists(),
-				check.That(data.ResourceName).Key("enable_rbac_authorization").HasValue("false"),
+				check.That(data.ResourceName).Key("rbac_authorization_enabled").HasValue("false"),
 			),
 		},
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("enable_rbac_authorization").HasValue("true"),
+				check.That(data.ResourceName).Key("rbac_authorization_enabled").HasValue("true"),
 			),
 		},
 	})

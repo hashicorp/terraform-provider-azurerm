@@ -62,9 +62,20 @@ func (c AppServiceEnvironmentsClient) ApproveOrRejectPrivateEndpointConnection(c
 
 // ApproveOrRejectPrivateEndpointConnectionThenPoll performs ApproveOrRejectPrivateEndpointConnection then polls until it's completed
 func (c AppServiceEnvironmentsClient) ApproveOrRejectPrivateEndpointConnectionThenPoll(ctx context.Context, id HostingEnvironmentPrivateEndpointConnectionId, input RemotePrivateEndpointConnectionARMResource) error {
+	return c.ApproveOrRejectPrivateEndpointConnectionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ApproveOrRejectPrivateEndpointConnectionCallbackThenPoll performs ApproveOrRejectPrivateEndpointConnection, runs the optional callback function, then polls until it's completed
+func (c AppServiceEnvironmentsClient) ApproveOrRejectPrivateEndpointConnectionCallbackThenPoll(ctx context.Context, id HostingEnvironmentPrivateEndpointConnectionId, input RemotePrivateEndpointConnectionARMResource, callback func() error) error {
 	result, err := c.ApproveOrRejectPrivateEndpointConnection(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ApproveOrRejectPrivateEndpointConnection: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

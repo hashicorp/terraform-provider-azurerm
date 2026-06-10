@@ -277,15 +277,17 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Create() sdk
 			vaultId, _ := basebackuppolicyresources.ParseBackupVaultID(model.VaultId)
 			id := basebackuppolicyresources.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
 
-			existing, err := client.BackupPoliciesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.BackupPoliciesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
@@ -670,7 +672,7 @@ func flattenBackupPolicyPostgreSQLFlexibleServerBackupCriteria(input *[]baseback
 		if criteria, ok := item.(basebackuppolicyresources.ScheduleBasedBackupCriteria); ok {
 			var absoluteCriteria string
 			if criteria.AbsoluteCriteria != nil && len(pointer.From(criteria.AbsoluteCriteria)) > 0 {
-				absoluteCriteria = string((pointer.From(criteria.AbsoluteCriteria))[0])
+				absoluteCriteria = string(pointer.From(criteria.AbsoluteCriteria)[0])
 			}
 
 			var daysOfWeek []string
@@ -678,7 +680,7 @@ func flattenBackupPolicyPostgreSQLFlexibleServerBackupCriteria(input *[]baseback
 				daysOfWeek = make([]string, 0)
 
 				for _, item := range pointer.From(criteria.DaysOfTheWeek) {
-					daysOfWeek = append(daysOfWeek, (string)(item))
+					daysOfWeek = append(daysOfWeek, string(item))
 				}
 			}
 
@@ -687,7 +689,7 @@ func flattenBackupPolicyPostgreSQLFlexibleServerBackupCriteria(input *[]baseback
 				monthsOfYear = make([]string, 0)
 
 				for _, item := range pointer.From(criteria.MonthsOfYear) {
-					monthsOfYear = append(monthsOfYear, (string)(item))
+					monthsOfYear = append(monthsOfYear, string(item))
 				}
 			}
 
@@ -696,7 +698,7 @@ func flattenBackupPolicyPostgreSQLFlexibleServerBackupCriteria(input *[]baseback
 				weeksOfMonth = make([]string, 0)
 
 				for _, item := range pointer.From(criteria.WeeksOfTheMonth) {
-					weeksOfMonth = append(weeksOfMonth, (string)(item))
+					weeksOfMonth = append(weeksOfMonth, string(item))
 				}
 			}
 

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -116,21 +116,21 @@ func (r NetAppAccountEncryptionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("error parsing account id %s: %+v", model.NetAppAccountID, err)
 			}
 
-			metadata.Logger.Infof("Import check for %s", accountID.ID())
-
 			locks.ByID(accountID.ID())
 			defer locks.UnlockByID(accountID.ID())
 
-			existing, err := client.AccountsGet(ctx, pointer.From(accountID))
-			if err != nil {
-				if response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("not found %s: %s", accountID.ID(), err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AccountsGet(ctx, pointer.From(accountID))
+				if err != nil {
+					if response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("not found %s: %s", accountID.ID(), err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				if existing.Model.Properties.Encryption != nil && existing.Model.Properties.Encryption.KeySource != nil && pointer.From(existing.Model.Properties.Encryption.KeySource) == netappaccounts.KeySourceMicrosoftPointKeyVault {
-					return tf.ImportAsExistsError(r.ResourceType(), accountID.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					if existing.Model.Properties.Encryption != nil && existing.Model.Properties.Encryption.KeySource != nil && pointer.From(existing.Model.Properties.Encryption.KeySource) == netappaccounts.KeySourceMicrosoftPointKeyVault {
+						return tf.ImportAsExistsError(r.ResourceType(), accountID.ID())
+					}
 				}
 			}
 
@@ -145,7 +145,7 @@ func (r NetAppAccountEncryptionResource) Create() sdk.ResourceFunc {
 
 			update.Properties.Encryption = encryptionExpanded
 
-			if err := client.AccountsUpdateThenPoll(ctx, pointer.From(accountID), update); err != nil {
+			if err := client.AccountsUpdateCallbackThenPoll(ctx, pointer.From(accountID), update, metadata.SetIDCallback(accountID)); err != nil {
 				return fmt.Errorf("updating %s: %+v", accountID, err)
 			}
 
@@ -172,13 +172,10 @@ func (r NetAppAccountEncryptionResource) Update() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppAccountEncryption
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-
-			metadata.Logger.Infof("Updating %s", id)
 
 			update := netappaccounts.NetAppAccountPatch{
 				Properties: &netappaccounts.AccountProperties{},
@@ -208,12 +205,11 @@ func (r NetAppAccountEncryptionResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.AccountClient
 
-			id, err := netappaccounts.ParseNetAppAccountID((metadata.ResourceData.Id()))
+			id, err := netappaccounts.ParseNetAppAccountID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppAccountEncryption
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -285,13 +281,10 @@ func (r NetAppAccountEncryptionResource) Delete() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppAccountEncryption
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-
-			metadata.Logger.Infof("Updating %s", id)
 
 			update := netappaccounts.NetAppAccountPatch{
 				Properties: pointer.To(netappaccounts.AccountProperties{}),
