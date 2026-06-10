@@ -12,8 +12,6 @@ Manages a Front Door (standard/premium) Rule Set.
 
 ## Example Usage
 
-~> **Note:** Azure Front Door Rule Set operations are currently affected by a service-side regression where unattached rule sets can fail with `400 Bad Request` until they are associated with a Front Door Route. The attached-route example below reflects the currently functional path while the service-side fix is pending.
-
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-cdn-frontdoor"

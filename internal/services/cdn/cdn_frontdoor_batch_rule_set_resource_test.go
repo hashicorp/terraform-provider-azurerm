@@ -145,7 +145,7 @@ func TestAccCdnFrontDoorBatchRuleSet_routeConfigurationOverrideValidation(t *tes
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.invalidRouteConfigurationOverrideMissingQueryStringCachingBehavior(data),
-			ExpectError: regexp.MustCompile("the 'route_configuration_override_action' block is not valid, the 'query_string_caching_behavior' field must be set"),
+			ExpectError: regexp.MustCompile("the `route_configuration_override_action` block is not valid, the `query_string_caching_behavior` field must be set"),
 		},
 	})
 }
@@ -174,15 +174,15 @@ func TestAccCdnFrontDoorBatchRuleSet_conditionValidation(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.urlFilenameConditionOperator(data, "Contains"),
-			ExpectError: regexp.MustCompile(`"url_filename_condition" is invalid: the 'match_values' field must be set if the conditions 'operator' is not set to 'Any'`),
+			ExpectError: regexp.MustCompile("`url_filename_condition` is invalid: the `match_values` field must be set if the condition `operator` is not set to `Any`"),
 		},
 		{
 			Config:      r.requestSchemeConditionMissingMatchValues(data),
-			ExpectError: regexp.MustCompile("the `request_scheme_condition` block requires `match_values'|the `request_scheme_condition` block requires `match_values`"),
+			ExpectError: regexp.MustCompile("the `request_scheme_condition` block requires `match_values`"),
 		},
 		{
 			Config:      r.isDeviceConditionMissingMatchValues(data),
-			ExpectError: regexp.MustCompile("the `is_device_condition` block requires `match_values'|the `is_device_condition` block requires `match_values`"),
+			ExpectError: regexp.MustCompile("the `is_device_condition` block requires `match_values`"),
 		},
 		{
 			Config:      r.remoteAddressGeoMatchInvalid(data),

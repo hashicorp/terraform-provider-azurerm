@@ -12,11 +12,7 @@ Manages a Front Door (standard/premium) Rule.
 
 !> **Note:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group`.
 
-~> **Note:** Azure Front Door Rule operations are currently affected by a service-side regression where unattached rules or rule sets can fail with `400 Bad Request` until they are associated with a Front Door Route. As a result, unattached and attached scenarios can currently behave differently while the service-side fix is pending.
-
 ## Example Usage
-
-~> **Note:** The attached-route example below reflects the currently functional path while the service-side fix for unattached rules and rule sets is pending.
 
 ```hcl
 resource "azurerm_resource_group" "example" {

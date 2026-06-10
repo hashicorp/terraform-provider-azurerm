@@ -19,8 +19,6 @@ import (
 type CdnFrontDoorRuleSetResource struct{}
 
 func TestAccCdnFrontDoorRuleSet_basic_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
 	r := CdnFrontDoorRuleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -63,8 +61,6 @@ func TestAccCdnFrontDoorRuleSet_requiresImport(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorRuleSet_complete_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
 	r := CdnFrontDoorRuleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

@@ -14,8 +14,6 @@ import (
 type CdnFrontDoorRuleSetDataSource struct{}
 
 func TestAccCdnFrontDoorRuleSetDataSource_basic_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_rule_set", "test")
 	d := CdnFrontDoorRuleSetDataSource{}
 

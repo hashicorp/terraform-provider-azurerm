@@ -14,8 +14,6 @@ Manages a Front Door (standard/premium) Batch Rule Set.
 
 ~> **Note:** Use `azurerm_cdn_frontdoor_rule_set` together with `azurerm_cdn_frontdoor_rule` for the normal non-batch Rule Set path.
 
-~> **Note:** Azure Front Door Batch Rule operations are currently affected by a service-side regression where unattached rules or rule sets can fail with `400 Bad Request` until they are associated with a Front Door Route. As a result, unattached and attached scenarios can currently behave differently while the service-side fix is pending.
-
 ## Example Usage
 
 ```hcl

@@ -79,6 +79,79 @@ func TestCdnFrontDoorActionsBlock(t *testing.T) {
 	}
 }
 
+func TestCdnFrontDoorCacheDuration(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       interface{}
+		errContains string
+	}{
+		{
+			name:        "invalid type",
+			input:       42,
+			errContains: "expected type of \"cache_duration\" to be string",
+		},
+		{
+			name:        "less than one day with day prefix",
+			input:       "0.23:59:59",
+			errContains: "if the duration is less than 1 day",
+		},
+		{
+			name:  "valid hours minutes seconds",
+			input: "23:59:59",
+		},
+		{
+			name:  "valid day duration",
+			input: "9.23:44:21",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, errors := CdnFrontDoorCacheDuration(test.input, "cache_duration")
+			assertFrontDoorValidationFuncErrors(t, errors, test.errContains)
+		})
+	}
+}
+
+func TestCdnFrontDoorUrlRedirectActionQueryString(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       interface{}
+		errContains string
+	}{
+		{
+			name:        "invalid type",
+			input:       42,
+			errContains: "expected type of \"query_string\" to be string",
+		},
+		{
+			name:        "leading question mark invalid",
+			input:       "?a=b",
+			errContains: "must not start with the '?' character",
+		},
+		{
+			name:        "too long invalid",
+			input:       strings.Repeat("a", 2049),
+			errContains: "cannot be longer than 2048 characters in length",
+		},
+		{
+			name:  "empty valid",
+			input: "",
+		},
+		{
+			name:  "simple query valid",
+			input: "a=b&c=d",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, errors := CdnFrontDoorUrlRedirectActionQueryString(test.input, "query_string")
+			assertFrontDoorValidationFuncErrors(t, errors, test.errContains)
+		})
+	}
+}
+
 func urlRewriteAction() rules.DeliveryRuleAction {
 	return rules.URLRewriteAction{
 		Name: rules.DeliveryRuleActionNameURLRewrite,
@@ -125,5 +198,24 @@ func assertFrontDoorValidationHelperError(t *testing.T, err error, errContains s
 
 	if !strings.Contains(err.Error(), errContains) {
 		t.Fatalf("expected error containing %q but got %q", errContains, err)
+	}
+}
+
+func assertFrontDoorValidationFuncErrors(t *testing.T, errors []error, errContains string) {
+	t.Helper()
+
+	if errContains == "" {
+		if len(errors) != 0 {
+			t.Fatalf("expected no errors but got %q", errors[0])
+		}
+		return
+	}
+
+	if len(errors) == 0 {
+		t.Fatalf("expected error containing %q but got none", errContains)
+	}
+
+	if !strings.Contains(errors[0].Error(), errContains) {
+		t.Fatalf("expected error containing %q but got %q", errContains, errors[0])
 	}
 }

@@ -126,20 +126,20 @@ func TestCdnFrontDoorValidateConditionMatchValues(t *testing.T) {
 		{
 			name:        "empty operator invalid",
 			configName:  "request_header_condition",
-			errContains: "no 'operator' value has been set",
+			errContains: "no `operator` value has been set",
 		},
 		{
 			name:        "any with values invalid",
 			configName:  "request_header_condition",
 			operator:    "Any",
 			matchValues: []string{"x-test"},
-			errContains: "must not be set",
+			errContains: "`match_values` field must not be set",
 		},
 		{
 			name:        "non any requires values",
 			configName:  "request_header_condition",
 			operator:    "Equal",
-			errContains: "must be set",
+			errContains: "`match_values` field must be set",
 		},
 		{
 			name:        "equal with values valid",
@@ -227,14 +227,14 @@ func TestCdnFrontDoorValidateRouteConfigurationOverrideAction(t *testing.T) {
 			input: CdnFrontDoorRouteConfigurationOverrideInput{
 				OriginGroupID: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.Cdn/profiles/p/originGroups/g",
 			},
-			errContains: "forwarding_protocol' field must be set",
+			errContains: "`forwarding_protocol` field must be set",
 		},
 		{
 			name: "forwarding protocol requires origin group",
 			input: CdnFrontDoorRouteConfigurationOverrideInput{
 				ForwardingProtocol: string(cdnrules.ForwardingProtocolHTTPSOnly),
 			},
-			errContains: "cannot define the 'forwarding_protocol'",
+			errContains: "cannot define the `forwarding_protocol`",
 		},
 		{
 			name: "disabled cache cannot define query string behavior",
@@ -242,21 +242,21 @@ func TestCdnFrontDoorValidateRouteConfigurationOverrideAction(t *testing.T) {
 				CacheBehavior:              string(cdnrules.RuleIsCompressionEnabledDisabled),
 				QueryStringCachingBehavior: string(cdnrules.RuleQueryStringCachingBehaviorUseQueryString),
 			},
-			errContains: "cache_behavior' is set to 'Disabled'",
+			errContains: "`cache_behavior` is set to `Disabled`",
 		},
 		{
 			name: "missing cache behavior invalid",
 			input: CdnFrontDoorRouteConfigurationOverrideInput{
 				QueryStringCachingBehavior: string(cdnrules.RuleQueryStringCachingBehaviorUseQueryString),
 			},
-			errContains: "cache_behavior' field must be set",
+			errContains: "`cache_behavior` field must be set",
 		},
 		{
 			name: "missing query string behavior invalid",
 			input: CdnFrontDoorRouteConfigurationOverrideInput{
 				CacheBehavior: string(cdnrules.RuleCacheBehaviorOverrideAlways),
 			},
-			errContains: "query_string_caching_behavior' field must be set",
+			errContains: "`query_string_caching_behavior` field must be set",
 		},
 		{
 			name: "honor origin cannot define cache duration",
@@ -265,7 +265,7 @@ func TestCdnFrontDoorValidateRouteConfigurationOverrideAction(t *testing.T) {
 				QueryStringCachingBehavior: string(cdnrules.RuleQueryStringCachingBehaviorUseQueryString),
 				CacheDuration:              "00:10:00",
 			},
-			errContains: "must not be set if the 'cache_behavior' is 'HonorOrigin'",
+			errContains: "must not be set if the `cache_behavior` is `HonorOrigin`",
 		},
 		{
 			name: "include specified requires parameters",
@@ -274,7 +274,7 @@ func TestCdnFrontDoorValidateRouteConfigurationOverrideAction(t *testing.T) {
 				QueryStringCachingBehavior: string(cdnrules.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
 				CacheDuration:              "00:10:00",
 			},
-			errContains: "query_string_parameters' cannot be empty",
+			errContains: "`query_string_parameters` cannot be empty",
 		},
 		{
 			name: "use query strings forbids parameters",
@@ -284,7 +284,7 @@ func TestCdnFrontDoorValidateRouteConfigurationOverrideAction(t *testing.T) {
 				QueryStringParameters:      []string{"foo"},
 				CacheDuration:              "00:10:00",
 			},
-			errContains: "must not be set if the'query_string_caching_behavior'",
+			errContains: "must not be set if the `query_string_caching_behavior`",
 		},
 		{
 			name: "valid cache override",
