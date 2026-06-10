@@ -282,7 +282,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional: true,
 					},
 
-					"local_dns_profile": schemaDefaultNodePoolLocalDNSProfile(),
+					"local_dns_profile": schemaNodePoolLocalDNSProfile(),
 				}
 			}(),
 		},
@@ -677,10 +677,6 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 	}
 }
 
-func schemaDefaultNodePoolLocalDNSProfile() *pluginsdk.Schema {
-	return schemaNodePoolLocalDNSProfile()
-}
-
 func schemaNodePoolLocalDNSProfile() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -776,6 +772,9 @@ func schemaLocalDNSOverride() *pluginsdk.Schema {
 }
 
 func validateDefaultNodePoolLocalDNSProfileRawConfig(d *pluginsdk.ResourceDiff) error {
+	// The override schema uses the SDK's full-block set hash so changing settings
+	// under an existing domain still produces a diff. Raw config validation keeps
+	// the API's domain-keyed uniqueness rule without rejecting unknown domains.
 	rawConfig := d.GetRawConfig()
 	if !localDNSRawValueCanIterate(rawConfig) {
 		return nil
