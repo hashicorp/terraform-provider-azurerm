@@ -228,7 +228,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 
 		"linux_os_config": schemaNodePoolLinuxOSConfig(),
 
-		"local_dns_profile": schemaNodePoolResourceLocalDNSProfile(),
+		"local_dns_profile": schemaNodePoolLocalDNSProfile(),
 
 		"fips_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -1966,10 +1966,6 @@ func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) m
 	}
 
 	return out
-}
-
-func schemaNodePoolResourceLocalDNSProfile() *pluginsdk.Schema {
-	return schemaNodePoolLocalDNSProfile()
 }
 
 func expandAgentPoolLocalDNSProfile(input []interface{}) *agentpools.LocalDNSProfile {
