@@ -1186,7 +1186,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			automaticZoneRebalancingEnabled := d.Get("automatic_zone_rebalancing_enabled").(bool)
 			resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
 			resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
-			updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliencyUpdate(d.HasChange("automatic_zone_rebalancing_enabled"), automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled)
+			updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliencyUpdate(automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled)
 		}
 
 		if d.HasChange("identity") {
