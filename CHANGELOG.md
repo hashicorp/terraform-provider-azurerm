@@ -1,7 +1,7 @@
 ## 4.77.0 (Unreleased)
 
 ENHANCEMENTS:
-
+* `azurerm_storage_object_replication` - add support for the `metrics_enabled` property [GH-32204]
 * dependencies: `go-azure-sdk` - update to `v0.20260603.1074745` [GH-32503]
 * `azurerm_machine_learning_workspace` - add support for the `storage_account_access_type` property [GH-32514]
 * Data Source: `azurerm_storage_blob` - the `storage_account_name` and `storage_container_name` properties have been deprecated in favour of the `storage_container_id` property [GH-32235]
