@@ -133,6 +133,9 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below.
 
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity). Defaults to `SystemAssigned`.
+
+
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 
 * `always_ready` - (Optional) One or more `always_ready` blocks as defined below.
@@ -160,6 +163,7 @@ The following arguments are supported:
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Function App.
 
 ~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
+
 ---
 
 A `backend_storage` block supports the following:
@@ -175,8 +179,6 @@ A `backend_storage` block supports the following:
 ~> **Note:** `key_vault_secret_id` cannot be used with `name`.
 
 ~> **Note:** `key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
-
-* `key_vault_user_assigned_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity). Defaults to `SystemAssigned`.
 
 ---
 

@@ -2508,8 +2508,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   backend_storage {
-    key_vault_secret_id                 = azurerm_key_vault_secret.test.versionless_id
-    key_vault_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    key_vault_secret_id = azurerm_key_vault_secret.test.versionless_id
   }
 
   deployment_storage {
@@ -2521,6 +2520,8 @@ resource "azurerm_function_app_flex_consumption" "test" {
   runtime_version        = "20"
   maximum_instance_count = 50
   instance_memory_in_mb  = 2048
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.test.id
 
   site_config {}
   identity {
