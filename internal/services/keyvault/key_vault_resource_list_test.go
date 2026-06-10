@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package voiceservices_test
+package keyvault_test
 
 import (
 	"context"
@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccVoiceServicesCommunicationsGateway_list_basic(t *testing.T) {
-	r := VoiceServicesCommunicationsGatewayResource{}
-	listResourceAddress := "azurerm_voice_services_communications_gateway.list"
+func TestAccKeyVault_list_basic(t *testing.T) {
+	r := KeyVaultResource{}
+	listResourceAddress := "azurerm_key_vault.list"
 
-	data := acceptance.BuildTestData(t, "azurerm_voice_services_communications_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test0")
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -48,57 +48,48 @@ func TestAccVoiceServicesCommunicationsGateway_list_basic(t *testing.T) {
 	})
 }
 
-func (r VoiceServicesCommunicationsGatewayResource) basicList(data acceptance.TestData) string {
+func (r KeyVaultResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
 
-resource "azurerm_voice_services_communications_gateway" "test" {
+resource "azurerm_key_vault" "test" {
   count = 3
 
-  name                = "acctest-vscg-${count.index}-%[3]s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  connectivity        = "PublicAddress"
-  e911_type           = "Standard"
-  codecs              = "PCMA"
-  platforms           = ["OperatorConnect"]
-  on_prem_mcp_enabled = false
-
-  service_location {
-    location           = "eastus"
-    operator_addresses = ["198.51.100.1"]
-  }
-
-  service_location {
-    location           = "eastus2"
-    operator_addresses = ["198.51.100.2"]
-  }
+  name                       = "acctestkv${count.index}%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r VoiceServicesCommunicationsGatewayResource) basicQuery() string {
+func (r KeyVaultResource) basicQuery() string {
 	return `
-list "azurerm_voice_services_communications_gateway" "list" {
+list "azurerm_key_vault" "list" {
   provider = azurerm
   config {}
 }
 `
 }
 
-func (r VoiceServicesCommunicationsGatewayResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
+func (r KeyVaultResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-list "azurerm_voice_services_communications_gateway" "list" {
+list "azurerm_key_vault" "list" {
   provider = azurerm
   config {
-    resource_group_name = "acctest-rg-%[1]d"
+    resource_group_name = "acctestRG-%[1]d"
   }
 }
 `, data.RandomInteger)
