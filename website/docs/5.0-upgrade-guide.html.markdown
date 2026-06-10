@@ -307,6 +307,30 @@ Please follow the format in the example below for listing breaking changes in re
 * The `example_property_with_changed_default` property now defaults to `NewDefault`.
 ```
 
+### `azurerm_storage_blob`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+
+### `azurerm_storage_container`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+
+### `azurerm_storage_queue`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+
+### `azurerm_storage_share`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+
+### `azurerm_storage_table`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+
+### `azurerm_storage_table_entity`
+
+* The `storage_table_id` property now requires a Resource Manager ID. The deprecated Data Plane URL format is no longer supported.
+
 ### `azurerm_api_management`
 
 * The deprecated `hostname_configuration.developer_portal.key_vault_id` property has been removed in favour of the `hostname_configuration.developer_portal.key_vault_certificate_id` property.
@@ -735,6 +759,31 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `example_old_property` property has been removed in favour of the `example_new_property` property.
 * The deprecated `example_property_with_no_replacement` property has been removed.
 ```
+
+### `azurerm_storage_blob`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_container_id` property.
+* The deprecated `storage_container_name` property has been removed in favour of the `storage_container_id` property.
+
+### `azurerm_storage_container`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+
+### `azurerm_storage_queue`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+
+### `azurerm_storage_share`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+
+### `azurerm_storage_table`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+
+### `azurerm_storage_table_entity`
+
+* The `storage_table_id` property now requires a Resource Manager ID. The deprecated Data Plane URL format is no longer supported.
 
 ### `azurerm_api_management`
 

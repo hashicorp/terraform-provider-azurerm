@@ -716,8 +716,6 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  allow_nested_items_to_be_public = true
-
   tags = {
     environment = "staging"
   }
@@ -777,7 +775,7 @@ resource "azurerm_snapshot" "test" {
     azurerm_virtual_machine.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (SnapshotResource) incrementalEnabled(data acceptance.TestData) string {

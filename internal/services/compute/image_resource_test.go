@@ -434,7 +434,7 @@ provider "azurerm" {
   }
 }
 
-%s
+		%s
 
 resource "azurerm_network_interface" "testsource" {
   name                = "acctnicsource-${local.number}"

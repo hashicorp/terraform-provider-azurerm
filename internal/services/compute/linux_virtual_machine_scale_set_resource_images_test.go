@@ -398,14 +398,13 @@ resource "azurerm_storage_container" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
 	}
 	return fmt.Sprintf(`
-%s
+	%s
 
 resource "azurerm_public_ip" "source" {
   name                = "source-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_network_interface" "source" {
@@ -435,7 +434,7 @@ resource "azurerm_storage_container" "test" {
   storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
+	`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisitesWithVM(data acceptance.TestData) string {

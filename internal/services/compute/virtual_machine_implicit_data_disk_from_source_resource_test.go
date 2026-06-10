@@ -1280,11 +1280,10 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "scripts"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "exit 0"
+  name                 = "scripts"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source_content       = "exit 0"
 }
 
 resource "azurerm_gallery_application_version" "test" {
@@ -1378,7 +1377,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, location)
+	`, data.RandomInteger, location)
 }
 
 func (r VirtualMachineImplicitDataDiskFromSourceResource) virtualMachineApplicationComplete(data acceptance.TestData) string {
