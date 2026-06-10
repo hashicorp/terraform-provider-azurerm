@@ -1,8 +1,16 @@
 ## 4.77.0 (Unreleased)
 
 ENHANCEMENTS:
+
 * dependencies: `go-azure-sdk` - update to `v0.20260603.1074745` [GH-32503]
 * `azurerm_machine_learning_workspace` - add support for the `storage_account_access_type` property [GH-32514]
+* Data Source: `azurerm_storage_blob` - the `storage_account_name` and `storage_container_name` properties have been deprecated in favour of the `storage_container_id` property [GH-32235]
+* Data Source: `azurerm_storage_table` - the `storage_account_name` property has been deprecated in favour of the `storage_account_id` property [GH-32235]
+* `azurerm_storage_blob` - the `storage_account_name` and `storage_container_name` properties have been deprecated in favour of the `storage_container_id` property [GH-32235]
+* `azurerm_storage_container` - the `storage_account_name` property has been deprecated in favour of the `storage_account_id` property [GH-32235]
+* `azurerm_storage_queue` - the `storage_account_name` property has been deprecated in favour of the `storage_account_id` property [GH-32235]
+* `azurerm_storage_table` - the `storage_account_name` property has been deprecated in favour of the `storage_account_id` property [GH-32235]
+
 
 FEATURES:
 
