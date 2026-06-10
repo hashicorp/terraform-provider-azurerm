@@ -225,7 +225,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `package_name` - The App Attach Package name from the `appxmanifest.xml` of the corresponding Windows application package.
 
-* `package_relative_path` - The relative path to the App Attach Package inside the correponding VHD or CIM image.
+* `package_relative_path` - The relative path to the App Attach Package inside the corresponding VHD or CIM image.
 
 * `version` - The App Attach Package version found in the `appxmanifest.xml` of the corresponding Windows application package.
 
