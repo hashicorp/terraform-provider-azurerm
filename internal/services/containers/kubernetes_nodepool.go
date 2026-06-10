@@ -707,7 +707,6 @@ func schemaLocalDNSOverride() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
-		Set:      localDNSOverrideHash,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"domain": {
@@ -774,16 +773,6 @@ func schemaLocalDNSOverride() *pluginsdk.Schema {
 			},
 		},
 	}
-}
-
-func localDNSOverrideHash(v interface{}) int {
-	if m, ok := v.(map[string]interface{}); ok {
-		if domain, ok := m["domain"].(string); ok {
-			return pluginsdk.HashString(domain)
-		}
-	}
-
-	return 0
 }
 
 func validateDefaultNodePoolLocalDNSProfileRawConfig(d *pluginsdk.ResourceDiff) error {

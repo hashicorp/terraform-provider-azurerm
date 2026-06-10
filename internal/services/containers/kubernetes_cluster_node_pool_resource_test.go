@@ -4289,18 +4289,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     }
 
     vnet_dns_override {
-      domain                    = "mycustom.local"
-      serve_stale               = "Verify"
-      serve_stale_duration      = 3600
-      query_logging             = "Error"
-      protocol                  = "PreferUDP"
-      forward_destination       = "VnetDNS"
-      forward_policy            = "RoundRobin"
-      max_concurrent            = 2000
-      cache_duration_in_seconds = 7200
-    }
-
-    vnet_dns_override {
       domain                    = "cluster.local"
       serve_stale               = "Verify"
       serve_stale_duration      = 3600
