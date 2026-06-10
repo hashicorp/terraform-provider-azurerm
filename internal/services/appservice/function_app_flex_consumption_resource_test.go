@@ -4109,7 +4109,7 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-		`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+		`, data.RandomInteger, "eastus2", data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
 	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
