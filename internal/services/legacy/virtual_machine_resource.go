@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -944,7 +945,8 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 		model := virtualMachine.Model
 		if model == nil {
-			return fmt.Errorf("deleting Disks for %s - `model` was nil", id)
+			log.Printf("[DEBUG] deleting Disks for %s - `model` was nil, skipping", id)
+			return nil
 		}
 		props := model.Properties
 		if props == nil {

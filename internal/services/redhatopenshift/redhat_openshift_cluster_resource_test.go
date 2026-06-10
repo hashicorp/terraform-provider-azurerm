@@ -902,7 +902,6 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 func (OpenShiftClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  skip_provider_registration = true
   features {
     key_vault {
       recover_soft_deleted_key_vaults    = false
