@@ -395,6 +395,131 @@ func TestAccPrivateEndpoint_multipleIpConfigurations(t *testing.T) {
 	})
 }
 
+func TestAccPrivateEndpoint_edgeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.edgeZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r PrivateEndpointResource) edgeZone(data acceptance.TestData) string {
+	// WestUS has an edge zone available - so hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-privatelink-%d"
+  location = "%s"
+}
+
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
+
+# Standard VNet for the Private Link Service side (edge_zone not supported on PLS)
+resource "azurerm_virtual_network" "service" {
+  name                = "acctestvnet-svc-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "service" {
+  name                 = "acctestsnetservice-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.service.name
+  address_prefixes     = ["10.5.1.0/24"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  sku                 = "Standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%d"
+  sku                 = "Standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  frontend_ip_configuration {
+    name                 = azurerm_public_ip.test.name
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_private_link_service" "test" {
+  name                           = "acctestPLS-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
+  visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
+
+  nat_ip_configuration {
+    name      = "primaryIpConfiguration-%d"
+    primary   = true
+    subnet_id = azurerm_subnet.service.id
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+
+# Edge zone VNet for the Private Endpoint side
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.6.0.0/16"]
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+}
+
+resource "azurerm_subnet" "endpoint" {
+  name                 = "acctestsnetendpoint-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.6.1.0/24"]
+
+  default_outbound_access_enabled   = false
+  private_endpoint_network_policies = "Disabled"
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func (PrivateEndpointResource) template(data acceptance.TestData, seviceCfg string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
