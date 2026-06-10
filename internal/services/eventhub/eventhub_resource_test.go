@@ -233,14 +233,14 @@ func TestAccEventHub_partitionCountUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, 2),
+			Config: r.partitionCount(data, 2),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("partition_count").HasValue("2"),
 			),
 		},
 		{
-			Config: r.partitionCountUpdate(data),
+			Config: r.partitionCount(data, 10),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("partition_count").HasValue("10"),
@@ -612,7 +612,7 @@ resource "azurerm_eventhub" "import" {
 `, template)
 }
 
-func (EventHubResource) partitionCountUpdate(data acceptance.TestData) string {
+func (EventHubResource) partitionCount(data acceptance.TestData, partitionCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -633,10 +633,10 @@ resource "azurerm_eventhub_namespace" "test" {
 resource "azurerm_eventhub" "test" {
   name              = "acctesteventhub-%d"
   namespace_id      = azurerm_eventhub_namespace.test.id
-  partition_count   = 10
+  partition_count   = %d
   message_retention = 1
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, partitionCount)
 }
 
 func (EventHubResource) standard(data acceptance.TestData) string {
