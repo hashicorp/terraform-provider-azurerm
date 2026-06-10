@@ -15,6 +15,7 @@ ENHANCEMENTS:
 FEATURES:
 
 * **New List Resource:** `azurerm_web_pubsub_custom_domain` [GH-32186]
+* **New List Resource:** `azurerm_key_vault` [GH-32408]
 
 BUG FIXES:
 * `azurerm_recovery_services_vault_resource_guard_association` - normalize `resource_guard_id` before persisting to state to work around an API issue [GH-32554]
