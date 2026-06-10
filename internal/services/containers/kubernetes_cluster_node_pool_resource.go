@@ -9,7 +9,6 @@ import (
 	"log"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -71,12 +70,11 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				oldStr := old.(string)
 				newStr := new.(string)
 
-				// Ubuntu and AzureLinux are currently the only allowed Linux OSSKU Migration targets.
-				if !strings.HasPrefix(oldStr, string(agentpools.OSSKUUbuntu)) && !strings.HasPrefix(oldStr, string(agentpools.OSSKUAzureLinux)) {
+				if !kubernetesClusterNodePoolOSSKUSupportsInPlaceMigration(oldStr) {
 					return true
 				}
 
-				if !strings.HasPrefix(newStr, string(agentpools.OSSKUUbuntu)) && !strings.HasPrefix(newStr, string(agentpools.OSSKUAzureLinux)) {
+				if !kubernetesClusterNodePoolOSSKUSupportsInPlaceMigration(newStr) {
 					return true
 				}
 
@@ -347,18 +345,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"os_sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // defaults to Ubuntu if using Linux
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.OSSKUAzureLinux),
-				string(agentpools.OSSKUAzureLinuxThree),
-				string(agentpools.OSSKUUbuntu),
-				string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
-				string(agentpools.OSSKUUbuntuTwoFourZeroFour),
-				string(agentpools.OSSKUWindowsTwoZeroOneNine),
-				string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true, // defaults to Ubuntu if using Linux
+			ValidateFunc: validation.StringInSlice(kubernetesClusterNodePoolOSSKUValues(), false),
 		},
 
 		"os_type": {
@@ -420,6 +410,8 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"security_profile": schemaNodePoolSecurityProfile(),
+
 		"temporary_name_for_rotation": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -461,6 +453,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
+				string(agentpools.WorkloadRuntimeKataVMIsolation),
 				string(agentpools.WorkloadRuntimeOCIContainer),
 				string(agentpools.WorkloadRuntimeWasmWasi),
 			}, false),
@@ -613,6 +606,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	if workloadRuntime := d.Get("workload_runtime").(string); workloadRuntime != "" {
 		profile.WorkloadRuntime = pointer.To(agentpools.WorkloadRuntime(workloadRuntime))
+	}
+
+	if securityProfile := expandAgentPoolSecurityProfile(d, d.Get("security_profile").([]interface{})); securityProfile != nil {
+		profile.SecurityProfile = securityProfile
 	}
 
 	if priority == string(managedclusters.ScaleSetPrioritySpot) {
@@ -917,6 +914,14 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.OsSKU = pointer.To(agentpools.OSSKU(d.Get("os_sku").(string)))
 	}
 
+	if d.HasChange("security_profile") {
+		securityProfile := expandAgentPoolSecurityProfile(d, d.Get("security_profile").([]interface{}))
+		if securityProfile != nil && props.SecurityProfile != nil {
+			securityProfile.SshAccess = props.SecurityProfile.SshAccess
+		}
+		props.SecurityProfile = securityProfile
+	}
+
 	if d.HasChange("pod_subnet_id") {
 		props.PodSubnetID = pointer.To(d.Get("pod_subnet_id").(string))
 	}
@@ -1025,15 +1030,15 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	// if the node pool name has changed, it means the initial attempt at resizing failed
 	cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
-	// os_sku can only be updated if the current and new os_sku are either Ubuntu or AzureLinux
+	// os_sku can only be updated in place when the current and new os_sku are Linux migration targets.
 	if d.HasChange("os_sku") {
 		oldOsSkuRaw, newOsSkuRaw := d.GetChange("os_sku")
 		oldOsSku := oldOsSkuRaw.(string)
 		newOsSku := newOsSkuRaw.(string)
-		if !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUAzureLinux)) {
+		if !kubernetesClusterNodePoolOSSKUSupportsInPlaceMigration(oldOsSku) {
 			cycleNodePool = true
 		}
-		if !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUAzureLinux)) {
+		if !kubernetesClusterNodePoolOSSKUSupportsInPlaceMigration(newOsSku) {
 			cycleNodePool = true
 		}
 	}
@@ -1250,6 +1255,11 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		if v := props.OsSKU; v != nil {
 			d.Set("os_sku", string(*v))
 		}
+
+		if err := d.Set("security_profile", flattenAgentPoolSecurityProfile(props.SecurityProfile)); err != nil {
+			return fmt.Errorf("setting `security_profile`: %+v", err)
+		}
+
 		d.Set("pod_subnet_id", props.PodSubnetID)
 
 		// not returned from the API if not Spot

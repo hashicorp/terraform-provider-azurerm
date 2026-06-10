@@ -167,7 +167,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ~> **Note:** `node_os_upgrade_channel` must be set to `NodeImage` if `automatic_upgrade_channel` has been set to `node-image`
 
-* `node_provisioning_profile` - (Required) A `node_provisioning_profile` block as defined below.
+* `node_provisioning_profile` - (Optional) A `node_provisioning_profile` block as defined below.
 
 * `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
@@ -425,7 +425,7 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Ubuntu2404`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux` and `Ubuntu` does not replace the resource; otherwise `temporary_name_for_rotation` must be specified when attempting a change.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `AzureContainerLinux`, `Ubuntu`, `Ubuntu2204`, `Ubuntu2404`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between Linux OS SKUs `AzureLinux`, `AzureLinux3`, `AzureContainerLinux`, `Ubuntu`, `Ubuntu2204` and `Ubuntu2404` does not replace the resource; otherwise `temporary_name_for_rotation` must be specified when attempting a change.
 
 -> **Note:** `Windows2019` is deprecated and not supported for Kubernetes version ≥1.33.
 
@@ -434,6 +434,8 @@ A `default_node_pool` block supports the following:
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
 
 * `scale_down_mode` - (Optional) Specifies the autoscaling behaviour of the Kubernetes Cluster. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
+
+* `security_profile` - (Optional) A `security_profile` block as documented below.
 
 * `snapshot_id` - (Optional) The ID of the Snapshot which should be used to create this default Node Pool. `temporary_name_for_rotation` must be specified when changing this property.
 
@@ -455,7 +457,9 @@ A `default_node_pool` block supports the following:
 
 ~> **Note:** A Route Table must be configured on this Subnet.
 
-* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible value is `OCIContainer`.
+* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible values are `KataVmIsolation` and `OCIContainer`.
+
+~> **Note:** `KataVmIsolation` requires `os_sku` to be set to `AzureLinux` and the selected VM size must support nested virtualization.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster should be located. `temporary_name_for_rotation` must be specified when changing this property.
 
@@ -568,6 +572,16 @@ An `allowed_host_ports` block supports the following:
 * `port_end` - (Optional) Specifies the end of the port range.
 
 * `protocol` - (Optional) Specifies the protocol of the port range. Possible values are `TCP` and `UDP`.
+
+---
+
+A `security_profile` block supports the following:
+
+* `enable_secure_boot` - (Optional) Specifies whether Secure Boot is enabled for the default Node Pool.
+
+* `enable_vtpm` - (Optional) Specifies whether vTPM is enabled for the default Node Pool.
+
+~> **Note:** When migrating an existing default Node Pool to `os_sku = "AzureContainerLinux"`, `enable_secure_boot` and `enable_vtpm` must be set to `true`.
 
 ---
 

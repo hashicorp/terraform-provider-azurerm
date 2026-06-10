@@ -23,12 +23,34 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+const kubernetesClusterNodePoolOSSKUAzureContainerLinux = "AzureContainerLinux"
+
+func kubernetesClusterNodePoolOSSKUValues() []string {
+	return []string{
+		string(agentpools.OSSKUAzureLinux),
+		string(agentpools.OSSKUAzureLinuxThree),
+		kubernetesClusterNodePoolOSSKUAzureContainerLinux,
+		string(agentpools.OSSKUUbuntu),
+		string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
+		string(agentpools.OSSKUUbuntuTwoFourZeroFour),
+		string(agentpools.OSSKUWindowsTwoZeroOneNine),
+		string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+	}
+}
+
+func kubernetesClusterNodePoolOSSKUSupportsInPlaceMigration(osSKU string) bool {
+	return strings.HasPrefix(osSKU, string(agentpools.OSSKUUbuntu)) ||
+		strings.HasPrefix(osSKU, string(agentpools.OSSKUAzureLinux)) ||
+		osSKU == kubernetesClusterNodePoolOSSKUAzureContainerLinux
+}
 
 func SchemaDefaultNodePool() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
@@ -183,18 +205,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"os_sku": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true, // defaults to Ubuntu if using Linux
-						ValidateFunc: validation.StringInSlice([]string{
-							string(agentpools.OSSKUAzureLinux),
-							string(agentpools.OSSKUAzureLinuxThree),
-							string(agentpools.OSSKUUbuntu),
-							string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
-							string(agentpools.OSSKUUbuntuTwoFourZeroFour),
-							string(agentpools.OSSKUWindowsTwoZeroOneNine),
-							string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true, // defaults to Ubuntu if using Linux
+						ValidateFunc: validation.StringInSlice(kubernetesClusterNodePoolOSSKUValues(), false),
 					},
 
 					"ultra_ssd_enabled": {
@@ -240,6 +254,8 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						}, false),
 					},
 
+					"security_profile": schemaNodePoolSecurityProfile(),
+
 					"snapshot_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -260,6 +276,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional: true,
 						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.WorkloadRuntimeKataVMIsolation),
 							string(managedclusters.WorkloadRuntimeOCIContainer),
 						}, false),
 					},
@@ -282,6 +299,30 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 				}
 			}(),
+		},
+	}
+}
+
+func schemaNodePoolSecurityProfile() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enable_secure_boot": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+
+				"enable_vtpm": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+			},
 		},
 	}
 }
@@ -835,6 +876,17 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		agentpool.Properties.WorkloadRuntime = pointer.To(agentpools.WorkloadRuntime(string(*workloadRuntimeNodePool)))
 	}
 
+	if securityProfileRaw := defaultCluster.SecurityProfile; securityProfileRaw != nil {
+		securityProfile := agentpools.AgentPoolSecurityProfile{
+			EnableSecureBoot: securityProfileRaw.EnableSecureBoot,
+			EnableVTPM:       securityProfileRaw.EnableVTPM,
+		}
+		if securityProfileRaw.SshAccess != nil {
+			securityProfile.SshAccess = pointer.To(agentpools.AgentPoolSSHAccess(string(*securityProfileRaw.SshAccess)))
+		}
+		agentpool.Properties.SecurityProfile = &securityProfile
+	}
+
 	if creationData := defaultCluster.CreationData; creationData != nil {
 		if creationData.SourceResourceId != nil {
 			agentpool.Properties.CreationData = &agentpools.CreationData{
@@ -964,6 +1016,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.WorkloadRuntime = pointer.To(managedclusters.WorkloadRuntime(workloadRunTime))
 	}
 
+	if securityProfile := expandDefaultNodePoolSecurityProfile(d, raw["security_profile"].([]interface{})); securityProfile != nil {
+		profile.SecurityProfile = securityProfile
+	}
+
 	if capacityReservationGroupId := raw["capacity_reservation_group_id"].(string); capacityReservationGroupId != "" {
 		profile.CapacityReservationGroupID = pointer.To(capacityReservationGroupId)
 	}
@@ -1045,6 +1101,61 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	return &[]managedclusters.ManagedClusterAgentPoolProfile{
 		profile,
 	}, nil
+}
+
+func nodePoolSecurityProfileConfigValueIsSet(d *pluginsdk.ResourceData, key string) bool {
+	raw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath(key))
+	if diags.HasError() {
+		return false
+	}
+
+	return raw.IsKnown() && !raw.IsNull()
+}
+
+func expandDefaultNodePoolSecurityProfile(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.AgentPoolSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	result := managedclusters.AgentPoolSecurityProfile{}
+
+	if nodePoolSecurityProfileConfigValueIsSet(d, "default_node_pool.0.security_profile.0.enable_secure_boot") {
+		result.EnableSecureBoot = pointer.To(raw["enable_secure_boot"].(bool))
+	}
+
+	if nodePoolSecurityProfileConfigValueIsSet(d, "default_node_pool.0.security_profile.0.enable_vtpm") {
+		result.EnableVTPM = pointer.To(raw["enable_vtpm"].(bool))
+	}
+
+	if result.EnableSecureBoot == nil && result.EnableVTPM == nil {
+		return nil
+	}
+
+	return &result
+}
+
+func expandAgentPoolSecurityProfile(d *pluginsdk.ResourceData, input []interface{}) *agentpools.AgentPoolSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	result := agentpools.AgentPoolSecurityProfile{}
+
+	if nodePoolSecurityProfileConfigValueIsSet(d, "security_profile.0.enable_secure_boot") {
+		result.EnableSecureBoot = pointer.To(raw["enable_secure_boot"].(bool))
+	}
+
+	if nodePoolSecurityProfileConfigValueIsSet(d, "security_profile.0.enable_vtpm") {
+		result.EnableVTPM = pointer.To(raw["enable_vtpm"].(bool))
+	}
+
+	if result.EnableSecureBoot == nil && result.EnableVTPM == nil {
+		return nil
+	}
+
+	return &result
 }
 
 func expandClusterNodePoolKubeletConfig(input []interface{}) *managedclusters.KubeletConfig {
@@ -1399,6 +1510,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	}
 
 	upgradeSettings := flattenClusterNodePoolUpgradeSettings(agentPool.UpgradeSettings)
+	securityProfile := flattenDefaultNodePoolSecurityProfile(agentPool.SecurityProfile)
 	linuxOSConfig, err := flattenClusterNodePoolLinuxOSConfig(agentPool.LinuxOSConfig)
 	if err != nil {
 		return nil, err
@@ -1427,6 +1539,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"os_disk_type":                  string(osDiskType),
 		"os_sku":                        osSKU,
 		"scale_down_mode":               string(scaleDownMode),
+		"security_profile":              securityProfile,
 		"snapshot_id":                   snapshotId,
 		"tags":                          tags.Flatten(agentPool.Tags),
 		"temporary_name_for_rotation":   temporaryName,
@@ -1449,6 +1562,32 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	return &[]interface{}{
 		out,
 	}, nil
+}
+
+func flattenDefaultNodePoolSecurityProfile(input *managedclusters.AgentPoolSecurityProfile) []interface{} {
+	if input == nil || (input.EnableSecureBoot == nil && input.EnableVTPM == nil) {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enable_secure_boot": pointer.From(input.EnableSecureBoot),
+			"enable_vtpm":        pointer.From(input.EnableVTPM),
+		},
+	}
+}
+
+func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile) []interface{} {
+	if input == nil || (input.EnableSecureBoot == nil && input.EnableVTPM == nil) {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enable_secure_boot": pointer.From(input.EnableSecureBoot),
+			"enable_vtpm":        pointer.From(input.EnableVTPM),
+		},
+	}
 }
 
 func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {

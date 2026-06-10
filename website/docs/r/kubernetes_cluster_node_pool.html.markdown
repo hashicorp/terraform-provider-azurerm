@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this property requires specifying `temporary_name_for_rotation`.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Ubuntu2404`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux` and `Ubuntu` does not replace the resource; any other change forces a new resource to be created.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `AzureContainerLinux`, `Ubuntu`, `Ubuntu2204`, `Ubuntu2404`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between Linux OS SKUs `AzureLinux`, `AzureLinux3`, `AzureContainerLinux`, `Ubuntu`, `Ubuntu2204` and `Ubuntu2404` does not replace the resource; any other change forces a new resource to be created.
 
 -> **Note:** `Windows2019` is deprecated and not supported for Kubernetes version ≥1.33.
 
@@ -148,6 +148,8 @@ The following arguments are supported:
 
 * `scale_down_mode` - (Optional) Specifies how the node pool should deal with scaled-down nodes. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
 
+* `security_profile` - (Optional) A `security_profile` block as documented below.
+
 * `temporary_name_for_rotation` - (Optional) Specifies the name of the temporary node pool used to cycle the node pool when one of the relevant properties are updated.
 
 * `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. Changing this property requires specifying `temporary_name_for_rotation`.
@@ -160,7 +162,9 @@ The following arguments are supported:
 
 * `windows_profile` - (Optional) A `windows_profile` block as documented below. Changing this forces a new resource to be created.
 
-* `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer` and `WasmWasi`.
+* `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `KataVmIsolation`, `OCIContainer` and `WasmWasi`.
+
+~> **Note:** `KataVmIsolation` requires `os_sku` to be set to `AzureLinux` and the selected VM size must support nested virtualization.
 
 ~> **Note:** WebAssembly System Interface node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-wasi-node-pools)
 
@@ -239,6 +243,16 @@ An `allowed_host_ports` block supports the following:
 * `port_end` - (Optional) Specifies the end of the port range.
 
 * `protocol` - (Optional) Specifies the protocol of the port range. Possible values are `TCP` and `UDP`.
+
+---
+
+A `security_profile` block supports the following:
+
+* `enable_secure_boot` - (Optional) Specifies whether Secure Boot is enabled for this Node Pool.
+
+* `enable_vtpm` - (Optional) Specifies whether vTPM is enabled for this Node Pool.
+
+~> **Note:** When migrating an existing Node Pool to `os_sku = "AzureContainerLinux"`, `enable_secure_boot` and `enable_vtpm` must be set to `true`.
 
 ---
 

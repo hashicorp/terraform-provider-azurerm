@@ -2747,15 +2747,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		// if the default node pool name has changed, it means the initial attempt at resizing failed
 		cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
-		// os_sku could only be updated if the current and new os_sku are either Ubuntu or AzureLinux
+		// os_sku can only be updated in place when the current and new os_sku are Linux migration targets.
 		if d.HasChange("default_node_pool.0.os_sku") {
 			oldOsSkuRaw, newOsSkuRaw := d.GetChange("default_node_pool.0.os_sku")
 			oldOsSku := oldOsSkuRaw.(string)
 			newOsSku := newOsSkuRaw.(string)
-			if !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUAzureLinux)) {
+			if !kubernetesClusterNodePoolOSSKUSupportsInPlaceMigration(oldOsSku) {
 				cycleNodePool = true
 			}
-			if !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUAzureLinux)) {
+			if !kubernetesClusterNodePoolOSSKUSupportsInPlaceMigration(newOsSku) {
 				cycleNodePool = true
 			}
 		}
