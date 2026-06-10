@@ -426,7 +426,7 @@ func expandDeploymentSkuModel(inputList []DeploymentSkuModel) *deployments.Sku {
 }
 
 func flattenDeploymentModelModel(input *deployments.DeploymentModel) []DeploymentModelModel {
-	var outputList []DeploymentModelModel
+	outputList := make([]DeploymentModelModel, 0, 1)
 	if input == nil {
 		return outputList
 	}

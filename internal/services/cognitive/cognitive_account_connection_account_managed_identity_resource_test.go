@@ -155,7 +155,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                       = "acctest-cognitiveaccount-%[1]d"
+  name                       = "acctest-cogacc-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -179,7 +179,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "aiservices" {
-  name                       = "acctest-cognitiveaccount2-%[2]d"
+  name                       = "acctest-cogacc-2-%[2]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -199,9 +199,9 @@ resource "azurerm_cognitive_account_connection_account_managed_identity" "test" 
   target               = azurerm_cognitive_account.aiservices.endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.aiservices.id
-    location   = azurerm_cognitive_account.aiservices.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cognitive_account.aiservices.id
+    Location   = azurerm_cognitive_account.aiservices.location
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -218,9 +218,9 @@ resource "azurerm_cognitive_account_connection_account_managed_identity" "import
   target               = azurerm_cognitive_account_connection_account_managed_identity.test.target
 
   metadata = {
-    apiType    = azurerm_cognitive_account_connection_account_managed_identity.test.metadata.apiType
-    resourceId = azurerm_cognitive_account_connection_account_managed_identity.test.metadata.resourceId
-    location   = azurerm_cognitive_account_connection_account_managed_identity.test.metadata.location
+    ApiType    = azurerm_cognitive_account_connection_account_managed_identity.test.metadata.ApiType
+    ResourceId = azurerm_cognitive_account_connection_account_managed_identity.test.metadata.ResourceId
+    Location   = azurerm_cognitive_account_connection_account_managed_identity.test.metadata.Location
   }
 }
 `, r.basic(data))
@@ -235,7 +235,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "aiservices2" {
-  name                       = "acctest-cognitiveaccount-ai2-%[2]d"
+  name                       = "acctest-cogacc-ai2-%[2]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -255,9 +255,9 @@ resource "azurerm_cognitive_account_connection_account_managed_identity" "test" 
   target               = azurerm_cognitive_account.aiservices2.endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.aiservices2.id
-    location   = azurerm_cognitive_account.aiservices2.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cognitive_account.aiservices2.id
+    Location   = azurerm_cognitive_account.aiservices2.location
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -272,7 +272,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "aiservices" {
-  name                       = "acctest-cognitiveaccount-ai-%[2]d"
+  name                       = "acctest-cogacc-ai-%[2]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -292,9 +292,9 @@ resource "azurerm_cognitive_account_connection_account_managed_identity" "test" 
   target               = azurerm_cognitive_account.aiservices.endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.aiservices.id
-    location   = azurerm_cognitive_account.aiservices.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cognitive_account.aiservices.id
+    Location   = azurerm_cognitive_account.aiservices.location
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -309,7 +309,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "openai" {
-  name                = "acctest-cognitiveaccount-openai-%[2]d"
+  name                = "acctest-cogacc-openai-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "OpenAI"
@@ -327,9 +327,9 @@ resource "azurerm_cognitive_account_connection_account_managed_identity" "test" 
   target               = azurerm_cognitive_account.openai.endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai.id
-    location   = azurerm_cognitive_account.openai.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cognitive_account.openai.id
+    Location   = azurerm_cognitive_account.openai.location
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -367,9 +367,9 @@ resource "azurerm_cognitive_account_connection_account_managed_identity" "test" 
   target               = azurerm_key_vault.test.vault_uri
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_key_vault.test.id
-    location   = azurerm_key_vault.test.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_key_vault.test.id
+    Location   = azurerm_key_vault.test.location
   }
 
   depends_on = [azurerm_role_assignment.test]
@@ -400,9 +400,9 @@ resource "azurerm_cognitive_account_connection_account_managed_identity" "test" 
   target               = azurerm_storage_account.test.primary_blob_endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_storage_account.test.id
-    location   = azurerm_storage_account.test.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_storage_account.test.id
+    Location   = azurerm_storage_account.test.location
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)

@@ -92,9 +92,9 @@ resource "azurerm_cognitive_account_connection_account_key" "test2" {
   account_key          = azurerm_storage_account.test.primary_access_key
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_storage_account.test.id
-    location   = azurerm_storage_account.test.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_storage_account.test.id
+    Location   = azurerm_storage_account.test.location
   }
 }
 `, r.basic(data), data.RandomInteger)
