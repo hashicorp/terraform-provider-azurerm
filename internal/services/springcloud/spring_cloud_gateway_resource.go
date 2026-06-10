@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -80,9 +81,14 @@ type ResponseCacheModel struct {
 
 type SpringCloudGatewayResource struct{}
 
+func (s SpringCloudGatewayResource) DeprecationMessage() string {
+	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_gateway` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+}
+
 var (
-	_ sdk.ResourceWithUpdate         = SpringCloudGatewayResource{}
-	_ sdk.ResourceWithStateMigration = SpringCloudGatewayResource{}
+	_ sdk.ResourceWithUpdate                      = SpringCloudGatewayResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudGatewayResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudGatewayResource{}
 )
 
 func (s SpringCloudGatewayResource) ResourceType() string {
@@ -450,12 +456,14 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 			}
 			id := appplatform.NewGatewayID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.GatewaysGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GatewaysGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			service, err := client.ServicesGet(ctx, *springId)
@@ -490,12 +498,11 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.GatewaysCreateOrUpdateThenPoll(ctx, id, gatewayResource)
-			if err != nil {
+			if err := client.GatewaysCreateOrUpdateCallbackThenPoll(ctx, id, gatewayResource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -901,10 +908,8 @@ func flattenGatewayClientAuth(input *appplatform.GatewayPropertiesClientAuth) []
 			}
 		}
 	}
-	verificationEnabled := false
-	if input.CertificateVerification != nil && *input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled {
-		verificationEnabled = true
-	}
+	verificationEnabled := input.CertificateVerification != nil && *input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled
+
 	return []ClientAuthorizationModel{
 		{
 			CertificateIds:      certificateIds,

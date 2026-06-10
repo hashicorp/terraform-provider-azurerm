@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -33,9 +33,6 @@ type KeyVaultManagedHSMRoleAssignmentModel struct {
 	RoleDefinitionId string `tfschema:"role_definition_id"`
 	PrincipalId      string `tfschema:"principal_id"`
 	ResourceId       string `tfschema:"resource_id"`
-
-	// TODO: remove in v4.0
-	VaultBaseUrl string `tfschema:"vault_base_url,removedInNextMajorVersion"`
 }
 
 var _ sdk.ResourceWithStateMigration = KeyVaultManagedHSMRoleAssignmentResource{}
@@ -149,12 +146,15 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
 			id := parse.NewManagedHSMDataPlaneRoleAssignmentID(endpoint.ManagedHSMName, endpoint.DomainSuffix, config.Scope, config.Name)
-			existing, err := client.Get(ctx, endpoint.BaseURI(), config.Scope, config.Name)
-			if !utils.ResponseWasNotFound(existing.Response) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id.ID(), err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, endpoint.BaseURI(), config.Scope, config.Name)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %v", id.ID(), err)
+					}
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			var param keyvault.RoleAssignmentCreateParameters

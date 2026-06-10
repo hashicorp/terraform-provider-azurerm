@@ -1,20 +1,23 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub_custom_domain -service-package-name signalr -properties "name" -compare-values "subscription_id:web_pubsub_id,resource_group_name:web_pubsub_id,web_pubsub_name:web_pubsub_id"
 
 import (
 	"context"
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomDomainWebPubsubModel struct {
@@ -24,9 +27,18 @@ type CustomDomainWebPubsubModel struct {
 	WebPubsubCustomCertificateId string `tfschema:"web_pubsub_custom_certificate_id"`
 }
 
+const webPubsubCustomDomainResourceType = "azurerm_web_pubsub_custom_domain"
+
 type CustomDomainWebPubsubResource struct{}
 
-var _ sdk.Resource = CustomDomainWebPubsubResource{}
+var (
+	_ sdk.Resource             = CustomDomainWebPubsubResource{}
+	_ sdk.ResourceWithIdentity = CustomDomainWebPubsubResource{}
+)
+
+func (r CustomDomainWebPubsubResource) Identity() resourceids.ResourceId {
+	return &webpubsub.CustomDomainId{}
+}
 
 func (r CustomDomainWebPubsubResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -69,7 +81,7 @@ func (r CustomDomainWebPubsubResource) ModelObject() interface{} {
 }
 
 func (r CustomDomainWebPubsubResource) ResourceType() string {
-	return "azurerm_web_pubsub_custom_domain"
+	return webPubsubCustomDomainResourceType
 }
 
 func (r CustomDomainWebPubsubResource) Create() sdk.ResourceFunc {
@@ -96,53 +108,33 @@ func (r CustomDomainWebPubsubResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing custom certificate for %s: %+v", id, err)
 			}
 
-			existing, err := client.CustomDomainsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.CustomDomainsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			customDomainObj := webpubsub.CustomDomain{
 				Properties: webpubsub.CustomDomainProperties{
 					DomainName: customDomainWebPubsubModel.DomainName,
 					CustomCertificate: webpubsub.ResourceReference{
-						Id: utils.String(customDomainWebPubsubModel.WebPubsubCustomCertificateId),
+						Id: pointer.To(customDomainWebPubsubModel.WebPubsubCustomCertificateId),
 					},
 				},
 			}
-			if _, err := client.CustomDomainsCreateOrUpdate(ctx, id, customDomainObj); err != nil {
+			if err := client.CustomDomainsCreateOrUpdateCallbackThenPoll(ctx, id, customDomainObj, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{
-					string(webpubsub.ProvisioningStateUpdating),
-					string(webpubsub.ProvisioningStateCreating),
-					string(webpubsub.ProvisioningStateMoving),
-					string(webpubsub.ProvisioningStateRunning),
-				},
-				Target: []string{
-					string(webpubsub.ProvisioningStateSucceeded),
-					string(webpubsub.ProvisioningStateFailed),
-				},
-				Refresh:                   webPubsubCustomDomainProvisioningStateRefreshFunc(ctx, client, id),
-				Timeout:                   time.Until(deadline),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 5,
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
 				return err
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -166,28 +158,7 @@ func (r CustomDomainWebPubsubResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			webPubsubId := webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID()
-
-			state := CustomDomainWebPubsubModel{
-				Name:        id.CustomDomainName,
-				WebPubsubId: webPubsubId,
-			}
-
-			if model := resp.Model; model != nil {
-				props := model.Properties
-				webPubsubCustomCertificateId := ""
-				if props.CustomCertificate.Id != nil {
-					webPubsubCustomCertificateID, err := webpubsub.ParseCustomCertificateIDInsensitively(*props.CustomCertificate.Id)
-					if err != nil {
-						return fmt.Errorf("parsing web pubsub custom cert id for %s: %+v", id, err)
-					}
-					webPubsubCustomCertificateId = webPubsubCustomCertificateID.ID()
-				}
-				state.WebPubsubCustomCertificateId = webPubsubCustomCertificateId
-				state.DomainName = props.DomainName
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
@@ -237,26 +208,6 @@ func (r CustomDomainWebPubsubResource) IDValidationFunc() pluginsdk.SchemaValida
 	return webpubsub.ValidateCustomDomainID
 }
 
-func webPubsubCustomDomainProvisioningStateRefreshFunc(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.CustomDomainId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.CustomDomainsGet(ctx, id)
-
-		provisioningState := "Pending"
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, provisioningState, nil
-			}
-			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
-		}
-
-		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
-			provisioningState = string(*res.Model.Properties.ProvisioningState)
-		}
-
-		return res, provisioningState, nil
-	}
-}
-
 func webPubsubCustomDomainDeleteRefreshFunc(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.CustomDomainId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.CustomDomainsGet(ctx, id)
@@ -270,4 +221,30 @@ func webPubsubCustomDomainDeleteRefreshFunc(ctx context.Context, client *webpubs
 
 		return res, "Exists", nil
 	}
+}
+
+func (r CustomDomainWebPubsubResource) flatten(metadata sdk.ResourceMetaData, id *webpubsub.CustomDomainId, model *webpubsub.CustomDomain) error {
+	state := CustomDomainWebPubsubModel{
+		Name:        id.CustomDomainName,
+		WebPubsubId: webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID(),
+	}
+
+	if model != nil {
+		props := model.Properties
+		state.DomainName = props.DomainName
+
+		if props.CustomCertificate.Id != nil {
+			webPubsubCustomCertificateID, err := webpubsub.ParseCustomCertificateIDInsensitively(*props.CustomCertificate.Id)
+			if err != nil {
+				return fmt.Errorf("parsing web pubsub custom cert id for %s: %+v", *id, err)
+			}
+			state.WebPubsubCustomCertificateId = webPubsubCustomCertificateID.ID()
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,6 +29,7 @@ type OrchestratedVirtualMachineScaleSetDataSourceModel struct {
 	Location         string                                     `tfschema:"location"`
 	NetworkInterface []VirtualMachineScaleSetNetworkInterface   `tfschema:"network_interface"`
 	Identity         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	SkuProfile       []VirtualMachineScaleSetSkuProfile         `tfschema:"sku_profile"`
 }
 
 type VirtualMachineScaleSetNetworkInterface struct {
@@ -64,6 +65,16 @@ type VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress struct
 type VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddressIPTag struct {
 	Tag  string `tfschema:"tag"`
 	Type string `tfschema:"type"`
+}
+
+type VirtualMachineScaleSetSkuProfile struct {
+	AllocationStrategy string                                   `tfschema:"allocation_strategy"`
+	VirtualMachineSize []VirtualMachineScaleSetSkuProfileVMSize `tfschema:"virtual_machine_size"`
+}
+
+type VirtualMachineScaleSetSkuProfileVMSize struct {
+	Name string `tfschema:"name"`
+	Rank int64  `tfschema:"rank"`
 }
 
 func (r OrchestratedVirtualMachineScaleSetDataSource) ModelObject() interface{} {
@@ -133,6 +144,37 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Attributes() map[string]*p
 			},
 		},
 
+		"sku_profile": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"allocation_strategy": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"virtual_machine_size": {
+						Type:     pluginsdk.TypeSet,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"rank": {
+									Type:     pluginsdk.TypeInt,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 	}
 }
@@ -169,7 +211,10 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Read() sdk.ResourceFunc {
 					return err
 				}
 				orchestratedVMSS.Identity = pointer.From(identityFlattened)
+
 				if props := model.Properties; props != nil {
+					orchestratedVMSS.SkuProfile = flattenVirtualMachineScaleSetSkuProfileForDataSource(props.SkuProfile)
+
 					if profile := props.VirtualMachineProfile; profile != nil {
 						if nwProfile := profile.NetworkProfile; nwProfile != nil {
 							orchestratedVMSS.NetworkInterface = flattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
@@ -312,5 +357,31 @@ func flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input *virtualmach
 		IPTag:                ipTags,
 		PublicIpPrefixId:     publicIPPrefixId,
 		Version:              version,
+	}}
+}
+
+func flattenVirtualMachineScaleSetSkuProfileForDataSource(input *virtualmachinescalesets.SkuProfile) []VirtualMachineScaleSetSkuProfile {
+	if input == nil {
+		return []VirtualMachineScaleSetSkuProfile{}
+	}
+
+	vmSizes := make([]VirtualMachineScaleSetSkuProfileVMSize, 0)
+	if input.VMSizes != nil {
+		for _, vmSize := range *input.VMSizes {
+			vmSizeStruct := VirtualMachineScaleSetSkuProfileVMSize{
+				Name: pointer.From(vmSize.Name),
+			}
+
+			if vmSize.Rank != nil {
+				vmSizeStruct.Rank = pointer.From(vmSize.Rank) + 1
+			}
+
+			vmSizes = append(vmSizes, vmSizeStruct)
+		}
+	}
+
+	return []VirtualMachineScaleSetSkuProfile{{
+		AllocationStrategy: string(pointer.From(input.AllocationStrategy)),
+		VirtualMachineSize: vmSizes,
 	}}
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -152,14 +152,16 @@ func (r FunctionAppHybridConnectionResource) Create() sdk.ResourceFunc {
 
 			id := webapps.NewRelayID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, relayId.NamespaceName, relayId.HybridConnectionName)
 
-			existing, err := client.GetHybridConnection(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetHybridConnection(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
 				}
-			}
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)
@@ -177,8 +179,7 @@ func (r FunctionAppHybridConnectionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope)
-			if err != nil {
+			if _, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -323,8 +324,7 @@ func (r FunctionAppHybridConnectionResource) Update() sdk.ResourceFunc {
 				model.Properties.SendKeyValue = key
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, *id, model)
-			if err != nil {
+			if _, err = client.CreateOrUpdateHybridConnection(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -347,8 +347,8 @@ func (r FunctionAppHybridConnectionResource) CustomImporter() sdk.ResourceRunFun
 			return err
 		}
 
-		if helpers.PlanIsConsumption(sku) || helpers.PlanIsElastic(sku) {
-			return fmt.Errorf("unsupported plan type. Hybrid Connections are not supported on Consumption or Elastic service plans")
+		if helpers.PlanIsConsumption(sku) {
+			return fmt.Errorf("unsupported plan type. Hybrid Connections are not supported on Consumption service plans")
 		}
 
 		return nil

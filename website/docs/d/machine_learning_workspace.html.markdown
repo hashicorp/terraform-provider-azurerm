@@ -23,11 +23,11 @@ data "azurerm_machine_learning_workspace" "existing" {
 }
 
 output "id" {
-  value = azurerm_machine_learning_workspace.existing.id
+  value = data.azurerm_machine_learning_workspace.existing.id
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -45,6 +45,8 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as defined below.
 
+* `storage_account_access_type` - The access type for the system storage account.
+
 * `tags` - A mapping of tags assigned to the Machine Learning Workspace.
 
 ---
@@ -61,6 +63,12 @@ The `identity` block exports the following attributes:
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Workspace.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices` - 2025-06-01

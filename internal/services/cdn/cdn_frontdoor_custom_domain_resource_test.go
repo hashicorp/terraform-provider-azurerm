@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_test
@@ -6,8 +6,11 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"os"
+	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,6 +25,7 @@ type CdnFrontDoorCustomDomainResource struct{}
 func TestAccCdnFrontDoorCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
 	r := CdnFrontDoorCustomDomainResource{}
+	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,6 +41,7 @@ func TestAccCdnFrontDoorCustomDomain_basic(t *testing.T) {
 func TestAccCdnFrontDoorCustomDomain_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
 	r := CdnFrontDoorCustomDomainResource{}
+	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,6 +60,7 @@ func TestAccCdnFrontDoorCustomDomain_update(t *testing.T) {
 	}
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
 	r := CdnFrontDoorCustomDomainResource{}
+	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -77,6 +83,7 @@ func TestAccCdnFrontDoorCustomDomain_update(t *testing.T) {
 func TestAccCdnFrontDoorCustomDomain_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
 	r := CdnFrontDoorCustomDomainResource{}
+	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,6 +96,131 @@ func TestAccCdnFrontDoorCustomDomain_complete(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorCustomDomain_tlsVersion_legacy(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping test in 5.0 mode as `minimum_tls_version` field was removed")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
+	r := CdnFrontDoorCustomDomainResource{}
+	r.preCheck(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tlsVersionLegacy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorCustomDomain_cipherSuites_validation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
+	r := CdnFrontDoorCustomDomainResource{}
+	r.preCheck(t)
+
+	testSteps := []acceptance.TestStep{
+		{
+			Config:      r.customizedCipherSuiteWithoutBlock(data),
+			ExpectError: regexp.MustCompile("`custom_ciphers` is required when `type` is `Customized`"),
+		},
+		{
+			Config:      r.customizedCipherSuiteEmpty(data),
+			ExpectError: regexp.MustCompile("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`"),
+		},
+		{
+			Config:      r.customizedCipherSuiteTls12MissingWithTls12Min(data),
+			ExpectError: regexp.MustCompile("at least one TLS 1.2 cipher suite must be specified in `custom_ciphers.tls12` when `minimum_version` is set to `TLS12`"),
+		},
+		{
+			Config:      r.customizedCipherSuiteTls13MissingOneDefault(data),
+			ExpectError: regexp.MustCompile("`custom_ciphers\\.tls13` must contain both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`"),
+		},
+		{
+			Config:      r.customCiphersWithPresetType(data),
+			ExpectError: regexp.MustCompile("`custom_ciphers` cannot be specified when `type` is not `Customized`"),
+		},
+	}
+
+	if !features.FivePointOh() {
+		testSteps = append(testSteps, acceptance.TestStep{
+			Config:      r.deprecatedMinimumTlsVersionWithTls10(data),
+			ExpectError: regexp.MustCompile("support for TLS 1.0 and 1.1 was retired on March 1, 2025"),
+		})
+	}
+
+	data.ResourceTest(t, r, testSteps)
+}
+
+func TestAccCdnFrontDoorCustomDomain_cipherSuites_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
+	r := CdnFrontDoorCustomDomainResource{}
+	r.preCheck(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cipherSuitesTls12Single(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cipherSuitesTls12Multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+
+		// NOTE: The following test steps are commented out due to the
+		// global service outage in October 2025. The service fix for the
+		// underlying issue was to introduce a sync job in the backend which
+		// takes 45 minutes per update. To reduce the tests execution time,
+		// these tests steps remain disabled for now.
+		//
+		// {
+		// 	Config: r.cipherSuitesMixedWithTls12MinSingle(data),
+		// 	Check: acceptance.ComposeTestCheckFunc(
+		// 		check.That(data.ResourceName).ExistsInAzure(r),
+		// 	),
+		// },
+		// data.ImportStep(),
+		// {
+		// 	Config: r.cipherSuitesMixedWithTls12MinMultiple(data),
+		// 	Check: acceptance.ComposeTestCheckFunc(
+		// 		check.That(data.ResourceName).ExistsInAzure(r),
+		// 	),
+		// },
+		// data.ImportStep(),
+
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r CdnFrontDoorCustomDomainResource) preCheck(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("`ARM_TEST_DATA_RESOURCE_GROUP` must be set for acceptance tests")
+	}
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE` must be set for acceptance tests")
+	}
+}
+
 func (r CdnFrontDoorCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontDoorCustomDomainID(state.ID)
 	if err != nil {
@@ -99,12 +231,12 @@ func (r CdnFrontDoorCustomDomainResource) Exists(ctx context.Context, clients *c
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CdnFrontDoorCustomDomainResource) basic(data acceptance.TestData) string {
@@ -115,12 +247,15 @@ func (r CdnFrontDoorCustomDomainResource) basic(data acceptance.TestData) string
 resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   name                     = "acctestcustomdomain-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  dns_zone_id              = azurerm_dns_zone.test.id
-  host_name                = join(".", ["%s", azurerm_dns_zone.test.name])
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%s", azurerm_dns_zone.child.name])
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
   }
 }
 `, template, data.RandomInteger, data.RandomString)
@@ -138,11 +273,33 @@ resource "azurerm_cdn_frontdoor_custom_domain" "import" {
   host_name                = azurerm_cdn_frontdoor_custom_domain.test.host_name
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
   }
 }
 `, config)
+}
+
+func (r CdnFrontDoorCustomDomainResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctestcustomdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%s", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
+  }
+}
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r CdnFrontDoorCustomDomainResource) update(data acceptance.TestData) string {
@@ -153,19 +310,22 @@ func (r CdnFrontDoorCustomDomainResource) update(data acceptance.TestData) strin
 resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   name                     = "acctestcustomdomain-%[2]d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  dns_zone_id              = azurerm_dns_zone.test.id
-  host_name                = join(".", ["%s", azurerm_dns_zone.test.name])
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%s", azurerm_dns_zone.child.name])
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
   }
 
 }
 `, template, data.RandomInteger, data.RandomString)
 }
 
-func (r CdnFrontDoorCustomDomainResource) complete(data acceptance.TestData) string {
+func (r CdnFrontDoorCustomDomainResource) tlsVersionLegacy(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -173,8 +333,11 @@ func (r CdnFrontDoorCustomDomainResource) complete(data acceptance.TestData) str
 resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   name                     = "acctestcustomdomain-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  dns_zone_id              = azurerm_dns_zone.test.id
-  host_name                = join(".", ["%s", azurerm_dns_zone.test.name])
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%s", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type    = "ManagedCertificate"
@@ -190,6 +353,9 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 // providers by the service.
 
 func (r CdnFrontDoorCustomDomainResource) template(data acceptance.TestData) string {
+	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE")
+	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
+	childZoneSuffix := data.RandomIntOfLength(8)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -200,9 +366,30 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%[1]d.com"
+data "azurerm_dns_zone" "test" {
+  name                = "%[3]s"
+  resource_group_name = "%[4]s"
+}
+
+locals {
+  # Create a delegated child zone inside the test RG.
+  # NOTE: ARM_TEST_DNS_ZONE / ARM_TEST_DATA_RESOURCE_GROUP must refer to a real, delegated parent zone.
+  child_zone_label = "acctest%[5]d"
+  child_zone_name  = join(".", [local.child_zone_label, data.azurerm_dns_zone.test.name])
+}
+
+resource "azurerm_dns_zone" "child" {
+  name                = local.child_zone_name
   resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_dns_ns_record" "delegation" {
+  name                = local.child_zone_label
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  zone_name           = data.azurerm_dns_zone.test.name
+  ttl                 = 300
+
+  records = azurerm_dns_zone.child.name_servers
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
@@ -210,5 +397,334 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard_AzureFrontDoor"
 }
-`, data.RandomInteger, data.Locations.Primary)
+
+resource "azurerm_dns_txt_record" "validation" {
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  name                = join(".", ["_dnsauth", split(".", azurerm_cdn_frontdoor_custom_domain.test.host_name)[0]])
+  zone_name           = azurerm_dns_zone.child.name
+  resource_group_name = azurerm_resource_group.test.name
+  ttl                 = 300
+
+  record {
+    value = azurerm_cdn_frontdoor_custom_domain.test.validation_token
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, dnsZoneName, dnsZoneRG, childZoneSuffix)
+}
+
+func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteWithoutBlock(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-customdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-%[2]d", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
+
+    cipher_suite {
+      type = "Customized"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteEmpty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-customdomain-empty-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-empty-%[2]d", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
+
+    cipher_suite {
+      type = "Customized"
+
+      custom_ciphers {
+        tls12 = []
+        tls13 = []
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteTls12MissingWithTls12Min(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-customdomain-tls12-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-tls12-%[2]d", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
+
+    cipher_suite {
+      type = "Customized"
+
+      custom_ciphers {
+        tls13 = [
+          "TLS_AES_128_GCM_SHA256",
+          "TLS_AES_256_GCM_SHA384",
+        ]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteTls13MissingOneDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-customdomain-tls13-single-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-tls13-single-%[2]d", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
+
+    cipher_suite {
+      type = "Customized"
+
+      custom_ciphers {
+        tls12 = [
+          "ECDHE_RSA_AES256_GCM_SHA384",
+        ]
+        tls13 = [
+          "TLS_AES_128_GCM_SHA256",
+        ]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorCustomDomainResource) cipherSuitesTls12Single(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctestcustomdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%[3]s", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
+
+    cipher_suite {
+      type = "Customized"
+
+      custom_ciphers {
+        tls12 = [
+          "ECDHE_RSA_AES256_GCM_SHA384",
+        ]
+        tls13 = [
+          "TLS_AES_128_GCM_SHA256",
+          "TLS_AES_256_GCM_SHA384",
+        ]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r CdnFrontDoorCustomDomainResource) cipherSuitesTls12Multiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctestcustomdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%[3]s", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
+
+    cipher_suite {
+      type = "Customized"
+
+      custom_ciphers {
+        tls12 = [
+          "ECDHE_RSA_AES128_GCM_SHA256",
+          "ECDHE_RSA_AES256_GCM_SHA384",
+          "DHE_RSA_AES128_GCM_SHA256",
+        ]
+        tls13 = [
+          "TLS_AES_128_GCM_SHA256",
+          "TLS_AES_256_GCM_SHA384",
+        ]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+// func (r CdnFrontDoorCustomDomainResource) cipherSuitesMixedWithTls12MinSingle(data acceptance.TestData) string {
+// 	return fmt.Sprintf(`
+// %[1]s
+
+// resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+//   name                     = "acctestcustomdomain-%[2]d"
+//   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+//   depends_on = [azurerm_dns_ns_record.delegation]
+
+//   dns_zone_id              = azurerm_dns_zone.child.id
+//   host_name                = join(".", ["%[3]s", azurerm_dns_zone.child.name])
+
+//   tls {
+//     certificate_type = "ManagedCertificate"
+//     minimum_version  = "TLS12"
+
+//     cipher_suite {
+//       type = "Customized"
+
+//       custom_ciphers {
+//         tls12 = [
+//           "ECDHE_RSA_AES128_GCM_SHA256",
+//         ]
+//         tls13 = [
+//           "TLS_AES_128_GCM_SHA256",
+//           "TLS_AES_256_GCM_SHA384",
+//         ]
+//       }
+//     }
+//   }
+// }
+// `, r.template(data), data.RandomInteger, data.RandomString)
+// }
+
+func (r CdnFrontDoorCustomDomainResource) cipherSuitesMixedWithTls12MinMultiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctestcustomdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%[3]s", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
+
+    cipher_suite {
+      type = "Customized"
+
+      custom_ciphers {
+        tls12 = [
+          "ECDHE_RSA_AES128_GCM_SHA256",
+        ]
+        tls13 = [
+          "TLS_AES_128_GCM_SHA256",
+          "TLS_AES_256_GCM_SHA384",
+        ]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r CdnFrontDoorCustomDomainResource) customCiphersWithPresetType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-customdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-%[2]d", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
+
+    cipher_suite {
+      type = "TLS12_2023"
+
+      custom_ciphers {
+        # Invalid: custom_ciphers cannot be specified when type is not Customized
+        tls12 = [
+          "ECDHE_RSA_AES128_GCM_SHA256",
+        ]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorCustomDomainResource) deprecatedMinimumTlsVersionWithTls10(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-customdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-%[2]d", azurerm_dns_zone.child.name])
+
+  tls {
+    certificate_type    = "ManagedCertificate"
+    minimum_tls_version = "TLS10"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

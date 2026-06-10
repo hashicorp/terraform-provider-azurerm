@@ -77,7 +77,7 @@ EOF
     filename = "config.txt"
   }
 
-  spark_version = 3.2
+  spark_version = 3.5
 
   tags = {
     ENV = "Production"
@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `node_size` - (Required) The level of node in the Spark Pool. Possible values are `Small`, `Medium`, `Large`, `None`, `XLarge`, `XXLarge` and `XXXLarge`.
 
-* `spark_version` - (Required) The Apache Spark version. Possible values are `3.2`, `3.3`, and `3.4`.
+* `spark_version` - (Required) The Apache Spark version. Possible values are `3.4` and `3.5`.
 
 * `node_count` - (Optional) The number of nodes in the Spark Pool. Exactly one of `node_count` or `auto_scale` must be specified.
 
@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `compute_isolation_enabled` - (Optional) Indicates whether compute isolation is enabled or not. Defaults to `false`.
 
-~> **NOTE:** The `compute_isolation_enabled` is only available with the XXXLarge (80 vCPU / 504 GB) node size and only available in the following regions: East US, West US 2, South Central US, US Gov Arizona, US Gov Virginia. See [Isolated Compute](https://docs.microsoft.com/azure/synapse-analytics/spark/apache-spark-pool-configurations#isolated-compute) for more information.
+~> **Note:** The `compute_isolation_enabled` is only available with the XXXLarge (80 vCPU / 504 GB) node size and only available in the following regions: East US, West US 2, South Central US, US Gov Arizona, US Gov Virginia. See [Isolated Compute](https://docs.microsoft.com/azure/synapse-analytics/spark/apache-spark-pool-configurations#isolated-compute) for more information.
 
 * `dynamic_executor_allocation_enabled` - (Optional) Indicates whether Dynamic Executor Allocation is enabled or not. Defaults to `false`.
 
@@ -167,7 +167,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Spark Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Spark Pool.

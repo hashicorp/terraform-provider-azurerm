@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WebPubsubHubResource struct{}
@@ -27,7 +27,8 @@ func TestAccWebPubsubHub_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -56,7 +57,8 @@ func TestAccWebPubsubHub_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -70,13 +72,29 @@ func TestAccWebPubsubHub_usingAuthGuid(t *testing.T) {
 		{
 			Config: r.usingAuthGuid(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccWebPubsubHub_withAuthUpdate(t *testing.T) {
+func TestAccWebPubsubHub_usingAuthTokenAudience(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.usingAuthTokenAudience(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebPubsubHub_usingAuthUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -90,6 +108,20 @@ func TestAccWebPubsubHub_withAuthUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.usingAuthTokenAudience(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.usingAuthGuid(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -128,13 +160,15 @@ func TestAccWebPubsubHub_withMultipleEventHandlerSettingsUpdate(t *testing.T) {
 		{
 			Config: r.withMultipleEventhandlerSettingsAndNoAuth(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.withMultipleEventHandlerSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -148,19 +182,22 @@ func TestAccWebPubsubHub_withMultipleEventListenerSettingsUpdate(t *testing.T) {
 		{
 			Config: r.withMultipleEventListenerSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.withMultipleEventListenerSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -175,11 +212,11 @@ func (r WebPubsubHubResource) Exists(ctx context.Context, clients *clients.Clien
 	resp, err := clients.SignalR.WebPubSubClient.WebPubSub.HubsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r WebPubsubHubResource) basic(data acceptance.TestData) string {
@@ -235,6 +272,30 @@ resource "azurerm_web_pubsub_hub" "test" {
 
     auth {
       managed_identity_id = "12345678-9012-3456-7890-123456789012"
+    }
+  }
+  anonymous_connections_enabled = true
+
+  depends_on = [
+    azurerm_web_pubsub.test
+  ]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r WebPubsubHubResource) usingAuthTokenAudience(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_web_pubsub_hub" "test" {
+  name          = "acctestwpsh%d"
+  web_pubsub_id = azurerm_web_pubsub.test.id
+  event_handler {
+    url_template       = "https://test.com/api/{hub}/{event}"
+    user_event_pattern = "*"
+    system_events      = ["connect", "connected"]
+
+    auth {
+      managed_identity_id = "api://AzureADTokenExchange"
     }
   }
   anonymous_connections_enabled = true

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-02-02-preview/jobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/jobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -44,10 +44,11 @@ type ScaleModel struct {
 }
 
 type ScaleRule struct {
-	Auth     []ScaleRuleAuth        `tfschema:"authentication"`
-	Metadata map[string]interface{} `tfschema:"metadata"`
-	Name     string                 `tfschema:"name"`
-	Type     string                 `tfschema:"custom_rule_type"`
+	Auth       []ScaleRuleAuth        `tfschema:"authentication"`
+	IdentityID string                 `tfschema:"identity_id"`
+	Metadata   map[string]interface{} `tfschema:"metadata"`
+	Name       string                 `tfschema:"name"`
+	Type       string                 `tfschema:"custom_rule_type"`
 }
 
 type ScaleRuleAuth struct {
@@ -250,6 +251,10 @@ func ExpandContainerAppJobScaleRules(input []ScaleRule) *[]jobs.JobScaleRule {
 
 		if v.Type != "" {
 			rule.Type = pointer.To(v.Type)
+		}
+
+		if v.IdentityID != "" {
+			rule.Identity = pointer.To(v.IdentityID)
 		}
 
 		rules = append(rules, rule)
@@ -499,6 +504,9 @@ func expandContainerAppJobVolumes(input []ContainerVolume) *[]jobs.Volume {
 			storageType := jobs.StorageType(v.StorageType)
 			volume.StorageType = &storageType
 		}
+		if v.MountOptions != "" {
+			volume.MountOptions = pointer.To(v.MountOptions)
+		}
 		volumes = append(volumes, volume)
 	}
 
@@ -532,6 +540,7 @@ func expandContainerJobVolumeMounts(input []ContainerVolumeMount) *[]jobs.Volume
 		volumeMounts = append(volumeMounts, jobs.VolumeMount{
 			MountPath:  pointer.To(v.Path),
 			VolumeName: pointer.To(v.Name),
+			SubPath:    pointer.To(v.SubPath),
 		})
 	}
 
@@ -582,11 +591,12 @@ func expandContainerAppJobLivenessProbe(input ContainerAppLivenessProbe) jobs.Co
 func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.ContainerAppProbe {
 	probeType := jobs.TypeReadiness
 	result := jobs.ContainerAppProbe{
-		Type:             &probeType,
-		PeriodSeconds:    pointer.To(input.Interval),
-		TimeoutSeconds:   pointer.To(input.Timeout),
-		FailureThreshold: pointer.To(input.FailureThreshold),
-		SuccessThreshold: pointer.To(input.SuccessThreshold),
+		Type:                &probeType,
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
+		SuccessThreshold:    pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -623,10 +633,11 @@ func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.
 func expandContainerAppJobStartupProbe(input ContainerAppStartupProbe) jobs.ContainerAppProbe {
 	probeType := jobs.TypeStartup
 	result := jobs.ContainerAppProbe{
-		Type:             &probeType,
-		PeriodSeconds:    pointer.To(input.Interval),
-		TimeoutSeconds:   pointer.To(input.Timeout),
-		FailureThreshold: pointer.To(input.FailureThreshold),
+		Type:                &probeType,
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -697,8 +708,9 @@ func flattenContainerJobVolumeMounts(input *[]jobs.VolumeMount) []ContainerVolum
 	result := make([]ContainerVolumeMount, 0)
 	for _, v := range *input {
 		result = append(result, ContainerVolumeMount{
-			Name: pointer.From(v.VolumeName),
-			Path: pointer.From(v.MountPath),
+			Name:    pointer.From(v.VolumeName),
+			Path:    pointer.From(v.MountPath),
+			SubPath: pointer.From(v.SubPath),
 		})
 	}
 
@@ -748,6 +760,7 @@ func flattenContainerAppJobLivenessProbe(input jobs.ContainerAppProbe) []Contain
 func flattenContainerAppJobReadinessProbe(input jobs.ContainerAppProbe) []ContainerAppReadinessProbe {
 	result := make([]ContainerAppReadinessProbe, 0)
 	probe := ContainerAppReadinessProbe{
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
 		Interval:         pointer.From(input.PeriodSeconds),
 		Timeout:          pointer.From(input.TimeoutSeconds),
 		FailureThreshold: pointer.From(input.FailureThreshold),
@@ -788,6 +801,7 @@ func flattenContainerAppJobReadinessProbe(input jobs.ContainerAppProbe) []Contai
 func flattenContainerAppJobStartupProbe(input jobs.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
+		InitialDelay:           pointer.From(input.InitialDelaySeconds),
 		Interval:               pointer.From(input.PeriodSeconds),
 		Timeout:                pointer.From(input.TimeoutSeconds),
 		FailureThreshold:       pointer.From(input.FailureThreshold),
@@ -838,6 +852,9 @@ func flattenContainerAppJobVolumes(input *[]jobs.Volume) []ContainerVolume {
 		}
 		if v.StorageType != nil {
 			containerVolume.StorageType = string(*v.StorageType)
+		}
+		if v.MountOptions != nil {
+			containerVolume.MountOptions = pointer.From(v.MountOptions)
 		}
 
 		result = append(result, containerVolume)
@@ -957,8 +974,9 @@ func flattenContainerAppJobScaleRules(input *[]jobs.JobScaleRule) []ScaleRule {
 
 	for _, v := range *input {
 		rule := ScaleRule{
-			Name: pointer.From(v.Name),
-			Type: pointer.From(v.Type),
+			IdentityID: pointer.From(v.Identity),
+			Name:       pointer.From(v.Name),
+			Type:       pointer.From(v.Type),
 		}
 
 		if v.Metadata != nil {

@@ -8,6 +8,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
+// ValidateConfigClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the
+// ValidateResourceConfig RPC, such as forward-compatible Terraform behavior
+// changes.
+type ValidateConfigClientCapabilities struct {
+	// WriteOnlyAttributesAllowed indicates that the Terraform client
+	// initiating the request supports write-only attributes for managed
+	// resources.
+	WriteOnlyAttributesAllowed bool
+}
+
 // ValidateConfigRequest represents a request to validate the
 // configuration of a resource. An instance of this request struct is
 // supplied as an argument to the Resource ValidateConfig receiver method
@@ -19,6 +30,11 @@ type ValidateConfigRequest struct {
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
 	Config tfsdk.Config
+
+	// ClientCapabilities defines optionally supported protocol features for
+	// the ValidateResourceConfig RPC, such as forward-compatible Terraform
+	// behavior changes.
+	ClientCapabilities ValidateConfigClientCapabilities
 }
 
 // ValidateConfigResponse represents a response to a

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -50,6 +51,7 @@ type SiteConfigWindowsFunctionAppSlot struct {
 	ApplicationStack              []ApplicationStackWindowsFunctionApp `tfschema:"application_stack"`
 	MinTlsVersion                 string                               `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                               `tfschema:"scm_minimum_tls_version"`
+	MinTlsCipherSuite             string                               `tfschema:"minimum_tls_cipher_suite"`
 	Cors                          []CorsSetting                        `tfschema:"cors"`
 	DetailedErrorLogging          bool                                 `tfschema:"detailed_error_logging_enabled"`
 	WindowsFxVersion              string                               `tfschema:"windows_fx_version"`
@@ -57,7 +59,7 @@ type SiteConfigWindowsFunctionAppSlot struct {
 }
 
 func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -218,11 +220,9 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"VS2017",
-						"VS2019",
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`",
+					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
@@ -301,6 +301,13 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.",
 				},
 
+				"minimum_tls_cipher_suite": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
+					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+				},
+
 				"cors": CorsSettingsSchema(),
 
 				"vnet_route_all_enabled": {
@@ -324,6 +331,16 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
+			"VS2017",
+			"VS2019",
+			"VS2022",
+		}, false)
+	}
+
+	return s
 }
 
 type SiteConfigLinuxFunctionAppSlot struct {
@@ -362,6 +379,7 @@ type SiteConfigLinuxFunctionAppSlot struct {
 	ApplicationStack              []ApplicationStackLinuxFunctionApp `tfschema:"application_stack"`
 	MinTlsVersion                 string                             `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                             `tfschema:"scm_minimum_tls_version"`
+	MinTlsCipherSuite             string                             `tfschema:"minimum_tls_cipher_suite"`
 	Cors                          []CorsSetting                      `tfschema:"cors"`
 	DetailedErrorLogging          bool                               `tfschema:"detailed_error_logging_enabled"`
 	LinuxFxVersion                string                             `tfschema:"linux_fx_version"`
@@ -369,7 +387,7 @@ type SiteConfigLinuxFunctionAppSlot struct {
 }
 
 func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -544,11 +562,9 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"VS2017",
-						"VS2019",
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`",
+					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
@@ -627,6 +643,13 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.",
 				},
 
+				"minimum_tls_cipher_suite": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
+					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+				},
+
 				"cors": CorsSettingsSchema(),
 
 				"vnet_route_all_enabled": {
@@ -650,6 +673,16 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
+			"VS2017",
+			"VS2019",
+			"VS2022",
+		}, false)
+	}
+
+	return s
 }
 
 func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFunctionAppSlot, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, version string, storageString string, storageUsesMSI bool) (*webapps.SiteConfig, error) {
@@ -850,6 +883,10 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(windowsSlotSiteConfig.ScmMinTlsVersion))
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_cipher_suite") {
+		expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(windowsSlotSiteConfig.MinTlsCipherSuite))
+	}
+
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
 		cors := ExpandCorsSettings(windowsSlotSiteConfig.Cors)
 		expanded.Cors = cors
@@ -887,6 +924,7 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.
 		RuntimeScaleMonitoring:        pointer.From(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
 		MinTlsVersion:                 string(pointer.From(functionAppSlotSiteConfig.MinTlsVersion)),
 		ScmMinTlsVersion:              string(pointer.From(functionAppSlotSiteConfig.ScmMinTlsVersion)),
+		MinTlsCipherSuite:             string(pointer.From(functionAppSlotSiteConfig.MinTlsCipherSuite)),
 		PreWarmedInstanceCount:        pointer.From(functionAppSlotSiteConfig.PreWarmedInstanceCount),
 		ElasticInstanceMinimum:        pointer.From(functionAppSlotSiteConfig.MinimumElasticInstanceCount),
 		Use32BitWorker:                pointer.From(functionAppSlotSiteConfig.Use32BitWorkerProcess),
@@ -1195,6 +1233,10 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(linuxSlotSiteConfig.ScmMinTlsVersion))
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_cipher_suite") {
+		expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(linuxSlotSiteConfig.MinTlsCipherSuite))
+	}
+
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
 		cors := ExpandCorsSettings(linuxSlotSiteConfig.Cors)
 		expanded.Cors = cors
@@ -1233,6 +1275,7 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *webapps.Si
 		RuntimeScaleMonitoring:        pointer.From(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
 		MinTlsVersion:                 string(pointer.From(functionAppSlotSiteConfig.MinTlsVersion)),
 		ScmMinTlsVersion:              string(pointer.From(functionAppSlotSiteConfig.ScmMinTlsVersion)),
+		MinTlsCipherSuite:             string(pointer.From(functionAppSlotSiteConfig.MinTlsCipherSuite)),
 		PreWarmedInstanceCount:        pointer.From(functionAppSlotSiteConfig.PreWarmedInstanceCount),
 		ElasticInstanceMinimum:        pointer.From(functionAppSlotSiteConfig.MinimumElasticInstanceCount),
 		Use32BitWorker:                pointer.From(functionAppSlotSiteConfig.Use32BitWorkerProcess),

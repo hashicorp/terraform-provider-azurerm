@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -11,13 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/consumergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/consumergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ConsumerGroupObject struct {
@@ -80,29 +79,30 @@ func (r ConsumerGroupResource) Attributes() map[string]*pluginsdk.Schema {
 func (r ConsumerGroupResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			metadata.Logger.Info("Decoding state..")
 			var state ConsumerGroupObject
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
 
-			metadata.Logger.Infof("creating Consumer Group %q..", state.Name)
 			client := metadata.Client.Eventhub.ConsumerGroupClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := consumergroups.NewConsumerGroupID(subscriptionId, state.ResourceGroupName, state.NamespaceName, state.EventHubName, state.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := consumergroups.ConsumerGroup{
-				Name: utils.String(state.Name),
+				Name: pointer.To(state.Name),
 				Properties: &consumergroups.ConsumerGroupProperties{
-					UserMetadata: utils.String(state.UserMetadata),
+					UserMetadata: pointer.To(state.UserMetadata),
 				},
 			}
 
@@ -125,19 +125,17 @@ func (r ConsumerGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state..")
 			var state ConsumerGroupObject
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
 
-			metadata.Logger.Infof("updating Consumer Group %q..", state.Name)
 			client := metadata.Client.Eventhub.ConsumerGroupClient
 
 			parameters := consumergroups.ConsumerGroup{
-				Name: utils.String(id.ConsumerGroupName),
+				Name: pointer.To(id.ConsumerGroupName),
 				Properties: &consumergroups.ConsumerGroupProperties{
-					UserMetadata: utils.String(state.UserMetadata),
+					UserMetadata: pointer.To(state.UserMetadata),
 				},
 			}
 
@@ -160,7 +158,6 @@ func (r ConsumerGroupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving Consumer Group %q..", id.ConsumerGroupName)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -195,7 +192,6 @@ func (r ConsumerGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting Consumer Group %q..", id.ConsumerGroupName)
 			if resp, err := client.Delete(ctx, *id); err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", id, err)

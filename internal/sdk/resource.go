@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -108,6 +109,20 @@ type ResourceWithCustomImporter interface {
 	CustomImporter() ResourceRunFunc
 }
 
+type ResourceWithIdentity interface {
+	Resource
+
+	// Identity returns the resource's identity type
+	Identity() resourceids.ResourceId
+}
+
+type ResourceWithIdentityTypeOverride interface {
+	ResourceWithIdentity
+
+	// IdentityType returns the type of resource ID, this is used to influence schema generation behaviours
+	IdentityType() pluginsdk.ResourceTypeForIdentity
+}
+
 // ResourceWithUpdate is an optional interface
 //
 // Notably the Arguments for Resources implementing this interface
@@ -154,6 +169,15 @@ type ResourceWithCustomizeDiff interface {
 
 	// CustomizeDiff returns a ResourceFunc that runs the Custom Diff logic
 	CustomizeDiff() ResourceFunc
+}
+
+// ResourceWithConfigValidation is an optional interface
+// Resources implementing this interface will have a write-only attribute that requires
+// this specific validation
+type ResourceWithConfigValidation interface {
+	Resource
+
+	ValidateRawResourceConfig() []schema.ValidateRawResourceConfigFunc
 }
 
 // ResourceRunFunc is the function which can be run
@@ -204,4 +228,14 @@ func (rmd ResourceMetaData) MarkAsGone(idFormatter resourceids.Id) error {
 func (rmd ResourceMetaData) ResourceRequiresImport(resourceName string, idFormatter resourceids.Id) error {
 	resourceId := idFormatter.ID()
 	return tf.ImportAsExistsError(resourceName, resourceId)
+}
+
+// NewResourceMetaData returns the metadata for a Typed Resource as if it came from a plugin sdk v2 resource
+func NewResourceMetaData(clients *clients.Client, resource Resource) ResourceMetaData {
+	return ResourceMetaData{
+		Client:                   clients,
+		ResourceData:             WrappedResource(resource).Data(&terraform.InstanceState{}),
+		Logger:                   ConsoleLogger{},
+		serializationDebugLogger: NullLogger{},
+	}
 }

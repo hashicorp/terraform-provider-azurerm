@@ -8,7 +8,23 @@ description: |-
 
 # azurerm_ai_services
 
-Manages an AI Services account.
+Manages an AI Services Account.
+
+~> **Note:** The `azurerm_ai_services` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use [`azurerm_cognitive_account`](cognitive_account.html.markdown) resource instead.
+
+## Migration to `azurerm_cognitive_account`
+
+The `azurerm_ai_services` resource is superseded by `azurerm_cognitive_account`. The table below lists the attributes that have changed; all other attributes are carried over unchanged.
+
+| `azurerm_ai_services` | `azurerm_cognitive_account` | Notes |
+|-----------------------|-----------------------------|-------|
+| (not present) | `kind` | **Required**. Set to `"AIServices"` to match the behaviour of `azurerm_ai_services`. |
+| `local_authentication_enabled` | `local_auth_enabled` | **Renamed**. Both default to `true`. |
+| `public_network_access` | `public_network_access_enabled` | **Changed type**. String (`"Enabled"` / `"Disabled"`) → Boolean (`true` / `false`). Defaults to `true`. |
+| (not present) | `project_management_enabled` |**Required**. Set to `true` to match the behaviour of `azurerm_ai_services`. |
+| `customer_managed_key.managed_hsm_key_id`  | (not present) | Use `customer_managed_key.key_vault_key_id` property, it can accept both regular and HSM key id. |
+
+~> **Note:** If your configuration included a `storage` block under `azurerm_ai_services`, `terraform plan` may show changes after migration even though the Azure resource itself has not changed. This occurs because `azurerm_ai_services` silently ignored the `storage` block and never sent those values to the API, so the imported state does not reflect them. Running `terraform apply` will reconcile the state by applying the storage configuration for the first time.
 
 ## Example Usage
 
@@ -30,7 +46,7 @@ resource "azurerm_ai_services" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -42,9 +58,11 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU Name for this AI Services Account. Possible values are `F0`, `F1`, `S0`, `S`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1`, `P2`, `E0` and `DC0`.
 
--> **NOTE:** SKU `DC0` is the commitment tier for AI Services Account containers running in disconnected environments. You must obtain approval from Microsoft by submitting the [request form](https://aka.ms/csdisconnectedcontainers) first, before you can use this SKU. More information on [Purchase a commitment plan to use containers in disconnected environments](https://learn.microsoft.com/en-us/azure/cognitive-services/containers/disconnected-containers?tabs=stt#purchase-a-commitment-plan-to-use-containers-in-disconnected-environments).
+-> **Note:** SKU `DC0` is the commitment tier for AI Services Account containers running in disconnected environments. You must obtain approval from Microsoft by submitting the [request form](https://aka.ms/csdisconnectedcontainers) first, before you can use this SKU. More information on [Purchase a commitment plan to use containers in disconnected environments](https://learn.microsoft.com/en-us/azure/cognitive-services/containers/disconnected-containers?tabs=stt#purchase-a-commitment-plan-to-use-containers-in-disconnected-environments).
 
 * `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. This property is required when `network_acls` is specified. Changing this forces a new resource to be created.
+
+-> **Note:** If you do not specify a `custom_subdomain_name` then you will not be able to attach a Private Endpoint to the resource.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
 
@@ -67,6 +85,8 @@ The following arguments are supported:
 ---
 
 A `network_acls` block supports the following:
+
+* `bypass` - (Optional) Whether to allow trusted Azure Services to access the service. Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
 
 * `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_rules`. Possible values are `Allow` and `Deny`.
 
@@ -100,7 +120,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this AI Services Account.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -124,7 +144,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_access_key` - The secondary access key which can be used to connect to the AI Services Account.
 
--> **NOTE:** The `primary_access_key` and `secondary_access_key` properties are only available when `local_authentication_enabled` is set to `true`.
+-> **Note:** The `primary_access_key` and `secondary_access_key` properties are only available when `local_authentication_enabled` is set to `true`.
 
 ---
 
@@ -136,12 +156,12 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the AI Services Account.
-* `update` - (Defaults to 30 minutes) Used when updating the AI Services Account.
+* `create` - (Defaults to 3 hours) Used when creating the AI Services Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the AI Services Account.
-* `delete` - (Defaults to 30 minutes) Used when deleting the AI Services Account.
+* `update` - (Defaults to 3 hours) Used when updating the AI Services Account.
+* `delete` - (Defaults to 3 hours) Used when deleting the AI Services Account.
 
 ## Import
 
@@ -150,3 +170,9 @@ AI Services Account can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_ai_services.account1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CognitiveServices` - 2026-03-01

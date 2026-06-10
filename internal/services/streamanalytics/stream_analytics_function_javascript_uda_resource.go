@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/functions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsFunctionUDA() *pluginsdk.Resource {
@@ -134,15 +134,17 @@ func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta in
 
 	id := functions.NewFunctionID(subscriptionId, jobId.ResourceGroupName, jobId.StreamingJobName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_uda", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_uda", id.ID())
+		}
 	}
 
 	props := functions.Function{
@@ -150,7 +152,7 @@ func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta in
 			Properties: &functions.FunctionConfiguration{
 				Binding: &functions.JavaScriptFunctionBinding{
 					Properties: &functions.JavaScriptFunctionBindingProperties{
-						Script: utils.String(d.Get("script").(string)),
+						Script: pointer.To(d.Get("script").(string)),
 					},
 				},
 				Inputs: expandStreamAnalyticsFunctionUDAInputs(d.Get("input").([]interface{})),
@@ -237,7 +239,7 @@ func resourceStreamAnalyticsFunctionUDAUpdate(d *pluginsdk.ResourceData, meta in
 			Properties: &functions.FunctionConfiguration{
 				Binding: &functions.JavaScriptFunctionBinding{
 					Properties: &functions.JavaScriptFunctionBindingProperties{
-						Script: utils.String(d.Get("script").(string)),
+						Script: pointer.To(d.Get("script").(string)),
 					},
 				},
 				Inputs: expandStreamAnalyticsFunctionUDAInputs(d.Get("input").([]interface{})),
@@ -280,8 +282,8 @@ func expandStreamAnalyticsFunctionUDAInputs(input []interface{}) *[]functions.Fu
 		v := raw.(map[string]interface{})
 		variableType := v["type"].(string)
 		outputs = append(outputs, functions.FunctionInput{
-			DataType:                 utils.String(variableType),
-			IsConfigurationParameter: utils.Bool(v["configuration_parameter"].(bool)),
+			DataType:                 pointer.To(variableType),
+			IsConfigurationParameter: pointer.To(v["configuration_parameter"].(bool)),
 		})
 	}
 
@@ -320,7 +322,7 @@ func expandStreamAnalyticsFunctionUDAOutput(input []interface{}) *functions.Func
 
 	dataType := output["type"].(string)
 	return &functions.FunctionOutput{
-		DataType: utils.String(dataType),
+		DataType: pointer.To(dataType),
 	}
 }
 

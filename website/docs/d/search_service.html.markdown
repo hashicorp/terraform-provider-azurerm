@@ -6,7 +6,7 @@ description: |-
   Manages a Search Service.
 ---
 
-# azurerm_search_service
+# Data Source: azurerm_search_service
 
 Manages a Search Service.
 
@@ -39,6 +39,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Search Service.
 
 * `customer_managed_key_encryption_compliance_status` - Describes whether the search service is compliant or not with respect to having non-customer encrypted resources. If a service has more than one non-customer encrypted resource and `Enforcement` is `enabled` then the service will be marked as `NonCompliant`. If all the resources are customer encrypted, then the service will be marked as `Compliant`.
+
+* `endpoint` - The endpoint used to connect to this Search Service.
 
 * `primary_key` - The Primary Key used for Search Service Administration.
 
@@ -78,6 +80,12 @@ A `query_keys` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Search Service.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Search` - 2025-05-01

@@ -33,7 +33,7 @@ resource "azurerm_data_factory_linked_service_mysql" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -53,6 +53,10 @@ The following arguments are supported:
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service MySQL.
 
+* `driver_version` - (Optional) The version of the MySQL driver. Possible values are `V1` and `V2`. Defaults to `V1`.
+
+~> **Note:** New linked services must set `driver_version` to `V2`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -61,11 +65,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory MySQL Linked Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory MySQL Linked Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory MySQL Linked Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory MySQL Linked Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory MySQL Linked Service.
 
 ## Import

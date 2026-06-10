@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package framework
@@ -6,21 +6,24 @@ package framework
 import (
 	"context"
 
+	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	pluginsdkprovider "github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	providerfunction "github.com/hashicorp/terraform-provider-azurerm/internal/provider/function"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk/frameworkhelpers"
-
-	pluginsdkprovider "github.com/hashicorp/terraform-provider-azurerm/internal/provider"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
 type azureRmFrameworkProvider struct {
@@ -28,27 +31,22 @@ type azureRmFrameworkProvider struct {
 	ProviderConfig
 }
 
-var _ provider.Provider = &azureRmFrameworkProvider{}
+var (
+	_ provider.Provider                       = &azureRmFrameworkProvider{}
+	_ provider.ProviderWithFunctions          = &azureRmFrameworkProvider{}
+	_ provider.ProviderWithEphemeralResources = &azureRmFrameworkProvider{}
+	_ provider.ProviderWithListResources      = &azureRmFrameworkProvider{}
+	_ provider.ProviderWithActions            = &azureRmFrameworkProvider{}
+)
 
-var _ provider.ProviderWithFunctions = &azureRmFrameworkProvider{}
-
-var _ provider.ProviderWithEphemeralResources = &azureRmFrameworkProvider{}
-
-func (p *azureRmFrameworkProvider) Functions(_ context.Context) []func() function.Function {
-	return []func() function.Function{
-		providerfunction.NewNormaliseResourceIDFunction,
-		providerfunction.NewParseResourceIDFunction,
-	}
+func NewFrameworkV5Provider() provider.Provider {
+	return &azureRmFrameworkProvider{}
 }
 
 func NewFrameworkProvider(primary interface{ Meta() interface{} }) provider.Provider {
 	return &azureRmFrameworkProvider{
 		V2Provider: primary,
 	}
-}
-
-func NewFrameworkV5Provider() provider.Provider {
-	return &azureRmFrameworkProvider{}
 }
 
 func (p *azureRmFrameworkProvider) Metadata(_ context.Context, _ provider.MetadataRequest, response *provider.MetadataResponse) {
@@ -161,9 +159,15 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Optional:    true,
 				Description: "Allow Managed Service Identity to be used for Authentication.",
 			},
+
 			"msi_endpoint": schema.StringAttribute{
 				Optional:    true,
-				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. ",
+				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically.",
+			},
+
+			"msi_api_version": schema.StringAttribute{
+				Optional:    true,
+				Description: "The API version to use for Managed Service Identity (IMDS) - for cases where the default API version is not supported by the endpoint. e.g. for Azure Container Apps.",
 			},
 
 			// Azure CLI specific fields
@@ -195,12 +199,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			},
 
 			// Advanced feature flags
-			"skip_provider_registration": schema.BoolAttribute{
-				Optional:           true,
-				Description:        "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
-				DeprecationMessage: "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
-			},
-
 			"storage_use_azuread": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
@@ -225,7 +223,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Optional:    true,
 				Description: "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
 				Validators: []validator.List{
-					frameworkhelpers.WrappedListValidator{
+					typehelpers.WrappedListValidator{
 						Func:         resourceproviders.EnhancedValidate,
 						Desc:         "EnhancedValidate returns a validation function which attempts to validate the Resource Provider against the list of Resource Provider supported by this Azure Environment.",
 						MarkdownDesc: "EnhancedValidate returns a validation function which attempts to validate the Resource Provider against the list of Resource Provider supported by this Azure Environment.",
@@ -235,11 +233,38 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 		},
 
 		Blocks: map[string]schema.Block{
+			"enhanced_validation": schema.ListNestedBlock{
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(1),
+				},
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"locations": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
+						},
+						"resource_providers": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
+						},
+					},
+				},
+			},
 			"features": schema.ListNestedBlock{
 				Validators: []validator.List{
 					listvalidator.SizeBetween(1, 1),
 				},
 				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"persist_id_on_create_before_polling_for_completion": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Whether to set the resource ID into state before polling asynchronous operations for completion. Defaults to `false`.",
+						},
+						"skip_import_check_on_create_and_allow_overwriting_existing_resources": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
+						},
+					},
 					Blocks: map[string]schema.Block{
 						"api_management": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
@@ -369,9 +394,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"delete_os_disk_on_deletion": schema.BoolAttribute{
 										Optional: true,
 									},
-									"graceful_shutdown": schema.BoolAttribute{
-										Optional: true,
-									},
 									"skip_shutdown_and_force_delete": schema.BoolAttribute{
 										Optional: true,
 									},
@@ -491,50 +513,85 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
+						"databricks_workspace": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"force_delete": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+									},
+								},
+							},
+						},
 					},
 				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["virtual_machine"].(schema.ListNestedBlock).NestedObject.Attributes["graceful_shutdown"] = schema.BoolAttribute{
+			Optional:           true,
+			DeprecationMessage: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
+		}
+
+		response.Schema.Attributes["skip_provider_registration"] = schema.BoolAttribute{
+			Optional:           true,
+			Description:        "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
+			DeprecationMessage: "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
+		}
+	}
 }
 
 func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provider.ConfigureRequest, response *provider.ConfigureResponse) {
-	var data ProviderModel
-
-	response.Diagnostics.Append(request.Config.Get(ctx, &data)...)
-	if response.Diagnostics.HasError() {
-		return
-	}
-
 	if p.V2Provider != nil {
 		v := p.V2Provider.Meta()
 
 		response.ResourceData = v
 		response.DataSourceData = v
 		response.EphemeralResourceData = v
+		response.ListResourceData = v
+		response.ActionData = v
 	} else {
+		var data ProviderModel
+
+		response.Diagnostics.Append(request.Config.Get(ctx, &data)...)
+		if response.Diagnostics.HasError() {
+			return
+		}
+
 		p.Load(ctx, &data, request.TerraformVersion, &response.Diagnostics)
 
 		response.DataSourceData = &p.ProviderConfig
 		response.ResourceData = &p.ProviderConfig
+		response.EphemeralResourceData = &p.ProviderConfig
+		response.ListResourceData = &p.ProviderConfig
+		response.ActionData = &p.ProviderConfig
 	}
+}
+
+func (p *azureRmFrameworkProvider) Actions(_ context.Context) []func() action.Action {
+	var output []func() action.Action
+
+	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
+		output = append(output, service.Actions()...)
+	}
+
+	return output
 }
 
 func (p *azureRmFrameworkProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	var output []func() datasource.DataSource
 
 	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
-		output = append(output, service.FrameworkDataSources()...)
-	}
+		for _, d := range service.FrameworkDataSources() {
+			fwd := sdk.FrameworkDataSourceWrapper{
+				ResourceMetadata:           sdk.ResourceMetadata{},
+				FrameworkWrappedDataSource: d,
+			}
 
-	return output
-}
-
-func (p *azureRmFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
-	var output []func() resource.Resource
-
-	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
-		output = append(output, service.FrameworkResources()...)
+			output = append(output, fwd.DataSource())
+		}
 	}
 
 	return output
@@ -545,6 +602,45 @@ func (p *azureRmFrameworkProvider) EphemeralResources(_ context.Context) []func(
 
 	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
 		output = append(output, service.EphemeralResources()...)
+	}
+
+	return output
+}
+
+func (p *azureRmFrameworkProvider) Functions(_ context.Context) []func() function.Function {
+	return []func() function.Function{
+		providerfunction.NewNormaliseResourceIDFunction,
+		providerfunction.NewParseResourceIDFunction,
+	}
+}
+
+func (p *azureRmFrameworkProvider) ListResources(_ context.Context) []func() list.ListResource {
+	var output []func() list.ListResource
+
+	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
+		for _, l := range service.ListResources() {
+			fwl := sdk.FrameworkListResourceWrapper{
+				ResourceMetadata:             sdk.ResourceMetadata{},
+				FrameworkListWrappedResource: l,
+			}
+			output = append(output, fwl.Resource())
+		}
+	}
+
+	return output
+}
+
+func (p *azureRmFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
+	var output []func() resource.Resource
+
+	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
+		for _, r := range service.FrameworkResources() {
+			fwr := sdk.FrameworkResourceWrapper{
+				ResourceMetadata:         sdk.ResourceMetadata{},
+				FrameworkWrappedResource: r,
+			}
+			output = append(output, fwr.Resource())
+		}
 	}
 
 	return output

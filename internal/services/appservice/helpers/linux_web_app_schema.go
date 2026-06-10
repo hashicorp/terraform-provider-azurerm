@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	appServiceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -47,6 +48,7 @@ type SiteConfigLinux struct {
 	ApplicationStack              []ApplicationStackLinux `tfschema:"application_stack"`
 	MinTlsVersion                 string                  `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                  `tfschema:"scm_minimum_tls_version"`
+	MinTlsCipherSuite             string                  `tfschema:"minimum_tls_cipher_suite"`
 	Cors                          []CorsSetting           `tfschema:"cors"`
 	DetailedErrorLogging          bool                    `tfschema:"detailed_error_logging_enabled"`
 	LinuxFxVersion                string                  `tfschema:"linux_fx_version"`
@@ -55,7 +57,7 @@ type SiteConfigLinux struct {
 }
 
 func SiteConfigSchemaLinux() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -180,8 +182,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"VS2017",
-						"VS2019",
 						"VS2022",
 					}, false),
 				},
@@ -249,6 +249,13 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
 				},
 
+				"minimum_tls_cipher_suite": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
+					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+				},
+
 				"cors": CorsSettingsSchema(),
 
 				"vnet_route_all_enabled": {
@@ -270,6 +277,16 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
+			"VS2017",
+			"VS2019",
+			"VS2022",
+		}, false)
+	}
+
+	return s
 }
 
 func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
@@ -410,6 +427,11 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"scm_minimum_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"minimum_tls_cipher_suite": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -797,6 +819,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
 	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
 	expanded.AutoHealEnabled = pointer.To(false)
+	expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(s.MinTlsCipherSuite))
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
@@ -1056,6 +1079,10 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_cipher_suite") {
+		expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(s.MinTlsCipherSuite))
+	}
+
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
 		cors := ExpandCorsSettings(s.Cors)
 		if cors == nil {
@@ -1099,6 +1126,7 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 		s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion))
 		s.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
 		s.ScmMinTlsVersion = string(pointer.From(appSiteConfig.ScmMinTlsVersion))
+		s.MinTlsCipherSuite = string(pointer.From(appSiteConfig.MinTlsCipherSuite))
 		s.ScmUseMainIpRestriction = pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain)
 		s.Use32BitWorker = pointer.From(appSiteConfig.Use32BitWorkerProcess)
 		s.UseManagedIdentityACR = pointer.From(appSiteConfig.AcrUseManagedIdentityCreds)
@@ -1152,41 +1180,9 @@ func (s *SiteConfigLinux) DecodeDockerAppStack(input map[string]string) {
 		applicationStack.DockerRegistryPassword = v
 	}
 
-	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
+	registryHost := trimURLScheme(strings.TrimSuffix(applicationStack.DockerRegistryUrl, "/"))
 	dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
 	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
-
-	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
-}
-
-func (s *SiteConfigLinux) DecodeDockerDeprecatedAppStack(input map[string]string, usesDeprecated bool) {
-	applicationStack := ApplicationStackLinux{}
-	if len(s.ApplicationStack) == 1 {
-		applicationStack = s.ApplicationStack[0]
-	}
-	if !usesDeprecated {
-		if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
-			applicationStack.DockerRegistryUrl = v
-		}
-
-		if v, ok := input["DOCKER_REGISTRY_SERVER_USERNAME"]; ok {
-			applicationStack.DockerRegistryUsername = v
-		}
-
-		if v, ok := input["DOCKER_REGISTRY_SERVER_PASSWORD"]; ok {
-			applicationStack.DockerRegistryPassword = v
-		}
-
-		registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
-		dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
-		applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
-	} else {
-		parts := strings.Split(s.LinuxFxVersion, "|")
-		if dockerParts := strings.Split(parts[1], ":"); len(dockerParts) == 2 {
-			applicationStack.DockerImage = dockerParts[0]
-			applicationStack.DockerImageTag = dockerParts[1]
-		}
-	}
 
 	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
 }
@@ -1226,9 +1222,6 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webap
 			TimeTaken:    pointer.To(triggers.SlowRequests[0].TimeTaken),
 			TimeInterval: pointer.To(triggers.SlowRequests[0].Interval),
 			Count:        pointer.To(triggers.SlowRequests[0].Count),
-		}
-		if triggers.SlowRequests[0].Path != "" {
-			result.Triggers.SlowRequests.Path = pointer.To(triggers.SlowRequests[0].Path)
 		}
 	}
 
@@ -1359,7 +1352,6 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 				TimeTaken: pointer.From(triggers.SlowRequests.TimeTaken),
 				Interval:  pointer.From(triggers.SlowRequests.TimeInterval),
 				Count:     pointer.From(triggers.SlowRequests.Count),
-				Path:      pointer.From(triggers.SlowRequests.Path),
 			})
 		}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -72,15 +73,17 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	id := parse.NewWorkspaceID(subscriptionId, securityCenterWorkspaceName)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.WorkspaceSettingName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.WorkspaceSettingName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_security_center_workspace", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_security_center_workspace", id.ID())
+			}
 		}
 	}
 
@@ -91,17 +94,17 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	contact := security.WorkspaceSetting{
 		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
-			Scope:       utils.String(d.Get("scope").(string)),
-			WorkspaceID: utils.String(logAnalyticsWorkspaceId.ID()),
+			Scope:       pointer.To(d.Get("scope").(string)),
+			WorkspaceID: pointer.To(logAnalyticsWorkspaceId.ID()),
 		},
 	}
 
 	if d.IsNewResource() {
 		if _, err = client.Create(ctx, id.WorkspaceSettingName, contact); err != nil {
-			return fmt.Errorf("Creating Security Center Workspace: %+v", err)
+			return fmt.Errorf("creating Security Center Workspace: %+v", err)
 		}
 	} else if _, err = client.Update(ctx, id.WorkspaceSettingName, contact); err != nil {
-		return fmt.Errorf("Updating Security Center Workspace: %+v", err)
+		return fmt.Errorf("updating Security Center Workspace: %+v", err)
 	}
 
 	// api returns "" for workspace id after an create/update and eventually the new value
@@ -117,7 +120,7 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, id.WorkspaceSettingName)
 			if err2 != nil {
-				return resp, "Error", fmt.Errorf("Reading Security Center Workspace: %+v", err2)
+				return resp, "Error", fmt.Errorf("reading Security Center Workspace: %+v", err2)
 			}
 
 			if properties := resp.WorkspaceSettingProperties; properties != nil {
@@ -154,7 +157,7 @@ func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("Reading Security Center Workspace: %+v", err)
+		return fmt.Errorf("retrieving Security Center Workspace: %+v", err)
 	}
 
 	if properties := resp.WorkspaceSettingProperties; properties != nil {
@@ -163,11 +166,11 @@ func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 		if properties.WorkspaceID != nil {
 			id, err := workspaces.ParseWorkspaceIDInsensitively(*properties.WorkspaceID)
 			if err != nil {
-				return fmt.Errorf("Reading Security Center Log Analytics Workspace ID: %+v", err)
+				return fmt.Errorf("retrieving Security Center Log Analytics Workspace ID: %+v", err)
 			}
 			workspaceId = id.ID()
 		}
-		d.Set("workspace_id", utils.String(workspaceId))
+		d.Set("workspace_id", pointer.To(workspaceId))
 	}
 
 	return nil
@@ -185,7 +188,7 @@ func resourceSecurityCenterWorkspaceDelete(d *pluginsdk.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Deleting Security Center Workspace: %+v", err)
+		return fmt.Errorf("deleting Security Center Workspace: %+v", err)
 	}
 
 	return nil

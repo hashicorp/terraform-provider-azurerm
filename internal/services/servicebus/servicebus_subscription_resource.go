@@ -1,17 +1,17 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceServiceBusSubscription() *pluginsdk.Resource {
@@ -174,7 +173,6 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for ServiceBus Subscription creation.")
 
 	var id subscriptions.Subscriptions2Id
 	name := d.Get("name").(string)
@@ -201,15 +199,17 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_servicebus_subscription", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_servicebus_subscription", id.ID())
+			}
 		}
 	}
 
@@ -218,13 +218,13 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	status := subscriptions.EntityStatus(d.Get("status").(string))
 	parameters := subscriptions.SBSubscription{
 		Properties: &subscriptions.SBSubscriptionProperties{
-			DeadLetteringOnMessageExpiration:          utils.Bool(d.Get("dead_lettering_on_message_expiration").(bool)),
-			DeadLetteringOnFilterEvaluationExceptions: utils.Bool(d.Get("dead_lettering_on_filter_evaluation_error").(bool)),
-			EnableBatchedOperations:                   utils.Bool(enableBatchedOperations),
-			MaxDeliveryCount:                          utils.Int64(int64(d.Get("max_delivery_count").(int))),
-			RequiresSession:                           utils.Bool(d.Get("requires_session").(bool)),
+			DeadLetteringOnMessageExpiration:          pointer.To(d.Get("dead_lettering_on_message_expiration").(bool)),
+			DeadLetteringOnFilterEvaluationExceptions: pointer.To(d.Get("dead_lettering_on_filter_evaluation_error").(bool)),
+			EnableBatchedOperations:                   pointer.To(enableBatchedOperations),
+			MaxDeliveryCount:                          pointer.To(int64(d.Get("max_delivery_count").(int))),
+			RequiresSession:                           pointer.To(d.Get("requires_session").(bool)),
 			Status:                                    &status,
-			IsClientAffine:                            utils.Bool(isClintScopedEnabled),
+			IsClientAffine:                            pointer.To(isClintScopedEnabled),
 			ClientAffineProperties:                    &subscriptions.SBClientAffineProperties{},
 		},
 	}
@@ -258,7 +258,10 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("creating/updating %s: %v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourceServiceBusSubscriptionRead(d, meta)
 }
 
@@ -297,7 +300,7 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("requires_session", props.RequiresSession)
 			d.Set("forward_to", props.ForwardTo)
 			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
-			d.Set("status", utils.String(string(*props.Status)))
+			d.Set("status", pointer.To(string(*props.Status)))
 			d.Set("client_scoped_subscription_enabled", props.IsClientAffine)
 			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
 

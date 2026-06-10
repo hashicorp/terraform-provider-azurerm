@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -15,26 +15,25 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name servicebus_namespace -service-package-name servicebus -properties "name,resource_group_name"
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
 // default connection strings and keys
@@ -45,15 +44,16 @@ var (
 
 func resourceServiceBusNamespace() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceServiceBusNamespaceCreateUpdate,
+		Create: resourceServiceBusNamespaceCreate,
 		Read:   resourceServiceBusNamespaceRead,
-		Update: resourceServiceBusNamespaceCreateUpdate,
+		Update: resourceServiceBusNamespaceUpdate,
 		Delete: resourceServiceBusNamespaceDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := namespaces.ParseNamespaceID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&namespaces.NamespaceId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&namespaces.NamespaceId{}),
+		},
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -115,7 +115,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						},
 
 						"identity_id": {
@@ -245,7 +245,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
@@ -284,20 +284,19 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for ServiceBus Namespace create/update.")
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -330,7 +329,7 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		},
 		Properties: &namespaces.SBNamespaceProperties{
 			Encryption:          expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{})),
-			DisableLocalAuth:    utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			DisableLocalAuth:    pointer.To(!d.Get("local_auth_enabled").(bool)),
 			PublicNetworkAccess: &publicNetworkEnabled,
 		},
 		Tags: expandTags(t),
@@ -348,7 +347,7 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && capacity.(int) == 0 {
 			return fmt.Errorf("service bus SKU %q only supports `capacity` of 1, 2, 4, 8 or 16", sku)
 		}
-		parameters.Sku.Capacity = utils.Int64(int64(capacity.(int)))
+		parameters.Sku.Capacity = pointer.To(int64(capacity.(int)))
 	}
 
 	if premiumMessagingUnit := d.Get("premium_messaging_partitions"); premiumMessagingUnit != nil {
@@ -358,30 +357,123 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && premiumMessagingUnit.(int) == 0 {
 			return fmt.Errorf("service bus SKU %q only supports `premium_messaging_partitions` of 1, 2, 4", sku)
 		}
-		parameters.Properties.PremiumMessagingPartitions = utils.Int64(int64(premiumMessagingUnit.(int)))
+		parameters.Properties.PremiumMessagingPartitions = pointer.To(int64(premiumMessagingUnit.(int)))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
+	if err = createNetworkRuleSetForNamespace(ctx, client, id, d.Get("network_rule_set").([]interface{})); err != nil {
+		return err
+	}
+
+	return resourceServiceBusNamespaceRead(d, meta)
+}
+
+func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ServiceBus.NamespacesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := namespaces.ParseNamespaceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving  %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model.Properties` was nil", *id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("identity") {
+		identity, err := expandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		payload.Identity = identity
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkEnabled := namespaces.PublicNetworkAccessEnabled
+		if !d.Get("public_network_access_enabled").(bool) {
+			publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
+		}
+		payload.Properties.PublicNetworkAccess = &publicNetworkEnabled
+	}
+
+	if d.HasChange("sku") {
+		sku := d.Get("sku").(string)
+		s := namespaces.SkuTier(sku)
+		payload.Sku = &namespaces.SBSku{
+			Name: namespaces.SkuName(sku),
+			Tier: &s,
+		}
+	}
+
+	if d.HasChange("customer_managed_key") {
+		payload.Properties.Encryption = expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{}))
+	}
+
+	if d.HasChange("local_auth_enabled") {
+		payload.Properties.DisableLocalAuth = pointer.To(!d.Get("local_auth_enabled").(bool))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("minimum_tls_version") {
+		payload.Properties.MinimumTlsVersion = pointer.To(namespaces.TlsVersion(d.Get("minimum_tls_version").(string)))
+	}
+
+	if d.HasChange("capacity") {
+		sku := d.Get("sku").(string)
+		if capacity := d.Get("capacity"); capacity != nil {
+			if !strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && capacity.(int) > 0 {
+				return fmt.Errorf("service bus SKU %q only supports `capacity` of 0", sku)
+			}
+			if strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && capacity.(int) == 0 {
+				return fmt.Errorf("service bus SKU %q only supports `capacity` of 1, 2, 4, 8 or 16", sku)
+			}
+			payload.Sku.Capacity = pointer.To(int64(capacity.(int)))
+		}
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
+	}
 
 	if d.HasChange("network_rule_set") {
 		oldNetworkRuleSet, newNetworkRuleSet := d.GetChange("network_rule_set")
 		// if the network rule set has been removed from config, reset it instead as there is no way to remove a rule set
 		if len(oldNetworkRuleSet.([]interface{})) == 1 && len(newNetworkRuleSet.([]interface{})) == 0 {
 			log.Printf("[DEBUG] Resetting Network Rule Set associated with %s..", id)
-			if err = resetNetworkRuleSetForNamespace(ctx, client, id); err != nil {
+			if err = resetNetworkRuleSetForNamespace(ctx, client, *id); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Reset the Existing Network Rule Set associated with %s", id)
 		} else {
-			log.Printf("[DEBUG] Creating the Network Rule Set associated with %s..", id)
-			if err = createNetworkRuleSetForNamespace(ctx, client, id, newNetworkRuleSet.([]interface{})); err != nil {
+			if err = createNetworkRuleSetForNamespace(ctx, client, *id, newNetworkRuleSet.([]interface{})); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Created the Network Rule Set associated with %s", id)
 		}
 	}
 
@@ -408,19 +500,23 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceServiceBusNamespaceFlatten(ctx, d, id, resp.Model, client, namespaceAuthClient)
+}
+
+func resourceServiceBusNamespaceFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *namespaces.NamespaceId, model *namespaces.SBNamespace, client *namespaces.NamespacesClient, namespaceAuthClient *namespacesauthorizationrule.NamespacesAuthorizationRuleClient) error {
 	d.Set("name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		d.Set("tags", flattenTags(model.Tags))
 
-		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		identityFlattened, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
-		if err := d.Set("identity", identity); err != nil {
+		if err := d.Set("identity", identityFlattened); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
@@ -481,13 +577,13 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving network rule set %s: %+v", *id, err)
 	}
 
-	if model := networkRuleSet.Model; model != nil {
-		if props := model.Properties; props != nil {
+	if nrsModel := networkRuleSet.Model; nrsModel != nil {
+		if props := nrsModel.Properties; props != nil {
 			d.Set("network_rule_set", flattenServiceBusNamespaceNetworkRuleSet(*props))
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -517,22 +613,26 @@ func expandServiceBusNamespaceEncryption(input []interface{}) *namespaces.Encryp
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	keyId, _ := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
+	keyId, _ := keyvault.ParseNestedItemID(v["key_vault_key_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	keySource := namespaces.KeySourceMicrosoftPointKeyVault
-	return &namespaces.Encryption{
-		KeyVaultProperties: &[]namespaces.KeyVaultProperties{
-			{
-				KeyName:     utils.String(keyId.Name),
-				KeyVersion:  utils.String(keyId.Version),
-				KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
-				Identity: &namespaces.UserAssignedIdentityProperties{
-					UserAssignedIdentity: utils.String(v["identity_id"].(string)),
-				},
+
+	encryption := namespaces.Encryption{
+		KeySource:                       &keySource,
+		RequireInfrastructureEncryption: pointer.To(v["infrastructure_encryption_enabled"].(bool)),
+	}
+
+	encryption.KeyVaultProperties = &[]namespaces.KeyVaultProperties{
+		{
+			KeyName:     pointer.To(keyId.Name),
+			KeyVersion:  pointer.To(keyId.Version),
+			KeyVaultUri: pointer.To(keyId.KeyVaultBaseURL),
+			Identity: &namespaces.UserAssignedIdentityProperties{
+				UserAssignedIdentity: pointer.To(v["identity_id"].(string)),
 			},
 		},
-		KeySource:                       &keySource,
-		RequireInfrastructureEncryption: utils.Bool(v["infrastructure_encryption_enabled"].(bool)),
 	}
+
+	return &encryption
 }
 
 func flattenServiceBusNamespaceEncryption(encryption *namespaces.Encryption) ([]interface{}, error) {
@@ -544,7 +644,7 @@ func flattenServiceBusNamespaceEncryption(encryption *namespaces.Encryption) ([]
 	var identityId string
 	if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil && len(*keyVaultProperties) != 0 {
 		props := (*keyVaultProperties)[0]
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(pointer.From(props.KeyVaultUri), keyVaultParse.NestedItemTypeKey, pointer.From(props.KeyName), pointer.From(props.KeyVersion))
+		keyVaultKeyId, err := keyvault.NewNestedItemID(pointer.From(props.KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From(props.KeyName), pointer.From(props.KeyVersion))
 		if err != nil {
 			return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 		}
@@ -620,6 +720,7 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 	if len(input) < 1 || input[0] == nil {
 		return nil
 	}
+
 	item := input[0].(map[string]interface{})
 
 	defaultAction := namespaces.DefaultAction(item["default_action"].(string))
@@ -643,7 +744,7 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 			VirtualNetworkRules:         vnetRule,
 			IPRules:                     ipRule,
 			PublicNetworkAccess:         &publicNetworkAccess,
-			TrustedServiceAccessEnabled: utils.Bool(item["trusted_services_allowed"].(bool)),
+			TrustedServiceAccessEnabled: pointer.To(item["trusted_services_allowed"].(bool)),
 		},
 	}
 
@@ -686,17 +787,6 @@ func flattenServiceBusNamespaceNetworkRuleSet(networkRuleSet namespaces.NetworkR
 
 	networkRules := flattenServiceBusNamespaceVirtualNetworkRules(networkRuleSet.VirtualNetworkRules)
 	ipRules := flattenServiceBusNamespaceIPRules(networkRuleSet.IPRules)
-
-	// only set network rule set if the values are different than what they are defaulted to during namespace creation
-	// this has to wait until 4.0 due to `azurerm_servicebus_namespace_network_rule_set` which forces `network_rule_set` to be Optional/Computed
-
-	if defaultAction == string(namespaces.DefaultActionAllow) &&
-		publicNetworkAccess == namespaces.PublicNetworkAccessFlagEnabled &&
-		!trustedServiceEnabled &&
-		len(networkRules) == 0 &&
-		len(ipRules) == 0 {
-		return []interface{}{}
-	}
 
 	return []interface{}{map[string]interface{}{
 		"default_action":                defaultAction,

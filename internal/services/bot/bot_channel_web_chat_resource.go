@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -8,9 +8,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
@@ -97,25 +97,27 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameWebChatChannel))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		// The Bot WebChat Channel would be created by default while creating Bot Registrations Channel.
-		// So if the channel includes `Default Site`, it means it's default channel and delete it.
-		// So if the channel includes other site, it means it's user custom channel and throws conflict error.
-		if props := existing.Properties; props != nil {
-			defaultChannel, ok := props.AsWebChatChannel()
-			if ok && defaultChannel.Properties != nil {
-				if includeDefaultWebChatSite(defaultChannel.Properties.Sites) {
-					if _, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameWebChatChannel)); err != nil {
-						return fmt.Errorf("deleting the default Web Chat Channel %s: %+v", id, err)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			// The Bot WebChat Channel would be created by default while creating Bot Registrations Channel.
+			// So if the channel includes `Default Site`, it means it's default channel and delete it.
+			// So if the channel includes other site, it means it's user custom channel and throws conflict error.
+			if props := existing.Properties; props != nil {
+				defaultChannel, ok := props.AsWebChatChannel()
+				if ok && defaultChannel.Properties != nil {
+					if includeDefaultWebChatSite(defaultChannel.Properties.Sites) {
+						if _, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameWebChatChannel)); err != nil {
+							return fmt.Errorf("deleting the default Web Chat Channel %s: %+v", id, err)
+						}
+					} else {
+						return tf.ImportAsExistsError("azurerm_bot_channel_web_chat", id.ID())
 					}
-				} else {
-					return tf.ImportAsExistsError("azurerm_bot_channel_web_chat", id.ID())
 				}
 			}
 		}
@@ -126,7 +128,7 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 			Properties:  &botservice.WebChatChannelProperties{},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -139,12 +141,12 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// Unable to add a new site with user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceBotChannelWebChatRead(d, meta)
 }
@@ -202,7 +204,7 @@ func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Properties:  &botservice.WebChatChannelProperties{},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -243,14 +245,14 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 			Properties: &botservice.WebChatChannelProperties{
 				Sites: &[]botservice.WebChatSite{
 					{
-						SiteName:  utils.String("Default Site"),
-						IsEnabled: utils.Bool(true),
+						SiteName:  pointer.To("Default Site"),
+						IsEnabled: pointer.To(true),
 					},
 				},
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(*existing.Location)),
+		Location: pointer.To(location.Normalize(*existing.Location)),
 		Kind:     botservice.KindBot,
 	}
 
@@ -269,14 +271,14 @@ func expandSites(input []interface{}) *[]botservice.WebChatSite {
 	for _, item := range input {
 		site := item.(map[string]interface{})
 		result := botservice.WebChatSite{
-			IsEnabled:                   utils.Bool(true),
-			IsBlockUserUploadEnabled:    utils.Bool(!site["user_upload_enabled"].(bool)),
-			IsEndpointParametersEnabled: utils.Bool(site["endpoint_parameters_enabled"].(bool)),
-			IsNoStorageEnabled:          utils.Bool(!site["storage_enabled"].(bool)),
+			IsEnabled:                   pointer.To(true),
+			IsBlockUserUploadEnabled:    pointer.To(!site["user_upload_enabled"].(bool)),
+			IsEndpointParametersEnabled: pointer.To(site["endpoint_parameters_enabled"].(bool)),
+			IsNoStorageEnabled:          pointer.To(!site["storage_enabled"].(bool)),
 		}
 
 		if siteName := site["name"].(string); siteName != "" {
-			result.SiteName = utils.String(siteName)
+			result.SiteName = pointer.To(siteName)
 		}
 
 		results = append(results, result)

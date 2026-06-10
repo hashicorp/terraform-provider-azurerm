@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics_test
@@ -8,18 +8,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsWorkspaceResource struct {
-	DoNotRunFreeTierTest bool
-}
+type LogAnalyticsWorkspaceResource struct{}
 
 func TestAccLogAnalyticsWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
@@ -30,6 +29,7 @@ func TestAccLogAnalyticsWorkspace_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -67,59 +67,6 @@ func TestAccLogAnalyticsWorkspace_complete(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-}
-
-func TestAccLogAnalyticsWorkspace_freeTier(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
-	r := LogAnalyticsWorkspaceResource{DoNotRunFreeTierTest: true}
-	r.preCheck(t)
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.freeTier(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.freeTierWithTags(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func (r LogAnalyticsWorkspaceResource) preCheck(t *testing.T) {
-	if r.DoNotRunFreeTierTest {
-		t.Skipf("`TestAccLogAnalyticsWorkspace_freeTier` due to subscription pricing tier configuration (e.g. Pricing tier doesn't match the subscription's billing model.)")
-	}
-}
-
-func (LogAnalyticsWorkspaceResource) freeTierWithTags(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Free"
-  retention_in_days   = 7
-
-  tags = {
-    Environment = "Test"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func TestAccLogAnalyticsWorkspace_withDefaultSku(t *testing.T) {
@@ -291,44 +238,110 @@ func TestAccLogAnalyticsWorkspace_ToggleAllowOnlyResourcePermission(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.withUseResourceOnlyPermission(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.withUseResourceOnlyPermission(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccLogAnalyticsWorkspace_ToggleDisableLocalAuth(t *testing.T) {
+func TestAccLogAnalyticsWorkspace_ToggleEnableLocalAuthDeprecated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	if features.FivePointOh() {
+		t.Skip("Skipping since local_authentication_disabled is deprecated in 5.0")
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localAuthEnabledDeprecated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localAuthEnabledDeprecated(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+
+		{
+			Config: r.localAuthEnabledDeprecated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsWorkspace_ToggleEnableLocalAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withDisableLocalAuth(data, true),
+			Config: r.localAuthEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
-			Config: r.withDisableLocalAuth(data, false),
+			Config: r.localAuthEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 		{
-			Config: r.withDisableLocalAuth(data, true),
+			Config: r.localAuthEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -343,18 +356,21 @@ func TestAccLogAnalyticsWorkspace_ToggleImmediatelyPurgeDataOn30Days(t *testing.
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.withImmediatePurgeDataOn30Days(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.withImmediatePurgeDataOn30Days(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -475,7 +491,7 @@ func (t LogAnalyticsWorkspaceResource) Exists(ctx context.Context, clients *clie
 		return nil, fmt.Errorf("readingLog Analytics Workspace (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (LogAnalyticsWorkspaceResource) basic(data acceptance.TestData) string {
@@ -593,27 +609,6 @@ resource "azurerm_log_analytics_workspace" "test" {
   tags = {
     Environment = "Test"
   }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (LogAnalyticsWorkspaceResource) freeTier(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Free"
-  retention_in_days   = 7
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -865,7 +860,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, useResourceOnlyPermission)
 }
 
-func (LogAnalyticsWorkspaceResource) withDisableLocalAuth(data acceptance.TestData, disableLocalAuth bool) string {
+func (LogAnalyticsWorkspaceResource) localAuthEnabledDeprecated(data acceptance.TestData, localAuthEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -884,7 +879,29 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days             = 30
   local_authentication_disabled = %[4]t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, disableLocalAuth)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, !localAuthEnabled)
+}
+
+func (LogAnalyticsWorkspaceResource) localAuthEnabled(data acceptance.TestData, localAuthEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                         = "acctestLAW-%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "PerGB2018"
+  retention_in_days            = 30
+  local_authentication_enabled = %[4]t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, localAuthEnabled)
 }
 
 func (LogAnalyticsWorkspaceResource) withDataCollectionRule(data acceptance.TestData) string {

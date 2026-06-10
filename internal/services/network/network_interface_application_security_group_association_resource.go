@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,10 +8,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -65,8 +67,6 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Network Interface <-> Application Security Group Association creation.")
-
 	applicationSecurityGroupId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(d.Get("application_security_group_id").(string))
 	if err != nil {
 		return err
@@ -105,15 +105,21 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 	info := parseFieldsFromNetworkInterface(*props)
 	id := commonids.NewCompositeResourceID(networkInterfaceId, applicationSecurityGroupId)
 
+	exists := false
 	if utils.SliceContainsValue(info.applicationSecurityGroupIDs, applicationSecurityGroupId.ID()) {
-		return tf.ImportAsExistsError("azurerm_network_interface_application_security_group_association", id.ID())
+		exists = true
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			return tf.ImportAsExistsError("azurerm_network_interface_application_security_group_association", id.ID())
+		}
 	}
 
-	info.applicationSecurityGroupIDs = append(info.applicationSecurityGroupIDs, applicationSecurityGroupId.ID())
+	if !exists {
+		info.applicationSecurityGroupIDs = append(info.applicationSecurityGroupIDs, applicationSecurityGroupId.ID())
+	}
 
 	props.IPConfigurations = mapFieldsToNetworkInterface(props.IPConfigurations, info)
 
-	err = client.CreateOrUpdateThenPoll(ctx, *networkInterfaceId, *read.Model)
+	err = client.CreateOrUpdateCallbackThenPoll(ctx, *networkInterfaceId, *read.Model, sdk.SetIDCallback(meta, &id, d))
 	if err != nil {
 		return fmt.Errorf("updating Application Security Group Association for %s: %+v", *networkInterfaceId, err)
 	}

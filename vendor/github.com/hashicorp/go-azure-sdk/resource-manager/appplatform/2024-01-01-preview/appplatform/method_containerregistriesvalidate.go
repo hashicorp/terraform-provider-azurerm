@@ -62,9 +62,20 @@ func (c AppPlatformClient) ContainerRegistriesValidate(ctx context.Context, id C
 
 // ContainerRegistriesValidateThenPoll performs ContainerRegistriesValidate then polls until it's completed
 func (c AppPlatformClient) ContainerRegistriesValidateThenPoll(ctx context.Context, id ContainerRegistryId, input ContainerRegistryProperties) error {
+	return c.ContainerRegistriesValidateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ContainerRegistriesValidateCallbackThenPoll performs ContainerRegistriesValidate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ContainerRegistriesValidateCallbackThenPoll(ctx context.Context, id ContainerRegistryId, input ContainerRegistryProperties, callback func() error) error {
 	result, err := c.ContainerRegistriesValidate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ContainerRegistriesValidate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

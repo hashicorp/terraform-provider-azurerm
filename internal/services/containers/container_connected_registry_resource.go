@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -10,16 +10,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/connectedregistries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/tokens"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/connectedregistries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/tokens"
 	tfvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerConnectedRegistryResource struct{}
@@ -212,14 +211,17 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing parent container registry id: %v", err)
 			}
 			id := connectedregistries.NewConnectedRegistryID(rid.SubscriptionId, rid.ResourceGroupName, rid.RegistryName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			auditLogStatus := connectedregistries.AuditLogStatusDisabled
@@ -238,8 +240,8 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 					Parent: connectedregistries.ParentProperties{
 						SyncProperties: connectedregistries.SyncProperties{
 							TokenId:    model.SyncTokenId,
-							Schedule:   utils.String(model.SyncSchedule),
-							SyncWindow: utils.String(model.SyncWindow),
+							Schedule:   pointer.To(model.SyncSchedule),
+							SyncWindow: pointer.To(model.SyncWindow),
 							MessageTtl: model.SyncMessageTTL,
 						},
 					},
@@ -254,13 +256,13 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 
 			if model.ParentRegistryId != "" {
 				if pid, err := registries.ParseRegistryID(model.ParentRegistryId); err == nil {
-					params.Properties.Parent.Id = utils.String(pid.ID())
+					params.Properties.Parent.Id = pointer.To(pid.ID())
 				} else if pid, err := connectedregistries.ParseConnectedRegistryID(model.ParentRegistryId); err == nil {
-					params.Properties.Parent.Id = utils.String(pid.ID())
+					params.Properties.Parent.Id = pointer.To(pid.ID())
 				}
 			}
 
-			if err := client.CreateThenPoll(ctx, id, params); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, params, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -500,9 +502,9 @@ func (r ContainerConnectedRegistryResource) flattenRepoNotifications(input []str
 			return nil, fmt.Errorf("parsing %q: %+v", e, err)
 		}
 		output = append(output, RepositoryNotification{
-			Name:   notification.Artifact.Name,
-			Tag:    notification.Artifact.Tag,
-			Digest: notification.Artifact.Digest,
+			Name:   notification.Name,
+			Tag:    notification.Tag,
+			Digest: notification.Digest,
 			Action: string(notification.Action),
 		})
 	}

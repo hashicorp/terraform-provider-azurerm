@@ -21,6 +21,22 @@ client.Client.Authorizer = authorizer
 ```
 
 
+### Example Usage: `AppliancesClient.AppliancesGetTelemetryConfig`
+
+```go
+ctx := context.TODO()
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+read, err := client.AppliancesGetTelemetryConfig(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
 ### Example Usage: `AppliancesClient.CreateOrUpdate`
 
 ```go
@@ -57,22 +73,6 @@ ctx := context.TODO()
 id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceName")
 
 read, err := client.Get(ctx, id)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
-### Example Usage: `AppliancesClient.GetTelemetryConfig`
-
-```go
-ctx := context.TODO()
-id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
-
-read, err := client.GetTelemetryConfig(ctx, id)
 if err != nil {
 	// handle the error
 }

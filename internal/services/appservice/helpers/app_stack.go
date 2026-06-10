@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -29,21 +29,17 @@ const (
 )
 
 type ApplicationStackWindows struct {
-	CurrentStack            string `tfschema:"current_stack"`
-	DockerContainerName     string `tfschema:"docker_container_name,removedInNextMajorVersion"`
-	DockerContainerRegistry string `tfschema:"docker_container_registry,removedInNextMajorVersion"`
-	DockerContainerTag      string `tfschema:"docker_container_tag,removedInNextMajorVersion"`
-	JavaContainer           string `tfschema:"java_container"`
-	JavaContainerVersion    string `tfschema:"java_container_version"`
-	JavaEmbeddedServer      bool   `tfschema:"java_embedded_server_enabled"`
-	JavaVersion             string `tfschema:"java_version"`
-	NetFrameworkVersion     string `tfschema:"dotnet_version"`
-	NetCoreVersion          string `tfschema:"dotnet_core_version"`
-	NodeVersion             string `tfschema:"node_version"`
-	PhpVersion              string `tfschema:"php_version"`
-	PythonVersion           string `tfschema:"python_version,removedInNextMajorVersion"`
-	Python                  bool   `tfschema:"python"`
-	TomcatVersion           string `tfschema:"tomcat_version"`
+	CurrentStack         string `tfschema:"current_stack"`
+	JavaContainer        string `tfschema:"java_container"`
+	JavaContainerVersion string `tfschema:"java_container_version"`
+	JavaEmbeddedServer   bool   `tfschema:"java_embedded_server_enabled"`
+	JavaVersion          string `tfschema:"java_version"`
+	NetFrameworkVersion  string `tfschema:"dotnet_version"`
+	NetCoreVersion       string `tfschema:"dotnet_core_version"`
+	NodeVersion          string `tfschema:"node_version"`
+	PhpVersion           string `tfschema:"php_version"`
+	Python               bool   `tfschema:"python"`
+	TomcatVersion        string `tfschema:"tomcat_version"`
 
 	DockerRegistryUrl      string `tfschema:"docker_registry_url"`
 	DockerRegistryUsername string `tfschema:"docker_registry_username"`
@@ -82,6 +78,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"v7.0",
 						"v8.0",
 						"v9.0",
+						"v10.0",
 					}, false),
 					AtLeastOneOf: windowsApplicationStackConstraint,
 				},
@@ -123,6 +120,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"~16",
 						"~18",
 						"~20",
+						"~22",
 					}, false),
 					AtLeastOneOf: windowsApplicationStackConstraint,
 				},
@@ -329,8 +327,6 @@ type ApplicationStackLinux struct {
 	JavaVersion         string `tfschema:"java_version"`
 	JavaServer          string `tfschema:"java_server"`
 	JavaServerVersion   string `tfschema:"java_server_version"`
-	DockerImageTag      string `tfschema:"docker_image_tag,removedInNextMajorVersion"`
-	DockerImage         string `tfschema:"docker_image,removedInNextMajorVersion"`
 	RubyVersion         string `tfschema:"ruby_version"`
 
 	DockerRegistryUrl      string `tfschema:"docker_registry_url"`
@@ -368,6 +364,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"7.0",
 						"8.0",
 						"9.0",
+						"10.0",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -391,6 +388,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"8.1",
 						"8.2",
 						"8.3",
+						"8.4",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -405,6 +403,8 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.10",
 						"3.11",
 						"3.12",
+						"3.13",
+						"3.14",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -418,6 +418,8 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"16-lts",
 						"18-lts",
 						"20-lts",
+						"22-lts",
+						"24-lts",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -440,6 +442,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"11",
 						"17",
 						"21",
+						"25",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 					RequiredWith: []string{

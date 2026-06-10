@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_fabric_capacity" "example" {
-  name                = "example-ffc"
+  name                = "exampleffc"
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
 
@@ -50,7 +50,9 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
-* `administration_members` - (Optional) An array of administrator user identities. The member must be an Entra member user or a service principal.
+* `administration_members` - (Optional) An array of administrator user identities. The member must be an Entra user or a service principal.
+
+~> **Note:** If the member is an Entra user, use user principal name (UPN) format. If the user is a service principal, use object ID.
 
 * `tags` - (Optional) A mapping of tags to assign to the Fabric Capacity.
 
@@ -70,7 +72,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Fabric Capacity.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Fabric Capacity.
@@ -84,3 +86,9 @@ Fabric Capacities can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_fabric_capacity.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Fabric/capacities/capacity1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Fabric` - 2023-11-01

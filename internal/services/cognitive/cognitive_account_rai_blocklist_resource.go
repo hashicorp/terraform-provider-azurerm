@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive
@@ -10,18 +10,20 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raiblocklists"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/raiblocklists"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type cognitiveRaiBlocklistModel struct {
-	Name               string `tfschema:"name"`
-	CognitiveAccountId string `tfschema:"cognitive_account_id"`
-	Description        string `tfschema:"description"`
+	Name               string            `tfschema:"name"`
+	CognitiveAccountId string            `tfschema:"cognitive_account_id"`
+	Description        string            `tfschema:"description"`
+	Tags               map[string]string `tfschema:"tags"`
 }
 
 type CognitiveRaiBlocklistResource struct{}
@@ -34,7 +36,7 @@ func (c CognitiveRaiBlocklistResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.RaiBlocklistName(),
 		},
 
 		"cognitive_account_id": {
@@ -48,6 +50,7 @@ func (c CognitiveRaiBlocklistResource) Arguments() map[string]*schema.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -75,17 +78,21 @@ func (c CognitiveRaiBlocklistResource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(accountId.ID())
 
 			id := raiblocklists.NewRaiBlocklistID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(c.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(c.ResourceType(), id)
+				}
 			}
 
 			payload := &raiblocklists.RaiBlocklist{
 				Properties: &raiblocklists.RaiBlocklistProperties{},
+				Tags:       pointer.To(model.Tags),
 			}
 
 			if model.Description != "" {
@@ -142,6 +149,10 @@ func (c CognitiveRaiBlocklistResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("description") {
 				payload.Properties.Description = pointer.To(model.Description)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = pointer.To(model.Tags)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
@@ -215,6 +226,7 @@ func (c CognitiveRaiBlocklistResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.Description = pointer.From(props.Description)
 				}
+				state.Tags = pointer.From(model.Tags)
 			}
 
 			return metadata.Encode(&state)

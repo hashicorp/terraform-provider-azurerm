@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -122,9 +122,11 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if respPolicy.Attributes != nil && respPolicy.Attributes.ExpiryTime != nil {
-				if respPolicy.LifetimeActions != nil && len(*respPolicy.LifetimeActions) > 0 {
-					return metadata.ResourceRequiresImport(r.ResourceType(), keyID)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if respPolicy.Attributes != nil && respPolicy.Attributes.ExpiryTime != nil {
+					if respPolicy.LifetimeActions != nil && len(*respPolicy.LifetimeActions) > 0 {
+						return metadata.ResourceRequiresImport(r.ResourceType(), keyID)
+					}
 				}
 			}
 

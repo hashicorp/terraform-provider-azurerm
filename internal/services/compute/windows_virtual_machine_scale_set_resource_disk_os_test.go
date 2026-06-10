@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -359,6 +359,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
   enabled_for_disk_encryption = true
 }
 
@@ -689,8 +690,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
-    offer     = "windows-cvm"
-    sku       = "2022-datacenter-cvm"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 
@@ -744,8 +745,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
-    offer     = "windows-cvm"
-    sku       = "2022-datacenter-cvm"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 

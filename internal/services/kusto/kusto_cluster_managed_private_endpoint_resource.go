@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto
@@ -7,19 +7,20 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/managedprivateendpoints"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoClusterManagedPrivateEndpoint() *pluginsdk.Resource {
@@ -102,15 +103,17 @@ func resourceKustoClusterManagedPrivateEndpointCreateUpdate(d *schema.ResourceDa
 
 	id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		managedPrivateEndpoint, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(managedPrivateEndpoint.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			managedPrivateEndpoint, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(managedPrivateEndpoint.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(managedPrivateEndpoint.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_kusto_cluster_managed_private_endpoint", id.ID())
+			if !response.WasNotFound(managedPrivateEndpoint.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_kusto_cluster_managed_private_endpoint", id.ID())
+			}
 		}
 	}
 
@@ -122,19 +125,24 @@ func resourceKustoClusterManagedPrivateEndpointCreateUpdate(d *schema.ResourceDa
 	}
 
 	if v, ok := d.GetOk("private_link_resource_region"); ok {
-		managedPrivateEndpoint.Properties.PrivateLinkResourceRegion = utils.String(v.(string))
+		managedPrivateEndpoint.Properties.PrivateLinkResourceRegion = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("request_message"); ok {
-		managedPrivateEndpoint.Properties.RequestMessage = utils.String(v.(string))
+		managedPrivateEndpoint.Properties.RequestMessage = pointer.To(v.(string))
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, managedPrivateEndpoint)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, managedPrivateEndpoint, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, managedPrivateEndpoint); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceKustoClusterManagedPrivateEndpointRead(d, meta)
 }
 
