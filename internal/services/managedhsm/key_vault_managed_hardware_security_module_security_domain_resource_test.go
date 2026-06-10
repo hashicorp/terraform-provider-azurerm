@@ -26,8 +26,7 @@ func testAccKeyVaultManagedHardwareSecurityModuleSecurityDomain_basic(t *testing
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-		},
-		data.ImportStep(),
+		}, // Note: ImportStep() is not required as the resource has no readable data.
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(

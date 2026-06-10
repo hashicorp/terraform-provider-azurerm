@@ -141,11 +141,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Key Vault Managed Hardware Security Module Security Domains can be imported using the `resource id`, e.g.
-
-```shell
-terraform import azurerm_key_vault_managed_hardware_security_module_security_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/managedHSMs/hsm1
-```
+Key Vault Managed Hardware Security Module Security Domains cannot be imported.
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
