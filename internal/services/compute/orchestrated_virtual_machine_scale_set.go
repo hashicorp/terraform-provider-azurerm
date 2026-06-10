@@ -25,9 +25,10 @@ import (
 
 func OrchestratedVirtualMachineScaleSetOSProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Type:         pluginsdk.TypeList,
+		Optional:     true,
+		MaxItems:     1,
+		RequiredWith: []string{"sku_name"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"custom_data": {
@@ -192,9 +193,10 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 
 func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
-		Computed: true,
+		Type:         pluginsdk.TypeSet,
+		Optional:     true,
+		Computed:     true,
+		RequiredWith: []string{"sku_name"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -271,8 +273,9 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 
 func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Type:         pluginsdk.TypeList,
+		Optional:     true,
+		RequiredWith: []string{"sku_name"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -514,8 +517,9 @@ func computerPrefixLinuxSchema() *pluginsdk.Schema {
 
 func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Type:         pluginsdk.TypeList,
+		Optional:     true,
+		RequiredWith: []string{"sku_name"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"caching": {
@@ -622,9 +626,10 @@ func OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk
 
 func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Type:         pluginsdk.TypeList,
+		Optional:     true,
+		MaxItems:     1,
+		RequiredWith: []string{"sku_name"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"caching": {
@@ -710,10 +715,11 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 
 func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
+		Type:         pluginsdk.TypeList,
+		Optional:     true,
+		Computed:     true,
+		MaxItems:     1,
+		RequiredWith: []string{"sku_name"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
@@ -733,9 +739,10 @@ func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsd
 
 func OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Type:         pluginsdk.TypeList,
+		Optional:     true,
+		MaxItems:     1,
+		RequiredWith: []string{"sku_name"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"base_regular_count": {

@@ -683,6 +683,7 @@ func sourceImageReferenceSchemaOrchestratedVMSS() *pluginsdk.Schema {
 		ConflictsWith: []string{
 			"source_image_id",
 		},
+		RequiredWith: []string{"sku_name"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"publisher": {

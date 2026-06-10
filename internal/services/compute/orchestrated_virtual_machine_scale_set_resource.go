@@ -487,16 +487,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 	for _, field := range []string{
 		"automatic_instance_repair",
 		"boot_diagnostics",
-		"data_disk",
-		"extension",
 		"identity",
-		"network_interface",
-		"os_disk",
-		"os_profile",
 		"plan",
-		"priority_mix",
-		"source_image_reference",
-		"termination_notification",
 	} {
 		resource.Schema[field].RequiredWith = []string{"sku_name"}
 	}
