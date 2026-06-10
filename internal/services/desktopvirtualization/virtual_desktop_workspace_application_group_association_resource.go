@@ -66,7 +66,6 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *plugins
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Workspace <-> Application Group Association creation.")
 	workspaceId, err := workspace.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
 		return err
@@ -103,7 +102,9 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *plugins
 
 	applicationGroupIdStr := applicationGroupId.ID()
 	if associationExists(model.Properties, applicationGroupIdStr) {
-		return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", associationId)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", associationId)
+		}
 	}
 	applicationGroupAssociations = append(applicationGroupAssociations, applicationGroupIdStr)
 

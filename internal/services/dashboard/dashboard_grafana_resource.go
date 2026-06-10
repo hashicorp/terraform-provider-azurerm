@@ -35,6 +35,7 @@ type DashboardGrafanaModel struct {
 	Location                          string                                            `tfschema:"location"`
 	PublicNetworkAccessEnabled        bool                                              `tfschema:"public_network_access_enabled"`
 	Sku                               string                                            `tfschema:"sku"`
+	SkuSize                           string                                            `tfschema:"sku_size"`
 	Tags                              map[string]string                                 `tfschema:"tags"`
 	ZoneRedundancyEnabled             bool                                              `tfschema:"zone_redundancy_enabled"`
 	Endpoint                          string                                            `tfschema:"endpoint"`
@@ -214,6 +215,14 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"sku_size": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      managedgrafanas.SizeXOne,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(managedgrafanas.PossibleValuesForSize(), false),
+		},
+
 		"tags": commonschema.Tags(),
 
 		"zone_redundancy_enabled": {
@@ -261,13 +270,16 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Dashboard.GrafanaResourceClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := managedgrafanas.NewGrafanaID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.GrafanaGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GrafanaGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identityValue := expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -311,7 +323,11 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.GrafanaCreateThenPoll(ctx, id, *properties); err != nil {
+			if model.SkuSize != "" {
+				properties.Sku.Size = pointer.To(managedgrafanas.Size(model.SkuSize))
+			}
+
+			if err := client.GrafanaCreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -507,6 +523,9 @@ func (r DashboardGrafanaResource) Read() sdk.ResourceFunc {
 
 			if model.Sku != nil {
 				state.Sku = model.Sku.Name
+				if model.Sku.Size != nil {
+					state.SkuSize = pointer.FromEnum(model.Sku.Size)
+				}
 			}
 
 			if model.Tags != nil {
@@ -562,7 +581,8 @@ func expandSMTPConfigurationModel(input []SMTPConfigurationModel) *managedgrafan
 	return pointer.To(
 		managedgrafanas.GrafanaConfigurations{
 			Smtp: pointer.To(smtp),
-		})
+		},
+	)
 }
 
 func expandGrafanaIntegrationsModel(inputList []AzureMonitorWorkspaceIntegrationModel) *managedgrafanas.GrafanaIntegrations {

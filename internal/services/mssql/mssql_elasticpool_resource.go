@@ -6,7 +6,7 @@ package mssql
 import (
 	"context"
 	"fmt"
-	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -203,6 +204,14 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"high_availability_replica_count": {
+				Type: pluginsdk.TypeInt,
+				// NOTE: O+C can only be set for Hyperscale skus, which have a default value of 1
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(0, 4),
+			},
+
 			"tags": commonschema.Tags(),
 		},
 
@@ -210,6 +219,17 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				if err := helper.MSSQLElasticPoolValidateSKU(diff); err != nil {
 					return err
+				}
+
+				if v, ok := diff.GetOk("high_availability_replica_count"); ok && v.(int) > 0 {
+					skuRaw := diff.Get("sku").([]interface{})
+					if len(skuRaw) > 0 {
+						sku := skuRaw[0].(map[string]interface{})
+						tier := sku["tier"].(string)
+						if !strings.EqualFold(tier, "Hyperscale") {
+							return fmt.Errorf("`high_availability_replica_count` can only be set when `sku.tier` is `Hyperscale`, got %q", tier)
+						}
+					}
 				}
 
 				return nil
@@ -236,20 +256,20 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for MSSQL ElasticPool creation.")
-
 	id := commonids.NewSqlElasticPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_mssql_elasticpool", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_mssql_elasticpool", id.ID())
+			}
 		}
 	}
 
@@ -271,6 +291,10 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
+	if !d.GetRawConfig().AsValueMap()["high_availability_replica_count"].IsNull() {
+		elasticPool.Properties.HighAvailabilityReplicaCount = pointer.To(int64(d.Get("high_availability_replica_count").(int)))
+	}
+
 	// NOTE: The service default is actually nil/empty which indicates enclave is disabled. the value `Default` is NOT the default.
 	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
 		elasticPool.Properties.PreferredEnclaveType = pointer.To(elasticpools.AlwaysEncryptedEnclaveType(v.(string)))
@@ -285,14 +309,18 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		elasticPool.Properties.MaxSizeBytes = pointer.To(int64(v.(int)))
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, elasticPool)
-	if err != nil {
-		return err
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, elasticPool, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, elasticPool); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	return resourceMsSqlElasticPoolRead(d, meta)
@@ -345,6 +373,7 @@ func resourceMssqlElasticPoolSetFlatten(d *pluginsdk.ResourceData, id *commonids
 				licenseType = string(*props.LicenseType)
 			}
 			d.Set("license_type", licenseType)
+			d.Set("high_availability_replica_count", pointer.From(props.HighAvailabilityReplicaCount))
 
 			if err := d.Set("per_database_settings", flattenMsSqlElasticPoolPerDatabaseSettings(props.PerDatabaseSettings)); err != nil {
 				return fmt.Errorf("setting `per_database_settings`: %+v", err)

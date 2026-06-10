@@ -152,8 +152,11 @@ func TestAccProvider_resourceProviders_legacy(t *testing.T) {
 	}
 }
 
-// TODO: Remove this test in v5.0
 func TestAccProvider_resourceProviders_deprecatedSkip(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as `skip_provider_registrations` is no longer supported in 5.0")
+	}
+
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -588,7 +591,7 @@ func TestAccProvider_cliAuth(t *testing.T) {
 			AzureCliSubscriptionIDHint:        d.Get("subscription_id").(string),
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -660,7 +663,7 @@ func TestAccProvider_clientCertificateAuth(t *testing.T) {
 			EnableAuthenticatingUsingClientCertificate: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -733,7 +736,7 @@ func testAccProvider_clientSecretAuthFromEnvironment(t *testing.T) {
 			EnableAuthenticatingUsingClientSecret: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -801,7 +804,7 @@ func testAccProvider_clientSecretAuthFromFiles(t *testing.T) {
 			EnableAuthenticatingUsingClientSecret: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -861,7 +864,7 @@ func TestAccProvider_genericOidcAuth(t *testing.T) {
 			OIDCAssertionToken:            *oidcToken,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -920,7 +923,7 @@ func TestAccProvider_githubOidcAuth(t *testing.T) {
 			EnableAuthenticationUsingGitHubOIDC: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -983,7 +986,7 @@ func TestAccProvider_adoOidcAuth(t *testing.T) {
 			EnableAuthenticationUsingADOPipelineOIDC: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -1049,7 +1052,7 @@ func TestAccProvider_aksWorkloadIdentityAuth(t *testing.T) {
 			EnableAuthenticationUsingOIDC: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, "")
 	}
 
 	// Ensure we enable AKS Workload Identity else the configuration will not be detected

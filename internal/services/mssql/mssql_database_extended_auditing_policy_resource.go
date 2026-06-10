@@ -5,7 +5,6 @@ package mssql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -93,24 +92,24 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for MsSql Database Extended Auditing Policy creation.")
-
 	dbId, err := commonids.ParseSqlDatabaseID(d.Get("database_id").(string))
 	if err != nil {
 		return err
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.ExtendedDatabaseBlobAuditingPoliciesGet(ctx, *dbId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of existing %s: %+v", dbId, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.ExtendedDatabaseBlobAuditingPoliciesGet(ctx, *dbId)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of existing %s: %+v", dbId, err)
+				}
 			}
-		}
 
-		// if state is not disabled, we should import it.
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != blobauditing.BlobAuditingPolicyStateDisabled {
-			return tf.ImportAsExistsError("azurerm_mssql_database_extended_auditing_policy", *existing.Model.Id)
+			// if state is not disabled, we should import it.
+			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != blobauditing.BlobAuditingPolicyStateDisabled {
+				return tf.ImportAsExistsError("azurerm_mssql_database_extended_auditing_policy", *existing.Model.Id)
+			}
 		}
 	}
 

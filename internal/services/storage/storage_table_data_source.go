@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -23,7 +25,8 @@ var _ sdk.DataSource = storageTableDataSource{}
 
 type TableDataSourceModel struct {
 	Name               string     `tfschema:"name"`
-	StorageAccountName string     `tfschema:"storage_account_name"`
+	StorageAccountName string     `tfschema:"storage_account_name,removedInNextMajorVersion"`
+	StorageAccountId   string     `tfschema:"storage_account_id"`
 	ACL                []ACLModel `tfschema:"acl"`
 	Id                 string     `tfschema:"id"`
 	ResourceManagerId  string     `tfschema:"resource_manager_id"`
@@ -41,19 +44,36 @@ type AccessPolicyModel struct {
 }
 
 func (k storageTableDataSource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.StorageTableName,
 		},
 
-		"storage_account_name": {
+		"storage_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.StorageAccountName,
+			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 	}
+
+	if !features.FivePointOh() {
+		s["storage_account_id"].Required = false
+		s["storage_account_id"].Optional = true
+		s["storage_account_id"].Computed = true
+		s["storage_account_id"].ConflictsWith = []string{"storage_account_name"}
+
+		s["storage_account_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"storage_account_id"},
+			Deprecated:    "`storage_account_name` has been deprecated in favour of `storage_account_id` and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return s
 }
 
 func (k storageTableDataSource) Attributes() map[string]*pluginsdk.Schema {
@@ -123,12 +143,42 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 
 			storageClient := metadata.Client.Storage
 
-			account, err := storageClient.FindAccount(ctx, metadata.Client.Account.SubscriptionId, model.StorageAccountName)
-			if err != nil {
-				return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", model.StorageAccountName, model.Name, err)
+			var accountName string
+			var account *client.AccountDetails
+			var err error
+
+			if !features.FivePointOh() {
+				if model.StorageAccountId != "" {
+					storageAccountId, err := commonids.ParseStorageAccountID(model.StorageAccountId)
+					if err != nil {
+						return fmt.Errorf("parsing storage_account_id: %v", err)
+					}
+					accountName = storageAccountId.StorageAccountName
+					account, err = storageClient.GetAccount(ctx, *storageAccountId)
+					if err != nil {
+						return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", accountName, model.Name, err)
+					}
+				} else {
+					accountName = model.StorageAccountName
+					account, err = storageClient.FindAccount(ctx, metadata.Client.Account.SubscriptionId, accountName)
+					if err != nil {
+						return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", accountName, model.Name, err)
+					}
+				}
+			} else {
+				storageAccountId, err := commonids.ParseStorageAccountID(model.StorageAccountId)
+				if err != nil {
+					return fmt.Errorf("parsing storage_account_id: %v", err)
+				}
+				accountName = storageAccountId.StorageAccountName
+				account, err = storageClient.GetAccount(ctx, *storageAccountId)
+				if err != nil {
+					return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", accountName, model.Name, err)
+				}
 			}
+
 			if account == nil {
-				return fmt.Errorf("locating Storage Account %q for Table %q", model.StorageAccountName, model.Name)
+				return fmt.Errorf("locating Storage Account %q for Table %q", accountName, model.Name)
 			}
 
 			// Determine the table endpoint, so we can build a data plane ID
@@ -159,7 +209,13 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 
 			resourceManagerId := parse.NewStorageTableResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", model.Name)
 			model.ResourceManagerId = resourceManagerId.ID()
-			metadata.SetID(id)
+
+			if !features.FivePointOh() {
+				metadata.SetID(id)
+				model.StorageAccountName = accountName
+			} else {
+				metadata.SetID(resourceManagerId)
+			}
 
 			return metadata.Encode(&model)
 		},

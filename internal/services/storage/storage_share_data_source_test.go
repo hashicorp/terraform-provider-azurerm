@@ -5,6 +5,7 @@ package storage_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -13,26 +14,6 @@ import (
 )
 
 type dataSourceStorageShare struct{}
-
-func TestAccDataSourceStorageShare_basicDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("skipping as not valid in 5.0")
-	}
-
-	data := acceptance.BuildTestData(t, "data.azurerm_storage_share", "test")
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: dataSourceStorageShare{}.basicDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("quota").HasValue("120"),
-				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
-				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
-				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
-			),
-		},
-	})
-}
 
 func TestAccStorageShareDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_share", "test")
@@ -45,13 +26,15 @@ func TestAccStorageShareDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
 				check.That(data.ResourceName).Key("metadata.hello").HasValue("world"),
 				check.That(data.ResourceName).Key("metadata.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("rbac_scope_id").MatchesRegex(regexp.MustCompile(`/fileshares/`)),
 			),
 		},
 	})
 }
 
-func (d dataSourceStorageShare) basicDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (d dataSourceStorageShare) basic(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -94,10 +77,8 @@ data "azurerm_storage_share" "test" {
   name                 = azurerm_storage_share.test.name
   storage_account_name = azurerm_storage_share.test.storage_account_name
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
-}
-
-func (d dataSourceStorageShare) basic(data acceptance.TestData) string {
+	`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+	}
 	return fmt.Sprintf(`
 %s
 

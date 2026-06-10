@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -154,7 +155,8 @@ func (r KustoScriptResource) Exists(ctx context.Context, client *clients.Client,
 }
 
 func (r KustoScriptResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -221,7 +223,75 @@ data "azurerm_storage_account_blob_container_sas" "test" {
     list   = true
   }
 }
-`, data.RandomIntOfLength(12), data.Locations.Primary)
+		`, data.RandomIntOfLength(12), data.Locations.Primary)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-kusto-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+}
+
+resource "azurerm_kusto_database" "test" {
+  name                = "acctestkd-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_name        = azurerm_kusto_cluster.test.name
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "setup-files"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                 = "script.txt"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source_content       = ".create table MyTable (Level:string, Timestamp:datetime, UserId:string, TraceId:string, Message:string, ProcessId:int32)"
+}
+
+data "azurerm_storage_account_blob_container_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  container_name    = azurerm_storage_container.test.name
+  https_only        = true
+
+  start  = "2022-03-21"
+  expiry = "2027-03-21"
+
+  permissions {
+    read   = true
+    add    = false
+    create = false
+    write  = true
+    delete = false
+    list   = true
+  }
+}
+	`, data.RandomIntOfLength(12), data.Locations.Primary)
 }
 
 func (r KustoScriptResource) basic(data acceptance.TestData) string {

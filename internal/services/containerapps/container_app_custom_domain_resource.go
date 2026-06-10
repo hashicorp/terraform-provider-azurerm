@@ -149,10 +149,14 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 			ingress := *config.Ingress
 
 			customDomains := make([]containerapps.CustomDomain, 0)
+			exists := false
 			if existingCustomDomains := ingress.CustomDomains; existingCustomDomains != nil {
 				for _, v := range *existingCustomDomains {
 					if strings.EqualFold(v.Name, model.Name) {
-						return metadata.ResourceRequiresImport(ContainerAppCustomDomainResource{}.ResourceType(), id)
+						exists = true
+						if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+							return metadata.ResourceRequiresImport(ContainerAppCustomDomainResource{}.ResourceType(), id)
+						}
 					}
 				}
 
@@ -169,11 +173,13 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 				customDomain.BindingType = pointer.To(containerapps.BindingType(model.BindingType))
 			}
 
-			customDomains = append(customDomains, customDomain)
+			if !exists {
+				customDomains = append(customDomains, customDomain)
+			}
 
 			containerApp.Model.Properties.Configuration.Ingress.CustomDomains = pointer.To(customDomains)
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *containerAppId, *containerApp.Model); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, *containerAppId, *containerApp.Model, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

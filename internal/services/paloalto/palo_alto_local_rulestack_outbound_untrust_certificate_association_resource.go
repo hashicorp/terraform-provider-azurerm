@@ -92,15 +92,15 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Create() sd
 
 			rulestack.Properties = props
 
-			if err = client.LocalRulestacksCreateOrUpdateThenPoll(ctx, rulestackId, rulestack); err != nil {
+			if err := client.LocalRulestacksCreateOrUpdateCallbackThenPoll(ctx, rulestackId, rulestack, metadata.SetIDCallback(certificateId)); err != nil {
 				return fmt.Errorf("creating Outbound UnTrust association for %s: %+v", rulestackId, err)
 			}
 
-			if err = client.LocalRulestackscommitThenPoll(ctx, rulestackId); err != nil {
+			metadata.SetID(certificateId)
+
+			if err := client.LocalRulestackscommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing rulestack configuration for Outbound UnTrust Certificate for %s: %+v", rulestackId, err)
 			}
-
-			metadata.SetID(certificateId)
 
 			return nil
 		},

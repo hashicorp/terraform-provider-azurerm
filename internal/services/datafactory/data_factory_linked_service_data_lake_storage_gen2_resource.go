@@ -80,6 +80,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *pluginsdk.Resource {
 			"service_principal_key": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
+				Sensitive:     true,
 				ValidateFunc:  validation.StringIsNotEmpty,
 				RequiredWith:  []string{"service_principal_id", "tenant"},
 				ConflictsWith: []string{"storage_account_key", "use_managed_identity"},
@@ -89,6 +90,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *pluginsdk.Resource {
 			"storage_account_key": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
+				Sensitive:     true,
 				ConflictsWith: []string{"service_principal_id", "service_principal_key", "use_managed_identity", "tenant"},
 				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "tenant", "storage_account_key", "use_managed_identity"},
 			},
@@ -155,15 +157,17 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsd
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Data Lake Storage Gen2 %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Data Factory Data Lake Storage Gen2 %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_data_lake_storage_gen2", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_data_lake_storage_gen2", id.ID())
+			}
 		}
 	}
 

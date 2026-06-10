@@ -12,14 +12,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
@@ -35,7 +35,7 @@ func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.NestedItemName,
+				ValidateFunc: keyvault.ValidateNestedItemName,
 			},
 
 			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
@@ -292,7 +292,7 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("failure reading Key Vault Certificate ID for %q", name)
 	}
 
-	id, err := parse.ParseNestedItemID(*cert.ID)
+	id, err := keyvault.ParseNestedItemID(*cert.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 	if err != nil {
 		return err
 	}
@@ -313,7 +313,7 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("resource_manager_versionless_id", parse.NewCertificateVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name).ID())
 
 	if cert.Sid != nil {
-		secretId, err := parse.ParseNestedItemID(*cert.Sid)
+		secretId, err := keyvault.ParseNestedItemID(*cert.Sid, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 		if err != nil {
 			return err
 		}
@@ -370,7 +370,7 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 	return tags.FlattenAndSet(d, cert.Tags)
 }
 
-func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePolicy) []interface{} {
+func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

@@ -8,3 +8,7 @@ const defaultApiVersion = "2017-12-01"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/serversecurityalertpolicies/2017-12-01"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}
