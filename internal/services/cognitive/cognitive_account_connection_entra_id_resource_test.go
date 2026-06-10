@@ -267,7 +267,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                       = "acctest-cognitiveaccount-%[1]d"
+  name                       = "acctest-cogacc-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -308,7 +308,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "openai" {
-  name                = "acctest-cognitiveaccount-openai-%[2]d"
+  name                = "acctest-cogacc-openai-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "OpenAI"
@@ -326,9 +326,9 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
   target               = azurerm_cognitive_account.openai.endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai.id
-    location   = azurerm_cognitive_account.openai.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cognitive_account.openai.id
+    Location   = azurerm_cognitive_account.openai.location
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -379,7 +379,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "aiservices" {
-  name                       = "acctest-cognitiveaccount2-%[2]d"
+  name                       = "acctest-cogacc-2-%[2]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -399,9 +399,9 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
   target               = azurerm_cognitive_account.aiservices.endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.aiservices.id
-    location   = azurerm_cognitive_account.aiservices.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cognitive_account.aiservices.id
+    Location   = azurerm_cognitive_account.aiservices.location
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -430,8 +430,8 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
   target               = azurerm_storage_account.test.primary_blob_endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_storage_account.test.id
+    ApiType    = "Azure"
+    ResourceId = azurerm_storage_account.test.id
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)
@@ -459,9 +459,9 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
   target               = "https://${azurerm_search_service.test.name}.search.windows.net/"
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_search_service.test.id
-    type       = "azure_ai_search"
+    ApiType    = "Azure"
+    ResourceId = azurerm_search_service.test.id
+    Type       = "azure_ai_search"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -502,9 +502,9 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
   target               = azurerm_cosmosdb_account.test.endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cosmosdb_account.test.id
-    location   = azurerm_cosmosdb_account.test.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cosmosdb_account.test.id
+    Location   = azurerm_cosmosdb_account.test.location
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)
@@ -576,7 +576,7 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
   target               = "https://cognitive-service.example.com/"
 
   metadata = {
-    kind = "AIServices"
+    Kind = "AIServices"
   }
 }
 `, r.template(data), data.RandomInteger)

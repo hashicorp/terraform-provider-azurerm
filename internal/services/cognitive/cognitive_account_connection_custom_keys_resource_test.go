@@ -142,7 +142,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                       = "acctest-cognitiveaccount-%[1]d"
+  name                       = "acctest-cogacc-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -166,7 +166,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "openai" {
-  name                = "acctest-cognitiveaccount-openai-%[2]d"
+  name                = "acctest-cogacc-openai-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "OpenAI"
@@ -200,7 +200,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "openai" {
-  name                = "acctest-cognitiveaccount-openai-%[2]d"
+  name                = "acctest-cogacc-openai-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "OpenAI"
@@ -218,9 +218,9 @@ resource "azurerm_cognitive_account_connection_custom_keys" "test" {
   target               = azurerm_cognitive_account.openai.endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai.id
-    location   = azurerm_cognitive_account.openai.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cognitive_account.openai.id
+    Location   = azurerm_cognitive_account.openai.location
   }
 
   custom_keys = {
@@ -254,7 +254,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "openai2" {
-  name                = "acctest-cognitiveaccount-openai2-%[2]d"
+  name                = "acctest-cogacc-openai2-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "OpenAI"
@@ -272,9 +272,9 @@ resource "azurerm_cognitive_account_connection_custom_keys" "test" {
   target               = azurerm_cognitive_account.openai2.endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai2.id
-    location   = azurerm_cognitive_account.openai2.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cognitive_account.openai2.id
+    Location   = azurerm_cognitive_account.openai2.location
   }
 
   custom_keys = {

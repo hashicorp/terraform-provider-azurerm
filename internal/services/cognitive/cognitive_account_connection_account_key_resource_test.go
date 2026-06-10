@@ -99,7 +99,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                       = "acctest-cognitiveaccount-%[1]d"
+  name                       = "acctest-cogacc-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -138,9 +138,9 @@ resource "azurerm_cognitive_account_connection_account_key" "test" {
   account_key          = azurerm_storage_account.test.primary_access_key
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_storage_account.test.id
-    location   = azurerm_storage_account.test.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_storage_account.test.id
+    Location   = azurerm_storage_account.test.location
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)
@@ -158,9 +158,9 @@ resource "azurerm_cognitive_account_connection_account_key" "import" {
   account_key          = azurerm_cognitive_account_connection_account_key.test.account_key
 
   metadata = {
-    apiType    = azurerm_cognitive_account_connection_account_key.test.metadata.apiType
-    resourceId = azurerm_cognitive_account_connection_account_key.test.metadata.resourceId
-    location   = azurerm_cognitive_account_connection_account_key.test.metadata.location
+    ApiType    = azurerm_cognitive_account_connection_account_key.test.metadata.ApiType
+    ResourceId = azurerm_cognitive_account_connection_account_key.test.metadata.ResourceId
+    Location   = azurerm_cognitive_account_connection_account_key.test.metadata.Location
   }
 }
 `, r.basic(data))
@@ -190,9 +190,9 @@ resource "azurerm_cognitive_account_connection_account_key" "test" {
   account_key          = azurerm_storage_account.test2.primary_access_key
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_storage_account.test2.id
-    location   = azurerm_storage_account.test2.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_storage_account.test2.id
+    Location   = azurerm_storage_account.test2.location
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)

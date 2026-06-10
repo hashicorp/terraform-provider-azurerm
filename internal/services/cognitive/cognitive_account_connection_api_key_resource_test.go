@@ -352,7 +352,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                       = "acctest-cognitiveaccount-%[1]d"
+  name                       = "acctest-cogacc-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -394,7 +394,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "openai" {
-  name                = "acctest-cognitiveaccount-openai-%[2]d"
+  name                = "acctest-cogacc-openai-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "OpenAI"
@@ -413,9 +413,9 @@ resource "azurerm_cognitive_account_connection_api_key" "test" {
   api_key              = azurerm_cognitive_account.openai.primary_access_key
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai.id
-    location   = azurerm_cognitive_account.openai.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cognitive_account.openai.id
+    Location   = azurerm_cognitive_account.openai.location
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -451,7 +451,7 @@ resource "azurerm_cognitive_account_connection_api_key" "test" {
   api_key              = "test-api-key-2"
 
   metadata = {
-    type = "updated"
+    Type = "updated"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -466,7 +466,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cognitive_account" "aiservices" {
-  name                       = "acctest-cognitiveaccount2-%[2]d"
+  name                       = "acctest-cogacc-2-%[2]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   kind                       = "AIServices"
@@ -487,9 +487,9 @@ resource "azurerm_cognitive_account_connection_api_key" "test" {
   api_key              = azurerm_cognitive_account.aiservices.primary_access_key
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.aiservices.id
-    location   = azurerm_cognitive_account.aiservices.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cognitive_account.aiservices.id
+    Location   = azurerm_cognitive_account.aiservices.location
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -518,8 +518,8 @@ resource "azurerm_cognitive_account_connection_api_key" "test" {
   api_key              = azurerm_application_insights.test.connection_string
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_application_insights.test.id
+    ApiType    = "Azure"
+    ResourceId = azurerm_application_insights.test.id
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -548,9 +548,9 @@ resource "azurerm_cognitive_account_connection_api_key" "test" {
   api_key              = azurerm_search_service.test.primary_key
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_search_service.test.id
-    location   = azurerm_search_service.test.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_search_service.test.id
+    Location   = azurerm_search_service.test.location
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -592,9 +592,9 @@ resource "azurerm_cognitive_account_connection_api_key" "test" {
   api_key              = "test-api-key"
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = "/subscriptions/%[3]s/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.Bing/accounts/acctestbing%[2]d"
-    type       = "bing_custom_search"
+    ApiType    = "Azure"
+    ResourceId = "/subscriptions/%[3]s/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.Bing/accounts/acctestbing%[2]d"
+    Type       = "bing_custom_search"
   }
 }
 `, r.template(data), data.RandomInteger, data.Subscriptions.Primary)
@@ -724,7 +724,7 @@ resource "azurerm_cognitive_account_connection_api_key" "test" {
   api_key              = "test-api-key"
 
   metadata = {
-    location = "%[3]s"
+    Location = "%[3]s"
   }
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
@@ -746,7 +746,7 @@ resource "azurerm_cognitive_account_connection_api_key" "test" {
   api_key              = "test-api-key"
 
   metadata = {
-    kind = "AIServices"
+    Kind = "AIServices"
   }
 }
 `, r.template(data), data.RandomInteger)

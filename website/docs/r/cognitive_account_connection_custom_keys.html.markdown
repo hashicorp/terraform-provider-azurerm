@@ -10,7 +10,7 @@ description: |-
 
 Manages a Cognitive Services (Microsoft Foundry) Account Connection with Custom Keys authentication.
 
--> **Note:** In the new Foundry experience, Account Connections are shown as tools under the Build blade.
+-> **Note:** In the new Foundry portal experience, "Account Connections" are shown as "Tools" under the "Build" menu.
 
 ## Example Usage
 
@@ -53,9 +53,9 @@ resource "azurerm_cognitive_account_connection_custom_keys" "example" {
   target               = azurerm_cognitive_account.openai.endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai.id
-    location   = azurerm_cognitive_account.openai.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cognitive_account.openai.id
+    Location   = azurerm_cognitive_account.openai.location
   }
 
   custom_keys = {
@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A mapping of metadata key-value pairs for the connection.
 
--> **Note:** To determine the `metadata` shape for a connection category, create an equivalent connection in the Azure Portal, retrieve its resource ID, then inspect it with `az rest --method get --url "{connection_resource_id}?api-version=2026-03-01"`.
+-> **Note:** To determine the `metadata` shape for a connection category, create an equivalent connection in the Foundry portal, retrieve its resource ID, then inspect it with `az rest --method get --url "{connection_resource_id}?api-version=2026-03-01"`.
 
 ## Attributes Reference
 

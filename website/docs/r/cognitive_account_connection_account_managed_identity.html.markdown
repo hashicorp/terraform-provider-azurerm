@@ -10,7 +10,7 @@ description: |-
 
 Manages a Cognitive Services (Microsoft Foundry) Account Connection with Account Managed Identity authentication.
 
--> **Note:** In the new Foundry experience, Account Connections are shown as tools under the Build blade.
+-> **Note:** In the new Foundry portal experience, "Account Connections" are shown as "Tools" under the "Build" menu.
 
 ## Example Usage
 
@@ -51,9 +51,9 @@ resource "azurerm_cognitive_account_connection_account_managed_identity" "exampl
   target               = azurerm_key_vault.example.vault_uri
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_key_vault.example.id
-    location   = azurerm_key_vault.example.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_key_vault.example.id
+    Location   = azurerm_key_vault.example.location
   }
 }
 ```
@@ -72,9 +72,11 @@ The following arguments are supported:
 
 * `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
 
-~> **Note:** The `metadata` map must include `resourceId` when `category` is `AIServices`, `AzureKeyVault`, or `AzureStorageAccount`, and must include `apiType` when `category` is `AzureOpenAI`. To determine the full `metadata` shape for a connection category, create an equivalent connection in the Azure Portal, retrieve its resource ID, then inspect it with `az rest --method get --url "{connection_resource_id}?api-version=2026-03-01"`.
+~> **Note:** The `metadata` map must include `ResourceId` when `category` is `AIServices`, `AzureKeyVault`, or `AzureStorageAccount`, and must include `ApiType` when `category` is `AzureOpenAI`. To check any additional metadata returned by Azure, create an equivalent connection in the Foundry portal and inspect it with `az rest --method get --url "{connection_resource_id}?api-version=2026-03-01"`.
 
 * `target` - (Required) The target endpoint or resource for the connection.
+
+~> **Note:** `target` must be the Key Vault URI when `category` is `AzureKeyVault`.
 
 ~> **Note:** `target` must be an absolute HTTPS URL when `category` is `AzureStorageAccount`.
 
