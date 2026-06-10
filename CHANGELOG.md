@@ -17,6 +17,7 @@ FEATURES:
 * **New List Resource:** `azurerm_web_pubsub_custom_domain` [GH-32186]
 
 BUG FIXES:
+* `azurerm_recovery_services_vault_resource_guard_association` - normalize `resource_guard_id` before persisting to state to workaround an API issue [GH-32554]
 
 ## 4.76.0 (June 04, 2026)
 
