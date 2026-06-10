@@ -790,7 +790,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 				featuresMap.EnhancedValidation.ResourceProviders = v.(bool)
 			}
 			if v, ok := evRaw["preflight_enabled"]; ok {
-				featuresMap.EnhancedValidation.PreflightEnabled = v.(bool)
+				featuresMap.EnhancedValidation.PreflightEnabled = v.(bool) && features.FivePointOh() // If we're not in 5.0 mode, ignore setting this to true.
 			}
 		}
 	}
