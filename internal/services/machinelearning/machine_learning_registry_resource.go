@@ -31,11 +31,18 @@ type ReplicationRegion struct {
 	SystemCreatedAcrId              string `tfschema:"system_created_container_registry_id"`
 }
 
+type PrimaryRegion struct {
+	HnsEnabled                      bool   `tfschema:"hns_enabled"`
+	SystemCreatedStorageAccountType string `tfschema:"system_created_storage_account_type"`
+	SystemCreatedStorageAccountId   string `tfschema:"system_created_storage_account_id"`
+	SystemCreatedAcrId              string `tfschema:"system_created_container_registry_id"`
+}
+
 type MachineLearningRegistryModel struct {
 	Name                           string                                     `tfschema:"name"`
 	ResourceGroupName              string                                     `tfschema:"resource_group_name"`
 	PublicNetworkAccessEnabled     bool                                       `tfschema:"public_network_access_enabled"`
-	MainRegion                     []ReplicationRegion                        `tfschema:"primary_region"`
+	MainRegion                     []PrimaryRegion                            `tfschema:"primary_region"`
 	ReplicationRegion              []ReplicationRegion                        `tfschema:"replication_region"`
 	Location                       string                                     `tfschema:"location"`
 	Identity                       []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
@@ -72,7 +79,7 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"location": commonschema.Location(),
+		"location": commonschema.Location(), // Updated to computed?
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
@@ -87,6 +94,7 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 		"primary_region": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: regionSchema(false),
@@ -216,16 +224,16 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 
 			regions := make([]registrymanagement.RegistryRegionArmDetails, 0)
 
-			primaryRegion := registrymanagement.RegistryRegionArmDetails{
-				Location: pointer.To(model.Location),
-			}
+			primaryRegion := expandRegistryRegionDetail(ReplicationRegion{
+				Location:                        model.Location,
+				SystemCreatedStorageAccountType: "Standard_LRS",
+			})
 
 			if len(model.MainRegion) > 0 {
-				primaryRegion = expandRegistryRegionDetail(model.MainRegion[0])
-				primaryRegion.Location = pointer.To(model.Location)
+				primaryRegion = expandPrimaryRegistryRegionDetail(model.MainRegion[0], model.Location)
 			}
+			primaryRegion.Location = pointer.To(model.Location)
 
-			model.MainRegion[0].Location = model.Location
 			regions = append(regions, primaryRegion)
 
 			for _, region := range model.ReplicationRegion {
@@ -234,8 +242,7 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 
 			param.Properties.RegionDetails = &regions
 
-			response, err := client.RegistriesCreateOrUpdate(ctx, id, param)
-			if err != nil && (response.HttpResponse == nil || response.HttpResponse.StatusCode != 202) {
+			if err := client.RegistriesCreateOrUpdateThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -293,7 +300,7 @@ func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
 			regions := flattenRegistryRegionDetails(prop.RegionDetails)
 			for i, region := range regions {
 				if i == 0 {
-					model.MainRegion = []ReplicationRegion{region}
+					model.MainRegion = []PrimaryRegion{flattenPrimaryRegistryRegionDetail(region)}
 					continue
 				}
 				model.ReplicationRegion = append(model.ReplicationRegion, region)
@@ -356,9 +363,15 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChanges("primary_region", "replication_region") {
 				regions := make([]registrymanagement.RegistryRegionArmDetails, 0)
 
+				primaryRegion := expandRegistryRegionDetail(ReplicationRegion{
+					Location:                        model.Location,
+					SystemCreatedStorageAccountType: "Standard_LRS",
+				})
 				if len(model.MainRegion) > 0 {
-					regions = append(regions, expandRegistryRegionDetail(model.MainRegion[0]))
+					primaryRegion = expandPrimaryRegistryRegionDetail(model.MainRegion[0], model.Location)
 				}
+				primaryRegion.Location = pointer.To(model.Location)
+				regions = append(regions, primaryRegion)
 
 				for _, region := range model.ReplicationRegion {
 					regions = append(regions, expandRegistryRegionDetail(region))
@@ -367,9 +380,8 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 				param.Properties.RegionDetails = &regions
 			}
 
-			response, err := client.RegistriesCreateOrUpdate(ctx, *id, param)
-			if err != nil && (response.HttpResponse == nil || response.HttpResponse.StatusCode != 202) {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			if err := client.RegistriesCreateOrUpdateThenPoll(ctx, *id, param); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -419,6 +431,14 @@ func expandRegistryRegionDetail(input ReplicationRegion) registrymanagement.Regi
 	}
 }
 
+func expandPrimaryRegistryRegionDetail(input PrimaryRegion, regionLocation string) registrymanagement.RegistryRegionArmDetails {
+	return expandRegistryRegionDetail(ReplicationRegion{
+		Location:                        regionLocation,
+		HnsEnabled:                      input.HnsEnabled,
+		SystemCreatedStorageAccountType: input.SystemCreatedStorageAccountType,
+	})
+}
+
 func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmDetails) []ReplicationRegion {
 	result := make([]ReplicationRegion, 0)
 	if input == nil || len(*input) == 0 {
@@ -451,6 +471,15 @@ func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmD
 		result = append(result, region)
 	}
 	return result
+}
+
+func flattenPrimaryRegistryRegionDetail(input ReplicationRegion) PrimaryRegion {
+	return PrimaryRegion{
+		HnsEnabled:                      input.HnsEnabled,
+		SystemCreatedStorageAccountType: input.SystemCreatedStorageAccountType,
+		SystemCreatedStorageAccountId:   input.SystemCreatedStorageAccountId,
+		SystemCreatedAcrId:              input.SystemCreatedAcrId,
+	}
 }
 
 type PublicNetworkAccessState string

@@ -26,6 +26,7 @@ func (c RegistryManagementClient) RegistriesCreateOrUpdate(ctx context.Context, 
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
+			http.StatusAccepted,
 			http.StatusCreated,
 			http.StatusOK,
 		},
@@ -62,9 +63,20 @@ func (c RegistryManagementClient) RegistriesCreateOrUpdate(ctx context.Context, 
 
 // RegistriesCreateOrUpdateThenPoll performs RegistriesCreateOrUpdate then polls until it's completed
 func (c RegistryManagementClient) RegistriesCreateOrUpdateThenPoll(ctx context.Context, id RegistryId, input RegistryTrackedResource) error {
+	return c.RegistriesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RegistriesCreateOrUpdateCallbackThenPoll performs RegistriesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c RegistryManagementClient) RegistriesCreateOrUpdateCallbackThenPoll(ctx context.Context, id RegistryId, input RegistryTrackedResource, callback func() error) error {
 	result, err := c.RegistriesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RegistriesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

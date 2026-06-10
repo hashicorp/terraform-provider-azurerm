@@ -62,9 +62,20 @@ func (c RegistryManagementClient) RegistriesRemoveRegions(ctx context.Context, i
 
 // RegistriesRemoveRegionsThenPoll performs RegistriesRemoveRegions then polls until it's completed
 func (c RegistryManagementClient) RegistriesRemoveRegionsThenPoll(ctx context.Context, id RegistryId, input RegistryTrackedResource) error {
+	return c.RegistriesRemoveRegionsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RegistriesRemoveRegionsCallbackThenPoll performs RegistriesRemoveRegions, runs the optional callback function, then polls until it's completed
+func (c RegistryManagementClient) RegistriesRemoveRegionsCallbackThenPoll(ctx context.Context, id RegistryId, input RegistryTrackedResource, callback func() error) error {
 	result, err := c.RegistriesRemoveRegions(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RegistriesRemoveRegions: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
