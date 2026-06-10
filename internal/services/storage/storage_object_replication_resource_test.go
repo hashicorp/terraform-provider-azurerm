@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -180,7 +181,8 @@ func (r StorageObjectReplicationResource) Exists(ctx context.Context, client *cl
 }
 
 func (r StorageObjectReplicationResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -242,7 +244,71 @@ resource "azurerm_storage_container" "dst_second" {
   storage_account_name  = azurerm_storage_account.dst.name
   container_access_type = "private"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "src" {
+  name     = "acctest-storage-src-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "src" {
+  name                     = "stracctsrc%[3]s"
+  resource_group_name      = azurerm_resource_group.src.name
+  location                 = azurerm_resource_group.src.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  blob_properties {
+    versioning_enabled  = true
+    change_feed_enabled = true
+  }
+}
+
+resource "azurerm_storage_container" "src" {
+  name                  = "strcsrc%[3]s"
+  storage_account_id    = azurerm_storage_account.src.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "src_second" {
+  name                  = "strcsrcsecond%[3]s"
+  storage_account_id    = azurerm_storage_account.src.id
+  container_access_type = "private"
+}
+
+resource "azurerm_resource_group" "dst" {
+  name     = "acctest-storage-alt-%[1]d"
+  location = "%[4]s"
+}
+
+resource "azurerm_storage_account" "dst" {
+  name                     = "stracctdst%[3]s"
+  resource_group_name      = azurerm_resource_group.dst.name
+  location                 = azurerm_resource_group.dst.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  blob_properties {
+    versioning_enabled  = true
+    change_feed_enabled = true
+  }
+}
+
+resource "azurerm_storage_container" "dst" {
+  name                  = "strcdst%[3]s"
+  storage_account_id    = azurerm_storage_account.dst.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "dst_second" {
+  name                  = "strcdstsecond%[3]s"
+  storage_account_id    = azurerm_storage_account.dst.id
+  container_access_type = "private"
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
 }
 
 func (r StorageObjectReplicationResource) basic(data acceptance.TestData) string {
@@ -332,7 +398,8 @@ resource "azurerm_storage_object_replication" "test" {
 }
 
 func (r StorageObjectReplicationResource) crossSubscription(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -412,11 +479,94 @@ resource "azurerm_storage_object_replication" "test" {
     destination_container_name = azurerm_storage_container.dst.name
   }
 }
-`, data.Subscriptions.Secondary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
+		`, data.Subscriptions.Secondary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azurerm-alt" {
+  subscription_id = "%[1]s"
+  features {}
+}
+
+resource "azurerm_resource_group" "src" {
+  name     = "acctest-storage-src-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_storage_account" "src" {
+  name                     = "stracctsrc%[4]s"
+  resource_group_name      = azurerm_resource_group.src.name
+  location                 = azurerm_resource_group.src.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  blob_properties {
+    versioning_enabled  = true
+    change_feed_enabled = true
+  }
+}
+
+resource "azurerm_storage_container" "src" {
+  name                  = "strcsrc%[4]s"
+  storage_account_id    = azurerm_storage_account.src.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "src_second" {
+  name                  = "strcsrcsecond%[4]s"
+  storage_account_id    = azurerm_storage_account.src.id
+  container_access_type = "private"
+}
+
+resource "azurerm_resource_group" "dst" {
+  provider = azurerm-alt
+  name     = "acctest-storage-dst-%[2]d"
+  location = "%[5]s"
+}
+
+resource "azurerm_storage_account" "dst" {
+  provider                 = azurerm-alt
+  name                     = "stracctdst%[4]s"
+  resource_group_name      = azurerm_resource_group.dst.name
+  location                 = azurerm_resource_group.dst.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  blob_properties {
+    versioning_enabled  = true
+    change_feed_enabled = true
+  }
+}
+
+resource "azurerm_storage_container" "dst" {
+  provider              = azurerm-alt
+  name                  = "strcdst%[4]s"
+  storage_account_id    = azurerm_storage_account.dst.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "dst_second" {
+  provider              = azurerm-alt
+  name                  = "strcdstsecond%[4]s"
+  storage_account_id    = azurerm_storage_account.dst.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_object_replication" "test" {
+  source_storage_account_id      = azurerm_storage_account.src.id
+  destination_storage_account_id = azurerm_storage_account.dst.id
+  rules {
+    source_container_name      = azurerm_storage_container.src.name
+    destination_container_name = azurerm_storage_container.dst.name
+  }
+}
+	`, data.Subscriptions.Secondary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
 }
 
 func (r StorageObjectReplicationResource) crossTenantDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -489,5 +639,80 @@ resource "azurerm_storage_object_replication" "test" {
     destination_container_name = azurerm_storage_container.dst.name
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "src" {
+  name     = "acctest-storage-src-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "src" {
+  name                             = "stracctsrc%[3]s"
+  resource_group_name              = azurerm_resource_group.src.name
+  location                         = azurerm_resource_group.src.location
+  account_tier                     = "Standard"
+  account_replication_type         = "LRS"
+  cross_tenant_replication_enabled = false
+  blob_properties {
+    versioning_enabled  = true
+    change_feed_enabled = true
+  }
+}
+
+resource "azurerm_storage_container" "src" {
+  name                  = "strcsrc%[3]s"
+  storage_account_id    = azurerm_storage_account.src.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "src_second" {
+  name                  = "strcsrcsecond%[3]s"
+  storage_account_id    = azurerm_storage_account.src.id
+  container_access_type = "private"
+}
+
+resource "azurerm_resource_group" "dst" {
+  name     = "acctest-storage-alt-%[1]d"
+  location = "%[4]s"
+}
+
+resource "azurerm_storage_account" "dst" {
+  name                             = "stracctdst%[3]s"
+  resource_group_name              = azurerm_resource_group.dst.name
+  location                         = azurerm_resource_group.dst.location
+  account_tier                     = "Standard"
+  account_replication_type         = "LRS"
+  cross_tenant_replication_enabled = false
+  blob_properties {
+    versioning_enabled  = true
+    change_feed_enabled = true
+  }
+}
+
+resource "azurerm_storage_container" "dst" {
+  name                  = "strcdst%[3]s"
+  storage_account_id    = azurerm_storage_account.dst.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "dst_second" {
+  name                  = "strcdstsecond%[3]s"
+  storage_account_id    = azurerm_storage_account.dst.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_object_replication" "test" {
+  source_storage_account_id      = azurerm_storage_account.src.id
+  destination_storage_account_id = azurerm_storage_account.dst.id
+  rules {
+    source_container_name      = azurerm_storage_container.src.name
+    destination_container_name = azurerm_storage_container.dst.name
+  }
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
 }
