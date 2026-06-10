@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -435,6 +437,73 @@ func TestAccKeyVaultKey_RotationPolicyUnauthorized(t *testing.T) {
 			Config:      r.rotationPolicyUnauthorized(data),
 			ExpectError: regexp.MustCompile("current client lacks permissions to create Key Rotation Policy for Key"),
 		},
+	})
+}
+
+func TestAccKeyVaultKey_releasePolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.releasePolicy(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size"),
+		{
+			Config: r.releasePolicyUpdated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size"),
+	})
+}
+
+func TestAccKeyVaultKey_releasePolicyCustomizeDiff(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config:      r.releasePolicyInvalid(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("when `release_policy` is set, `key_type` must be `RSA-HSM` or `EC-HSM`"),
+		},
+		{
+			Config: r.releasePolicyUpdated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size"),
+		{
+			Config: r.releasePolicyUpdated(data, false),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
+		data.ImportStep("key_size"),
+		{
+			Config: r.releasePolicyUpdated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size"),
+		{
+			Config: r.releasePolicy(data, true),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
+		data.ImportStep("key_size"),
 	})
 }
 
@@ -1203,4 +1272,141 @@ resource "azurerm_key_vault_key" "test" {
   }
 }
 `, r.template(data, "standard"), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) releasePolicy(data acceptance.TestData, immutable bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC-HSM"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  release_policy {
+    immutable = %t
+    json      = <<-EOT
+      {
+        "anyOf": [
+          {
+            "authority": "https://sharedcac.cac.attest.azure.net",
+            "allOf": [
+              {
+                "claim": "x-ms-compliance-status",
+                "equals": "azure-compliant-cvm"
+              }
+            ]
+          }
+        ],
+        "version": "0.2"
+      }
+EOT
+  }
+}
+`, r.templatePremium(data), data.RandomInteger, immutable)
+}
+
+func (r KeyVaultKeyResource) releasePolicyUpdated(data acceptance.TestData, immutable bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC-HSM"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  release_policy {
+    immutable = %t
+    json      = <<-EOT
+      {
+        "anyOf": [
+          {
+            "authority": "https://sharedcac.cac.attest.azure.net",
+            "allOf": [
+              {
+                "claim": "x-ms-compliance-status",
+                "equals": "azure-compliant-cvm"
+              },
+              {
+                "anyOf": [
+                  {
+                    "claim": "x-ms-attestation-type",
+                    "equals": "tdxvm"
+                  },
+                  {
+                    "claim": "x-ms-attestation-type",
+                    "equals": "sevsnpvm"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "version": "1.0.0"
+      }
+EOT
+  }
+}
+`, r.templatePremium(data), data.RandomInteger, immutable)
+}
+
+func (r KeyVaultKeyResource) releasePolicyInvalid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  release_policy {
+    json = <<-EOT
+      {
+        "anyOf": [
+          {
+            "authority": "https://sharedcac.cac.attest.azure.net",
+            "allOf": [
+              {
+                "claim": "x-ms-compliance-status",
+                "equals": "azure-compliant-cvm"
+              }
+            ]
+          }
+        ],
+        "version": "0.2"
+      }
+EOT
+  }
+}
+`, r.templatePremium(data), data.RandomInteger)
 }

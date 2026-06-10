@@ -49,6 +49,8 @@ More information on [how to pin the version of a Terraform Provider being used c
 
 In version 5.0, the default behaviour for Resource Provider registration has changed. The `resource_provider_registrations` property now defaults to `none` instead of `legacy`.
 
+Additionally, the `skip_provider_registration` property has been removed.
+
 ##### What this means
 
 Previously, the provider would automatically attempt to register a large set of Azure Resource Providers (~60 RPs) when initializing. This could:
@@ -74,6 +76,7 @@ provider "azurerm" {
   features {}
 }
 ```
+
 ##### How to replicate the previous behaviour
 
 If you want to maintain the v4.x behaviour and automatically register the same set of Resource Providers as before, explicitly set `resource_provider_registrations` to the `legacy` resource provider set in your provider block:
@@ -168,7 +171,7 @@ This deprecated resource has been superseded/retired and has been removed from t
 ### `azurerm_function_app`
 
 * This deprecated resource has been superseded by `azurerm_linux_function_app` and `azurerm_windows_function_app` and has been removed from the AzureRM Provider.
- 
+
 ### `azurerm_function_app_slot`
 
 * This deprecated resource has been superseded by `azurerm_linux_function_app_slot` and `azurerm_windows_function_app_slot` and has been removed from the AzureRM Provider.
@@ -306,10 +309,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_api_management`
 
-* The deprecated `hostname_configuration.developer_portal.key_vault_id` property has been removed in favour of the `hostname_configuration.developer_portal.key_vault_certificate_id` property. 
-* The deprecated `hostname_configuration.management.key_vault_id` property has been removed in favour of the `hostname_configuration.management.key_vault_certificate_id` property. 
-* The deprecated `hostname_configuration.portal.key_vault_id` property has been removed in favour of the `hostname_configuration.portal.key_vault_certificate_id` property. 
-* The deprecated `hostname_configuration.proxy.key_vault_id` property has been removed in favour of the `hostname_configuration.proxy.key_vault_certificate_id` property. 
+* The deprecated `hostname_configuration.developer_portal.key_vault_id` property has been removed in favour of the `hostname_configuration.developer_portal.key_vault_certificate_id` property.
+* The deprecated `hostname_configuration.management.key_vault_id` property has been removed in favour of the `hostname_configuration.management.key_vault_certificate_id` property.
+* The deprecated `hostname_configuration.portal.key_vault_id` property has been removed in favour of the `hostname_configuration.portal.key_vault_certificate_id` property.
+* The deprecated `hostname_configuration.proxy.key_vault_id` property has been removed in favour of the `hostname_configuration.proxy.key_vault_certificate_id` property.
 * The deprecated `hostname_configuration.scm.key_vault_id` property has been removed in favour of the `hostname_configuration.scm.key_vault_certificate_id` property.
 * The deprecated `protocols.enable_http2` property has been removed in favour of the `protocols.http2_enabled` property.
 * The deprecated `security.enable_backend_ssl30` property has been removed in favour of the `security.backend_ssl30_enabled` property.
@@ -393,6 +396,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
 
+### `azurerm_cost_management_scheduled_action`
+
+* Validation for `email_subject` has been changed to enforce a maximum length of 50 characters.
+
 ### `azurerm_container_app_environment`
 
 * The `logs_destination` property is no longer Computed and now must be set to `log-analytics` to be able to specify a value for `log_analytics_workspace_id`. It will now default to empty, meaning Streaming Only in the Azure Portal.
@@ -408,6 +415,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_data_factory_linked_service_azure_databricks`
 
 * The deprecated `msi_work_space_resource_id` property has been removed in favour of the `msi_workspace_id` property.
+
+### `azurerm_data_factory_linked_service_mysql`
+
+* The property `driver_version` now defaults to `V2`.
 
 ### `azurerm_data_factory_integration_runtime_self_hosted`
 
@@ -512,6 +523,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_linux_web_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_local_network_gateway`
+
+* The `address_space` property's type has been changed to a Set instead of a List, meaning that this is now unordered. Note that if you are referencing these nested items by index within your Terraform Configuration, this is no longer possible.
 
 ### `azurerm_log_analytics_linked_storage_account`
 
