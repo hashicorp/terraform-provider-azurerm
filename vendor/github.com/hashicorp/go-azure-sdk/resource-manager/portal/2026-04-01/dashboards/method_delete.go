@@ -1,4 +1,4 @@
-package tenantconfiguration
+package dashboards
 
 import (
 	"context"
@@ -11,30 +11,25 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CreateOperationResponse struct {
+type DeleteOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *Configuration
 }
 
-// Create ...
-func (c TenantConfigurationClient) Create(ctx context.Context, input Configuration) (result CreateOperationResponse, err error) {
+// Delete ...
+func (c DashboardsClient) Delete(ctx context.Context, id DashboardId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusCreated,
+			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPut,
-		Path:       "/providers/Microsoft.Portal/tenantConfigurations/default",
+		HttpMethod: http.MethodDelete,
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
-	}
-
-	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -45,12 +40,6 @@ func (c TenantConfigurationClient) Create(ctx context.Context, input Configurati
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
-		return
-	}
-
-	var model Configuration
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
