@@ -695,6 +695,12 @@ func resourceMsSqlVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		props.AssessmentSettings = expandSqlVirtualMachineAssessmentSettings(d.Get("assessment").([]interface{}))
 	}
 
+	// The API populates AssessmentSettings with a Schedule even when assessment is
+	// disabled so clear the settings unless assessment is enabled.
+	if props.AssessmentSettings != nil && !pointer.From(props.AssessmentSettings.Enable) {
+		props.AssessmentSettings = nil
+	}
+
 	if d.HasChange("key_vault_credential") {
 		props.KeyVaultCredentialSettings = expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{}))
 	}

@@ -351,7 +351,6 @@ func TestAccMsSqlVirtualMachine_assessmentSettings(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			// removing the `assessment` block must clear the settings on the API
 			Config: r.basicWithSystemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
