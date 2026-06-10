@@ -5,5 +5,4 @@ package desktop
 
 type DesktopPatch struct {
 	Properties *DesktopPatchProperties `json:"properties,omitempty"`
-	Tags       *map[string]string      `json:"tags,omitempty"`
 }

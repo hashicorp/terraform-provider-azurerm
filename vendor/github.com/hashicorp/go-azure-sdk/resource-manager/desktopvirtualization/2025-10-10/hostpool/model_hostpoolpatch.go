@@ -1,6 +1,7 @@
 package hostpool
 
 import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
@@ -9,6 +10,7 @@ import (
 
 type HostPoolPatch struct {
 	Id         *string                  `json:"id,omitempty"`
+	Identity   *identity.SystemAssigned `json:"identity,omitempty"`
 	Name       *string                  `json:"name,omitempty"`
 	Properties *HostPoolPatchProperties `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData   `json:"systemData,omitempty"`

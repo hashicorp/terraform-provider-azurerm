@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/workspace` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/workspace` Documentation
 
-The `workspace` SDK allows for interaction with Azure Resource Manager `desktopvirtualization` (API Version `2024-04-03`).
+The `workspace` SDK allows for interaction with Azure Resource Manager `desktopvirtualization` (API Version `2025-10-10`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/workspace"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/workspace"
 ```
 
 

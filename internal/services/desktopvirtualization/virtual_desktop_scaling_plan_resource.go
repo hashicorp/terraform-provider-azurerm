@@ -98,13 +98,13 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(scalingplan.DaysOfWeekMonday),
-									string(scalingplan.DaysOfWeekTuesday),
-									string(scalingplan.DaysOfWeekWednesday),
-									string(scalingplan.DaysOfWeekThursday),
-									string(scalingplan.DaysOfWeekFriday),
-									string(scalingplan.DaysOfWeekSaturday),
-									string(scalingplan.DaysOfWeekSunday),
+									string(scalingplan.DayOfWeekMonday),
+									string(scalingplan.DayOfWeekTuesday),
+									string(scalingplan.DayOfWeekWednesday),
+									string(scalingplan.DayOfWeekThursday),
+									string(scalingplan.DayOfWeekFriday),
+									string(scalingplan.DayOfWeekSaturday),
+									string(scalingplan.DayOfWeekSunday),
 								}, false),
 							},
 						},
@@ -398,9 +398,9 @@ func expandScalingPlanSchedule(input []interface{}) *[]scalingplan.ScalingSchedu
 		v := item.(map[string]interface{})
 		name := v["name"].(string)
 		daysOfWeekRaw := v["days_of_week"].(*pluginsdk.Set).List()
-		daysOfWeek := make([]scalingplan.DaysOfWeek, 0)
+		daysOfWeek := make([]scalingplan.DayOfWeek, 0)
 		for _, weekday := range daysOfWeekRaw {
-			daysOfWeek = append(daysOfWeek, scalingplan.DaysOfWeek(weekday.(string)))
+			daysOfWeek = append(daysOfWeek, scalingplan.DayOfWeek(weekday.(string)))
 		}
 
 		rampUpStartTime := v["ramp_up_start_time"].(string)
