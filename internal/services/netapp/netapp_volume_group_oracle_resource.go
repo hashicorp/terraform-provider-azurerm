@@ -6,6 +6,7 @@ package netapp
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -69,10 +70,13 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"application_identifier": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringLenBetween(1, 3),
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z][\w-]{2,11}$`),
+				"`application_identifier` must be between 3 and 12 characters, may contain alphanumerics, hyphens, and underscores, and must begin with a letter.",
+			),
 		},
 
 		"volume": {
@@ -382,13 +386,15 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 
 			id := volumegroups.NewVolumeGroupID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			volumeList, err := expandNetAppVolumeGroupOracleVolumes(model.Volumes)
@@ -413,9 +419,10 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			// Waiting for volume group be completely provisioned
 			if err := waitForVolumeGroupCreateOrUpdate(ctx, client, id); err != nil {
@@ -426,8 +433,6 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 			if err := authorizeVolumeReplication(ctx, volumeList, volumeClient, subscriptionId, model.ResourceGroupName, model.AccountName); err != nil {
 				return err
 			}
-
-			metadata.SetID(id)
 
 			return nil
 		},

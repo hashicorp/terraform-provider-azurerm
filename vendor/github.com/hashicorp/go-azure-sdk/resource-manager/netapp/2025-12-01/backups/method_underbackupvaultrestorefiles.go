@@ -60,9 +60,20 @@ func (c BackupsClient) UnderBackupVaultRestoreFiles(ctx context.Context, id Back
 
 // UnderBackupVaultRestoreFilesThenPoll performs UnderBackupVaultRestoreFiles then polls until it's completed
 func (c BackupsClient) UnderBackupVaultRestoreFilesThenPoll(ctx context.Context, id BackupId, input BackupRestoreFiles) error {
+	return c.UnderBackupVaultRestoreFilesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UnderBackupVaultRestoreFilesCallbackThenPoll performs UnderBackupVaultRestoreFiles, runs the optional callback function, then polls until it's completed
+func (c BackupsClient) UnderBackupVaultRestoreFilesCallbackThenPoll(ctx context.Context, id BackupId, input BackupRestoreFiles, callback func() error) error {
 	result, err := c.UnderBackupVaultRestoreFiles(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UnderBackupVaultRestoreFiles: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

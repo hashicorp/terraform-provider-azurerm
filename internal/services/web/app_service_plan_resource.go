@@ -161,15 +161,17 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	id := parse.NewAppServicePlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerFarmName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.ServerFarmName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_app_service_plan", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_app_service_plan", id.ID())
+			}
 		}
 	}
 
@@ -231,11 +233,13 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the create/update of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceAppServicePlanRead(d, meta)
 }
@@ -262,7 +266,6 @@ func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// A 404 doesn't error from the app service plan sdk so we'll add this check here to catch resource not found responses
-	// TODO This block can be removed if https://github.com/Azure/azure-sdk-for-go/issues/5407 gets addressed.
 	if utils.ResponseWasNotFound(resp.Response) {
 		log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removing from state!", id.ServerFarmName, id.ResourceGroup)
 		d.SetId("")

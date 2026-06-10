@@ -62,9 +62,20 @@ func (c HSMSecurityDomainClient) Upload(ctx context.Context, input SecurityDomai
 
 // UploadThenPoll performs Upload then polls until it's completed
 func (c HSMSecurityDomainClient) UploadThenPoll(ctx context.Context, input SecurityDomainObject) error {
+	return c.UploadCallbackThenPoll(ctx, input, nil)
+}
+
+// UploadCallbackThenPoll performs Upload, runs the optional callback function, then polls until it's completed
+func (c HSMSecurityDomainClient) UploadCallbackThenPoll(ctx context.Context, input SecurityDomainObject, callback func() error) error {
 	result, err := c.Upload(ctx, input)
 	if err != nil {
 		return fmt.Errorf("performing Upload: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

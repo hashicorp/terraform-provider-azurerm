@@ -133,6 +133,7 @@ func (r JobScheduleResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 			if err := client.StartThenPoll(ctx, *streamAnalyticsId, *props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}

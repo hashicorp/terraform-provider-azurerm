@@ -445,14 +445,17 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	id := parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_spring_cloud_service", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_spring_cloud_service", id.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -493,10 +496,12 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
-	d.SetId(id.ID())
 
 	skuName := d.Get("sku_name").(string)
 	if skuName == "E0" && gitProperty != nil {

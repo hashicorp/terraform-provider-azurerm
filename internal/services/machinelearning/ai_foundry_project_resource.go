@@ -158,14 +158,16 @@ func (r AIFoundryProject) Create() sdk.ResourceFunc {
 
 			id := workspaces.NewWorkspaceID(subscriptionId, hubId.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_ai_foundry_project", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_ai_foundry_project", id.ID())
+				}
 			}
 
 			payload := workspaces.Workspace{
@@ -206,7 +208,7 @@ func (r AIFoundryProject) Create() sdk.ResourceFunc {
 				payload.Properties.HbiWorkspace = pointer.To(model.HighBusinessImpactEnabled)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
