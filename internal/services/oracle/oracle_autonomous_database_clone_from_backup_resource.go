@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
@@ -208,7 +208,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.CustomerContactEmail,
+				ValidateFunc: validation.IsEmailAddress,
 			},
 		},
 		"subnet_id": {
@@ -255,12 +255,14 @@ func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 
 			id := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			param := autonomousdatabases.AutonomousDatabase{
@@ -308,11 +310,11 @@ func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 				properties.VnetId = pointer.To(model.VnetId)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

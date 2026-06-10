@@ -60,7 +60,7 @@ resource "azurerm_storage_account_queue_properties" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -82,8 +82,7 @@ A `cors_rule` block supports the following:
 
 * `allowed_headers` - (Required) A list of headers that are allowed to be a part of the cross-origin request.
 
-* `allowed_methods` - (Required) A list of HTTP methods that are allowed to be executed by the origin. Valid options are
-  `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PUT` or `PATCH`.
+* `allowed_methods` - (Required) A list of HTTP methods that are allowed to be executed by the origin. Valid options are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PUT` or `PATCH`.
 
 * `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS.
 
@@ -125,6 +124,11 @@ A `minute_metrics` block supports the following:
 
 * `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Storage Account Queue Properties resource.
 
 ## Timeouts
 

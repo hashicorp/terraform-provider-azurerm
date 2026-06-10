@@ -23,7 +23,7 @@ output "healthcare_fhir_service_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Healthcare FHIR Service.
 

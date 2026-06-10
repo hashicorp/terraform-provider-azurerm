@@ -1,10 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package search
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -47,6 +48,11 @@ func resourceSearchService() *pluginsdk.Resource {
 			return err
 		}),
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(validateSearchServiceSKUUpdate),
+			pluginsdk.CustomizeDiffShim(validateSearchServiceApiAccessControlRbac),
+		),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,
@@ -61,7 +67,6 @@ func resourceSearchService() *pluginsdk.Resource {
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(services.SkuNameFree),
 					string(services.SkuNameBasic),
@@ -133,6 +138,11 @@ func resourceSearchService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"primary_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -156,8 +166,9 @@ func resourceSearchService() *pluginsdk.Resource {
 						},
 
 						"key": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -215,13 +226,15 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	id := services.NewSearchServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, services.GetOperationOptions{})
-	if err != nil && !response.WasNotFound(existing.HttpResponse) {
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, services.GetOperationOptions{})
+		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_search_service", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_search_service", id.ID())
+		}
 	}
 
 	publicNetworkAccess := services.PublicNetworkAccessEnabled
@@ -284,10 +297,6 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	if !localAuthenticationEnabled && authenticationFailureMode != "" {
-		return errors.New("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'true'")
-	}
-
 	// API Only Mode (Default) (e.g. localAuthenticationEnabled = true)...
 	authenticationOptions := pointer.To(services.DataPlaneAuthOptions{
 		ApiKeyOnly: pointer.To(apiKeyOnly),
@@ -343,11 +352,10 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		payload.Identity = expandedIdentity
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{})
+	err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d))
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceSearchServiceRead(d, meta)
@@ -387,6 +395,12 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	model.Properties.SharedPrivateLinkResources = nil
 	model.Properties.Status = nil
 	model.Properties.StatusDetails = nil
+
+	if d.HasChange("sku") {
+		model.Sku = &services.Sku{
+			Name: pointer.ToEnum[services.SkuName](d.Get("sku").(string)),
+		}
+	}
 
 	if d.HasChange("customer_managed_key_enforcement_enabled") {
 		cmkEnforcement := services.SearchEncryptionWithCmkDisabled
@@ -433,9 +447,6 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChanges("authentication_failure_mode", "local_authentication_enabled") {
 		authenticationFailureMode := d.Get("authentication_failure_mode").(string)
 		localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
-		if !localAuthenticationEnabled && authenticationFailureMode != "" {
-			return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
-		}
 
 		var apiKeyOnly interface{} = make(map[string]interface{}, 0)
 
@@ -571,6 +582,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			replicaCount := 1           // Default
 			publicNetworkAccess := true // publicNetworkAccess defaults to true...
 			cmkEnforcement := false     // cmkEnforcment defaults to false...
+			endpoint := ""
 			hostingMode := services.HostingModeDefault
 			localAuthEnabled := true
 			authFailureMode := ""
@@ -599,6 +611,10 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
 			}
 
+			if props.Endpoint != nil {
+				endpoint = pointer.From(props.Endpoint)
+			}
+
 			// I am using 'DisableLocalAuth' here because when you are in
 			// RBAC Only Mode, the 'props.AuthOptions' will be 'nil'...
 			if props.DisableLocalAuth != nil {
@@ -625,6 +641,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("replica_count", replicaCount)
 			d.Set("public_network_access_enabled", publicNetworkAccess)
 			d.Set("hosting_mode", hostingMode)
+			d.Set("endpoint", endpoint)
 			d.Set("customer_managed_key_enforcement_enabled", cmkEnforcement)
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 			d.Set("semantic_search_sku", semanticSearchSku)
@@ -695,6 +712,40 @@ func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
+func validateSearchServiceSKUUpdate(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+	// only validate if the resource already exists
+	if diff.Id() == "" {
+		return nil
+	}
+
+	old, new := diff.GetChange("sku")
+	if old == new {
+		return nil
+	}
+
+	oldSku := old.(string)
+	newSku := new.(string)
+
+	// Define SKU hierarchy for validation - excludes Free tier
+	skuHierarchy := map[string]int{
+		string(services.SkuNameBasic):         1, // basic
+		string(services.SkuNameStandard):      2, // standard (S1)
+		string(services.SkuNameStandardTwo):   3, // standard2 (S2)
+		string(services.SkuNameStandardThree): 4, // standard3 (S3)
+		// Free and Storage optimized SKUs are not included as they're not part of the Basic->Standard upgrade path
+	}
+
+	oldLevel, oldExists := skuHierarchy[oldSku]
+	newLevel, newExists := skuHierarchy[newSku]
+
+	// If it's not a valid upgrade, force recreation instead of blocking the change
+	if !oldExists || !newExists || newLevel <= oldLevel {
+		return diff.ForceNew("sku")
+	}
+
+	return nil
+}
+
 func flattenSearchQueryKeys(input *[]querykeys.QueryKey) []interface{} {
 	results := make([]interface{}, 0)
 
@@ -726,7 +777,7 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 
 func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
 	result := make([]interface{}, 0)
-	if input != nil || input.IPRules != nil {
+	if input != nil && input.IPRules != nil {
 		for _, rule := range *input.IPRules {
 			result = append(result, rule.Value)
 		}
@@ -747,4 +798,15 @@ func validateSearchServiceReplicaCount(replicaCount int64, skuName services.SkuN
 	}
 
 	return replicaCount, nil
+}
+
+func validateSearchServiceApiAccessControlRbac(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+	auth := diff.Get("local_authentication_enabled").(bool)
+	failureMode := diff.Get("authentication_failure_mode").(string)
+
+	if !auth && failureMode != "" {
+		return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
+	}
+
+	return nil
 }

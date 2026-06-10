@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -117,14 +117,16 @@ func resourceSpringCloudBuildPackBindingCreateUpdate(d *pluginsdk.ResourceData, 
 	id := parse.NewSpringCloudBuildPackBindingID(subscriptionId, builderId.ResourceGroup, builderId.SpringName, builderId.BuildServiceName, builderId.BuilderName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_build_pack_binding", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_spring_cloud_build_pack_binding", id.ID())
+			}
 		}
 	}
 
@@ -139,11 +141,12 @@ func resourceSpringCloudBuildPackBindingCreateUpdate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSpringCloudBuildPackBindingRead(d, meta)
 }
 

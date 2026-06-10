@@ -99,13 +99,13 @@ The following arguments are supported:
 
 * `cluster_extension_ids` - (Required) Specifies the list of Cluster Extension IDs.
 
-* `host_resource_id` - (Required) Specifies the host resource ID.
+* `host_resource_id` - (Required) Specifies the host resource ID. Changing this forces a new resource to be created.
 
 * `authentication` - (Optional) An `authentication` block as defined below.
 
 * `display_name` - (Optional) Specifies the display name of the Custom Location.
 
-* `host_type` - (Optional) Specifies the host type of the Custom Location. The only possible values is `KubernetesCluster`.
+* `host_type` - (Optional) Specifies the host type of the Custom Location. The only possible values is `KubernetesCluster`. Changing this forces a new resource to be created.
 
 ---
 

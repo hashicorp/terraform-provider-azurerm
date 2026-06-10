@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -123,18 +124,20 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 
 	id := parse.NewManagementGroupTemplateDeploymentID(managementGroupId.Name, d.Get("name").(string))
 
-	existing, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Management Group Template Deployment %q: %+v", id.DeploymentName, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Management Group Template Deployment %q: %+v", id.DeploymentName, err)
+			}
 		}
-	}
-	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_management_group_template_deployment", id.ID())
+		if existing.Properties != nil {
+			return tf.ImportAsExistsError("azurerm_management_group_template_deployment", id.ID())
+		}
 	}
 
 	deployment := resources.ScopedDeployment{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
 			Mode:         resources.DeploymentModeIncremental,
@@ -152,7 +155,7 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 
 	if templateSpecVersionID, ok := d.GetOk("template_spec_version_id"); ok {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(templateSpecVersionID.(string)),
+			ID: pointer.To(templateSpecVersionID.(string)),
 		}
 	}
 
@@ -176,12 +179,13 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("creating Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
+	d.SetId(id.ID())
+
 	log.Printf("[DEBUG] Waiting for deployment of Management Group Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	d.SetId(id.ID())
 	return managementGroupTemplateDeploymentResourceRead(d, meta)
 }
 
@@ -195,7 +199,6 @@ func managementGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Management Group Template Deployment %q..", id.DeploymentName)
 	template, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("retrieving Management Group Template Deployment %q: %+v", id.DeploymentName, err)
@@ -245,7 +248,7 @@ func managementGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, 
 
 	if d.HasChange("template_spec_version_id") {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(d.Get("template_spec_version_id").(string)),
+			ID: pointer.To(d.Get("template_spec_version_id").(string)),
 		}
 
 		if d.Get("template_spec_version_id").(string) != "" {
@@ -355,7 +358,6 @@ func managementGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, 
 	// at this time unfortunately the Resources RP doesn't expose a means of deleting top-level objects
 	// so we're unable to delete these during deletion - this'll need to be detailed in the docs
 
-	log.Printf("[DEBUG] Deleting Management Group Template Deployment %q..", id.DeploymentName)
 	future, err := client.DeleteAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("deleting Management Group Template Deployment %q: %+v", id.DeploymentName, err)
@@ -365,7 +367,6 @@ func managementGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Deleted Management Group Template Deployment %q.", id.DeploymentName)
 
 	return nil
 }

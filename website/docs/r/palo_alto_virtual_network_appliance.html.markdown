@@ -78,4 +78,4 @@ terraform import azurerm_palo_alto_virtual_network_appliance.example /subscripti
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

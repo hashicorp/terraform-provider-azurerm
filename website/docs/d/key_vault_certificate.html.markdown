@@ -31,7 +31,7 @@ output "certificate_thumbprint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -113,7 +113,7 @@ The following attributes are exported:
 
 `action` exports the following:
 
-* `action_type` - The Type of action to be performed when the lifetime trigger is triggerec.
+* `action_type` - The Type of action to be performed when the lifetime trigger is triggered.
 
 ---
 

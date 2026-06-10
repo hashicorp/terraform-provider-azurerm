@@ -23,7 +23,7 @@ output "healthcare_workspace_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Healthcare Workspace.
 

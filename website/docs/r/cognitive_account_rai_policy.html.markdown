@@ -44,7 +44,7 @@ resource "azurerm_cognitive_account_rai_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -104,4 +104,4 @@ terraform import azurerm_cognitive_account_rai_policy.policy1 /subscriptions/000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CognitiveServices` - 2025-06-01
+* `Microsoft.CognitiveServices` - 2026-03-01

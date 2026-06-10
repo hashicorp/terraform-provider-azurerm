@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package clients
@@ -93,11 +93,12 @@ import (
 	machinelearning "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
+	manageddevopspools "github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/client"
 	managedhsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
+	managedidentity "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
+	managedredis "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
 	managementgroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/client"
 	maps "github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/client"
-	mixedreality "github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality/client"
-	mobilenetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork/client"
 	mongocluster "github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	mssql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
@@ -146,7 +147,6 @@ import (
 	trafficManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
 	videoindexer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
-	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	workloads "github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/client"
 )
@@ -230,12 +230,13 @@ type Client struct {
 	MachineLearning                   *machinelearning.Client
 	Maintenance                       *maintenance.Client
 	ManagedApplication                *managedapplication.Client
+	ManagedDevOpsPools                *manageddevopspools.Client
 	ManagementGroups                  *managementgroup.Client
 	ManagedHSMs                       *managedhsm.Client
+	ManagedIdentity                   *managedidentity.Client
+	ManagedRedis                      *managedredis.Client
 	Maps                              *maps.Client
-	MixedReality                      *mixedreality.Client
 	Monitor                           *monitor.Client
-	MobileNetwork                     *mobilenetwork.Client
 	MongoCluster                      *mongocluster.Client
 	MSSQL                             *mssql.Client
 	MSSQLManagedInstance              *mssqlmanagedinstance.Client
@@ -283,7 +284,6 @@ type Client struct {
 	TrafficManager                    *trafficManager.Client
 	VideoIndexer                      *videoindexer.Client
 	Vmware                            *vmware.Client
-	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
 	Workloads                         *workloads_v2024_09_01.Client
 }
@@ -512,23 +512,26 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.ManagedApplication, err = managedapplication.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Managed Applications: %+v", err)
 	}
+	if client.ManagedDevOpsPools, err = manageddevopspools.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Managed DevOps Pools: %+v", err)
+	}
 	if client.ManagementGroups, err = managementgroup.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Management Groups: %+v", err)
 	}
 	if client.ManagedHSMs, err = managedhsm.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ManagedHSM: %+v", err)
 	}
+	if client.ManagedIdentity, err = managedidentity.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ManagedIdentity: %+v", err)
+	}
+	if client.ManagedRedis, err = managedredis.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Managed Redis: %+v", err)
+	}
 	if client.Maps, err = maps.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Maps: %+v", err)
 	}
-	if client.MixedReality, err = mixedreality.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Mixed Reality: %+v", err)
-	}
 	if client.Monitor, err = monitor.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Monitor: %+v", err)
-	}
-	if client.MobileNetwork, err = mobilenetwork.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Mobile Network: %+v", err)
 	}
 	if client.MongoCluster, err = mongocluster.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Mongo Cluster: %+v", err)
@@ -657,7 +660,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Subscription: %+v", err)
 	}
 
-	client.Synapse = synapse.NewClient(o)
+	if client.Synapse, err = synapse.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Synapse: %w", err)
+	}
+
 	if client.SystemCenterVirtualMachineManager, err = systemCenterVirtualMachineManager.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for System Center Virtual Machine Manager: %+v", err)
 	}
@@ -672,10 +678,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Vmware, err = vmware.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for VMWare: %+v", err)
 	}
-	if client.VoiceServices, err = voiceServices.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Voice Services: %+v", err)
+
+	if client.Web, err = web.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Web: %+v", err)
 	}
-	client.Web = web.NewClient(o)
 
 	if client.Workloads, err = workloads.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Workloads: %+v", err)

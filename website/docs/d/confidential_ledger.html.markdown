@@ -23,7 +23,7 @@ output "ledger_endpoint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of this Confidential Ledger.
 

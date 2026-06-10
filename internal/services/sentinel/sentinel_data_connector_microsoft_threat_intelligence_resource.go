@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -9,7 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
@@ -96,14 +97,17 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Create() sdk.ResourceF
 			}
 
 			id := parse.NewDataConnectorID(workSpaceId.SubscriptionId, workSpaceId.ResourceGroupName, workSpaceId.WorkspaceName, metaModel.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+				if err != nil {
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			tenantId := metaModel.TenantId
@@ -121,8 +125,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Create() sdk.ResourceF
 					TenantID: &tenantId,
 				},
 			}
-			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, dataConnector)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, dataConnector); err != nil {
 				return fmt.Errorf("creating %+v", err)
 			}
 
@@ -210,13 +213,13 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) IDValidationFunc() plu
 func expandSentinelDataConnectorMicrosoftThreatIntelligenceMicrosoftEmergingThreatFeed(input DataConnectorMicrosoftThreatIntelligenceModel) *securityinsight.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed {
 	if input.MicrosoftEmergingThreatFeedLookBackDate == "" {
 		return &securityinsight.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed{
-			LookbackPeriod: utils.String(""),
+			LookbackPeriod: pointer.To(""),
 			State:          securityinsight.DataTypeStateDisabled,
 		}
 	}
 
 	return &securityinsight.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed{
-		LookbackPeriod: utils.String(input.MicrosoftEmergingThreatFeedLookBackDate),
+		LookbackPeriod: pointer.To(input.MicrosoftEmergingThreatFeedLookBackDate),
 		State:          securityinsight.DataTypeStateEnabled,
 	}
 }

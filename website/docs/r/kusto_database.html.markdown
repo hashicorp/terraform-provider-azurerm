@@ -47,7 +47,7 @@ resource "azurerm_kusto_database" "database" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

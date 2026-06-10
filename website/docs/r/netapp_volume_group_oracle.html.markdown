@@ -330,7 +330,7 @@ The following arguments are supported:
 
 * `account_name` - (Required) Name of the account where the application volume group belong to. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `application_identifier` - (Required) The SAP System ID, maximum 3 characters, e.g. `OR1`. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `application_identifier` - (Required) The Oracle System ID. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `group_description` - (Required) Volume group description. Changing this forces a new Application Volume Group to be created and data will be lost.
 
@@ -362,7 +362,7 @@ A `volume` block supports the following:
 
 * `security_style` - (Required) Volume security style. Possible values are `ntfs` and `unix`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `service_level` - (Required) Volume security style. Possible values are `Premium`, `Standard` and `Ultra`. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `service_level` - (Required) Volume security style. Possible values are `Premium`, `Standard`, `Ultra` and `Flexible`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `snapshot_directory_visible` - (Required) Specifies whether the .snapshot (NFS clients) path of a volume is visible. Changing this forces a new Application Volume Group to be created and data will be lost.
 
@@ -374,11 +374,11 @@ A `volume` block supports the following:
 
 * `volume_path` - (Required) A unique file path for the volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `volume_spec_name` - (Required) Volume specification name. Possible values are `ora-data1` through `ora-data8`, `ora-log`, `ora-log-mirror`, `ora-backup` and `ora-binary`. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `volume_spec_name` - (Required) Volume specification name. Possible values are `ora-data1`, `ora-data2`, `ora-data3`, `ora-data4`, `ora-data5`, `ora-data6`, `ora-data7`, `ora-data8`, `ora-log`, `ora-log-mirror`, `ora-binary` and `ora-backup`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Application Volume Group.
 
-* `network_features` - (Optional) Indicates which network feature to use, accepted values are `Basic` or `Standard`, it defaults to `Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features). This is required if enabling customer managed keys encryption scenario.
+* `network_features` - (Optional) Indicates which network feature to use, Possible values are `Basic`, `Basic_Standard`, `Standard` and `Standard_Basic`. It defaults to `Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features). This is required if enabling customer managed keys encryption scenario.
 
 * `encryption_key_source` - (Optional) The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys. This is required with `key_vault_private_endpoint_id`. Changing this forces a new resource to be created.
 
@@ -395,7 +395,7 @@ A `data_protection_replication` block is used when enabling the Cross-Region Rep
 
 This block supports the following:
 
-* `remote_volume_location` - (Required) Location of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `remote_volume_location` - (Required) Location of the primary volume.
 
 * `remote_volume_resource_id` - (Required) Resource ID of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
@@ -456,4 +456,4 @@ terraform import azurerm_netapp_volume_group_oracle.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-06-01
+* `Microsoft.NetApp` - 2025-12-01

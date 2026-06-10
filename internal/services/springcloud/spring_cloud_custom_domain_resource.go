@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -93,21 +94,23 @@ func resourceSpringCloudCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	resourceId := parse.NewSpringCloudCustomDomainID(appId.SubscriptionId, appId.ResourceGroup, appId.SpringName, appId.AppName, name).ID()
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, appId.ResourceGroup, appId.SpringName, appId.AppName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("making Read request on AzureRM Spring Cloud Custom Domain %q (Spring Cloud service %q / App %q / rcsource group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, appId.ResourceGroup, appId.SpringName, appId.AppName, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("making Read request on AzureRM Spring Cloud Custom Domain %q (Spring Cloud service %q / App %q / rcsource group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_custom_domain", resourceId)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_spring_cloud_custom_domain", resourceId)
+			}
 		}
 	}
 
 	domain := appplatform.CustomDomainResource{
 		Properties: &appplatform.CustomDomainProperties{
-			Thumbprint: utils.String(d.Get("thumbprint").(string)),
-			CertName:   utils.String(d.Get("certificate_name").(string)),
+			Thumbprint: pointer.To(d.Get("thumbprint").(string)),
+			CertName:   pointer.To(d.Get("certificate_name").(string)),
 		},
 	}
 
@@ -115,10 +118,14 @@ func resourceSpringCloudCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta
 	if err != nil {
 		return fmt.Errorf("creating/update Spring Cloud Custom Domain %q (Spring Cloud service %q / App %q / rcsource group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
 	}
+
+	if d.IsNewResource() {
+		d.SetId(resourceId)
+	}
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %q(Spring Cloud service %q / App %q / rcsource group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
 	}
-	d.SetId(resourceId)
 	return resourceSpringCloudCustomDomainRead(d, meta)
 }
 

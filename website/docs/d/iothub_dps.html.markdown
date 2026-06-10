@@ -19,7 +19,7 @@ data "azurerm_iothub_dps" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

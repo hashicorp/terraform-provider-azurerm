@@ -39,7 +39,7 @@ resource "azurerm_api_management_product_api" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

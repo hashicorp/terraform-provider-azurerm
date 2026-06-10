@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/automationaccount"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	validate4 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -191,7 +191,8 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice(
 						softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses(),
-						false),
+						false,
+					),
 				},
 			},
 
@@ -607,11 +608,11 @@ func (m SoftwareUpdateConfigurationResource) ResourceType() string {
 func (m SoftwareUpdateConfigurationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.SoftwareUpdateConfigClient
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Automation.SoftwareUpdateConfigClient
 
 			var model SoftwareUpdateConfigurationModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
@@ -620,12 +621,15 @@ func (m SoftwareUpdateConfigurationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			id := softwareupdateconfiguration.NewSoftwareUpdateConfigurationID(subscriptionID, automationID.ResourceGroupName, automationID.AutomationAccountName, model.Name)
-			existing, err := client.GetByName(ctx, id, softwareupdateconfiguration.DefaultGetByNameOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return meta.ResourceRequiresImport(m.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetByName(ctx, id, softwareupdateconfiguration.DefaultGetByNameOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return metadata.ResourceRequiresImport(m.ResourceType(), id)
+					}
 				}
 			}
 
@@ -634,7 +638,7 @@ func (m SoftwareUpdateConfigurationResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}

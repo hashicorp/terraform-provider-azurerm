@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter
@@ -78,15 +78,17 @@ func (r DevCenterAttachedNetworkResource) Create() sdk.ResourceFunc {
 
 			id := attachednetworkconnections.NewDevCenterAttachedNetworkID(subscriptionId, devCenterId.ResourceGroupName, devCenterId.DevCenterName, model.Name)
 
-			existing, err := client.AttachedNetworksGetByDevCenter(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AttachedNetworksGetByDevCenter(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := attachednetworkconnections.AttachedNetworkConnection{
@@ -95,7 +97,7 @@ func (r DevCenterAttachedNetworkResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.AttachedNetworksCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			if err := client.AttachedNetworksCreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

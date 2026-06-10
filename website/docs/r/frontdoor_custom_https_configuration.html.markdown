@@ -99,7 +99,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1"
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `frontend_endpoint_id` - (Required) The ID of the Front Door Frontend Endpoint which this configuration refers to. Changing this forces a new resource to be created.
 

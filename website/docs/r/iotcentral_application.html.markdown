@@ -34,7 +34,7 @@ resource "azurerm_iotcentral_application" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

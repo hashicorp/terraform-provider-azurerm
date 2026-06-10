@@ -80,7 +80,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

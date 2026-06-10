@@ -52,7 +52,7 @@ resource "azurerm_lb_nat_pool" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

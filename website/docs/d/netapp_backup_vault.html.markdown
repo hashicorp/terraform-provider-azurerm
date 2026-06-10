@@ -24,7 +24,7 @@ output "backup_vault_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -33,6 +33,12 @@ The following arguments are supported:
 * `resource_group_name` - The name of the resource group where the NetApp Backup Vault exists.
 
 * `account_name` - The name of the NetApp Account in which the NetApp Vault exists.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the NetApp Backup Vault.
 
 ## Timeouts
 
@@ -52,4 +58,4 @@ terraform import azurerm_netapp_backup_vault.example /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-06-01
+* `Microsoft.NetApp` - 2025-12-01

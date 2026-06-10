@@ -33,7 +33,7 @@ resource "azurerm_data_factory_linked_service_mysql" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -52,6 +52,10 @@ The following arguments are supported:
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service MySQL.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service MySQL.
+
+* `driver_version` - (Optional) The version of the MySQL driver. Possible values are `V1` and `V2`. Defaults to `V1`.
+
+~> **Note:** New linked services must set `driver_version` to `V2`.
 
 ## Attributes Reference
 

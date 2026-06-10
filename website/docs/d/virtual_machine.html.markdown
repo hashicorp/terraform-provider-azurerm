@@ -27,7 +27,7 @@ output "virtual_machine_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Virtual Machine.
 

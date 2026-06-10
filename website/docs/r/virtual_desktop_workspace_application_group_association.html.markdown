@@ -50,7 +50,7 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "work
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

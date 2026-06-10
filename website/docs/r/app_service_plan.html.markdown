@@ -10,7 +10,7 @@ description: |-
 
 Manages an App Service Plan component.
 
-!> **Note:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_service_plan`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan) resource instead.
+!> **Note:** This resource has been deprecated and will be removed in version 5.0 of the AzureRM provider. Please use [`azurerm_service_plan`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan) resource instead.
 
 ## Example Usage (Dedicated)
 
@@ -97,7 +97,7 @@ resource "azurerm_app_service_plan" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

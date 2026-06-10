@@ -82,7 +82,7 @@ resource "azurerm_monitor_scheduled_query_rules_log" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

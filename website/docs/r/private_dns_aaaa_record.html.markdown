@@ -32,7 +32,7 @@ resource "azurerm_private_dns_aaaa_record" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

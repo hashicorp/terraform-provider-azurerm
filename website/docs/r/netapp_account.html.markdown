@@ -53,7 +53,7 @@ resource "azurerm_netapp_account" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -142,4 +142,4 @@ terraform import azurerm_netapp_account.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-06-01
+* `Microsoft.NetApp` - 2025-12-01

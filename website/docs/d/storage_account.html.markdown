@@ -24,7 +24,7 @@ output "storage_account_tier" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Storage Account
 * `resource_group_name` - Specifies the name of the resource group the Storage Account is located in.
@@ -270,4 +270,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Storage` - 2023-05-01
+* `Microsoft.Storage` - 2025-08-01

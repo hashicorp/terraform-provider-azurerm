@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -8,16 +8,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlVirtualNetworkRule() *pluginsdk.Resource {
@@ -87,34 +88,37 @@ func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing MSSQL %s: %+v", id.String(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing MSSQL %s: %+v", id.String(), err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_mssql_virtual_network_rule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_mssql_virtual_network_rule", id.ID())
+			}
 		}
 	}
 
 	parameters := virtualnetworkrules.VirtualNetworkRule{
 		Properties: &virtualnetworkrules.VirtualNetworkRuleProperties{
 			VirtualNetworkSubnetId:           subnetId.ID(),
-			IgnoreMissingVnetServiceEndpoint: utils.Bool(d.Get("ignore_missing_vnet_service_endpoint").(bool)),
+			IgnoreMissingVnetServiceEndpoint: pointer.To(d.Get("ignore_missing_vnet_service_endpoint").(bool)),
 		},
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating MSSQL %s: %+v", id.String(), err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	// Wait for the provisioning state to become ready
-	log.Printf("[DEBUG] Waiting for MSSQL %s to become ready", id.String())
-
-	d.SetId(id.ID())
 
 	return resourceMsSqlVirtualNetworkRuleRead(d, meta)
 }

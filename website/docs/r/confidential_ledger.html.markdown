@@ -34,7 +34,7 @@ resource "azurerm_confidential_ledger" "ledger" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

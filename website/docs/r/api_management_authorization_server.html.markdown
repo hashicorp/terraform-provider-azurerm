@@ -40,7 +40,7 @@ resource "azurerm_api_management_authorization_server" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

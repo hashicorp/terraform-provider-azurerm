@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -152,12 +152,14 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Create()
 			}
 			id := appplatform.NewApmID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.ApmsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ApmsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			resource := appplatform.ApmResource{
@@ -178,11 +180,10 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Create()
 					}),
 				},
 			}
-			err = client.ApmsCreateOrUpdateThenPoll(ctx, id, resource)
-			if err != nil {
+
+			if err := client.ApmsCreateOrUpdateCallbackThenPoll(ctx, id, resource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			if model.GloballyEnabled {

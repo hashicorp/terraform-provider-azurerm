@@ -62,7 +62,7 @@ resource "azurerm_web_pubsub_shared_private_link_resource" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

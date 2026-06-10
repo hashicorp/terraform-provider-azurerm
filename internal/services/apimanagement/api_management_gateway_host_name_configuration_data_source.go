@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -95,8 +95,7 @@ func dataSourceApiManagementGatewayHostnameConfigurationRead(d *pluginsdk.Resour
 
 	if model := resp.Model; model != nil {
 		d.Set("name", pointer.From(model.Name))
-		_, err = gatewayhostnameconfiguration.ParseHostnameConfigurationID(*model.Id)
-		if err != nil {
+		if _, err = gatewayhostnameconfiguration.ParseHostnameConfigurationID(*model.Id); err != nil {
 			return fmt.Errorf("parsing GatewayHostnameConfiguration ID %q", *model.Id)
 		}
 		if props := model.Properties; props != nil {

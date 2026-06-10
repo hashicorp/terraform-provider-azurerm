@@ -63,7 +63,7 @@ resource "azurerm_monitor_metric_alert" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

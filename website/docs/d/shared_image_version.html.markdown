@@ -22,7 +22,7 @@ data "azurerm_shared_image_version" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

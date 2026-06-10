@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -110,15 +111,18 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	defer cancel()
 
 	id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	exists, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(exists.HttpResponse) {
-			return fmt.Errorf("checking for existing Windows %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(exists.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_windows_virtual_machine_scale_set", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		exists, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(exists.HttpResponse) {
+				return fmt.Errorf("checking for existing Windows %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(exists.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_windows_virtual_machine_scale_set", id.ID())
+		}
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -471,8 +475,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		props.Properties.ZoneBalance = pointer.To(v.(bool))
 	}
 
-	log.Printf("[DEBUG] Creating Windows %s.", id)
-	if err := client.CreateOrUpdateThenPoll(ctx, id, props, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Windows %s: %+v", id, err)
 	}
 	log.Printf("[DEBUG] Windows %s was created", id)
@@ -1116,7 +1119,9 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 				d.Set("user_data", profile.UserData)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1167,14 +1172,12 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 		log.Printf("[DEBUG] Unable to scale instances to `0` since the `sku` block is nil - trying to delete anyway")
 	}
 
-	log.Printf("[DEBUG] Deleting Windows %s", id)
 	// @ArcturusZhang (mimicking from windows_virtual_machine_pluginsdk.go): sending `nil` here omits this value from being sent
 	// which matches the previous behaviour - we're only splitting this out so it's clear why
 	// TODO: support force deletion once it's out of Preview, if applicable
 	if err := client.DeleteThenPoll(ctx, *id, virtualmachinescalesets.DefaultDeleteOperationOptions()); err != nil {
 		return fmt.Errorf("deleting Windows %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] Deleted Windows %s", id)
 
 	return nil
 }

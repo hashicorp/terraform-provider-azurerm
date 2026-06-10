@@ -26,7 +26,7 @@ resource "azurerm_dedicated_host_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

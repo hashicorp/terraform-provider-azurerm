@@ -33,7 +33,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

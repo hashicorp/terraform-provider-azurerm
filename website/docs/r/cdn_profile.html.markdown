@@ -39,7 +39,7 @@ resource "azurerm_cdn_profile" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

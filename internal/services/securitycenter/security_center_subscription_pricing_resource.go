@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -12,9 +12,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -118,21 +120,33 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 	defer cancel()
 	id := pricings_v2023_01_01.NewPricingID(subscriptionId, d.Get("resource_type").(string))
 
+	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,
+	// as the API only allows one pricing update per subscription at a time.
+	locks.ByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+	defer locks.UnlockByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+
 	pricing := pricings_v2023_01_01.Pricing{
 		Properties: &pricings_v2023_01_01.PricingProperties{
 			PricingTier: pricings_v2023_01_01.PricingTier(d.Get("tier").(string)),
 		},
 	}
 
-	apiResponse, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(apiResponse.HttpResponse) {
-			return fmt.Errorf("checking for presence of apiResponse %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		apiResponse, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(apiResponse.HttpResponse) {
+				return fmt.Errorf("checking for presence of apiResponse %s: %+v", id, err)
+			}
+		}
+
+		if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil && apiResponse.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree {
+			return fmt.Errorf("the pricing tier of this subscription is not Free \r %+v", tf.ImportAsExistsError("azurerm_security_center_subscription_pricing", id.ID()))
 		}
 	}
 
-	if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil && apiResponse.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree {
-		return fmt.Errorf("the pricing tier of this subscription is not Free \r %+v", tf.ImportAsExistsError("azurerm_security_center_subscription_pricing", id.ID()))
+	apiResponse, err := client.Get(ctx, id)
+	if err != nil && !response.WasNotFound(apiResponse.HttpResponse) {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
@@ -199,6 +213,11 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		return err
 	}
 
+	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,
+	// as the API only allows one pricing update per subscription at a time.
+	locks.ByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+	defer locks.UnlockByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+
 	apiResponse, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -259,8 +278,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	if requiredAdditionalUpdate {
 		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 		update.Properties.Extensions = extensions
-		_, err := client.Update(ctx, *id, update)
-		if err != nil {
+		if _, err := client.Update(ctx, *id, update); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -315,6 +333,11 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("parsing %s: %+v", d.Id(), err)
 	}
 
+	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,
+	// as the API only allows one pricing update per subscription at a time.
+	locks.ByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+	defer locks.UnlockByID(commonids.NewSubscriptionID(id.SubscriptionId).ID())
+
 	pricing := pricings_v2023_01_01.Pricing{
 		Properties: &pricings_v2023_01_01.PricingProperties{
 			PricingTier: pricings_v2023_01_01.PricingTierFree,
@@ -339,7 +362,7 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 			// set the default value to false, then turn on the extension that appear in the template
 			extensionStatuses[backendExtension.Name] = false
 			if backendExtension.AdditionalExtensionProperties != nil {
-				extensionProperties[backendExtension.Name] = *(backendExtension.AdditionalExtensionProperties)
+				extensionProperties[backendExtension.Name] = *backendExtension.AdditionalExtensionProperties
 			}
 		}
 	}

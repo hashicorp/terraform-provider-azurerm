@@ -44,7 +44,7 @@ resource "azurerm_bot_channel_facebook" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

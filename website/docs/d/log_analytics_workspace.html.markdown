@@ -23,7 +23,7 @@ output "log_analytics_workspace_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

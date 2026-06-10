@@ -47,17 +47,17 @@ resource "azurerm_storage_share" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The name of the share. Must be unique within the storage account where the share is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Optional) Specifies the storage account in which to create the share. Changing this forces a new resource to be created. This property is deprecated in favour of `storage_account_id`.
+* `storage_account_name` - (Optional) Specifies the storage account in which to create the share. This property is deprecated in favour of `storage_account_id`.
 
 ~> **Note:** Migrating from the deprecated `storage_account_name` to `storage_account_id` is supported without recreation. Any other change to either property will result in the resource being recreated.
 
-* `storage_account_id` - (Optional) Specifies the storage account in which to create the share. Changing this forces a new resource to be created.
+* `storage_account_id` - (Optional) Specifies the storage account in which to create the share.
 
 ~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
@@ -105,6 +105,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the File Share.
 
+* `rbac_scope_id` - The ID that is supposed to be used as the `scope` of an `azurerm_role_assignmet` for this File Share.
+
+~> **Note:** Due to historical reason of the File Share service, the `scope` to be used in an `azurerm_role_assignmet` is different than its Resource Manager ID. See: https://github.com/Azure/azure-rest-api-specs/issues/24568.
+
 * `resource_manager_id` - The Resource Manager ID of this File Share.
 
 * `url` - The URL of the File Share
@@ -130,4 +134,4 @@ terraform import azurerm_storage_share.exampleShare /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage` - 2023-05-01
+* `Microsoft.Storage` - 2025-08-01

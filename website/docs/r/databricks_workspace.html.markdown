@@ -32,7 +32,7 @@ resource "azurerm_databricks_workspace" "example" {
 
 -> **Note:** You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -136,7 +136,7 @@ An `enhanced_security_compliance` block supports the following:
 
 ~> **Note:** The attributes `automatic_cluster_update_enabled` and `enhanced_security_monitoring_enabled` must be set to `true` in order to set `compliance_security_profile_enabled` to `true`.
 
-* `compliance_security_profile_standards` - (Optional) A list of standards to enforce on this workspace. Possible values include `HIPAA` and `PCI_DSS`.
+* `compliance_security_profile_standards` - (Optional) A list of standards to enforce on this workspace. Possible values include `HIPAA`, `PCI_DSS`, `FEDRAMP_MODERATE`, `IRAP_PROTECTED`, `FEDRAMP_HIGH`, `FEDRAMP_IL5`, `ITAR_EAR`, `CYBER_ESSENTIAL_PLUS`, `CANADA_PROTECTED_B`, `ISMAP`, `HITRUST`, `K_FSI`, `GERMANY_C5`, and `GERMANY_TISAX`
 
 ~> **Note:** `compliance_security_profile_enabled` must be set to `true` in order to use `compliance_security_profile_standards`.
 
@@ -214,6 +214,6 @@ terraform import azurerm_databricks_workspace.workspace1 /subscriptions/00000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Databricks` - 2024-05-01, 2022-10-01-preview
+* `Microsoft.Databricks` - 2026-01-01
 
-* `Microsoft.Network` - 2024-05-01, 2023-09-01
+* `Microsoft.Network` - 2025-01-01, 2023-09-01

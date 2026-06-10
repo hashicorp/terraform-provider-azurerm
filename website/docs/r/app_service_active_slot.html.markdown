@@ -11,7 +11,7 @@ description: |-
 
 Promotes an App Service Slot to Production within an App Service.
 
-!> **Note:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_web_app_active_slot`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_active_slot) resource instead.
+!> **Note:** This resource has been deprecated and will be removed in version 5.0 of the AzureRM provider. Please use [`azurerm_web_app_active_slot`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_active_slot) resource instead.
 
 -> **Note:** When using Slots - the `app_settings`, `connection_string` and `site_config` blocks on the `azurerm_app_service` resource will be overwritten when promoting a Slot using the `azurerm_app_service_active_slot` resource.
 
@@ -45,7 +45,7 @@ resource "azurerm_app_service_active_slot" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -54,6 +54,12 @@ The following arguments are supported:
 * `app_service_name` - (Required) The name of the App Service within which the Slot exists. Changing this forces a new resource to be created.
 
 * `app_service_slot_name` - (Required) The name of the App Service Slot which should be promoted to the Production Slot within the App Service.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the App Service.
 
 ## Timeouts
 

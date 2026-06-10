@@ -42,7 +42,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

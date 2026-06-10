@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Log Analytics Linked Storage Account should exist. Changing this forces a new Log Analytics Linked Storage Account to be created.
 
-* `workspace_id` - (Required) The resource ID of the Log Analytics Workspace. Changing this forces a new Log Analytics Linked Storage Account to be created.
+* `workspace_id` - (Optional) The resource ID of the Log Analytics Workspace. Changing this forces a new Log Analytics Linked Storage Account to be created.
 
 * `storage_account_ids` - (Required) The storage account resource ids to be linked.
 

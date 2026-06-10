@@ -59,7 +59,7 @@ resource "azurerm_postgresql_firewall_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

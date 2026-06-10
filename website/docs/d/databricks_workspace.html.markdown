@@ -23,7 +23,7 @@ output "databricks_workspace_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Databricks Workspace.
 * `resource_group_name` - The Name of the Resource Group where the Databricks Workspace exists.
@@ -116,4 +116,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Databricks` - 2024-05-01
+* `Microsoft.Databricks` - 2026-01-01

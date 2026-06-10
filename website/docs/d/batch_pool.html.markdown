@@ -15,21 +15,25 @@ Use this data source to access information about an existing Batch pool
 
 ```hcl
 data "azurerm_batch_pool" "example" {
-  name                = "testbatchpool"
-  account_name        = "testbatchaccount"
-  resource_group_name = "test"
+  name                = "examplebatchpool"
+  account_name        = "examplebatchaccount"
+  resource_group_name = "example"
 }
 ```
+
+## Arguments Reference
+
+* `name` - (Required) The name of the Batch pool.
+
+* `resource_group_name` - (Required) The name of the resource group in which the Batch pool exists.
+
+* `account_name` - (Required) The Batch Account name associated with the Batch pool.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Batch pool ID.
-
-* `name` - The name of the Batch pool.
-
-* `account_name` - The name of the Batch account.
 
 * `node_agent_sku_id` - The SKU of the node agents in the Batch pool.
 
@@ -66,8 +70,6 @@ The following attributes are exported:
 * `max_tasks_per_node` - The maximum number of tasks that can run concurrently on a single compute node in the pool.
 
 * `mount` - A `mount` block that describes mount configuration.
-
-* `certificate` - One or more `certificate` blocks that describe the certificates installed on each compute node in the pool.
 
 * `container_configuration` - The container configuration used in the pool's VMs.
 
@@ -178,22 +180,6 @@ A `auto_user` block exports the following:
 * `elevation_level` - The elevation level of the user identity under which the start task runs.
 
 * `scope` - The scope of the user identity under which the start task runs.
-
----
-
-A `certificate` block exports the following:
-
-* `id` - The fully qualified ID of the certificate installed on the pool.
-
-* `store_location` - The location of the certificate store on the compute node into which the certificate is installed, either `CurrentUser` or `LocalMachine`.
-
--> **Note:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of 'remoteUser', a 'certs' directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
-
-* `store_name` - The name of the certificate store on the compute node into which the certificate is installed.
-
--> **Note:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference).
-
-* `visibility` - Which user accounts on the compute node have access to the private data of the certificate.
 
 ---
 

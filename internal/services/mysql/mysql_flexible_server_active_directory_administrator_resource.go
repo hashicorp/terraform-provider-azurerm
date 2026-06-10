@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mysql
@@ -97,13 +97,15 @@ func (r MySQLFlexibleServerAdministratorResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, *flexibleServerId)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", flexibleServerId, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, *flexibleServerId)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", flexibleServerId, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), flexibleServerId)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), flexibleServerId)
+				}
 			}
 
 			properties := azureadadministrators.AzureADAdministrator{
@@ -116,6 +118,7 @@ func (r MySQLFlexibleServerAdministratorResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 			if err := client.CreateOrUpdateThenPoll(ctx, *flexibleServerId, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", flexibleServerId, err)
 			}

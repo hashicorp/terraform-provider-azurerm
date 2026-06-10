@@ -193,7 +193,11 @@ A `schedule` block supports the following:
 
 * `start_time` - (Optional) Start time of the schedule. Must be at least five minutes in the future. Defaults to seven minutes in the future from the time the resource is created.
 
+* `start_time_offset_minutes` - (Optional) The time offset in minutes for the start time.
+
 * `expiry_time` - (Optional) The end time of the schedule.
+
+* `expiry_time_offset_minutes` - (Optional) The time offset in minutes for the expiry time.
 
 * `time_zone` - (Optional) The timezone of the start time. Defaults to `Etc/UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
 
@@ -202,6 +206,8 @@ A `schedule` block supports the following:
 * `advanced_month_days` - (Optional) List of days of the month that the job should execute on. Must be between `1` and `31`. `-1` for last day of the month. Only valid when frequency is `Month`.
 
 * `monthly_occurrence` - (Optional) List of `monthly_occurrence` blocks as defined below to specifies occurrences of days within a month. Only valid when frequency is `Month`. The `monthly_occurrence` block supports fields as defined below.
+
+* `next_run_offset_minutes` - (Optional) The time offset in minutes for the next run time.
 
 ---
 

@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `public_network_enabled` - (Optional) Should the Purview Account be visible to the public network? Defaults to `true`.
 
-* `managed_event_hub_enabled`- (Optional) Whether the Purview Account should create a managed Event Hub Namespace. Defaults to `true`.
+* `managed_event_hub_enabled` - (Optional) Whether the Purview Account should create a managed Event Hub Namespace. Defaults to `true`.
 
 ~> **Note:** `managed_event_hub_enabled` must be `false` in order to use a Kafka Configuration with the Purview Account.
 
@@ -59,11 +59,11 @@ The following arguments are supported:
 
 The `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Purview Account. Possible values are `UserAssigned` and `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Purview Account. Possible values are `SystemAssigned` and `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Purview Account.
 
-~> **Note:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 

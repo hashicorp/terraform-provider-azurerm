@@ -37,7 +37,7 @@ resource "azurerm_data_factory_dataset_mysql" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Datasets:
 

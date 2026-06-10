@@ -105,7 +105,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

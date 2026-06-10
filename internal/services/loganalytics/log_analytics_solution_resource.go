@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -23,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsSolutionResource struct{}
@@ -151,15 +151,17 @@ func (s LogAnalyticsSolutionResource) Create() sdk.ResourceFunc {
 			// "SolutionName(WorkspaceName)". Feedback will be submitted to the OMS team as IMO this isn't ideal.
 			id := solution.NewSolutionID(subscriptionId, config.ResourceGroupName, fmt.Sprintf("%s(%s)", config.SolutionName, config.WorkspaceName))
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_log_analytics_solution", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_log_analytics_solution", id.ID())
+				}
 			}
 
 			workspaceID, err := workspaces.ParseWorkspaceID(config.WorkspaceResourceId)
@@ -169,7 +171,7 @@ func (s LogAnalyticsSolutionResource) Create() sdk.ResourceFunc {
 
 			parameters := solution.Solution{
 				Name:     pointer.To(id.SolutionName),
-				Location: pointer.To(azure.NormalizeLocation(config.Location)),
+				Location: pointer.To(location.Normalize(config.Location)),
 				Properties: &solution.SolutionProperties{
 					WorkspaceResourceId: workspaceID.ID(),
 				},
@@ -182,8 +184,7 @@ func (s LogAnalyticsSolutionResource) Create() sdk.ResourceFunc {
 				parameters.Plan = &solutionPlan
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -218,8 +219,8 @@ func (s LogAnalyticsSolutionResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				if location := model.Location; location != nil {
-					state.Location = azure.NormalizeLocation(*location)
+				if loc := model.Location; loc != nil {
+					state.Location = location.Normalize(*loc)
 				}
 
 				// Reversing the mapping used to get .solution_name
@@ -325,10 +326,10 @@ func expandAzureRmLogAnalyticsSolutionPlan(plans []SolutionPlanModel) solution.S
 	product := plan.Product
 
 	expandedPlan := solution.SolutionPlan{
-		Name:          utils.String(name),
-		PromotionCode: utils.String(promotionCode),
-		Publisher:     utils.String(publisher),
-		Product:       utils.String(product),
+		Name:          pointer.To(name),
+		PromotionCode: pointer.To(promotionCode),
+		Publisher:     pointer.To(publisher),
+		Product:       pointer.To(product),
 	}
 
 	return expandedPlan

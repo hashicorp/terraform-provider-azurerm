@@ -62,9 +62,20 @@ func (c MachinesClient) InstallPatches(ctx context.Context, id MachineId, input 
 
 // InstallPatchesThenPoll performs InstallPatches then polls until it's completed
 func (c MachinesClient) InstallPatchesThenPoll(ctx context.Context, id MachineId, input MachineInstallPatchesParameters) error {
+	return c.InstallPatchesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// InstallPatchesCallbackThenPoll performs InstallPatches, runs the optional callback function, then polls until it's completed
+func (c MachinesClient) InstallPatchesCallbackThenPoll(ctx context.Context, id MachineId, input MachineInstallPatchesParameters, callback func() error) error {
 	result, err := c.InstallPatches(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing InstallPatches: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

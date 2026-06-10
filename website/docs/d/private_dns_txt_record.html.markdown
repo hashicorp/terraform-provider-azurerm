@@ -26,7 +26,7 @@ output "private_dns_txt_record_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Private DNS TXT Record.
 

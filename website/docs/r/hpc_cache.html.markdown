@@ -46,7 +46,7 @@ resource "azurerm_hpc_cache" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

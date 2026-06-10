@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -205,21 +205,23 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
-			existing, err := client.GetKey(ctx, endpoint.BaseURI(), id.KeyName, "")
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetKey(ctx, endpoint.BaseURI(), id.KeyName, "")
+				if err != nil {
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := keyvault.KeyCreateParameters{
 				Kty:    keyvault.JSONWebKeyType(config.KeyType),
 				KeyOps: expandKeyVaultKeyOptions(config.KeyOpts),
 				KeyAttributes: &keyvault.KeyAttributes{
-					Enabled: utils.Bool(true),
+					Enabled: pointer.To(true),
 				},
 
 				Tags: tags.Expand(config.Tags),
@@ -383,7 +385,7 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 			parameters := keyvault.KeyUpdateParameters{
 				KeyOps: expandKeyVaultKeyOptions(config.KeyOpts),
 				KeyAttributes: &keyvault.KeyAttributes{
-					Enabled: utils.Bool(true),
+					Enabled: pointer.To(true),
 				},
 
 				Tags: tags.Expand(config.Tags),

@@ -23,7 +23,7 @@ output "virtual_network_gateway_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Virtual Network Gateway.
 * `resource_group_name` - Specifies the name of the resource group the Virtual Network Gateway is located in.
@@ -38,12 +38,11 @@ output "virtual_network_gateway_id" {
 
 * `vpn_type` - The routing type of the Virtual Network Gateway.
 
-* `enable_bgp` - Will BGP (Border Gateway Protocol) will be enabled
-    for this Virtual Network Gateway.
+* `bgp_enabled` - Will BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway.
 
 * `active_active` - Is this an Active-Active Gateway?
 
-* `private_ip_address_enabled` - Whether a private IP will be used for this  gateway for connections.
+* `private_ip_address_enabled` - Whether a private IP will be used for this gateway for connections.
 
 * `default_local_network_gateway_id` -  The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
@@ -153,4 +152,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package graphservices
@@ -88,14 +88,16 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := graphservicesprods.NewAccountID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.AccountsGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AccountsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport("azurerm_graph_services_account", id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport("azurerm_graph_services_account", id)
+				}
 			}
 
 			payload := graphservicesprods.AccountResource{
@@ -106,7 +108,7 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.AccountsCreateAndUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.AccountsCreateAndUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

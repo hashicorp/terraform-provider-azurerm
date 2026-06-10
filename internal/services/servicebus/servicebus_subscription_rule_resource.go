@@ -1,11 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
@@ -191,14 +189,14 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 	subscriptionClient := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure Service Bus Subscription Rule creation.")
 
 	filterType := d.Get("filter_type").(string)
 
 	var id subscriptions.RuleId
 	if subscriptionIdLit := d.Get("subscription_id").(string); subscriptionIdLit != "" {
 		subscriptionId, _ := rules.ParseSubscriptions2ID(subscriptionIdLit)
-		id = subscriptions.NewRuleID(subscriptionId.SubscriptionId,
+		id = subscriptions.NewRuleID(
+			subscriptionId.SubscriptionId,
 			subscriptionId.ResourceGroupName,
 			subscriptionId.NamespaceName,
 			subscriptionId.TopicName,
@@ -208,15 +206,17 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if d.IsNewResource() {
-		existing, err := subscriptionClient.RulesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := subscriptionClient.RulesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", id.ID())
+			}
 		}
 	}
 
@@ -258,7 +258,10 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourceServiceBusSubscriptionRuleRead(d, meta)
 }
 
@@ -357,35 +360,35 @@ func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules
 	correlationFilter := rules.CorrelationFilter{}
 
 	if correlationID != "" {
-		correlationFilter.CorrelationId = utils.String(correlationID)
+		correlationFilter.CorrelationId = pointer.To(correlationID)
 	}
 
 	if messageID != "" {
-		correlationFilter.MessageId = utils.String(messageID)
+		correlationFilter.MessageId = pointer.To(messageID)
 	}
 
 	if to != "" {
-		correlationFilter.To = utils.String(to)
+		correlationFilter.To = pointer.To(to)
 	}
 
 	if replyTo != "" {
-		correlationFilter.ReplyTo = utils.String(replyTo)
+		correlationFilter.ReplyTo = pointer.To(replyTo)
 	}
 
 	if label != "" {
-		correlationFilter.Label = utils.String(label)
+		correlationFilter.Label = pointer.To(label)
 	}
 
 	if sessionID != "" {
-		correlationFilter.SessionId = utils.String(sessionID)
+		correlationFilter.SessionId = pointer.To(sessionID)
 	}
 
 	if replyToSessionID != "" {
-		correlationFilter.ReplyToSessionId = utils.String(replyToSessionID)
+		correlationFilter.ReplyToSessionId = pointer.To(replyToSessionID)
 	}
 
 	if contentType != "" {
-		correlationFilter.ContentType = utils.String(contentType)
+		correlationFilter.ContentType = pointer.To(contentType)
 	}
 
 	if len(*properties) > 0 {
@@ -454,7 +457,7 @@ func flattenProperties(input *map[string]string) map[string]*string {
 
 	if input != nil {
 		for k, v := range *input {
-			output[k] = utils.String(v)
+			output[k] = pointer.To(v)
 		}
 	}
 

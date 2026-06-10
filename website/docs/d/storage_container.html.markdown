@@ -24,7 +24,7 @@ data "azurerm_storage_container" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -62,4 +62,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Storage` - 2023-05-01
+* `Microsoft.Storage` - 2025-08-01

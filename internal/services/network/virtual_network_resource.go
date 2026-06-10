@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -23,12 +23,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/routetables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,7 +37,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network -properties "name,resource_group_name"
 
 var VirtualNetworkResourceName = "azurerm_virtual_network"
 
@@ -339,15 +340,17 @@ func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	id := commonids.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id, virtualnetworks.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, virtualnetworks.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_network", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_network", id.ID())
+		}
 	}
 
 	vnetProperties, routeTables, err := expandVirtualNetworkProperties(ctx, *client, id, d)
@@ -388,8 +391,12 @@ func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.MultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
 	defer locks.UnlockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, vnet); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, vnet, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -404,7 +411,6 @@ func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceVirtualNetworkRead(d, meta)
 }
 
@@ -584,7 +590,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("flow_timeout_in_minutes") {
 		payload.Properties.FlowTimeoutInMinutes = nil
 		if v := d.Get("flow_timeout_in_minutes"); v.(int) != 0 {
-			payload.Properties.FlowTimeoutInMinutes = utils.Int64(int64(v.(int)))
+			payload.Properties.FlowTimeoutInMinutes = pointer.To(int64(v.(int)))
 		}
 	}
 
@@ -610,15 +616,21 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	networkSecurityGroupNames := make([]string, 0)
 	if payload.Properties != nil && payload.Properties.Subnets != nil {
 		for _, subnet := range *payload.Properties.Subnets {
-			if subnet.Properties != nil && subnet.Properties.NetworkSecurityGroup != nil && subnet.Properties.NetworkSecurityGroup.Id != nil {
-				parsedNsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(*subnet.Properties.NetworkSecurityGroup.Id)
-				if err != nil {
-					return err
-				}
+			if subnet.Properties != nil {
+				// remove readonly properties as they are not managed by TF - large networks can cause ARM API limit errors
+				subnet.Properties.IPConfigurations = nil
+				subnet.Properties.PrivateEndpoints = nil
 
-				networkSecurityGroupName := parsedNsgID.NetworkSecurityGroupName
-				if !utils.SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
-					networkSecurityGroupNames = append(networkSecurityGroupNames, networkSecurityGroupName)
+				if subnet.Properties.NetworkSecurityGroup != nil && subnet.Properties.NetworkSecurityGroup.Id != nil {
+					parsedNsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(*subnet.Properties.NetworkSecurityGroup.Id)
+					if err != nil {
+						return err
+					}
+
+					networkSecurityGroupName := parsedNsgID.NetworkSecurityGroupName
+					if !utils.SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
+						networkSecurityGroupNames = append(networkSecurityGroupNames, networkSecurityGroupName)
+					}
 				}
 			}
 		}

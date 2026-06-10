@@ -39,7 +39,7 @@ resource "azurerm_dns_ns_record" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

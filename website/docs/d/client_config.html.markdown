@@ -21,7 +21,7 @@ output "account_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 There are no arguments available for this data source.
 

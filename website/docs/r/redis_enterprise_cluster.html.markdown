@@ -10,6 +10,8 @@ description: |-
 
 Manages a Redis Enterprise Cluster.
 
+~> **Note:** This resource has been deprecated in favor of [azurerm_managed_redis](managed_redis.html).
+
 ## Example Usage
 
 ```hcl

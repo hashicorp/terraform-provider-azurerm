@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loadbalancer_test
@@ -140,7 +140,7 @@ func TestAccBackendAddressPoolStandardSkuRequiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicSkuBasic(data),
+			Config: r.standardSkuBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -267,7 +267,7 @@ func (r LoadBalancerBackendAddressPool) Destroy(ctx context.Context, client *cli
 }
 
 func (r LoadBalancerBackendAddressPool) basicSkuBasic(data acceptance.TestData) string {
-	template := r.template(data, "Basic")
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -295,7 +295,7 @@ resource "azurerm_lb_backend_address_pool" "import" {
 }
 
 func (r LoadBalancerBackendAddressPool) standardSkuBasic(data acceptance.TestData) string {
-	template := r.template(data, "Standard")
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -311,7 +311,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 func (r LoadBalancerBackendAddressPool) standardSkuBasicUpdate(data acceptance.TestData) string {
-	template := r.template(data, "Standard")
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -339,12 +339,12 @@ resource "azurerm_lb_backend_address_pool" "import" {
 `, template)
 }
 
-func (LoadBalancerBackendAddressPool) template(data acceptance.TestData, sku string) string {
+func (LoadBalancerBackendAddressPool) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
   number   = %d
   location = %q
-  sku      = %q
+  sku      = "Standard"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -378,7 +378,7 @@ resource "azurerm_lb" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, sku)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LoadBalancerBackendAddressPool) gatewaySkuBasic(data acceptance.TestData) string {

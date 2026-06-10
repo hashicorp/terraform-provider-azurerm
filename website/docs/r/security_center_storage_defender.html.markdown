@@ -32,7 +32,7 @@ resource "azurerm_security_center_storage_defender" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -75,4 +75,4 @@ terraform import azurerm_security_center_storage_defender.example /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Security` - 2022-12-01-preview
+* `Microsoft.Security` - 2025-06-01

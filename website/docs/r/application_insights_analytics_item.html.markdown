@@ -34,7 +34,7 @@ resource "azurerm_application_insights_analytics_item" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

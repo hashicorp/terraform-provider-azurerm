@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -82,7 +83,7 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta
 
 	id := replicationpolicies.NewReplicationPolicyID(subscriptionId, resGroup, vaultName, name)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
@@ -110,11 +111,10 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta
 			},
 		},
 	}
-	err := client.CreateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
-	}
 
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
 	d.SetId(id.ID())
 
 	return resourceSiteRecoveryReplicationPolicyRead(d, meta)

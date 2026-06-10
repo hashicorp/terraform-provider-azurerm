@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package serviceconnector
@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudConnectorResource struct{}
@@ -116,13 +115,16 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.ServiceConnector.ServiceLinkerClient
 
 			id := servicelinker.NewScopedLinkerID(model.SpringCloudId, model.Name)
-			existing, err := client.LinkerGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.LinkerGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			authInfo, err := expandServiceConnectorAuthInfoForCreate(model.AuthInfo)
@@ -164,16 +166,16 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			props := servicelinker.LinkerResource{
-				Id:         utils.String(id.ID()),
-				Name:       utils.String(model.Name),
+				Id:         pointer.To(id.ID()),
+				Name:       pointer.To(model.Name),
 				Properties: serviceConnectorProperties,
 			}
 
-			if err := client.LinkerCreateOrUpdateThenPoll(ctx, id, props); err != nil {
+			if err := client.LinkerCreateOrUpdateCallbackThenPoll(ctx, id, props, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -239,8 +241,6 @@ func (r SpringCloudConnectorResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			if err := client.LinkerDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

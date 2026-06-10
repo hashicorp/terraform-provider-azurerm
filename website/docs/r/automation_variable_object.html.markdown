@@ -36,7 +36,7 @@ resource "azurerm_automation_variable_object" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

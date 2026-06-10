@@ -19,7 +19,7 @@ data "azurerm_system_center_virtual_machine_manager_inventory_items" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `inventory_type` - (Required) The inventory type of the System Center Virtual Machine Manager Inventory Item. Possible values are `Cloud`, `VirtualMachine`, `VirtualMachineTemplate` and `VirtualNetwork`.
 

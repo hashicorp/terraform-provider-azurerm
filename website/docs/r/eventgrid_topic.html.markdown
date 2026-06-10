@@ -32,7 +32,7 @@ resource "azurerm_eventgrid_topic" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

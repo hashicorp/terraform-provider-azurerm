@@ -67,7 +67,7 @@ output "full_permissions_api_key" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -94,7 +94,7 @@ resource "azurerm_signalr_service_custom_certificate" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

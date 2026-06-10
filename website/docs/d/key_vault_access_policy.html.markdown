@@ -22,7 +22,7 @@ output "access_policy_key_permissions" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Management Template. Possible values are: `Key Management`,
 `Secret Management`, `Certificate Management`, `Key & Secret Management`, `Key & Certificate Management`,

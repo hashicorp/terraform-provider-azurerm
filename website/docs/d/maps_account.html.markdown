@@ -23,7 +23,7 @@ output "maps_account_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Maps Account.
 

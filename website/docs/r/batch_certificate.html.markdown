@@ -11,6 +11,8 @@ description: |-
 
 Manages a certificate in an Azure Batch account.
 
+-> **Note:** The `azurerm_batch_certificate` resource has been deprecated due to Azure retiring the Azure Batch Account Certificates Feature, and will be removed in v5.0 of the AzureRM provider.
+
 ## Example Usage
 
 ```hcl
@@ -51,7 +53,7 @@ resource "azurerm_batch_certificate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

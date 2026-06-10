@@ -228,7 +228,7 @@ resource "azurerm_key_vault_certificate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -309,7 +309,7 @@ The `lifetime_action` block supports the following:
 
 The `action` block supports the following:
 
-* `action_type` - (Required) The Type of action to be performed when the lifetime trigger is triggerec. Possible values include `AutoRenew` and `EmailContacts`.
+* `action_type` - (Required) The Type of action to be performed when the lifetime trigger is triggered. Possible values include `AutoRenew` and `EmailContacts`.
 
 ---
 

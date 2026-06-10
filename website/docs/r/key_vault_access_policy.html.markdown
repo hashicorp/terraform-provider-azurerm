@@ -61,7 +61,7 @@ resource "azurerm_key_vault_access_policy" "example-principal" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

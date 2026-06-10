@@ -24,7 +24,7 @@ output "batch_application_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Application.
 

@@ -33,7 +33,7 @@ resource "azurerm_automation_variable_bool" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

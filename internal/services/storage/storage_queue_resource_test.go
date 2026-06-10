@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -6,11 +6,12 @@ package storage_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/queueservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storagequeues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -173,6 +174,61 @@ func TestAccStorageQueue_metaDataDeprecated(t *testing.T) {
 	})
 }
 
+func TestAccStorageQueue_migrateToStorageID(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
+	r := StorageQueueResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsSet(),
+				check.That(data.ResourceName).Key("storage_account_id").DoesNotExist(),
+				check.That(data.ResourceName).Key("id").MatchesRegex(regexp.MustCompile("https:*")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
+				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
+				check.That(data.ResourceName).Key("id").MatchesRegex(regexp.MustCompile("/subscriptions/*")),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageQueue_migrateFromStorageIDShouldFail(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
+	r := StorageQueueResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
+				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.basicDeprecated(data),
+			ExpectError: regexp.MustCompile("expected action to not be Replace"),
+		},
+	})
+}
+
 func (r StorageQueueResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	if !features.FivePointOh() && !strings.HasPrefix(state.ID, "/subscriptions") {
 		id, err := queues.ParseQueueID(state.ID, client.Storage.StorageDomainSuffix)
@@ -197,11 +253,11 @@ func (r StorageQueueResource) Exists(ctx context.Context, client *clients.Client
 		return pointer.To(queue != nil), nil
 	}
 
-	id, err := queueservice.ParseQueueID(state.ID)
+	id, err := storagequeues.ParseQueueID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	existing, err := client.Storage.ResourceManager.QueueService.QueueGet(ctx, *id)
+	existing, err := client.Storage.ResourceManager.StorageQueues.QueueGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

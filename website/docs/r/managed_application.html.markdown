@@ -65,7 +65,7 @@ resource "azurerm_managed_application" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

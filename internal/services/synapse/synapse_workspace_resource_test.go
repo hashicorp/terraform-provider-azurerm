@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse_test
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -240,12 +241,12 @@ func (r SynapseWorkspaceResource) Exists(ctx context.Context, client *clients.Cl
 	resp, err := client.Synapse.WorkspaceClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SynapseWorkspaceResource) basic(data acceptance.TestData) string {
@@ -606,7 +607,7 @@ func (r SynapseWorkspaceResource) customerManagedKey(data acceptance.TestData) s
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -654,7 +655,7 @@ resource "azurerm_synapse_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomString, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) azureAdOnlyAuthentication(data acceptance.TestData) string {
@@ -727,13 +728,13 @@ func (r SynapseWorkspaceResource) cmkWithAADAdmin(data acceptance.TestData) stri
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestuaid%[2]d"
+  name                = "acctestuaid%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%[2]d"
+  name                       = "acctest%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -776,7 +777,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%[2]d"
+  name                                 = "acctestsw%[2]s"
   resource_group_name                  = azurerm_resource_group.test.name
   location                             = azurerm_resource_group.test.location
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
@@ -794,5 +795,5 @@ resource "azurerm_synapse_workspace" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomString)
 }

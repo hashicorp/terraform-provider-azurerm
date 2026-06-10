@@ -85,7 +85,7 @@ resource "azurerm_spring_cloud_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -130,7 +130,7 @@ An `secret_store` block supports the following:
 * `key_vault_id` - (Required) The key vault id to store secret.
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

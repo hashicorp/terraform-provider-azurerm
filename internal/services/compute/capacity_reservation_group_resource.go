@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -71,14 +71,17 @@ func resourceCapacityReservationGroupCreate(d *pluginsdk.ResourceData, meta inte
 	defer cancel()
 
 	id := capacityreservationgroups.NewCapacityReservationGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id, capacityreservationgroups.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, capacityreservationgroups.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_capacity_reservation_group", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_capacity_reservation_group", id.ID())
+		}
 	}
 
 	parameters := capacityreservationgroups.CapacityReservationGroup{
@@ -96,6 +99,10 @@ func resourceCapacityReservationGroupCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCapacityReservationGroupRead(d, meta)
 }
 

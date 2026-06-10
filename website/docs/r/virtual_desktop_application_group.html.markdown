@@ -64,7 +64,7 @@ resource "azurerm_virtual_desktop_application_group" "desktopapp" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -10,6 +10,22 @@ description: |-
 
 Manages an AI Services Account.
 
+~> **Note:** The `azurerm_ai_services` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use [`azurerm_cognitive_account`](cognitive_account.html.markdown) resource instead.
+
+## Migration to `azurerm_cognitive_account`
+
+The `azurerm_ai_services` resource is superseded by `azurerm_cognitive_account`. The table below lists the attributes that have changed; all other attributes are carried over unchanged.
+
+| `azurerm_ai_services` | `azurerm_cognitive_account` | Notes |
+|-----------------------|-----------------------------|-------|
+| (not present) | `kind` | **Required**. Set to `"AIServices"` to match the behaviour of `azurerm_ai_services`. |
+| `local_authentication_enabled` | `local_auth_enabled` | **Renamed**. Both default to `true`. |
+| `public_network_access` | `public_network_access_enabled` | **Changed type**. String (`"Enabled"` / `"Disabled"`) → Boolean (`true` / `false`). Defaults to `true`. |
+| (not present) | `project_management_enabled` |**Required**. Set to `true` to match the behaviour of `azurerm_ai_services`. |
+| `customer_managed_key.managed_hsm_key_id`  | (not present) | Use `customer_managed_key.key_vault_key_id` property, it can accept both regular and HSM key id. |
+
+~> **Note:** If your configuration included a `storage` block under `azurerm_ai_services`, `terraform plan` may show changes after migration even though the Azure resource itself has not changed. This occurs because `azurerm_ai_services` silently ignored the `storage` block and never sent those values to the API, so the imported state does not reflect them. Running `terraform apply` will reconcile the state by applying the storage configuration for the first time.
+
 ## Example Usage
 
 ```hcl
@@ -30,7 +46,7 @@ resource "azurerm_ai_services" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -71,7 +87,7 @@ The following arguments are supported:
 A `network_acls` block supports the following:
 
 * `bypass` - (Optional) Whether to allow trusted Azure Services to access the service. Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
-* 
+
 * `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_rules`. Possible values are `Allow` and `Deny`.
 
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the AI Services Account.
@@ -159,4 +175,4 @@ terraform import azurerm_ai_services.account1 /subscriptions/00000000-0000-0000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CognitiveServices` - 2025-06-01
+* `Microsoft.CognitiveServices` - 2026-03-01

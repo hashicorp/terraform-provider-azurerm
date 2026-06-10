@@ -37,7 +37,7 @@ output "database_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the MS SQL Database.
 

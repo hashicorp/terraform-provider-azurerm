@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -22,11 +22,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubsclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/networkrulesets"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -284,24 +284,26 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace creation.")
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_eventhub_namespace", id.ID())
 		}
 	}
 
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	if existing.Model != nil {
-		return tf.ImportAsExistsError("azurerm_eventhub_namespace", id.ID())
-	}
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	capacity := int32(d.Get("capacity").(int))
 	t := d.Get("tags").(map[string]interface{})
@@ -351,7 +353,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.MaximumThroughputUnits = pointer.To(int64(v.(int)))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -387,14 +389,13 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace update.")
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	capacity := int32(d.Get("capacity").(int))
 	t := d.Get("tags").(map[string]interface{})

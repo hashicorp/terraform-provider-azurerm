@@ -61,7 +61,7 @@ resource "azurerm_storage_account_network_rules" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -122,4 +122,4 @@ terraform import azurerm_storage_account_network_rules.storageAcc1 /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage` - 2023-05-01
+* `Microsoft.Storage` - 2025-08-01

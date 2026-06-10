@@ -70,7 +70,7 @@ resource "azurerm_site_recovery_network_mapping" "recovery-mapping" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -66,7 +66,7 @@ resource "azurerm_virtual_desktop_application" "chrome" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

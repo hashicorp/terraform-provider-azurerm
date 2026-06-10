@@ -45,7 +45,7 @@ resource "azurerm_site_recovery_hyperv_network_mapping" "recovery-mapping" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

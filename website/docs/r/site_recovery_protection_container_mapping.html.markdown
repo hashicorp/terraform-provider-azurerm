@@ -77,7 +77,7 @@ resource "azurerm_site_recovery_protection_container_mapping" "container-mapping
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
