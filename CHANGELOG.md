@@ -1,6 +1,7 @@
 ## 4.77.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go` - update to `1.26.4` [GH-32539]
 * `azurerm_storage_object_replication` - add support for the `metrics_enabled` property [GH-32204]
 * dependencies: `go-azure-sdk` - update to `v0.20260603.1074745` [GH-32503]
 * `azurerm_machine_learning_workspace` - add support for the `storage_account_access_type` property [GH-32514]
