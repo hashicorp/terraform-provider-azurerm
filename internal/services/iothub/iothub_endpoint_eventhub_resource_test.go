@@ -152,10 +152,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_id        = azurerm_eventhub_namespace.test.id
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_authorization_rule" "test" {
@@ -238,10 +238,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_id        = azurerm_eventhub_namespace.test.id
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_authorization_rule" "test" {
@@ -379,10 +379,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_id        = azurerm_eventhub_namespace.test.id
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_authorization_rule" "test" {
