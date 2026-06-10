@@ -537,7 +537,7 @@ func TestAccFunctionAppFlexConsumption_userAssignedIdentityUpdate(t *testing.T) 
 	})
 }
 
-func TestAccFunctionApp_keyVaultUserAssignedIdentity(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_keyVaultUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
