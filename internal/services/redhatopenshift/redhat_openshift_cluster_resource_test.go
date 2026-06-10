@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type OpenShiftClusterResource struct{}
+type RedhatOpenshiftClusterResource struct{}
 
 func TestAccOpenShiftCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+	r := RedhatOpenshiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccOpenShiftCluster_basic(t *testing.T) {
 
 func TestAccOpenShiftCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+	r := RedhatOpenshiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccOpenShiftCluster_update(t *testing.T) {
 
 func TestAccOpenShiftCluster_private(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+	r := RedhatOpenshiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccOpenShiftCluster_private(t *testing.T) {
 
 func TestAccOpenShiftCluster_userDefinedRouting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+	r := RedhatOpenshiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -95,7 +95,7 @@ func TestAccOpenShiftCluster_userDefinedRouting(t *testing.T) {
 
 func TestAccOpenShiftCluster_encryptionAtHost(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+	r := RedhatOpenshiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccOpenShiftCluster_encryptionAtHost(t *testing.T) {
 
 func TestAccOpenShiftCluster_preconfiguredNetworkSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+	r := RedhatOpenshiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -131,7 +131,7 @@ func TestAccOpenShiftCluster_pullSecret(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+	r := RedhatOpenshiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -146,7 +146,7 @@ func TestAccOpenShiftCluster_pullSecret(t *testing.T) {
 
 func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+	r := RedhatOpenshiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -161,7 +161,7 @@ func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
 
 func TestAccOpenShiftCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+	r := RedhatOpenshiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -176,7 +176,7 @@ func TestAccOpenShiftCluster_requiresImport(t *testing.T) {
 
 func TestAccOpenShiftCluster_basicResourceGroupName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+	r := RedhatOpenshiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -191,7 +191,7 @@ func TestAccOpenShiftCluster_basicResourceGroupName(t *testing.T) {
 
 func TestAccOpenShiftCluster_loadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+	r := RedhatOpenshiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -213,7 +213,7 @@ func TestAccOpenShiftCluster_loadBalancerProfile(t *testing.T) {
 
 func TestAccOpenShiftCluster_platformWorkloadIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+	r := RedhatOpenshiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -222,8 +222,16 @@ func TestAccOpenShiftCluster_platformWorkloadIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.platformWorkloadIdentityUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.platformWorkloadIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -232,7 +240,7 @@ func TestAccOpenShiftCluster_platformWorkloadIdentity(t *testing.T) {
 	})
 }
 
-func (t OpenShiftClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t RedhatOpenshiftClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := openshiftclusters.ParseOpenShiftClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -246,7 +254,7 @@ func (t OpenShiftClusterResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r OpenShiftClusterResource) basic(data acceptance.TestData) string {
+func (r RedhatOpenshiftClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -297,7 +305,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r OpenShiftClusterResource) requiresImport(data acceptance.TestData) string {
+func (r RedhatOpenshiftClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %[1]s
 
@@ -349,7 +357,7 @@ resource "azurerm_redhat_openshift_cluster" "import" {
   `, r.basic(data))
 }
 
-func (r OpenShiftClusterResource) update(data acceptance.TestData) string {
+func (r RedhatOpenshiftClusterResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -423,7 +431,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r OpenShiftClusterResource) pullSecret(data acceptance.TestData, pullSecret string) string {
+func (r RedhatOpenshiftClusterResource) pullSecret(data acceptance.TestData, pullSecret string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -478,7 +486,7 @@ SECRET
   `, r.template(data), data.RandomInteger, data.RandomString, pullSecret)
 }
 
-func (r OpenShiftClusterResource) userDefinedRouting(data acceptance.TestData) string {
+func (r RedhatOpenshiftClusterResource) userDefinedRouting(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -531,7 +539,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r OpenShiftClusterResource) private(data acceptance.TestData) string {
+func (r RedhatOpenshiftClusterResource) private(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -583,7 +591,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r OpenShiftClusterResource) basicWithFipsEnabled(data acceptance.TestData) string {
+func (r RedhatOpenshiftClusterResource) basicWithFipsEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -636,7 +644,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r OpenShiftClusterResource) preconfiguredNetworkSecurityGroup(data acceptance.TestData) string {
+func (r RedhatOpenshiftClusterResource) preconfiguredNetworkSecurityGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -747,7 +755,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r OpenShiftClusterResource) encryptionAtHost(data acceptance.TestData) string {
+func (r RedhatOpenshiftClusterResource) encryptionAtHost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -887,7 +895,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r OpenShiftClusterResource) basicResourceGroupName(data acceptance.TestData) string {
+func (r RedhatOpenshiftClusterResource) basicResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -940,7 +948,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r OpenShiftClusterResource) loadBalancerProfile(data acceptance.TestData, managedOutboundIpCount int) string {
+func (r RedhatOpenshiftClusterResource) loadBalancerProfile(data acceptance.TestData, managedOutboundIpCount int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -996,7 +1004,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     `, r.template(data), data.RandomInteger, data.RandomString, managedOutboundIpCount)
 }
 
-func (r OpenShiftClusterResource) platformWorkloadIdentity(data acceptance.TestData) string {
+func (r RedhatOpenshiftClusterResource) platformWorkloadIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1279,7 +1287,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r OpenShiftClusterResource) platformWorkloadIdentityUpdate(data acceptance.TestData) string {
+func (r RedhatOpenshiftClusterResource) platformWorkloadIdentityUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1328,12 +1336,6 @@ resource "azurerm_user_assigned_identity" "cluster" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_user_assigned_identity" "cluster_update" {
-  name                = "acctest-aro-cluster-update-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 resource "azurerm_user_assigned_identity" "ccm" {
   name                = "acctest-aro-ccm-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -1342,6 +1344,12 @@ resource "azurerm_user_assigned_identity" "ccm" {
 
 resource "azurerm_user_assigned_identity" "ingress" {
   name                = "acctest-aro-ingress-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "ingress_update" {
+  name                = "acctest-aro-ingress-update-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -1391,6 +1399,7 @@ locals {
     azurerm_user_assigned_identity.file_csi.id,
     azurerm_user_assigned_identity.image_registry.id,
     azurerm_user_assigned_identity.ingress.id,
+    azurerm_user_assigned_identity.ingress_update.id,
     azurerm_user_assigned_identity.machine_api.id,
   ]
 }
@@ -1399,7 +1408,7 @@ resource "azurerm_role_assignment" "cluster_federated_credential" {
   count                = length(local.cluster_federated_credential_scopes)
   scope                = local.cluster_federated_credential_scopes[count.index]
   role_definition_name = "Azure Red Hat OpenShift Federated Credential"
-  principal_id         = azurerm_user_assigned_identity.cluster_update.principal_id
+  principal_id         = azurerm_user_assigned_identity.cluster.principal_id
 }
 
 resource "azurerm_role_assignment" "ccm_master_subnet" {
@@ -1417,13 +1426,25 @@ resource "azurerm_role_assignment" "ccm_worker_subnet" {
 resource "azurerm_role_assignment" "ingress_master_subnet" {
   scope                = azurerm_subnet.main_subnet.id
   role_definition_name = "Azure Red Hat OpenShift Cluster Ingress Operator"
-  principal_id         = azurerm_user_assigned_identity.ingress.principal_id
+  principal_id         = azurerm_user_assigned_identity.ingress_update.principal_id
 }
 
 resource "azurerm_role_assignment" "ingress_worker_subnet" {
   scope                = azurerm_subnet.worker_subnet.id
   role_definition_name = "Azure Red Hat OpenShift Cluster Ingress Operator"
   principal_id         = azurerm_user_assigned_identity.ingress.principal_id
+}
+
+resource "azurerm_role_assignment" "ingress_update_master_subnet" {
+  scope                = azurerm_subnet.main_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Cluster Ingress Operator"
+  principal_id         = azurerm_user_assigned_identity.ingress_update.principal_id
+}
+
+resource "azurerm_role_assignment" "ingress_update_worker_subnet" {
+  scope                = azurerm_subnet.worker_subnet.id
+  role_definition_name = "Azure Red Hat OpenShift Cluster Ingress Operator"
+  principal_id         = azurerm_user_assigned_identity.ingress_update.principal_id
 }
 
 resource "azurerm_role_assignment" "machine_api_master_subnet" {
@@ -1481,7 +1502,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.cluster_update.id]
+    identity_ids = [azurerm_user_assigned_identity.cluster.id]
   }
 
   cluster_profile {
@@ -1523,7 +1544,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     }
     platform_workload_identity {
       name        = "ingress"
-      identity_id = azurerm_user_assigned_identity.ingress.id
+      identity_id = azurerm_user_assigned_identity.ingress_update.id
     }
     platform_workload_identity {
       name        = "machine-api"
@@ -1557,6 +1578,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     azurerm_role_assignment.ccm_worker_subnet,
     azurerm_role_assignment.ingress_master_subnet,
     azurerm_role_assignment.ingress_worker_subnet,
+    azurerm_role_assignment.ingress_update_master_subnet,
+    azurerm_role_assignment.ingress_update_worker_subnet,
     azurerm_role_assignment.machine_api_master_subnet,
     azurerm_role_assignment.machine_api_worker_subnet,
     azurerm_role_assignment.cloud_network_vnet,
@@ -1570,7 +1593,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (OpenShiftClusterResource) template(data acceptance.TestData) string {
+func (RedhatOpenshiftClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

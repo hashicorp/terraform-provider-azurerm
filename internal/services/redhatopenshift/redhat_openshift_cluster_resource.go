@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name redhat_openshift_cluster -service-package-name redhatopenshift -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 package redhatopenshift
 
 import (
@@ -15,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2025-07-25/openshiftclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -28,6 +31,7 @@ import (
 
 var (
 	_ sdk.ResourceWithCustomizeDiff = RedHatOpenShiftCluster{}
+	_ sdk.ResourceWithIdentity      = RedHatOpenShiftCluster{}
 	_ sdk.ResourceWithUpdate        = RedHatOpenShiftCluster{}
 )
 
@@ -121,20 +125,26 @@ func (r RedHatOpenShiftCluster) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			outboundType := metadata.ResourceDiff.Get("network_profile.0.outbound_type").(string)
+			loadBalancerProfile := metadata.ResourceDiff.Get("network_profile.0.load_balancer_profile")
+			if outboundType != string(openshiftclusters.OutboundTypeLoadbalancer) && len(loadBalancerProfile.([]interface{})) > 0 {
+				return errors.New("`network_profile.0.load_balancer_profile` requires `network_profile.0.outbound_type` to be `Loadbalancer`")
+			}
+
+			if metadata.ResourceDiff.Id() == "" {
+				return nil
+			}
+
+			// The service principal can be swapped, but it cannot be added or removed in place.
 			oldServicePrincipal, newServicePrincipal := metadata.ResourceDiff.GetChange("service_principal")
-			if schemaListLength(oldServicePrincipal) != schemaListLength(newServicePrincipal) {
+			if len(oldServicePrincipal.([]interface{})) != len(newServicePrincipal.([]interface{})) {
 				return metadata.ResourceDiff.ForceNew("service_principal")
 			}
 
+			// The identity can be swapped, but it cannot be added or removed in place.
 			oldIdentity, newIdentity := metadata.ResourceDiff.GetChange("identity")
-			if schemaListLength(oldIdentity) != schemaListLength(newIdentity) {
+			if len(oldIdentity.([]interface{})) != len(newIdentity.([]interface{})) {
 				return metadata.ResourceDiff.ForceNew("identity")
-			}
-
-			outboundType := metadata.ResourceDiff.Get("network_profile.0.outbound_type").(string)
-			loadBalancerProfile := metadata.ResourceDiff.Get("network_profile.0.load_balancer_profile")
-			if outboundType != string(openshiftclusters.OutboundTypeLoadbalancer) && schemaListLength(loadBalancerProfile) > 0 {
-				return errors.New("`network_profile.0.load_balancer_profile` is only applicable when `network_profile.0.outbound_type` is set to `Loadbalancer`")
 			}
 
 			return nil
@@ -507,6 +517,10 @@ func (r RedHatOpenShiftCluster) IDValidationFunc() pluginsdk.SchemaValidateFunc 
 	return openshiftclusters.ValidateOpenShiftClusterID
 }
 
+func (r RedHatOpenShiftCluster) Identity() resourceids.ResourceId {
+	return &openshiftclusters.OpenShiftClusterId{}
+}
+
 func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
@@ -534,9 +548,15 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 				}
 			}
 
+			expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(config.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			parameters := openshiftclusters.OpenShiftCluster{
 				Name:     pointer.To(id.OpenShiftClusterName),
 				Location: location.Normalize(config.Location),
+				Identity: expandedIdentity,
 				Properties: &openshiftclusters.OpenShiftClusterProperties{
 					ClusterProfile:                  expandOpenshiftClusterProfile(config.ClusterProfile, id.SubscriptionId),
 					ServicePrincipalProfile:         expandOpenshiftServicePrincipalProfile(config.ServicePrincipal),
@@ -550,16 +570,9 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 				Tags: pointer.To(config.Tags),
 			}
 
-			expandedIdentity, err := expandOpenShiftClusterIdentity(config.Identity)
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
-			parameters.Identity = expandedIdentity
-
-			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-			metadata.SetID(id)
 
 			return nil
 		},
@@ -582,41 +595,30 @@ func (r RedHatOpenShiftCluster) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameter := openshiftclusters.OpenShiftClusterUpdate{}
-
-			if metadata.ResourceData.HasChange("tags") {
-				parameter.Tags = pointer.To(state.Tags)
+			expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			if metadata.ResourceData.HasChange("service_principal") {
-				parameter.Properties = &openshiftclusters.OpenShiftClusterProperties{
-					ServicePrincipalProfile: expandOpenshiftServicePrincipalProfile(state.ServicePrincipal),
-				}
+			parameter := openshiftclusters.OpenShiftCluster{
+				Name:     pointer.To(id.OpenShiftClusterName),
+				Location: location.Normalize(state.Location),
+				Identity: expandedIdentity,
+				Properties: &openshiftclusters.OpenShiftClusterProperties{
+					ClusterProfile:                  expandOpenshiftClusterProfile(state.ClusterProfile, id.SubscriptionId),
+					ServicePrincipalProfile:         expandOpenshiftServicePrincipalProfile(state.ServicePrincipal),
+					NetworkProfile:                  expandOpenshiftNetworkProfile(state.NetworkProfile),
+					MasterProfile:                   expandOpenshiftMainProfile(state.MainProfile),
+					WorkerProfiles:                  expandOpenshiftWorkerProfiles(state.WorkerProfile),
+					ApiserverProfile:                expandOpenshiftApiServerProfile(state.ApiServerProfile),
+					IngressProfiles:                 expandOpenshiftIngressProfiles(state.IngressProfile),
+					PlatformWorkloadIdentityProfile: expandOpenshiftPlatformWorkloadIdentityProfile(state.PlatformWorkloadIdentityProfile),
+				},
+				Tags: pointer.To(state.Tags),
 			}
 
-			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := expandOpenShiftClusterIdentity(state.Identity)
-				if err != nil {
-					return fmt.Errorf("expanding `identity`: %+v", err)
-				}
-				parameter.Identity = expandedIdentity
-			}
-
-			if metadata.ResourceData.HasChange("platform_workload_identity_profile") {
-				if parameter.Properties == nil {
-					parameter.Properties = &openshiftclusters.OpenShiftClusterProperties{}
-				}
-				parameter.Properties.PlatformWorkloadIdentityProfile = expandOpenshiftPlatformWorkloadIdentityProfile(state.PlatformWorkloadIdentityProfile)
-			}
-
-			if metadata.ResourceData.HasChange("network_profile.0.load_balancer_profile.0.managed_outbound_ip_count") {
-				if parameter.Properties == nil {
-					parameter.Properties = &openshiftclusters.OpenShiftClusterProperties{}
-				}
-				parameter.Properties.NetworkProfile = expandOpenshiftNetworkProfile(state.NetworkProfile)
-			}
-
-			if err := client.UpdateThenPoll(ctx, *id, parameter); err != nil {
+			// Platform workload identity updates require PUT so a workload identity can be updated in place.
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, parameter); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -656,44 +658,52 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.Tags = pointer.From(model.Tags)
-
-				flattenedIdentity, err := flattenOpenShiftClusterIdentity(model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-				state.Identity = flattenedIdentity
-
-				if props := model.Properties; props != nil {
-					clusterProfile, err := flattenOpenShiftClusterProfile(props.ClusterProfile, config)
-					if err != nil {
-						return fmt.Errorf("flatten cluster profile: %+v", err)
-					}
-					state.ClusterProfile = *clusterProfile
-
-					state.ServicePrincipal = flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, config)
-					state.NetworkProfile = flattenOpenShiftNetworkProfile(props.NetworkProfile)
-					state.MainProfile = flattenOpenShiftMainProfile(props.MasterProfile)
-					state.ApiServerProfile = flattenOpenShiftAPIServerProfile(props.ApiserverProfile)
-					state.IngressProfile = flattenOpenShiftIngressProfiles(props.IngressProfiles)
-					state.PlatformWorkloadIdentityProfile = flattenOpenShiftPlatformWorkloadIdentityProfile(props.PlatformWorkloadIdentityProfile)
-
-					workerProfiles, err := flattenOpenShiftWorkerProfiles(props.WorkerProfiles)
-					if err != nil {
-						return fmt.Errorf("flattening worker profiles: %+v", err)
-					}
-					state.WorkerProfile = workerProfiles
-
-					if props.ConsoleProfile != nil {
-						state.ConsoleUrl = pointer.From(props.ConsoleProfile.Url)
-					}
+				if err := r.flatten(&state, model, config); err != nil {
+					return err
 				}
 			}
 
 			return metadata.Encode(&state)
 		},
 	}
+}
+
+func (RedHatOpenShiftCluster) flatten(state *RedHatOpenShiftClusterModel, model *openshiftclusters.OpenShiftCluster, config RedHatOpenShiftClusterModel) error {
+	state.Location = location.Normalize(model.Location)
+	state.Tags = pointer.From(model.Tags)
+
+	flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	state.Identity = pointer.From(flattenedIdentity)
+
+	if props := model.Properties; props != nil {
+		clusterProfile, err := flattenOpenShiftClusterProfile(props.ClusterProfile, config)
+		if err != nil {
+			return fmt.Errorf("flatten cluster profile: %+v", err)
+		}
+		state.ClusterProfile = *clusterProfile
+
+		state.ServicePrincipal = flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, config)
+		state.NetworkProfile = flattenOpenShiftNetworkProfile(props.NetworkProfile)
+		state.MainProfile = flattenOpenShiftMainProfile(props.MasterProfile)
+		state.ApiServerProfile = flattenOpenShiftAPIServerProfile(props.ApiserverProfile)
+		state.IngressProfile = flattenOpenShiftIngressProfiles(props.IngressProfiles)
+		state.PlatformWorkloadIdentityProfile = flattenOpenShiftPlatformWorkloadIdentityProfile(props.PlatformWorkloadIdentityProfile)
+
+		workerProfiles, err := flattenOpenShiftWorkerProfiles(props.WorkerProfiles)
+		if err != nil {
+			return fmt.Errorf("flattening worker profiles: %+v", err)
+		}
+		state.WorkerProfile = workerProfiles
+
+		if props.ConsoleProfile != nil {
+			state.ConsoleUrl = pointer.From(props.ConsoleProfile.Url)
+		}
+	}
+
+	return nil
 }
 
 func (r RedHatOpenShiftCluster) Delete() sdk.ResourceFunc {
@@ -740,38 +750,6 @@ func expandOpenshiftClusterProfile(input []ClusterProfile, subscriptionId string
 		FipsValidatedModules: pointer.To(fipsValidatedModules),
 		Version:              pointer.To(input[0].Version),
 	}
-}
-
-func expandOpenShiftClusterIdentity(input []identity.ModelUserAssigned) (*identity.LegacySystemAndUserAssignedMap, error) {
-	if len(input) == 0 {
-		return nil, nil
-	}
-
-	expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(input)
-	if err != nil {
-		return nil, err
-	}
-
-	return &identity.LegacySystemAndUserAssignedMap{
-		Type:        expandedIdentity.Type,
-		IdentityIds: expandedIdentity.IdentityIds,
-	}, nil
-}
-
-func flattenOpenShiftClusterIdentity(input *identity.LegacySystemAndUserAssignedMap) ([]identity.ModelUserAssigned, error) {
-	if input == nil {
-		return []identity.ModelUserAssigned{}, nil
-	}
-
-	flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(&identity.UserAssignedMap{
-		Type:        input.Type,
-		IdentityIds: input.IdentityIds,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return *flattenedIdentity, nil
 }
 
 func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile, config RedHatOpenShiftClusterModel) (*[]ClusterProfile, error) {
@@ -923,15 +901,6 @@ func flattenOpenShiftLoadBalancerProfile(profile *openshiftclusters.LoadBalancer
 	}
 }
 
-func schemaListLength(input interface{}) int {
-	items, ok := input.([]interface{})
-	if !ok {
-		return 0
-	}
-
-	return len(items)
-}
-
 func expandOpenshiftPlatformWorkloadIdentityProfile(input []PlatformWorkloadIdentityProfile) *openshiftclusters.PlatformWorkloadIdentityProfile {
 	if len(input) == 0 {
 		return nil
@@ -1027,7 +996,7 @@ func expandOpenshiftWorkerProfiles(input []WorkerProfile) *[]openshiftclusters.W
 		return nil
 	}
 
-	profiles := make([]openshiftclusters.WorkerProfile, 0)
+	profiles := make([]openshiftclusters.WorkerProfile, 0, 1)
 
 	encryptionAtHost := openshiftclusters.EncryptionAtHostDisabled
 	if input[0].EncryptionAtHostEnabled {
@@ -1114,7 +1083,7 @@ func expandOpenshiftIngressProfiles(input []IngressProfile) *[]openshiftclusters
 		return nil
 	}
 
-	profiles := make([]openshiftclusters.IngressProfile, 0)
+	profiles := make([]openshiftclusters.IngressProfile, 0, 1)
 
 	profile := openshiftclusters.IngressProfile{
 		Name:       pointer.To("default"),
