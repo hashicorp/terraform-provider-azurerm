@@ -87,16 +87,21 @@ func (r CdnFrontDoorBatchRuleSetResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			for _, ruleValue := range rulesValue.AsValueSlice() {
-				if ruleValue.IsNull() {
+				if ruleValue.IsNull() || !ruleValue.IsKnown() {
 					continue
 				}
 
 				conditions := ruleValue.AsValueMap()["conditions"]
-				if conditions.IsNull() || conditions.LengthInt() == 0 {
+				if conditions.IsNull() || !conditions.IsKnown() || conditions.LengthInt() == 0 {
 					continue
 				}
 
-				conditionBlock := conditions.AsValueSlice()[0].AsValueMap()
+				conditionEntries := conditions.AsValueSlice()
+				if len(conditionEntries) == 0 || conditionEntries[0].IsNull() || !conditionEntries[0].IsKnown() {
+					continue
+				}
+
+				conditionBlock := conditionEntries[0].AsValueMap()
 				if err := validateFrontDoorConditionBlocksRequireMatchValues(conditionBlock, []string{"request_scheme_condition", "is_device_condition"}); err != nil {
 					return err
 				}

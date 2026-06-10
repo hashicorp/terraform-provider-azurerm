@@ -601,16 +601,21 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 			// breaking behavior change for working configurations because configs missing
 			// `match_values` were already invalid at apply-time before this check.
 			rawConfig := diff.GetRawConfig()
-			if rawConfig.IsNull() {
+			if rawConfig.IsNull() || !rawConfig.IsKnown() {
 				return nil
 			}
 
 			conditions := rawConfig.GetAttr("conditions")
-			if conditions.IsNull() || conditions.LengthInt() == 0 {
+			if conditions.IsNull() || !conditions.IsKnown() || conditions.LengthInt() == 0 {
 				return nil
 			}
 
-			conditionBlock := conditions.AsValueSlice()[0].AsValueMap()
+			conditionEntries := conditions.AsValueSlice()
+			if len(conditionEntries) == 0 || conditionEntries[0].IsNull() || !conditionEntries[0].IsKnown() {
+				return nil
+			}
+
+			conditionBlock := conditionEntries[0].AsValueMap()
 			return validateFrontDoorConditionBlocksRequireMatchValues(conditionBlock, []string{"request_scheme_condition", "is_device_condition"})
 		}),
 	}
