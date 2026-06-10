@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-02-01/deletedworkspaces` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/deletedworkspaces` Documentation
 
-The `deletedworkspaces` SDK allows for interaction with Azure Resource Manager `operationalinsights` (API Version `2025-02-01`).
+The `deletedworkspaces` SDK allows for interaction with Azure Resource Manager `operationalinsights` (API Version `2025-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-02-01/deletedworkspaces"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/deletedworkspaces"
 ```
 
 
@@ -27,12 +27,13 @@ client.Client.Authorizer = authorizer
 ctx := context.TODO()
 id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-read, err := client.List(ctx, id)
+// alternatively `client.List(ctx, id)` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -43,11 +44,12 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
-read, err := client.ListByResourceGroup(ctx, id)
+// alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
+items, err := client.ListByResourceGroupComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```

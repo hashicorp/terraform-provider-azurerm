@@ -1,4 +1,4 @@
-package deletedworkspaces
+package workspaces
 
 import (
 	"time"
@@ -10,9 +10,9 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type WorkspaceSku struct {
-	CapacityReservationLevel *CapacityReservationLevel `json:"capacityReservationLevel,omitempty"`
-	LastSkuUpdate            *string                   `json:"lastSkuUpdate,omitempty"`
-	Name                     WorkspaceSkuNameEnum      `json:"name"`
+	CapacityReservationLevel *int64               `json:"capacityReservationLevel,omitempty"`
+	LastSkuUpdate            *string              `json:"lastSkuUpdate,omitempty"`
+	Name                     WorkspaceSkuNameEnum `json:"name"`
 }
 
 func (o *WorkspaceSku) GetLastSkuUpdateAsTime() (*time.Time, error) {

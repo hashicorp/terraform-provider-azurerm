@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	sharedKeyWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-02-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -32,8 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
-
-const publicNetworkAccessTypeSecuredByPerimeter = "SecuredByPerimeter"
 
 func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -101,7 +99,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(workspaces.PublicNetworkAccessTypeEnabled),
 					string(workspaces.PublicNetworkAccessTypeDisabled),
-					publicNetworkAccessTypeSecuredByPerimeter,
+					string(workspaces.PublicNetworkAccessTypeSecuredByPerimeter),
 				}, false),
 			},
 
@@ -112,7 +110,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(workspaces.PublicNetworkAccessTypeEnabled),
 					string(workspaces.PublicNetworkAccessTypeDisabled),
-					publicNetworkAccessTypeSecuredByPerimeter,
+					string(workspaces.PublicNetworkAccessTypeSecuredByPerimeter),
 				}, false),
 			},
 
@@ -138,17 +136,17 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				ValidateFunc: validation.IntInSlice([]int{
-					int(workspaces.CapacityReservationLevelOneHundred),
-					int(workspaces.CapacityReservationLevelTwoHundred),
-					int(workspaces.CapacityReservationLevelThreeHundred),
-					int(workspaces.CapacityReservationLevelFourHundred),
-					int(workspaces.CapacityReservationLevelFiveHundred),
-					int(workspaces.CapacityReservationLevelOneThousand),
-					int(workspaces.CapacityReservationLevelTwoThousand),
-					int(workspaces.CapacityReservationLevelFiveThousand),
-					int(workspaces.CapacityReservationLevelOneZeroThousand),
-					int(workspaces.CapacityReservationLevelTwoFiveThousand),
-					int(workspaces.CapacityReservationLevelFiveZeroThousand),
+					100,
+					200,
+					300,
+					400,
+					500,
+					1000,
+					2000,
+					5000,
+					10000,
+					25000,
+					50000,
 				}),
 			},
 
@@ -221,7 +219,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(workspaces.PublicNetworkAccessTypeEnabled),
 				string(workspaces.PublicNetworkAccessTypeDisabled),
-				publicNetworkAccessTypeSecuredByPerimeter,
+				string(workspaces.PublicNetworkAccessTypeSecuredByPerimeter),
 			}, false),
 			ConflictsWith: []string{"internet_ingestion_enabled"},
 		}
@@ -233,7 +231,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(workspaces.PublicNetworkAccessTypeEnabled),
 				string(workspaces.PublicNetworkAccessTypeDisabled),
-				publicNetworkAccessTypeSecuredByPerimeter,
+				string(workspaces.PublicNetworkAccessTypeSecuredByPerimeter),
 			}, false),
 			ConflictsWith: []string{"internet_query_enabled"},
 		}
@@ -330,8 +328,8 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("listing deleted Log Analytics Workspaces: %+v", err)
 	}
 
-	if model := deleted.Model; model != nil && model.Value != nil {
-		for _, v := range *model.Value {
+	if model := deleted.Model; model != nil {
+		for _, v := range *model {
 			if props := v.Properties; props != nil && props.Sku != nil {
 				if pointer.From(v.Name) == name && string(props.Sku.Name) == string(workspaces.WorkspaceSkuNameEnumLACluster) {
 					isLACluster = true
@@ -431,7 +429,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	capacityReservationLevel, ok := d.GetOk(propName)
 	if ok {
 		if strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) {
-			capacityReservationLevelValue := workspaces.CapacityReservationLevel(int64(capacityReservationLevel.(int)))
+			capacityReservationLevelValue := int64(capacityReservationLevel.(int))
 			parameters.Properties.Sku.CapacityReservationLevel = &capacityReservationLevelValue
 		} else {
 			return fmt.Errorf("`%s` can only be used with the `CapacityReservation` SKU", propName)
@@ -610,7 +608,7 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 				return errors.New("`reservation_capacity_in_gb_per_day` can only be used with the `CapacityReservation` SKU")
 			}
 
-			props.Sku.CapacityReservationLevel = pointer.To(workspaces.CapacityReservationLevel(int64(capacityReservationLevel.(int))))
+			props.Sku.CapacityReservationLevel = pointer.To(int64(capacityReservationLevel.(int)))
 		} else if strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) {
 			return errors.New("`reservation_capacity_in_gb_per_day` must be set when using the `CapacityReservation` SKU")
 		}

@@ -819,7 +819,8 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 func (LogAnalyticsWorkspaceResource) withInternetIngestionEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -838,10 +839,31 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days          = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                           = "acctestLAW-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  internet_ingestion_access_type = "Enabled"
+  sku                            = "PerGB2018"
+  retention_in_days              = 30
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (LogAnalyticsWorkspaceResource) withInternetIngestionEnabledUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -860,10 +882,31 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days          = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                           = "acctestLAW-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  internet_ingestion_access_type = "Disabled"
+  sku                            = "PerGB2018"
+  retention_in_days              = 30
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (LogAnalyticsWorkspaceResource) withInternetQueryEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -882,10 +925,31 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days      = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                       = "acctestLAW-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  internet_query_access_type = "Enabled"
+  sku                        = "PerGB2018"
+  retention_in_days          = 30
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (LogAnalyticsWorkspaceResource) withInternetQueryEnabledUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -902,6 +966,26 @@ resource "azurerm_log_analytics_workspace" "test" {
   internet_query_enabled = false
   sku                    = "PerGB2018"
   retention_in_days      = 30
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                       = "acctestLAW-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  internet_query_access_type = "Disabled"
+  sku                        = "PerGB2018"
+  retention_in_days          = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -921,7 +1005,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                               = "acctestLAW-%d"
   location                           = azurerm_resource_group.test.location
   resource_group_name                = azurerm_resource_group.test.name
-  internet_query_enabled             = false
+  internet_query_access_type         = "Disabled"
   sku                                = "CapacityReservation"
   reservation_capacity_in_gb_per_day = %d
 }
@@ -943,7 +1027,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                               = "acctestLAW-%d"
   location                           = azurerm_resource_group.test.location
   resource_group_name                = azurerm_resource_group.test.name
-  internet_query_enabled             = false
+  internet_query_access_type         = "Disabled"
   sku                                = "CapacityReservation"
   reservation_capacity_in_gb_per_day = %d
 }
