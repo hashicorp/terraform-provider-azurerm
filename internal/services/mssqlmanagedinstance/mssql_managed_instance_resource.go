@@ -700,7 +700,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				props.HybridSecondaryUsage = pointer.To(managedinstances.HybridSecondaryUsage(state.HybridSecondaryUsage))
 			}
 
-			if metadata.ResourceData.HasChange("general_purpose_v2_enabled") {
+			if metadata.ResourceData.HasChanges("general_purpose_v2_enabled", "sku_name") {
 				props.IsGeneralPurposeV2 = expandMsSqlManagedInstanceGeneralPurposeV2Enabled(state.GeneralPurposeV2Enabled, state.SkuName)
 
 				// when `general_purpose_v2_enabled` is `nil` or `false`, ensure `storageIOps is not in the request as this is not supported
