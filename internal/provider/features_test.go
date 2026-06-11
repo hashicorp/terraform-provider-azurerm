@@ -259,7 +259,7 @@ func TestExpandFeatures(t *testing.T) {
 				EnhancedValidation: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
-					PreflightEnabled:  true,
+					PreflightEnabled:  features.FivePointOh(),
 					LocationFallback:  nil,
 				},
 				KeyVault: features.KeyVaultFeatures{
@@ -2022,7 +2022,7 @@ func TestExpandFeaturesEnhancedValidation(t *testing.T) {
 				EnhancedValidation: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
-					PreflightEnabled:  true,
+					PreflightEnabled:  features.FivePointOh(),
 					LocationFallback:  nil,
 				},
 			},
