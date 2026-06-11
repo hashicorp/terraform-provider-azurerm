@@ -409,7 +409,7 @@ func resolvePreflightVnetLocation(ctx context.Context, metadata sdk.ResourceMeta
 	subnet, err := commonids.ParseSubnetID(model.SubnetId)
 	if err != nil {
 		metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %q: 'subnet_id' unknown", model.Name))
-		return "", true, nil
+		return "", true, err
 	}
 
 	vnetId := commonids.NewVirtualNetworkID(subnet.SubscriptionId, subnet.ResourceGroupName, subnet.VirtualNetworkName)
