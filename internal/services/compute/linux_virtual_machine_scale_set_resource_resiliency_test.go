@@ -11,43 +11,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-func TestAccLinuxVirtualMachineScaleSet_resiliency_automaticZoneRebalancing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.automaticZoneRebalancing(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.automaticZoneRebalancing(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.automaticZoneRebalancing(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func TestAccLinuxVirtualMachineScaleSet_resiliency_vmCreationOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.resiliencyVMPolicies(data, true, false),
+			Config: r.resiliencyVMPolicies(data, true, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -58,8 +28,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_vmCreationOnly(t *testing.T) 
 
 func TestAccLinuxVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
-
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -71,21 +39,21 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.resiliencyVMPolicies(data, false, true),
+			Config: r.resiliencyVMPolicies(data, false, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.resiliencyVMPolicies(data, true, true),
+			Config: r.resiliencyVMPolicies(data, true, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.resiliencyVMPolicies(data, false, false),
+			Config: r.resiliencyVMPolicies(data, false, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -94,20 +62,19 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 	})
 }
 
-func (r LinuxVirtualMachineScaleSetResource) automaticZoneRebalancing(data acceptance.TestData, automaticZoneRebalancingEnabled bool) string {
+func (r LinuxVirtualMachineScaleSetResource) resiliencyVMPolicies(data acceptance.TestData, vmCreationEnabled, vmDeletionEnabled, automaticZoneRebalancingEnabled bool) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                               = "acctestvmss-%d"
-  resource_group_name                = azurerm_resource_group.test.name
-  location                           = azurerm_resource_group.test.location
-  sku                                = "Standard_F2ads_v7"
-  instances                          = 2
-  admin_username                     = "adminuser"
-  disable_password_authentication    = true
-  zones                              = ["1", "2"]
-  automatic_zone_rebalancing_enabled = %t
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2ads_v7"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  disable_password_authentication = true
+  zones                           = ["1", "2"]
 
   source_image_reference {
     publisher = "Canonical"
@@ -126,6 +93,17 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     public_key = local.first_public_key
   }
 
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
   extension {
     name                       = "HealthExtension"
     publisher                  = "Microsoft.ManagedServices"
@@ -133,70 +111,17 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
     settings = jsonencode({
-      protocol = "https"
-      port     = 443
+      protocol    = "https"
+      port        = 443
+      requestPath = "/"
     })
   }
 
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
+  resilient_vm_creation_enabled      = %t
+  resilient_vm_deletion_enabled      = %t
+  automatic_zone_rebalancing_enabled = %t
 }
-`, r.template(data), data.RandomInteger, automaticZoneRebalancingEnabled)
-}
-
-func (r LinuxVirtualMachineScaleSetResource) resiliencyVMPolicies(data acceptance.TestData, vmCreationEnabled, vmDeletionEnabled bool) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_B1ls"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  disable_password_authentication = true
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = local.first_public_key
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  resilient_vm_creation_enabled = %t
-  resilient_vm_deletion_enabled = %t
-}
-`, r.template(data), data.RandomInteger, vmCreationEnabled, vmDeletionEnabled)
+`, r.template(data), data.RandomInteger, vmCreationEnabled, vmDeletionEnabled, automaticZoneRebalancingEnabled)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) resiliencyFieldsNotConfigured(data acceptance.TestData) string {
@@ -207,15 +132,16 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                            = "acctestvmss-%d"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_B1ls"
+  sku                             = "Standard_F2ads_v7"
   instances                       = 1
   admin_username                  = "adminuser"
   disable_password_authentication = true
+  zones                           = ["1", "2"]
 
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 
@@ -240,8 +166,21 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  # Note: resilient_vm_creation_enabled and resilient_vm_deletion_enabled are intentionally NOT configured
-  # This tests backward compatibility - these fields should not appear in state
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol    = "https"
+      port        = 443
+      requestPath = "/"
+    })
+  }
+
+  # Note: resilient_vm_creation_enabled, resilient_vm_deletion_enabled, and automatic_zone_rebalancing_enabled
+  # are intentionally NOT configured here to test backward compatibility - they should not appear in state
 }
 `, r.template(data), data.RandomInteger)
 }

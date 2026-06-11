@@ -398,26 +398,6 @@ func ExpandVirtualMachineScaleSetResiliency(automaticZoneRebalancingEnabled, res
 	return result
 }
 
-func ExpandVirtualMachineScaleSetResiliencyUpdate(automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
-	result := &virtualmachinescalesets.ResiliencyPolicy{}
-
-	result.AutomaticZoneRebalancingPolicy = &virtualmachinescalesets.AutomaticZoneRebalancingPolicy{
-		Enabled:           pointer.To(automaticZoneRebalancingEnabled),
-		RebalanceBehavior: pointer.To(virtualmachinescalesets.RebalanceBehaviorCreateBeforeDelete),
-		RebalanceStrategy: pointer.To(virtualmachinescalesets.RebalanceStrategyRecreate),
-	}
-
-	result.ResilientVMCreationPolicy = &virtualmachinescalesets.ResilientVMCreationPolicy{
-		Enabled: pointer.To(resilientVMCreationEnabled),
-	}
-
-	result.ResilientVMDeletionPolicy = &virtualmachinescalesets.ResilientVMDeletionPolicy{
-		Enabled: pointer.To(resilientVMDeletionEnabled),
-	}
-
-	return result
-}
-
 func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.ResiliencyPolicy) (automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) {
 	if input == nil {
 		return automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled
