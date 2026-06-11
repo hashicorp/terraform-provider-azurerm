@@ -362,57 +362,84 @@ func (r AppServiceEnvironmentV3Resource) CustomizeDiff() sdk.ResourceFunc {
 				return nil
 			}
 
-			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
-				if len(rd.GetChangedKeysPrefix("")) > 0 || rd.Id() == "" {
-					var model AppServiceEnvironmentV3Model
-					if err := metadata.DecodeDiff(&model); err != nil {
-						return err
-					}
+			// Only run preflight validation when it's enabled and the diff contains changes (or this is a new resource).
+			if !metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				return nil
+			}
+			if len(rd.GetChangedKeysPrefix("")) == 0 && rd.Id() != "" {
+				return nil
+			}
 
-					networksClient := metadata.Client.Network.VirtualNetworks
-					var vnetLoc string
-					if model.SubnetId != "" {
-						subnet, err := commonids.ParseSubnetID(model.SubnetId)
-						if err != nil {
-							metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %q: 'subnet_id' unknown", model.Name))
-							return nil
-						}
+			var model AppServiceEnvironmentV3Model
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return err
+			}
 
-						vnetId := commonids.NewVirtualNetworkID(subnet.SubscriptionId, subnet.ResourceGroupName, subnet.VirtualNetworkName)
+			vnetLoc, skip, err := resolvePreflightVnetLocation(ctx, metadata, model)
+			if err != nil {
+				return err
+			}
+			if skip {
+				return nil
+			}
 
-						vnet, err := networksClient.Get(ctx, vnetId, virtualnetworks.DefaultGetOperationOptions())
-						if err != nil {
-							if response.WasNotFound(vnet.HttpResponse) {
-								// Gracefully skip preflight validation since the VNet doesn't exist yet and we can't determine the location
-								metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %q: Virtual Network %q not found", model.Name, vnetId.ID()))
-								return nil
-							}
-							return fmt.Errorf("retrieving Virtual Network %q for preflight validation: %+v", vnetId.ID(), err)
-						}
+			req := expandCreateForAppServiceEnvironmentV3(model, vnetLoc)
+			id := commonids.NewAppServiceEnvironmentID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
 
-						if vnet.Model == nil || vnet.Model.Location == nil {
-							return fmt.Errorf("determining Location from Virtual Network %q for preflight validation: `location` was missing", vnetId.ID())
-						}
-						vnetLoc = *vnet.Model.Location
-					}
+			preflightValidate, err := preflight.NewValidationRequest(pointer.To(vnetLoc), pointer.To(id), "2023-01-01", req)
+			if err != nil {
+				return fmt.Errorf("constructing preflight validation request: %w", err)
+			}
 
-					req := expandCreateForAppServiceEnvironmentV3(model, vnetLoc)
-					id := commonids.NewAppServiceEnvironmentID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
-
-					preflightValidate, err := preflight.NewValidationRequest(pointer.To(vnetLoc), pointer.To(id), "2023-01-01", req)
-					if err != nil {
-						return fmt.Errorf("constructing preflight validation request: %w", err)
-					}
-
-					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
-						return err
-					}
-				}
+			if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+				return err
 			}
 
 			return nil
 		},
 	}
+}
+
+// resolvePreflightVnetLocation determines the Virtual Network location used for preflight
+// validation. It returns skip=true when validation should be gracefully skipped (e.g. the
+// subnet_id is not yet known, or the Virtual Network doesn't exist and no location fallback
+// is configured).
+func resolvePreflightVnetLocation(ctx context.Context, metadata sdk.ResourceMetaData, model AppServiceEnvironmentV3Model) (vnetLoc string, skip bool, err error) {
+	if model.SubnetId == "" {
+		return "", false, nil
+	}
+
+	subnet, err := commonids.ParseSubnetID(model.SubnetId)
+	if err != nil {
+		metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %q: 'subnet_id' unknown", model.Name))
+		return "", true, nil
+	}
+
+	vnetId := commonids.NewVirtualNetworkID(subnet.SubscriptionId, subnet.ResourceGroupName, subnet.VirtualNetworkName)
+
+	vnet, err := metadata.Client.Network.VirtualNetworks.Get(ctx, vnetId, virtualnetworks.DefaultGetOperationOptions())
+	if err != nil {
+		if !response.WasNotFound(vnet.HttpResponse) {
+			return "", false, fmt.Errorf("retrieving Virtual Network %q for preflight validation: %+v", vnetId.ID(), err)
+		}
+
+		// The VNet doesn't exist yet, so we can't determine its location. Rely on the configured
+		// fallback if one is available, otherwise gracefully skip preflight validation.
+		fallback := metadata.Client.Features.EnhancedValidation.LocationFallback
+		if fallback == nil {
+			metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %q: Virtual Network %q not found and no location fallback configured", model.Name, vnetId.ID()))
+			return "", true, nil
+		}
+
+		metadata.Logger.Info(fmt.Sprintf("Virtual Network %q not found, relying on location fallback for preflight validation", vnetId.ID()))
+		return *fallback, false, nil
+	}
+
+	if vnet.Model == nil || vnet.Model.Location == nil {
+		return "", false, fmt.Errorf("determining Location from Virtual Network %q for preflight validation: `location` was missing", vnetId.ID())
+	}
+
+	return *vnet.Model.Location, false, nil
 }
 
 func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
