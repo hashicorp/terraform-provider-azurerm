@@ -283,11 +283,15 @@ This means the preflight payload will contain an empty value for that field, whi
 **Example:**
 
 ```hcl
-resource "azurerm_user_assigned_identity" "identity" { ... }
+resource "azurerm_user_assigned_identity" "identity" {
+  name                = "example-identity"
+  location            = "westeurope"
+  resource_group_name = "example-resources"
+}
 
 resource "azurerm_managed_redis" "redis" {
   identity {
-    identity_ids = [azurerm_user_assigned_identity.identity.id]  # (known after apply) at plan time
+    identity_ids = [azurerm_user_assigned_identity.identity.id] # (known after apply) at plan time
   }
 }
 ```
@@ -310,13 +314,50 @@ For most resources the risk is limited to **false negatives** (reduced coverage)
 (`name`, `location`, `resource_group_name`) are almost always literal values in user config,
 not computed cross-resource references.
 
-If a resource commonly has a `Required` field populated via a cross-resource computed reference,
-consider guarding the preflight call to avoid false positives:
+If a resource commonly has a `Required` field populated via a cross-resource computed reference (like a Virtual Network lookup), you should implement the **Provider-level Location Fallback**. 
+
+To keep `CustomizeDiff` readable, extract complex dependency lookups and fallback logic into a dedicated helper function:
 
 ```go
-// Skip preflight if a required field is not yet known at plan time.
-if model.Location == "" {
-    return nil
+// resolvePreflightVnetLocation determines the Virtual Network location used for preflight
+// validation. It returns skip=true when validation should be gracefully skipped (e.g. the
+// subnet_id is not yet known, or the Virtual Network doesn't exist and no location fallback
+// is configured).
+func resolvePreflightVnetLocation(ctx context.Context, metadata sdk.ResourceMetaData, model MyResourceModel) (vnetLoc string, skip bool, err error) {
+    if model.SubnetId == "" {
+        return "", false, nil
+    }
+
+    subnet, err := commonids.ParseSubnetID(model.SubnetId)
+    if err != nil {
+        metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %%q: 'subnet_id' unknown", model.Name))
+        return "", true, nil
+    }
+
+    vnetId := commonids.NewVirtualNetworkID(subnet.SubscriptionId, subnet.ResourceGroupName, subnet.VirtualNetworkName)
+    vnet, err := metadata.Client.Network.VirtualNetworks.Get(ctx, vnetId, virtualnetworks.DefaultGetOperationOptions())
+    if err != nil {
+        if !response.WasNotFound(vnet.HttpResponse) {
+            return "", false, fmt.Errorf("retrieving Virtual Network %%q for preflight validation: %%+v", vnetId.ID(), err)
+        }
+
+        // The VNet doesn't exist yet, so we can't determine its location. Rely on the configured
+        // fallback if one is available, otherwise gracefully skip preflight validation.
+        fallback := metadata.Client.Features.EnhancedValidation.LocationFallback
+        if fallback == nil {
+            metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %%q: Virtual Network %%q not found and no location fallback configured", model.Name, vnetId.ID()))
+            return "", true, nil
+        }
+
+        metadata.Logger.Info(fmt.Sprintf("Virtual Network %%q not found, relying on location fallback for preflight validation", vnetId.ID()))
+        return *fallback, false, nil
+    }
+
+    if vnet.Model == nil || vnet.Model.Location == nil {
+        return "", false, fmt.Errorf("determining Location from Virtual Network %%q for preflight validation: `location` was missing", vnetId.ID())
+    }
+
+    return *vnet.Model.Location, false, nil
 }
 ```
 
