@@ -350,6 +350,7 @@ func defaultFeaturesList() types.List {
 		"locations":          basetypes.NewBoolNull(),
 		"resource_providers": basetypes.NewBoolNull(),
 		"preflight_enabled":  basetypes.NewBoolNull(),
+		"location_fallback":  basetypes.NewStringNull(),
 	})
 	enhancedValidationList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(EnhancedValidationModelAttributes), []attr.Value{enhancedValidation})
 

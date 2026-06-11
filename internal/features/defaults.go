@@ -14,6 +14,7 @@ func Default() UserFeatures {
 			Locations:         !FivePointOh(),
 			ResourceProviders: !FivePointOh(),
 			PreflightEnabled:  false,
+			LocationFallback:  nil,
 		},
 		AppConfiguration: AppConfigurationFeatures{
 			PurgeSoftDeleteOnDestroy: true,
