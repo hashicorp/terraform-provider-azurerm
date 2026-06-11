@@ -333,9 +333,11 @@ jobs:
           go-version-file: ./.go-version
       - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: 'v2.4.0'
-          install-mode: 'goinstall'
-          args: -v ./...
+          version: 'v2.12.2'
+          # Use the default 'binary' install mode: it downloads the pre-built
+          # release binary instead of compiling golangci-lint from source
+          # (goinstall), which is significantly faster for a pinned version.
+          args: ./...
       - name: Guidance on failure
         if: failure()
         run: |

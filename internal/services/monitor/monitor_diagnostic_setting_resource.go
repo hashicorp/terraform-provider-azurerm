@@ -824,19 +824,19 @@ func resourceMonitorDiagnosticLogSettingHash(input interface{}) int {
 	var buf bytes.Buffer
 	if rawData, ok := input.(map[string]interface{}); ok {
 		if category, ok := rawData["category"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", category.(string)))
+			fmt.Fprintf(&buf, "%s-", category.(string))
 		}
 		if categoryGroup, ok := rawData["category_group"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", categoryGroup.(string)))
+			fmt.Fprintf(&buf, "%s-", categoryGroup.(string))
 		}
 
 		if !features.FivePointOh() {
 			if policy, ok := rawData["retention_policy"].(map[string]interface{}); ok {
 				if policyEnabled, ok := policy["enabled"]; ok {
-					buf.WriteString(fmt.Sprintf("%t-", policyEnabled.(bool)))
+					fmt.Fprintf(&buf, "%t-", policyEnabled.(bool))
 				}
 				if days, ok := policy["days"]; ok {
-					buf.WriteString(fmt.Sprintf("%d-", days.(int)))
+					fmt.Fprintf(&buf, "%d-", days.(int))
 				}
 			}
 		}
@@ -848,19 +848,19 @@ func resourceMonitorDiagnosticMetricsSettingHash(input interface{}) int {
 	var buf bytes.Buffer
 	if rawData, ok := input.(map[string]interface{}); ok {
 		if category, ok := rawData["category"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", category.(string)))
+			fmt.Fprintf(&buf, "%s-", category.(string))
 		}
 		if !features.FivePointOh() {
 			if enabled, ok := rawData["enabled"]; ok {
-				buf.WriteString(fmt.Sprintf("%t-", enabled.(bool)))
+				fmt.Fprintf(&buf, "%t-", enabled.(bool))
 			}
 		}
 		if policy, ok := rawData["retention_policy"].(map[string]interface{}); ok {
 			if policyEnabled, ok := policy["enabled"]; ok {
-				buf.WriteString(fmt.Sprintf("%t-", policyEnabled.(bool)))
+				fmt.Fprintf(&buf, "%t-", policyEnabled.(bool))
 			}
 			if days, ok := policy["days"]; ok {
-				buf.WriteString(fmt.Sprintf("%d-", days.(int)))
+				fmt.Fprintf(&buf, "%d-", days.(int))
 			}
 		}
 	}

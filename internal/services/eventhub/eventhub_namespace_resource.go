@@ -746,10 +746,10 @@ func resourceVnetRuleHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["subnet_id"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
+			fmt.Fprintf(&buf, "%s-", strings.ToLower(v.(string)))
 		}
 		if v, ok := m["ignore_missing_virtual_network_service_endpoint"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 	}
 	return pluginsdk.HashString(buf.String())
