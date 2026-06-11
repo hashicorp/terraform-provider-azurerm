@@ -65,12 +65,12 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "example" {
 
   exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.example.id
   display_name                       = "ExampleExascaleVmCluster"
-  enabled_ecpu_count                 = 4
+  enabled_ecpu_count                 = 8
   hostname                           = "host"
-  node_count                         = 2
+  grid_image_ocid                    = "ocid1.dbpatch.oc1.eu-amsterdam-1.anqw2ljrt5t4sqqad2xz3mnjtrszpuxrnkynaezs6elqzvu7t54iuq56tgkq"
+  number_of_vms_in_cluster           = 2
   ssh_public_keys                    = [file("~/.ssh/id_rsa.pub")]
   subnet_id                          = azurerm_subnet.example.id
-  total_ecpu_count                   = 8
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }
@@ -100,13 +100,11 @@ The following arguments are supported:
 
 * `grid_image_ocid` - (Required) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the grid image that is used for grid setup. Changing this forces a new resource to be created. The Grid Image OCID value can be obtained using the [giMinorVersions API](https://learn.microsoft.com/en-us/rest/api/oracle/gi-minor-versions/list-by-parent?view=rest-oracle-2025-09-01&tabs=HTTP) and [giVersions API](https://learn.microsoft.com/en-us/rest/api/oracle/gi-versions/list-by-location?view=rest-oracle-2025-09-01&tabs=HTTP).
 
-* `node_count` - (Required) The number of nodes in the Exadata VM cluster on Exascale Infrastructure. Possible values range between `2` and `10`.
+* `number_of_vms_in_cluster` - (Required) The number of Virtual Machines in the Exadata VM cluster on Exascale Infrastructure. Possible values range between `2` and `10`.
 
 * `ssh_public_keys` - (Required) The public key portion of one or more key pairs used for SSH access to the Exadata VM Cluster. The length of the combined keys cannot exceed 10,000 characters, see [Manage VM Clusters on Oracle Exadata Database Service on Exascale Infrastructure - Add SSH Keys](https://docs.oracle.com/en-us/iaas/exadb-xs/doc/manage-vm-clusters.html#EXDXS-GUID-7B6D04D5-A1A0-48AD-A03A-DEF4A03B14E4).Changing this forces a new Exadata VM Cluster to be created.
 
 * `subnet_id` - (Required) The ID of the subnet associated with the Exadata VM Cluster. This subnet must belong to the specified virtual_network_id. Changing this value forces a new Exadata VM Cluster to be created.
-
-* `total_ecpu_count` - (Required) The number of Total ECPUs for an Exadata VM cluster on Exascale Infrastructure. Possible values range between `8` and `200`, and must be divisible by `4`. Changing this forces a new resource to be created.
 
 * `virtual_machine_file_system_storage` - (Required) A `virtual_machine_file_system_storage` block as defined below. Changing this forces a new resource to be created.
 
@@ -185,6 +183,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Exadata VM Cluster.
 
 * `ocid` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the Exadata VM Cluster.
+
+* `total_ecpu_count` - The number of total ECPUs for an Exadata VM cluster on Exascale Infrastructure. This is calculated as `number_of_vms_in_cluster` multiplied by `enabled_ecpu_count`.
 
 * `zone_ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the zone the Exadata VM Cluster is associated with.
 

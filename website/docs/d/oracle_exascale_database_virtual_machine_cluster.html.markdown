@@ -75,7 +75,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `memory_size_in_gb` - The memory capacity allocated for the Exadata VM Cluster in GB.
 
-* `node_count` - The number of nodes in the Exadata VM Cluster.
+* `number_of_vms_in_cluster` - The number of Virtual Machines in the Exadata VM Cluster.
 
 * `inbound_network_security_group_rule` - A `inbound_network_security_group_rule` block as defined below.
 

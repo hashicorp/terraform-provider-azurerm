@@ -129,10 +129,9 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   enabled_ecpu_count                 = 16
   grid_image_ocid                    = local.grid_image_ocid
   hostname                           = "host"
-  node_count                         = 2
+  number_of_vms_in_cluster           = 2
   ssh_public_keys                    = [local.ssh_public_key]
   subnet_id                          = azurerm_subnet.virtual_network_subnet.id
-  total_ecpu_count                   = 32
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }
@@ -152,11 +151,10 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   display_name                       = "OFakeVMNameTest%[2]d"
   enabled_ecpu_count                 = 16
   hostname                           = "host"
-  node_count                         = 2
+  number_of_vms_in_cluster           = 2
   shape                              = "EXADBXS"
   ssh_public_keys                    = [local.ssh_public_key]
   subnet_id                          = azurerm_subnet.virtual_network_subnet.id
-  total_ecpu_count                   = 32
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }
@@ -206,10 +204,9 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   enabled_ecpu_count                 = 16
   grid_image_ocid                    = local.grid_image_ocid
   hostname                           = "host"
-  node_count                         = 2
+  number_of_vms_in_cluster           = 2
   ssh_public_keys                    = [local.ssh_public_key]
   subnet_id                          = azurerm_subnet.virtual_network_subnet.id
-  total_ecpu_count                   = 32
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }
@@ -233,11 +230,10 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "import" {
   enabled_ecpu_count                 = azurerm_oracle_exascale_database_virtual_machine_cluster.test.enabled_ecpu_count
   grid_image_ocid                    = azurerm_oracle_exascale_database_virtual_machine_cluster.test.grid_image_ocid
   hostname                           = azurerm_oracle_exascale_database_virtual_machine_cluster.test.hostname
-  node_count                         = azurerm_oracle_exascale_database_virtual_machine_cluster.test.node_count
+  number_of_vms_in_cluster           = azurerm_oracle_exascale_database_virtual_machine_cluster.test.number_of_vms_in_cluster
   shape                              = azurerm_oracle_exascale_database_virtual_machine_cluster.test.shape
   ssh_public_keys                    = azurerm_oracle_exascale_database_virtual_machine_cluster.test.ssh_public_keys
   subnet_id                          = azurerm_oracle_exascale_database_virtual_machine_cluster.test.subnet_id
-  total_ecpu_count                   = azurerm_oracle_exascale_database_virtual_machine_cluster.test.total_ecpu_count
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }

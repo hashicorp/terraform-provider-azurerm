@@ -43,7 +43,7 @@ type ExascaleDatabaseVirtualMachineClusterResourceModel struct {
 	ExascaleDbStorageVaultId        string                                              `tfschema:"exascale_database_storage_vault_id"`
 	GridImageOcid                   string                                              `tfschema:"grid_image_ocid"`
 	Hostname                        string                                              `tfschema:"hostname"`
-	NodeCount                       int64                                               `tfschema:"node_count"`
+	NumberOfVmsinCluster            int64                                               `tfschema:"number_of_vms_in_cluster"`
 	Shape                           string                                              `tfschema:"shape"`
 	SshPublicKeys                   []string                                            `tfschema:"ssh_public_keys"`
 	SubnetId                        string                                              `tfschema:"subnet_id"`
@@ -96,13 +96,6 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			Type:     pluginsdk.TypeInt,
 			Required: true,
 			ForceNew: true,
-			DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
-				// The service automatically adjust this value when the node_count is changed.
-				if d.Id() != "" {
-					return true
-				}
-				return false
-			},
 			ValidateFunc: validation.All(
 				validation.IntBetween(8, 200),
 				validation.IntDivisibleBy(4),
@@ -132,7 +125,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"node_count": {
+		"number_of_vms_in_cluster": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(2, 10),
@@ -163,16 +156,6 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
-		"total_ecpu_count": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.All(
-				validation.IntBetween(8, 200),
-				validation.IntDivisibleBy(4),
-			),
-		},
-
 		"virtual_machine_file_system_storage": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -185,13 +168,6 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.IntPositive,
-						DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
-							// The service automatically adjust this value when the node_count is changed.
-							if d.Id() != "" {
-								return true
-							}
-							return false
-						},
 					},
 				},
 			},
@@ -363,6 +339,10 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Attributes() map[string]*pl
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+		"total_ecpu_count": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
 		"zone_ocid": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -377,19 +357,15 @@ func (ExascaleDatabaseVirtualMachineClusterResource) CustomizeDiff() sdk.Resourc
 			if metadata.ResourceDiff == nil {
 				return nil
 			}
-
-			for _, key := range []string{"node_count", "enabled_ecpu_count", "total_ecpu_count"} {
-				if !metadata.ResourceDiff.NewValueKnown(key) {
-					return nil
-				}
-			}
-
-			totalEcpuCount := metadata.ResourceDiff.Get("total_ecpu_count").(int)
-
-			if totalEcpuCount <= 0 {
-				return fmt.Errorf("`total_ecpu_count` must be greater then 0")
-			}
-
+			// for _, key := range []string{"node_count", "enabled_ecpu_count", "total_ecpu_count"} {
+			// 	if !metadata.ResourceDiff.NewValueKnown(key) {
+			// 		return nil
+			// 	}
+			// }
+			// totalEcpuCount := metadata.ResourceDiff.Get("total_ecpu_count").(int)
+			// if totalEcpuCount <= 0 {
+			// 	return fmt.Errorf("`total_ecpu_count` must be greater then 0")
+			// }
 			return nil
 		},
 	}
@@ -436,11 +412,11 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 					ExascaleDbStorageVaultId: model.ExascaleDbStorageVaultId,
 					GridImageOcid:            pointer.To(model.GridImageOcid),
 					Hostname:                 model.Hostname,
-					NodeCount:                model.NodeCount,
+					NodeCount:                model.NumberOfVmsinCluster,
 					Shape:                    model.Shape,
 					SshPublicKeys:            model.SshPublicKeys,
 					SubnetId:                 model.SubnetId,
-					TotalEcpuCount:           model.TotalEcpuCount,
+					TotalEcpuCount:           model.NumberOfVmsinCluster * model.EnabledEcpuCount,
 					VnetId:                   model.VnetId,
 					ScanListenerPortTcp:      pointer.To(model.SingleClientAccessNameListenerPortTcp),
 					ScanListenerPortTcpSsl:   pointer.To(model.SingleClientAccessNameListenerPortTcpSsl),
@@ -518,8 +494,8 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Update() sdk.ResourceFunc
 				Properties: &exadbvmclusters.ExadbVMClusterUpdateProperties{},
 			}
 
-			if metadata.ResourceData.HasChange("node_count") {
-				update.Properties.NodeCount = pointer.To(model.NodeCount)
+			if metadata.ResourceData.HasChange("number_of_vms_in_cluster") {
+				update.Properties.NodeCount = pointer.To(model.NumberOfVmsinCluster)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -570,7 +546,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Read() sdk.ResourceFunc {
 					state.ExascaleDbStorageVaultId = props.ExascaleDbStorageVaultId
 					state.GridImageOcid = pointer.From(props.GridImageOcid)
 					state.Hostname = props.Hostname
-					state.NodeCount = props.NodeCount
+					state.NumberOfVmsinCluster = props.NodeCount
 					state.Shape = props.Shape
 					state.SshPublicKeys = props.SshPublicKeys
 					state.SubnetId = props.SubnetId

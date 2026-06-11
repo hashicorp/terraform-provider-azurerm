@@ -49,7 +49,7 @@ type ExascaleDatabaseVirtualMachineClusterDataModel struct {
 	ListenerPort                             int64                                               `tfschema:"listener_port"`
 	Location                                 string                                              `tfschema:"location"`
 	MemorySizeInGb                           int64                                               `tfschema:"memory_size_in_gb"`
-	NodeCount                                int64                                               `tfschema:"node_count"`
+	NumberOfVmsinCluster                     int64                                               `tfschema:"number_of_vms_in_cluster"`
 	InboundNetworkSecurityGroupRule          []NetworkSecurityGroupRuleModel                     `tfschema:"inbound_network_security_group_rule"`
 	NetworkSecurityGroupUrl                  string                                              `tfschema:"network_security_group_url"`
 	OciUrl                                   string                                              `tfschema:"oci_url"`
@@ -256,7 +256,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 			Computed: true,
 		},
 
-		"node_count": {
+		"number_of_vms_in_cluster": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -498,7 +498,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Read() sdk.ResourceFunc
 					state.LifecycleState = pointer.FromEnum(props.LifecycleState)
 					state.ListenerPort = pointer.From(props.ListenerPort)
 					state.MemorySizeInGb = pointer.From(props.MemorySizeInGbs)
-					state.NodeCount = props.NodeCount
+					state.NumberOfVmsinCluster = props.NodeCount
 					state.InboundNetworkSecurityGroupRule = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
 					state.NetworkSecurityGroupUrl = pointer.From(props.NsgURL)
 					state.OciUrl = pointer.From(props.OciURL)
