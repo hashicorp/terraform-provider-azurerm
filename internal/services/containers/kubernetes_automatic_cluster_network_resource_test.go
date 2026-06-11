@@ -2583,7 +2583,6 @@ resource "azurerm_subnet" "test2" {
   address_prefixes     = ["10.1.1.0/24"]
 }
 
-
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
