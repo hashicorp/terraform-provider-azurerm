@@ -4,6 +4,9 @@ ENHANCEMENTS:
 
 FEATURES:
 
+* `azurerm_kubernetes_cluster` - support `KataVmIsolation` for `workload_runtime` [GH-32579]
+* `azurerm_kubernetes_cluster_node_pool` - support `KataVmIsolation` for `workload_runtime` [GH-32579]
+
 BUG FIXES:
 
 * `azurerm_express_route_connection` - fix an issue that caused unintentional changes to `internet_security_enabled` on updates
