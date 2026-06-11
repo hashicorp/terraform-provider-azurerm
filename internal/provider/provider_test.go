@@ -347,6 +347,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         false,
 					ResourceProviders: false,
 					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -360,6 +361,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         true,
 					ResourceProviders: true,
 					PreflightEnabled:  true,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -373,6 +375,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         false,
 					ResourceProviders: false,
 					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -385,6 +388,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 									"locations":          false,
 									"resource_providers": false,
 									"preflight_enabled":  false,
+									"location_fallback":  "",
 								},
 							},
 						},
@@ -394,6 +398,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         false,
 					ResourceProviders: false,
 					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -406,6 +411,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 									"locations":          true,
 									"resource_providers": true,
 									"preflight_enabled":  true,
+									"location_fallback":  "",
 								},
 							},
 						},
@@ -415,6 +421,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         true,
 					ResourceProviders: true,
 					PreflightEnabled:  true,
+					LocationFallback:  nil,
 				},
 			},
 		}
@@ -431,6 +438,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         true,
 					ResourceProviders: true,
 					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -440,6 +448,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         false,
 					ResourceProviders: false,
 					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -449,6 +458,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         true,
 					ResourceProviders: true,
 					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -460,6 +470,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         false,
 					ResourceProviders: false,
 					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -473,6 +484,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         true,
 					ResourceProviders: true,
 					PreflightEnabled:  true,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -487,6 +499,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         true,
 					ResourceProviders: true,
 					PreflightEnabled:  true,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -501,6 +514,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         false,
 					ResourceProviders: false,
 					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -515,6 +529,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         false,
 					ResourceProviders: false,
 					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -527,6 +542,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 									"locations":          false,
 									"resource_providers": false,
 									"preflight_enabled":  false,
+									"location_fallback":  "",
 								},
 							},
 						},
@@ -536,6 +552,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         false,
 					ResourceProviders: false,
 					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -548,6 +565,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 									"locations":          true,
 									"resource_providers": true,
 									"preflight_enabled":  true,
+									"location_fallback":  "",
 								},
 							},
 						},
@@ -557,6 +575,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         true,
 					ResourceProviders: true,
 					PreflightEnabled:  true,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -570,6 +589,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 									"locations":          false,
 									"resource_providers": false,
 									"preflight_enabled":  false,
+									"location_fallback":  "",
 								},
 							},
 						},
@@ -579,6 +599,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         false,
 					ResourceProviders: false,
 					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 			},
 			{
@@ -592,6 +613,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 									"locations":          true,
 									"resource_providers": true,
 									"preflight_enabled":  true,
+									"location_fallback":  "",
 								},
 							},
 						},
@@ -601,6 +623,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 					Locations:         true,
 					ResourceProviders: true,
 					PreflightEnabled:  true,
+					LocationFallback:  nil,
 				},
 			},
 		}

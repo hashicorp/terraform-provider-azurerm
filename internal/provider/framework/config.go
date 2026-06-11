@@ -533,6 +533,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		f.EnhancedValidation.Locations = providerfeatures.EnhancedValidationLocationsEnabled()
 		f.EnhancedValidation.ResourceProviders = providerfeatures.EnhancedValidationResourceProvidersEnabled()
 		f.EnhancedValidation.PreflightEnabled = providerfeatures.EnhancedValidationPreflightEnabled()
+		f.EnhancedValidation.LocationFallback = providerfeatures.EnhancedValidationLocationFallback()
 
 		if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
 			var evList []EnhancedValidationModel
@@ -549,7 +550,10 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 					f.EnhancedValidation.ResourceProviders = evList[0].ResourceProviders.ValueBool()
 				}
 				if !evList[0].PreflightEnabled.IsNull() && !evList[0].PreflightEnabled.IsUnknown() {
-					f.EnhancedValidation.PreflightEnabled = evList[0].PreflightEnabled.ValueBool()
+					f.EnhancedValidation.PreflightEnabled = evList[0].PreflightEnabled.ValueBool() && providerfeatures.FivePointOh()
+				}
+				if !evList[0].LocationFallback.IsNull() && !evList[0].LocationFallback.IsUnknown() {
+					f.EnhancedValidation.LocationFallback = evList[0].LocationFallback.ValueStringPointer()
 				}
 			}
 		}

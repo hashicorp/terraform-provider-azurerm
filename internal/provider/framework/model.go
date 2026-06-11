@@ -294,13 +294,15 @@ var DatabricksWorkspaceAttributes = map[string]attr.Type{
 }
 
 type EnhancedValidationModel struct {
-	Locations         types.Bool `tfsdk:"locations"`
-	ResourceProviders types.Bool `tfsdk:"resource_providers"`
-	PreflightEnabled  types.Bool `tfsdk:"preflight_enabled"`
+	Locations         types.Bool   `tfsdk:"locations"`
+	ResourceProviders types.Bool   `tfsdk:"resource_providers"`
+	PreflightEnabled  types.Bool   `tfsdk:"preflight_enabled"`
+	LocationFallback  types.String `tfsdk:"location_fallback"`
 }
 
 var EnhancedValidationModelAttributes = map[string]attr.Type{
 	"locations":          types.BoolType,
 	"resource_providers": types.BoolType,
 	"preflight_enabled":  types.BoolType,
+	"location_fallback":  types.StringType,
 }

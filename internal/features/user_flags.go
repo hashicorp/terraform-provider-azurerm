@@ -38,6 +38,7 @@ type EnhancedValidationFeatures struct {
 	Locations         bool
 	ResourceProviders bool
 	PreflightEnabled  bool
+	LocationFallback  *string
 }
 
 type VirtualMachineFeatures struct {

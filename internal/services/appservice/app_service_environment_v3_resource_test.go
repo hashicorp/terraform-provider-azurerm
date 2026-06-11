@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -109,6 +110,23 @@ func TestAccAppServiceEnvironmentV3_completeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceEnvironmentV3_completePreflightPlan(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("skipping 5.0 only feature")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment_v3", "test")
+	r := AppServiceEnvironmentV3Resource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.completePreflightPlan(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
 	})
 }
 
@@ -250,6 +268,77 @@ resource "azurerm_app_service_environment_v3" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r AppServiceEnvironmentV3Resource) completePreflightPlan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    enhanced_validation {
+      preflight_enabled = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-ase-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-ase-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "asedelegation"
+    service_delegation {
+      name    = "Microsoft.Web/hostingEnvironments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_app_service_environment_v3" "test" {
+  name                         = "acctest-ase-%[1]d"
+  resource_group_name          = azurerm_resource_group.test2.name
+  subnet_id                    = azurerm_subnet.test.id
+  internal_load_balancing_mode = "Web, Publishing"
+  remote_debugging_enabled     = true
+
+  cluster_setting {
+    name  = "InternalEncryption"
+    value = "true"
+  }
+
+  cluster_setting {
+    name  = "DisableTls1.0"
+    value = "1"
+  }
+
+  cluster_setting {
+    name  = "FrontEndSSLCipherSuiteOrder"
+    value = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+  }
+
+  tags = {
+    accTest = "1"
+    env     = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r AppServiceEnvironmentV3Resource) completeUpdate(data acceptance.TestData) string {

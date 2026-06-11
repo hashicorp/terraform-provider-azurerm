@@ -6,6 +6,7 @@ package provider
 import (
 	"os"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -51,8 +52,14 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"preflight_enabled": {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", false),
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", nil),
 						Description: "Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
+					},
+					"location_fallback": {
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATION_FALLBACK", nil),
+						Description: "The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created.",
 					},
 				},
 			},
@@ -515,6 +522,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	featuresMap.EnhancedValidation.Locations = features.EnhancedValidationLocationsEnabled()
 	featuresMap.EnhancedValidation.ResourceProviders = features.EnhancedValidationResourceProvidersEnabled()
 	featuresMap.EnhancedValidation.PreflightEnabled = features.EnhancedValidationPreflightEnabled()
+	featuresMap.EnhancedValidation.LocationFallback = features.EnhancedValidationLocationFallback()
 
 	if len(input) == 0 || input[0] == nil {
 		return featuresMap
@@ -791,6 +799,11 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := evRaw["preflight_enabled"]; ok {
 				featuresMap.EnhancedValidation.PreflightEnabled = v.(bool) && features.FivePointOh() // If we're not in 5.0 mode, ignore setting this to true.
+			}
+			if v, ok := evRaw["location_fallback"]; ok {
+				if vStr, ok := v.(string); ok && vStr != "" {
+					featuresMap.EnhancedValidation.LocationFallback = pointer.To(vStr)
+				}
 			}
 		}
 	}

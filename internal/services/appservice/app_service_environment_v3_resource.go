@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -61,8 +62,9 @@ type AppServiceV3InboundDependencies struct {
 type AppServiceEnvironmentV3Resource struct{}
 
 var (
-	_ sdk.Resource           = AppServiceEnvironmentV3Resource{}
-	_ sdk.ResourceWithUpdate = AppServiceEnvironmentV3Resource{}
+	_ sdk.Resource                  = AppServiceEnvironmentV3Resource{}
+	_ sdk.ResourceWithUpdate        = AppServiceEnvironmentV3Resource{}
+	_ sdk.ResourceWithCustomizeDiff = AppServiceEnvironmentV3Resource{}
 )
 
 func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schema {
@@ -290,20 +292,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			envelope := appserviceenvironments.AppServiceEnvironmentResource{
-				Kind:     pointer.To(KindASEV3),
-				Location: location.Normalize(vnetLoc),
-				Properties: &appserviceenvironments.AppServiceEnvironment{
-					DedicatedHostCount:        pointer.To(model.DedicatedHostCount),
-					ClusterSettings:           expandClusterSettingsModel(model.ClusterSetting),
-					InternalLoadBalancingMode: pointer.To(appserviceenvironments.LoadBalancingMode(model.InternalLoadBalancingMode)),
-					VirtualNetwork: appserviceenvironments.VirtualNetworkProfile{
-						Id: model.SubnetId,
-					},
-					ZoneRedundant: pointer.To(model.ZoneRedundant),
-				},
-				Tags: pointer.To(model.Tags),
-			}
+			envelope := expandCreateForAppServiceEnvironmentV3(model, vnetLoc)
 
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, envelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -340,6 +329,85 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 
 			if _, err := updateWait.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for Network Update for %s to complete: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func expandCreateForAppServiceEnvironmentV3(model AppServiceEnvironmentV3Model, vnetLoc string) appserviceenvironments.AppServiceEnvironmentResource {
+	return appserviceenvironments.AppServiceEnvironmentResource{
+		Kind:     pointer.To(KindASEV3),
+		Location: location.Normalize(vnetLoc),
+		Properties: &appserviceenvironments.AppServiceEnvironment{
+			DedicatedHostCount:        pointer.To(model.DedicatedHostCount),
+			ClusterSettings:           expandClusterSettingsModel(model.ClusterSetting),
+			InternalLoadBalancingMode: pointer.To(appserviceenvironments.LoadBalancingMode(model.InternalLoadBalancingMode)),
+			VirtualNetwork: appserviceenvironments.VirtualNetworkProfile{
+				Id: model.SubnetId,
+			},
+			ZoneRedundant: pointer.To(model.ZoneRedundant),
+		},
+		Tags: pointer.To(model.Tags),
+	}
+}
+
+func (r AppServiceEnvironmentV3Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+			if rd == nil {
+				return nil
+			}
+
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				if len(rd.GetChangedKeysPrefix("")) > 0 || rd.Id() == "" {
+					var model AppServiceEnvironmentV3Model
+					if err := metadata.DecodeDiff(&model); err != nil {
+						return err
+					}
+
+					networksClient := metadata.Client.Network.VirtualNetworks
+					var vnetLoc string
+					if model.SubnetId != "" {
+						subnet, err := commonids.ParseSubnetID(model.SubnetId)
+						if err != nil {
+							metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %q: 'subnet_id' unknown", model.Name))
+							return nil
+						}
+
+						vnetId := commonids.NewVirtualNetworkID(subnet.SubscriptionId, subnet.ResourceGroupName, subnet.VirtualNetworkName)
+
+						vnet, err := networksClient.Get(ctx, vnetId, virtualnetworks.DefaultGetOperationOptions())
+						if err != nil {
+							if response.WasNotFound(vnet.HttpResponse) {
+								// Gracefully skip preflight validation since the VNet doesn't exist yet and we can't determine the location
+								metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %q: Virtual Network %q not found", model.Name, vnetId.ID()))
+								return nil
+							}
+							return fmt.Errorf("retrieving Virtual Network %q for preflight validation: %+v", vnetId.ID(), err)
+						}
+
+						if vnet.Model == nil || vnet.Model.Location == nil {
+							return fmt.Errorf("determining Location from Virtual Network %q for preflight validation: `location` was missing", vnetId.ID())
+						}
+						vnetLoc = *vnet.Model.Location
+					}
+
+					req := expandCreateForAppServiceEnvironmentV3(model, vnetLoc)
+					id := commonids.NewAppServiceEnvironmentID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
+
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(vnetLoc), pointer.To(id), "2023-01-01", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
+
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
+				}
 			}
 
 			return nil
