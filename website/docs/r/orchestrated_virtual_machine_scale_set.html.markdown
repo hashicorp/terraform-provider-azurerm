@@ -368,6 +368,8 @@ A `network_interface` block supports the following:
 
 ~> **Note:** If multiple `network_interface` blocks are specified, one must be set to `primary`.
 
+* `tags` - (Optional) A mapping of tags to assign to the Network Interface created by this Network Interface Configuration.
+
 ---
 
 An `os_disk` block supports the following:

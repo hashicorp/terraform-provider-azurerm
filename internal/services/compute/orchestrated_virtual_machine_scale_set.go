@@ -11,7 +11,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
@@ -340,6 +342,8 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 					Optional: true,
 					Default:  false,
 				},
+
+				"tags": commonschema.Tags(),
 			},
 		},
 	}
@@ -1093,6 +1097,8 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{
 			}
 		}
 
+		config.Tags = tags.Expand(raw["tags"].(map[string]interface{}))
+
 		output = append(output, config)
 	}
 
@@ -1236,6 +1242,8 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(input []inte
 				Id: pointer.To(nsgId),
 			}
 		}
+
+		config.Tags = tags.Expand(raw["tags"].(map[string]interface{}))
 
 		output = append(output, config)
 	}
@@ -1908,6 +1916,7 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualm
 			"ip_configuration":              ipConfigurations,
 			"network_security_group_id":     networkSecurityGroupId,
 			"primary":                       primary,
+			"tags":                          tags.Flatten(v.Tags),
 		})
 	}
 
