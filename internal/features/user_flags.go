@@ -7,7 +7,6 @@ type UserFeatures struct {
 	PersistIDOnCreateBeforePollingForCompletion                 bool
 	SkipImportCheckOnCreateAndAllowOverwritingExistingResources bool
 
-	PreflightEnabled         bool
 	ApiManagement            ApiManagementFeatures
 	AppConfiguration         AppConfigurationFeatures
 	ApplicationInsights      ApplicationInsightFeatures

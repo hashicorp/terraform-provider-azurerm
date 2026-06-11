@@ -370,10 +370,7 @@ func (r AppServiceEnvironmentV3Resource) CustomizeDiff() sdk.ResourceFunc {
 						return err
 					}
 
-					vnetLoc, skip, err := resolvePreflightVnetLocation(ctx, metadata, model)
-					if err != nil {
-						return err
-					}
+					vnetLoc, skip := resolvePreflightVnetLocation(ctx, metadata, model)
 					if skip {
 						return nil
 					}
@@ -401,15 +398,15 @@ func (r AppServiceEnvironmentV3Resource) CustomizeDiff() sdk.ResourceFunc {
 // validation. It returns skip=true when validation should be gracefully skipped (e.g. the
 // subnet_id is not yet known, or the Virtual Network doesn't exist and no location fallback
 // is configured).
-func resolvePreflightVnetLocation(ctx context.Context, metadata sdk.ResourceMetaData, model AppServiceEnvironmentV3Model) (vnetLoc string, skip bool, err error) {
+func resolvePreflightVnetLocation(ctx context.Context, metadata sdk.ResourceMetaData, model AppServiceEnvironmentV3Model) (vnetLoc string, skip bool) {
 	if model.SubnetId == "" {
-		return "", false, nil
+		return "", false
 	}
 
 	subnet, err := commonids.ParseSubnetID(model.SubnetId)
 	if err != nil {
 		metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %q: 'subnet_id' unknown", model.Name))
-		return "", true, err
+		return "", true
 	}
 
 	vnetId := commonids.NewVirtualNetworkID(subnet.SubscriptionId, subnet.ResourceGroupName, subnet.VirtualNetworkName)
@@ -417,7 +414,7 @@ func resolvePreflightVnetLocation(ctx context.Context, metadata sdk.ResourceMeta
 	vnet, err := metadata.Client.Network.VirtualNetworks.Get(ctx, vnetId, virtualnetworks.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(vnet.HttpResponse) {
-			return "", false, fmt.Errorf("retrieving Virtual Network %q for preflight validation: %+v", vnetId.ID(), err)
+			return "", true
 		}
 
 		// The VNet doesn't exist yet, so we can't determine its location. Rely on the configured
@@ -425,18 +422,18 @@ func resolvePreflightVnetLocation(ctx context.Context, metadata sdk.ResourceMeta
 		fallback := metadata.Client.Features.EnhancedValidation.LocationFallback
 		if fallback == nil {
 			metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %q: Virtual Network %q not found and no location fallback configured", model.Name, vnetId.ID()))
-			return "", true, nil
+			return "", true
 		}
 
 		metadata.Logger.Info(fmt.Sprintf("Virtual Network %q not found, relying on location fallback for preflight validation", vnetId.ID()))
-		return *fallback, false, nil
+		return *fallback, false
 	}
 
 	if vnet.Model == nil || vnet.Model.Location == nil {
-		return "", false, fmt.Errorf("determining Location from Virtual Network %q for preflight validation: `location` was missing", vnetId.ID())
+		return "", true
 	}
 
-	return *vnet.Model.Location, false, nil
+	return *vnet.Model.Location, false
 }
 
 func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
