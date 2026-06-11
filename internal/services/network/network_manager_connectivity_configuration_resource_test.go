@@ -132,7 +132,7 @@ func TestAccNetworkManagerConnectivityConfiguration_peeringEnforcementValidation
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.peeringEnforcementWithMeshTopology(data),
-			ExpectError: regexp.MustCompile("`peering_enforcement` can only be set to `Enforced` when `connectivity_topology` is `HubAndSpoke`"),
+			ExpectError: regexp.MustCompile("`peering_enforcement_enabled` can only be set to `true` when `connectivity_topology` is `HubAndSpoke`"),
 		},
 	})
 }
@@ -269,9 +269,9 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
   delete_existing_peering_enabled         = false
   global_mesh_enabled                     = false
   description                             = "test connectivity configuration"
-  connected_group_address_overlap         = "Allowed"
+	connected_group_address_overlap_enabled = true
   connected_group_private_endpoints_scale = "HighScale"
-  peering_enforcement                     = "Enforced"
+	peering_enforcement_enabled             = true
   applies_to_group {
     group_connectivity  = "None"
     network_group_id    = azurerm_network_manager_network_group.test.id
@@ -303,9 +303,9 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
   connectivity_topology                   = "HubAndSpoke"
   description                             = "test"
   global_mesh_enabled                     = true
-  connected_group_address_overlap         = "Allowed"
+	connected_group_address_overlap_enabled = true
   connected_group_private_endpoints_scale = "Standard"
-  peering_enforcement                     = "Unenforced"
+	peering_enforcement_enabled             = false
   applies_to_group {
     group_connectivity = "DirectlyConnected"
     network_group_id   = azurerm_network_manager_network_group.test.id
@@ -328,7 +328,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
   network_manager_id                      = azurerm_network_manager.test.id
   connectivity_topology                   = "Mesh"
   global_mesh_enabled                     = true
-  connected_group_address_overlap         = "Disallowed"
+	connected_group_address_overlap_enabled = false
   connected_group_private_endpoints_scale = "HighScale"
   applies_to_group {
     group_connectivity  = "DirectlyConnected"
@@ -349,7 +349,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
   network_manager_id                      = azurerm_network_manager.test.id
   connectivity_topology                   = "Mesh"
   global_mesh_enabled                     = true
-  connected_group_address_overlap         = "Allowed"
+	connected_group_address_overlap_enabled = true
   connected_group_private_endpoints_scale = "Standard"
   applies_to_group {
     group_connectivity  = "DirectlyConnected"
@@ -369,7 +369,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
   name                  = "acctest-nmcc-%d"
   network_manager_id    = azurerm_network_manager.test.id
   connectivity_topology = "Mesh"
-  peering_enforcement   = "Enforced"
+	peering_enforcement_enabled = true
   applies_to_group {
     group_connectivity = "DirectlyConnected"
     network_group_id   = azurerm_network_manager_network_group.test.id

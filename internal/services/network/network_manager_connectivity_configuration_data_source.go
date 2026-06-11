@@ -24,14 +24,14 @@ type ManagerConnectivityConfigurationDataSourceModel struct {
 	Name                                string                                          `tfschema:"name"`
 	NetworkManagerId                    string                                          `tfschema:"network_manager_id"`
 	AppliesToGroups                     []ConnectivityGroupItemModel                    `tfschema:"applies_to_group"`
-	ConnectedGroupAddressOverlap        string                                          `tfschema:"connected_group_address_overlap"`
+	ConnectedGroupAddressOverlapEnabled bool                                            `tfschema:"connected_group_address_overlap_enabled"`
 	ConnectedGroupPrivateEndpointsScale string                                          `tfschema:"connected_group_private_endpoints_scale"`
 	ConnectivityTopology                connectivityconfigurations.ConnectivityTopology `tfschema:"connectivity_topology"`
 	DeleteExistingPeeringEnabled        bool                                            `tfschema:"delete_existing_peering_enabled"`
 	Description                         string                                          `tfschema:"description"`
 	GlobalMeshEnabled                   bool                                            `tfschema:"global_mesh_enabled"`
 	Hub                                 []HubModel                                      `tfschema:"hub"`
-	PeeringEnforcement                  string                                          `tfschema:"peering_enforcement"`
+	PeeringEnforcementEnabled           bool                                            `tfschema:"peering_enforcement_enabled"`
 }
 
 func (r ManagerConnectivityConfigurationDataSource) ResourceType() string {
@@ -88,8 +88,8 @@ func (r ManagerConnectivityConfigurationDataSource) Attributes() map[string]*plu
 			},
 		},
 
-		"connected_group_address_overlap": {
-			Type:     pluginsdk.TypeString,
+		"connected_group_address_overlap_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 
@@ -136,8 +136,8 @@ func (r ManagerConnectivityConfigurationDataSource) Attributes() map[string]*plu
 			Computed: true,
 		},
 
-		"peering_enforcement": {
-			Type:     pluginsdk.TypeString,
+		"peering_enforcement_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 	}
@@ -178,11 +178,12 @@ func (r ManagerConnectivityConfigurationDataSource) Read() sdk.ResourceFunc {
 					state.GlobalMeshEnabled = flattenConnectivityConfIsGlobal(properties.IsGlobal)
 					state.Hub = flattenHubModel(properties.Hubs)
 					state.Description = pointer.From(properties.Description)
+					state.ConnectedGroupAddressOverlapEnabled = true
 
 					if properties.ConnectivityCapabilities != nil {
-						state.ConnectedGroupAddressOverlap = string(properties.ConnectivityCapabilities.ConnectedGroupAddressOverlap)
+						state.ConnectedGroupAddressOverlapEnabled = flattenConnectedGroupAddressOverlap(properties.ConnectivityCapabilities.ConnectedGroupAddressOverlap)
 						state.ConnectedGroupPrivateEndpointsScale = string(properties.ConnectivityCapabilities.ConnectedGroupPrivateEndpointsScale)
-						state.PeeringEnforcement = string(properties.ConnectivityCapabilities.PeeringEnforcement)
+						state.PeeringEnforcementEnabled = flattenPeeringEnforcement(properties.ConnectivityCapabilities.PeeringEnforcement)
 					}
 				}
 			}
