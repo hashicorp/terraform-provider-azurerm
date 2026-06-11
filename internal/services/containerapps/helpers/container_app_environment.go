@@ -58,17 +58,10 @@ type WorkloadProfileModel struct {
 
 func WorkloadProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:                  pluginsdk.TypeSet,
-		Optional:              true,
-		DiffSuppressOnRefresh: true,
-		DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
-			o, n := d.GetChange("workload_profile")
-
-			oldProfiles := o.(*pluginsdk.Set)
-			newProfiles := n.(*pluginsdk.Set)
-
-			return OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles)
-		},
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		// Note: O+C - a default element with `Consumption` `workload_profile_type` is computed by Azure when `workload_profile` is not defined
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {

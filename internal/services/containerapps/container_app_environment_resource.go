@@ -124,18 +124,11 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			// Note: O+C - value is computed by Azure when `infrastructure_resource_group_name` is not configured
-			Computed:              true,
-			ForceNew:              true,
-			RequiredWith:          []string{"workload_profile"},
-			ValidateFunc:          resourcegroups.ValidateName,
-			DiffSuppressOnRefresh: true,
-			DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool { // If this is omitted and workload_profile is set, then the service generates a value for the required manage resource group.
-				if profiles := d.Get("workload_profile").(*pluginsdk.Set).List(); len(profiles) > 0 && newValue == "" {
-					return true
-				}
-				return false
-			},
-			Description: "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.",
+			Computed:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"workload_profile"},
+			ValidateFunc: resourcegroups.ValidateName,
+			Description:  "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.",
 		},
 
 		"infrastructure_subnet_id": {
@@ -415,11 +408,6 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
-
-					// `DiffSuppressFunc` behavior of `workload_profile` does not suppress `diff` when `workload_profile` is not configured. The codes below are used to suppress `diff` under this situation
-					if len(state.WorkloadProfiles) == 1 && len(existingState.WorkloadProfiles) == 0 && state.WorkloadProfiles[0].WorkloadProfileType == string(helpers.WorkloadProfileSkuConsumption) {
-						state.WorkloadProfiles = make([]helpers.WorkloadProfileModel, 0)
-					}
 
 					if props.CustomDomainConfiguration != nil {
 						state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
