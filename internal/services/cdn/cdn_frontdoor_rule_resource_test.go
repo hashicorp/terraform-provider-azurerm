@@ -19,8 +19,6 @@ import (
 
 type CdnFrontDoorRuleResource struct{}
 
-const frontDoorRuleValidationRuleSetID = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG/providers/Microsoft.Cdn/profiles/acctestprofile/ruleSets/acctestruleset"
-
 func TestAccCdnFrontDoorRule_basic_unattachedRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
@@ -1048,9 +1046,11 @@ provider "azurerm" {
   features {}
 }
 
+%s
+
 resource "azurerm_cdn_frontdoor_rule" "test" {
   name                      = "accTestRule%d"
-  cdn_frontdoor_rule_set_id = "%s"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
 
   order = 1
 
@@ -1069,7 +1069,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, data.RandomInteger, frontDoorRuleValidationRuleSetID)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) originGroupIdOptional(data acceptance.TestData, attachRoute bool) string {
@@ -1116,9 +1116,11 @@ provider "azurerm" {
   features {}
 }
 
+%s
+
 resource "azurerm_cdn_frontdoor_rule" "test" {
   name                      = "accTestRule%d"
-  cdn_frontdoor_rule_set_id = "%s"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
   order                     = 1
   behavior_on_match         = "Stop"
 
@@ -1137,7 +1139,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
   }
 }
-`, data.RandomInteger, frontDoorRuleValidationRuleSetID)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) originGroupIdOptionalUpdate(data acceptance.TestData, attachRoute bool) string {
