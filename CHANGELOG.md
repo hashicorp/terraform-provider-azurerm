@@ -22,6 +22,8 @@ BUG FIXES:
 * `azurerm_recovery_services_vault_resource_guard_association` - normalize `resource_guard_id` before persisting to state to work around an API issue [GH-32554]
 * `azurerm_mssql_managed_instance` - fix an issue that caused an error when changing from a `GP_*` SKU to a `BC_*` SKU [GH-32560]
 * `azurerm_network_manager_deployment` - add a custom poller to work around an API issue on creation [GH-32530]
+* `azurerm_virtual_network` - fix an issue that incorrectly caused a validation error when increasing `ip_address_pool.number_of_ip_addresses` [GH-32500]
+* `azurerm_subnet` - fix an issue that incorrectly caused a validation error when increasing `ip_address_pool.number_of_ip_addresses` [GH-32500]
 
 ## 4.76.0 (June 04, 2026)
 
