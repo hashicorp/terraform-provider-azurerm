@@ -141,7 +141,6 @@ type BootstrapProfileModel struct {
 }
 
 type HostedSystemProfile struct {
-	Enabled            bool   `tfschema:"enabled"`
 	NodeSubnetID       string `tfschema:"node_subnet_id"`
 	SystemNodeSubnetID string `tfschema:"system_node_subnet_id"`
 }
@@ -553,26 +552,21 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		"hosted_system": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// O+C if no subnet ids are supplied, it will return the new, managed subnet ids
+			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
 					"node_subnet_id": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Required:     true,
 						ForceNew:     true,
-						RequiredWith: []string{"hosted_system.0.system_node_subnet_id", "api_server_access.0.subnet_id"},
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"system_node_subnet_id": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Required:     true,
 						ForceNew:     true,
-						RequiredWith: []string{"hosted_system.0.node_subnet_id", "api_server_access.0.subnet_id"},
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 				},
@@ -2270,11 +2264,6 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			if metadata.ResourceData.HasChange("hosted_system") {
-				props.HostedSystemProfile = expandKubernetesAutomaticClusterHostedSystemProfile(model.HostedSystemProfile)
-				updateCluster = true
-			}
-
 			if metadata.ResourceData.HasChange("microsoft_defender") ||
 				metadata.ResourceData.HasChange("image_cleaner_interval_in_hours") ||
 				metadata.ResourceData.HasChange("key_management_service") ||
@@ -2496,7 +2485,7 @@ func expandKubernetesAutomaticClusterHostedSystemProfile(input []HostedSystemPro
 	config := input[0]
 
 	profile := &managedclusters.ManagedClusterHostedSystemProfile{
-		Enabled: pointer.To(config.Enabled),
+		Enabled: new(true),
 	}
 
 	if config.NodeSubnetID != "" {
@@ -3773,7 +3762,6 @@ func flattenKubernetesAutomaticClusterHostedSystemProfile(profile *managedcluste
 	}
 
 	return []HostedSystemProfile{{
-		Enabled:            pointer.From(profile.Enabled),
 		NodeSubnetID:       pointer.From(profile.NodeSubnetID),
 		SystemNodeSubnetID: pointer.From(profile.SystemNodeSubnetID),
 	}}
@@ -3836,53 +3824,6 @@ func flattenIdentityModel(input *identity.SystemOrUserAssignedMap) []identity.Sy
 		PrincipalId: input.PrincipalId,
 		TenantId:    input.TenantId,
 	}}
-}
-
-func expandClusterNodePoolKubeletConfigTyped(input []KubeletConfigModel) *managedclusters.KubeletConfig {
-	if len(input) == 0 {
-		return nil
-	}
-
-	config := input[0]
-	result := &managedclusters.KubeletConfig{
-		CpuCfsQuota:          pointer.To(config.CPUCfsQuotaEnabled),
-		FailSwapOn:           pointer.To(false), // must be false to enable swap file on nodes
-		AllowedUnsafeSysctls: pointer.To(config.AllowedUnsafeSysctls),
-	}
-
-	CPUManagerPolicy := "none"
-	if config.CPUManagerPolicy {
-		CPUManagerPolicy = "static"
-	}
-	result.CpuManagerPolicy = pointer.To(CPUManagerPolicy)
-
-	if config.CPUCfsQuotaPeriod != "" {
-		result.CpuCfsQuotaPeriod = pointer.To(config.CPUCfsQuotaPeriod)
-	}
-	if config.ImageGcHighThreshold != 0 {
-		result.ImageGcHighThreshold = pointer.To(config.ImageGcHighThreshold)
-	}
-	if config.ImageGcLowThreshold != 0 {
-		result.ImageGcLowThreshold = pointer.To(config.ImageGcLowThreshold)
-	}
-
-	TopologyManagerPolicy := "none"
-	if v := config.TopologyManagerPolicy; v != "" {
-		TopologyManagerPolicy = v
-	}
-	result.TopologyManagerPolicy = pointer.To(TopologyManagerPolicy)
-
-	if config.ContainerLogMaxSizeMB != 0 {
-		result.ContainerLogMaxSizeMB = pointer.To(config.ContainerLogMaxSizeMB)
-	}
-	if config.ContainerLogMaxFiles != 0 {
-		result.ContainerLogMaxFiles = pointer.To(config.ContainerLogMaxFiles)
-	}
-	if config.PodMaxPid != 0 {
-		result.PodMaxPids = pointer.To(config.PodMaxPid)
-	}
-
-	return result
 }
 
 func expandKubernetesAutomaticClusterAddOns(input *KubernetesAutomaticClusterModel, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
