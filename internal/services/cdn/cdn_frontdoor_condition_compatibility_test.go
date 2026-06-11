@@ -22,7 +22,7 @@ func TestValidateFrontDoorConditionBlocksRequireMatchValues(t *testing.T) {
 					"match_values": cty.ListValEmpty(cty.String),
 				}),
 			}),
-			errContains: "requires `match_values`",
+			errContains: "`match_values` field must be set",
 		},
 		{
 			name:      "unknown condition value ignored",
@@ -55,7 +55,7 @@ func TestValidateFrontDoorConditionBlocksRequireMatchValues(t *testing.T) {
 				t.Fatalf("expected error containing %q but got nil", test.errContains)
 			}
 
-			if err.Error() != "the `request_scheme_condition` block requires `match_values`" {
+			if err.Error() != "`request_scheme_condition` is invalid: the `match_values` field must be set if the condition `operator` is not set to `Any`" {
 				t.Fatalf("expected canonical error but got %q", err)
 			}
 		})

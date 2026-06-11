@@ -27,7 +27,7 @@ func validateFrontDoorConditionBlocksRequireMatchValues(conditionBlock map[strin
 		}
 
 		if matchValues.LengthInt() == 0 {
-			return fmt.Errorf("the `%s` block requires `match_values`", conditionName)
+			return fmt.Errorf("`%s` is invalid: the `match_values` field must be set if the condition `operator` is not set to `Any`", conditionName)
 		}
 	}
 
