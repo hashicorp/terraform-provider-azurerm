@@ -6,6 +6,8 @@ FEATURES:
 
 BUG FIXES:
 
+* `azurerm_express_route_connection` - fix an issue that caused unintentional changes to `internet_security_enabled` on updates
+
 ## 4.77.0 (June 11, 2026)
 
 FEATURES:
