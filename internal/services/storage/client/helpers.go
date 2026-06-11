@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 )
 
 var (
@@ -124,6 +124,10 @@ func (ad *AccountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string,
 	}
 
 	if baseUri == nil {
+		if StorageDomainSuffix != nil && ad.StorageAccountId.StorageAccountName != "" {
+			uri := fmt.Sprintf("https://%s.%s.%s/", ad.StorageAccountId.StorageAccountName, endpointType, *StorageDomainSuffix)
+			return &uri, nil
+		}
 		return nil, fmt.Errorf("determining %s endpoint for %s: missing primary endpoint", endpointType, ad.StorageAccountId)
 	}
 	return baseUri, nil

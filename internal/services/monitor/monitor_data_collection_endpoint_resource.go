@@ -68,7 +68,8 @@ func (r DataCollectionEndpointResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice(
-				datacollectionendpoints.PossibleValuesForKnownDataCollectionEndpointResourceKind(), false),
+				datacollectionendpoints.PossibleValuesForKnownDataCollectionEndpointResourceKind(), false,
+			),
 		},
 
 		"tags": commonschema.Tags(),
@@ -114,7 +115,6 @@ func (r DataCollectionEndpointResource) ModelObject() interface{} {
 func (r DataCollectionEndpointResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			metadata.Logger.Info("Decoding state..")
 			var state DataCollectionEndpoint
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -124,14 +124,15 @@ func (r DataCollectionEndpointResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := datacollectionendpoints.NewDataCollectionEndpointID(subscriptionId, state.ResourceGroupName, state.Name)
-			metadata.Logger.Infof("creating %s", id)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := datacollectionendpoints.DataCollectionEndpointResource{
@@ -233,7 +234,6 @@ func (r DataCollectionEndpointResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Monitor.DataCollectionEndpointsClient
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
@@ -288,7 +288,6 @@ func (r DataCollectionEndpointResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s..", *id)
 			resp, err := client.Delete(ctx, *id)
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

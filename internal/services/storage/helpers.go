@@ -6,7 +6,7 @@ package storage
 import (
 	"sort"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 )
 
 func sortedKeysFromSlice(input map[storageaccounts.Kind]struct{}) []string {

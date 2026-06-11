@@ -119,14 +119,16 @@ func resourceArmSubscriptionPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDat
 	id := parse.NewSubscriptionPolicyExemptionID(subscriptionId.SubscriptionId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, subscriptionId.ID(), id.PolicyExemptionName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, subscriptionId.ID(), id.PolicyExemptionName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				}
 			}
-		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_resource_group_policy_exemption", *existing.ID)
+			if existing.ID != nil && *existing.ID != "" {
+				return tf.ImportAsExistsError("azurerm_resource_group_policy_exemption", *existing.ID)
+			}
 		}
 	}
 
@@ -166,7 +168,9 @@ func resourceArmSubscriptionPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceArmSubscriptionPolicyExemptionRead(d, meta)
 }

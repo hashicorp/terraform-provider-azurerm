@@ -60,9 +60,20 @@ func (c NetAppAccountsClient) AccountsChangeKeyVault(ctx context.Context, id Net
 
 // AccountsChangeKeyVaultThenPoll performs AccountsChangeKeyVault then polls until it's completed
 func (c NetAppAccountsClient) AccountsChangeKeyVaultThenPoll(ctx context.Context, id NetAppAccountId, input ChangeKeyVault) error {
+	return c.AccountsChangeKeyVaultCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AccountsChangeKeyVaultCallbackThenPoll performs AccountsChangeKeyVault, runs the optional callback function, then polls until it's completed
+func (c NetAppAccountsClient) AccountsChangeKeyVaultCallbackThenPoll(ctx context.Context, id NetAppAccountId, input ChangeKeyVault, callback func() error) error {
 	result, err := c.AccountsChangeKeyVault(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AccountsChangeKeyVault: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

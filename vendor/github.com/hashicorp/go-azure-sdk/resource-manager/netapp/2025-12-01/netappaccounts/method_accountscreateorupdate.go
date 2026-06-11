@@ -62,9 +62,20 @@ func (c NetAppAccountsClient) AccountsCreateOrUpdate(ctx context.Context, id Net
 
 // AccountsCreateOrUpdateThenPoll performs AccountsCreateOrUpdate then polls until it's completed
 func (c NetAppAccountsClient) AccountsCreateOrUpdateThenPoll(ctx context.Context, id NetAppAccountId, input NetAppAccount) error {
+	return c.AccountsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AccountsCreateOrUpdateCallbackThenPoll performs AccountsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c NetAppAccountsClient) AccountsCreateOrUpdateCallbackThenPoll(ctx context.Context, id NetAppAccountId, input NetAppAccount, callback func() error) error {
 	result, err := c.AccountsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AccountsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

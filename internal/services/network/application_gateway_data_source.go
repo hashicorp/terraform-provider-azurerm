@@ -74,53 +74,8 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"path": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"port": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"cookie_based_affinity": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
 						"affinity_cookie_name": {
 							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"dedicated_backend_connection_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-
-						"host_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"pick_host_name_from_backend_address": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-
-						"request_timeout": {
-							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 
@@ -142,12 +97,9 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
-						"trusted_root_certificate_names": {
-							Type:     pluginsdk.TypeList,
+						"certificate_chain_validation_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
 						},
 
 						"connection_draining": {
@@ -168,7 +120,17 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
-						"probe_name": {
+						"cookie_based_affinity": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"dedicated_backend_connection_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"host_name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -178,9 +140,62 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"path": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"pick_host_name_from_backend_address": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"port": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
 						"probe_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
+						},
+
+						"probe_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"protocol": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"request_timeout": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"sni_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"sni_validation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"trusted_root_certificate_names": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
 						},
 					},
 				},

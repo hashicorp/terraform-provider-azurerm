@@ -107,7 +107,8 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 	defer cancel()
 
 	resourceId := parse.NewBotConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ConnectionName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

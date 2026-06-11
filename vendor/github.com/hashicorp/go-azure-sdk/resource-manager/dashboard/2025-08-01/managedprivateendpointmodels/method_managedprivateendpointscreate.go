@@ -62,9 +62,20 @@ func (c ManagedPrivateEndpointModelsClient) ManagedPrivateEndpointsCreate(ctx co
 
 // ManagedPrivateEndpointsCreateThenPoll performs ManagedPrivateEndpointsCreate then polls until it's completed
 func (c ManagedPrivateEndpointModelsClient) ManagedPrivateEndpointsCreateThenPoll(ctx context.Context, id ManagedPrivateEndpointId, input ManagedPrivateEndpointModel) error {
+	return c.ManagedPrivateEndpointsCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ManagedPrivateEndpointsCreateCallbackThenPoll performs ManagedPrivateEndpointsCreate, runs the optional callback function, then polls until it's completed
+func (c ManagedPrivateEndpointModelsClient) ManagedPrivateEndpointsCreateCallbackThenPoll(ctx context.Context, id ManagedPrivateEndpointId, input ManagedPrivateEndpointModel, callback func() error) error {
 	result, err := c.ManagedPrivateEndpointsCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ManagedPrivateEndpointsCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

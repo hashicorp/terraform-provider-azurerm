@@ -89,13 +89,61 @@ func TestAccMsSqlManagedDatabase_withRetentionPolicies(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(""),
+		data.ImportStep(),
 		{
 			Config: r.withRetentionPoliciesUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlManagedDatabase_withPartialRetentionPolicies(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
+	r := MsSqlManagedDatabase{}
+
+	weekly := `weekly_retention = "P10D"`
+	monthly := `monthly_retention = "P10D"`
+	yearly := `yearly_retention = "P2Y"`
+	yearlyWithWeekOfYear := `yearly_retention = "P3Y"` + "\nweek_of_year = 42"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPartialRetentionPolicies(data, weekly),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withPartialRetentionPolicies(data, monthly),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withPartialRetentionPolicies(data, yearly),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withPartialRetentionPolicies(data, yearlyWithWeekOfYear),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withPartialRetentionPolicies(data, weekly),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -199,6 +247,21 @@ resource "azurerm_mssql_managed_database" "test" {
 
 }
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedDatabase) withPartialRetentionPolicies(data acceptance.TestData, retention string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_database" "test" {
+  managed_instance_id = azurerm_mssql_managed_instance.test.id
+  name                = "acctest-%[2]d"
+
+  long_term_retention_policy {
+    %[3]s
+  }
+}
+`, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger, retention)
 }
 
 func (r MsSqlManagedDatabase) pointInTimeRestore(data acceptance.TestData, restorePointInTime string) string {

@@ -161,15 +161,17 @@ func resourceIotSecurityDeviceGroupCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	id := parse.NewIotSecurityDeviceGroupId(d.Get("iothub_id").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		server, err := client.Get(ctx, id.IotHubID, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("checking for presence of existing Device Security Group for %q: %+v", id.ID(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			server, err := client.Get(ctx, id.IotHubID, id.Name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(server.Response) {
+					return fmt.Errorf("checking for presence of existing Device Security Group for %q: %+v", id.ID(), err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(server.Response) {
-			return tf.ImportAsExistsError("azurerm_iot_security_device_group", id.ID())
+			if !utils.ResponseWasNotFound(server.Response) {
+				return tf.ImportAsExistsError("azurerm_iot_security_device_group", id.ID())
+			}
 		}
 	}
 

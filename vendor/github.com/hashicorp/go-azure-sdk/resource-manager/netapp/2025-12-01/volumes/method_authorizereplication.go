@@ -61,9 +61,20 @@ func (c VolumesClient) AuthorizeReplication(ctx context.Context, id VolumeId, in
 
 // AuthorizeReplicationThenPoll performs AuthorizeReplication then polls until it's completed
 func (c VolumesClient) AuthorizeReplicationThenPoll(ctx context.Context, id VolumeId, input AuthorizeRequest) error {
+	return c.AuthorizeReplicationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AuthorizeReplicationCallbackThenPoll performs AuthorizeReplication, runs the optional callback function, then polls until it's completed
+func (c VolumesClient) AuthorizeReplicationCallbackThenPoll(ctx context.Context, id VolumeId, input AuthorizeRequest, callback func() error) error {
 	result, err := c.AuthorizeReplication(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AuthorizeReplication: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

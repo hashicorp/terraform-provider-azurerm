@@ -17,11 +17,16 @@ This guide covers adding a new Typed Resource, which makes uses the Typed SDK wi
 2. Add an SDK Client (if required).
 3. Define the Resource ID.
 4. Scaffold an empty/new Resource.
-5. Register the new Resource.
-6. Add Acceptance Test(s) for this Resource.
-7. Run the Acceptance Test(s).
-8. Add Documentation for this Resource.
-9. Send the Pull Request.
+5. Add Resource Identity (**required**).
+6. Add a List Resource (**required**).
+7. Register the new Resource.
+8. Add Acceptance Test(s) for this Resource.
+9. Run the Acceptance Test(s).
+10. Add Documentation for this Resource.
+11. Send the Pull Request.
+
+> [!IMPORTANT]
+> **Resource Identity** and **List Resource** implementations are mandatory for all new resources. Pull requests adding new resources without these will not pass CI checks. If your resource genuinely cannot support one of these (e.g. no List API exists), please explain why in the PR description and a maintainer will apply the `allow-without-list` or `list-not-supported` label.
 
 We'll go through each of those steps in turn, presuming that we're creating a Resource for a Resource Group.
 
@@ -204,14 +209,17 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
             id := resources.NewResourceGroupID(subscriptionId, config.Name)
 
             // then we want to check for the presence of an existing resource with the resource's ID
-            // this is because the Azure API uses the `name` as a unique idenfitier and Upserts
+            // this is because the Azure API uses the `name` as a unique identifier and Upserts
             // so we don't want to unintentionally adopt this resource by using the same name
-            existing, err := client.Get(ctx, id)
-            if err != nil && !response.WasNotFound(existing.HttpResponse) {
-                return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-            }
-            if !response.WasNotFound(existing.HttpResponse) {
-                return metadata.ResourceRequiresImport(r.ResourceType(), id)
+            // unless the user has opted into doing so by setting the `skip_import_check_on_create_and_allow_overwriting_existing_resources` flag
+            if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+                existing, err := client.Get(ctx, id)
+                if err != nil && !response.WasNotFound(existing.HttpResponse) {
+                    return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+                }
+                if !response.WasNotFound(existing.HttpResponse) {
+                    return metadata.ResourceRequiresImport(r.ResourceType(), id)
+                }
             }
 
             // create the Resource Group
@@ -219,9 +227,17 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
                 Location: pointer.To(location.Normalize(config.Location)),
                 Tags:     pointer.To(config.Tags),
             }
+
+            // For synchronous operations (as indicated by the lack of a `{Operation}ThenPoll` method in the SDK)
             if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
                 return fmt.Errorf("creating %s: %+v", id, err)
             }
+
+            // For asynchronous operations, use the `{Operation}CallbackThenPoll` method, this allows users to opt in to setting
+            // the Resource ID before polling the asynchronous operation for completion using the `persist_id_on_create_before_polling_for_completion` feature.
+            // if _, err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)) {
+            //    return fmt.Errorf("creating %s: %+v", id, err)
+            // }
 
             // set the Resource ID, meaning that we track this resource
             metadata.SetID(id)
@@ -650,7 +666,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
             if existing.Model.Properties == nil {
                return fmt.Errorf("retrieving %s: `properties` was nil", id)
             }
-            
+
             ...
             return nil
         },
@@ -686,11 +702,23 @@ func (r ExampleResource) CustomizeDiff() sdk.ResourceFunc {
 }
 ```
 
-### Step 4: Adding Resource Identity
+### Step 5: Adding Resource Identity (Required)
 
-New resources should add support for Resource Identity, please reference the [Resource Identity](guide-resource-identity.md) guide.
+All new resources **must** add support for Resource Identity. Please reference the [Resource Identity](guide-resource-identity.md) guide for detailed instructions.
 
-### Step 5: Register the new Resource
+> [!IMPORTANT]
+> Resource Identity is a prerequisite for List Resources (Step 6). Ensure this is implemented before proceeding.
+
+### Step 6: Adding a List Resource (Required)
+
+All new resources **must** include a List Resource implementation. This enables support for Terraform's `list` block (Terraform >= 1.14), allowing users to query and enumerate existing instances of the resource.
+
+Please reference the [List Resource](guide-list-resource.md) guide for detailed instructions.
+
+> [!NOTE]
+> A CI check (`enforce-list-resources`) will automatically verify that new resources include a `*_resource_list.go` file. If your resource cannot support listing, please explain why in the PR description and a maintainer will apply the `allow-without-list` or `list-not-supported` label to skip the check.
+
+### Step 7: Register the new Resource
 
 Resources are registered within the `registration.go` within each Service Package - and should look something like this:
 
@@ -774,7 +802,7 @@ output "id" {
 }
 ```
 
-### Step 6: Add Acceptance Test(s) for this Resource
+### Step 8: Add Acceptance Test(s) for this Resource
 
 We're going to test the Resource that we've just built by dynamically provisioning a Resource Group using the new `azurerm_resource_group_example` Resource.
 
@@ -925,13 +953,14 @@ There's a more detailed breakdown of how this works [in the Acceptance Testing r
 
 1. Test Terraform Configurations are defined as methods on the struct `ResourceGroupExampleResource` so that they're easily accessible (this helps to avoid them being unintentionally used in other resources).
 2. The `acceptance.TestData` object contains a number of helpers, including both random integers, strings and the Azure Locations where resources should be provisioned - which are used to ensure when tests are run in parallel that we provision unique resources for testing purposes.
-3. The `ApplyStep`'s apply the Terraform Configuration specified and then assert there's no changes after (e.g. `terraform apply` and then checking that `terraform plan` shows no changes).
-4. The `ImportStep` takes the Resource ID for the Resource and runs `terraform import azurerm_resource_group_example.test {resourceId}`, checking that the fields defined in the state match the fields returned from the Read function.
-5. We append `_test` to the Go package name (e.g. `resource_test`) since we need to be able to access both the `resource` package and the `acceptance` package (which is a circular reference, otherwise).
+3. When one config helper is only used once inside `fmt.Sprintf`, pass it directly as the argument (for example `r.basic(data)`) instead of assigning a temporary variable first.
+4. The `ApplyStep`'s apply the Terraform Configuration specified and then assert there's no changes after (e.g. `terraform apply` and then checking that `terraform plan` shows no changes).
+5. The `ImportStep` takes the Resource ID for the Resource and runs `terraform import azurerm_resource_group_example.test {resourceId}`, checking that the fields defined in the state match the fields returned from the Read function.
+6. We append `_test` to the Go package name (e.g. `resource_test`) since we need to be able to access both the `resource` package and the `acceptance` package (which is a circular reference, otherwise).
 
 At this point we should be able to run this test.
 
-### Step 7: Run the Acceptance Test(s)
+### Step 9: Run the Acceptance Test(s)
 
 Detailed [instructions on Running the Tests can be found in this guide](running-the-tests.md) - when a Service Principal is configured you can run the test above using:
 
@@ -964,7 +993,7 @@ PASS
 ok  	github.com/hashicorp/terraform-provider-azurerm/internal/services/resource	324.753s
 ```
 
-### Step 8: Add Documentation for this Resource
+### Step 10: Add Documentation for this Resource
 
 At this point in time documentation for each Resource (and Data Source) is written manually, located within the `./website` folder - in this case this will be located at `./website/docs/d/resource_group_example.html.markdown`.
 
@@ -1034,6 +1063,6 @@ terraform import azurerm_resource_group_example.example /subscriptions/00000000-
 ```
 ````
 
-### Step 9: Send the Pull Request
+### Step 11: Send the Pull Request
 
 See [our recommendations for opening a Pull Request](guide-opening-a-pr.md).

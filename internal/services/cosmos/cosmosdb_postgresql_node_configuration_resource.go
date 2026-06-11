@@ -75,6 +75,8 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
+			// TODO: add import check?
+
 			client := metadata.Client.Cosmos.ConfigurationsClient
 			clusterId, err := configurations.ParseServerGroupsv2ID(model.ClusterId)
 			if err != nil {
@@ -92,7 +94,7 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.UpdateOnNodeThenPoll(ctx, id, parameters); err != nil {
+			if err := client.UpdateOnNodeCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

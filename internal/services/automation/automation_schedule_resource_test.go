@@ -39,16 +39,19 @@ func TestAccAutomationSchedule_expiryTimeOfEuropeTimeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
 
+	loc, _ := time.LoadLocation("Europe/Amsterdam")
+	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.expiryTimeOfEuropeTimeZone(data, "foo"),
+			Config: r.expiryTimeOfEuropeTimeZone(data, "foo", startTime),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.expiryTimeOfEuropeTimeZone(data, "bar"),
+			Config: r.expiryTimeOfEuropeTimeZone(data, "bar", startTime),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -271,7 +274,7 @@ resource "azurerm_automation_schedule" "test" {
 `, AutomationScheduleResource{}.template(data), data.RandomInteger)
 }
 
-func (a AutomationScheduleResource) expiryTimeOfEuropeTimeZone(data acceptance.TestData, desc string) string {
+func (a AutomationScheduleResource) expiryTimeOfEuropeTimeZone(data acceptance.TestData, desc string, startTime string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -282,11 +285,11 @@ resource "azurerm_automation_schedule" "test" {
   frequency               = "Week"
   interval                = 1
   timezone                = "Europe/Amsterdam"
-  start_time              = "2026-04-15T18:01:15+02:00"
+  start_time              = "%s"
   description             = "%s"
   week_days               = ["Monday"]
 }
-`, a.template(data), data.RandomInteger, desc)
+`, a.template(data), data.RandomInteger, startTime, desc)
 }
 
 func (AutomationScheduleResource) requiresImport(data acceptance.TestData) string {

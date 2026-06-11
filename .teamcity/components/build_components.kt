@@ -30,6 +30,13 @@ fun BuildFeatures.BuildCacheFeature() {
         })
 }
 
+fun BuildSteps.SetBuildStartTime() {
+    step(ScriptBuildStep {
+        name = "Set Build Start Time"
+        scriptContent = File("scripts/set_build_start_time.sh").readText()
+    })
+}
+
 fun BuildSteps.ConfigureGoEnv() {
     step(ScriptBuildStep {
         name = "Configure Go Version"
@@ -119,7 +126,7 @@ fun ParametrizedWithType.TerraformAcceptanceTestParameters(parallelism : Int, pr
     text("TEST_PREFIX", prefix)
     text("TIMEOUT", "%d".format(timeout))
     text("POST_GITHUB_COMMENT", "false")
-    text("POST_GITHUB_COMMENT_DETAILED", "false")
+    text("TRACKING_ID", "0", "Tracking ID for comment management (typically PR commit SHA)")
 }
 
 fun ParametrizedWithType.ReadOnlySettings() {
@@ -141,6 +148,10 @@ fun ParametrizedWithType.TerraformShouldPanicForSchemaErrors() {
 
 fun ParametrizedWithType.WorkingDirectory(packageName: String) {
     text("SERVICE_PATH", servicePath(packageName), "", "The path at which to run - automatically updated", ParameterDisplay.HIDDEN)
+}
+
+fun ParametrizedWithType.BuildStartTime() {
+    text("env.BUILD_START_TIME", "1777662664", "The time at which the build started")
 }
 
 fun ParametrizedWithType.GoCache() {

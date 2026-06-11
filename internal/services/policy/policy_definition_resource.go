@@ -96,15 +96,17 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.IsNewResource() {
-		existing, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Policy Definition %q: %+v", name, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Policy Definition %q: %+v", name, err)
+				}
 			}
-		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_policy_definition", *existing.ID)
+			if existing.ID != nil && *existing.ID != "" {
+				return tf.ImportAsExistsError("azurerm_policy_definition", *existing.ID)
+			}
 		}
 	}
 
@@ -215,7 +217,6 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Policy Definition %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}

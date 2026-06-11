@@ -4,5 +4,5 @@ package volumes
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SVMPeerCommandResponse struct {
-	SVMPeeringCommand *string `json:"svmPeeringCommand,omitempty"`
+	Properties *SVMPeerCommandResponseProperties `json:"properties,omitempty"`
 }

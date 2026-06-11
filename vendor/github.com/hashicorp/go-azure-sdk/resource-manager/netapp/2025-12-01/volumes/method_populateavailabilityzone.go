@@ -58,9 +58,20 @@ func (c VolumesClient) PopulateAvailabilityZone(ctx context.Context, id VolumeId
 
 // PopulateAvailabilityZoneThenPoll performs PopulateAvailabilityZone then polls until it's completed
 func (c VolumesClient) PopulateAvailabilityZoneThenPoll(ctx context.Context, id VolumeId) error {
+	return c.PopulateAvailabilityZoneCallbackThenPoll(ctx, id, nil)
+}
+
+// PopulateAvailabilityZoneCallbackThenPoll performs PopulateAvailabilityZone, runs the optional callback function, then polls until it's completed
+func (c VolumesClient) PopulateAvailabilityZoneCallbackThenPoll(ctx context.Context, id VolumeId, callback func() error) error {
 	result, err := c.PopulateAvailabilityZone(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing PopulateAvailabilityZone: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -4,9 +4,13 @@
 package network
 
 import (
+	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -21,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -65,6 +70,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
+				Set:        hashNetworkSecurityRule,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -142,15 +148,21 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"destination_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Elem: &pluginsdk.Schema{
+								Type:             pluginsdk.TypeString,
+								DiffSuppressFunc: suppress.CaseDifference,
+							},
+							Set: pluginsdk.HashStringInsensitively,
 						},
 
 						"source_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Elem: &pluginsdk.Schema{
+								Type:             pluginsdk.TypeString,
+								DiffSuppressFunc: suppress.CaseDifference,
+							},
+							Set: pluginsdk.HashStringInsensitively,
 						},
 
 						"access": {
@@ -195,15 +207,17 @@ func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := networksecuritygroups.NewNetworkSecurityGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, networksecuritygroups.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, networksecuritygroups.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_network_security_group", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_network_security_group", id.ID())
+		}
 	}
 
 	sgRules, sgErr := expandSecurityRules(d)
@@ -223,7 +237,7 @@ func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interfac
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, sg); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, sg, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -530,20 +544,72 @@ func validateSecurityRule(sgRule map[string]interface{}) error {
 
 	if sourcePortRange != "" && sourcePortRanges.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"source_port_range\" and \"source_port_ranges\" can be used per security rule"))
+			"only one of \"source_port_range\" and \"source_port_ranges\" can be used per security rule",
+		))
 	}
 	if destinationPortRange != "" && destinationPortRanges.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"destination_port_range\" and \"destination_port_ranges\" can be used per security rule"))
+			"only one of \"destination_port_range\" and \"destination_port_ranges\" can be used per security rule",
+		))
 	}
 	if sourceAddressPrefix != "" && sourceAddressPrefixes.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"source_address_prefix\" and \"source_address_prefixes\" can be used per security rule"))
+			"only one of \"source_address_prefix\" and \"source_address_prefixes\" can be used per security rule",
+		))
 	}
 	if destinationAddressPrefix != "" && destinationAddressPrefixes.Len() > 0 {
 		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"destination_address_prefix\" and \"destination_address_prefixes\" can be used per security rule"))
+			"only one of \"destination_address_prefix\" and \"destination_address_prefixes\" can be used per security rule",
+		))
 	}
 
 	return err.ErrorOrNil()
+}
+
+// hashNetworkSecurityRule implements a hash function for the `security_rule` property,
+// mainly to normalize the casing for `source_application_security_group_ids` and `destination_application_security_group_ids`.
+func hashNetworkSecurityRule(input any) int {
+	var buf bytes.Buffer
+	if m, ok := input.(map[string]any); ok {
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(m["description"].(string))
+		buf.WriteString(m["protocol"].(string))
+
+		buf.WriteString(m["source_port_range"].(string))
+		if set := m["source_port_ranges"].(*pluginsdk.Set); set != nil {
+			buf.WriteString(set.GoString())
+		}
+
+		buf.WriteString(m["destination_port_range"].(string))
+		if set := m["destination_port_ranges"].(*pluginsdk.Set); set != nil {
+			buf.WriteString(set.GoString())
+		}
+
+		buf.WriteString(m["source_address_prefix"].(string))
+		if set := m["source_address_prefixes"].(*pluginsdk.Set); set != nil {
+			buf.WriteString(set.GoString())
+		}
+
+		buf.WriteString(m["destination_address_prefix"].(string))
+		if set := m["destination_address_prefixes"].(*pluginsdk.Set); set != nil {
+			buf.WriteString(set.GoString())
+		}
+
+		if set := m["source_application_security_group_ids"].(*pluginsdk.Set); set != nil {
+			for _, elem := range set.List() {
+				buf.WriteString(strings.ToLower(elem.(string)))
+			}
+		}
+
+		if set := m["destination_application_security_group_ids"].(*pluginsdk.Set); set != nil {
+			for _, elem := range set.List() {
+				buf.WriteString(strings.ToLower(elem.(string)))
+			}
+		}
+
+		buf.WriteString(m["access"].(string))
+		buf.WriteString(m["direction"].(string))
+		buf.WriteString(strconv.Itoa(m["priority"].(int)))
+	}
+	return pluginsdk.HashString(buf.String())
 }

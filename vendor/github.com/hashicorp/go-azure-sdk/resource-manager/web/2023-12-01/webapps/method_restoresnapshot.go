@@ -62,9 +62,20 @@ func (c WebAppsClient) RestoreSnapshot(ctx context.Context, id commonids.AppServ
 
 // RestoreSnapshotThenPoll performs RestoreSnapshot then polls until it's completed
 func (c WebAppsClient) RestoreSnapshotThenPoll(ctx context.Context, id commonids.AppServiceId, input SnapshotRestoreRequest) error {
+	return c.RestoreSnapshotCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RestoreSnapshotCallbackThenPoll performs RestoreSnapshot, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) RestoreSnapshotCallbackThenPoll(ctx context.Context, id commonids.AppServiceId, input SnapshotRestoreRequest, callback func() error) error {
 	result, err := c.RestoreSnapshot(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RestoreSnapshot: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
