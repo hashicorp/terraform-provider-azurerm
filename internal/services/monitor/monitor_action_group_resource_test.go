@@ -986,7 +986,7 @@ resource "azurerm_monitor_action_group" "test" {
 
   azure_function_receiver {
     name                     = "funcaction"
-    function_app_resource_id = "azurerm_linux_function_app.test.id
+    function_app_resource_id = azurerm_linux_function_app.test.id
     function_name            = "myfunc"
     http_trigger_url         = "https://example.com/trigger"
     use_common_alert_schema  = false
