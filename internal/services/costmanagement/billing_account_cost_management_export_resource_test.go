@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
