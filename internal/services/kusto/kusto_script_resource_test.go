@@ -199,11 +199,10 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "script.txt"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = ".create table MyTable (Level:string, Timestamp:datetime, UserId:string, TraceId:string, Message:string, ProcessId:int32)"
+  name                 = "script.txt"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source_content       = ".create table MyTable (Level:string, Timestamp:datetime, UserId:string, TraceId:string, Message:string, ProcessId:int32)"
 }
 
 data "azurerm_storage_account_blob_container_sas" "test" {
