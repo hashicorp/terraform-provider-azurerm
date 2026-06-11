@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccountmigrations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -138,6 +139,13 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"account_replication_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				DiffSuppressFunc: func(_, _, _ string, d *schema.ResourceData) bool {
+					// Migration of a storage account to/from zonal can take days
+					// so the provider doesn't poll and wait for it to complete.
+					// While in queue for migration/actively migrating, the Storage Account will return the old `account_replication_type`
+					// which we'll suppress here.
+					return d.Get("migration_in_progress").(bool)
+				},
 				ValidateFunc: validation.StringInSlice([]string{
 					"LRS",
 					"ZRS",
@@ -722,6 +730,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"migration_in_progress": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"primary_location": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -1180,21 +1193,21 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}
 				return nil
 			}),
-			pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
-				newAccRep := strings.ToUpper(new.(string))
-
-				switch strings.ToUpper(old.(string)) {
-				case "LRS", "GRS", "RAGRS":
-					if newAccRep == "GZRS" || newAccRep == "RAGZRS" || newAccRep == "ZRS" {
-						return true
-					}
-				case "ZRS", "GZRS", "RAGZRS":
-					if newAccRep == "LRS" || newAccRep == "GRS" || newAccRep == "RAGRS" {
-						return true
-					}
-				}
-				return false
-			}),
+			//pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
+			//	newAccRep := strings.ToUpper(new.(string))
+			//
+			//	switch strings.ToUpper(old.(string)) {
+			//	case "LRS", "GRS", "RAGRS":
+			//		if newAccRep == "GZRS" || newAccRep == "RAGZRS" || newAccRep == "ZRS" {
+			//			return true
+			//		}
+			//	case "ZRS", "GZRS", "RAGZRS":
+			//		if newAccRep == "LRS" || newAccRep == "GRS" || newAccRep == "RAGRS" {
+			//			return true
+			//		}
+			//	}
+			//	return false
+			//}),
 		),
 	}
 
@@ -1910,10 +1923,28 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("account_kind") {
 		payload.Kind = accountKind
 	}
+
+	migrationRequired := false
 	if d.HasChange("account_replication_type") {
-		// storageType is derived from "account_replication_type", "account_tier" (force-new) and "provisioned_billing_model_version" (force-new)
-		payload.Sku = storageaccounts.Sku{
-			Name: storageaccounts.SkuName(storageType),
+		// certain changes to `account_replication_type` require a storage migration, in this scenario we'll omit the updated SKU and trigger a migration instead
+		o, n := d.GetChange("account_replication_type")
+		newReplicationType := strings.ToUpper(n.(string))
+		switch strings.ToUpper(o.(string)) {
+		case "LRS", "GRS", "RAGRS":
+			if newReplicationType == "GZRS" || newReplicationType == "RAGZRS" || newReplicationType == "ZRS" {
+				migrationRequired = true
+			}
+		case "ZRS", "GZRS", "RAGZRS":
+			if newReplicationType == "LRS" || newReplicationType == "GRS" || newReplicationType == "RAGRS" {
+				migrationRequired = true
+			}
+		}
+
+		if !migrationRequired {
+			payload.Sku = storageaccounts.Sku{
+				// storageType is derived from "account_replication_type", "account_tier" (force-new) and "provisioned_billing_model_version" (force-new)
+				Name: storageaccounts.SkuName(storageType),
+			}
 		}
 	}
 	if d.HasChange("identity") {
@@ -2082,6 +2113,19 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if _, err = storageClient.FileServices.SetServiceProperties(ctx, *id, sharePayload); err != nil {
 			return fmt.Errorf("updating File Share Properties for %s: %+v", *id, err)
 		}
+	}
+
+	if migrationRequired {
+		migrationPayload := storageaccounts.StorageAccountMigration{
+			Properties: storageaccounts.StorageAccountMigrationProperties{
+				TargetSkuName: storageaccounts.SkuName(storageType),
+			},
+		}
+
+		if _, err := client.CustomerInitiatedMigration(ctx, *id, migrationPayload); err != nil {
+			return fmt.Errorf("triggering account migration for %s: %+v", id, err)
+		}
+		d.Set("migration_in_progress", true)
 	}
 
 	return resourceStorageAccountRead(d, meta)
@@ -2406,6 +2450,19 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 			return fmt.Errorf("setting `static_website`: %+v", err)
 		}
 	}
+
+	resp, err := storageClient.StorageAccountMigrations.StorageAccountsGetCustomerInitiatedMigration(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving migration status for %s: %+v", id, err)
+	}
+
+	migrationInProgress := false
+	if resp.Model != nil {
+		if s := pointer.From(resp.Model.Properties.MigrationStatus); s == storageaccountmigrations.MigrationStatusInProgress || s == storageaccountmigrations.MigrationStatusSubmittedForConversion {
+			migrationInProgress = true
+		}
+	}
+	d.Set("migration_in_progress", migrationInProgress)
 
 	return nil
 }
