@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning_test
@@ -30,7 +30,7 @@ func TestAccMachineLearningRegistry_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("system_created_storage_account_blob_public_access_enabled"),
 	})
 }
 
@@ -60,7 +60,11 @@ func TestAccMachineLearningRegistry_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep(
+			"system_created_storage_account_blob_public_access_enabled",
+			"replication_region.0.system_created_storage_account_blob_public_access_enabled",
+			"replication_region.1.system_created_storage_account_blob_public_access_enabled",
+		),
 	})
 }
 
@@ -75,21 +79,33 @@ func TestAccMachineLearningRegistry_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep(
+			"system_created_storage_account_blob_public_access_enabled",
+			"replication_region.0.system_created_storage_account_blob_public_access_enabled",
+			"replication_region.1.system_created_storage_account_blob_public_access_enabled",
+		),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep(
+			"system_created_storage_account_blob_public_access_enabled",
+			"replication_region.0.system_created_storage_account_blob_public_access_enabled",
+			"replication_region.1.system_created_storage_account_blob_public_access_enabled",
+		),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep(
+			"system_created_storage_account_blob_public_access_enabled",
+			"replication_region.0.system_created_storage_account_blob_public_access_enabled",
+			"replication_region.1.system_created_storage_account_blob_public_access_enabled",
+		),
 	})
 }
 
@@ -104,7 +120,7 @@ func TestAccMachineLearningRegistry_privateEndpoint(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("system_created_storage_account_blob_public_access_enabled"),
 	})
 }
 
@@ -134,7 +150,7 @@ func (r MachineLearningRegistry) basic(data acceptance.TestData) string {
 resource "azurerm_machine_learning_registry" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  name                = "accmlreg-%[2]d"
+  name                = "acctest-%[2]d"
 
   identity {
     type = "SystemAssigned"
@@ -166,24 +182,22 @@ func (r MachineLearningRegistry) complete(data acceptance.TestData) string {
 resource "azurerm_machine_learning_registry" "test" {
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
-  name                          = "accmlreg-%[2]d"
+  name                          = "acctest-%[2]d"
   public_network_access_enabled = false
 
-  primary_region {
-    system_created_storage_account_type = "Standard_ZRS"
-    hns_enabled          = true
+  system_created_storage_account_type        = "Standard_ZRS"
+  system_created_storage_account_hns_enabled = true
+
+  replication_region {
+    location                                   = "%[3]s"
+    system_created_storage_account_type        = "Standard_ZRS"
+    system_created_storage_account_hns_enabled = true
   }
 
   replication_region {
-    location             = "%[3]s"
-    system_created_storage_account_type = "Standard_ZRS"
-    hns_enabled          = true
-  }
-
-  replication_region {
-    location             = "%[4]s"
-    system_created_storage_account_type = "Standard_ZRS"
-    hns_enabled          = true
+    location                                   = "%[4]s"
+    system_created_storage_account_type        = "Standard_ZRS"
+    system_created_storage_account_hns_enabled = true
   }
 
   identity {
@@ -200,23 +214,22 @@ func (r MachineLearningRegistry) update(data acceptance.TestData) string {
 resource "azurerm_machine_learning_registry" "test" {
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
-  name                          = "accmlreg-%[2]d"
+  name                          = "acctest-%[2]d"
   public_network_access_enabled = true
-  primary_region {
-    system_created_storage_account_type = "Standard_ZRS"
-    hns_enabled          = true
+
+  system_created_storage_account_type        = "Standard_ZRS"
+  system_created_storage_account_hns_enabled = true
+
+  replication_region {
+    location                                   = "%[3]s"
+    system_created_storage_account_type        = "Standard_ZRS"
+    system_created_storage_account_hns_enabled = true
   }
 
   replication_region {
-    location             = "%[3]s"
-    system_created_storage_account_type = "Standard_ZRS"
-    hns_enabled          = true
-  }
-
-  replication_region {
-    location             = "%[4]s"
-    system_created_storage_account_type = "Standard_ZRS"
-    hns_enabled          = true
+    location                                   = "%[4]s"
+    system_created_storage_account_type        = "Standard_ZRS"
+    system_created_storage_account_hns_enabled = true
   }
 
   identity {
@@ -278,7 +291,7 @@ resource "azurerm_private_endpoint" "test" {
 resource "azurerm_machine_learning_registry" "test" {
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
-  name                          = "accmlreg-%[2]d"
+  name                          = "acctest-%[2]d"
   public_network_access_enabled = false
 
   identity {

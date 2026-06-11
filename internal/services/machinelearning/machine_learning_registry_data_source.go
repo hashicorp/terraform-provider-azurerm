@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -21,18 +21,28 @@ import (
 type MachineLearningRegistryDataSource struct{}
 
 type MachineLearningRegistryDataSourceModel struct {
-	Name                          string                                     `tfschema:"name"`
-	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
-	PublicNetworkAccessEnabled    bool                                       `tfschema:"public_network_access_enabled"`
-	PrimaryRegion                 []ReplicationRegion                        `tfschema:"primary_region"`
-	ReplicationRegion             []ReplicationRegion                        `tfschema:"replication_region"`
-	Location                      string                                     `tfschema:"location"`
-	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	DiscoveryUrl                  string                                     `tfschema:"discovery_url"`
-	IntellectualPropertyPublisher string                                     `tfschema:"intellectual_property_publisher"`
-	MlFlowRegistryUri             string                                     `tfschema:"machine_learning_flow_registry_uri"`
-	ManagedResourceGroup          string                                     `tfschema:"managed_resource_group"`
-	Tags                          map[string]string                          `tfschema:"tags"`
+	Name                       string                                     `tfschema:"name"`
+	ResourceGroupName          string                                     `tfschema:"resource_group_name"`
+	Location                   string                                     `tfschema:"location"`
+	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	PublicNetworkAccessEnabled bool                                       `tfschema:"public_network_access_enabled"`
+
+	SystemCreatedStorageAccountType                    string `tfschema:"system_created_storage_account_type"`
+	SystemCreatedStorageAccountHnsEnabled              bool   `tfschema:"system_created_storage_account_hns_enabled"`
+	SystemCreatedStorageAccountBlobPublicAccessEnabled bool   `tfschema:"system_created_storage_account_blob_public_access_enabled"`
+	SystemCreatedContainerRegistrySku                  string `tfschema:"system_created_container_registry_sku"`
+
+	SystemCreatedStorageAccountId      string `tfschema:"system_created_storage_account_id"`
+	SystemCreatedStorageAccountName    string `tfschema:"system_created_storage_account_name"`
+	SystemCreatedContainerRegistryId   string `tfschema:"system_created_container_registry_id"`
+	SystemCreatedContainerRegistryName string `tfschema:"system_created_container_registry_name"`
+
+	ReplicationRegion []ReplicationRegion `tfschema:"replication_region"`
+
+	DiscoveryUrl         string            `tfschema:"discovery_url"`
+	MlFlowRegistryUri    string            `tfschema:"machine_learning_flow_registry_uri"`
+	ManagedResourceGroup string            `tfschema:"managed_resource_group"`
+	Tags                 map[string]string `tfschema:"tags"`
 }
 
 func (d MachineLearningRegistryDataSource) ModelObject() interface{} {
@@ -60,86 +70,15 @@ func (d MachineLearningRegistryDataSource) Arguments() map[string]*pluginsdk.Sch
 }
 
 func (d MachineLearningRegistryDataSource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	attributes := map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
-
-		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"primary_region": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"storage_account_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"hns_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"system_created_storage_account_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"system_created_container_registry_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
-		"replication_region": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"location": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"storage_account_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"hns_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"system_created_storage_account_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"system_created_container_registry_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
-		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"discovery_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"intellectual_property_publisher": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
+		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"machine_learning_flow_registry_uri": {
 			Type:     pluginsdk.TypeString,
@@ -151,8 +90,77 @@ func (d MachineLearningRegistryDataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 		},
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"replication_region": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: registryRegionDataSourceSchema(true),
+			},
+		},
+
 		"tags": commonschema.TagsDataSource(),
 	}
+
+	for k, v := range registryRegionDataSourceSchema(false) {
+		attributes[k] = v
+	}
+
+	return attributes
+}
+
+func registryRegionDataSourceSchema(includeLocation bool) map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"system_created_container_registry_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"system_created_container_registry_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"system_created_container_registry_sku": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"system_created_storage_account_blob_public_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"system_created_storage_account_hns_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"system_created_storage_account_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"system_created_storage_account_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"system_created_storage_account_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
+
+	if includeLocation {
+		schema["location"] = commonschema.LocationComputed()
+	}
+
+	return schema
 }
 
 func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
@@ -190,15 +198,14 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 
 			prop := resp.Model.Properties
 			model = MachineLearningRegistryDataSourceModel{
-				Name:                          id.RegistryName,
-				ResourceGroupName:             id.ResourceGroupName,
-				Identity:                      identityIds,
-				Location:                      resp.Model.Location,
-				PublicNetworkAccessEnabled:    pointer.From(prop.PublicNetworkAccess) == string(PublicNetworkAccessStateEnabled),
-				Tags:                          pointer.From(resp.Model.Tags),
-				MlFlowRegistryUri:             pointer.From(prop.MlFlowRegistryUri),
-				DiscoveryUrl:                  pointer.From(prop.DiscoveryURL),
-				IntellectualPropertyPublisher: pointer.From(prop.IntellectualPropertyPublisher),
+				Name:                       id.RegistryName,
+				ResourceGroupName:          id.ResourceGroupName,
+				Identity:                   identityIds,
+				Location:                   resp.Model.Location,
+				PublicNetworkAccessEnabled: pointer.From(prop.PublicNetworkAccess) == string(PublicNetworkAccessStateEnabled),
+				Tags:                       pointer.From(resp.Model.Tags),
+				MlFlowRegistryUri:          pointer.From(prop.MlFlowRegistryUri),
+				DiscoveryUrl:               pointer.From(prop.DiscoveryURL),
 			}
 
 			if prop.ManagedResourceGroup != nil {
@@ -208,10 +215,17 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 			regions := flattenRegistryRegionDetails(prop.RegionDetails)
 			for i, region := range regions {
 				if i == 0 {
-					model.PrimaryRegion = []ReplicationRegion{region}
-				} else {
-					model.ReplicationRegion = append(model.ReplicationRegion, region)
+					model.SystemCreatedStorageAccountType = region.SystemCreatedStorageAccountType
+					model.SystemCreatedStorageAccountHnsEnabled = region.HnsEnabled
+					model.SystemCreatedStorageAccountBlobPublicAccessEnabled = region.StorageAccountBlobPublicAccess
+					model.SystemCreatedContainerRegistrySku = region.SystemCreatedContainerRegistrySku
+					model.SystemCreatedStorageAccountId = region.SystemCreatedStorageAccountId
+					model.SystemCreatedStorageAccountName = region.SystemCreatedStorageAccountName
+					model.SystemCreatedContainerRegistryId = region.SystemCreatedAcrId
+					model.SystemCreatedContainerRegistryName = region.SystemCreatedContainerRegistryName
+					continue
 				}
+				model.ReplicationRegion = append(model.ReplicationRegion, region)
 			}
 
 			metadata.SetID(id)

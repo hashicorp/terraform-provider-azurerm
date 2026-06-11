@@ -14,7 +14,7 @@ Use this data source to access information about an existing Machine Learning Re
 
 ```hcl
 data "azurerm_machine_learning_registry" "example" {
-  name                = "example-mlregistry"
+  name                = "existing-mlregistry"
   resource_group_name = "example-resources"
 }
 
@@ -41,37 +41,51 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Machine Learning Registry.
 
-* `location` - The Azure Region where the Machine Learning Registry exists.
-
-* `public_network_access_enabled` - Whether public network access is enabled for the Machine Learning Registry.
-
-* `primary_region` - A `primary_region` block as defined below.
-
-* `replication_region` - One or more `replication_region` blocks as defined below.
+* `discovery_url` - The discovery URL for the Machine Learning Registry.
 
 * `identity` - An `identity` block as defined below.
 
-* `discovery_url` - The discovery URL for the Machine Learning Registry.
-
 * `intellectual_property_publisher` - The intellectual property publisher for the Machine Learning Registry.
+
+* `location` - The Azure Region where the Machine Learning Registry exists.
 
 * `machine_learning_flow_registry_uri` - The ML Flow registry URI for the Machine Learning Registry.
 
 * `managed_resource_group` - The ID of the managed resource group created for the Machine Learning Registry.
 
+* `public_network_access_enabled` - Whether public network access is enabled for the Machine Learning Registry.
+
+* `replication_region` - One or more `replication_region` blocks as defined below.
+
+* `system_created_container_registry_id` - The ID of the system-created container registry in the primary region.
+
+* `system_created_container_registry_name` - The name of the system-created container registry in the primary region.
+
+* `system_created_container_registry_sku` - The SKU of the system-created container registry in the primary region. This is always `Premium`.
+
+* `system_created_storage_account_blob_public_access_enabled` - Whether public blob access is allowed for the system-created storage account in the primary region.
+
+* `system_created_storage_account_hns_enabled` - Whether hierarchical namespace is enabled for the system-created storage account in the primary region.
+
+* `system_created_storage_account_id` - The ID of the system-created storage account in the primary region.
+
+* `system_created_storage_account_name` - The name of the system-created storage account in the primary region.
+
+* `system_created_storage_account_type` - The storage account type for the system-created storage account in the primary region.
+
 * `tags` - A mapping of tags assigned to the Machine Learning Registry.
 
 ---
 
-A `primary_region` block exports the following:
+An `identity` block exports the following:
 
-* `system_created_storage_account_type` - The storage account type for the main region.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Machine Learning Registry.
 
-* `hns_enabled` - Whether hierarchical namespace is enabled for the main region storage account.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Machine Learning Registry.
 
-* `system_created_storage_account_id` - The ID of the system-created storage account for the main region.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Machine Learning Registry.
 
-* `system_created_container_registry_id` - The ID of the system-created container registry for the main region.
+* `type` - The type of Managed Service Identity that is configured on this Machine Learning Registry.
 
 ---
 
@@ -79,25 +93,21 @@ A `replication_region` block exports the following:
 
 * `location` - The Azure Region for the replication region.
 
-* `system_created_storage_account_type` - The storage account type for the replication region.
+* `system_created_container_registry_id` - The ID of the system-created container registry for this region.
 
-* `hns_enabled` - Whether hierarchical namespace is enabled for the replication region storage account.
+* `system_created_container_registry_name` - The name of the system-created container registry for this region.
 
-* `system_created_storage_account_id` - The ID of the system-created storage account for the replication region.
+* `system_created_container_registry_sku` - The SKU of the system-created container registry for this region. This is always `Premium`.
 
-* `system_created_container_registry_id` - The ID of the system-created container registry for the replication region.
+* `system_created_storage_account_blob_public_access_enabled` - Whether public blob access is allowed for the system-created storage account for this region.
 
----
+* `system_created_storage_account_hns_enabled` - Whether hierarchical namespace is enabled for the system-created storage account for this region.
 
-An `identity` block exports the following:
+* `system_created_storage_account_id` - The ID of the system-created storage account for this region.
 
-* `type` - The type of Managed Service Identity that is configured on this Machine Learning Registry.
+* `system_created_storage_account_name` - The name of the system-created storage account for this region.
 
-* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Machine Learning Registry.
-
-* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Machine Learning Registry.
-
-* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Machine Learning Registry.
+* `system_created_storage_account_type` - The storage account type for the system-created storage account for this region.
 
 ## Timeouts
 

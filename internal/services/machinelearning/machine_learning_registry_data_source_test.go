@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning_test
@@ -25,7 +25,7 @@ func TestAccDataSourceMachineLearningRegistry_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("primary_region.#").HasValue("1"),
+				check.That(data.ResourceName).Key("system_created_storage_account_type").HasValue("Standard_ZRS"),
 				check.That(data.ResourceName).Key("replication_region.#").HasValue("2"),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 			),
