@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -48,6 +49,10 @@ func resourceManagementLock() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				// The Azure Resource Manager API is case-insensitive but does not return resource IDs
+				// with consistent casing, which would otherwise cause a spurious ForceNew replacement
+				// of the lock whenever the casing of the scope drifts (e.g. `resourceGroups` vs `resourcegroups`).
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"lock_level": {

@@ -49,6 +49,27 @@ func TestAccManagementLock_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccManagementLock_scopeCaseInsensitive(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
+	r := ManagementLockResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.resourceGroupReadOnlyBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// the Azure Resource Manager API returns resource IDs with inconsistent casing - changing only
+			// the casing of the `scope` must not produce a diff (which would otherwise force a replacement).
+			Config:   r.scopeCaseInsensitive(data),
+			PlanOnly: true,
+		},
+	})
+}
+
 func TestAccManagementLock_resourceGroupReadOnlyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 	r := ManagementLockResource{}
@@ -192,6 +213,25 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_management_lock" "test" {
   name       = "acctestlock-%d"
   scope      = azurerm_resource_group.test.id
+  lock_level = "ReadOnly"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ManagementLockResource) scopeCaseInsensitive(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_management_lock" "test" {
+  name       = "acctestlock-%d"
+  scope      = upper(azurerm_resource_group.test.id)
   lock_level = "ReadOnly"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
