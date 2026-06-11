@@ -103,6 +103,8 @@ The following arguments are supported:
 
 * `image_registry_credential` - (Optional) An `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
 
+* `cce_policy` - (Optional) The base64-encoded Confidential Compute Enforcement (CCE) policy for the Container Group. When `sku` is set to `Confidential` and this is not specified, Azure will generate a default allow-all policy. Changing this forces a new resource to be created.
+
 * `priority` - (Optional) The priority of the Container Group. Possible values are `Regular` and `Spot`. Changing this forces a new resource to be created.
 
 ~> **Note:** When `priority` is set to `Spot`, the `ip_address_type` has to be `None`.
