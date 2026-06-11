@@ -363,36 +363,33 @@ func (r AppServiceEnvironmentV3Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			// Only run preflight validation when it's enabled and the diff contains changes (or this is a new resource).
-			if !metadata.Client.Features.EnhancedValidation.PreflightEnabled {
-				return nil
-			}
-			if len(rd.GetChangedKeysPrefix("")) == 0 && rd.Id() != "" {
-				return nil
-			}
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				if len(rd.GetChangedKeysPrefix("")) > 0 || rd.Id() == "" {
+					var model AppServiceEnvironmentV3Model
+					if err := metadata.DecodeDiff(&model); err != nil {
+						return err
+					}
 
-			var model AppServiceEnvironmentV3Model
-			if err := metadata.DecodeDiff(&model); err != nil {
-				return err
-			}
+					vnetLoc, skip, err := resolvePreflightVnetLocation(ctx, metadata, model)
+					if err != nil {
+						return err
+					}
+					if skip {
+						return nil
+					}
 
-			vnetLoc, skip, err := resolvePreflightVnetLocation(ctx, metadata, model)
-			if err != nil {
-				return err
-			}
-			if skip {
-				return nil
-			}
+					req := expandCreateForAppServiceEnvironmentV3(model, vnetLoc)
+					id := commonids.NewAppServiceEnvironmentID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
 
-			req := expandCreateForAppServiceEnvironmentV3(model, vnetLoc)
-			id := commonids.NewAppServiceEnvironmentID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(vnetLoc), pointer.To(id), "2023-01-01", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
 
-			preflightValidate, err := preflight.NewValidationRequest(pointer.To(vnetLoc), pointer.To(id), "2023-01-01", req)
-			if err != nil {
-				return fmt.Errorf("constructing preflight validation request: %w", err)
-			}
-
-			if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
-				return err
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
+				}
 			}
 
 			return nil
