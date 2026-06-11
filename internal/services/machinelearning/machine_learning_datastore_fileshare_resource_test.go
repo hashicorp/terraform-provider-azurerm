@@ -136,7 +136,7 @@ resource "azurerm_storage_share" "test" {
 resource "azurerm_machine_learning_datastore_fileshare" "test" {
   name                 = "accdatastore%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_fileshare_id = azurerm_storage_share.test.resource_manager_id
+  storage_fileshare_id = azurerm_storage_share.test.id
   account_key          = azurerm_storage_account.test.primary_access_key
 }
 `, r.template(data), data.RandomInteger)
@@ -243,7 +243,7 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_machine_learning_datastore_fileshare" "test" {
   name                    = "accdatastore%[2]d"
   workspace_id            = azurerm_machine_learning_workspace.test.id
-  storage_fileshare_id    = azurerm_storage_share.test.resource_manager_id
+  storage_fileshare_id    = azurerm_storage_share.test.id
   shared_access_signature = data.azurerm_storage_account_sas.test.sas
 }
 `, r.template(data), data.RandomInteger)
