@@ -21,6 +21,12 @@ import (
 
 const batchRuleSetsDefaultApiVersion = "2025-12-01"
 
+// NOTE: This BatchRuleSetsClient workaround exists because the generated SDK payload
+// uses `omitempty` semantics, but the batch ruleset service requires clear/remove
+// semantics on PUT when caching is disabled. In particular, disabling caching in
+// `route_configuration_override_action` must clear any existing
+// `cacheConfiguration` value. The generated SDK would omit that field from the
+// payload instead of expressing the null/clear operation the service expects.
 type BatchRuleSetsClient struct {
 	Client *resourcemanager.Client
 }

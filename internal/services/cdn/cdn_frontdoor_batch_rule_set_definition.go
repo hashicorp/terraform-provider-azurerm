@@ -5,6 +5,7 @@ package cdn
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"strings"
 
@@ -490,8 +491,7 @@ func expandCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleRuleModel) ([]azu
 func validateCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleRuleModel) error {
 	names := make(map[string]struct{}, len(input))
 	orders := make(map[int64]struct{}, len(input))
-	var lastOrder int64
-	haveLastOrder := false
+	lastOrder := int64(math.MinInt64)
 
 	for _, item := range input {
 		if _, exists := names[item.Name]; exists {
@@ -504,7 +504,7 @@ func validateCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleRuleModel) erro
 		}
 		orders[item.Order] = struct{}{}
 
-		if haveLastOrder && item.Order < lastOrder {
+		if item.Order < lastOrder {
 			return fmt.Errorf("the `rules` blocks must be declared in ascending `order`, got `%d` before `%d`", lastOrder, item.Order)
 		}
 
@@ -513,7 +513,6 @@ func validateCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleRuleModel) erro
 		}
 
 		lastOrder = item.Order
-		haveLastOrder = true
 	}
 
 	return nil

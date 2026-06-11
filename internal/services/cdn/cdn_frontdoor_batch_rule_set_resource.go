@@ -151,6 +151,14 @@ func validateCdnFrontDoorBatchRuleDiffQuota(diff *pluginsdk.ResourceDiff) error 
 		}
 	}
 
+	// NOTE: Front Door Standard/Premium allows up to 100 rules per ruleset. For batch
+	// rulesets, internal service guidance states that a rule with a cache-enabled
+	// `route_configuration_override_action` consumes two effective rule slots during
+	// replacement (e.g., PATCH). This means a batch update can fail even when the final desired
+	// ruleset is within the documented 100 rule limit, because the service evaluates the effective
+	// change set for the PATCH and returns a 400 Bad Request once that replacement crosses
+	// that quota. We validate `changedRules + cacheOperations` here so the plan
+	// fails with the same service-side constraint before sending the batch ruleset update.
 	effectiveDiff := changedRules + cacheOperations
 	if effectiveDiff > 100 {
 		return fmt.Errorf("the effective diff for `rules` exceeds the service-side quota: got `%d` changed rules and `%d` cache operations, total `%d`, but the maximum allowed is `100`", changedRules, cacheOperations, effectiveDiff)

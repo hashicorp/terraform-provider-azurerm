@@ -21,18 +21,22 @@ import (
 )
 
 type Client struct {
-	FrontDoorEndpointsClient            *cdnFrontDoorSdk.AFDEndpointsClient
-	FrontDoorOriginGroupsClient         *cdnFrontDoorSdk.AFDOriginGroupsClient
-	FrontDoorOriginsClient              *cdnFrontDoorSdk.AFDOriginsClient
-	FrontDoorCustomDomainsClient        *cdnFrontDoorSdk.AFDCustomDomainsClient
-	AFDCustomDomainsClient              *afdcustomdomains.AFDCustomDomainsClient
-	FrontDoorSecurityPoliciesClient     *securitypolicies.SecurityPoliciesClient
-	FrontDoorRoutesClient               *cdnFrontDoorSdk.RoutesClient
-	FrontDoorRulesClient                *rules.RulesClient
-	FrontDoorRulesClient_v2025_12_01    *rules_v2025_12_01.RulesClient
-	FrontDoorProfilesClient             *profiles.ProfilesClient
-	FrontDoorSecretsClient              *cdnFrontDoorSdk.SecretsClient
-	FrontDoorRuleSetsClient             *rulesets.RuleSetsClient
+	FrontDoorEndpointsClient         *cdnFrontDoorSdk.AFDEndpointsClient
+	FrontDoorOriginGroupsClient      *cdnFrontDoorSdk.AFDOriginGroupsClient
+	FrontDoorOriginsClient           *cdnFrontDoorSdk.AFDOriginsClient
+	FrontDoorCustomDomainsClient     *cdnFrontDoorSdk.AFDCustomDomainsClient
+	AFDCustomDomainsClient           *afdcustomdomains.AFDCustomDomainsClient
+	FrontDoorSecurityPoliciesClient  *securitypolicies.SecurityPoliciesClient
+	FrontDoorRoutesClient            *cdnFrontDoorSdk.RoutesClient
+	FrontDoorRulesClient             *rules.RulesClient
+	FrontDoorRulesClient_v2025_12_01 *rules_v2025_12_01.RulesClient
+	FrontDoorProfilesClient          *profiles.ProfilesClient
+	FrontDoorSecretsClient           *cdnFrontDoorSdk.SecretsClient
+	FrontDoorRuleSetsClient          *rulesets.RuleSetsClient
+	// NOTE: Batch rulesets use the azuresdkhacks client because the generated SDK's
+	// `omitempty` handling cannot express the null/clear semantics the service
+	// requires when `cacheConfiguration` is removed via the
+	// `route_configuration_override_action` configuration.
 	FrontDoorRuleSetsClient_v2025_12_01 *azuresdkhacks.BatchRuleSetsClient
 	FrontDoorFirewallPoliciesClient     *waf.WebApplicationFirewallPoliciesClient
 	CustomDomainsClient                 *cdnSdk.CustomDomainsClient
