@@ -21,14 +21,40 @@ import (
 )
 
 const (
-	zipDeployError    = 3
-	zipDeployComplete = 4
+	deployStatusError    = 3
+	deployStatusComplete = 4
 )
 
+type publishOptions struct {
+	endpointPath string
+	contentType  string
+	skipWarmup   bool
+}
+
+var zipDeployOptions = publishOptions{
+	endpointPath: "/api/zipdeploy?isAsync=true",
+	contentType:  "application/octet-stream",
+	skipWarmup:   false,
+}
+
+var flexConsumptionPublishOptions = publishOptions{
+	endpointPath: "/api/publish?type=zip",
+	contentType:  "application/zip",
+	skipWarmup:   true,
+}
+
 func GetCredentialsAndPublish(ctx context.Context, client *webapps.WebAppsClient, appID commonids.AppServiceId, sourceFile string) error {
+	return getCredentialsAndPublishWithOptions(ctx, client, appID, sourceFile, zipDeployOptions)
+}
+
+func GetCredentialsAndPublishFlexConsumption(ctx context.Context, client *webapps.WebAppsClient, appID commonids.AppServiceId, sourceFile string) error {
+	return getCredentialsAndPublishWithOptions(ctx, client, appID, sourceFile, flexConsumptionPublishOptions)
+}
+
+func getCredentialsAndPublishWithOptions(ctx context.Context, client *webapps.WebAppsClient, appID commonids.AppServiceId, sourceFile string, opts publishOptions) error {
 	site, err := client.Get(ctx, appID)
 	if err != nil || site.Model == nil {
-		return fmt.Errorf("reading site %s to perform zip deploy: %+v", appID.SiteName, err)
+		return fmt.Errorf("reading site %s to perform deployment: %+v", appID.SiteName, err)
 	}
 	props := *site.Model.Properties
 	if sslStates := props.HostNameSslStates; sslStates != nil {
@@ -40,7 +66,7 @@ func GetCredentialsAndPublish(ctx context.Context, client *webapps.WebAppsClient
 				}
 				httpsHost := fmt.Sprintf("https://%s", *v.Name)
 
-				if err := PublishZipDeployLocalFileKuduPush(ctx, httpsHost, *user, *passwd, client.Client.UserAgent, sourceFile); err != nil {
+				if err := publishLocalFile(ctx, httpsHost, *user, *passwd, client.Client.UserAgent, sourceFile, opts); err != nil {
 					return fmt.Errorf("publishing source (%s) to site %s: %+v", sourceFile, appID, err)
 				}
 
@@ -48,7 +74,7 @@ func GetCredentialsAndPublish(ctx context.Context, client *webapps.WebAppsClient
 			}
 		}
 	} else {
-		return fmt.Errorf("could not determine SCM Site name for Site %s for Zip Deployment", appID)
+		return fmt.Errorf("could not determine SCM Site name for Site %s for deployment", appID)
 	}
 
 	return nil
@@ -57,7 +83,7 @@ func GetCredentialsAndPublish(ctx context.Context, client *webapps.WebAppsClient
 func GetCredentialsAndPublishSlot(ctx context.Context, client *webapps.WebAppsClient, id webapps.SlotId, sourceFile string) error {
 	site, err := client.GetSlot(ctx, id)
 	if err != nil || site.Model == nil || site.Model.Properties == nil {
-		return fmt.Errorf("reading site %s to perform zip deploy: %+v", id.SiteName, err)
+		return fmt.Errorf("reading site %s to perform deployment: %+v", id.SiteName, err)
 	}
 	props := *site.Model.Properties
 	if sslStates := props.HostNameSslStates; sslStates != nil {
@@ -69,7 +95,7 @@ func GetCredentialsAndPublishSlot(ctx context.Context, client *webapps.WebAppsCl
 				}
 				httpsHost := fmt.Sprintf("https://%s", *v.Name)
 
-				if err := PublishZipDeployLocalFileKuduPush(ctx, httpsHost, *user, *passwd, client.Client.UserAgent, sourceFile); err != nil {
+				if err := publishLocalFile(ctx, httpsHost, *user, *passwd, client.Client.UserAgent, sourceFile, zipDeployOptions); err != nil {
 					return fmt.Errorf("publishing source (%s) to site %s: %+v", sourceFile, id, err)
 				}
 
@@ -77,7 +103,7 @@ func GetCredentialsAndPublishSlot(ctx context.Context, client *webapps.WebAppsCl
 			}
 		}
 	} else {
-		return fmt.Errorf("could not determine SCM Site name for Slot %s for Zip Deployment", id)
+		return fmt.Errorf("could not determine SCM Site name for Slot %s for deployment", id)
 	}
 
 	return nil
@@ -108,18 +134,25 @@ func GetSitePublishingCredentialsSlot(ctx context.Context, client *webapps.WebAp
 }
 
 func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user string, passwd string, userAgent string, zipSource string) error {
+	return publishLocalFile(ctx, host, user, passwd, userAgent, zipSource, zipDeployOptions)
+}
+
+// publishLocalFile handles the common logic for publishing a local zip file to an App Service endpoint.
+func publishLocalFile(ctx context.Context, host string, user string, passwd string, userAgent string, zipSource string, opts publishOptions) error {
 	f, err := os.Open(zipSource)
 	if err != nil {
 		return err
 	}
 
-	publishEndpoint := fmt.Sprintf("%s/api/zipdeploy?isAsync=true", host)
+	publishEndpoint := fmt.Sprintf("%s%s", host, opts.endpointPath)
 	statusEndpoint := fmt.Sprintf("%s/api/deployments/latest", host)
 
-	// The deployment service can be unavailable if the app is recycling. This could take a while to come back up and timeout so instead we
-	// poll the deployment service status endpoint until it is available.
-	if err := pollDeploymentServiceStatus(ctx, host, user, passwd); err != nil {
-		return fmt.Errorf("checking deployment service status: %+v", err)
+	if !opts.skipWarmup {
+		// The deployment service can be unavailable if the app is recycling. This could take a while to come back up and timeout so instead we
+		// poll the deployment service status endpoint until it is available.
+		if err := pollDeploymentServiceStatus(ctx, host, user, passwd); err != nil {
+			return fmt.Errorf("checking deployment service status: %+v", err)
+		}
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, publishEndpoint, f)
@@ -130,7 +163,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 	req.SetBasicAuth(user, passwd)
 	req.Header["Cache-Control"] = []string{"no-cache"}
 	req.Header["User-Agent"] = []string{userAgent}
-	req.Header["Content-Type"] = []string{"application/octet-stream"}
+	req.Header["Content-Type"] = []string{opts.contentType}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -139,9 +172,16 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
 		if resp.StatusCode == http.StatusConflict {
-			return fmt.Errorf("publising Zip Deployment failed with %s - Another operation is in progress or your application is not configured for Zip deployments", resp.Status)
+			return fmt.Errorf("publishing failed with %s - another operation is in progress or the application is not configured for deployments", resp.Status)
 		}
-		return fmt.Errorf("publishing failed with status code %s", resp.Status)
+		respBody, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("publishing failed with status code %s: %s", resp.Status, string(respBody))
+	}
+
+	// For endpoints like /api/publish, a 200 OK means the deployment completed synchronously
+	// and there is no async status to poll. Only poll when we receive 202 Accepted.
+	if resp.StatusCode == http.StatusOK {
+		return nil
 	}
 
 	statusReq, err := http.NewRequestWithContext(ctx, http.MethodGet, statusEndpoint, http.NoBody)
@@ -161,17 +201,17 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 		PollInterval: 10 * time.Second,
 		Delay:        10 * time.Second,
 		Timeout:      time.Until(deadline),
-		Refresh:      checkZipDeploymentStatusRefresh(statusReq),
+		Refresh:      checkDeploymentStatusRefresh(statusReq),
 	}
 
 	if _, err := deployWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Zip Deployment to complete")
+		return fmt.Errorf("waiting for deployment to complete")
 	}
 
 	return nil
 }
 
-func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc {
+func checkDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := http.DefaultClient.Do(r)
 		if err != nil {
@@ -179,25 +219,25 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 		}
 
 		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
-			return nil, "", fmt.Errorf("failed to read Zip Deployment status: %s", resp.Status)
+			return nil, "", fmt.Errorf("failed to read deployment status: %s", resp.Status)
 		}
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return nil, "", fmt.Errorf("reading status response body for Zip Deploy")
+			return nil, "", fmt.Errorf("reading status response body for deployment")
 		}
 
 		body := make(map[string]interface{})
 		err = json.Unmarshal(respBody, &body)
 		if err != nil {
-			return nil, "", fmt.Errorf("could not parse status response for Zip Deploy")
+			return nil, "", fmt.Errorf("could not parse status response for deployment")
 		}
 
 		if statusRaw, ok := body["status"]; ok && statusRaw != nil {
 			if status, ok := statusRaw.(float64); ok {
 				switch status {
-				case zipDeployError:
-					return nil, "", fmt.Errorf("zip deployment failed")
-				case zipDeployComplete:
+				case deployStatusError:
+					return nil, "", fmt.Errorf("deployment failed")
+				case deployStatusComplete:
 					return status, "complete", nil
 				default:
 					return status, "pending", nil
