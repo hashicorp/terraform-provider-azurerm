@@ -274,7 +274,7 @@ func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta int
 	resp, err := client.GetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Certificate Issuer %s was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
+			log.Printf("[DEBUG] Certificate Issuer %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
 			return nil
 		}
 

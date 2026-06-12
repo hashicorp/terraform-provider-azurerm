@@ -276,7 +276,7 @@ func (r KeyVaultCertificateContactsResource) Delete() sdk.ResourceFunc {
 			resp, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					log.Printf("[DEBUG] Key Vault Certificate Contact %s was not found in Key Vault at URI %s - removing from state", id.ID(), id.KeyVaultBaseUrl)
+					log.Printf("[DEBUG] Key Vault Certificate Contact %q was not found in Key Vault at URI %q - removing from state", id.ID(), id.KeyVaultBaseUrl)
 					return nil
 				}
 
