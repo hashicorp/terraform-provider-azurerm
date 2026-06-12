@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -91,7 +91,9 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.IsNewResource() {
 		if _, hasExisting := vs[name]; hasExisting {
-			return tf.ImportAsExistsError(resourceName, resourceId)
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				return tf.ImportAsExistsError(resourceName, resourceId)
+			}
 		}
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -148,7 +148,7 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 		Timeout: 9 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			deadline, ok := ctx.Deadline()
@@ -163,15 +163,17 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 
 			id := customipprefixes.NewCustomIPPrefixID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			_, cidr, err := net.ParseCIDR(model.CIDR)
@@ -233,9 +235,10 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				payload.Zones = &model.Zones
 			}
 
-			if err := r.client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := r.client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{string(customipprefixes.ProvisioningStateUpdating)},
@@ -266,7 +269,6 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 			}
 
 			log.Printf("[DEBUG] Final CommissionedState is %q for %s..", *commissionedState, id)
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -277,14 +279,13 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 		Timeout: 17 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state CustomIpPrefixModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -318,7 +319,7 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
@@ -380,7 +381,7 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 		Timeout: 17 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
@@ -434,8 +435,6 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 	}
 
 	initialState := existing.Model.Properties.CommissionedState
-
-	log.Printf("[DEBUG] Updating CommissionedState for %s from current value %q to desired value %q..", id, *initialState, desiredState)
 
 	// stateTree is a map of desired state, to a map of current state, to the list of transition states needed to get there
 	stateTree := map[customipprefixes.CommissionedState]map[customipprefixes.CommissionedState][]customipprefixes.CommissionedState{
@@ -582,7 +581,6 @@ func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id cus
 	existing.Model.Properties.CommissionedState = pointer.To(desiredState)
 	existing.Model.Properties.NoInternetAdvertise = noInternetAdvertise
 
-	log.Printf("[DEBUG] Updating the CommissionedState field to %q for %s..", desiredState, id)
 	if err := r.client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
 		return fmt.Errorf("updating CommissionedState to %q for %s: %+v", desiredState, id, err)
 	}
@@ -619,20 +617,24 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 		return nil, fmt.Errorf("retrieving %s: response was nil", id)
 	}
 
-	prefix, ok := result.(customipprefixes.CustomIPPrefix)
+	resp, ok := result.(customipprefixes.GetOperationResponse)
 	if !ok {
 		return nil, fmt.Errorf("retrieving %s: response was not a valid Custom IP Prefix", id)
 	}
 
-	if prefix.Properties == nil {
-		return prefix.Properties.CommissionedState, fmt.Errorf("retrieving %s: `properties` was nil", id)
+	if resp.Model == nil {
+		return nil, fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if resp.Model.Properties == nil {
+		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 
 	if err != nil {
-		return prefix.Properties.CommissionedState, fmt.Errorf("waiting for CommissionedState of %s: %+v", id, err)
+		return resp.Model.Properties.CommissionedState, fmt.Errorf("waiting for CommissionedState of %s: %+v", id, err)
 	}
 
-	return prefix.Properties.CommissionedState, nil
+	return resp.Model.Properties.CommissionedState, nil
 }
 
 func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context, id customipprefixes.CustomIPPrefixId) pluginsdk.StateRefreshFunc {

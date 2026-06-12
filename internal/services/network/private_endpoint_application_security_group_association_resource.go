@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -88,7 +88,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			}
 
 			if response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
-				return fmt.Errorf("PrivateEndpoint %q does not exsits", privateEndpointId)
+				return fmt.Errorf("PrivateEndpoint %q does not exist", privateEndpointId)
 			}
 
 			if existingPrivateEndpoint.Model == nil || existingPrivateEndpoint.Model.Properties == nil {
@@ -101,7 +101,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			}
 
 			if response.WasNotFound(existingASG.HttpResponse) {
-				return fmt.Errorf("ApplicationSecurityGroup %q does not exsits", ASGId)
+				return fmt.Errorf("ApplicationSecurityGroup %q does not exist", ASGId)
 			}
 
 			if existingASG.Model == nil || existingASG.Model.Properties == nil {
@@ -126,8 +126,10 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 				}
 			}
 
-			if ASGInPE {
-				return fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.", resourceId.ID(), "azurerm_private_endpoint_application_security_group_association")
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if ASGInPE {
+					return metadata.ResourceRequiresImport(p.ResourceType(), resourceId)
+				}
 			}
 
 			if ASGList != nil {
@@ -141,6 +143,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 				}
 			}
 
+			// TODO: implement callback, requires migrating to an ID implementing `resourceids.ResourceId`
 			if err = privateEndpointClient.CreateOrUpdateThenPoll(ctx, *privateEndpointId, *input.Model); err != nil {
 				return fmt.Errorf("creating %s: %+v", privateEndpointId, err)
 			}
@@ -186,7 +189,8 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 			}
 
 			if response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
-				return fmt.Errorf("PrivateEndpoint %q does not exsits", privateEndpointId)
+				log.Printf("%s was not found - removing from state!", *privateEndpointId)
+				return metadata.MarkAsGone(resourceId)
 			}
 
 			existingASG, err := ASGClient.Get(ctx, *ASGId)
@@ -195,7 +199,8 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 			}
 
 			if response.WasNotFound(existingASG.HttpResponse) {
-				return fmt.Errorf("ApplicationSecurityGroup %q does not exsits", ASGId)
+				log.Printf("%s was not found - removing from state!", *ASGId)
+				return metadata.MarkAsGone(resourceId)
 			}
 
 			// flag: application security group exists in private endpoint configuration
@@ -212,7 +217,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 				}
 			}
 			if !ASGInPE {
-				log.Printf("ApplicationSecurityGroup %q does not exsits in %q, removing from state.", ASGId, privateEndpointId)
+				log.Printf("ApplicationSecurityGroup %q does not exist in %q, removing from state.", ASGId, privateEndpointId)
 				err := metadata.MarkAsGone(resourceId)
 				if err != nil {
 					return err
@@ -264,7 +269,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 			}
 
 			if response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
-				return fmt.Errorf("PrivateEndpoint %q does not exsits", privateEndpointId)
+				return fmt.Errorf("PrivateEndpoint %q does not exist", privateEndpointId)
 			}
 
 			if existingPrivateEndpoint.Model == nil || existingPrivateEndpoint.Model.Properties == nil {
@@ -277,7 +282,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 			}
 
 			if response.WasNotFound(existingASG.HttpResponse) {
-				return fmt.Errorf("ApplicationSecurityGroup %q does not exsits", ASGId)
+				return fmt.Errorf("ApplicationSecurityGroup %q does not exist", ASGId)
 			}
 
 			resourceId := parse.NewPrivateEndpointApplicationSecurityGroupAssociationId(*privateEndpointId, *ASGId)

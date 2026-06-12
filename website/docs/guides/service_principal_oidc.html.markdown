@@ -42,7 +42,7 @@ At the top of this page, you'll need to take note of the "Application (client) I
 
 An application will need a federated credential specified for each GitHub Environment, Branch Name, Pull Request, or Tag based on your use case. For this example, we'll give permission to `main` branch workflow runs.
 
--> **Tip:** You can also configure the Application using the [azuread_application](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application) and [azuread_application_federated_identity_credential](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application_federated_identity_credential) resources in the AzureAD Terraform Provider.
+-> **Note:** You can also configure the Application using the [azuread_application](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application) and [azuread_application_federated_identity_credential](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application_federated_identity_credential) resources in the AzureAD Terraform Provider.
 
 #### Via the Portal
 
@@ -152,6 +152,17 @@ The ADO service connection ID is required in combination with these and can be s
 
 For Azure DevOps Pipelines, at least one task in the pipeline has Service Connection support and has your service connection specified. Without this, the agent will fail to load the Service Connection and results in a `No service connection found with identifier "..."`  error.
 
+~> **Note:** Azure DevOps also provides a `TerraformTaskV4@4` pipeline task, however this task is **not available by default**.
+It is provided by the **Terraform** extension published by Microsoft DevLabs and must be installed in the Azure DevOps **organization** before it appears in the pipeline editor.
+
+For installation and usage details, refer to:
+- [Terraform extension for Azure DevOps (Marketplace)](https://marketplace.visualstudio.com/items?itemName=ms-devlabs.custom-terraform-tasks)
+- [TerraformTaskV4 documentation](https://github.com/microsoft/azure-pipelines-terraform/tree/main/Tasks/TerraformTask/TerraformTaskV4)
+
+Issues related to the `TerraformTaskV4` task itself should be reported in the
+[azure-pipelines-terraform](https://github.com/microsoft/azure-pipelines-terraform) repository.
+
+
 It is recommend to use the `AzureCLI@2` task as below (note the `azureSubscription` input parameter):
 
 ```yaml
@@ -184,7 +195,7 @@ At this point running either `terraform plan` or `terraform apply` should allow 
 
 It's also possible to configure these variables either in-line or from using variables in Terraform (as the `oidc_token`, `oidc_token_file_path`, or `oidc_request_token`, `oidc_request_url` and `ado_pipeline_service_connection_id` are in this example), like so:
 
-~> **NOTE:** We'd recommend not defining these variables in-line since they could easily be checked into Source Control.
+~> **Note:** We'd recommend not defining these variables in-line since they could easily be checked into Source Control.
 
 ```hcl
 variable "oidc_token" {}

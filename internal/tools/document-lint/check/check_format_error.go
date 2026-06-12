@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -27,7 +27,7 @@ func newFormatErr(origin, msg string, checkBase checkBase) *formatErr {
 }
 
 func (f formatErr) String() string {
-	base := f.checkBase.Str()
+	base := f.Str()
 	switch {
 	case strings.Contains(f.msg, "block is not defined in the documentation"):
 		return fmt.Sprintf("%s %s", base, util.IssueLine(f.msg))
@@ -40,7 +40,8 @@ func (f formatErr) String() string {
 	case strings.HasPrefix(f.Origin, "* ~>"):
 		return fmt.Sprintf("%s a %s block should not start with `*`", base, util.Bold("Note"))
 	default:
-		return fmt.Sprintf("%s should be formatted as: %s", base,
+		return fmt.Sprintf(
+			"%s should be formatted as: %s", base,
 			util.FormatCode("* `field` - (Required/Optional) Xxx..."),
 		)
 	}

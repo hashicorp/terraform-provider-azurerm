@@ -29,7 +29,7 @@ func DefaultCreateOrUpdateOperationOptions() CreateOrUpdateOperationOptions {
 func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 	out := client.Headers{}
 	if o.IfMatch != nil {
-		out.Append("If-Match", fmt.Sprintf("%v", *o.IfMatch))
+		out.Append("if-match", fmt.Sprintf("%v", *o.IfMatch))
 	}
 	return &out
 }

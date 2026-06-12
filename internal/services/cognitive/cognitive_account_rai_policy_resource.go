@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raipolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/raipolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -139,15 +139,17 @@ func (r CognitiveAccountRaiPolicyResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := raipolicies.NewRaiPolicyID(subscriptionId, cognitiveAccountId.ResourceGroupName, cognitiveAccountId.AccountName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
+			id := raipolicies.NewAccountRaiPolicyID(subscriptionId, cognitiveAccountId.ResourceGroupName, cognitiveAccountId.AccountName, model.Name)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			locks.ByID(cognitiveAccountId.ID())
@@ -183,7 +185,7 @@ func (r CognitiveAccountRaiPolicyResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.RaiPoliciesClient
 
-			id, err := raipolicies.ParseRaiPolicyID(metadata.ResourceData.Id())
+			id, err := raipolicies.ParseAccountRaiPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -224,7 +226,7 @@ func (r CognitiveAccountRaiPolicyResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.RaiPoliciesClient
 
-			id, err := raipolicies.ParseRaiPolicyID(metadata.ResourceData.Id())
+			id, err := raipolicies.ParseAccountRaiPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -281,7 +283,7 @@ func (r CognitiveAccountRaiPolicyResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.RaiPoliciesClient
 
-			id, err := raipolicies.ParseRaiPolicyID(metadata.ResourceData.Id())
+			id, err := raipolicies.ParseAccountRaiPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -301,7 +303,7 @@ func (r CognitiveAccountRaiPolicyResource) Delete() sdk.ResourceFunc {
 }
 
 func (r CognitiveAccountRaiPolicyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return raipolicies.ValidateRaiPolicyID
+	return raipolicies.ValidateAccountRaiPolicyID
 }
 
 func expandRaiPolicyContentFilters(filters []AccountRaiPolicyContentFilter) *[]raipolicies.RaiPolicyContentFilter {

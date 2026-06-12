@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -70,17 +70,19 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 	id := settings.NewSettingID(subscriptionId, settings.SettingName(settingName))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
-		}
-
-		if existing.Model != nil {
-			if alertSyncSettings, ok := existing.Model.(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
-				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 			}
-			if dataExportSettings, ok := existing.Model.(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
-				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+
+			if existing.Model != nil {
+				if alertSyncSettings, ok := existing.Model.(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
+					return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+				}
+				if dataExportSettings, ok := existing.Model.(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
+					return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+				}
 			}
 		}
 	}

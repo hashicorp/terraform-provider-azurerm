@@ -3,12 +3,15 @@ subcategory: "Machine Learning"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_ai_foundry_project"
 description: |-
-  Manages an AI Foundry Project.
+  Manages a Microsoft Foundry Hub (classic) Project resource.
 ---
 
 # azurerm_ai_foundry_project
 
-Manages an AI Foundry Project.
+Manages a Microsoft Foundry Hub (classic) Project resource.
+
+~> **Note:** Hub‑based projects are considered legacy and are not compatible with the new Foundry experience. Microsoft recommends using the new Microsoft Foundry project resource, which should be provisioned using
+[`azurerm_cognitive_account`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_account) and [`azurerm_cognitive_account_project`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_account_project).
 
 ## Example Usage
 
@@ -52,16 +55,9 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_ai_services" "example" {
-  name                = "exampleaiservices"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "S0"
-}
-
 resource "azurerm_ai_foundry" "example" {
   name                = "exampleaihub"
-  location            = azurerm_ai_services.example.location
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   storage_account_id  = azurerm_storage_account.example.id
   key_vault_id        = azurerm_key_vault.example.id
@@ -130,9 +126,9 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 hour) Used when creating the AI Foundry Project.
+* `create` - (Defaults to 30 minutes) Used when creating the AI Foundry Project.
 * `read` - (Defaults to 5 minutes) Used when retrieving the AI Foundry Project.
 * `update` - (Defaults to 30 minutes) Used when updating the AI Foundry Project.
 * `delete` - (Defaults to 30 minutes) Used when deleting the AI Foundry Project.
@@ -144,3 +140,9 @@ AI Foundry Projects can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_ai_foundry_project.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/project1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices` - 2025-06-01

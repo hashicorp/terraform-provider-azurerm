@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic_test
@@ -6,8 +6,10 @@ package logic_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -35,6 +36,50 @@ func TestAccLogicAppStandard_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_completeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -80,7 +125,6 @@ func TestAccLogicAppStandard_publicNetworkAccessDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
-				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -89,7 +133,6 @@ func TestAccLogicAppStandard_publicNetworkAccessDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
-				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -98,7 +141,6 @@ func TestAccLogicAppStandard_publicNetworkAccessDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
-				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -323,6 +365,7 @@ func TestAccLogicAppStandard_updateVersion(t *testing.T) {
 				check.That(data.ResourceName).Key("version").HasValue("~1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.version(data, "~2"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -330,6 +373,7 @@ func TestAccLogicAppStandard_updateVersion(t *testing.T) {
 				check.That(data.ResourceName).Key("version").HasValue("~2"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -342,9 +386,9 @@ func TestAccLogicAppStandard_3264bit(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.app64bit(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -352,6 +396,7 @@ func TestAccLogicAppStandard_3264bit(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -364,9 +409,9 @@ func TestAccLogicAppStandard_httpsOnly(t *testing.T) {
 			Config: r.httpsOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("https_only").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -379,12 +424,9 @@ func TestAccLogicAppStandard_createIdentity(t *testing.T) {
 			Config: r.basicIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -397,19 +439,16 @@ func TestAccLogicAppStandard_updateIdentity(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.basicIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -422,10 +461,9 @@ func TestAccLogicAppStandard_userAssignedIdentity(t *testing.T) {
 			Config: r.userAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -438,9 +476,35 @@ func TestAccLogicAppStandard_corsSettings(t *testing.T) {
 			Config: r.corsSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.cors.#").HasValue("1"),
-				check.That(data.ResourceName).Key("site_config.0.cors.0.support_credentials").HasValue("true"),
-				check.That(data.ResourceName).Key("site_config.0.cors.0.allowed_origins.#").HasValue("4"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_corsSettingsRemoved(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.corsSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -456,7 +520,6 @@ func TestAccLogicAppStandard_enableHttp2(t *testing.T) {
 			Config: r.enableHttp2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.http2_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -472,7 +535,6 @@ func TestAccLogicAppStandard_minTlsVersion(t *testing.T) {
 			Config: r.minTlsVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.min_tls_version").HasValue("1.2"),
 			),
 		},
 		data.ImportStep(),
@@ -488,7 +550,6 @@ func TestAccLogicAppStandard_ftpsState(t *testing.T) {
 			Config: r.ftpsState(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ftps_state").HasValue("AllAllowed"),
 			),
 		},
 		data.ImportStep(),
@@ -504,7 +565,6 @@ func TestAccLogicAppStandard_preWarmedInstanceCount(t *testing.T) {
 			Config: r.preWarmedInstanceCount(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.pre_warmed_instance_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -520,7 +580,6 @@ func TestAccLogicAppStandard_computedPreWarmedInstanceCount(t *testing.T) {
 			Config: r.computedPreWarmedInstanceCount(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.pre_warmed_instance_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -536,7 +595,6 @@ func TestAccLogicAppStandard_oneIpRestriction(t *testing.T) {
 			Config: r.oneIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 			),
 		},
 		data.ImportStep(),
@@ -552,7 +610,6 @@ func TestAccLogicAppStandard_oneServiceTagIpRestriction(t *testing.T) {
 			Config: r.oneServiceTagIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.service_tag").HasValue("AzureEventGrid"),
 			),
 		},
 		data.ImportStep(),
@@ -568,16 +625,16 @@ func TestAccLogicAppStandard_changeIpToServiceTagIpRestriction(t *testing.T) {
 			Config: r.oneIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.oneServiceTagIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.service_tag").HasValue("AzureEventGrid"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.oneIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -585,6 +642,7 @@ func TestAccLogicAppStandard_changeIpToServiceTagIpRestriction(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -609,29 +667,19 @@ func TestAccLogicAppStandard_ipRestrictionRemoved(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// This configuration includes a single explicit ip_restriction
 			Config: r.oneIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 		{
-			// This configuration has no site_config blocks at all.
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
-			),
-		},
-		{
-			// This configuration explicitly sets ip_restriction to [] using attribute syntax.
 			Config: r.ipRestrictionRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -641,29 +689,55 @@ func TestAccLogicAppStandard_scmIpRestrictionRemoved(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// This configuration includes a single explicit ip_restriction
-			Config: r.oneIpRestriction(data),
+			Config: r.scmIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 		{
-			// This configuration has no site_config blocks at all.
-			Config: r.basic(data),
+			Config: r.unsetScmIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_scmIpRestrictionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// This configuration explicitly sets ip_restriction to [] using attribute syntax.
-			Config: r.ipRestrictionRemoved(data),
+			Config: r.scmIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.scmMultiIpRestriction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scmIpRestriction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.unsetScmIpRestriction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -787,28 +861,34 @@ func TestAccLogicAppStandard_clientCertMode(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_certificate_mode").HasValue(""),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.clientCertMode(data, "Required"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_certificate_mode").HasValue("Required"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.clientCertMode(data, "Optional"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_certificate_mode").HasValue("Optional"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.clientCertMode(data, "OptionalInteractiveUser"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_certificate_mode").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -824,7 +904,6 @@ func TestAccLogicAppStandard_elasticInstanceMinimum(t *testing.T) {
 			Config: r.elasticInstanceMinimum(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -840,7 +919,6 @@ func TestAccLogicAppStandard_appScaleLimit(t *testing.T) {
 			Config: r.appScaleLimit(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.app_scale_limit").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -856,7 +934,6 @@ func TestAccLogicAppStandard_runtimeScaleMonitoringEnabled(t *testing.T) {
 			Config: r.runtimeScaleMonitoringEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.runtime_scale_monitoring_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -872,7 +949,6 @@ func TestAccLogicAppStandard_dotnetVersion4(t *testing.T) {
 			Config: r.dotnetVersion(data, "~1", "v4.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v4.0"),
 			),
 		},
 		data.ImportStep(),
@@ -888,7 +964,6 @@ func TestAccLogicAppStandard_dotnetVersion5(t *testing.T) {
 			Config: r.dotnetVersion(data, "~4", "v5.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v5.0"),
 			),
 		},
 		data.ImportStep(),
@@ -904,7 +979,6 @@ func TestAccLogicAppStandard_dotnetVersion6(t *testing.T) {
 			Config: r.dotnetVersion(data, "~4", "v6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v6.0"),
 			),
 		},
 		data.ImportStep(),
@@ -920,7 +994,6 @@ func TestAccLogicAppStandard_dotnetVersion8(t *testing.T) {
 			Config: r.dotnetVersion(data, "~4", "v8.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v8.0"),
 			),
 		},
 		data.ImportStep(),
@@ -933,7 +1006,7 @@ func TestAccLogicAppStandard_vNetIntegration(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vNetIntegration_subnet1(data),
+			Config: r.vnetIntegrationSubnet1(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
@@ -951,14 +1024,14 @@ func TestAccLogicAppStandard_vNetIntegrationUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vNetIntegration_basic(data),
+			Config: r.vnetIntegrationBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.vNetIntegration_subnet1(data),
+			Config: r.vnetIntegrationSubnet1(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
@@ -968,7 +1041,7 @@ func TestAccLogicAppStandard_vNetIntegrationUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.vNetIntegration_subnet2(data),
+			Config: r.vnetIntegrationSubnet2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
@@ -978,7 +1051,7 @@ func TestAccLogicAppStandard_vNetIntegrationUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.vNetIntegration_basic(data),
+			Config: r.vnetIntegrationBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1023,7 +1096,6 @@ func TestAccLogicAppStandard_vnetContentShareEnabled(t *testing.T) {
 			Config: r.vnetContentShareEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vnet_content_share_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1031,7 +1103,6 @@ func TestAccLogicAppStandard_vnetContentShareEnabled(t *testing.T) {
 			Config: r.vnetContentShareEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vnet_content_share_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -1039,7 +1110,58 @@ func TestAccLogicAppStandard_vnetContentShareEnabled(t *testing.T) {
 			Config: r.vnetContentShareEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vnet_content_share_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_keyVaultReferenceIdentityInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.keyVaultReferenceIdentityInvalid(data),
+			ExpectError: regexp.MustCompile("`key_vault_reference_identity_id` must be an identity assigned to this resource in the `identity` block"),
+		},
+	})
+}
+
+func TestAccLogicAppStandard_keyVaultReferenceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_reference_identity_id").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_reference_identity_id").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.keyVaultReferenceIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_reference_identity_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_reference_identity_id").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -1062,18 +1184,25 @@ func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.C
 
 func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.LogicAppStandardID(state.ID)
+		id, err := commonids.ParseLogicAppId(state.ID)
 		if err != nil {
 			return err
 		}
 
-		appSettingsResp, err := clients.Web.AppServicesClient.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+		ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
+		defer cancel()
+
+		appSettingsResp, err := clients.AppService.WebAppsClient.ListApplicationSettings(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("listing AppSettings: %+v", err)
 		}
 
+		if appSettingsResp.Model == nil {
+			return fmt.Errorf("listing AppSettings for %s: `model` was nil", id)
+		}
+
 		exists := false
-		for k := range appSettingsResp.Properties {
+		for k := range pointer.From(appSettingsResp.Model.Properties) {
 			if strings.EqualFold("AzureFunctionsJobHost__extensionBundle__id", k) {
 				exists = true
 				break
@@ -1095,9 +1224,292 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) basicUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_service_plan" "test2" {
+  name                = "acctestASP2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  os_type  = "Windows"
+  sku_name = "WS1"
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[2]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_service_plan.test2.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                                     = "acctest-%[2]d-func"
+  location                                 = azurerm_resource_group.test.location
+  resource_group_name                      = azurerm_resource_group.test.name
+  app_service_plan_id                      = azurerm_service_plan.test.id
+  storage_account_name                     = azurerm_storage_account.test.name
+  storage_account_access_key               = azurerm_storage_account.test.primary_access_key
+  use_extension_bundle                     = true
+  bundle_version                           = "[1.31.12]"
+  client_certificate_mode                  = "Required"
+  enabled                                  = false
+  https_only                               = true
+  ftp_publish_basic_authentication_enabled = false
+  scm_publish_basic_authentication_enabled = false
+  public_network_access                    = "Enabled"
+  version                                  = "~4"
+  vnet_content_share_enabled               = true
+  virtual_network_subnet_id                = azurerm_subnet.test1.id
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  app_settings = {
+    "hello"                          = "world"
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
+  }
+
+  site_config {
+    always_on           = true
+    min_tls_version     = 1.2
+    scm_min_tls_version = 1.2
+
+    cors {
+      allowed_origins = [
+        "http://www.contoso.com",
+        "www.contoso.com",
+        "contoso.com",
+        "http://localhost:4201",
+      ]
+
+      support_credentials = true
+    }
+
+    ftps_state                       = "FtpsOnly"
+    http2_enabled                    = true
+    pre_warmed_instance_count        = 2
+    scm_use_main_ip_restriction      = true
+    scm_type                         = "GitHub"
+    use_32_bit_worker_process        = false
+    websockets_enabled               = true
+    health_check_path                = "/health"
+    elastic_instance_minimum         = 1
+    app_scale_limit                  = 10
+    runtime_scale_monitoring_enabled = true
+    dotnet_framework_version         = "v6.0"
+
+    ip_restriction {
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+    scm_ip_restriction_default_action = "Deny"
+  }
+
+  connection_string {
+    name  = "Example"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  tags = {
+    environment = "AccTest"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acct2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                                     = "acctest-%[2]d-func"
+  location                                 = azurerm_resource_group.test.location
+  resource_group_name                      = azurerm_resource_group.test.name
+  app_service_plan_id                      = azurerm_service_plan.test.id
+  storage_account_name                     = azurerm_storage_account.test.name
+  storage_account_access_key               = azurerm_storage_account.test.primary_access_key
+  use_extension_bundle                     = true
+  bundle_version                           = "[1.31.13]"
+  client_certificate_mode                  = "Required"
+  enabled                                  = false
+  https_only                               = true
+  ftp_publish_basic_authentication_enabled = false
+  scm_publish_basic_authentication_enabled = false
+  public_network_access                    = "Enabled"
+  version                                  = "~4"
+  vnet_content_share_enabled               = true
+  virtual_network_subnet_id                = azurerm_subnet.test1.id
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id, azurerm_user_assigned_identity.test2.id]
+  }
+
+  app_settings = {
+    "hello"                          = "goodbye"
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
+  }
+
+  site_config {
+    always_on           = true
+    min_tls_version     = 1.3
+    scm_min_tls_version = 1.3
+
+    cors {
+      allowed_origins = [
+        "http://www.contoso.com",
+        "www.contoso.com",
+        "contoso.com",
+        "http://localhost:4201",
+      ]
+
+      support_credentials = true
+    }
+
+    ftps_state                       = "Disabled"
+    http2_enabled                    = false
+    pre_warmed_instance_count        = 3
+    scm_use_main_ip_restriction      = false
+    scm_type                         = "ExternalGit"
+    use_32_bit_worker_process        = true
+    websockets_enabled               = false
+    health_check_path                = "/"
+    elastic_instance_minimum         = 1
+    app_scale_limit                  = 12
+    runtime_scale_monitoring_enabled = false
+    dotnet_framework_version         = "v8.0"
+
+    ip_restriction {
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+    ip_restriction {
+      ip_address = "10.10.10.12/32"
+      name       = "test-restriction2"
+      priority   = 125
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+    scm_ip_restriction_default_action = "Allow"
+  }
+
+  connection_string {
+    name  = "Example"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Example2"
+    value = "some-postgresql-connection-string2"
+    type  = "PostgreSQL"
+  }
+
+  tags = {
+    environment = "AccTestUpdated"
+    foo         = "bar"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1110,7 +1522,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1128,7 +1540,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   public_network_access      = "%s"
@@ -1144,7 +1556,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1163,7 +1575,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   use_extension_bundle       = true
@@ -1180,7 +1592,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   site_config {
@@ -1198,7 +1610,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   app_settings = {
@@ -1231,7 +1643,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   enabled                    = true
@@ -1251,7 +1663,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1271,7 +1683,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   version                    = "%s"
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
@@ -1291,7 +1703,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%[2]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   storage_account_share_name = "acctest-%[2]d-func-content"
@@ -1318,7 +1730,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   storage_account_share_name = azurerm_storage_share.custom.name
@@ -1339,12 +1751,13 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    min_tls_version = 1.2
+    min_tls_version               = 1.2
+    ip_restriction_default_action = "Allow"
     ip_restriction {
       ip_address = "10.10.10.10/32"
       name       = "test-restriction"
@@ -1370,7 +1783,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1389,7 +1802,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1410,7 +1823,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1429,7 +1842,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   https_only                 = true
@@ -1445,7 +1858,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1471,7 +1884,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%[2]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1493,7 +1906,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1521,7 +1934,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1540,7 +1953,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1559,7 +1972,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1578,7 +1991,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1597,7 +2010,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
@@ -1612,7 +2025,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1633,7 +2046,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1668,7 +2081,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%[2]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1689,7 +2102,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1722,12 +2135,12 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    ip_restriction = []
+    always_on = true
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -1741,7 +2154,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1760,7 +2173,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1782,13 +2195,42 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
+    always_on = true
     scm_ip_restriction {
       ip_address = "10.10.10.10/32"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) scmMultiIpRestriction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    always_on = true
+    scm_ip_restriction {
+      ip_address = "10.10.10.10/32"
+    }
+    scm_ip_restriction {
+      ip_address = "10.10.10.11/32"
+    }
+    scm_ip_restriction {
+      ip_address = "10.10.10.12/32"
     }
   }
 }
@@ -1803,12 +2245,12 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    scm_ip_restriction = []
+    always_on = true
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -1822,7 +2264,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1841,7 +2283,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.secondary_access_key
 }
@@ -1856,7 +2298,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   client_certificate_mode    = "%s"
@@ -1872,7 +2314,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1891,7 +2333,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1910,7 +2352,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   version                    = "~4"
@@ -1931,7 +2373,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -1963,16 +2405,13 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  kind                = "elastic"
 
-  sku {
-    tier = "WorkflowStandard"
-    size = "WS1"
-  }
+  os_type  = "Windows"
+  sku_name = "WS1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -1996,62 +2435,30 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  kind                = "elastic"
-  reserved            = true
 
-  sku {
-    tier = "WorkflowStandard"
-    size = "WS1"
-  }
+  os_type  = "Linux"
+  sku_name = "WS1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (LogicAppStandardResource) vNetIntegration_basic(data acceptance.TestData) string {
+func (r LogicAppStandardResource) templateVnetIntegration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "elastic"
-  reserved            = true
-
-  sku {
-    tier = "WorkflowStandard"
-    size = "WS1"
-  }
-}
+%[1]s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "vnet-%[1]d"
+  name                = "acctest-vnet-%[2]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "subnet1"
+  name                 = "acctest-subnet1"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
@@ -2063,8 +2470,9 @@ resource "azurerm_subnet" "test1" {
     }
   }
 }
+
 resource "azurerm_subnet" "test2" {
-  name                 = "subnet2"
+  name                 = "acctest-subnet2"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
@@ -2076,12 +2484,18 @@ resource "azurerm_subnet" "test2" {
     }
   }
 }
+`, r.templateLinux(data), data.RandomInteger, data.RandomString)
+}
+
+func (r LogicAppStandardResource) vnetIntegrationBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%[2]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -2089,84 +2503,18 @@ resource "azurerm_logic_app_standard" "test" {
     app_scale_limit = 1
   }
 }
-
-
-
-
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.templateVnetIntegration(data), data.RandomInteger)
 }
 
-func (LogicAppStandardResource) vNetIntegration_subnet1(data acceptance.TestData) string {
+func (r LogicAppStandardResource) vnetIntegrationSubnet1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "elastic"
-  reserved            = true
-
-  sku {
-    tier = "WorkflowStandard"
-    size = "WS1"
-  }
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "vnet-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test1" {
-  name                 = "subnet1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-  delegation {
-    name = "delegation"
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-resource "azurerm_subnet" "test2" {
-  name                 = "subnet2"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-  delegation {
-    name = "delegation"
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
+%[1]s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%[2]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   virtual_network_subnet_id  = azurerm_subnet.test1.id
@@ -2175,84 +2523,18 @@ resource "azurerm_logic_app_standard" "test" {
     app_scale_limit = 1
   }
 }
-
-
-
-
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.templateVnetIntegration(data), data.RandomInteger)
 }
 
-func (LogicAppStandardResource) vNetIntegration_subnet2(data acceptance.TestData) string {
+func (r LogicAppStandardResource) vnetIntegrationSubnet2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "elastic"
-  reserved            = true
-
-  sku {
-    tier = "WorkflowStandard"
-    size = "WS1"
-  }
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "vnet-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test1" {
-  name                 = "subnet1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-  delegation {
-    name = "delegation"
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-resource "azurerm_subnet" "test2" {
-  name                 = "subnet2"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-  delegation {
-    name = "delegation"
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
+%[1]s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
+  name                       = "acctest-%[2]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   virtual_network_subnet_id  = azurerm_subnet.test2.id
@@ -2261,9 +2543,7 @@ resource "azurerm_logic_app_standard" "test" {
     app_scale_limit = 1
   }
 }
-
-
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.templateVnetIntegration(data), data.RandomInteger)
 }
 
 func (r LogicAppStandardResource) siteConfigPublicNetworkAccessEnabled(data acceptance.TestData, enabled bool) string {
@@ -2274,7 +2554,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -2293,7 +2573,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                                     = "acctest-%d-func"
   location                                 = azurerm_resource_group.test.location
   resource_group_name                      = azurerm_resource_group.test.name
-  app_service_plan_id                      = azurerm_app_service_plan.test.id
+  app_service_plan_id                      = azurerm_service_plan.test.id
   storage_account_name                     = azurerm_storage_account.test.name
   storage_account_access_key               = azurerm_storage_account.test.primary_access_key
   vnet_content_share_enabled               = %t
@@ -2301,4 +2581,66 @@ resource "azurerm_logic_app_standard" "test" {
   ftp_publish_basic_authentication_enabled = false
 }
 `, r.template(data), data.RandomInteger, enabled)
+}
+
+func (r LogicAppStandardResource) keyVaultReferenceIdentityInvalid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_user_assigned_identity" "other" {
+  name                = "acctest-other-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[2]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.other.id
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) keyVaultReferenceIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "kv" {
+  name                = "acctest-kv-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[2]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.kv.id]
+  }
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.kv.id
+}
+`, r.template(data), data.RandomInteger)
 }

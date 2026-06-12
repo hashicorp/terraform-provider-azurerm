@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -17,7 +17,7 @@ func ManagementGroupID(i interface{}, k string) (warnings []string, errors []err
 	}
 
 	if _, err := parse.ManagementGroupID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a management group id: %v", k, err))
+		errors = append(errors, fmt.Errorf("cannot parse %q as a management group id: %v", k, err))
 		return
 	}
 
@@ -32,7 +32,7 @@ func TenantScopedManagementGroupID(i interface{}, k string) (warnings []string, 
 	}
 
 	if _, err := parse.TenantScopedManagementGroupID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a management group id: %v", k, err))
+		errors = append(errors, fmt.Errorf("cannot parse %q as a management group id: %v", k, err))
 		return
 	}
 

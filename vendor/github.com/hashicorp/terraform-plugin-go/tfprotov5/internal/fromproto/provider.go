@@ -28,6 +28,16 @@ func GetProviderSchemaRequest(in *tfplugin5.GetProviderSchema_Request) *tfprotov
 	return resp
 }
 
+func GetResourceIdentitySchemasRequest(in *tfplugin5.GetResourceIdentitySchemas_Request) *tfprotov5.GetResourceIdentitySchemasRequest {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov5.GetResourceIdentitySchemasRequest{}
+
+	return resp
+}
+
 func PrepareProviderConfigRequest(in *tfplugin5.PrepareProviderConfig_Request) *tfprotov5.PrepareProviderConfigRequest {
 	if in == nil {
 		return nil

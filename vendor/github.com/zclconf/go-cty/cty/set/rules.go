@@ -43,5 +43,5 @@ type OrderedRules[T any] interface {
 	// Less returns true if and only if the first argument should sort before
 	// the second argument. If the second argument should sort before the first
 	// or if there is no defined order for the values, return false.
-	Less(interface{}, interface{}) bool
+	Less(any, any) bool
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -30,9 +30,11 @@ type checkBase struct {
 }
 
 func (c checkBase) ShouldSkip() bool {
-	if c.line == 0 || c.MDField() == nil || c.MDField().Skip {
+	mdField := c.MDField()
+	if mdField == nil || mdField.Skip {
 		return true
 	}
+
 	return false
 }
 

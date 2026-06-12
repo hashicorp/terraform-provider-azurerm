@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package search_test
@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SearchServiceResource struct{}
@@ -28,6 +28,7 @@ func TestAccSearchService_basicSku(t *testing.T) {
 			Config: r.basic(data, "basic"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
 				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
 			),
 		},
@@ -184,6 +185,34 @@ func TestAccSearchService_update(t *testing.T) {
 	})
 }
 
+func TestAccSearchService_skuUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "basic"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, "standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, "standard2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccSearchService_ipRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceResource{}
@@ -198,6 +227,13 @@ func TestAccSearchService_ipRules(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.ipRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipRulesUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -549,6 +585,10 @@ func TestAccSearchService_apiAccessControlUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config:      r.apiAccessControlBoth(data, false, "http401WithBearerChallenge"),
+			ExpectError: regexp.MustCompile("cannot be defined"),
+		},
+		{
 			Config: r.basic(data, "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -591,7 +631,7 @@ func (r SearchServiceResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, fmt.Errorf("%s was not found: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (SearchServiceResource) template(data acceptance.TestData) string {
@@ -710,7 +750,6 @@ resource "azurerm_search_service" "test" {
 }
 
 func (r SearchServiceResource) ipRules(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -719,13 +758,33 @@ provider "azurerm" {
 %s
 
 resource "azurerm_search_service" "test" {
-  name                = "acctestsearchservice%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
-  allowed_ips         = ["168.1.5.65", "1.2.3.0/24"]
+  name                       = "acctestsearchservice%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku                        = "standard"
+  allowed_ips                = ["168.1.5.65", "1.2.3.0/24"]
+  network_rule_bypass_option = "AzureServices"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SearchServiceResource) ipRulesUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                       = "acctestsearchservice%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku                        = "standard"
+  allowed_ips                = ["168.1.5.65", "168.1.5.66", "1.2.3.0/24"]
+  network_rule_bypass_option = "AzureServices"
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SearchServiceResource) bypassServices(data acceptance.TestData) string {

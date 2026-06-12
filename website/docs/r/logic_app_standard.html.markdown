@@ -67,24 +67,20 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "example" {
+resource "azurerm_service_plan" "example" {
   name                = "example-service-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  kind                = "Linux"
-  reserved            = true
 
-  sku {
-    tier = "WorkflowStandard"
-    size = "WS1"
-  }
+  os_type  = "Linux"
+  sku_name = "WS1"
 }
 
 resource "azurerm_logic_app_standard" "example" {
   name                       = "example-logic-app"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
-  app_service_plan_id        = azurerm_app_service_plan.example.id
+  app_service_plan_id        = azurerm_service_plan.example.id
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
 
@@ -97,11 +93,10 @@ resource "azurerm_logic_app_standard" "example" {
     "DOCKER_REGISTRY_SERVER_USERNAME" = "username"
     "DOCKER_REGISTRY_SERVER_PASSWORD" = "password"
   }
-
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -131,7 +126,7 @@ The following arguments are supported:
 
 * `client_affinity_enabled` - (Optional) Should the Logic App send session affinity cookies, which route client requests in the same session to the same instance?
 
-* `client_certificate_mode` - (Optional) The mode of the Logic App's client certificates requirement for incoming requests. Possible values are `Required` and `Optional`.
+* `client_certificate_mode` - (Optional) The mode of the Logic App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.
 
 * `enabled` - (Optional) Is the Logic App enabled? Defaults to `true`.
 
@@ -140,6 +135,10 @@ The following arguments are supported:
 * `https_only` - (Optional) Can the Logic App only be accessed via HTTPS? Defaults to `false`.
 
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. 
+
+~> **Note:** The identity must be assigned to the Logic App in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
 * `public_network_access` - (Optional) Whether Public Network Access should be enabled or not. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
 
@@ -203,13 +202,19 @@ The `site_config` block supports the following:
 
 -> **Note:** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
+* `ip_restriction_default_action` - (Optional) The action to take when no `ip_restriction` rules match. Possible values are `Allow` and `Deny`.
+
+-> **Note:** If `ip_restriction_default_action` is not configured, it is implicitly set to `Allow` when no `ip_restriction` rules are defined and `Deny` when at least one `ip_restriction` rule is defined.
+
 * `scm_ip_restriction` - (Optional) A list of `scm_ip_restriction` objects representing SCM IP restrictions as defined below.
 
 -> **Note:** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
+* `scm_ip_restriction_default_action` - (Optional) The action to take when no `scm_ip_restriction` rules match. Possible values are `Allow` and `Deny`.
+  
 * `scm_use_main_ip_restriction` - (Optional) Should the Logic App `ip_restriction` configuration be used for the SCM too. Defaults to `false`.
 
-* `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values are `1.0`, `1.1` and `1.2`.
+* `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values are `1.0`, `1.1`, `1.2` and `1.3`.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
@@ -219,7 +224,7 @@ The `site_config` block supports the following:
 
 ~> **Note:** You must set `os_type` in `azurerm_service_plan` to `Linux` when this property is set.
 
-* `min_tls_version` - (Optional) The minimum supported TLS version for the Logic App. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new Logic Apps.
+* `min_tls_version` - (Optional) The minimum supported TLS version for the Logic App. Possible values are `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2` for new Logic Apps.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
@@ -239,9 +244,9 @@ The `site_config` block supports the following:
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
 
-* `support_credentials` - (Optional) Are credentials supported?
+* `support_credentials` - (Optional) Are credentials supported? 
 
 ---
 
@@ -260,6 +265,8 @@ An `identity` block supports the following:
 A `ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
+
+* `description` - (Optional) The Description of this IP Restriction.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -280,6 +287,8 @@ A `ip_restriction` block supports the following:
 A `scm_ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
+
+* `description` - (Optional) The Description of this IP Restriction.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -345,7 +354,7 @@ The `site_credential` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App
@@ -359,3 +368,9 @@ Logic Apps can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_logic_app_standard.logicapp1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/logicapp1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01, 2023-01-01

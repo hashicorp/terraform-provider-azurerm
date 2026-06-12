@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -18,7 +18,7 @@ func ResourceProviderID(i interface{}, k string) (warnings []string, errors []er
 	}
 
 	if _, err := parse.ResourceProviderID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
+		errors = append(errors, fmt.Errorf("cannot parse %q as a resource id: %v", k, err))
 		return
 	}
 

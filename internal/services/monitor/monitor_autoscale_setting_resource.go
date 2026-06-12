@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -430,7 +431,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -444,19 +445,21 @@ func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta
 	id := autoscalesettings.NewAutoScaleSettingID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_monitor_autoscale_setting", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_monitor_autoscale_setting", id.ID())
+			}
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	enabled := d.Get("enabled").(bool)
 	targetResourceId := d.Get("target_resource_id").(string)
 
@@ -519,7 +522,7 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 	if model := resp.Model; model != nil {
 		props := model.Properties
 
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 		d.Set("enabled", props.Enabled)
 		d.Set("target_resource_id", props.TargetResourceUri)
 
@@ -639,7 +642,7 @@ func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) []autoscalese
 		triggerRaw := triggersRaw[0].(map[string]interface{})
 		metricTrigger := autoscalesettings.MetricTrigger{
 			MetricName:        triggerRaw["metric_name"].(string),
-			MetricNamespace:   utils.String(triggerRaw["metric_namespace"].(string)),
+			MetricNamespace:   pointer.To(triggerRaw["metric_namespace"].(string)),
 			MetricResourceUri: triggerRaw["metric_resource_id"].(string),
 			TimeGrain:         triggerRaw["time_grain"].(string),
 			Statistic:         autoscalesettings.MetricStatisticType(triggerRaw["statistic"].(string)),
@@ -648,7 +651,7 @@ func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) []autoscalese
 			Operator:          autoscalesettings.ComparisonOperationType(triggerRaw["operator"].(string)),
 			Threshold:         triggerRaw["threshold"].(float64),
 			Dimensions:        expandAzureRmMonitorAutoScaleSettingRuleDimensions(triggerRaw["dimensions"].([]interface{})),
-			DividePerInstance: utils.Bool(triggerRaw["divide_by_instance_count"].(bool)),
+			DividePerInstance: pointer.To(triggerRaw["divide_by_instance_count"].(bool)),
 		}
 
 		actionsRaw := ruleRaw["scale_action"].([]interface{})
@@ -656,7 +659,7 @@ func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) []autoscalese
 		scaleAction := autoscalesettings.ScaleAction{
 			Direction: autoscalesettings.ScaleDirection(actionRaw["direction"].(string)),
 			Type:      autoscalesettings.ScaleType(actionRaw["type"].(string)),
-			Value:     utils.String(strconv.Itoa(actionRaw["value"].(int))),
+			Value:     pointer.To(strconv.Itoa(actionRaw["value"].(int))),
 			Cooldown:  actionRaw["cooldown"].(string),
 		}
 
@@ -691,7 +694,7 @@ func expandAzureRmMonitorAutoScaleSettingFixedDate(input []interface{}) (*autosc
 
 	timeZone := raw["timezone"].(string)
 	timeWindow := autoscalesettings.TimeWindow{
-		TimeZone: utils.String(timeZone),
+		TimeZone: pointer.To(timeZone),
 	}
 
 	timeWindow.SetStartAsTime(startTime)
@@ -770,8 +773,8 @@ func expandAzureRmMonitorAutoScaleSettingNotificationEmail(input map[string]inte
 
 	email := autoscalesettings.EmailNotification{
 		CustomEmails:                       &customEmails,
-		SendToSubscriptionAdministrator:    utils.Bool(input["send_to_subscription_administrator"].(bool)),
-		SendToSubscriptionCoAdministrators: utils.Bool(input["send_to_subscription_co_administrator"].(bool)),
+		SendToSubscriptionAdministrator:    pointer.To(input["send_to_subscription_administrator"].(bool)),
+		SendToSubscriptionCoAdministrators: pointer.To(input["send_to_subscription_co_administrator"].(bool)),
 	}
 
 	return &email
@@ -787,7 +790,7 @@ func expandAzureRmMonitorAutoScaleSettingNotificationWebhook(input []interface{}
 		webhookRaw := v.(map[string]interface{})
 
 		webhook := autoscalesettings.WebhookNotification{
-			ServiceUri: utils.String(webhookRaw["service_uri"].(string)),
+			ServiceUri: pointer.To(webhookRaw["service_uri"].(string)),
 		}
 
 		if props, ok := webhookRaw["properties"]; ok {

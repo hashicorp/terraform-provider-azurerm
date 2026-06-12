@@ -66,12 +66,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this System Center Virtual Machine Manager Cloud.
-* `read` - (Defaults to 5 minutes) Used when retrieving this System Center Virtual Machine Manager Cloud.
-* `update` - (Defaults to 30 minutes) Used when updating this System Center Virtual Machine Manager Cloud.
-* `delete` - (Defaults to 30 minutes) Used when deleting this System Center Virtual Machine Manager Cloud.
+* `create` - (Defaults to 30 minutes) Used when creating the System Center Virtual Machine Manager Cloud.
+* `read` - (Defaults to 5 minutes) Used when retrieving the System Center Virtual Machine Manager Cloud.
+* `update` - (Defaults to 30 minutes) Used when updating the System Center Virtual Machine Manager Cloud.
+* `delete` - (Defaults to 30 minutes) Used when deleting the System Center Virtual Machine Manager Cloud.
 
 ## Import
 
@@ -80,3 +80,9 @@ System Center Virtual Machine Manager Clouds can be imported into Terraform usin
 ```shell
 terraform import azurerm_system_center_virtual_machine_manager_cloud.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ScVmm/clouds/cloud1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ScVmm` - 2023-10-07

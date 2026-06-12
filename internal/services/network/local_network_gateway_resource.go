@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -12,26 +12,32 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/localnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/localnetworkgateways"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name local_network_gateway -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceLocalNetworkGateway() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceLocalNetworkGatewayCreate,
-		Read:   resourceLocalNetworkGatewayRead,
-		Update: resourceLocalNetworkGatewayUpdate,
-		Delete: resourceLocalNetworkGatewayDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := localnetworkgateways.ParseLocalNetworkGatewayID(id)
-			return err
-		}),
+	r := &pluginsdk.Resource{
+		Create:   resourceLocalNetworkGatewayCreate,
+		Read:     resourceLocalNetworkGatewayRead,
+		Update:   resourceLocalNetworkGatewayUpdate,
+		Delete:   resourceLocalNetworkGatewayDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&localnetworkgateways.LocalNetworkGatewayId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&localnetworkgateways.LocalNetworkGatewayId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -64,7 +70,7 @@ func resourceLocalNetworkGateway() *pluginsdk.Resource {
 			},
 
 			"address_space": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -99,66 +105,65 @@ func resourceLocalNetworkGateway() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["address_space"].Type = pluginsdk.TypeList
+	}
+
+	return r
 }
 
 func resourceLocalNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.LocalNetworkGateways
+	client := meta.(*clients.Client).Network.LocalNetworkGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := localnetworkgateways.NewLocalNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_local_network_gateway", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_local_network_gateway", id.ID())
+		}
 	}
 
 	gateway := localnetworkgateways.LocalNetworkGateway{
 		Name:     pointer.To(id.LocalNetworkGatewayName),
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: localnetworkgateways.LocalNetworkGatewayPropertiesFormat{
-			LocalNetworkAddressSpace: &localnetworkgateways.AddressSpace{},
+			LocalNetworkAddressSpace: expandLocalNetworkGatewayAddressSpaces(d),
 			BgpSettings:              expandLocalNetworkGatewayBGPSettings(d),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	ipAddress := d.Get("gateway_address").(string)
-	fqdn := d.Get("gateway_fqdn").(string)
-	if ipAddress != "" {
+	if ipAddress := d.Get("gateway_address").(string); ipAddress != "" {
 		gateway.Properties.GatewayIPAddress = &ipAddress
 	} else {
-		gateway.Properties.Fqdn = &fqdn
+		gateway.Properties.Fqdn = pointer.To(d.Get("gateway_fqdn").(string))
 	}
 
-	// This custompoller can be removed once https://github.com/hashicorp/go-azure-sdk/issues/989 has been fixed
-	pollerType := custompollers.NewLocalNetworkGatewayPoller(client, id)
-	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-
-	gateway.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
-
-	if _, err := client.CreateOrUpdate(ctx, id, gateway); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, gateway, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if err := poller.PollUntilDone(ctx); err != nil {
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
 	}
-
-	d.SetId(id.ID())
 
 	return resourceLocalNetworkGatewayRead(d, meta)
 }
 
 func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.LocalNetworkGateways
+	client := meta.(*clients.Client).Network.LocalNetworkGateways
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -194,32 +199,34 @@ func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	// This custompoller can be removed once https://github.com/hashicorp/go-azure-sdk/issues/989 has been fixed
 	pollerType := custompollers.NewLocalNetworkGatewayPoller(client, *id)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 
-	// There is a bug in the provider where the address space ordering doesn't change as expected.
-	// In the UI we have to remove the current list of addresses in the address space and re-add them in the new order and we'll copy that here.
 	if d.HasChange("address_space") {
-		// since the local network gateway cannot have both empty address prefix and empty BGP setting(confirmed with service team, it is by design),
-		// replace the empty address prefix with the first address prefix in the "address_space" list to avoid error.
-		if v := d.Get("address_space").([]interface{}); len(v) > 0 {
-			payload.Properties.LocalNetworkAddressSpace = &localnetworkgateways.AddressSpace{
-				AddressPrefixes: &[]string{v[0].(string)},
+		if !features.FivePointOh() {
+			// There is a bug in the provider where the address space ordering doesn't change as expected.
+			// In the UI we have to remove the current list of addresses in the address space and re-add them in the new order and we'll copy that here.
+			// since the local network gateway cannot have both empty address prefix and empty BGP setting(confirmed with service team, it is by design),
+			// replace the empty address prefix with the first address prefix in the "address_space" list to avoid error.
+			if v := d.Get("address_space").([]interface{}); len(v) > 0 {
+				payload.Properties.LocalNetworkAddressSpace = &localnetworkgateways.AddressSpace{
+					AddressPrefixes: &[]string{v[0].(string)},
+				}
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
+				return fmt.Errorf("removing %s: %+v", id, err)
+			}
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
 			}
 		}
 
-		// This can be switched back over to CreateOrUpdateThenPoll once https://github.com/hashicorp/go-azure-sdk/issues/989 has been fixed
-		if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
-			return fmt.Errorf("removing %s: %+v", id, err)
-		}
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return err
-		}
+		payload.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
 	}
 
-	payload.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
-
+	// This requires a custom poller because the API sometimes returns an async operation URL
+	// that only returns 404s, causing the provider to poll until timeout when using the `ThenPoll` method.
 	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -228,13 +235,11 @@ func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	d.SetId(id.ID())
-
 	return resourceLocalNetworkGatewayRead(d, meta)
 }
 
 func resourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.LocalNetworkGateways
+	client := meta.(*clients.Client).Network.LocalNetworkGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -271,13 +276,16 @@ func resourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 			return err
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceLocalNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.LocalNetworkGateways
+	client := meta.(*clients.Client).Network.LocalNetworkGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -323,8 +331,14 @@ func expandLocalNetworkGatewayBGPSettings(d *pluginsdk.ResourceData) *localnetwo
 func expandLocalNetworkGatewayAddressSpaces(d *pluginsdk.ResourceData) *localnetworkgateways.AddressSpace {
 	prefixes := make([]string, 0)
 
-	for _, pref := range d.Get("address_space").([]interface{}) {
-		prefixes = append(prefixes, pref.(string))
+	if !features.FivePointOh() {
+		for _, pref := range d.Get("address_space").([]interface{}) {
+			prefixes = append(prefixes, pref.(string))
+		}
+	} else {
+		for _, pref := range d.Get("address_space").(*pluginsdk.Set).List() {
+			prefixes = append(prefixes, pref.(string))
+		}
 	}
 
 	return &localnetworkgateways.AddressSpace{

@@ -12,7 +12,8 @@ import (
 var _ Config = configurationFile{}
 
 type configurationFile struct {
-	file string
+	file           string
+	appendedConfig string
 }
 
 // HasConfigurationFiles is used during validation to ensure that
@@ -70,6 +71,10 @@ func (c configurationFile) HasTerraformBlock(ctx context.Context) (bool, error) 
 	return contains, nil
 }
 
+func (c configurationFile) WriteQuery(ctx context.Context, dest string) error {
+	panic("WriteQuery not supported for configurationFile")
+}
+
 // Write copies file from c.file to destination.
 func (c configurationFile) Write(ctx context.Context, dest string) error {
 	configFile := c.file
@@ -84,11 +89,24 @@ func (c configurationFile) Write(ctx context.Context, dest string) error {
 		configFile = filepath.Join(pwd, configFile)
 	}
 
-	err := copyFile(configFile, dest)
-
+	destPath, err := copyFile(configFile, dest)
 	if err != nil {
 		return err
 	}
 
+	if len(c.appendedConfig) > 0 {
+		err := appendToFile(destPath, c.appendedConfig)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func (c configurationFile) Append(config string) Config {
+	return configurationFile{
+		file:           c.file,
+		appendedConfig: config,
+	}
 }

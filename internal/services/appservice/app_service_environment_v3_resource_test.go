@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppServiceEnvironmentV3Resource struct{}
@@ -25,6 +25,28 @@ func TestAccAppServiceEnvironmentV3_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceEnvironmentV3_basicUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment_v3", "test")
+	r := AppServiceEnvironmentV3Resource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -61,7 +83,7 @@ func TestAccAppServiceEnvironmentV3_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("dns_suffix").HasValue(fmt.Sprintf("acctest-ase-%d.appserviceenvironment.net", data.RandomInteger)),
 				check.That(data.ResourceName).Key("inbound_network_dependencies.#").HasValue("3"),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
-				check.That(data.ResourceName).Key("windows_outbound_ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("windows_outbound_ip_addresses.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -147,20 +169,17 @@ func TestAccAppServiceEnvironmentV3_dedicatedHosts(t *testing.T) {
 }
 
 func (AppServiceEnvironmentV3Resource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AppServiceEnvironmentID(state.ID)
+	id, err := commonids.ParseAppServiceEnvironmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.AppServiceEnvironmentsClient.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+	resp, err := client.AppService.AppServiceEnvironmentClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving App Service Environment V3 %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r AppServiceEnvironmentV3Resource) basic(data acceptance.TestData) string {
@@ -171,6 +190,30 @@ resource "azurerm_app_service_environment_v3" "test" {
   name                = "acctest-ase-%d"
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.test.id
+
+  zone_redundant               = false
+  internal_load_balancing_mode = "Web, Publishing"
+  tags = {
+    "tag1" = "test1",
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r AppServiceEnvironmentV3Resource) basicUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_app_service_environment_v3" "test" {
+  name                = "acctest-ase-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test.id
+
+  zone_redundant               = false
+  internal_load_balancing_mode = "Web, Publishing"
+  tags = {
+    "tag1" = "test2",
+  }
 }
 `, template, data.RandomInteger)
 }

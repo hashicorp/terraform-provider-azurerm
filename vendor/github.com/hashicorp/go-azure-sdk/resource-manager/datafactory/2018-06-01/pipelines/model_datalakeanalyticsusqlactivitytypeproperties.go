@@ -5,9 +5,9 @@ package pipelines
 
 type DataLakeAnalyticsUSQLActivityTypeProperties struct {
 	CompilationMode     *interface{}            `json:"compilationMode,omitempty"`
-	DegreeOfParallelism *int64                  `json:"degreeOfParallelism,omitempty"`
+	DegreeOfParallelism *interface{}            `json:"degreeOfParallelism,omitempty"`
 	Parameters          *map[string]interface{} `json:"parameters,omitempty"`
-	Priority            *int64                  `json:"priority,omitempty"`
+	Priority            *interface{}            `json:"priority,omitempty"`
 	RuntimeVersion      *interface{}            `json:"runtimeVersion,omitempty"`
 	ScriptLinkedService LinkedServiceReference  `json:"scriptLinkedService"`
 	ScriptPath          interface{}             `json:"scriptPath"`

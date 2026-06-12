@@ -44,12 +44,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Kubernetes Fleet Manager.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Kubernetes Fleet Manager.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Kubernetes Fleet Manager.
-* `update` - (Defaults to 30 minutes) Used when updating this Kubernetes Fleet Manager.
+* `create` - (Defaults to 30 minutes) Used when creating the Kubernetes Fleet Manager.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Fleet Manager.
+* `update` - (Defaults to 30 minutes) Used when updating the Kubernetes Fleet Manager.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Kubernetes Fleet Manager.
 
 ## Import
 
@@ -62,3 +62,9 @@ terraform import azurerm_kubernetes_fleet_manager.example /subscriptions/{subscr
 * Where `{subscriptionId}` is the ID of the Azure Subscription where the Kubernetes Fleet Manager exists. For example `12345678-1234-9876-4563-123456789012`.
 * Where `{resourceGroupName}` is the name of Resource Group where this Kubernetes Fleet Manager exists. For example `example-resource-group`.
 * Where `{fleetName}` is the name of the Fleet. For example `fleetValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerService` - 2024-04-01

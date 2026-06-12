@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkvirtualappliances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkvirtualappliances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -66,7 +66,7 @@ func (r NetworkVirtualApplianceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.Client.NetworkVirtualAppliances
+			client := metadata.Client.Network.NetworkVirtualAppliances
 
 			model := NetworkVirtualApplianceResourceModel{}
 
@@ -91,14 +91,16 @@ func (r NetworkVirtualApplianceResource) Create() sdk.ResourceFunc {
 
 			loc := location.Normalize(pointer.From(hub.Model.Location))
 
-			existing, err := client.Get(ctx, id, networkvirtualappliances.DefaultGetOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, networkvirtualappliances.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			props := networkvirtualappliances.NetworkVirtualAppliancePropertiesFormat{
@@ -115,10 +117,9 @@ func (r NetworkVirtualApplianceResource) Create() sdk.ResourceFunc {
 				Properties: pointer.To(props),
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, appliance); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, appliance, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating Virtual Network Appliance for %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil
@@ -130,7 +131,7 @@ func (r NetworkVirtualApplianceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.Client.NetworkVirtualAppliances
+			client := metadata.Client.Network.NetworkVirtualAppliances
 
 			var state NetworkVirtualApplianceResourceModel
 
@@ -165,7 +166,7 @@ func (r NetworkVirtualApplianceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.Client.NetworkVirtualAppliances
+			client := metadata.Client.Network.NetworkVirtualAppliances
 
 			id, err := networkvirtualappliances.ParseNetworkVirtualApplianceID(metadata.ResourceData.Id())
 			if err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientemail"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -92,17 +92,19 @@ func (r ApiManagementNotificationRecipientEmailResource) Create() sdk.ResourceFu
 
 			id := notificationrecipientemail.NewRecipientEmailID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientemail.NotificationName(model.NotificationName), model.Email)
 
-			// CheckEntityExists can not be used, it returns autorest error
-			notificationId := notificationrecipientemail.NewNotificationID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientemail.NotificationName(model.NotificationName))
-			emails, err := client.ListByNotificationComplete(ctx, notificationId)
-			if err != nil {
-				if !response.WasNotFound(emails.LatestHttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				// CheckEntityExists can not be used, it returns autorest error
+				notificationId := notificationrecipientemail.NewNotificationID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientemail.NotificationName(model.NotificationName))
+				emails, err := client.ListByNotificationComplete(ctx, notificationId)
+				if err != nil {
+					if !response.WasNotFound(emails.LatestHttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			for _, existing := range emails.Items {
-				if existing.Properties != nil && existing.Properties.Email != nil && *existing.Properties.Email == model.Email {
-					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				for _, existing := range emails.Items {
+					if existing.Properties != nil && existing.Properties.Email != nil && *existing.Properties.Email == model.Email {
+						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					}
 				}
 			}
 
@@ -170,8 +172,7 @@ func (r ApiManagementNotificationRecipientEmailResource) Delete() sdk.ResourceFu
 				return err
 			}
 
-			_, err = client.Delete(ctx, *id)
-			if err != nil {
+			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

@@ -5,7 +5,4 @@
 // Ephemeral resource schemas define the structure and value types for configuration
 // and result data. Schemas are implemented via the ephemeral.EphemeralResource type
 // Schema method.
-//
-// NOTE: Ephemeral resource support is experimental and exposed without compatibility promises until
-// these notices are removed.
 package schema

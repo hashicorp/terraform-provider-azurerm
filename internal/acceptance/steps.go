@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
@@ -80,7 +80,7 @@ func (td TestData) CheckWithClientForResource(check ClientCheckFunc, resourceNam
 		func(state *terraform.State) error {
 			rs, ok := state.RootModule().Resources[resourceName]
 			if !ok {
-				return fmt.Errorf("Resource not found: %s", resourceName)
+				return fmt.Errorf("resource not found: %s", resourceName)
 			}
 
 			client, err := testclient.Build()
@@ -106,6 +106,23 @@ func (td TestData) CheckWithClientWithoutResource(check ClientCheckFunc) resourc
 	)
 }
 
+func (td TestData) ImportBlockWithIDStep(expectNonEmptyPlan bool) resource.TestStep {
+	return td.ImportStepBlock(resource.ImportBlockWithID, expectNonEmptyPlan)
+}
+
+func (td TestData) ImportBlockWithResourceIdentityStep(expectNonEmptyPlan bool) resource.TestStep {
+	return td.ImportStepBlock(resource.ImportBlockWithResourceIdentity, expectNonEmptyPlan)
+}
+
+func (td TestData) ImportStepBlock(kind resource.ImportStateKind, expectNonEmptyPlan bool) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:       td.ResourceName,
+		ExpectNonEmptyPlan: expectNonEmptyPlan,
+		ImportState:        true,
+		ImportStateKind:    kind,
+	}
+}
+
 // ImportStep returns a Test Step which Imports the Resource, optionally
 // ignoring any fields which may not be imported (for example, as they're
 // not returned from the API)
@@ -121,7 +138,7 @@ func (td TestData) ImportStepFor(resourceName string, ignore ...string) resource
 		return resource.TestStep{
 			ResourceName: resourceName,
 			SkipFunc: func() (bool, error) {
-				return false, fmt.Errorf("Data Sources (%q) do not support import - remove the ImportStep / ImportStepFor`", resourceName)
+				return false, fmt.Errorf("data sources (%q) do not support import - remove the ImportStep / ImportStepFor`", resourceName)
 			},
 		}
 	}

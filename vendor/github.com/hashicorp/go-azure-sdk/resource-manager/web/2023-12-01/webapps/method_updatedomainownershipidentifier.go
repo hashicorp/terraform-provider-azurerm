@@ -18,7 +18,7 @@ type UpdateDomainOwnershipIdentifierOperationResponse struct {
 }
 
 // UpdateDomainOwnershipIdentifier ...
-func (c WebAppsClient) UpdateDomainOwnershipIdentifier(ctx context.Context, id SiteDomainOwnershipIdentifierId, input Identifier) (result UpdateDomainOwnershipIdentifierOperationResponse, err error) {
+func (c WebAppsClient) UpdateDomainOwnershipIdentifier(ctx context.Context, id DomainOwnershipIdentifierId, input Identifier) (result UpdateDomainOwnershipIdentifierOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

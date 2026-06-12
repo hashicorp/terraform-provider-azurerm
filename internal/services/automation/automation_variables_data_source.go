@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/variable"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -145,8 +145,7 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 			var var_str []helper.StringVariable
 
 			for _, v := range variableList.Items {
-				_, err := variable.ParseVariableID(pointer.From(v.Id))
-				if err != nil {
+				if _, err := variable.ParseVariableID(pointer.From(v.Id)); err != nil {
 					return err
 				}
 

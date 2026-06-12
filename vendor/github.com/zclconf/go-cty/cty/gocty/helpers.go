@@ -11,12 +11,12 @@ import (
 var valueType = reflect.TypeOf(cty.Value{})
 var typeType = reflect.TypeOf(cty.Type{})
 
-var setType = reflect.TypeOf(set.Set[interface{}]{})
+var setType = reflect.TypeOf(set.Set[any]{})
 
 var bigFloatType = reflect.TypeOf(big.Float{})
 var bigIntType = reflect.TypeOf(big.Int{})
 
-var emptyInterfaceType = reflect.TypeOf(interface{}(nil))
+var emptyInterfaceType = reflect.TypeOf(any(nil))
 
 var stringType = reflect.TypeOf("")
 

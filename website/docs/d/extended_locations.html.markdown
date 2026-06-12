@@ -18,7 +18,7 @@ data "azurerm_extended_locations" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `location` - The Azure location to retrieve the Extended Locations for.
 
@@ -30,6 +30,6 @@ data "azurerm_extended_locations" "example" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Extended Locations.

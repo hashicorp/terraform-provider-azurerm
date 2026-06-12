@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
@@ -106,12 +107,15 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	}
 
 	id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, *managedVirtualNetworkName, d.Get("name").(string))
-	existing, err := getManagedPrivateEndpoint(ctx, client, id.SubscriptionId, id.ResourceGroupName, id.FactoryName, id.ManagedVirtualNetworkName, id.ManagedPrivateEndpointName)
-	if err != nil {
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-	}
-	if existing != nil {
-		return tf.ImportAsExistsError("azurerm_data_factory_managed_private_endpoint", id.ID())
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := getManagedPrivateEndpoint(ctx, client, id.SubscriptionId, id.ResourceGroupName, id.FactoryName, id.ManagedVirtualNetworkName, id.ManagedPrivateEndpointName)
+		if err != nil {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
+		if existing != nil {
+			return tf.ImportAsExistsError("azurerm_data_factory_managed_private_endpoint", id.ID())
+		}
 	}
 
 	targetResourceId := d.Get("target_resource_id").(string)
@@ -128,7 +132,7 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 		}
 	} else {
 		if len(strings.TrimSpace(subResourceName)) < 3 {
-			return fmt.Errorf("`subresource_name` must be at least 3 character in length")
+			return fmt.Errorf("`subresource_name` must be at least 3 characters in length")
 		}
 
 		if len(fqdns) > 0 {
@@ -138,12 +142,12 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 
 	payload := managedprivateendpoints.ManagedPrivateEndpointResource{
 		Properties: managedprivateendpoints.ManagedPrivateEndpoint{
-			PrivateLinkResourceId: utils.String(targetResourceId),
+			PrivateLinkResourceId: pointer.To(targetResourceId),
 		},
 	}
 
 	if len(subResourceName) > 0 {
-		payload.Properties.GroupId = utils.String(subResourceName)
+		payload.Properties.GroupId = pointer.To(subResourceName)
 	}
 
 	if len(fqdns) > 0 {
@@ -153,6 +157,8 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	if _, err := client.CreateOrUpdate(ctx, id, payload, managedprivateendpoints.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Provisioning"},
@@ -164,8 +170,6 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be created: %+v", id.ID(), err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceDataFactoryManagedPrivateEndpointRead(d, meta)
 }

@@ -1,5 +1,23 @@
 # HCL Changelog
 
+## v2.24.0 (July 7, 2025)
+
+### Enhancements
+
+* Add support for decoding block and attribute source ranges when using `gohcl`. ([#703](https://github.com/hashicorp/hcl/pull/703))
+* hclsyntax: Detect and reject invalid nested splat result. ([#724](https://github.com/hashicorp/hcl/pull/724))
+
+### Bugs Fixed
+
+* Correct handling of unknown objects in Index function. ([#763](https://github.com/hashicorp/hcl/pull/763))
+
+## v2.23.0 (November 15, 2024)
+
+### Bugs Fixed
+
+* Preserve marks when traversing through unknown values. ([#699](https://github.com/hashicorp/hcl/pull/699))
+* Retain marks through conditional and for expressions. ([#710](https://github.com/hashicorp/hcl/pull/710))
+
 ## v2.22.0 (August 26, 2024)
 
 ### Enhancements

@@ -10,6 +10,8 @@ description: |-
 
 Manages a NFS Target within a HPC Cache.
 
+!> **Note:** The `azurerm_hpc_cache_nfs_target` resource has been deprecated because the service is retiring on 2025-09-30. This resource will be removed in v5.0 of the AzureRM Provider. See https://aka.ms/hpccacheretirement for more information.
+
 ~> **Note:** By request of the service team the provider no longer automatically registering the `Microsoft.StorageCache` Resource Provider for this resource. To register it you can run `az provider register --namespace 'Microsoft.StorageCache'`.
 
 ## Example Usage
@@ -127,7 +129,7 @@ resource "azurerm_hpc_cache_nfs_target" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -167,7 +169,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the HPC Cache NFS Target.
 * `read` - (Defaults to 5 minutes) Used when retrieving the HPC Cache NFS Target.
@@ -181,3 +183,9 @@ NFS Target within a HPC Cache can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_hpc_cache_nfs_target.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StorageCache/caches/cache1/storageTargets/target1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StorageCache` - 2023-05-01

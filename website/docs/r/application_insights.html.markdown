@@ -67,7 +67,7 @@ output "app_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -117,11 +117,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Application Insights Component.
-* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Component.
+* `create` - (Defaults to 1 hour) Used when creating the Application Insights Component.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Component.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Component.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Component.
 
 ## Import
@@ -131,3 +131,11 @@ Application Insights instances can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_application_insights.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Insights/components/instance1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AlertsManagement` - 2019-06-01
+
+* `Microsoft.Insights` - 2020-02-02, 2015-05-01

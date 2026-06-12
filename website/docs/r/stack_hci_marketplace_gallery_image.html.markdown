@@ -95,7 +95,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Azure Stack HCI Marketplace Gallery Image.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Stack HCI Marketplace Gallery Image.
@@ -109,3 +109,9 @@ Azure Stack HCI Marketplace Gallery Images can be imported using the `resource i
 ```shell
 terraform import azurerm_stack_hci_marketplace_gallery_image.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.AzureStackHCI/marketplaceGalleryImages/image1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AzureStackHCI` - 2024-01-01

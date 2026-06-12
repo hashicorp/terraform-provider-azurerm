@@ -22,7 +22,7 @@ output "access_policy_key_permissions" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Management Template. Possible values are: `Key Management`,
 `Secret Management`, `Certificate Management`, `Key & Secret Management`, `Key & Certificate Management`,
@@ -42,6 +42,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Access Policy.

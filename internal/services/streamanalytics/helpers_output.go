@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -139,7 +139,7 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Seri
 		}, nil
 	}
 
-	return nil, fmt.Errorf("Unsupported Output Type %q", outputType)
+	return nil, fmt.Errorf("unsupported Output Type %q", outputType)
 }
 
 func flattenStreamAnalyticsOutputSerialization(input outputs.Serialization) []interface{} {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package purview_test
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-12-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -27,7 +27,46 @@ func TestAccPurviewAccountSequential(t *testing.T) {
 			"complete":                     testAccPurviewAccount_complete,
 			"update":                       testAccPurviewAccount_update,
 			"withManagedResourceGroupName": testAccPurviewAccount_withManagedResourceGroupName,
+			"updateWithUserIdentity":       testAccPurviewAccount_updateWithUserIdentity,
 		},
+	})
+}
+
+func testAccPurviewAccount_updateWithUserIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
+	r := PurviewAccountResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateToUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.0").IsNotEmpty(),
+			),
+		},
+		// ImportStep test is not case-insensitive and does not use the resource's set hash.
+		// API is returning lower-case always, even if submitted mixed case, so we need to ignore those ids
+		data.ImportStep("identity.0.identity_ids.0"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -75,6 +114,13 @@ func testAccPurviewAccount_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -161,10 +207,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_purview_account" "test" {
-  name                   = "acctestpurview%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  public_network_enabled = false
+  name                      = "acctestpurview%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  public_network_enabled    = false
+  managed_event_hub_enabled = false
 
   identity {
     type = "SystemAssigned"
@@ -201,6 +248,34 @@ resource "azurerm_purview_account" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r PurviewAccountResource) updateToUserIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-user-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_purview_account" "test" {
+  name                   = "acctestpurview%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  public_network_enabled = false
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r PurviewAccountResource) requiresImport(data acceptance.TestData) string {

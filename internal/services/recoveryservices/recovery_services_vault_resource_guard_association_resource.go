@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -11,8 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/resourceguards"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguards"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -50,7 +51,7 @@ func (r VaultGuardProxyResource) Arguments() map[string]*schema.Schema {
 	args := map[string]*schema.Schema{
 		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&vaults.VaultId{}),
 
-		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceguards.ResourceGuardId{}),
+		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceguardresources.ResourceGuardId{}),
 	}
 
 	return args
@@ -78,15 +79,17 @@ func (r VaultGuardProxyResource) Create() sdk.ResourceFunc {
 			name := "VaultProxy"
 			id := resourceguardproxy.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking presence of %s:%+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking presence of %s:%+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_recovery_services_vault_resource_guard_association", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_recovery_services_vault_resource_guard_association", id.ID())
+				}
 			}
 
 			proxy := resourceguardproxy.ResourceGuardProxyBaseResource{
@@ -131,8 +134,14 @@ func (r VaultGuardProxyResource) Read() sdk.ResourceFunc {
 				VaultId: vaultId.ID(),
 			}
 
-			if resp.Model != nil && resp.Model.Properties != nil {
-				state.ResourceGuardId = pointer.From(resp.Model.Properties.ResourceGuardResourceId)
+			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.ResourceGuardResourceId != nil {
+				// Resource Guards created outside of Terraform may have a lowercased `resourceGroups` segment
+				// which is persisted to the proxy even when the API is provided correct casing on creation, so we need to parse this insensitively before setting it into state
+				resourceGuardID, err := resourceguardresources.ParseResourceGuardIDInsensitively(*resp.Model.Properties.ResourceGuardResourceId)
+				if err != nil {
+					return err
+				}
+				state.ResourceGuardId = resourceGuardID.ID()
 			}
 
 			return metadata.Encode(&state)
@@ -155,7 +164,7 @@ func (r VaultGuardProxyResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			guardId, err := resourceguards.ParseResourceGuardID(plan.ResourceGuardId)
+			guardId, err := resourceguardresources.ParseResourceGuardID(plan.ResourceGuardId)
 			if err != nil {
 				return err
 			}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web_test
@@ -9,12 +9,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppServiceSlotCustomHostnameBindingResource struct{}
@@ -77,20 +77,17 @@ func TestAccAppServiceSlotCustomHostnameBinding_ssl(t *testing.T) {
 }
 
 func (r AppServiceSlotCustomHostnameBindingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AppServiceSlotCustomHostnameBindingID(state.ID)
+	id, err := webapps.ParseSlotHostNameBindingID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.GetHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, id.HostNameBindingName)
+	resp, err := clients.Web.WebAppsClient.GetHostNameBindingSlot(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.HostNameBindingProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AppServiceSlotCustomHostnameBindingResource) basicConfig(data acceptance.TestData) string {
@@ -229,7 +226,7 @@ data "azurerm_client_config" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctAS%[5]s"
+  name                = "acctestAS%[5]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id

@@ -98,12 +98,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Front Door Origin Group.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Origin Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Origin Group.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Origin Group.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Origin Group.
+* `update` - (Defaults to 4 hours) Used when updating the Front Door Origin Group.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Origin Group.
 
 ## Import
 

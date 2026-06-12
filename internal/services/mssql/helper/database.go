@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -83,7 +84,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 		listOptions := resources.ListOperationOptions{
 			Expand: nil,
 			Filter: pointer.To(filter),
-			Top:    pointer.FromInt64(100),
+			Top:    pointer.To(int64(100)),
 		}
 
 		resourcesIterator, err := resourcesClient.ListComplete(ctx, *linkSubscription, listOptions)
@@ -147,7 +148,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 					if partnerDatabase := partnerDatabase.Model; partnerDatabase != nil {
 						partnerDatabaseProps := partnerDatabase.Properties
 						if partnerDatabaseProps == nil {
-							return nil, fmt.Errorf("Partner SQL Database Properties were nil")
+							return nil, errors.New("the Partner SQL Database Properties were nil")
 						}
 
 						log.Printf("[INFO] Partner SQL Database Location: %q :: Replication Link Partner SQL Database Location: %q", location.Normalize(partnerDatabase.Location), location.Normalize(*linkProps.PartnerLocation))

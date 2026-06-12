@@ -91,7 +91,7 @@ resource "azurerm_key_vault_key" "generated" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -99,25 +99,41 @@ The following arguments are supported:
 
 * `key_vault_id` - (Required) The ID of the Key Vault where the Key should be created. Changing this forces a new resource to be created.
 
+* `key_opts` - (Required) A list of JSON web key operations. Possible values include: `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify` and `wrapKey`. Please note these values are case-sensitive.
+
 * `key_type` - (Required) Specifies the Key Type to use for this Key Vault Key. Possible values are `EC` (Elliptic Curve), `EC-HSM`, `RSA` and `RSA-HSM`. Changing this forces a new resource to be created.
 
-* `key_size` - (Optional) Specifies the Size of the RSA key to create in bytes. For example, 1024 or 2048. *Note*: This field is required if `key_type` is `RSA` or `RSA-HSM`. Changing this forces a new resource to be created.
+---
 
 * `curve` - (Optional) Specifies the curve to use when creating an `EC` key. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if `key_type` is `EC` or `EC-HSM`. The API will default to `P-256` if nothing is specified. Changing this forces a new resource to be created.
-
-* `key_opts` - (Required) A list of JSON web key operations. Possible values include: `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify` and `wrapKey`. Please note these values are case sensitive.
-
-* `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
-
-~> **Note:** Once `expiration_date` is set, it's not possible to unset the key even if it is deleted & recreated as underlying Azure API uses the restore of the purged key.
 
 * `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
 
 ~> **Note:** Removing this field from the config forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `key_size` - (Optional) Specifies the Size of the RSA key to create in bytes. For example, 1024 or 2048. *Note*: This field is required if `key_type` is `RSA` or `RSA-HSM`. Changing this forces a new resource to be created.
+
+* `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
+
+~> **Note:** Once `expiration_date` is set, it's not possible to unset the key even if it is deleted & recreated as underlying Azure API uses the restore of the purged key.
+
+* `release_policy` - (Optional) A `release_policy` block as defined below. Changing this forces a new resource to be created.
+
+-> **Note:** When `release_policy` is set, the key is automatically set as exportable by the provider as this is an API requirement.
 
 * `rotation_policy` - (Optional) A `rotation_policy` block as defined below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `release_policy` block supports the following:
+
+* `json` - (Required) The policy contents in JSON format.
+
+* `immutable` - (Optional) Whether this policy is immutable. Defaults to `false`.
+
+~> **Note:** When `immutable` is set to `true`, changing either `immutable` or `json` will force a new resource to be created.
 
 ---
 
@@ -155,11 +171,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Key.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Key.
 * `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Key.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Key.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Key.
 
 ## Import

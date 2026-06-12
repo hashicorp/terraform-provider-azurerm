@@ -27,6 +27,10 @@ type PollerType interface {
 	Poll(ctx context.Context) (*PollResult, error)
 }
 
+type delaySkipper interface {
+	SkipDelay() bool
+}
+
 type PollResult struct {
 	// HttpResponse is a copy of the HttpResponse returned from the API in the last request.
 	HttpResponse *client.Response
@@ -73,7 +77,7 @@ func (e PollingCancelledError) Error() string {
 		return fmt.Sprintf("polling was cancelled: %+v", e.Message)
 	}
 
-	return fmt.Sprintf("polling was cancelled")
+	return "polling was cancelled"
 }
 
 var _ error = PollingDroppedConnectionError{}
@@ -89,7 +93,7 @@ func (e PollingDroppedConnectionError) Error() string {
 		return fmt.Sprintf("experienced a dropped connection when polling: %+v", e.Message)
 	}
 
-	return fmt.Sprintf("experienced a dropped connection when polling")
+	return "experienced a dropped connection when polling"
 }
 
 var _ error = PollingFailedError{}
@@ -108,5 +112,5 @@ func (e PollingFailedError) Error() string {
 		return fmt.Sprintf("polling failed: %+v", e.Message)
 	}
 
-	return fmt.Sprintf("polling failed")
+	return "polling failed"
 }

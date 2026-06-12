@@ -11,11 +11,11 @@ jobs:
   triage:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9 # v5.0.0
+    - uses: actions/labeler@f27b608878404679385c85cfa523b85ccb86e213 # v6
       with:
         configuration-path: .github/labeler-pull-request-triage.yml
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
-    - uses: CodelyTV/pr-size-labeler@1c3422395d899286d5ee2c809fd5aed264d5eb9b # v1.10.2
+    - uses: CodelyTV/pr-size-labeler@095a41fca88b8764fd9e008ad269bcdb82bb38b9 # v1
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         xs_label: 'size/XS'
@@ -28,3 +28,6 @@ jobs:
         l_max_size: '300'
         xl_label: 'size/XL'
         message_if_xl: ''
+        files_to_ignore: |
+          "vendor/*"
+          "go.mod"

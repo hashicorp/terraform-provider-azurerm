@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package commonids
@@ -64,7 +64,6 @@ func ParseBotServiceChannelIDInsensitively(input string) (*BotServiceChannelId, 
 }
 
 func (id *BotServiceChannelId) FromParseResult(input resourceids.ParseResult) error {
-
 	var ok bool
 	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
 		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
