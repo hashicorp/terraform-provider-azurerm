@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MachineLearningRegistry struct{}
+type MachineLearningRegistryResource struct{}
 
 func TestAccMachineLearningRegistry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_registry", "test")
-	r := MachineLearningRegistry{}
+	r := MachineLearningRegistryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccMachineLearningRegistry_basic(t *testing.T) {
 
 func TestAccMachineLearningRegistry_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_registry", "test")
-	r := MachineLearningRegistry{}
+	r := MachineLearningRegistryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccMachineLearningRegistry_requiresImport(t *testing.T) {
 
 func TestAccMachineLearningRegistry_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_registry", "test")
-	r := MachineLearningRegistry{}
+	r := MachineLearningRegistryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccMachineLearningRegistry_complete(t *testing.T) {
 
 func TestAccMachineLearningRegistry_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_registry", "test")
-	r := MachineLearningRegistry{}
+	r := MachineLearningRegistryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccMachineLearningRegistry_update(t *testing.T) {
 	})
 }
 
-func (r MachineLearningRegistry) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MachineLearningRegistryResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	registryClient := client.MachineLearning.RegistryManagement
 	id, err := registrymanagement.ParseRegistryID(state.ID)
 	if err != nil {
@@ -111,7 +111,7 @@ func (r MachineLearningRegistry) Exists(ctx context.Context, client *clients.Cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r MachineLearningRegistry) basic(data acceptance.TestData) string {
+func (r MachineLearningRegistryResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -128,7 +128,7 @@ resource "azurerm_machine_learning_registry" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r MachineLearningRegistry) requiresImport(data acceptance.TestData) string {
+func (r MachineLearningRegistryResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -144,7 +144,7 @@ resource "azurerm_machine_learning_registry" "import" {
 `, r.basic(data))
 }
 
-func (r MachineLearningRegistry) complete(data acceptance.TestData) string {
+func (r MachineLearningRegistryResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -184,7 +184,7 @@ resource "azurerm_machine_learning_registry" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Secondary, data.Locations.Ternary)
 }
 
-func (r MachineLearningRegistry) update(data acceptance.TestData) string {
+func (r MachineLearningRegistryResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -224,7 +224,7 @@ resource "azurerm_machine_learning_registry" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Secondary, data.Locations.Ternary)
 }
 
-func (r MachineLearningRegistry) template(data acceptance.TestData) string {
+func (r MachineLearningRegistryResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -15,13 +15,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/registrymanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type MachineLearningRegistry struct{}
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name machine_learning_registry -service-package-name machinelearning -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
+type MachineLearningRegistryResource struct{}
 
 type ReplicationRegion struct {
 	Location                           string `tfschema:"location"`
@@ -54,23 +58,29 @@ type MachineLearningRegistryModel struct {
 	Tags                                                    map[string]string                          `tfschema:"tags"`
 }
 
-func (r MachineLearningRegistry) ModelObject() interface{} {
+func (r MachineLearningRegistryResource) ModelObject() interface{} {
 	return &MachineLearningRegistryModel{}
 }
 
-func (r MachineLearningRegistry) ResourceType() string {
+func (r MachineLearningRegistryResource) ResourceType() string {
 	return "azurerm_machine_learning_registry"
 }
 
-func (r MachineLearningRegistry) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r MachineLearningRegistryResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return registrymanagement.ValidateRegistryID
 }
 
-var _ sdk.ResourceWithUpdate = MachineLearningRegistry{}
+func (r MachineLearningRegistryResource) Identity() resourceids.ResourceId {
+	return &registrymanagement.RegistryId{}
+}
 
-var _ sdk.ResourceWithCustomizeDiff = MachineLearningRegistry{}
+var (
+	_ sdk.ResourceWithUpdate        = MachineLearningRegistryResource{}
+	_ sdk.ResourceWithCustomizeDiff = MachineLearningRegistryResource{}
+	_ sdk.ResourceWithIdentity      = MachineLearningRegistryResource{}
+)
 
-func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
+func (r MachineLearningRegistryResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -197,7 +207,7 @@ func replicationRegionSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r MachineLearningRegistry) Attributes() map[string]*pluginsdk.Schema {
+func (r MachineLearningRegistryResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"discovery_url": {
 			Type:     pluginsdk.TypeString,
@@ -236,7 +246,7 @@ func (r MachineLearningRegistry) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r MachineLearningRegistry) CustomizeDiff() sdk.ResourceFunc {
+func (r MachineLearningRegistryResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -283,7 +293,7 @@ func (r MachineLearningRegistry) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
+func (r MachineLearningRegistryResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -332,12 +342,16 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
 }
 
-func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
+func (r MachineLearningRegistryResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -360,49 +374,62 @@ func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			identityIds, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(resp.Model.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity` %s: %+v", *id, err)
-			}
-
-			prop := resp.Model.Properties
-			model := MachineLearningRegistryModel{
-				Name:                           id.RegistryName,
-				ResourceGroupName:              id.ResourceGroupName,
-				Identity:                       identityIds,
-				Location:                       resp.Model.Location,
-				PublicNetworkAccessEnabled:     pointer.From(prop.PublicNetworkAccess) == string(PublicNetworkAccessStateEnabled),
-				Tags:                           pointer.From(resp.Model.Tags),
-				MachineLearningFlowRegistryUri: pointer.From(prop.MlFlowRegistryUri),
-				DiscoveryUrl:                   pointer.From(prop.DiscoveryURL),
-			}
-
-			if prop.ManagedResourceGroup != nil {
-				resourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(pointer.From(prop.ManagedResourceGroup.ResourceId))
-				if err != nil {
-					return err
-				}
-				model.ManagedResourceGroup = resourceGroupId.ID()
-			}
-
-			if regions := flattenRegistryRegionDetails(prop.RegionDetails); len(regions) > 0 {
-				primary := regions[0]
-				model.SystemCreatedStorageAccountType = primary.SystemCreatedStorageAccountType
-				model.SystemCreatedStorageAccountHierarchicalNamespaceEnabled = primary.HierarchicalNamespaceEnabled
-				model.SystemCreatedContainerRegistrySku = primary.SystemCreatedContainerRegistrySku
-				model.SystemCreatedStorageAccountId = primary.SystemCreatedStorageAccountId
-				model.SystemCreatedStorageAccountName = primary.SystemCreatedStorageAccountName
-				model.SystemCreatedContainerRegistryId = primary.SystemCreatedAcrId
-				model.SystemCreatedContainerRegistryName = primary.SystemCreatedContainerRegistryName
-				model.ReplicationRegion = append(model.ReplicationRegion, regions[1:]...)
-			}
-
-			return metadata.Encode(&model)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
 
-func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
+func (r MachineLearningRegistryResource) flatten(metadata sdk.ResourceMetaData, id *registrymanagement.RegistryId, registry *registrymanagement.RegistryTrackedResource) error {
+	identityIds, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(registry.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity` %s: %+v", *id, err)
+	}
+
+	prop := registry.Properties
+	model := MachineLearningRegistryModel{
+		Name:                           id.RegistryName,
+		ResourceGroupName:              id.ResourceGroupName,
+		Identity:                       identityIds,
+		Location:                       registry.Location,
+		PublicNetworkAccessEnabled:     pointer.From(prop.PublicNetworkAccess) == string(PublicNetworkAccessStateEnabled),
+		Tags:                           pointer.From(registry.Tags),
+		MachineLearningFlowRegistryUri: pointer.From(prop.MlFlowRegistryUri),
+		DiscoveryUrl:                   pointer.From(prop.DiscoveryURL),
+	}
+
+	if prop.ManagedResourceGroup != nil {
+		resourceGroupId, err := commonids.ParseResourceGroupID(pointer.From(prop.ManagedResourceGroup.ResourceId))
+		if err != nil {
+			return err
+		}
+		model.ManagedResourceGroup = resourceGroupId.ID()
+	}
+
+	regions, err := flattenRegistryRegionDetails(prop.RegionDetails)
+	if err != nil {
+		return fmt.Errorf("flattening `region_details` %s: %+v", *id, err)
+	}
+
+	if len(regions) > 0 {
+		primary := regions[0]
+		model.SystemCreatedStorageAccountType = primary.SystemCreatedStorageAccountType
+		model.SystemCreatedStorageAccountHierarchicalNamespaceEnabled = primary.HierarchicalNamespaceEnabled
+		model.SystemCreatedContainerRegistrySku = primary.SystemCreatedContainerRegistrySku
+		model.SystemCreatedStorageAccountId = primary.SystemCreatedStorageAccountId
+		model.SystemCreatedStorageAccountName = primary.SystemCreatedStorageAccountName
+		model.SystemCreatedContainerRegistryId = primary.SystemCreatedAcrId
+		model.SystemCreatedContainerRegistryName = primary.SystemCreatedContainerRegistryName
+		model.ReplicationRegion = append(model.ReplicationRegion, regions[1:]...)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&model)
+}
+
+func (r MachineLearningRegistryResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -464,7 +491,7 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r MachineLearningRegistry) Delete() sdk.ResourceFunc {
+func (r MachineLearningRegistryResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -522,10 +549,10 @@ func expandRegistryRegions(model MachineLearningRegistryModel) []registrymanagem
 	return regions
 }
 
-func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmDetails) []ReplicationRegion {
+func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmDetails) ([]ReplicationRegion, error) {
 	result := make([]ReplicationRegion, 0)
 	if input == nil || len(*input) == 0 {
-		return nil
+		return result, nil
 	}
 
 	for _, item := range *input {
@@ -539,7 +566,11 @@ func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmD
 				region.SystemCreatedStorageAccountName = pointer.From(systemAccount.StorageAccountName)
 
 				if systemAccount.ArmResourceId != nil {
-					region.SystemCreatedStorageAccountId = pointer.From(systemAccount.ArmResourceId.ResourceId)
+					storageAccountId, err := commonids.ParseStorageAccountID(pointer.From(systemAccount.ArmResourceId.ResourceId))
+					if err != nil {
+						return make([]ReplicationRegion, 0), err
+					}
+					region.SystemCreatedStorageAccountId = storageAccountId.ID()
 				}
 			}
 		}
@@ -550,7 +581,11 @@ func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmD
 				region.SystemCreatedContainerRegistryName = pointer.From(systemAcr.AcrAccountName)
 
 				if systemAcr.ArmResourceId != nil {
-					region.SystemCreatedAcrId = pointer.From(systemAcr.ArmResourceId.ResourceId)
+					containerRegistryId, err := registries.ParseRegistryID(pointer.From(systemAcr.ArmResourceId.ResourceId))
+					if err != nil {
+						return make([]ReplicationRegion, 0), err
+					}
+					region.SystemCreatedAcrId = containerRegistryId.ID()
 				}
 			}
 		}
@@ -558,7 +593,7 @@ func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmD
 		result = append(result, region)
 	}
 
-	return result
+	return result, nil
 }
 
 type PublicNetworkAccessState string

@@ -198,14 +198,19 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if prop.ManagedResourceGroup != nil {
-				resourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(pointer.From(prop.ManagedResourceGroup.ResourceId))
+				resourceGroupId, err := commonids.ParseResourceGroupID(pointer.From(prop.ManagedResourceGroup.ResourceId))
 				if err != nil {
 					return err
 				}
 				model.ManagedResourceGroup = resourceGroupId.ID()
 			}
 
-			if regions := flattenRegistryRegionDetails(prop.RegionDetails); len(regions) > 0 {
+			regions, err := flattenRegistryRegionDetails(prop.RegionDetails)
+			if err != nil {
+				return fmt.Errorf("flattening `region_details` %s: %+v", id, err)
+			}
+
+			if len(regions) > 0 {
 				primary := regions[0]
 				model.SystemCreatedStorageAccountType = primary.SystemCreatedStorageAccountType
 				model.SystemCreatedStorageAccountHierarchicalNamespaceEnabled = primary.HierarchicalNamespaceEnabled

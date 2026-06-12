@@ -66,7 +66,7 @@ func (r Registration) Resources() []sdk.Resource {
 		MachineLearningDataStoreBlobStorage{},
 		MachineLearningDataStoreDataLakeGen2{},
 		MachineLearningDataStoreFileShare{},
-		MachineLearningRegistry{},
+		MachineLearningRegistryResource{},
 		WorkspaceNetworkOutboundRuleFqdn{},
 		WorkspaceNetworkOutboundRulePrivateEndpoint{},
 		WorkspaceNetworkOutboundRuleServiceTag{},
@@ -90,5 +90,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		MachineLearningRegistryListResource{},
+	}
 }

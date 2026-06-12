@@ -41,5 +41,5 @@ data "azurerm_machine_learning_registry" "test" {
   name                = azurerm_machine_learning_registry.test.name
   resource_group_name = azurerm_machine_learning_registry.test.resource_group_name
 }
-`, MachineLearningRegistry{}.complete(data))
+`, MachineLearningRegistryResource{}.complete(data))
 }
