@@ -343,6 +343,13 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 			clusterParams.Identity = expandedIdentity
 
 			if err := clusterClient.CreateCallbackThenPoll(ctx, clusterId, clusterParams, metadata.SetIDCallback(&clusterId)); err != nil {
+				if strings.Contains(err.Error(), "OperationFailed") {
+					log.Printf("[DEBUG] Managed Redis create failed, attempting cleanup")
+					if deleteErr := clusterClient.DeleteThenPoll(ctx, clusterId); deleteErr != nil {
+						log.Printf("[WARN] Cleanup of failed Managed Redis %s failed: %s", clusterId, deleteErr)
+					}
+				}
+
 				return fmt.Errorf("creating %s: %+v", clusterId, err)
 			}
 
