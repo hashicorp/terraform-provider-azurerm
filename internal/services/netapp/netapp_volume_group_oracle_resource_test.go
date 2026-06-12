@@ -331,7 +331,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
   resource_group_name    = azurerm_resource_group.test.name
   account_name           = azurerm_netapp_account.test.name
   group_description      = "Test volume group for Oracle"
-  application_identifier = "TST"
+  application_identifier = "ACCTEST1"
 
   volume {
     name                         = "acctest-NetAppVolume-Ora1-%[2]d"

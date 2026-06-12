@@ -6,6 +6,7 @@ package netapp
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -69,10 +70,13 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"application_identifier": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringLenBetween(1, 3),
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z][\w-]{2,11}$`),
+				"`application_identifier` must be between 3 and 12 characters, may contain alphanumerics, hyphens, and underscores, and must begin with a letter.",
+			),
 		},
 
 		"volume": {

@@ -314,9 +314,20 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 					return err
 				}
 
-				account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Queue %q: %v", id.AccountId.AccountName, id.QueueName, err)
+				var account *client.AccountDetails
+				if meta.(*clients.Client).Storage.StorageUseAzureAD {
+					// Note: The Resource Group Name is intentionally left empty here because it is not known
+					// in this 4.x legacy fallback path. This is safe because when Azure AD authentication is used,
+					// the downstream Data Plane client builder entirely bypasses fetching Storage Account access keys
+					// via the Management Plane (which is the only operation that requires the Resource Group Name).
+					account = &client.AccountDetails{
+						StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", id.AccountId.AccountName),
+					}
+				} else {
+					account, err = storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+					if err != nil {
+						return fmt.Errorf("retrieving Account %q for Queue %q: %v", id.AccountId.AccountName, id.QueueName, err)
+					}
 				}
 				if account == nil {
 					log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountId.AccountName)
@@ -430,9 +441,20 @@ func resourceStorageQueueDelete(d *pluginsdk.ResourceData, meta interface{}) err
 			return err
 		}
 
-		account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountId.AccountName, id.QueueName, err)
+		var account *client.AccountDetails
+		if meta.(*clients.Client).Storage.StorageUseAzureAD {
+			// Note: The Resource Group Name is intentionally left empty here because it is not known
+			// in this 4.x legacy fallback path. This is safe because when Azure AD authentication is used,
+			// the downstream Data Plane client builder entirely bypasses fetching Storage Account access keys
+			// via the Management Plane (which is the only operation that requires the Resource Group Name).
+			account = &client.AccountDetails{
+				StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", id.AccountId.AccountName),
+			}
+		} else {
+			account, err = storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountId.AccountName, id.QueueName, err)
+			}
 		}
 		if account == nil {
 			log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountId.AccountName)
