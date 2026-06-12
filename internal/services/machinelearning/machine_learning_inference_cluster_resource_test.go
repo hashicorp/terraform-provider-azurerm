@@ -455,6 +455,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = join("", ["acctestaks", azurerm_resource_group.test.location])
   node_resource_group = "acctestRGAKS-%d"
 
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+
   default_node_pool {
     name           = "default"
     node_count     = %d
@@ -557,6 +561,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   node_resource_group     = "acctestRGAKS-%d"
   private_cluster_enabled = true
   private_dns_zone_id     = "System"
+
+  node_provisioning_profile {
+    mode = "Manual"
+  }
 
   default_node_pool {
     name           = "default"
