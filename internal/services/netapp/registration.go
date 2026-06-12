@@ -61,6 +61,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		NetAppBackupVaultDataSource{},
 		NetAppBackupPolicyDataSource{},
 		NetAppVolumeGroupOracleDataSource{},
+		NetAppVolumeBucketDataSource{},
 	}
 }
 
@@ -73,11 +74,14 @@ func (r Registration) Resources() []sdk.Resource {
 		NetAppBackupVaultResource{},
 		NetAppBackupPolicyResource{},
 		NetAppVolumeGroupOracleResource{},
+		NetAppVolumeBucketResource{},
 	}
 }
 
 func (r Registration) Actions() []func() action.Action {
-	return []func() action.Action{}
+	return []func() action.Action{
+		newNetAppVolumeBucketCredentialsAction,
+	}
 }
 
 func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
@@ -93,5 +97,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		NetAppVolumeBucketListResource{},
+	}
 }
