@@ -130,7 +130,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `automatic_zone_rebalancing_enabled` - (Optional) Whether to enable automatic zone balance. Defaults to `false`. Requires `zones` to be set. When set to `true`, a `health_probe_id` or a health extension must be configured.
 
--> **Note:** For more information about automatic zone balance, please refer to the [product documentation](https://learn.microsoft.com/azure/virtual-machine-scale-sets/auto-zone-balance-overview).
+-> **Note:** When enabling this feature on an existing resource, the `health_probe_id` or health extension must already be deployed in a previous apply. For more information about automatic zone balance, please refer to the [product documentation](https://learn.microsoft.com/azure/virtual-machine-scale-sets/auto-zone-balance-overview).
 
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
