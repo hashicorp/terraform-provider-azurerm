@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package communication
@@ -120,6 +120,7 @@ func (r EmailDomainAssociationResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewCompositeResourceID(communicationServiceId, eMailServiceDomainId)
 
+			exists := false
 			for _, v := range domainList {
 				tmpID, tmpErr := domains.ParseDomainIDInsensitively(v)
 				if tmpErr != nil {
@@ -127,11 +128,16 @@ func (r EmailDomainAssociationResource) Create() sdk.ResourceFunc {
 				}
 
 				if strings.EqualFold(eMailServiceDomainId.ID(), tmpID.ID()) {
-					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					exists = true
+					if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					}
 				}
 			}
 
-			domainList = append(domainList, eMailServiceDomainId.ID())
+			if !exists {
+				domainList = append(domainList, eMailServiceDomainId.ID())
+			}
 
 			input := communicationservices.CommunicationServiceResourceUpdate{
 				Properties: &communicationservices.CommunicationServiceUpdateProperties{

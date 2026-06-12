@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr_test
@@ -6,20 +6,25 @@ package signalr_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SignalrServiceCustomDomainResource struct{}
 
 func TestAccSignalrServiceCustomDomainResource_basic(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_domain", "test")
 	r := SignalrServiceCustomDomainResource{}
 
@@ -27,13 +32,18 @@ func TestAccSignalrServiceCustomDomainResource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
 }
 
 func TestAccSignalrServiceCustomDomainResource_requiresImport(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_domain", "test")
 	r := SignalrServiceCustomDomainResource{}
 
@@ -41,7 +51,8 @@ func TestAccSignalrServiceCustomDomainResource_requiresImport(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
@@ -55,14 +66,16 @@ func (r SignalrServiceCustomDomainResource) Exists(ctx context.Context, client *
 	resp, err := client.SignalR.SignalRClient.CustomDomainsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SignalrServiceCustomDomainResource) basic(data acceptance.TestData) string {
+	dnsZone := os.Getenv("ARM_TEST_DNS_ZONE")
+	dataResourceGroup := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -87,19 +100,15 @@ resource "azurerm_signalr_service" "test" {
   }
 }
 
-resource "azurerm_dns_zone" "test" {
-  name                = "wpstftestzone.com"
-  resource_group_name = azurerm_resource_group.test.name
-  depends_on = [
-    azurerm_signalr_service.test,
-    azurerm_signalr_service_custom_certificate.test
-  ]
+data "azurerm_dns_zone" "test" {
+  name                = "%s"
+  resource_group_name = "%s"
 }
 
 resource "azurerm_dns_cname_record" "test" {
-  name                = "signalr"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_dns_zone.test.name
+  name                = "signalr-%s"
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  zone_name           = data.azurerm_dns_zone.test.name
   ttl                 = 3600
   record              = azurerm_signalr_service.test.hostname
 }
@@ -156,7 +165,7 @@ resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
   key_vault_id = azurerm_key_vault.test.id
   certificate {
-    contents = filebase64("testdata/custom-domain-cert-signalr.pfx")
+    contents = filebase64("testdata/custom-domain-cert-signalr-acctest.pfx")
     password = ""
   }
 }
@@ -171,11 +180,11 @@ resource "azurerm_signalr_service_custom_certificate" "test" {
 resource "azurerm_signalr_service_custom_domain" "test" {
   name                          = "signalrcustom-domain-%s"
   signalr_service_id            = azurerm_signalr_service.test.id
-  domain_name                   = "signalr.${azurerm_dns_zone.test.name}"
+  domain_name                   = "signalr-%s.${data.azurerm_dns_zone.test.name}"
   signalr_custom_certificate_id = azurerm_signalr_service_custom_certificate.test.id
   depends_on                    = [azurerm_dns_cname_record.test]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(3), data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(3), dnsZone, dataResourceGroup, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (r SignalrServiceCustomDomainResource) requiresImport(data acceptance.TestData) string {

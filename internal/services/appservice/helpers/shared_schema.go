@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IpRestriction struct {
@@ -1226,20 +1225,20 @@ func ExpandIpRestrictions(restrictions []IpRestriction) (*[]webapps.IPSecurityRe
 
 		var restriction webapps.IPSecurityRestriction
 		if v.Name != "" {
-			restriction.Name = utils.String(v.Name)
+			restriction.Name = pointer.To(v.Name)
 		}
 
 		if v.IpAddress != "" {
-			restriction.IPAddress = utils.String(v.IpAddress)
+			restriction.IPAddress = pointer.To(v.IpAddress)
 		}
 
 		if v.ServiceTag != "" {
-			restriction.IPAddress = utils.String(v.ServiceTag)
+			restriction.IPAddress = pointer.To(v.ServiceTag)
 			restriction.Tag = pointer.To(webapps.IPFilterTagServiceTag)
 		}
 
 		if v.VnetSubnetId != "" {
-			restriction.VnetSubnetResourceId = utils.String(v.VnetSubnetId)
+			restriction.VnetSubnetResourceId = pointer.To(v.VnetSubnetId)
 		}
 
 		if v.Description != "" {

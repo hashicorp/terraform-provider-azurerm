@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	appplatform2 "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -147,14 +148,16 @@ func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, m
 	id := parse.NewSpringCloudDeploymentID(subscriptionId, appId.ResourceGroup, appId.SpringName, appId.AppName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_build_deployment", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_spring_cloud_build_deployment", id.ID())
+			}
 		}
 	}
 
@@ -175,11 +178,11 @@ func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, m
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
 			Tier:     service.Sku.Tier,
-			Capacity: utils.Int32(int32(d.Get("instance_count").(int))),
+			Capacity: pointer.To(int32(d.Get("instance_count").(int))),
 		},
 		Properties: &appplatform.DeploymentResourceProperties{
 			Source: appplatform.BuildResultUserSourceInfo{
-				BuildResultID: utils.String(d.Get("build_result_id").(string)),
+				BuildResultID: pointer.To(d.Get("build_result_id").(string)),
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
 				AddonConfigs:         addonConfig,
@@ -195,11 +198,11 @@ func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceSpringCloudBuildDeploymentRead(d, meta)
 }
@@ -290,8 +293,8 @@ func expandSpringCloudBuildDeploymentResourceRequests(input []interface{}) *appp
 	}
 
 	result := appplatform.ResourceRequests{
-		CPU:    utils.String(cpuResult),
-		Memory: utils.String(memResult),
+		CPU:    pointer.To(cpuResult),
+		Memory: pointer.To(memResult),
 	}
 
 	return &result

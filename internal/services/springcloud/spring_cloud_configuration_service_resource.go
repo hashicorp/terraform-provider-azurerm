@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -219,14 +219,16 @@ func (s SpringCloudConfigurationServiceResource) Create() sdk.ResourceFunc {
 			}
 			id := appplatform.NewConfigurationServiceID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.ConfigurationServicesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ConfigurationServicesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			configurationServiceResource := appplatform.ConfigurationServiceResource{
@@ -240,12 +242,11 @@ func (s SpringCloudConfigurationServiceResource) Create() sdk.ResourceFunc {
 					},
 				},
 			}
-			err = client.ConfigurationServicesCreateOrUpdateThenPoll(ctx, id, configurationServiceResource)
-			if err != nil {
+			if err := client.ConfigurationServicesCreateOrUpdateCallbackThenPoll(ctx, id, configurationServiceResource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating/updating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

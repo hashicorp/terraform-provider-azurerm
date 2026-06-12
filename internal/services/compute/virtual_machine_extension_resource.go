@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -155,15 +156,17 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, virtualmachineextensions.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, virtualmachineextensions.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_extension", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_virtual_machine_extension", id.ID())
+			}
 		}
 	}
 
@@ -211,11 +214,19 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 		extension.Properties.ProvisionAfterExtensions = utils.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, extension); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, extension, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, extension); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceVirtualMachineExtensionsRead(d, meta)
 }

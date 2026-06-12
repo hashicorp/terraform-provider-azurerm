@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager
@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SystemCenterVirtualMachineManagerAvailabilitySetModel struct {
@@ -93,34 +92,36 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Create() sdk.R
 
 			id := availabilitysets.NewAvailabilitySetID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := availabilitysets.AvailabilitySet{
 				Location: location.Normalize(model.Location),
 				ExtendedLocation: availabilitysets.ExtendedLocation{
-					Type: utils.String("customLocation"),
-					Name: utils.String(model.CustomLocationId),
+					Type: pointer.To("customLocation"),
+					Name: pointer.To(model.CustomLocationId),
 				},
 				Properties: &availabilitysets.AvailabilitySetProperties{
-					AvailabilitySetName: utils.String(id.AvailabilitySetName),
-					VMmServerId:         utils.String(scvmmServerId.ID()),
+					AvailabilitySetName: pointer.To(id.AvailabilitySetName),
+					VMmServerId:         pointer.To(scvmmServerId.ID()),
 				},
 				Tags: pointer.To(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

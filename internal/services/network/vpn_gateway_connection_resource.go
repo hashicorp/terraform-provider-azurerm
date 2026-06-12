@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -349,15 +350,18 @@ func resourceVpnGatewayConnectionResourceCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	id := commonids.NewVPNConnectionID(gatewayId.SubscriptionId, gatewayId.ResourceGroupName, gatewayId.VpnGatewayName, name)
-	resp, err := client.VpnConnectionsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_vpn_gateway_connection", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.VpnConnectionsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vpn_gateway_connection", id.ID())
+		}
 	}
 
 	locks.ByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
@@ -378,7 +382,7 @@ func resourceVpnGatewayConnectionResourceCreate(d *pluginsdk.ResourceData, meta 
 		payload.Properties.TrafficSelectorPolicies = expandVpnGatewayConnectionTrafficSelectorPolicy(v.(*pluginsdk.Set).List())
 	}
 
-	if err := client.VpnConnectionsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.VpnConnectionsCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -528,10 +532,10 @@ func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]vi
 	for _, itemRaw := range input {
 		item := itemRaw.(map[string]interface{})
 		v := virtualwans.VpnSiteLinkConnection{
-			Name: utils.String(item["name"].(string)),
+			Name: pointer.To(item["name"].(string)),
 			Properties: &virtualwans.VpnSiteLinkConnectionProperties{
 				VpnSiteLink: &virtualwans.SubResource{
-					Id: utils.String(item["vpn_site_link_id"].(string)),
+					Id: pointer.To(item["vpn_site_link_id"].(string)),
 				},
 				RoutingWeight:                  pointer.To(int64(item["route_weight"].(int))),
 				VpnConnectionProtocolType:      pointer.To(virtualwans.VirtualNetworkGatewayConnectionProtocol(item["protocol"].(string))),
@@ -673,19 +677,19 @@ func expandVpnGatewayConnectionRoutingConfiguration(input []interface{}) *virtua
 
 	output := &virtualwans.RoutingConfiguration{
 		AssociatedRouteTable: &virtualwans.SubResource{
-			Id: utils.String(raw["associated_route_table"].(string)),
+			Id: pointer.To(raw["associated_route_table"].(string)),
 		},
 	}
 
 	if inboundRouteMapId := raw["inbound_route_map_id"].(string); inboundRouteMapId != "" {
 		output.InboundRouteMap = &virtualwans.SubResource{
-			Id: utils.String(inboundRouteMapId),
+			Id: pointer.To(inboundRouteMapId),
 		}
 	}
 
 	if outboundRouteMapId := raw["outbound_route_map_id"].(string); outboundRouteMapId != "" {
 		output.OutboundRouteMap = &virtualwans.SubResource{
-			Id: utils.String(outboundRouteMapId),
+			Id: pointer.To(outboundRouteMapId),
 		}
 	}
 
@@ -813,7 +817,7 @@ func expandVpnGatewayConnectionNatRuleIds(input []interface{}) *[]virtualwans.Su
 
 	for _, item := range input {
 		results = append(results, virtualwans.SubResource{
-			Id: utils.String(item.(string)),
+			Id: pointer.To(item.(string)),
 		})
 	}
 

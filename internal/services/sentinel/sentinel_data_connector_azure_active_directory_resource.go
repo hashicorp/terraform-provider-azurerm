@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -72,15 +72,17 @@ func resourceSentinelDataConnectorAzureActiveDirectoryCreate(d *pluginsdk.Resour
 	id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(resp.Response) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_sentinel_data_connector_azure_active_directory", id.ID())
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return tf.ImportAsExistsError("azurerm_sentinel_data_connector_azure_active_directory", id.ID())
+			}
 		}
 	}
 

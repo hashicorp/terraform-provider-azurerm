@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_table -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
@@ -125,15 +125,17 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	id := routetables.NewRouteTableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, routetables.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, routetables.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_route_table", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_route_table", id.ID())
+		}
 	}
 
 	bgpRoutePropagationEnabled := d.Get("bgp_route_propagation_enabled").(bool)
@@ -148,11 +150,14 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, routeSet); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, routeSet, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceRouteTableRead(d, meta)
 }
@@ -277,9 +282,9 @@ func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]routetables.Route {
 		data := configRaw.(map[string]interface{})
 
 		route := routetables.Route{
-			Name: utils.String(data["name"].(string)),
+			Name: pointer.To(data["name"].(string)),
 			Properties: &routetables.RoutePropertiesFormat{
-				AddressPrefix: utils.String(data["address_prefix"].(string)),
+				AddressPrefix: pointer.To(data["address_prefix"].(string)),
 				NextHopType:   routetables.RouteNextHopType(data["next_hop_type"].(string)),
 			},
 		}

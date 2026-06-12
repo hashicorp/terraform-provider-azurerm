@@ -27,14 +27,18 @@ func TestAccNetworkInterface_list_basic(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
-				Query:             true,
-				Config:            r.basicQuery(),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				Query:  true,
+				Config: r.basicQuery(),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLengthAtLeast("azurerm_network_interface.list", 3),
+				},
 			},
 			{
-				Query:             true,
-				Config:            r.basicQueryByResourceGroupName(data),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				Query:  true,
+				Config: r.basicQueryByResourceGroupName(data),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLength("azurerm_network_interface.list", 3),
+				},
 			},
 		},
 	})
@@ -65,32 +69,10 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_network_interface" "test1" {
-  name                = "acctestni1-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+resource "azurerm_network_interface" "test" {
+  count = 3
 
-  ip_configuration {
-    name                          = "primary"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_network_interface" "test2" {
-  name                = "acctestni2-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "primary"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_network_interface" "test3" {
-  name                = "acctestni3-%[1]d"
+  name                = "acctestni${count.index}-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 

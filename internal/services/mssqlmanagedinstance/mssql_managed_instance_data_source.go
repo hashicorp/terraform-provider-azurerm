@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance
@@ -28,6 +28,7 @@ type MsSqlManagedInstanceDataSourceModel struct {
 	DnsZonePartnerId          string                              `tfschema:"dns_zone_partner_id"`
 	Fqdn                      string                              `tfschema:"fqdn"`
 	Identity                  []identity.SystemOrUserAssignedList `tfschema:"identity"`
+	GeneralPurposeV2Enabled   bool                                `tfschema:"general_purpose_v2_enabled"`
 	LicenseType               string                              `tfschema:"license_type"`
 	Location                  string                              `tfschema:"location"`
 	MinimumTlsVersion         string                              `tfschema:"minimum_tls_version"`
@@ -101,6 +102,11 @@ func (d MsSqlManagedInstanceDataSource) Attributes() map[string]*pluginsdk.Schem
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
+
+		"general_purpose_v2_enabled": {
+			Type:     schema.TypeBool,
+			Computed: true,
+		},
 
 		"license_type": {
 			Type:     schema.TypeString,
@@ -214,6 +220,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 				model.SubnetId = pointer.From(props.SubnetId)
 				model.TimezoneId = pointer.From(props.TimezoneId)
 				model.VCores = pointer.From(props.VCores)
+				model.GeneralPurposeV2Enabled = pointer.From(props.IsGeneralPurposeV2)
 			}
 
 			metadata.SetID(id)

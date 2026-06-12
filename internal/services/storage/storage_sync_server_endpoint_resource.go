@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -135,14 +135,16 @@ func (r SyncServerEndpointResource) Create() sdk.ResourceFunc {
 
 			id := serverendpointresource.NewServerEndpointID(subscriptionId, storageSyncGroupId.ResourceGroupName, storageSyncGroupId.StorageSyncServiceName, storageSyncGroupId.SyncGroupName, config.Name)
 
-			existing, err := client.ServerEndpointsGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ServerEndpointsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := serverendpointresource.ServerEndpointCreateParameters{
@@ -165,6 +167,7 @@ func (r SyncServerEndpointResource) Create() sdk.ResourceFunc {
 				payload.Properties.TierFilesOlderThanDays = pointer.To(config.TierFilesOlderThanDays)
 			}
 
+			// TODO: confirm whether this poller is still required, the go-azure-sdk LRO poller has changed since
 			pollerType := custompollers.NewStorageSyncServerEndpointPoller(client, id)
 			poller := pollers.NewPoller(pollerType, 20*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 
@@ -172,11 +175,12 @@ func (r SyncServerEndpointResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if err := poller.PollUntilDone(ctx); err != nil {
 				return err
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}

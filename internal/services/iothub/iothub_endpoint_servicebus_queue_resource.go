@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -167,8 +167,8 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 
 	queueEndpoint := devices.RoutingServiceBusQueueEndpointProperties{
 		AuthenticationType: authenticationType,
-		Name:               utils.String(id.EndpointName),
-		ResourceGroup:      utils.String(endpointRG),
+		Name:               pointer.To(id.EndpointName),
+		ResourceGroup:      pointer.To(endpointRG),
 	}
 
 	// To align with the previous TF behavior, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behavior is different than before and it may block the existing users
@@ -182,21 +182,21 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 
 	if authenticationType == devices.AuthenticationTypeKeyBased {
 		if v, ok := d.GetOk("connection_string"); ok {
-			queueEndpoint.ConnectionString = utils.String(v.(string))
+			queueEndpoint.ConnectionString = pointer.To(v.(string))
 		} else {
 			return fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
 		}
 	} else {
 		if v, ok := d.GetOk("endpoint_uri"); ok {
-			queueEndpoint.EndpointURI = utils.String(v.(string))
-			queueEndpoint.EntityPath = utils.String(d.Get("entity_path").(string))
+			queueEndpoint.EndpointURI = pointer.To(v.(string))
+			queueEndpoint.EntityPath = pointer.To(d.Get("entity_path").(string))
 		} else {
 			return fmt.Errorf("`endpoint_uri` and `entity_path` must be specified when `authentication_type` is `identityBased`")
 		}
 
 		if v, ok := d.GetOk("identity_id"); ok {
 			queueEndpoint.Identity = &devices.ManagedIdentity{
-				UserAssignedIdentity: utils.String(v.(string)),
+				UserAssignedIdentity: pointer.To(v.(string)),
 			}
 		}
 	}
@@ -221,7 +221,9 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
 			if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_endpoint_servicebus_queue", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_iothub_endpoint_servicebus_queue", id.ID())
+					}
 				}
 				endpoints = append(endpoints, queueEndpoint)
 				alreadyExists = true
@@ -243,11 +245,11 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubEndpointServiceBusQueueRead(d, meta)
 }

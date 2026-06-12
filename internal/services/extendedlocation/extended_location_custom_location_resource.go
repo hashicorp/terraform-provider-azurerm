@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package extendedlocation
@@ -145,13 +145,16 @@ func (r ExtendedLocationCustomLocationResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.ExtendedLocation.CustomLocationsClient
 
 			id := customlocations.NewCustomLocationID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			customLocationProps := customlocations.CustomLocationProperties{
@@ -177,7 +180,7 @@ func (r ExtendedLocationCustomLocationResource) Create() sdk.ResourceFunc {
 				Properties: pointer.To(customLocationProps),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, props); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -245,8 +248,6 @@ func (r ExtendedLocationCustomLocationResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

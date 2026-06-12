@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -9,6 +9,8 @@ import (
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -132,14 +134,16 @@ func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	locks.ByName(id.VirtualHubName, "azurerm_route_server")
 	defer locks.UnlockByName(id.VirtualHubName, "azurerm_route_server")
 
-	existing, err := client.VirtualHubsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.VirtualHubsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_route_server", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_route_server", id.ID())
+		}
 	}
 
 	parameters := virtualwans.VirtualHub{
@@ -152,8 +156,13 @@ func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.VirtualHubsCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.VirtualHubsCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -165,8 +174,7 @@ func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		ContinuousTargetOccurence: 5,
 		Timeout:                   time.Until(timeout),
 	}
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
@@ -188,8 +196,6 @@ func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err := client.VirtualHubIPConfigurationCreateOrUpdateThenPoll(ctx, ipConfigId, ipConfigs); err != nil {
 		return fmt.Errorf("creating %s: %+v", ipConfigId, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceRouteServerRead(d, meta)
 }
@@ -246,8 +252,7 @@ func resourceRouteServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		ContinuousTargetOccurence: 5,
 		Timeout:                   time.Until(timeout),
 	}
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 

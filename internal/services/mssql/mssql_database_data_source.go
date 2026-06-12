@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -155,7 +155,7 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 			maxSizeGb := int64(0)
 			if props.MaxSizeBytes != nil {
-				maxSizeGb = (pointer.From(props.MaxSizeBytes)) / int64(1073741824)
+				maxSizeGb = pointer.From(props.MaxSizeBytes) / int64(1073741824)
 			}
 			d.Set("max_size_gb", maxSizeGb)
 

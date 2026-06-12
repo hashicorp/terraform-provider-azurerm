@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MonitorAADDiagnosticSettingResource struct{}
@@ -200,7 +200,7 @@ func (t MonitorAADDiagnosticSettingResource) Exists(ctx context.Context, clients
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (MonitorAADDiagnosticSettingResource) eventhub(data acceptance.TestData) string {
@@ -222,11 +222,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest-EH-%[1]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctest-EH-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {

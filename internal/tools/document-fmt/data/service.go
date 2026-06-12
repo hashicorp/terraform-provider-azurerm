@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package data
@@ -6,6 +6,7 @@ package data
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"unicode"
 
@@ -56,7 +57,7 @@ func NewService(fs afero.Fs, providerDir string, providerServiceRegistration any
 	}
 
 	for _, n := range names {
-		path := fmt.Sprintf(serviceDirPattern, providerDir, n)
+		path := filepath.FromSlash(fmt.Sprintf(serviceDirPattern, providerDir, n))
 		if util.DirExists(fs, path) {
 			return &Service{
 				Name: n,

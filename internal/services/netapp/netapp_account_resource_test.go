@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/netappaccounts"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetAppAccountResource struct{}
@@ -116,20 +116,32 @@ func testAccNetAppAccount_update(t *testing.T) {
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("active_directory.#").HasValue("0"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.completeConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("active_directory.#").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
-				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 			),
 		},
-		data.ImportStep("active_directory"),
+		data.ImportStep("active_directory.0.password", "active_directory.0.server_root_ca_certificate"),
+		{
+			Config: r.completePartialUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("active_directory.#").HasValue("1"),
+			),
+		},
+		data.ImportStep("active_directory.0.password", "active_directory.0.server_root_ca_certificate"),
+		{
+			Config: r.basicConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -186,7 +198,7 @@ func TestAccNetAppAccount_updateManagedIdentity(t *testing.T) {
 	})
 }
 
-func (t NetAppAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetAppAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := netappaccounts.ParseNetAppAccountID(state.ID)
 	if err != nil {
 		return nil, err
@@ -197,7 +209,7 @@ func (t NetAppAccountResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, fmt.Errorf("reading Netapp Account (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r NetAppAccountResource) basicConfig(data acceptance.TestData) string {
@@ -208,10 +220,6 @@ resource "azurerm_netapp_account" "test" {
   name                = "acctest-NetAppAccount-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -224,10 +232,6 @@ resource "azurerm_netapp_account" "import" {
   name                = azurerm_netapp_account.test.name
   location            = azurerm_netapp_account.test.location
   resource_group_name = azurerm_netapp_account.test.resource_group_name
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
-  }
 }
 `, r.basicConfig(data))
 }
@@ -236,10 +240,23 @@ func (r NetAppAccountResource) completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "user-assigned-identity-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
 resource "azurerm_netapp_account" "test" {
   name                = "acctest-NetAppAccount-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
 
   active_directory {
     username                          = "aduser"
@@ -259,8 +276,53 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
     "FoO"           = "BaR"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetAppAccountResource) completePartialUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "user-assigned-identity-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  active_directory {
+    username                          = "aduser"
+    password                          = "aduserpwd"
+    smb_server_name                   = "SMB-SERVER"
+    dns_servers                       = ["1.2.3.4", "1.2.3.5"]
+    domain                            = "westcentralus.com"
+    organizational_unit               = "OU=FirstLevel"
+    site_name                         = "My-Site-Name"
+    kerberos_ad_name                  = "My-AD-Server"
+    kerberos_kdc_ip                   = "192.168.1.1"
+    aes_encryption_enabled            = true
+    local_nfs_users_with_ldap_allowed = true
+    ldap_over_tls_enabled             = true
+    server_root_ca_certificate        = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNZekNDQWN5Z0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRVUZBREF1TVFzd0NRWURWUVFHRXdKVlV6RU0gCk1Bb0dBMVVFQ2hNRFNVSk5NUkV3RHdZRFZRUUxFd2hNYjJOaGJDQkRRVEFlRncwNU9URXlNakl3TlRBd01EQmEgCkZ3MHdNREV5TWpNd05EVTVOVGxhTUM0eEN6QUpCZ05WQkFZVEFsVlRNUXd3Q2dZRFZRUUtFd05KUWsweEVUQVAgCkJnTlZCQXNUQ0V4dlkyRnNJRU5CTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FEMmJaRW8gCjd4R2FYMi8wR0hrck5GWnZseEJvdTl2MUptdC9QRGlUTVB2ZThyOUZlSkFRMFFkdkZTVC8wSlBRWUQyMHJIMGIgCmltZERMZ05kTnlubXlSb1MyUy9JSW5mcG1mNjlpeWMyRzBUUHlSdm1ISWlPWmJkQ2QrWUJIUWkxYWRrajE3TkQgCmNXajZTMTR0VnVyRlg3M3p4MHNOb01TNzlxM3R1WEtyRHN4ZXV3SURBUUFCbzRHUU1JR05NRXNHQ1ZVZER3R0cgCitFSUJEUVErRXp4SFpXNWxjbUYwWldRZ1lua2dkR2hsSUZObFkzVnlaVmRoZVNCVFpXTjFjbWwwZVNCVFpYSjIgClpYSWdabTl5SUU5VEx6TTVNQ0FvVWtGRFJpa3dEZ1lEVlIwUEFRSC9CQVFEQWdBR01BOEdBMVVkRXdFQi93UUYgCk1BTUJBZjh3SFFZRFZSME9CQllFRkozK29jUnlDVEp3MDY3ZExTd3IvbmFseDZZTU1BMEdDU3FHU0liM0RRRUIgCkJRVUFBNEdCQU1hUXp0K3phajFHVTc3eXpscjhpaU1CWGdkUXJ3c1paV0pvNWV4bkF1Y0pBRVlRWm1PZnlMaU0gCkQ2b1lxK1puZnZNMG44Ry9ZNzlxOG5od3Z1eHBZT25SU0FYRnA2eFNrcklPZVp0Sk1ZMWgwMExLcC9KWDNOZzEgCnN2WjJhZ0UxMjZKSHNRMGJoek41VEtzWWZid2ZUd2ZqZFdBR3k2VmYxbllpL3JPK3J5TU8KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLSA="
+    ldap_signing_enabled              = true
+  }
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
+    "FoO"           = "BaR"
+    Hello           = "World"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -280,7 +342,7 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
     "FoO"           = "BaR"
   }
 }
@@ -297,7 +359,7 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 
@@ -314,7 +376,7 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -340,11 +402,9 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
     "SkipNRMSNSG"   = "true"
   }
 }
-
-
 `, data.RandomInteger, data.Locations.Primary)
 }

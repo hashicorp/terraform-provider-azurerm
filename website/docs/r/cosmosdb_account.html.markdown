@@ -154,7 +154,7 @@ The following arguments are supported:
 
 * `burst_capacity_enabled` - (Optional) Enable burst capacity for this Cosmos DB account. Defaults to `false`.
 
-* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this CosmosDB account. Defaults to `true`.
 
 * `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Value is a `capabilities` block as defined below.
 
@@ -162,15 +162,7 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Optional) A versionless Key Vault Key ID for CMK encryption. Changing this forces a new resource to be created.
 
-~> **Note:** When referencing an `azurerm_key_vault_key` resource, use `versionless_id` instead of `id`
-
-~> **Note:** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
-
-* `managed_hsm_key_id` - (Optional) A versionless Managed HSM Key ID for CMK encryption. Changing this forces a new resource to be created.
-
-~> **Note:** When referencing an `azurerm_key_vault_managed_hardware_security_module_key` resource, use `id` instead of `versioned_id`
-
-~> **Note:** In order to use a `Custom Key` from Managed HSM for encryption you must grant Azure Cosmos DB Service access to your Managed HSM. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-setup-customer-managed-keys-mhsm)
+~> **Note:** In order to use a `Custom Key` from a Key Vault or Managed HSM Vault for encryption, you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
 
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rule` block as defined below, used to define which subnets are allowed to access this CosmosDB account.
 
@@ -222,11 +214,11 @@ The `geo_location` block Configures the geographic locations the data is replica
 
 A `capabilities` block Configures the capabilities to be enabled for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DeleteAllItemsByPartitionKey`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableMongo16MBDocumentSupport`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableNoSQLVectorSearch`, `EnableNoSQLFullTextSearch`, `EnablePartialUniqueIndex`, `EnableServerless`, `EnableTable`, `EnableTtlOnCustomPath`, `EnableUniqueCompoundNestedDocs`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
+* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DeleteAllItemsByPartitionKey`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableFabricNetworkAclBypass`, `EnableGremlin`, `EnableMongo`, `EnableMongo16MBDocumentSupport`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableNoSQLVectorSearch`, `EnableNoSQLFullTextSearch`, `EnablePartialUniqueIndex`, `EnableServerless`, `EnableTable`, `EnableTtlOnCustomPath`, `EnableUniqueCompoundNestedDocs`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
 
 ~> **Note:** Setting `MongoDBv3.4` also requires setting `EnableMongo`.
 
-~> **Note:** Only `AllowSelfServeUpgradeToMongo36`, `DeleteAllItemsByPartitionKey`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableUniqueCompoundNestedDocs`, `EnableMongo16MBDocumentSupport`, `mongoEnableDocLevelTTL`, `EnableTtlOnCustomPath` and `EnablePartialUniqueIndex` can be added to an existing Cosmos DB account.
+~> **Note:** Only `AllowSelfServeUpgradeToMongo36`, `DeleteAllItemsByPartitionKey`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableFabricNetworkAclBypass`, `MongoDBv3.4`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableUniqueCompoundNestedDocs`, `EnableMongo16MBDocumentSupport`, `mongoEnableDocLevelTTL`, `EnableTtlOnCustomPath` and `EnablePartialUniqueIndex` can be added to an existing Cosmos DB account.
 
 ~> **Note:** Only `DisableRateLimitingResponses` and `EnableMongoRetryableWrites` can be removed from an existing Cosmos DB account.
 
@@ -372,7 +364,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 3 hours) Used when creating the CosmosDB Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Account.
 * `update` - (Defaults to 3 hours) Used when updating the CosmosDB Account.
-* `delete` - (Defaults to 3 hours) Used when deleting the CosmosDB Account.
+* `delete` - (Defaults to 5 hours) Used when deleting the CosmosDB Account.
 
 ## Import
 

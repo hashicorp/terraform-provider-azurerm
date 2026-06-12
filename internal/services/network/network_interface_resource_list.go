@@ -3,7 +3,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -35,9 +34,6 @@ func (r NetworkInterfaceListResource) ResourceFunc() *pluginsdk.Resource {
 
 func (r NetworkInterfaceListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Network.NetworkInterfaces
-
-	ctx, cancel := context.WithTimeout(ctx, time.Minute*60)
-	defer cancel()
 
 	var data NetworkInterfaceListModel
 	diags := request.Config.Get(ctx, &data)
@@ -79,7 +75,7 @@ func (r NetworkInterfaceListResource) List(ctx context.Context, request list.Lis
 
 			id, err := commonids.ParseNetworkInterfaceID(pointer.From(ni.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Network Interface ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Network Interface ID", err)
 				return
 			}
 
@@ -87,29 +83,13 @@ func (r NetworkInterfaceListResource) List(ctx context.Context, request list.Lis
 			rd.SetId(id.ID())
 
 			if err := resourceNetworkInterfaceFlatten(rd, id, &ni); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", networkInterfaceResourceName), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", networkInterfaceResourceName), err)
 				return
 			}
 
-			tfTypeIdentity, err := rd.TfTypeIdentityState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
-				return
-			}
-
-			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
-				return
-			}
-
-			tfTypeResourceState, err := rd.TfTypeResourceState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
-				return
-			}
-
-			if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
 				return
 			}
 

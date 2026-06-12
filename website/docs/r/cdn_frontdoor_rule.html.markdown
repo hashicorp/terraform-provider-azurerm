@@ -12,6 +12,8 @@ Manages a Front Door (standard/premium) Rule.
 
 !> **Note:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group`.
 
+~> **Note:** Azure Front Door Rule operations are currently affected by a service-side regression where unattached rules or rule sets can fail with `400 Bad Request` until they are associated with a Front Door Route. As a result, unattached and attached scenarios can currently behave differently while the service-side fix is pending.
+
 ## Example Usage
 
 ```hcl
@@ -644,7 +646,7 @@ For rules that accept values from the standard operator list, the following oper
 | Begins With                | Matches when the value begins with the specified string. | BeginsWith |
 | Ends With                  | Matches when the value ends with the specified string. | EndsWith |
 | RegEx                      | Matches when the value matches the specified regular expression. See `Condition Regular Expressions` below for more details. | RegEx |
-| Wildcard                   | Matches when the request path matches a wildcard expression. See `Condition Wildcard Expression` below for more details. | Wildcard | 
+| Wildcard                   | Matches when the request path matches a wildcard expression. See `Condition Wildcard Expression` below for more details. | Wildcard |
 | Not Any                    | Matches when there is no value. | Any and negateCondition = true |
 | Not Equal                  | Matches when the value does not match the specified string. | Equal and negateCondition : true |
 | Not Contains               | Matches when the value does not contain the specified string. | Contains and negateCondition = true |
@@ -707,10 +709,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Front Door Rule.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Rule.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Rule.
+* `update` - (Defaults to 4 hours) Used when updating the Front Door Rule.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Rule.
 
 ## Import
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
@@ -6,15 +6,19 @@ package acceptance
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/vcr"
 )
 
 func (td TestData) DataSourceTest(t *testing.T, steps []TestStep) {
@@ -40,6 +44,23 @@ func (td TestData) DataSourceTestInSequence(t *testing.T, steps []TestStep) {
 	}
 
 	td.runAcceptanceSequentialTest(t, testCase)
+}
+
+func (td TestData) ResourceIdentityTest(t *testing.T, steps []TestStep, sequential bool) {
+	testCase := resource.TestCase{
+		PreCheck: func() { PreCheck(t) },
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.12.0"))),
+		},
+		Steps: steps,
+	}
+
+	if sequential {
+		td.runAcceptanceSequentialTest(t, testCase)
+		return
+	}
+
+	td.runAcceptanceTest(t, testCase)
 }
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
@@ -72,7 +93,7 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {
-			client, err := testclient.Build()
+			client, err := testclient.BuildWithTestName(t.Name())
 			if err != nil {
 				return fmt.Errorf("building client: %+v", err)
 			}
@@ -105,7 +126,7 @@ func (td TestData) ResourceTestIgnoreRecreate(t *testing.T, testResource types.T
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {
-			client, err := testclient.Build()
+			client, err := testclient.BuildWithTestName(t.Name())
 			if err != nil {
 				return fmt.Errorf("building client: %+v", err)
 			}
@@ -140,7 +161,7 @@ func (td TestData) ResourceSequentialTest(t *testing.T, testResource types.TestR
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {
-			client, err := testclient.Build()
+			client, err := testclient.BuildWithTestName(t.Name())
 			if err != nil {
 				return fmt.Errorf("building client: %+v", err)
 			}
@@ -167,15 +188,30 @@ func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testin
 }
 
 func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
+	testclient.RegisterTestT(t)
+	defer testclient.UnregisterTestT()
+
+	if os.Getenv("TC_TEST_VIA_VCR") != "" {
+		defer func(testName string) {
+			_ = vcr.StopRecorder(testName)
+		}(t.Name())
+	}
+
 	testCase.ExternalProviders = td.externalProviders()
-	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm", "azurerm-alt")
+	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
 
 	resource.ParallelTest(t, testCase)
 }
 
 func (td TestData) runAcceptanceSequentialTest(t *testing.T, testCase resource.TestCase) {
+	if os.Getenv("TC_TEST_VIA_VCR") != "" {
+		defer func(testName string) {
+			_ = vcr.StopRecorder(testName)
+		}(t.Name())
+	}
+
 	testCase.ExternalProviders = td.externalProviders()
-	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm")
+	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm")
 
 	resource.Test(t, testCase)
 }

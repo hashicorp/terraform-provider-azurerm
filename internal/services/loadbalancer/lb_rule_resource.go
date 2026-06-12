@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loadbalancer
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -97,7 +98,9 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if exists {
 		if id.LoadBalancingRuleName == *existingRule.Name {
 			if d.IsNewResource() {
-				return tf.ImportAsExistsError("azurerm_lb_rule", *existingRule.Id)
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_lb_rule", *existingRule.Id)
+				}
 			}
 
 			// this rule is being updated/reapplied remove old copy from the slice
@@ -107,12 +110,16 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	loadBalancer.Model.Properties.LoadBalancingRules = &lbRules
 
-	err = client.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model)
-	if err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *loadBalancer.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerRuleRead(d, meta)
 }
@@ -269,18 +276,17 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 		FrontendPort:        int64(d.Get("frontend_port").(int)),
 		BackendPort:         pointer.To(int64(d.Get("backend_port").(int))),
 		EnableFloatingIP:    pointer.To(d.Get("floating_ip_enabled").(bool)),
+		EnableTcpReset:      pointer.To(d.Get("tcp_reset_enabled").(bool)),
 		DisableOutboundSnat: pointer.To(d.Get("disable_outbound_snat").(bool)),
-	}
-	if v, ok := d.GetOk("tcp_reset_enabled"); ok {
-		properties.EnableTcpReset = pointer.To(v.(bool))
 	}
 
 	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_floating_ip"); ok {
-			properties.EnableFloatingIP = pointer.To(v.(bool))
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_floating_ip") {
+			properties.EnableFloatingIP = pointer.To(d.Get("enable_floating_ip").(bool))
 		}
-		if v, ok := d.GetOk("enable_tcp_reset"); ok {
-			properties.EnableTcpReset = pointer.To(v.(bool))
+
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_tcp_reset") {
+			properties.EnableTcpReset = pointer.To(d.Get("enable_tcp_reset").(bool))
 		}
 	}
 

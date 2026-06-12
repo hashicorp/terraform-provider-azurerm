@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -22,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name capacity_reservation -service-package-name compute -properties "name" -compare-values "subscription_id:capacity_reservation_group_id,resource_group_name:capacity_reservation_group_id,capacity_reservation_group_name:capacity_reservation_group_id"
@@ -112,14 +113,17 @@ func resourceCapacityReservationCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	id := capacityreservations.NewCapacityReservationID(subscriptionId, capacityReservationGroupId.ResourceGroupName, capacityReservationGroupId.CapacityReservationGroupName, d.Get("name").(string))
-	existing, err := client.Get(ctx, id, capacityreservations.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, capacityreservations.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_capacity_reservation", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_capacity_reservation", id.ID())
+		}
 	}
 
 	payload := capacityreservations.CapacityReservation{
@@ -133,11 +137,15 @@ func resourceCapacityReservationCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCapacityReservationRead(d, meta)
 }
 
@@ -230,8 +238,8 @@ func resourceCapacityReservationDelete(d *pluginsdk.ResourceData, meta interface
 func expandCapacityReservationSku(input []interface{}) capacityreservations.Sku {
 	v := input[0].(map[string]interface{})
 	return capacityreservations.Sku{
-		Name:     utils.String(v["name"].(string)),
-		Capacity: utils.Int64(int64(v["capacity"].(int))),
+		Name:     pointer.To(v["name"].(string)),
+		Capacity: pointer.To(int64(v["capacity"].(int))),
 	}
 }
 

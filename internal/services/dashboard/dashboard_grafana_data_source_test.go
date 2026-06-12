@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dashboard_test
@@ -22,7 +22,7 @@ func TestAccDashboardGrafanaDataSource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("grafana_major_version").HasValue("11"),
+				check.That(data.ResourceName).Key("grafana_major_version").HasValue("12"),
 			),
 		},
 	})

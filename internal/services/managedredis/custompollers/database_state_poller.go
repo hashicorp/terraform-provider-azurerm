@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -14,10 +14,6 @@ import (
 )
 
 var _ pollers.PollerType = &dbStatePoller{}
-
-type DatabasesClientInterface interface {
-	Get(ctx context.Context, id databases.DatabaseId) (databases.GetOperationResponse, error)
-}
 
 type dbStatePoller struct {
 	client DatabasesClientInterface

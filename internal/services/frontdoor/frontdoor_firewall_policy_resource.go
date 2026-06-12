@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdoor
@@ -9,13 +9,15 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-04-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
@@ -452,25 +454,25 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing args for Front Door Firewall Policy")
-
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	id := webapplicationfirewallpolicies.NewFrontDoorWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.PoliciesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.PoliciesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+				}
 			}
-		}
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_frontdoor_firewall_policy", id.ID())
+			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+				return tf.ImportAsExistsError("azurerm_frontdoor_firewall_policy", id.ID())
+			}
 		}
 	}
 
-	location := azure.NormalizeLocation("Global")
+	location := location.Normalize("Global")
 	enabled := webapplicationfirewallpolicies.PolicyEnabledStateDisabled
 	if d.Get("enabled").(bool) {
 		enabled = webapplicationfirewallpolicies.PolicyEnabledStateEnabled
@@ -485,8 +487,8 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 	t := d.Get("tags").(map[string]interface{})
 
 	frontdoorWebApplicationFirewallPolicy := webapplicationfirewallpolicies.WebApplicationFirewallPolicy{
-		Name:     utils.String(name),
-		Location: utils.String(location),
+		Name:     pointer.To(name),
+		Location: pointer.To(location),
 		Properties: &webapplicationfirewallpolicies.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &webapplicationfirewallpolicies.PolicySettings{
 				EnabledState: &enabled,
@@ -499,20 +501,26 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if redirectUrl != "" {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.RedirectURL = utils.String(redirectUrl)
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.RedirectURL = pointer.To(redirectUrl)
 	}
 	if customBlockResponseBody != "" {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseBody = utils.String(customBlockResponseBody)
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseBody = pointer.To(customBlockResponseBody)
 	}
 	if customBlockResponseStatusCode > 0 {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseStatusCode = utils.Int64(int64(customBlockResponseStatusCode))
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseStatusCode = pointer.To(int64(customBlockResponseStatusCode))
 	}
 
-	if err := client.PoliciesCreateOrUpdateThenPoll(ctx, id, frontdoorWebApplicationFirewallPolicy); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.PoliciesCreateOrUpdateCallbackThenPoll(ctx, id, frontdoorWebApplicationFirewallPolicy, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.PoliciesCreateOrUpdateThenPoll(ctx, id, frontdoorWebApplicationFirewallPolicy); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceFrontDoorFirewallPolicyRead(d, meta)
 }
 
@@ -540,8 +548,8 @@ func resourceFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
+		if loc := model.Location; loc != nil {
+			d.Set("location", location.Normalize(*loc))
 		}
 		if properties := model.Properties; properties != nil {
 			if policy := properties.PolicySettings; policy != nil {
@@ -569,7 +577,9 @@ func resourceFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interfa
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -615,12 +625,12 @@ func expandFrontDoorFirewallCustomRules(input []interface{}) *webapplicationfire
 		action := custom["action"].(string)
 
 		customRule := webapplicationfirewallpolicies.CustomRule{
-			Name:                       utils.String(name),
+			Name:                       pointer.To(name),
 			Priority:                   priority,
 			EnabledState:               &enabled,
 			RuleType:                   webapplicationfirewallpolicies.RuleType(ruleType),
-			RateLimitDurationInMinutes: utils.Int64(rateLimitDurationInMinutes),
-			RateLimitThreshold:         utils.Int64(rateLimitThreshold),
+			RateLimitDurationInMinutes: pointer.To(rateLimitDurationInMinutes),
+			RateLimitThreshold:         pointer.To(rateLimitThreshold),
 			MatchConditions:            matchConditions,
 			Action:                     webapplicationfirewallpolicies.ActionType(action),
 		}
@@ -660,7 +670,7 @@ func expandFrontDoorFirewallMatchConditions(input []interface{}) []webapplicatio
 			matchCondition.MatchVariable = webapplicationfirewallpolicies.MatchVariable(matchVariable)
 		}
 		if selector != "" {
-			matchCondition.Selector = utils.String(selector)
+			matchCondition.Selector = pointer.To(selector)
 		}
 
 		result = append(result, matchCondition)

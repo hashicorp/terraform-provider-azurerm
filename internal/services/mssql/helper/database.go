@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helper
@@ -84,7 +84,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 		listOptions := resources.ListOperationOptions{
 			Expand: nil,
 			Filter: pointer.To(filter),
-			Top:    pointer.FromInt64(100),
+			Top:    pointer.To(int64(100)),
 		}
 
 		resourcesIterator, err := resourcesClient.ListComplete(ctx, *linkSubscription, listOptions)

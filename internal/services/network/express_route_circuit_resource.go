@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -23,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
@@ -174,22 +175,22 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM ExpressRoute Circuit creation.")
-
 	id := expressroutecircuits.NewExpressRouteCircuitID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s : %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s : %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_express_route_circuit", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_express_route_circuit", id.ID())
+		}
 	}
 
 	erc := expressroutecircuits.ExpressRouteCircuit{
@@ -224,12 +225,13 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 		erc.Properties.ServiceProviderProperties.BandwidthInMbps = pointer.To(int64(d.Get("bandwidth_in_mbps").(int)))
 	} else {
 		erc.Properties.ExpressRoutePort.Id = pointer.To(d.Get("express_route_port_id").(string))
-		erc.Properties.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
+		erc.Properties.BandwidthInGbps = pointer.To(d.Get("bandwidth_in_gbps").(float64))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, erc); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, erc, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// API has bug, which appears to be eventually consistent on creation. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10148
 	log.Printf("[DEBUG] Waiting for %s to be able to be queried", id)
@@ -253,8 +255,6 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	d.SetId(id.ID())
-
 	return resourceExpressRouteCircuitRead(d, meta)
 }
 
@@ -262,8 +262,6 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 	client := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM ExpressRoute Circuit update.")
 
 	id, err := expressroutecircuits.ParseExpressRouteCircuitID(d.Id())
 	if err != nil {
@@ -403,7 +401,9 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("bandwidth_in_mbps", serviceProviderProps.BandwidthInMbps)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

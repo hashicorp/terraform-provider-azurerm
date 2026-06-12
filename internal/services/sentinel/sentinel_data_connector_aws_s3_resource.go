@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
@@ -109,22 +110,24 @@ func (r DataConnectorAwsS3Resource) Create() sdk.ResourceFunc {
 			}
 
 			id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, plan.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+				if err != nil {
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			params := securityinsight.AwsS3DataConnector{
 				Name: &plan.Name,
 				AwsS3DataConnectorProperties: &securityinsight.AwsS3DataConnectorProperties{
-					DestinationTable: utils.String(plan.DestinationTable),
+					DestinationTable: pointer.To(plan.DestinationTable),
 					SqsUrls:          &plan.SqsUrls,
-					RoleArn:          utils.String(plan.AwsRoleArm),
+					RoleArn:          pointer.To(plan.AwsRoleArm),
 					DataTypes: &securityinsight.AwsS3DataConnectorDataTypes{
 						Logs: &securityinsight.AwsS3DataConnectorDataTypesLogs{
 							State: securityinsight.DataTypeStateEnabled,

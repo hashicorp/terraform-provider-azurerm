@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
@@ -8,19 +8,21 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/labs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDevTestLab() *pluginsdk.Resource {
@@ -103,36 +105,40 @@ func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for DevTest Lab creation")
-
 	id := labs.NewLabID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, labs.GetOperationOptions{})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, labs.GetOperationOptions{})
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_dev_test_lab", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_dev_test_lab", id.ID())
+			}
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 
 	parameters := labs.Lab{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceDevTestLabRead(d, meta)
 }
@@ -162,8 +168,8 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := read.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
+		if loc := model.Location; loc != nil {
+			d.Set("location", location.Normalize(*loc))
 		}
 
 		props := model.Properties

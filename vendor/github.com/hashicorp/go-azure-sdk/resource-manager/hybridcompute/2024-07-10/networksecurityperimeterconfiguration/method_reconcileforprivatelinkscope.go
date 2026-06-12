@@ -58,9 +58,20 @@ func (c NetworkSecurityPerimeterConfigurationClient) ReconcileForPrivateLinkScop
 
 // ReconcileForPrivateLinkScopeThenPoll performs ReconcileForPrivateLinkScope then polls until it's completed
 func (c NetworkSecurityPerimeterConfigurationClient) ReconcileForPrivateLinkScopeThenPoll(ctx context.Context, id NetworkSecurityPerimeterConfigurationId) error {
+	return c.ReconcileForPrivateLinkScopeCallbackThenPoll(ctx, id, nil)
+}
+
+// ReconcileForPrivateLinkScopeCallbackThenPoll performs ReconcileForPrivateLinkScope, runs the optional callback function, then polls until it's completed
+func (c NetworkSecurityPerimeterConfigurationClient) ReconcileForPrivateLinkScopeCallbackThenPoll(ctx context.Context, id NetworkSecurityPerimeterConfigurationId, callback func() error) error {
 	result, err := c.ReconcileForPrivateLinkScope(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ReconcileForPrivateLinkScope: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

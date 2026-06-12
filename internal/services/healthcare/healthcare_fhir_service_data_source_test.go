@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package healthcare_test
@@ -21,7 +21,8 @@ func TestAccHealthCareFhirServiceDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").Exists()),
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
 		},
 	})
 }
@@ -34,7 +35,8 @@ func TestAccHealthCareFhirServiceDataSource_identity(t *testing.T) {
 		{
 			Config: r.dataSourceUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").Exists()),
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
 		},
 	})
 }

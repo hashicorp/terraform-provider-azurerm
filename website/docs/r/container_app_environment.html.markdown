@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `infrastructure_subnet_id` - (Optional) The existing Subnet to use for the Container Apps Control Plane. Changing this forces a new resource to be created. 
 
-~> **Note:** The Subnet must have a `/21` or larger address space.
+~> **Note:** The minimum required subnet size is /23 for Consumption only environment type and /27 for Workload profiles environment type.
 
 * `internal_load_balancer_enabled` - (Optional) Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -89,7 +89,7 @@ A `workload_profile` block supports the following:
 
 * `name` - (Required) The name of the workload profile.
 
-* `workload_profile_type` - (Required) Workload profile type for the workloads to run on. Possible values include `Consumption`, `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16` and `E32`.
+* `workload_profile_type` - (Required) Workload profile type for the workloads to run on. Possible values include `Consumption`, `Consumption-GPU-NC24-A100`, `Consumption-GPU-NC8as-T4`, `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16`, `E32`, `NC24-A100`, `NC48-A100` and `NC96-A100`.
 
 ~> **Note:** A `Consumption` type must have a name of `Consumption` and an environment may only have one `Consumption` Workload Profile.
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package notificationhub
@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var notificationHubResourceName = "azurerm_notification_hub"
@@ -188,16 +188,19 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id := hubs.NewNotificationHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.NotificationHubsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_notification_hub", id.ID())
+	if d.IsNewResource() {
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.NotificationHubsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_notification_hub", id.ID())
+			}
 		}
 	}
 
@@ -353,11 +356,11 @@ func expandNotificationHubsAPNSCredentials(inputs []interface{}) *hubs.ApnsCrede
 
 	credentials := hubs.ApnsCredential{
 		Properties: hubs.ApnsCredentialProperties{
-			AppId:    utils.String(teamId),
-			AppName:  utils.String(bundleId),
+			AppId:    pointer.To(teamId),
+			AppName:  pointer.To(bundleId),
 			Endpoint: endpoint,
-			KeyId:    utils.String(keyId),
-			Token:    utils.String(token),
+			KeyId:    pointer.To(keyId),
+			Token:    pointer.To(token),
 		},
 	}
 	return &credentials

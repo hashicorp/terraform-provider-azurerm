@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -11,21 +11,21 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationserviceenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var logicAppResourceName = "azurerm_logic_app"
@@ -283,11 +283,9 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Logic App Workflow creation.")
-
 	id := workflows.NewWorkflowID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -300,7 +298,7 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 
 	workflowSchema := d.Get("workflow_schema").(string)
 	workflowVersion := d.Get("workflow_version").(string)
@@ -337,7 +335,7 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	properties := workflows.Workflow{
 		Identity: identity,
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &workflows.WorkflowProperties{
 			Definition: &definition,
 			Parameters: parameters,
@@ -352,18 +350,18 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
 		properties.Properties.IntegrationServiceEnvironment = &workflows.ResourceReference{
-			Id: utils.String(iseID.(string)),
+			Id: pointer.To(iseID.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
 		properties.Properties.IntegrationAccount = &workflows.ResourceReference{
-			Id: utils.String(v.(string)),
+			Id: pointer.To(v.(string)),
 		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
-		return fmt.Errorf("[ERROR] Error creating Logic App Workflow %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -399,7 +397,7 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties` is nil")
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	workflowParameters, err := expandLogicAppWorkflowWorkflowParameters(d.Get("workflow_parameters").(map[string]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `workflow_parameters`: %+v", err)
@@ -431,7 +429,7 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	properties := workflows.Workflow{
 		Identity: identity,
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &workflows.WorkflowProperties{
 			Definition: &definition,
 			Parameters: parameters,
@@ -446,13 +444,13 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
 		properties.Properties.IntegrationAccount = &workflows.ResourceReference{
-			Id: utils.String(v.(string)),
+			Id: pointer.To(v.(string)),
 		}
 	}
 
 	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
 		properties.Properties.IntegrationServiceEnvironment = &workflows.ResourceReference{
-			Id: utils.String(iseID.(string)),
+			Id: pointer.To(iseID.(string)),
 		}
 	}
 
@@ -487,8 +485,8 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
+		if loc := model.Location; loc != nil {
+			d.Set("location", location.Normalize(*loc))
 		}
 
 		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
@@ -571,7 +569,9 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("logic_app_integration_account_id", integrationAccountId)
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -867,7 +867,7 @@ func expandLogicAppWorkflowIPAddressRanges(input []interface{}) *[]workflows.IPA
 
 	for _, item := range input {
 		results = append(results, workflows.IPAddressRange{
-			AddressRange: utils.String(item.(string)),
+			AddressRange: pointer.To(item.(string)),
 		})
 	}
 
@@ -904,8 +904,8 @@ func expandLogicAppWorkflowOpenAuthenticationPolicyClaim(input []interface{}) *[
 		v := item.(map[string]interface{})
 
 		results = append(results, workflows.OpenAuthenticationPolicyClaim{
-			Name:  utils.String(v["name"].(string)),
-			Value: utils.String(v["value"].(string)),
+			Name:  pointer.To(v["name"].(string)),
+			Value: pointer.To(v["value"].(string)),
 		})
 	}
 	return &results

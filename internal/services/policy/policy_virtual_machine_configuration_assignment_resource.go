@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
@@ -138,20 +137,22 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 	id := guestconfigurationassignments.NewVirtualMachineProviders2GuestConfigurationAssignmentID(subscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_policy_virtual_machine_configuration_assignment", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_policy_virtual_machine_configuration_assignment", id.ID())
+			}
 		}
 	}
 	guestConfiguration := expandGuestConfigurationAssignment(d.Get("configuration").([]interface{}), id.GuestConfigurationAssignmentName)
 	assignment := guestconfigurationassignments.GuestConfigurationAssignment{
-		Name:     *utils.String(id.GuestConfigurationAssignmentName),
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Name:     *pointer.To(id.GuestConfigurationAssignmentName),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfigurationassignments.GuestConfigurationAssignmentProperties{
 			GuestConfiguration: guestConfiguration,
 		},
@@ -173,7 +174,9 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourcePolicyVirtualMachineConfigurationAssignmentRead(d, meta)
 }
@@ -239,8 +242,8 @@ func expandGuestConfigurationAssignment(input []interface{}, name string) *guest
 	v := input[0].(map[string]interface{})
 
 	result := guestconfigurationassignments.GuestConfigurationNavigation{
-		Name:                   utils.String(name),
-		Version:                utils.String(v["version"].(string)),
+		Name:                   pointer.To(name),
+		Version:                pointer.To(v["version"].(string)),
 		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameters(v["parameter"].(*pluginsdk.Set).List()),
 	}
 
@@ -249,11 +252,11 @@ func expandGuestConfigurationAssignment(input []interface{}, name string) *guest
 	}
 
 	if v, ok := v["content_hash"]; ok {
-		result.ContentHash = utils.String(v.(string))
+		result.ContentHash = pointer.To(v.(string))
 	}
 
 	if v, ok := v["content_uri"]; ok {
-		result.ContentUri = utils.String(v.(string))
+		result.ContentUri = pointer.To(v.(string))
 	}
 
 	return &result
@@ -264,8 +267,8 @@ func expandGuestConfigurationAssignmentConfigurationParameters(input []interface
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, guestconfigurationassignments.ConfigurationParameter{
-			Name:  utils.String(v["name"].(string)),
-			Value: utils.String(v["value"].(string)),
+			Name:  pointer.To(v["name"].(string)),
+			Value: pointer.To(v["value"].(string)),
 		})
 	}
 	return &results

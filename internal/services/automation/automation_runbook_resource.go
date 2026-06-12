@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -6,19 +6,18 @@ package automation
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/jobschedule"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbookdraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
@@ -127,6 +126,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 					string(runbook.RunbookTypeEnumGraphPowerShellWorkflow),
 					string(runbook.RunbookTypeEnumPowerShell),
 					string(runbook.RunbookTypeEnumPowerShellSevenTwo),
+					string(runbook.RunbookTypeEnumPython),
 					string(runbook.RunbookTypeEnumPythonTwo),
 					string(runbook.RunbookTypeEnumPythonThree),
 					string(runbook.RunbookTypeEnumPowerShellWorkflow),
@@ -276,6 +276,12 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
+			"runtime_environment_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -288,36 +294,38 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
 	id := runbook.NewRunbookID(subscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_runbook", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_automation_runbook", id.ID())
+			}
 		}
 	}
 
 	// for existing runbook, if only job_schedule field updated, then skip update runbook
 	if d.IsNewResource() || d.HasChangeExcept("job_schedule") {
-		location := azure.NormalizeLocation(d.Get("location").(string))
+		location := location.Normalize(d.Get("location").(string))
 		t := d.Get("tags").(map[string]interface{})
 
 		parameters := runbook.RunbookCreateOrUpdateParameters{
 			Properties: runbook.RunbookCreateOrUpdateProperties{
-				LogVerbose:       pointer.To(d.Get("log_verbose").(bool)),
-				LogProgress:      pointer.To(d.Get("log_progress").(bool)),
-				RunbookType:      runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
-				Description:      pointer.To(d.Get("description").(string)),
-				LogActivityTrace: pointer.To(int64(d.Get("log_activity_trace_level").(int))),
+				LogVerbose:         pointer.To(d.Get("log_verbose").(bool)),
+				LogProgress:        pointer.To(d.Get("log_progress").(bool)),
+				RuntimeEnvironment: pointer.To(d.Get("runtime_environment_name").(string)),
+				RunbookType:        runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
+				Description:        pointer.To(d.Get("description").(string)),
+				LogActivityTrace:   pointer.To(int64(d.Get("log_activity_trace_level").(int))),
 			},
 
 			Location: &location,
@@ -340,6 +348,8 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("creating/updating %s: %+v", id, err)
 		}
 
+		d.SetId(id.ID())
+
 		if v, ok := d.GetOk("content"); ok {
 			content := v.(string)
 			draftRunbookID := runbookdraft.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
@@ -351,8 +361,6 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 				return fmt.Errorf("publishing the updated %s: %+v", id, err)
 			}
 		}
-
-		d.SetId(id.ID())
 	}
 
 	// **don't need** to list job schedules and delete all of them. update the runbook will recreate these job schedules automatically,
@@ -399,7 +407,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", id.RunbookName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	model := resp.Model
-	d.Set("location", azure.NormalizeLocation(model.Location))
+	d.Set("location", location.Normalize(model.Location))
 
 	d.Set("automation_account_name", id.AutomationAccountName)
 	if props := model.Properties; props != nil {
@@ -408,6 +416,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("runbook_type", string(pointer.From(props.RunbookType)))
 		d.Set("description", props.Description)
 		d.Set("log_activity_trace_level", props.LogActivityTrace)
+		d.Set("runtime_environment_name", pointer.From(props.RuntimeEnvironment))
 	}
 
 	// GetContent need to use preview version client RunbookClientHack
@@ -420,10 +429,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("retrieving content for Automation Runbook %s: %+v", id, err)
 		}
 	}
-
-	if v := contentResp.Model; v != nil && *v != nil {
-		d.Set("content", string(*v))
-	}
+	d.Set("content", string(pointer.From(contentResp.Model)))
 
 	jsMap := make(map[uuid.UUID]jobschedule.JobScheduleProperties)
 	automationAccountId := jobschedule.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)

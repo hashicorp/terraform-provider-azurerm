@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -15,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	kustoValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoDatabase() *pluginsdk.Resource {
@@ -93,31 +94,38 @@ func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	id := commonids.NewKustoDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_kusto_database", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_kusto_database", id.ID())
+			}
 		}
 	}
 
 	databaseProperties := expandKustoDatabaseProperties(d)
 
 	readWriteDatabase := databases.ReadWriteDatabase{
-		Location:   utils.String(location.Normalize(d.Get("location").(string))),
+		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: databaseProperties,
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, readWriteDatabase, databases.DefaultCreateOrUpdateOperationOptions())
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, readWriteDatabase, databases.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, readWriteDatabase, databases.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceKustoDatabaseRead(d, meta)
 }
 
@@ -188,11 +196,11 @@ func expandKustoDatabaseProperties(d *pluginsdk.ResourceData) *databases.ReadWri
 	databaseProperties := &databases.ReadWriteDatabaseProperties{}
 
 	if softDeletePeriod, ok := d.GetOk("soft_delete_period"); ok {
-		databaseProperties.SoftDeletePeriod = utils.String(softDeletePeriod.(string))
+		databaseProperties.SoftDeletePeriod = pointer.To(softDeletePeriod.(string))
 	}
 
 	if hotCachePeriod, ok := d.GetOk("hot_cache_period"); ok {
-		databaseProperties.HotCachePeriod = utils.String(hotCachePeriod.(string))
+		databaseProperties.HotCachePeriod = pointer.To(hotCachePeriod.(string))
 	}
 
 	return databaseProperties

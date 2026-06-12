@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -8,15 +8,16 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePostgreSQLConfiguration() *pluginsdk.Resource {
@@ -76,15 +77,15 @@ func resourcePostgreSQLConfigurationCreate(d *pluginsdk.ResourceData, meta inter
 
 	properties := configurations.Configuration{
 		Properties: &configurations.ConfigurationProperties{
-			Value: utils.String(d.Get("value").(string)),
+			Value: pointer.To(d.Get("value").(string)),
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, properties, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
+
 	return resourcePostgreSQLConfigurationRead(d, meta)
 }
 
