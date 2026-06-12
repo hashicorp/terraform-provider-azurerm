@@ -2797,12 +2797,14 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.32.9"
+  kubernetes_version  = "1.32"
+  sku_tier            = "Premium"
+  support_plan        = "AKSLongTermSupport"
 
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_D2s_v3"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2828,7 +2830,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "windoz"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_D2s_v3"
   node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2019"

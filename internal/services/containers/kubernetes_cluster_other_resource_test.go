@@ -3836,14 +3836,14 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[1]d"
-  kubernetes_version  = "1.32.4"
+  kubernetes_version  = %[4]q
 
   ai_toolchain_operator_enabled = %[3]t
 
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_D2s_v3"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3853,5 +3853,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, enabled)
+  `, data.RandomInteger, data.Locations.Primary, enabled, currentKubernetesVersion)
 }
