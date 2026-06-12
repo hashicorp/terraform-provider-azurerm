@@ -80,9 +80,8 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 		"replicate_automatic_backups_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			// NOTE: O+C the service returns false when omitted.
-			Computed: true,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"tags": commonschema.TagsForceNew(),
@@ -189,13 +188,13 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 			}
 			sourceDb, err := client.Get(ctx, *sourceId)
 			if err != nil {
-				return fmt.Errorf("retrieving source %s: %+v", *sourceId, err)
+				return fmt.Errorf("retrieving  %s: %+v", sourceId, err)
 			}
 			if sourceDb.Model == nil {
-				return fmt.Errorf("retrieving source %s: `model` was nil", *sourceId)
+				return fmt.Errorf("retrieving  %s: `model` was nil", sourceId)
 			}
 			if sourceDb.Model.Properties == nil {
-				return fmt.Errorf("retrieving source %s: `properties` was nil", *sourceId)
+				return fmt.Errorf("retrieving  %s: `properties` was nil", sourceId)
 			}
 			normalizedLocation := location.Normalize(model.Location)
 			sourceLocation := location.Normalize(sourceDb.Model.Location)

@@ -76,11 +76,7 @@ resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "ex
   display_name                        = "exampledr"
   source_autonomous_database_id       = azurerm_oracle_autonomous_database.example_primary.id
   subnet_id                           = azurerm_subnet.example_dr_subnet.id
-  replicate_automatic_backups_enabled = true
 
-  tags = {
-    environment = "production"
-  }
 }
 ```
 

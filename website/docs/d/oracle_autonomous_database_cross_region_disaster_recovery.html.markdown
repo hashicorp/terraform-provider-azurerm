@@ -37,8 +37,6 @@ In addition to the Arguments listed above the following Attributes are exported:
 
 * `allocated_storage_size_in_tb` - The amount of storage currently allocated for the database tables and billed for, rounded up.
 
-* `allowed_ip_addresses` - A list of IP addresses on the access control list.
-
 * `auto_scaling_enabled` - Whether auto-scaling is enabled for the Autonomous Database CPU core count.
 
 * `auto_scaling_for_storage_enabled` - Whether auto-scaling is enabled for the Autonomous Database storage.

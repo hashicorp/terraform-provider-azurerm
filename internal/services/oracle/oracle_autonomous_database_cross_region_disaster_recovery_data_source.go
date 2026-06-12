@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
@@ -28,7 +27,6 @@ type AutonomousDatabaseCrossRegionDisasterRecoveryDataModel struct {
 
 	ActualUsedDataStorageSizeInTb                 float64           `tfschema:"actual_used_data_storage_size_in_tb"`
 	AllocatedStorageSizeInTb                      float64           `tfschema:"allocated_storage_size_in_tb"`
-	AllowedIpAddresses                            []string          `tfschema:"allowed_ip_addresses"`
 	AutoScalingEnabled                            bool              `tfschema:"auto_scaling_enabled"`
 	AutoScalingForStorageEnabled                  bool              `tfschema:"auto_scaling_for_storage_enabled"`
 	AvailableUpgradeVersions                      []string          `tfschema:"available_upgrade_versions"`
@@ -113,14 +111,6 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Attributes() ma
 		"allocated_storage_size_in_tb": {
 			Type:     pluginsdk.TypeFloat,
 			Computed: true,
-		},
-
-		"allowed_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
 		},
 
 		"auto_scaling_enabled": {
@@ -526,15 +516,6 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Read() sdk.Reso
 				state.UsedDataStorageSizeInGb = pointer.From(adbsProps.UsedDataStorageSizeInGbs)
 				state.UsedDataStorageSizeInTb = pointer.From(adbsProps.UsedDataStorageSizeInTbs)
 				state.VnetId = pointer.From(adbsProps.VnetId)
-				if state.VnetId == "" && state.SubnetId != "" {
-					subnetId, err := commonids.ParseSubnetIDInsensitively(state.SubnetId)
-					if err != nil {
-						return err
-					}
-					vnetId := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
-					state.VnetId = vnetId.ID()
-				}
-				state.AllowedIpAddresses = pointer.From(adbsProps.WhitelistedIPs)
 			}
 
 			metadata.SetID(id)
