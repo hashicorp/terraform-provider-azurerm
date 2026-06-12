@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -351,6 +352,10 @@ func TestAccSubnet_enablePrivateLinkServiceNetworkPolicies(t *testing.T) {
 }
 
 func TestAccSubnet_serviceEndpoints(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as `service_endpoints` is removed in v5.0 of the provider")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
 
@@ -379,6 +384,42 @@ func TestAccSubnet_serviceEndpoints(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.serviceEndpoints(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnet_serviceEndpointBlock(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceEndpointBlock(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceEndpointBlockUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceEndpointBlock(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceEndpointWithNetworkIdentifier(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1111,6 +1152,70 @@ resource "azurerm_subnet" "test2" {
 `, r.template(data))
 }
 
+func (r SubnetResource) serviceEndpointBlock(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SubnetResource) serviceEndpointBlockUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SubnetResource) serviceEndpointWithNetworkIdentifier(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  service_endpoint {
+    service            = "Microsoft.Storage"
+    network_identifier = azurerm_public_ip.test.id
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
 func (r SubnetResource) serviceEndpointPolicyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1131,6 +1236,13 @@ resource "azurerm_subnet" "test" {
 }
 
 func (r SubnetResource) serviceEndpointPolicyUpdate(data acceptance.TestData) string {
+	serviceEndpointConfig := `service_endpoints = ["Microsoft.Sql"]`
+	if features.FivePointOh() {
+		serviceEndpointConfig = `
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }`
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -1141,14 +1253,14 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                        = "internal"
-  resource_group_name         = azurerm_resource_group.test.name
-  virtual_network_name        = azurerm_virtual_network.test.name
-  address_prefixes            = ["10.0.2.0/24"]
-  service_endpoints           = ["Microsoft.Sql"]
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  %s
   service_endpoint_policy_ids = [azurerm_subnet_service_endpoint_storage_policy.test.id]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, serviceEndpointConfig)
 }
 
 func (r SubnetResource) updatedAddressPrefix(data acceptance.TestData) string {
