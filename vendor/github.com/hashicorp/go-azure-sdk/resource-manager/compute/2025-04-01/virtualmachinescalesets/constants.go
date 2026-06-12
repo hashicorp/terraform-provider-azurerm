@@ -475,6 +475,47 @@ func parseExpandTypesForGetVMScaleSets(input string) (*ExpandTypesForGetVMScaleS
 	return &out, nil
 }
 
+type HighSpeedInterconnectPlacement string
+
+const (
+	HighSpeedInterconnectPlacementNone  HighSpeedInterconnectPlacement = "None"
+	HighSpeedInterconnectPlacementTrunk HighSpeedInterconnectPlacement = "Trunk"
+)
+
+func PossibleValuesForHighSpeedInterconnectPlacement() []string {
+	return []string{
+		string(HighSpeedInterconnectPlacementNone),
+		string(HighSpeedInterconnectPlacementTrunk),
+	}
+}
+
+func (s *HighSpeedInterconnectPlacement) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseHighSpeedInterconnectPlacement(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseHighSpeedInterconnectPlacement(input string) (*HighSpeedInterconnectPlacement, error) {
+	vals := map[string]HighSpeedInterconnectPlacement{
+		"none":  HighSpeedInterconnectPlacementNone,
+		"trunk": HighSpeedInterconnectPlacementTrunk,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := HighSpeedInterconnectPlacement(input)
+	return &out, nil
+}
+
 type IPVersion string
 
 const (
@@ -950,12 +991,14 @@ func parseOrchestrationMode(input string) (*OrchestrationMode, error) {
 type OrchestrationServiceNames string
 
 const (
-	OrchestrationServiceNamesAutomaticRepairs OrchestrationServiceNames = "AutomaticRepairs"
+	OrchestrationServiceNamesAutomaticRepairs         OrchestrationServiceNames = "AutomaticRepairs"
+	OrchestrationServiceNamesAutomaticZoneRebalancing OrchestrationServiceNames = "AutomaticZoneRebalancing"
 )
 
 func PossibleValuesForOrchestrationServiceNames() []string {
 	return []string{
 		string(OrchestrationServiceNamesAutomaticRepairs),
+		string(OrchestrationServiceNamesAutomaticZoneRebalancing),
 	}
 }
 
@@ -974,7 +1017,8 @@ func (s *OrchestrationServiceNames) UnmarshalJSON(bytes []byte) error {
 
 func parseOrchestrationServiceNames(input string) (*OrchestrationServiceNames, error) {
 	vals := map[string]OrchestrationServiceNames{
-		"automaticrepairs": OrchestrationServiceNamesAutomaticRepairs,
+		"automaticrepairs":         OrchestrationServiceNamesAutomaticRepairs,
+		"automaticzonerebalancing": OrchestrationServiceNamesAutomaticZoneRebalancing,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -982,6 +1026,47 @@ func parseOrchestrationServiceNames(input string) (*OrchestrationServiceNames, e
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := OrchestrationServiceNames(input)
+	return &out, nil
+}
+
+type OrchestrationServiceOperationStatus string
+
+const (
+	OrchestrationServiceOperationStatusCompleted  OrchestrationServiceOperationStatus = "Completed"
+	OrchestrationServiceOperationStatusInProgress OrchestrationServiceOperationStatus = "InProgress"
+)
+
+func PossibleValuesForOrchestrationServiceOperationStatus() []string {
+	return []string{
+		string(OrchestrationServiceOperationStatusCompleted),
+		string(OrchestrationServiceOperationStatusInProgress),
+	}
+}
+
+func (s *OrchestrationServiceOperationStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOrchestrationServiceOperationStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseOrchestrationServiceOperationStatus(input string) (*OrchestrationServiceOperationStatus, error) {
+	vals := map[string]OrchestrationServiceOperationStatus{
+		"completed":  OrchestrationServiceOperationStatusCompleted,
+		"inprogress": OrchestrationServiceOperationStatusInProgress,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := OrchestrationServiceOperationStatus(input)
 	return &out, nil
 }
 
@@ -2052,5 +2137,46 @@ func parseZonalPlatformFaultDomainAlignMode(input string) (*ZonalPlatformFaultDo
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ZonalPlatformFaultDomainAlignMode(input)
+	return &out, nil
+}
+
+type ZonePlacementPolicyType string
+
+const (
+	ZonePlacementPolicyTypeAny  ZonePlacementPolicyType = "Any"
+	ZonePlacementPolicyTypeAuto ZonePlacementPolicyType = "Auto"
+)
+
+func PossibleValuesForZonePlacementPolicyType() []string {
+	return []string{
+		string(ZonePlacementPolicyTypeAny),
+		string(ZonePlacementPolicyTypeAuto),
+	}
+}
+
+func (s *ZonePlacementPolicyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseZonePlacementPolicyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseZonePlacementPolicyType(input string) (*ZonePlacementPolicyType, error) {
+	vals := map[string]ZonePlacementPolicyType{
+		"any":  ZonePlacementPolicyTypeAny,
+		"auto": ZonePlacementPolicyTypeAuto,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ZonePlacementPolicyType(input)
 	return &out, nil
 }
