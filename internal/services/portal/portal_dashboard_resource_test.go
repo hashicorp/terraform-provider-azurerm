@@ -121,34 +121,34 @@ resource "azurerm_portal_dashboard" "test" {
   }
   dashboard_properties = <<DASH
 {
-    "lenses": {
+  "lenses": {
+    "0": {
+      "order": 0,
+      "parts": {
         "0": {
-            "order": 0,
-            "parts": {
-                "0": {
-                    "position": {
-                        "x": 0,
-                        "y": 0,
-                        "rowSpan": 2,
-                        "colSpan": 3
-                    },
-                    "metadata": {
-                        "inputs": [],
-                        "type": "Extension/HubsExtension/PartType/MarkdownPart",
-                        "settings": {
-                            "content": {
-                                "settings": {
-                                    "content": "## This is only a test :)",
-                                    "subtitle": "",
-                                    "title": "Test MD Tile"
-                                }
-                            }
-                        }
-                    }
+          "position": {
+            "x": 0,
+            "y": 0,
+            "rowSpan": 2,
+            "colSpan": 3
+          },
+          "metadata": {
+            "inputs": [],
+            "type": "Extension/HubsExtension/PartType/MarkdownPart",
+            "settings": {
+              "content": {
+                "settings": {
+                  "content": "## This is only a test :)",
+                  "subtitle": "",
+                  "title": "Test MD Tile"
                 }
+              }
             }
+          }
         }
+      }
     }
+  }
 }
 DASH
 }
@@ -189,9 +189,11 @@ resource "azurerm_portal_dashboard" "test" {
             "type": "Extension/HubsExtension/PartType/MarkdownPart",
             "settings": {
               "content": {
+                "settings": {
                   "content": "## This is only a test :)",
                   "subtitle": "",
                   "title": "Test MD Tile"
+                }
               }
             }
           }
@@ -225,7 +227,8 @@ resource "azurerm_portal_dashboard" "test" {
   "lenses": [
     {
       "order": 0,
-      "parts": [ {
+      "parts": [
+        {
           "position": {
             "x": 0,
             "y": 0,
@@ -237,14 +240,15 @@ resource "azurerm_portal_dashboard" "test" {
             "type": "Extension/HubsExtension/PartType/MarkdownPart",
             "settings": {
               "content": {
-                  "content": "## This is only a test :)",
-                  "subtitle": "",
-                  "title": "Test MD Tile"
+                "content": "## This is only a test :)",
+                "subtitle": "",
+                "title": "Test MD Tile"
               }
             }
           }
-        }]
-      }
+        }
+      ]
+    }
   ]
 }
 DASH
