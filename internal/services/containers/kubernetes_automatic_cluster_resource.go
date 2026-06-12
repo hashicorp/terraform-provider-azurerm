@@ -409,38 +409,6 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			rd := metadata.ResourceDiff
 
 			if rd.Id() != "" {
-				// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
-				// Check default_node_pool upgrade_settings drain_timeout_in_minutes
-				if rd.HasChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes") {
-					old, new := rd.GetChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes")
-					if old.(int) != 0 && new.(int) == 0 {
-						if err := metadata.ResourceDiff.ForceNew("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes"); err != nil {
-							return err
-						}
-					}
-				}
-
-				// Check default_node_pool name changes with temporary_name_for_rotation
-				if rd.HasChange("default_node_pool.0.name") {
-					oldName, newName := rd.GetChange("default_node_pool.0.name")
-					defaultName := rd.Get("default_node_pool.0.name")
-					tempName := rd.Get("default_node_pool.0.temporary_name_for_rotation")
-
-					// if the default node pool name has been set to temporary_name_for_rotation it means resizing failed
-					// we should not try to recreate the cluster, another apply will attempt the resize again
-					if oldName != "" && oldName == tempName {
-						if newName != defaultName {
-							if err := metadata.ResourceDiff.ForceNew("default_node_pool.0.name"); err != nil {
-								return err
-							}
-						}
-					} else {
-						if err := metadata.ResourceDiff.ForceNew("default_node_pool.0.name"); err != nil {
-							return err
-						}
-					}
-				}
-
 				// Check windows_profile gmsa changes
 				if rd.HasChange("windows_profile.0.group_managed_service_accounts") {
 					old, new := rd.GetChange("windows_profile.0.group_managed_service_accounts")

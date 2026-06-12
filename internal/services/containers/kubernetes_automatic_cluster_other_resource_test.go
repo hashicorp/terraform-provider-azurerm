@@ -4,21 +4,13 @@
 package containers_test
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/snapshots"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccKubernetesAutomaticCluster_basicVMSS(t *testing.T) {
@@ -54,80 +46,6 @@ func TestAccKubernetesAutomaticCluster_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_criticalAddonsTaint(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.criticalAddonsTaintConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_kubeletAndLinuxOSConfig(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.kubeletAndLinuxOSConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_kubeletAndLinuxOSConfigUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.kubeletAndLinuxOSConfigPartial(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-		{
-			Config: r.kubeletAndLinuxOSConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-		{
-			Config: r.kubeletAndLinuxOSConfigPartial(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.kubeletAndLinuxOSConfigPartial(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-	})
-}
-
 func TestAccKubernetesAutomaticCluster_linuxProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -146,38 +64,6 @@ func TestAccKubernetesAutomaticCluster_linuxProfile(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_nodeLabels(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-	labels1 := map[string]string{"key": "value"}
-	labels2 := map[string]string{"key2": "value2"}
-	labels3 := map[string]string{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.nodeLabelsConfig(data, labels1),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.node_labels.key").HasValue("value"),
-			),
-		},
-		{
-			Config: r.nodeLabelsConfig(data, labels2),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.node_labels.key2").HasValue("value2"),
-			),
-		},
-		{
-			Config: r.nodeLabelsConfig(data, labels3),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.node_labels.%").HasValue("0"),
-			),
-		},
-	})
-}
-
 func TestAccKubernetesAutomaticCluster_nodeResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -191,21 +77,6 @@ func TestAccKubernetesAutomaticCluster_nodeResourceGroup(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("node_resource_group_id").HasValue(nodeResourceGroupId.ID()),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_nodePoolOther(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.nodePoolOther(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -265,21 +136,6 @@ func TestAccKubernetesAutomaticCluster_upgrade(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_scaleDownMode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.scaleDownMode(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesAutomaticCluster_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -335,7 +191,6 @@ func TestAccKubernetesAutomaticCluster_windowsProfile(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
 				check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
-				check.That(data.ResourceName).Key("default_node_pool.0.max_pods").Exists(),
 				check.That(data.ResourceName).Key("linux_profile.0.admin_username").Exists(),
 				check.That(data.ResourceName).Key("windows_profile.0.admin_username").Exists(),
 			),
@@ -402,88 +257,6 @@ func TestAccKubernetesAutomaticCluster_upgradeChannel(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesAutomaticVersion),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_capacityReservationGroup(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.capacityReservationGroup(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_capacityReservationGroupCycling(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.capacityReservationGroupCycling(data, 30),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-		{
-			Config: r.capacityReservationGroupCycling(data, 60),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_ultraSSD(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.ultraSSD(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-		{
-			Config: r.ultraSSD(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-		{
-			Config: r.ultraSSD(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_osSku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.osSku(data, "AzureLinux"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux"),
 			),
 		},
 		data.ImportStep(),
@@ -621,91 +394,6 @@ func TestAccKubernetesAutomaticCluster_azureMonitorKubernetesMetrics(t *testing.
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_snapshotId(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.snapshotSource(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
-					if _, ok := ctx.Deadline(); !ok {
-						var cancel context.CancelFunc
-						ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
-						defer cancel()
-					}
-					client := clients.Containers_v2026_04_01.SnapshotClient
-					clusterId, err := commonids.ParseKubernetesClusterID(state.ID)
-					if err != nil {
-						return err
-					}
-					poolId := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, "default")
-					id := snapshots.NewSnapshotID(poolId.SubscriptionId, poolId.ResourceGroupName, data.RandomString)
-					snapshot := snapshots.Snapshot{
-						Location: data.Locations.Primary,
-						Properties: &snapshots.SnapshotProperties{
-							CreationData: &snapshots.CreationData{
-								SourceResourceId: pointer.To(poolId.ID()),
-							},
-						},
-					}
-					if _, err = client.CreateOrUpdate(ctx, id, snapshot); err != nil {
-						return fmt.Errorf("creating %s: %+v", id, err)
-					}
-					return nil
-				}, "azurerm_kubernetes_automatic_cluster.source"),
-			),
-		},
-		{
-			Config: r.snapshotRestore(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.snapshotSource(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
-					if _, ok := ctx.Deadline(); !ok {
-						var cancel context.CancelFunc
-						ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
-						defer cancel()
-					}
-					client := clients.Containers_v2026_04_01.SnapshotClient
-					clusterId, err := commonids.ParseKubernetesClusterID(state.ID)
-					if err != nil {
-						return err
-					}
-					poolId := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, "default")
-					id := snapshots.NewSnapshotID(poolId.SubscriptionId, poolId.ResourceGroupName, data.RandomString)
-
-					if _, err = client.Delete(ctx, id); err != nil {
-						return fmt.Errorf("creating %s: %+v", id, err)
-					}
-					return nil
-				}, "azurerm_kubernetes_automatic_cluster.source"),
-			),
-		},
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_gpuInstance(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.gpuInstance(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesAutomaticCluster_supportPlanKubernetesOfficial(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -742,21 +430,6 @@ func TestAccKubernetesAutomaticCluster_costAnalysis(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.costAnalysisEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_VMSizeOmitted(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.VMSizeOmitted(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -846,14 +519,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -871,233 +536,11 @@ resource "azurerm_kubernetes_automatic_cluster" "import" {
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
   dns_prefix          = azurerm_kubernetes_automatic_cluster.test.dns_prefix
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
 }
 `, r.basicVMSSConfig(data))
-}
-
-func (KubernetesAutomaticClusterResource) criticalAddonsTaintConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (KubernetesAutomaticClusterResource) kubeletAndLinuxOSConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                        = "default"
-    node_count                  = 1
-    virtual_machine_size        = "Standard_DS3_v2"
-    temporary_name_for_rotation = "temp"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-    kubelet_config {
-      cpu_manager_policy_static_enabled = true
-      cpu_cfs_quota_enabled             = true
-      cpu_cfs_quota_period              = "10ms"
-      image_gc_high_threshold           = 90
-      image_gc_low_threshold            = 70
-      topology_manager_policy           = "best-effort"
-      allowed_unsafe_sysctls            = ["kernel.msg*", "net.core.somaxconn"]
-      container_log_maximum_size_in_mb  = 100
-      container_log_maximum_files       = 10000
-      pod_maximum_pid                   = 12345
-    }
-
-    linux_os_config {
-      transparent_huge_page                 = "always"
-      transparent_huge_page_defragmentation = "always"
-      swap_file_size_in_mb                  = 300
-
-      sysctl_config {
-        fs_aio_max_nr                        = 65536
-        fs_file_max                          = 100000
-        fs_inotify_max_user_watches          = 1000000
-        fs_nr_open                           = 1048576
-        kernel_threads_max                   = 200000
-        net_core_netdev_max_backlog          = 1800
-        net_core_optmem_max                  = 30000
-        net_core_rmem_max                    = 300000
-        net_core_rmem_default                = 300000
-        net_core_somaxconn                   = 5000
-        net_core_wmem_default                = 300000
-        net_core_wmem_max                    = 300000
-        net_ipv4_ip_local_port_range_min     = 32768
-        net_ipv4_ip_local_port_range_maximum = 60000
-        net_ipv4_neigh_default_gc_thresh1    = 128
-        net_ipv4_neigh_default_gc_thresh2    = 512
-        net_ipv4_neigh_default_gc_thresh3    = 1024
-        net_ipv4_tcp_fin_timeout             = 60
-        net_ipv4_tcp_keepalive_probes        = 9
-        net_ipv4_tcp_keepalive_time          = 6000
-        net_ipv4_tcp_max_syn_backlog         = 2048
-        net_ipv4_tcp_max_tw_buckets          = 100000
-        net_ipv4_tcp_tw_reuse_enabled        = true
-        net_ipv4_tcp_keepalive_intvl         = 70
-        net_netfilter_nf_conntrack_buckets   = 65536
-        net_netfilter_nf_conntrack_max       = 200000
-        vm_max_map_count                     = 65536
-        vm_swappiness                        = 45
-        vm_vfs_cache_pressure                = 80
-      }
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (KubernetesAutomaticClusterResource) kubeletAndLinuxOSConfigPartial(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                        = "default"
-    node_count                  = 1
-    virtual_machine_size        = "Standard_DS3_v2"
-    temporary_name_for_rotation = "temp"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-    kubelet_config {
-      cpu_manager_policy_static_enabled = true
-      cpu_cfs_quota_enabled             = true
-      cpu_cfs_quota_period              = "10ms"
-    }
-
-    linux_os_config {
-
-      sysctl_config {
-        fs_aio_max_nr               = 65536
-        fs_file_max                 = 100000
-        fs_inotify_max_user_watches = 1000000
-      }
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                        = "default"
-    node_count                  = 1
-    virtual_machine_size        = "Standard_DS3_v2"
-    temporary_name_for_rotation = "temp"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-    kubelet_config {
-      cpu_manager_policy_static_enabled = true
-      cpu_cfs_quota_enabled             = true
-      cpu_cfs_quota_period              = "10ms"
-    }
-
-    linux_os_config {
-      transparent_huge_page = "always"
-
-      sysctl_config {
-        fs_aio_max_nr               = 65536
-        fs_file_max                 = 100000
-        fs_inotify_max_user_watches = 1000000
-      }
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) linuxProfileConfig(data acceptance.TestData, keyData string) string {
@@ -1123,61 +566,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ssh_key_data = "%s"
   }
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, keyData)
-}
-
-func (KubernetesAutomaticClusterResource) nodeLabelsConfig(data acceptance.TestData, labels map[string]string) string {
-	labelsSlice := make([]string, 0, len(labels))
-	for k, v := range labels {
-		labelsSlice = append(labelsSlice, fmt.Sprintf("      \"%s\" = \"%s\"", k, v))
-	}
-	labelsStr := strings.Join(labelsSlice, "\n")
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-    node_labels = {
-%s
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, labelsStr)
 }
 
 func (KubernetesAutomaticClusterResource) nodeResourceGroupConfig(data acceptance.TestData, nodeResourceGroupName string) string {
@@ -1198,56 +591,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix               = "acctestaks%d"
   node_resource_group_name = "%s"
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, nodeResourceGroupName)
-}
-
-func (KubernetesAutomaticClusterResource) nodePoolOther(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    fips_enabled         = true
-    kubelet_disk_type    = "OS"
-    workload_runtime     = "OCIContainer"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) skuConfigStandard(data acceptance.TestData) string {
@@ -1266,15 +614,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
 
   identity {
     type = "SystemAssigned"
@@ -1300,15 +639,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -1332,15 +662,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
 
   identity {
     type = "SystemAssigned"
@@ -1369,15 +690,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
 
   identity {
     type = "SystemAssigned"
@@ -1412,15 +724,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     admin_username = "acctestuser%d"
 
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
   }
 
   identity {
@@ -1459,16 +762,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     group_managed_service_accounts {
       dns_server  = "10.10.0.10/2"
       root_domain = "contoso.com"
-    }
-  }
-
-  # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource
-  default_node_pool {
-    name                 = "np"
-    node_count           = 3
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
     }
   }
 
@@ -1516,16 +809,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 
-  # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource
-  default_node_pool {
-    name                 = "np"
-    node_count           = 3
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -1565,16 +848,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     admin_username = "azureuser"
     admin_password = "P@55W0rd1234!h@2h1C0rP"
     license        = "Windows_Server"
-  }
-
-  # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource
-  default_node_pool {
-    name                 = "np"
-    node_count           = 3
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
   }
 
   identity {
@@ -1693,15 +966,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
-  default_node_pool {
-    name                 = "np"
-    node_count           = 3
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -1738,382 +1002,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = %q
 
-  default_node_pool {
-    name                 = "default"
-    virtual_machine_size = "Standard_DS3_v2"
-    node_count           = 1
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
-}
-
-func (KubernetesAutomaticClusterResource) capacityReservationGroup(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestnw-%[1]d"
-  address_space       = ["10.0.0.0/8"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "nodesubnet" {
-  name                 = "nodesubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.240.0.0/16"]
-}
-
-resource "azurerm_subnet" "apiserver" {
-  name                 = "apiserver"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.242.0.0/28"]
-  delegation {
-    name = "aks-delegation"
-    service_delegation {
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
-      name = "Microsoft.Containers_v2026_04_01ervice/managedClusters"
-    }
-  }
-}
-
-resource "azurerm_capacity_reservation_group" "test" {
-  name                = "acctest-ccrg-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  zones               = ["1", "2", "3"]
-}
-
-resource "azurerm_capacity_reservation" "test1" {
-  name                          = "acctest-ccr1-%[1]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  zone                          = "1"
-  sku {
-    name     = "Standard_DS3_v2"
-    capacity = 2
-  }
-}
-
-resource "azurerm_capacity_reservation" "test2" {
-  name                          = "acctest-ccr2-%[1]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  zone                          = "2"
-  sku {
-    name     = "Standard_DS3_v2"
-    capacity = 2
-  }
-}
-
-resource "azurerm_capacity_reservation" "test3" {
-  name                          = "acctest-ccr3-%[1]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  zone                          = "3"
-  sku {
-    name     = "Standard_DS3_v2"
-    capacity = 2
-  }
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_role_assignment" "network" {
-  scope                = azurerm_virtual_network.test.id
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-  role_definition_name = "Network Contributor"
-}
-
-resource "azurerm_role_assignment" "capacity" {
-  scope                = azurerm_capacity_reservation_group.test.id
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-  role_definition_name = "Owner"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[1]d"
-  default_node_pool {
-    name                          = "default"
-    node_count                    = 1
-    virtual_machine_size          = "Standard_DS3_v2"
-    subnet_id                     = azurerm_subnet.nodesubnet.id
-    capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
-  api_server_access {
-    subnet_id = azurerm_subnet.apiserver.id
-  }
-
-  network {
-    outbound_type = "loadBalancer"
-  }
-
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
-  }
-
-  depends_on = [
-    azurerm_capacity_reservation.test1,
-    azurerm_capacity_reservation.test2,
-    azurerm_role_assignment.network,
-    azurerm_role_assignment.capacity
-  ]
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (KubernetesAutomaticClusterResource) capacityReservationGroupCycling(data acceptance.TestData, maxPods int) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestnw-%[1]d"
-  address_space       = ["10.0.0.0/8"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "nodesubnet" {
-  name                 = "nodesubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.240.0.0/16"]
-}
-
-resource "azurerm_subnet" "apiserver" {
-  name                 = "apiserver"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.242.0.0/28"]
-  delegation {
-    name = "aks-delegation"
-    service_delegation {
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
-      name = "Microsoft.Containers_v2026_04_01ervice/managedClusters"
-    }
-  }
-}
-
-resource "azurerm_capacity_reservation_group" "test" {
-  name                = "acctest-ccrg-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  zones               = ["1", "2", "3"]
-}
-
-
-resource "azurerm_capacity_reservation" "test1" {
-  name                          = "acctest-ccr1-%[1]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  zone                          = "1"
-  sku {
-    name     = "Standard_DS3_v2"
-    capacity = 2
-  }
-}
-
-resource "azurerm_capacity_reservation" "test2" {
-  name                          = "acctest-ccr2-%[1]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  zone                          = "2"
-  sku {
-    name     = "Standard_DS3_v2"
-    capacity = 2
-  }
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_role_assignment" "network" {
-  scope                = azurerm_virtual_network.test.id
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-  role_definition_name = "Network Contributor"
-}
-
-resource "azurerm_role_assignment" "capacity" {
-  scope                = azurerm_capacity_reservation_group.test.id
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-  role_definition_name = "Owner"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[1]d"
-  default_node_pool {
-    name                          = "default"
-    temporary_name_for_rotation   = "temp"
-    node_count                    = 1
-    virtual_machine_size          = "Standard_DS3_v2"
-    subnet_id                     = azurerm_subnet.nodesubnet.id
-    maximum_pods                  = %[3]d
-    capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
-  api_server_access {
-    subnet_id = azurerm_subnet.apiserver.id
-  }
-
-  network {
-    outbound_type = "loadBalancer"
-  }
-
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
-  }
-
-  depends_on = [
-    azurerm_capacity_reservation.test1,
-    azurerm_capacity_reservation.test2,
-    azurerm_role_assignment.network,
-    azurerm_role_assignment.capacity
-  ]
-}
-`, data.RandomInteger, data.Locations.Primary, maxPods)
-}
-
-func (KubernetesAutomaticClusterResource) ultraSSD(data acceptance.TestData, ultraSSDEnabled bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                        = "default"
-    temporary_name_for_rotation = "temp"
-    node_count                  = 1
-    ultra_ssd_enabled           = %t
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, ultraSSDEnabled)
-}
-
-func (KubernetesAutomaticClusterResource) scaleDownMode(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (KubernetesAutomaticClusterResource) osSku(data acceptance.TestData, osSKu string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    os_sku               = "%s"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osSKu)
 }
 
 func (KubernetesAutomaticClusterResource) privateClusterPublicFqdn(data acceptance.TestData, privateClusterPublicFqdnEnabled bool) string {
@@ -2135,14 +1028,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     public_fully_qualified_domain_name_enabled = %t
   }
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
   identity {
     type = "SystemAssigned"
   }
@@ -2174,14 +1059,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
   identity {
     type = "SystemAssigned"
   }
@@ -2212,14 +1089,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
   identity {
     type = "SystemAssigned"
   }
@@ -2254,15 +1123,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -2290,15 +1150,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
 
   identity {
     type = "SystemAssigned"
@@ -2332,15 +1183,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -2370,15 +1212,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -2406,15 +1239,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
 
   identity {
     type = "SystemAssigned"
@@ -2446,136 +1270,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-  `, data.Locations.Primary, data.RandomInteger)
-}
-
-func (KubernetesAutomaticClusterResource) snapshotSource(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[2]d"
-  location = "%[1]s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "source" {
-  name                = "acctestaks%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]d"
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.Locations.Primary, data.RandomInteger)
-}
-
-func (KubernetesAutomaticClusterResource) snapshotRestore(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[2]d"
-  location = "%[1]s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "source" {
-  name                = "acctestaks%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]d"
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-data "azurerm_kubernetes_node_pool_snapshot" "test" {
-  name                = "%[3]s"
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%[2]dnew"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]dnew"
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    snapshot_id          = data.azurerm_kubernetes_node_pool_snapshot.test.id
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.Locations.Primary, data.RandomInteger, data.RandomString)
-}
-
-func (KubernetesAutomaticClusterResource) gpuInstance(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[2]d"
-  location = "%[1]s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]d"
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_NC12s_v3"
-    gpu_instance         = "MIG1g"
-    gpu_driver_enabled   = true
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -2600,14 +1294,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
 
-  default_node_pool {
-    name                 = "default"
-    virtual_machine_size = "Standard_DS3_v2"
-    node_count           = 1
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
   identity {
     type = "SystemAssigned"
   }
@@ -2632,14 +1318,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
-  default_node_pool {
-    name                 = "default"
-    virtual_machine_size = "Standard_DS3_v2"
-    node_count           = 1
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
   identity {
     type = "SystemAssigned"
   }
@@ -2647,36 +1325,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
 }
 `, data.Locations.Primary, data.RandomInteger, enabled)
-}
-
-func (KubernetesAutomaticClusterResource) VMSizeOmitted(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[2]d"
-  location = "%[1]s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.Locations.Primary, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) customCATrustCertificates(data acceptance.TestData, certsList []string) string {
@@ -2697,14 +1345,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
   identity {
     type = "SystemAssigned"
   }
@@ -2732,15 +1372,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   kubernetes_version  = "1.35.0"
 
   ai_toolchain_operator_enabled = %[3]t
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
 
   identity {
     type = "SystemAssigned"
