@@ -519,6 +519,7 @@ func getMsixImageProperties(ctx context.Context, metadata sdk.ResourceMetaData, 
 	}
 
 	availableMsixPackageNames := make(map[string][]string)
+	errs := make([]string, 0)
 
 	for _, hostPoolReference := range hostPoolIds {
 		availableMsixPackageNames[hostPoolReference] = make([]string, 0)
@@ -534,6 +535,7 @@ func getMsixImageProperties(ctx context.Context, metadata sdk.ResourceMetaData, 
 		result, err := method.ExpandCompleteMsixImage(ctx, metadata, msixImageHostPoolId, msixImageUri)
 		if err != nil {
 			// Continue to check next host pool if there is error with expanding MSIX image of current host pool
+			errs = append(errs, fmt.Sprintf("expanding MSIX image for host pool %s: %+v", hostPoolReference, err))
 			continue
 		}
 
@@ -562,5 +564,5 @@ func getMsixImageProperties(ctx context.Context, metadata sdk.ResourceMetaData, 
 
 	concatenatedAvailableMsixPackageNames = strings.TrimSuffix(concatenatedAvailableMsixPackageNames, ", ")
 
-	return nil, fmt.Errorf("no matched MSIX image with package name %s was found. The available package names are %s", msixPackageName, concatenatedAvailableMsixPackageNames)
+	return nil, fmt.Errorf("no matched MSIX image with package name %s was found. The available package names are %s. The list of errors encountered is: %v", msixPackageName, concatenatedAvailableMsixPackageNames, errs)
 }

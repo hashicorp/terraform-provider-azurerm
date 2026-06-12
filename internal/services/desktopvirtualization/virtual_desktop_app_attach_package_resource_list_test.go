@@ -27,6 +27,10 @@ func TestAccVirtualDesktopAppAttachPackage_list_basic(t *testing.T) {
 		},
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		ExternalProviders: map[string]resource.ExternalProvider{
+			"azuread": {
+				VersionConstraint: "=3.4.0",
+				Source:            "registry.terraform.io/hashicorp/azuread",
+			},
 			"time": {
 				Source: "registry.terraform.io/hashicorp/time",
 			},
@@ -61,7 +65,9 @@ resource "time_sleep" "test" {
   depends_on = [
     azurerm_virtual_machine_extension.test0,
     azurerm_virtual_machine_extension.test1,
-    azurerm_virtual_machine_extension.test2
+    azurerm_virtual_machine_extension.test2,
+    azurerm_role_assignment.avd_storage,
+    azurerm_role_assignment.avd_arm_provider_storage
   ]
 
   create_duration = "5m"

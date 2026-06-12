@@ -147,6 +147,26 @@ resource "azurerm_storage_share" "test" {
   storage_account_id = azurerm_storage_account.test.id
 }
 
+data "azuread_service_principal" "avd" {
+  client_id = "9cdead84-a844-4324-93f2-b2e6bb768d07"
+}
+
+data "azuread_service_principal" "avd_arm_provider" {
+  client_id = "50e95039-b200-4007-bc97-8d5790743a63"
+}
+
+resource "azurerm_role_assignment" "avd_storage" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Reader and Data Access"
+  principal_id         = data.azuread_service_principal.avd.object_id
+}
+
+resource "azurerm_role_assignment" "avd_arm_provider_storage" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Reader and Data Access"
+  principal_id         = data.azuread_service_principal.avd_arm_provider.object_id
+}
+
 %[4]s
 
 resource "azurerm_virtual_network" "test" {
@@ -285,7 +305,9 @@ resource "time_sleep" "test" {
   depends_on = [
     azurerm_virtual_machine_extension.test0,
     azurerm_virtual_machine_extension.test1,
-    azurerm_virtual_machine_extension.test2
+    azurerm_virtual_machine_extension.test2,
+    azurerm_role_assignment.avd_storage,
+    azurerm_role_assignment.avd_arm_provider_storage
   ]
 
   create_duration = "5m"
@@ -333,7 +355,9 @@ resource "time_sleep" "test" {
   depends_on = [
     azurerm_virtual_machine_extension.test0,
     azurerm_virtual_machine_extension.test1,
-    azurerm_virtual_machine_extension.test2
+    azurerm_virtual_machine_extension.test2,
+    azurerm_role_assignment.avd_storage,
+    azurerm_role_assignment.avd_arm_provider_storage
   ]
 
   create_duration = "5m"
