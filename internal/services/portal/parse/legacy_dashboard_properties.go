@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2026-04-01/dashboards"
 )
 
-// LegacyDashboardProperties converts legacy dashboard properties payloads to the
-// 2020-09-01-preview dashboard properties model. Should be removed after 5.0.
+// LegacyDashboardProperties converts legacy map-keyed dashboard properties
+// (lenses: {"0": {parts: {"0": {...}}}}) to the 2026-04-01 array-based model
+// (lenses: [{parts: [{position, metadata}]}]). Should be removed after 5.0.
 func LegacyDashboardProperties(v string) (*dashboards.DashboardPropertiesWithProvisioningState, bool) {
-
 	var dashboardProperties dashboard.DashboardProperties
 	var dashboardPropertiesWithProvisioningState dashboards.DashboardPropertiesWithProvisioningState
 
@@ -47,17 +47,12 @@ func LegacyDashboardProperties(v string) (*dashboards.DashboardPropertiesWithPro
 						ColSpan: part.Position.ColSpan,
 					},
 				}
+				if part.Position.Metadata != nil {
+					m := interface{}(*part.Position.Metadata)
+					p.Position.Metadata = &m
+				}
 				if part.Metadata != nil {
 					if metaData, ok := (*part.Metadata).(map[string]interface{}); ok {
-						if settings, ok := metaData["settings"].(map[string]interface{}); ok {
-							if content, ok := settings["content"].(map[string]interface{}); ok {
-								if inner, ok := content["settings"]; ok {
-									settings["content"] = inner
-									metaData["settings"] = settings
-								}
-							}
-						}
-
 						p.Metadata = rawDashboardPartMetadata(metaData)
 					}
 				}
@@ -75,8 +70,6 @@ func LegacyDashboardProperties(v string) (*dashboards.DashboardPropertiesWithPro
 		}
 
 		return &dashboardPropertiesWithProvisioningState, true
-
 	}
-
 	return nil, false
 }
