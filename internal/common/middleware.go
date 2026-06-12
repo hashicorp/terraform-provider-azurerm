@@ -5,7 +5,7 @@ package common
 
 import (
 	"bytes"
-	"log"
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 
@@ -33,10 +33,10 @@ func requestLoggerMiddleware(providerName string) client.RequestMiddleware {
 
 		// dump request to wire format
 		if dump, err := httputil.DumpRequestOut(request, true); err == nil {
-			log.Printf("[DEBUG] %s Request: \n%s\n", providerName, dump)
+			fmt.Println("[DEBUG] %s Request: \n%s\n", providerName, dump)
 		} else {
 			// fallback to basic message
-			log.Printf("[DEBUG] %s Request: %s to %s\n", providerName, request.Method, request.URL)
+			fmt.Println("[DEBUG] %s Request: %s to %s\n", providerName, request.Method, request.URL)
 		}
 
 		// add the auth header back
@@ -52,13 +52,13 @@ func responseLoggerMiddleware(providerName string) client.ResponseMiddleware {
 	return func(request *http.Request, response *http.Response) (*http.Response, error) {
 		// dump response to wire format
 		if dump, err2 := httputil.DumpResponse(response, true); err2 == nil {
-			log.Printf("[DEBUG] %s Response for %s: \n%s\n", providerName, request.URL, dump)
+			fmt.Println("[DEBUG] %s Response for %s: \n%s\n", providerName, request.URL, dump)
 		} else {
 			var bs bytes.Buffer
 			if err := response.Header.Write(&bs); err != nil {
-				log.Printf("[DEBUG] %s Response dump failed for %s: %s\nStatus: %s (header write also failed: %s)", providerName, request.URL, err2, response.Status, err)
+				fmt.Println("[DEBUG] %s Response dump failed for %s: %s\nStatus: %s (header write also failed: %s)", providerName, request.URL, err2, response.Status, err)
 			} else {
-				log.Printf("[DEBUG] %s Response dump failed for %s: %s\nStatus: %s\nResponse Headers: %s", providerName, request.URL, err2, response.Status, bs.String())
+				fmt.Println("[DEBUG] %s Response dump failed for %s: %s\nStatus: %s\nResponse Headers: %s", providerName, request.URL, err2, response.Status, bs.String())
 			}
 		}
 		return response, nil

@@ -26,6 +26,11 @@ func TestAccVirtualDesktopAppAttachPackage_list_basic(t *testing.T) {
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"time": {
+				Source: "registry.terraform.io/hashicorp/time",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: r.basicList(data),
@@ -52,6 +57,16 @@ func (r VirtualDesktopAppAttachPackageResource) basicList(data acceptance.TestDa
 	return fmt.Sprintf(`
 %[1]s
 
+resource "time_sleep" "test" {
+  depends_on = [
+    azurerm_virtual_machine_extension.test0,
+    azurerm_virtual_machine_extension.test1,
+    azurerm_virtual_machine_extension.test2
+  ]
+
+  create_duration = "5m"
+}
+
 resource "azurerm_virtual_desktop_app_attach_package" "test" {
   count = 3
 
@@ -66,9 +81,7 @@ resource "azurerm_virtual_desktop_app_attach_package" "test" {
   storage_share_file_id = azurerm_storage_share_file.test6.id
 
   depends_on = [
-    azurerm_virtual_machine_extension.test0,
-    azurerm_virtual_machine_extension.test1,
-    azurerm_virtual_machine_extension.test2
+    time_sleep.test
   ]
 }
 `, r.template(data), data.RandomInteger)
