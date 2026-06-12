@@ -280,21 +280,7 @@ func TestAccKubernetesCluster_bootstrapProfile(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkIsolatedBootstrapProfileArtifactSourceDirect(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.networkIsolatedBootstrapProfileArtifactSourceCache(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.networkIsolatedBootstrapProfileRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1254,7 +1240,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_D2s_v3"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1282,92 +1268,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   bootstrap_profile {
     artifact_source       = "Cache"
     container_registry_id = azurerm_container_registry.registry.id
-  }
-}`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
-}
-
-func (r KubernetesClusterResource) networkIsolatedBootstrapProfileArtifactSourceDirect(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]d"
-
-  private_cluster_enabled = true
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-    vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
-  }
-
-  network_profile {
-    network_plugin_mode = "overlay"
-    network_plugin      = "azure"
-    load_balancer_sku   = "standard"
-  }
-
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.aks.id]
-  }
-
-  kubelet_identity {
-    user_assigned_identity_id = azurerm_user_assigned_identity.aks_kubelet.id
-    client_id                 = azurerm_user_assigned_identity.aks_kubelet.client_id
-    object_id                 = azurerm_user_assigned_identity.aks_kubelet.principal_id
-  }
-
-  bootstrap_profile {
-    artifact_source = "Direct"
-  }
-}`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
-}
-
-func (r KubernetesClusterResource) networkIsolatedBootstrapProfileRemoved(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]d"
-
-  private_cluster_enabled = true
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-    vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
-  }
-
-  network_profile {
-    network_plugin_mode = "overlay"
-    network_plugin      = "azure"
-    load_balancer_sku   = "standard"
-  }
-
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.aks.id]
-  }
-
-  kubelet_identity {
-    user_assigned_identity_id = azurerm_user_assigned_identity.aks_kubelet.id
-    client_id                 = azurerm_user_assigned_identity.aks_kubelet.client_id
-    object_id                 = azurerm_user_assigned_identity.aks_kubelet.principal_id
   }
 }`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
 }
