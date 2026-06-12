@@ -140,28 +140,25 @@ func (metadata virtualMachineScaleSetUpdateMetaData) upgradeInstancesForManualUp
 		}
 	}
 
-	// TODO: there's a performance enhancement to do batches here, but this is fine for a first pass
-	for _, instanceId := range instanceIdsToRoll {
-		instanceIds := []string{instanceId}
-
-		log.Printf("[DEBUG] Updating Instance %q to the Latest Configuration..", instanceId)
+	if len(instanceIdsToRoll) > 0 {
+		log.Printf("[DEBUG] Updating Instances to the Latest Configuration...")
 		ids := virtualmachinescalesets.VirtualMachineScaleSetVMInstanceRequiredIDs{
-			InstanceIds: instanceIds,
+			InstanceIds: instanceIdsToRoll,
 		}
 		if err := client.UpdateInstancesThenPoll(ctx, *id, ids); err != nil {
-			return fmt.Errorf("updating Instance %q (%s %s) to the Latest Configuration: %+v", instanceId, metadata.OSType, id, err)
+			return fmt.Errorf("updating Instances for %s %s to the Latest Configuration: %+v", metadata.OSType, id, err)
 		}
-		log.Printf("[DEBUG] Updated Instance %q to the Latest Configuration.", instanceId)
+		log.Printf("[DEBUG] Updated Instances to the Latest Configuration.")
 
 		if metadata.CanReimageOnManualUpgrade {
-			log.Printf("[DEBUG] Reimaging Instance %q..", instanceId)
+			log.Printf("[DEBUG] Reimaging Instances...")
 			reImageInput := virtualmachinescalesets.VirtualMachineScaleSetReimageParameters{
-				InstanceIds: &instanceIds,
+				InstanceIds: &instanceIdsToRoll,
 			}
 			if err := client.ReimageThenPoll(ctx, *id, reImageInput); err != nil {
-				return fmt.Errorf("reimaging Instance %q (%s %s): %+v", instanceId, metadata.OSType, id, err)
+				return fmt.Errorf("reimaging Instances for %s %s: %+v", metadata.OSType, id, err)
 			}
-			log.Printf("[DEBUG] Reimaged Instance %q..", instanceId)
+			log.Printf("[DEBUG] Reimaged Instances...")
 		}
 	}
 
