@@ -888,6 +888,28 @@ func TestAccKubernetesClusterNodePool_hostEncryption(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_securityProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.securityProfileConfig(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("temporary_name_for_rotation"),
+		{
+			Config: r.securityProfileConfig(data, true, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("temporary_name_for_rotation"),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_maxSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -3116,6 +3138,56 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 }
 `, r.templateConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) securityProfileConfig(data acceptance.TestData, vtpmEnabled, secureBootEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                        = "internal"
+  kubernetes_cluster_id       = azurerm_kubernetes_cluster.test.id
+  node_count                  = 1
+  temporary_name_for_rotation = "tempnp"
+  vm_size                     = "Standard_D2s_v3"
+
+  security_profile {
+    vtpm_enabled        = %[3]t
+    secure_boot_enabled = %[4]t
+  }
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, vtpmEnabled, secureBootEnabled)
 }
 
 func (r KubernetesClusterNodePoolResource) maxSizeConfig(data acceptance.TestData) string {
