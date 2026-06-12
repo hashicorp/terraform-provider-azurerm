@@ -678,7 +678,8 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 func upgradeSettingsSchemaClusterDefaultNodePool() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Required: features.FivePointOh(),
+		Optional: !features.FivePointOh(),
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
