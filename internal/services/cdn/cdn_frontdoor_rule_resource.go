@@ -4,6 +4,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -275,12 +276,8 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									"cache_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(rules.RuleCacheBehaviorHonorOrigin),
-											string(rules.RuleCacheBehaviorOverrideAlways),
-											string(rules.RuleCacheBehaviorOverrideIfOriginMissing),
-											string(rules.RuleIsCompressionEnabledDisabled),
-										}, false),
+										ValidateFunc: validation.StringInSlice(PossibleValuesForRuleCacheBehavior(),
+											false),
 									},
 
 									// Made Optional for issue #19008
@@ -420,7 +417,9 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorProtocolMatchValues(),
+									// Intentionally preserved for compatibility with the released per-rule schema.
+									// The expand path still requires `match_values` when this block is used.
+									"match_values": schemaCdnFrontDoorProtocolMatchValues(),
 								},
 							},
 						},
@@ -510,7 +509,9 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorIsDeviceMatchValues(),
+									// Intentionally preserved for compatibility with the released per-rule schema.
+									// The expand path still requires `match_values` when this block is used.
+									"match_values": schemaCdnFrontDoorIsDeviceMatchValues(),
 								},
 							},
 						},
@@ -589,6 +590,34 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(_ context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
+			// This per-rule Front Door resource originally shipped with `request_scheme_condition`
+			// and `is_device_condition` exposing `match_values` as optional in schema, even
+			// though the expand path has always rejected those blocks when `match_values` is
+			// omitted. We intentionally keep that released schema shape for compatibility and
+			// to avoid a schema-surface change on the existing resource, while using
+			// CustomizeDiff to move the same validation failure to plan-time. This is not a
+			// breaking behavior change for working configurations because configs missing
+			// `match_values` were already invalid at apply-time before this check.
+			rawConfig := diff.GetRawConfig()
+			if rawConfig.IsNull() || !rawConfig.IsKnown() {
+				return nil
+			}
+
+			conditions := rawConfig.GetAttr("conditions")
+			if conditions.IsNull() || !conditions.IsKnown() || conditions.LengthInt() == 0 {
+				return nil
+			}
+
+			conditionEntries := conditions.AsValueSlice()
+			if len(conditionEntries) == 0 || conditionEntries[0].IsNull() || !conditionEntries[0].IsKnown() {
+				return nil
+			}
+
+			conditionBlock := conditionEntries[0].AsValueMap()
+			return validateFrontDoorConditionBlocksRequireMatchValues(conditionBlock, []string{"request_scheme_condition", "is_device_condition"})
+		}),
 	}
 }
 
@@ -599,6 +628,10 @@ func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	ruleSetId, err := rulesets.ParseRuleSetID(d.Get("cdn_frontdoor_rule_set_id").(string))
 	if err != nil {
+		return err
+	}
+
+	if err := ensureNonBatchRuleSetMode(ctx, meta.(*clients.Client), *ruleSetId); err != nil {
 		return err
 	}
 
@@ -710,6 +743,11 @@ func resourceCdnFrontDoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
+	ruleSetId := rulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
+	if err := ensureNonBatchRuleSetMode(ctx, meta.(*clients.Client), ruleSetId); err != nil {
+		return err
+	}
+
 	params := rules.RuleUpdateParameters{
 		Properties: &rules.RuleUpdatePropertiesParameters{},
 	}
@@ -806,24 +844,8 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]rules.DeliveryRu
 		}
 
 		if expanded != nil {
-			if actionName == m.URLRewrite.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'url_rewrite_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
-			}
-
-			if actionName == m.URLRedirect.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'url_redirect_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
-			}
-
-			if actionName == m.RouteConfigurationOverride.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'route_configuration_override_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
-			}
-
 			results = append(results, *expanded...)
 		}
-	}
-
-	if len(results) > 5 {
-		return nil, fmt.Errorf("the 'actions' match block may only contain up to 5 match actions, got %d", len(results))
 	}
 
 	if err := validate.CdnFrontDoorActionsBlock(results); err != nil {

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
@@ -44,12 +45,17 @@ func dataSourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"batch_mode_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func dataSourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient_v2025_12_01
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -69,6 +75,12 @@ func dataSourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("profile_name", id.ProfileName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("cdn_frontdoor_profile_id", profiles.NewProfileID(subscriptionId, id.ResourceGroupName, id.ProfileName).ID())
+
+	batchModeEnabled := false
+	if resp.Model != nil && resp.Model.Properties != nil {
+		batchModeEnabled = pointer.From(resp.Model.Properties.BatchMode)
+	}
+	d.Set("batch_mode_enabled", batchModeEnabled)
 
 	return nil
 }

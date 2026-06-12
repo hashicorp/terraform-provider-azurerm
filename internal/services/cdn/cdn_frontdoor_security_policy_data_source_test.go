@@ -5,6 +5,7 @@ package cdn_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -16,6 +17,7 @@ type CdnFrontDoorSecurityPolicyDataSource struct{}
 func TestAccCdnFrontDoorSecurityPolicyDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_security_policy", "test")
 	d := CdnFrontDoorSecurityPolicyDataSource{}
+	d.preCheck(t)
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -40,4 +42,13 @@ data "azurerm_cdn_frontdoor_security_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, CdnFrontDoorSecurityPolicyResource{}.basic(data))
+}
+
+func (CdnFrontDoorSecurityPolicyDataSource) preCheck(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("`ARM_TEST_DATA_RESOURCE_GROUP` must be set for acceptance tests!")
+	}
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE` must be set for acceptance tests!")
+	}
 }
