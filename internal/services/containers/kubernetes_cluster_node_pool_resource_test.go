@@ -1104,6 +1104,18 @@ func TestAccKubernetesClusterNodePool_workloadRuntimeKataVmIsolation(t *testing.
 	})
 }
 
+func kubernetesClusterNodeProvisioningProfileTestBlock() string {
+	if !features.FivePointOh() {
+		return ""
+	}
+
+	return `  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+`
+}
+
 func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -3356,6 +3368,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+%s
   default_node_pool {
     name       = "default"
     node_count = 1
@@ -3377,7 +3390,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, workloadRuntime)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, kubernetesClusterNodeProvisioningProfileTestBlock(), workloadRuntime)
 }
 
 func (KubernetesClusterNodePoolResource) workloadRuntimeKataVmIsolation(data acceptance.TestData) string {
@@ -3395,6 +3408,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = %q
+%s
   default_node_pool {
     name       = "default"
     node_count = 1
@@ -3417,7 +3431,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, kubernetesClusterNodeProvisioningProfileTestBlock())
 }
 
 func (KubernetesClusterNodePoolResource) windowsProfileOutboundNatEnabled(data acceptance.TestData) string {
