@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobagents"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -117,11 +117,11 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	jobAgentIdentity, err := expandMsSqlJobAgentIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	params.Identity = expandedIdentity
+	params.Identity = jobAgentIdentity
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, params, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -157,11 +157,11 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	params := existing.Model
 
 	if d.HasChanges("identity") {
-		expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+		jobAgentIdentity, err := expandMsSqlJobAgentIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		params.Identity = expandedIdentity
+		params.Identity = jobAgentIdentity
 	}
 
 	if d.HasChanges("sku") {
@@ -180,6 +180,30 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	return resourceMsSqlJobAgentRead(d, meta)
+}
+
+func expandMsSqlJobAgentIdentity(input []interface{}) (*jobagents.JobAgentIdentity, error) {
+	expandedIdentity, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	jobAgentIdentity := &jobagents.JobAgentIdentity{
+		Type: jobagents.JobAgentIdentityTypeNone,
+	}
+	if expandedIdentity.Type == identity.TypeUserAssigned {
+		jobAgentIdentity.Type = jobagents.JobAgentIdentityTypeUserAssigned
+		userAssignedIdentities := make(map[string]jobagents.JobAgentUserAssignedIdentity, len(expandedIdentity.IdentityIds))
+		for id, details := range expandedIdentity.IdentityIds {
+			userAssignedIdentities[id] = jobagents.JobAgentUserAssignedIdentity{
+				ClientId:    details.ClientId,
+				PrincipalId: details.PrincipalId,
+			}
+		}
+		jobAgentIdentity.UserAssignedIdentities = &userAssignedIdentities
+	}
+
+	return jobAgentIdentity, nil
 }
 
 func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -213,7 +237,26 @@ func resourceMssqlJobAgentSetFlatten(d *pluginsdk.ResourceData, id *jobagents.Jo
 			d.Set("database_id", props.DatabaseId)
 		}
 
-		flattenedIdentity, err := identity.FlattenUserAssignedMap(model.Identity)
+		var identityValue *identity.UserAssignedMap
+		if model.Identity != nil {
+			identityValue = &identity.UserAssignedMap{
+				Type:        identity.TypeNone,
+				IdentityIds: map[string]identity.UserAssignedIdentityDetails{},
+			}
+			if model.Identity.Type == jobagents.JobAgentIdentityTypeUserAssigned {
+				identityValue.Type = identity.TypeUserAssigned
+				if userAssignedIdentities := model.Identity.UserAssignedIdentities; userAssignedIdentities != nil {
+					for id, details := range *userAssignedIdentities {
+						identityValue.IdentityIds[id] = identity.UserAssignedIdentityDetails{
+							ClientId:    details.ClientId,
+							PrincipalId: details.PrincipalId,
+						}
+					}
+				}
+			}
+		}
+
+		flattenedIdentity, err := identity.FlattenUserAssignedMap(identityValue)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}

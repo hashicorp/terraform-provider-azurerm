@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -80,6 +80,8 @@ func TestAccMsSqlDatabase_free(t *testing.T) {
 			Config: r.freeTier(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("free_limit_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("min_capacity").HasValue("0.5"),
 			),
 		},
 		data.ImportStep(),
@@ -257,7 +259,7 @@ func TestAccMsSqlDatabase_bc(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("read_scale").HasValue("true"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("BC_Gen5_2"),
-				check.That(data.ResourceName).Key("zone_redundant").HasValue("true"),
+				check.That(data.ResourceName).Key("zone_redundant").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1046,6 +1048,9 @@ func TestAccMsSqlDatabase_namedReplicationZoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}
 
+	// Limited regional availability for ZRS
+	data.Locations.Primary = "westeurope"
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.namedReplicationZoneRedundant(data),
@@ -1382,9 +1387,14 @@ func (r MssqlDatabaseResource) freeTier(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name      = "acctest-db-%[2]d"
-  server_id = azurerm_mssql_server.test.id
-  sku_name  = "Free"
+  name                        = "acctest-db-%[2]d"
+  server_id                   = azurerm_mssql_server.test.id
+  auto_pause_delay_in_minutes = 60
+  min_capacity                = 0.5
+  sku_name                    = "GP_S_Gen5_2"
+  free_limit_enabled          = true
+  storage_account_type        = "Local"
+  geo_backup_enabled          = false
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1814,11 +1824,10 @@ func (r MssqlDatabaseResource) bc(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name           = "acctest-db-%[2]d"
-  server_id      = azurerm_mssql_server.test.id
-  read_scale     = true
-  sku_name       = "BC_Gen5_2"
-  zone_redundant = true
+  name       = "acctest-db-%[2]d"
+  server_id  = azurerm_mssql_server.test.id
+  read_scale = true
+  sku_name   = "BC_Gen5_2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1828,11 +1837,10 @@ func (r MssqlDatabaseResource) bcUpdate(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name           = "acctest-db-%[2]d"
-  server_id      = azurerm_mssql_server.test.id
-  read_scale     = false
-  sku_name       = "BC_Gen5_2"
-  zone_redundant = false
+  name       = "acctest-db-%[2]d"
+  server_id  = azurerm_mssql_server.test.id
+  read_scale = false
+  sku_name   = "BC_Gen5_2"
 }
 `, r.template(data), data.RandomInteger)
 }
