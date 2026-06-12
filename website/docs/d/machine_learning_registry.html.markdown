@@ -45,17 +45,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
-* `intellectual_property_publisher` - The intellectual property publisher for the Machine Learning Registry.
-
 * `location` - The Azure Region where the Machine Learning Registry exists.
 
 * `machine_learning_flow_registry_uri` - The ML Flow registry URI for the Machine Learning Registry.
 
-* `managed_resource_group` - The ID of the managed resource group created for the Machine Learning Registry.
+* `managed_resource_group_id` - The ID of the managed resource group created for the Machine Learning Registry.
 
 * `public_network_access_enabled` - Whether public network access is enabled for the Machine Learning Registry.
 
-* `replication_region` - One or more `replication_region` blocks as defined below.
+* `replication_regions` - One or more `replication_regions` blocks as defined below.
 
 * `system_created_container_registry_id` - The ID of the system-created container registry in the primary region.
 
@@ -63,9 +61,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `system_created_container_registry_sku` - The SKU of the system-created container registry in the primary region. This is always `Premium`.
 
-* `system_created_storage_account_blob_public_access_enabled` - Whether public blob access is allowed for the system-created storage account in the primary region.
-
-* `system_created_storage_account_hns_enabled` - Whether hierarchical namespace is enabled for the system-created storage account in the primary region.
+* `system_created_storage_account_hierarchical_namespace_enabled` - Whether hierarchical namespace is enabled for the system-created storage account in the primary region.
 
 * `system_created_storage_account_id` - The ID of the system-created storage account in the primary region.
 
@@ -89,7 +85,7 @@ An `identity` block exports the following:
 
 ---
 
-A `replication_region` block exports the following:
+A `replication_regions` block exports the following:
 
 * `location` - The Azure Region for the replication region.
 
@@ -99,9 +95,7 @@ A `replication_region` block exports the following:
 
 * `system_created_container_registry_sku` - The SKU of the system-created container registry for this region. This is always `Premium`.
 
-* `system_created_storage_account_blob_public_access_enabled` - Whether public blob access is allowed for the system-created storage account for this region.
-
-* `system_created_storage_account_hns_enabled` - Whether hierarchical namespace is enabled for the system-created storage account for this region.
+* `system_created_storage_account_hierarchical_namespace_enabled` - Whether hierarchical namespace is enabled for the system-created storage account for this region.
 
 * `system_created_storage_account_id` - The ID of the system-created storage account for this region.
 
@@ -111,7 +105,7 @@ A `replication_region` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Registry.
 

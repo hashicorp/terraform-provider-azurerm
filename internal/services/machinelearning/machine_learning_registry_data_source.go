@@ -6,10 +6,12 @@ package machinelearning
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/registrymanagement"
@@ -21,28 +23,23 @@ import (
 type MachineLearningRegistryDataSource struct{}
 
 type MachineLearningRegistryDataSourceModel struct {
-	Name                       string                                     `tfschema:"name"`
-	ResourceGroupName          string                                     `tfschema:"resource_group_name"`
-	Location                   string                                     `tfschema:"location"`
-	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	PublicNetworkAccessEnabled bool                                       `tfschema:"public_network_access_enabled"`
-
-	SystemCreatedStorageAccountType                    string `tfschema:"system_created_storage_account_type"`
-	SystemCreatedStorageAccountHnsEnabled              bool   `tfschema:"system_created_storage_account_hns_enabled"`
-	SystemCreatedStorageAccountBlobPublicAccessEnabled bool   `tfschema:"system_created_storage_account_blob_public_access_enabled"`
-	SystemCreatedContainerRegistrySku                  string `tfschema:"system_created_container_registry_sku"`
-
-	SystemCreatedStorageAccountId      string `tfschema:"system_created_storage_account_id"`
-	SystemCreatedStorageAccountName    string `tfschema:"system_created_storage_account_name"`
-	SystemCreatedContainerRegistryId   string `tfschema:"system_created_container_registry_id"`
-	SystemCreatedContainerRegistryName string `tfschema:"system_created_container_registry_name"`
-
-	ReplicationRegion []ReplicationRegion `tfschema:"replication_region"`
-
-	DiscoveryUrl         string            `tfschema:"discovery_url"`
-	MlFlowRegistryUri    string            `tfschema:"machine_learning_flow_registry_uri"`
-	ManagedResourceGroup string            `tfschema:"managed_resource_group"`
-	Tags                 map[string]string `tfschema:"tags"`
+	Name                                                    string                                     `tfschema:"name"`
+	ResourceGroupName                                       string                                     `tfschema:"resource_group_name"`
+	Location                                                string                                     `tfschema:"location"`
+	Identity                                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	PublicNetworkAccessEnabled                              bool                                       `tfschema:"public_network_access_enabled"`
+	SystemCreatedStorageAccountType                         string                                     `tfschema:"system_created_storage_account_type"`
+	SystemCreatedStorageAccountHierarchicalNamespaceEnabled bool                                       `tfschema:"system_created_storage_account_hierarchical_namespace_enabled"`
+	SystemCreatedContainerRegistrySku                       string                                     `tfschema:"system_created_container_registry_sku"`
+	SystemCreatedStorageAccountId                           string                                     `tfschema:"system_created_storage_account_id"`
+	SystemCreatedStorageAccountName                         string                                     `tfschema:"system_created_storage_account_name"`
+	SystemCreatedContainerRegistryId                        string                                     `tfschema:"system_created_container_registry_id"`
+	SystemCreatedContainerRegistryName                      string                                     `tfschema:"system_created_container_registry_name"`
+	ReplicationRegion                                       []ReplicationRegion                        `tfschema:"replication_regions"`
+	DiscoveryUrl                                            string                                     `tfschema:"discovery_url"`
+	MlFlowRegistryUri                                       string                                     `tfschema:"machine_learning_flow_registry_uri"`
+	ManagedResourceGroup                                    string                                     `tfschema:"managed_resource_group_id"`
+	Tags                                                    map[string]string                          `tfschema:"tags"`
 }
 
 func (d MachineLearningRegistryDataSource) ModelObject() interface{} {
@@ -60,9 +57,12 @@ func (d MachineLearningRegistryDataSource) IDValidationFunc() pluginsdk.SchemaVa
 func (d MachineLearningRegistryDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9\-_]{2,32}$`),
+				"Machine Learning Registry name must be between 3 and 33 characters long. Its first character has to be alphanumeric, and the rest may contain hyphens and underscores. No whitespace is allowed.",
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -71,8 +71,6 @@ func (d MachineLearningRegistryDataSource) Arguments() map[string]*pluginsdk.Sch
 
 func (d MachineLearningRegistryDataSource) Attributes() map[string]*pluginsdk.Schema {
 	attributes := map[string]*pluginsdk.Schema{
-		"location": commonschema.LocationComputed(),
-
 		"discovery_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -85,7 +83,7 @@ func (d MachineLearningRegistryDataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 		},
 
-		"managed_resource_group": {
+		"managed_resource_group_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -95,26 +93,28 @@ func (d MachineLearningRegistryDataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 		},
 
-		"replication_region": {
+		"replication_regions": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: registryRegionDataSourceSchema(true),
+				Schema: registryRegionDataSourceSchema(),
 			},
 		},
 
 		"tags": commonschema.TagsDataSource(),
 	}
 
-	for k, v := range registryRegionDataSourceSchema(false) {
+	for k, v := range registryRegionDataSourceSchema() {
 		attributes[k] = v
 	}
 
 	return attributes
 }
 
-func registryRegionDataSourceSchema(includeLocation bool) map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+func registryRegionDataSourceSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"location": commonschema.LocationComputed(),
+
 		"system_created_container_registry_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -130,12 +130,7 @@ func registryRegionDataSourceSchema(includeLocation bool) map[string]*pluginsdk.
 			Computed: true,
 		},
 
-		"system_created_storage_account_blob_public_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"system_created_storage_account_hns_enabled": {
+		"system_created_storage_account_hierarchical_namespace_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -155,12 +150,6 @@ func registryRegionDataSourceSchema(includeLocation bool) map[string]*pluginsdk.
 			Computed: true,
 		},
 	}
-
-	if includeLocation {
-		schema["location"] = commonschema.LocationComputed()
-	}
-
-	return schema
 }
 
 func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
@@ -188,12 +177,12 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if resp.Model == nil {
-				return fmt.Errorf("reading nil model %s", id)
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
 
 			identityIds, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(resp.Model.Identity)
 			if err != nil {
-				return fmt.Errorf("flattening identity %s: %+v", id, err)
+				return fmt.Errorf("flattening `identity` %s: %+v", id, err)
 			}
 
 			prop := resp.Model.Properties
@@ -209,23 +198,24 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if prop.ManagedResourceGroup != nil {
-				model.ManagedResourceGroup = pointer.From(prop.ManagedResourceGroup.ResourceId)
+				resourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(pointer.From(prop.ManagedResourceGroup.ResourceId))
+				if err != nil {
+					return err
+				}
+				model.ManagedResourceGroup = resourceGroupId.ID()
 			}
 
-			regions := flattenRegistryRegionDetails(prop.RegionDetails)
-			for i, region := range regions {
-				if i == 0 {
-					model.SystemCreatedStorageAccountType = region.SystemCreatedStorageAccountType
-					model.SystemCreatedStorageAccountHnsEnabled = region.HnsEnabled
-					model.SystemCreatedStorageAccountBlobPublicAccessEnabled = region.StorageAccountBlobPublicAccess
-					model.SystemCreatedContainerRegistrySku = region.SystemCreatedContainerRegistrySku
-					model.SystemCreatedStorageAccountId = region.SystemCreatedStorageAccountId
-					model.SystemCreatedStorageAccountName = region.SystemCreatedStorageAccountName
-					model.SystemCreatedContainerRegistryId = region.SystemCreatedAcrId
-					model.SystemCreatedContainerRegistryName = region.SystemCreatedContainerRegistryName
-					continue
-				}
-				model.ReplicationRegion = append(model.ReplicationRegion, region)
+			if regions := flattenRegistryRegionDetails(prop.RegionDetails); len(regions) > 0 {
+				primary := regions[0]
+				model.SystemCreatedStorageAccountType = primary.SystemCreatedStorageAccountType
+				model.SystemCreatedStorageAccountHierarchicalNamespaceEnabled = primary.HierarchicalNamespaceEnabled
+				model.SystemCreatedContainerRegistrySku = primary.SystemCreatedContainerRegistrySku
+				model.SystemCreatedStorageAccountId = primary.SystemCreatedStorageAccountId
+				model.SystemCreatedStorageAccountName = primary.SystemCreatedStorageAccountName
+				model.SystemCreatedContainerRegistryId = primary.SystemCreatedAcrId
+				model.SystemCreatedContainerRegistryName = primary.SystemCreatedContainerRegistryName
+
+				model.ReplicationRegion = append(model.ReplicationRegion, regions[1:]...)
 			}
 
 			metadata.SetID(id)
