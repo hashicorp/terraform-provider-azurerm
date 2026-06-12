@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -75,6 +75,7 @@ type WindowsFunctionAppSlotModel struct {
 	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
 	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	VnetApplicationTrafficEnabled      bool                                       `tfschema:"vnet_application_traffic_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
@@ -295,10 +296,20 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Default:     false,
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
 		},
+
+		"vnet_application_traffic_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the application traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+		},
 	}
 
 	if !features.FivePointOh() {
 		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+		args["vnet_application_traffic_enabled"].Computed = true
+		args["vnet_application_traffic_enabled"].Default = nil
+		args["vnet_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
 	}
 
 	return args
@@ -551,17 +562,31 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("functionapp"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					Enabled:                  pointer.To(functionAppSlot.Enabled),
-					HTTPSOnly:                pointer.To(functionAppSlot.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientCertEnabled:        pointer.To(functionAppSlot.ClientCertEnabled),
-					ClientCertMode:           pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
-					DailyMemoryTimeQuota:     pointer.To(functionAppSlot.DailyMemoryTimeQuota),
-					VnetBackupRestoreEnabled: pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
-					VnetImagePullEnabled:     pointer.To(functionAppSlot.VnetImagePullEnabled),
-					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
+					Enabled:              pointer.To(functionAppSlot.Enabled),
+					HTTPSOnly:            pointer.To(functionAppSlot.HttpsOnly),
+					SiteConfig:           siteConfig,
+					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
+					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
+					DailyMemoryTimeQuota: pointer.To(functionAppSlot.DailyMemoryTimeQuota),
+					OutboundVnetRouting: &webapps.OutboundVnetRouting{
+						BackupRestoreTraffic: pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
+						ImagePullTraffic:     pointer.To(functionAppSlot.VnetImagePullEnabled),
+						ApplicationTraffic:   pointer.To(functionAppSlot.VnetApplicationTrafficEnabled),
+					},
 				},
 			}
+
+			if !features.FivePointOh() {
+				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
+				if err != nil {
+					return err
+				}
+
+				if !rawSiteVnetRouting.IsNull() {
+					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
+				}
+			}
+
 			if differentServicePlanToParent {
 				siteEnvelope.Properties.ServerFarmId = pointer.To(servicePlanId.ID())
 			}
@@ -605,15 +630,13 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if !functionAppSlot.PublishingFTPBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err = client.UpdateFtpAllowedSlot(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: functionAppSlot.PublishingFTPBasicAuthEnabled,
+				},
+			}
+			if _, err = client.UpdateFtpAllowedSlot(ctx, id, sitePolicyFtp); err != nil {
+				return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 			}
 
 			if err = client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
@@ -762,6 +785,17 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				Backup:                           helpers.FlattenBackupConfig(backup.Model),
 				StorageAccounts:                  helpers.FlattenStorageAccounts(storageAccounts.Model),
 			}
+
+			configResp, err := client.GetConfigurationSlot(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
+			}
+
+			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionAppSlot(configResp.Model.Properties)
+			if err != nil {
+				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
+			}
+
 			if model := functionAppSlot.Model; model != nil {
 				state.Tags = pointer.From(model.Tags)
 				state.Kind = pointer.From(model.Kind)
@@ -781,8 +815,15 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
-					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+
+					if props.OutboundVnetRouting != nil {
+						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
+						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
+						state.VnetApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						if !features.FivePointOh() {
+							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						}
+					}
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -816,15 +857,6 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				configResp, err := client.GetConfigurationSlot(ctx, *id)
-				if err != nil {
-					return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
-				}
-
-				siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionAppSlot(configResp.Model.Properties)
-				if err != nil {
-					return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
-				}
 				state.SiteConfig = []helpers.SiteConfigWindowsFunctionAppSlot{*siteConfig}
 
 				state.unpackWindowsFunctionAppSettings(appSettingsResp.Model, metadata)
@@ -958,8 +990,13 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				model.Tags = pointer.To(state.Tags)
 			}
 
+			vnetRoutingProps := &webapps.OutboundVnetRouting{}
+			if model.Properties.OutboundVnetRouting != nil {
+				vnetRoutingProps = model.Properties.OutboundVnetRouting
+			}
+
 			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
-				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
+				vnetRoutingProps.BackupRestoreTraffic = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
@@ -976,7 +1013,11 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
-				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
+				vnetRoutingProps.ImagePullTraffic = pointer.To(state.VnetImagePullEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("vnet_application_traffic_enabled") {
+				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VnetApplicationTrafficEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {
@@ -1024,10 +1065,14 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
 				}
 				model.Properties.SiteConfig = siteConfig
-				model.Properties.VnetRouteAllEnabled = model.Properties.SiteConfig.VnetRouteAllEnabled
+			}
+
+			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+				vnetRoutingProps.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
 			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+			model.Properties.OutboundVnetRouting = vnetRoutingProps
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				pna := helpers.PublicNetworkAccessEnabled

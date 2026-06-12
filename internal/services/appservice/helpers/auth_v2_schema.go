@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -1369,7 +1369,7 @@ func expandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string
 			Registration: &webapps.OpenIdConnectRegistration{
 				ClientId: pointer.To(v.ClientId),
 				ClientCredential: &webapps.OpenIdConnectClientCredential{
-					Method:                  pointer.To(webapps.ClientCredentialMethodClientSecretPost),
+					Method:                  pointer.To(webapps.MethodClientSecretPost),
 					ClientSecretSettingName: pointer.To(fmt.Sprintf("%s_PROVIDER_AUTHENTICATION_SECRET", strings.ToUpper(v.Name))),
 				},
 				OpenIdConnectConfiguration: &webapps.OpenIdConnectConfig{

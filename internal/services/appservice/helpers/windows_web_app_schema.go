@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
@@ -54,7 +54,7 @@ type SiteConfigWindows struct {
 	Cors                          []CorsSetting             `tfschema:"cors"`
 	DetailedErrorLogging          bool                      `tfschema:"detailed_error_logging_enabled"`
 	WindowsFxVersion              string                    `tfschema:"windows_fx_version"`
-	VnetRouteAllEnabled           bool                      `tfschema:"vnet_route_all_enabled"`
+	VnetRouteAllEnabled           bool                      `tfschema:"vnet_route_all_enabled,removedInNextMajorVersion"`
 	// TODO new properties / blocks
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - ASE related for limiting App resource consumption
 	// PushSettings - Supported in SDK, but blocked by manual step needed for connecting app to notification hub.
@@ -266,13 +266,6 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 
 				"virtual_application": virtualApplicationsSchema(),
 
-				"vnet_route_all_enabled": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
-				},
-
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -297,13 +290,21 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 			"VS2019",
 			"VS2022",
 		}, false)
+
+		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
 	}
 
 	return s
 }
 
 func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -464,14 +465,19 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
-
-				"vnet_route_all_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return s
 }
 
 func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*webapps.SiteConfig, error) {
@@ -494,9 +500,12 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
 	expanded.HandlerMappings = expandHandlerMapping(s.HandlerMapping)
 	expanded.VirtualApplications = expandVirtualApplications(s.VirtualApplications)
-	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
+
+	if !features.FivePointOh() {
+		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
+	}
 
 	if s.ApiManagementConfigId != "" {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -809,7 +818,7 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 		expanded.AutoHealRules = expandAutoHealSettingsWindows(s.AutoHealSettings)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+	if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
 		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	}
 
@@ -845,7 +854,6 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 		s.HandlerMapping = flattenHandlerMapping(appSiteConfig.HandlerMappings)
 		s.VirtualApplications = flattenVirtualApplications(appSiteConfig.VirtualApplications, s.AlwaysOn)
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
-		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
 		s.IpRestrictionDefaultAction = string(pointer.From(appSiteConfig.IPSecurityRestrictionsDefaultAction))
 		s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteConfig.ScmIPSecurityRestrictionsDefaultAction))
 	}

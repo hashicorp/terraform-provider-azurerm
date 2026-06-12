@@ -17,7 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -67,6 +68,7 @@ type LinuxWebAppModel struct {
 	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	VnetApplicationTrafficEnabled      bool                                       `tfschema:"vnet_application_traffic_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppResource{}
@@ -78,7 +80,7 @@ var _ sdk.ResourceWithCustomizeDiff = LinuxWebAppResource{}
 var _ sdk.ResourceWithStateMigration = LinuxWebAppResource{}
 
 func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -170,6 +172,13 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"vnet_application_traffic_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the application traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+		},
+
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
@@ -215,6 +224,14 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		args["vnet_application_traffic_enabled"].Computed = true
+		args["vnet_application_traffic_enabled"].Default = nil
+		args["vnet_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
+	}
+
+	return args
 }
 
 func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -379,18 +396,32 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 				Tags:     pointer.To(webApp.Tags),
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:             pointer.To(webApp.ServicePlanId),
-					Enabled:                  pointer.To(webApp.Enabled),
-					HTTPSOnly:                pointer.To(webApp.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientAffinityEnabled:    pointer.To(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:        pointer.To(webApp.ClientCertEnabled),
-					ClientCertMode:           pointer.To(webapps.ClientCertMode(webApp.ClientCertMode)),
-					VnetBackupRestoreEnabled: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
-					VnetImagePullEnabled:     pointer.To(webApp.VnetImagePullEnabled),
-					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
+					ServerFarmId:          pointer.To(webApp.ServicePlanId),
+					Enabled:               pointer.To(webApp.Enabled),
+					HTTPSOnly:             pointer.To(webApp.HttpsOnly),
+					SiteConfig:            siteConfig,
+					ClientAffinityEnabled: pointer.To(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:     pointer.To(webApp.ClientCertEnabled),
+					ClientCertMode:        pointer.To(webapps.ClientCertMode(webApp.ClientCertMode)),
+					OutboundVnetRouting: &webapps.OutboundVnetRouting{
+						ImagePullTraffic:     pointer.To(webApp.VnetImagePullEnabled),
+						BackupRestoreTraffic: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
+						ApplicationTraffic:   pointer.To(webApp.VnetApplicationTrafficEnabled),
+					},
 				},
 			}
+
+			if !features.FivePointOh() {
+				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
+				if err != nil {
+					return err
+				}
+
+				if !rawSiteVnetRouting.IsNull() {
+					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
+				}
+			}
+
 			pna := helpers.PublicNetworkAccessEnabled
 			if !webApp.PublicNetworkAccess {
 				pna = helpers.PublicNetworkAccessDisabled
@@ -495,26 +526,22 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if !webApp.PublishingDeployBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: webApp.PublishingDeployBasicAuthEnabled,
+				},
+			}
+			if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
+				return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
 			}
 
-			if !webApp.PublishingFTPBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err := client.UpdateFtpAllowed(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: webApp.PublishingFTPBasicAuthEnabled,
+				},
+			}
+			if _, err := client.UpdateFtpAllowed(ctx, id, sitePolicyFtp); err != nil {
+				return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 			}
 
 			return nil
@@ -628,6 +655,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					Tags:              pointer.From(model.Tags),
 				}
 
+				siteConfig := helpers.SiteConfigLinux{}
 				if props := model.Properties; props != nil {
 					state.ClientAffinityEnabled = pointer.From(props.ClientAffinityEnabled)
 					state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
@@ -643,11 +671,19 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					state.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
 					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
-					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
 						return err
+					}
+					siteConfig.Flatten(webAppSiteConfig.Model.Properties)
+					siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
+					if props.OutboundVnetRouting != nil {
+						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
+						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
+						state.VnetApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						if !features.FivePointOh() {
+							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						}
 					}
 					state.ServicePlanId = servicePlanId.ID()
 
@@ -671,10 +707,6 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 
 				state.PublishingFTPBasicAuthEnabled = basicAuthFTP
 				state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
-
-				siteConfig := helpers.SiteConfigLinux{}
-				siteConfig.Flatten(webAppSiteConfig.Model.Properties)
-				siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 
 				if helpers.FxStringHasPrefix(siteConfig.LinuxFxVersion, helpers.FxStringPrefixDocker) {
 					siteConfig.DecodeDockerAppStack(state.AppSettings)
@@ -830,7 +862,6 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				model.Properties.VnetRouteAllEnabled = model.Properties.SiteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
@@ -844,12 +875,24 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
 			}
 
+			vnetRoutingProps := &webapps.OutboundVnetRouting{}
+			if model.Properties.OutboundVnetRouting != nil {
+				vnetRoutingProps = model.Properties.OutboundVnetRouting
+			}
 			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
-				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
+				vnetRoutingProps.BackupRestoreTraffic = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
-				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
+				vnetRoutingProps.ImagePullTraffic = pointer.To(state.VnetImagePullEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("vnet_application_traffic_enabled") {
+				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VnetApplicationTrafficEnabled)
+			}
+
+			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+				vnetRoutingProps.ApplicationTraffic = &sc.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
@@ -864,6 +907,8 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
 			}
+
+			model.Properties.OutboundVnetRouting = vnetRoutingProps
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating Linux %s: %+v", id, err)
