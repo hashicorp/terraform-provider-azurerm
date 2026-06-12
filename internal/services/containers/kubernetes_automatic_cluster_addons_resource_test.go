@@ -257,7 +257,7 @@ func TestAccKubernetesAutomaticCluster_addonProfileServiceMeshProfile_revisions(
 	})
 }
 
-func (KubernetesAutomaticClusterResource) addonProfileAciConnectorLinuxConfig(data acceptance.TestData) string {
+func (r KubernetesAutomaticClusterResource) addonProfileAciConnectorLinuxConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -268,25 +268,13 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["172.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.0.2.0/24"]
-}
+%s
 
 resource "azurerm_subnet" "test-aci" {
   name                 = "acctestsubnet-aci%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.0.3.0/24"]
+  address_prefixes     = ["10.1.3.0/24"]
 
   delegation {
     name = "aciDelegation"
@@ -296,32 +284,6 @@ resource "azurerm_subnet" "test-aci" {
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
-}
-
-resource "azurerm_subnet" "apiserver" {
-  name                 = "apiserver"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.0.4.0/28"]
-  delegation {
-    name = "aks-delegation"
-    service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      name    = "Microsoft.ContainerService/managedClusters"
-    }
-  }
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_role_assignment" "network" {
-  scope                = azurerm_virtual_network.test.id
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-  role_definition_name = "Network Contributor"
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
@@ -336,14 +298,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    subnet_id            = azurerm_subnet.test.id
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
+  hosted_system {
+    node_subnet_id        = azurerm_subnet.node.id
+    system_node_subnet_id = azurerm_subnet.systemnode.id
   }
 
   aci_connector_linux {
@@ -351,7 +308,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access {
-    subnet_id = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.api.id
   }
 
   identity {
@@ -360,7 +317,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network {
-
     outbound_type = "loadBalancer"
   }
 
@@ -368,10 +324,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     azurerm_role_assignment.network
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesAutomaticClusterResource) addonProfileAciConnectorLinuxDisabledConfig(data acceptance.TestData) string {
+func (r KubernetesAutomaticClusterResource) addonProfileAciConnectorLinuxDisabledConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -382,49 +338,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["172.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.0.2.0/24"]
-}
-
-resource "azurerm_subnet" "apiserver" {
-  name                 = "acctestsubnet-apiserver%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.0.3.0/24"]
-
-  delegation {
-    name = "aks-delegation"
-
-    service_delegation {
-      name = "Microsoft.ContainerService/managedClusters"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest-uai-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_role_assignment" "network" {
-  scope                = azurerm_virtual_network.test.id
-  role_definition_name = "Network Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
+%s
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
@@ -437,18 +351,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    subnet_id            = azurerm_subnet.test.id
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
+  hosted_system {
+    node_subnet_id        = azurerm_subnet.node.id
+    system_node_subnet_id = azurerm_subnet.systemnode.id
   }
 
   api_server_access {
-    subnet_id = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.api.id
   }
 
   identity {
@@ -464,7 +373,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     azurerm_role_assignment.network
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) addonProfileOMSConfig(data acceptance.TestData) string {
@@ -508,15 +417,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     admin_username = "acctestuser%d"
 
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
   }
 
   oms_agent {
@@ -571,15 +471,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     admin_username = "acctestuser%d"
 
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
   }
 
   oms_agent {
@@ -637,15 +528,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -653,7 +535,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesAutomaticClusterResource) addonProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {
+func (r KubernetesAutomaticClusterResource) addonProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -668,55 +550,13 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["172.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "nodepool" {
-  name                 = "acctestnodepool%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.0.1.0/24"]
-}
+%s
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.0.2.0/24"]
-}
-
-resource "azurerm_subnet" "apiserver" {
-  name                 = "acctestsubnet-apiserver%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.0.3.0/24"]
-
-  delegation {
-    name = "aks-delegation"
-
-    service_delegation {
-      name = "Microsoft.ContainerService/managedClusters"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest-uai-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_role_assignment" "network" {
-  scope                = azurerm_virtual_network.test.id
-  role_definition_name = "Network Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  address_prefixes     = ["10.1.3.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -794,14 +634,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    subnet_id            = azurerm_subnet.nodepool.id
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
+  hosted_system {
+    node_subnet_id        = azurerm_subnet.node.id
+    system_node_subnet_id = azurerm_subnet.systemnode.id
   }
 
   ingress_application_gateway {
@@ -809,7 +644,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access {
-    subnet_id = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.api.id
   }
 
   identity {
@@ -825,7 +660,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     azurerm_role_assignment.network
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) addonProfileIngressApplicationGatewaySubnetCIDRConfig(data acceptance.TestData) string {
@@ -853,15 +688,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     admin_username = "acctestuser%d"
 
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
   }
 
   ingress_application_gateway {
@@ -899,15 +725,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -915,7 +732,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesAutomaticClusterResource) addonProfileIngressApplicationGatewaySubnetIdConfig(data acceptance.TestData) string {
+func (r KubernetesAutomaticClusterResource) addonProfileIngressApplicationGatewaySubnetIdConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -926,55 +743,13 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["172.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "nodepool" {
-  name                 = "acctestnodepool%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.0.1.0/24"]
-}
+%s
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.0.2.0/24"]
-}
-
-resource "azurerm_subnet" "apiserver" {
-  name                 = "acctestsubnet-apiserver%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.0.3.0/24"]
-
-  delegation {
-    name = "aks-delegation"
-
-    service_delegation {
-      name = "Microsoft.ContainerService/managedClusters"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest-uai-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_role_assignment" "network" {
-  scope                = azurerm_virtual_network.test.id
-  role_definition_name = "Network Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  address_prefixes     = ["10.1.3.0/24"]
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
@@ -989,14 +764,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    subnet_id            = azurerm_subnet.nodepool.id
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
+  hosted_system {
+    node_subnet_id        = azurerm_subnet.node.id
+    system_node_subnet_id = azurerm_subnet.systemnode.id
   }
 
   ingress_application_gateway {
@@ -1005,7 +775,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access {
-    subnet_id = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.api.id
   }
 
   identity {
@@ -1021,7 +791,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     azurerm_role_assignment.network
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) addonProfileOpenServiceMeshConfig(data acceptance.TestData, enabled bool) string {
@@ -1049,15 +819,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     admin_username = "acctestuser%d"
 
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
   }
 
   open_service_mesh_enabled = %t
@@ -1090,15 +851,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     admin_username = "acctestuser%d"
 
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
   }
 
   key_vault_secrets_provider {
@@ -1135,15 +887,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   confidential_computing {
     sgx_quote_helper_enabled = %t
   }
@@ -1178,15 +921,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    virtual_machine_size = "Standard_DS3_v2"
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -1194,7 +928,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (k KubernetesAutomaticClusterResource) addonProfileServiceMeshProfileCertificateAuthorityConfig(data acceptance.TestData) string {
+func (r KubernetesAutomaticClusterResource) addonProfileServiceMeshProfileCertificateAuthorityConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1205,37 +939,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[1]s"
-  address_space       = ["10.1.0.0/16", "fd00:db8:deca::/48"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%[1]s"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.1.0.0/24", "fd00:db8:deca:deed::/64"]
-}
-
-resource "azurerm_subnet" "apiserver" {
-  name                 = "acctestsubnet-apiserver%[1]s"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.1.1.0/24"]
-
-  delegation {
-    name = "aks-delegation"
-
-    service_delegation {
-      name = "Microsoft.ContainerService/managedClusters"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
-    }
-  }
-}
+%[3]s
 
 data "azurerm_client_config" "current" {}
 
@@ -1412,18 +1116,6 @@ resource "azurerm_key_vault_key" "test" {
   depends_on = [azurerm_key_vault_access_policy.test]
 }
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%[1]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_role_assignment" "network" {
-  scope                = azurerm_virtual_network.test.id
-  role_definition_name = "Network Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
-
 resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%[1]s"
   location            = azurerm_resource_group.test.location
@@ -1436,18 +1128,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 2
-    virtual_machine_size = "Standard_DS3_v2"
-    subnet_id            = azurerm_subnet.test.id
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
+  hosted_system {
+    node_subnet_id        = azurerm_subnet.node.id
+    system_node_subnet_id = azurerm_subnet.systemnode.id
   }
 
   api_server_access {
-    subnet_id = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.api.id
   }
 
   identity {
@@ -1483,10 +1170,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     azurerm_role_assignment.network
   ]
 }
-`, data.RandomString, data.Locations.Primary)
+`, data.RandomString, data.Locations.Primary, r.networkTemplate(data))
 }
 
-func (KubernetesAutomaticClusterResource) addonProfileServiceMeshProfileRevisionsConfig(data acceptance.TestData, revisions string) string {
+func (r KubernetesAutomaticClusterResource) addonProfileServiceMeshProfileRevisionsConfig(data acceptance.TestData, revisions string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1497,49 +1184,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[1]d"
-  address_space       = ["10.1.0.0/16", "fd00:db8:deca::/48"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.1.0.0/24", "fd00:db8:deca:deed::/64"]
-}
-
-resource "azurerm_subnet" "apiserver" {
-  name                 = "acctestsubnet-apiserver%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.1.1.0/24"]
-
-  delegation {
-    name = "aks-delegation"
-
-    service_delegation {
-      name = "Microsoft.ContainerService/managedClusters"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_role_assignment" "network" {
-  scope                = azurerm_virtual_network.test.id
-  role_definition_name = "Network Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
+%[3]s
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%[1]d"
@@ -1553,18 +1198,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
   }
 
-  default_node_pool {
-    name                 = "default"
-    node_count           = 2
-    virtual_machine_size = "Standard_DS3_v2"
-    subnet_id            = azurerm_subnet.test.id
-    upgrade_settings {
-      maximum_surge = "10%%"
-    }
+  hosted_system {
+    node_subnet_id        = azurerm_subnet.node.id
+    system_node_subnet_id = azurerm_subnet.systemnode.id
   }
 
   api_server_access {
-    subnet_id = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.api.id
   }
 
   identity {
@@ -1583,12 +1223,12 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   service_mesh {
     internal_ingress_gateway_enabled = false
     external_ingress_gateway_enabled = false
-    revisions                        = %[3]s
+    revisions                        = %[4]s
   }
 
   depends_on = [
     azurerm_role_assignment.network
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, revisions)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), revisions)
 }
