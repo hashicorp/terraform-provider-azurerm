@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"net/http"
 	"strings"
 	"time"
 
@@ -217,6 +218,21 @@ func (r DnsZoneResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)
+
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"NotFound"},
+				Target:  []string{"Found"},
+				Refresh: pluginsdk.ResourceCreateRefreshFunc(func() (*http.Response, error) {
+					resp, err := client.Get(ctx, id)
+					return resp.HttpResponse, err
+				}),
+				MinTimeout:                5 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Timeout:                   metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate),
+			}
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
+			}
 
 			if len(model.SoaRecord) == 1 {
 				soaRecordID := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")
