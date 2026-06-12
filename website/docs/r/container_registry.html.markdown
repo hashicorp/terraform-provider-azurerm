@@ -186,7 +186,7 @@ The `georeplications` block supports the following:
 
 * `location` - (Required) A location where the container registry should be geo-replicated.
 
-* `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry?
+* `regional_endpoint_enabled` - (Optional) Controls whether a geo-replica is enabled or disabled for global endpoint routing, which is the setting equivalent to `regionEndpointEnabled` in Azure Resource Manager for the geo-replica resource.
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 
