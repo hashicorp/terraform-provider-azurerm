@@ -156,7 +156,9 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if existingRoute.Name != nil {
 			if strings.EqualFold(*existingRoute.Name, id.Name) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_route", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_iothub_route", id.ID())
+					}
 				}
 				routes = append(routes, route)
 				alreadyExists = true
@@ -179,11 +181,11 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubRouteRead(d, meta)
 }

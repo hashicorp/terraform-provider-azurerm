@@ -93,28 +93,29 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			log.Printf("[INFO] preparing arguments for Container Registry Cache Rule creation.")
-
 			registryId, err := registries.ParseRegistryID(metadata.ResourceData.Get("container_registry_id").(string))
 			if err != nil {
 				return err
 			}
 
-			id := cacherules.NewCacheRuleID(subscriptionId,
+			id := cacherules.NewCacheRuleID(
+				subscriptionId,
 				registryId.ResourceGroupName,
 				registryId.RegistryName,
 				metadata.ResourceData.Get("name").(string),
 			)
 
-			existing, err := cacheRulesClient.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := cacheRulesClient.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_container_registry_cache_rule", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_container_registry_cache_rule", id.ID())
+				}
 			}
 
 			parameters := cacherules.CacheRule{
@@ -130,7 +131,7 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 				parameters.Properties.CredentialSetResourceId = pointer.To(config.CredentialSetId)
 			}
 
-			if err := cacheRulesClient.CreateThenPoll(ctx, id, parameters); err != nil {
+			if err := cacheRulesClient.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -195,8 +196,6 @@ func (r ContainerRegistryCacheRule) Update() sdk.ResourceFunc {
 			if err := metadata.Decode(&config); err != nil {
 				return err
 			}
-
-			log.Printf("[INFO] preparing arguments for Container Registry Cache Rule update.")
 
 			id, err := cacherules.ParseCacheRuleID(metadata.ResourceData.Id())
 			if err != nil {

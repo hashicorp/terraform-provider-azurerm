@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -20,6 +21,9 @@ import (
 type AppServiceActiveSlotResource struct{}
 
 func TestAccAppServiceActiveSlot_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
 	r := AppServiceActiveSlotResource{}
 
@@ -35,6 +39,9 @@ func TestAccAppServiceActiveSlot_basic(t *testing.T) {
 }
 
 func TestAccAppServiceActiveSlot_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
 	r := AppServiceActiveSlotResource{}
 
@@ -61,7 +68,7 @@ func (r AppServiceActiveSlotResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := clients.Web.AppServicesClientV1.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil

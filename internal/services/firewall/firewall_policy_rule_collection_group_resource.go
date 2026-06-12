@@ -14,15 +14,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/firewallpolicyrulecollectiongroups"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name firewall_policy_rule_collection_group -properties "name" -compare-values "subscription_id:firewall_policy_id,resource_group_name:firewall_policy_id,firewall_policy_name:firewall_policy_id"
 
 func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -31,10 +35,11 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 		Update: resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
 		Delete: resourceFirewallPolicyRuleCollectionGroupDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := firewallpolicyrulecollectiongroups.ParseRuleCollectionGroupID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&firewallpolicyrulecollectiongroups.RuleCollectionGroupId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&firewallpolicyrulecollectiongroups.RuleCollectionGroupId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -467,15 +472,17 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 	id := firewallpolicyrulecollectiongroups.NewRuleCollectionGroupID(policyId.SubscriptionId, policyId.ResourceGroupName, policyId.FirewallPolicyName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if resp.Model != nil {
-			return tf.ImportAsExistsError("azurerm_firewall_policy_rule_collection_group", id.ID())
+			if resp.Model != nil {
+				return tf.ImportAsExistsError("azurerm_firewall_policy_rule_collection_group", id.ID())
+			}
 		}
 	}
 
@@ -499,11 +506,20 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 
 	param.Properties.RuleCollections = &rulesCollections
 
-	if err = client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
-	}
+	if d.IsNewResource() {
+		if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
 
-	d.SetId(id.ID())
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err = client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+	}
 
 	return resourceFirewallPolicyRuleCollectionGroupRead(d, meta)
 }
@@ -528,11 +544,14 @@ func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, me
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+	return resourceFirewallPolicyRuleCollectionGroupSetFlatten(d, id, resp.Model)
+}
 
+func resourceFirewallPolicyRuleCollectionGroupSetFlatten(d *pluginsdk.ResourceData, id *firewallpolicyrulecollectiongroups.RuleCollectionGroupId, model *firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollectionGroup) error {
 	d.Set("name", id.RuleCollectionGroupName)
 	d.Set("firewall_policy_id", firewallpolicies.NewFirewallPolicyID(id.SubscriptionId, id.ResourceGroupName, id.FirewallPolicyName).ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("priority", props.Priority)
 
@@ -553,7 +572,7 @@ func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceFirewallPolicyRuleCollectionGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -58,9 +58,20 @@ func (c ShareClient) ProviderShareSubscriptionsRevoke(ctx context.Context, id Pr
 
 // ProviderShareSubscriptionsRevokeThenPoll performs ProviderShareSubscriptionsRevoke then polls until it's completed
 func (c ShareClient) ProviderShareSubscriptionsRevokeThenPoll(ctx context.Context, id ProviderShareSubscriptionId) error {
+	return c.ProviderShareSubscriptionsRevokeCallbackThenPoll(ctx, id, nil)
+}
+
+// ProviderShareSubscriptionsRevokeCallbackThenPoll performs ProviderShareSubscriptionsRevoke, runs the optional callback function, then polls until it's completed
+func (c ShareClient) ProviderShareSubscriptionsRevokeCallbackThenPoll(ctx context.Context, id ProviderShareSubscriptionId, callback func() error) error {
 	result, err := c.ProviderShareSubscriptionsRevoke(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ProviderShareSubscriptionsRevoke: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

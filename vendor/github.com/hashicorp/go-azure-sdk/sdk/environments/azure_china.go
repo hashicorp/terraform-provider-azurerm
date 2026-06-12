@@ -31,6 +31,7 @@ func AzureChina() *Environment {
 	env.MySql = MySqlAPI("mysql.database.chinacloudapi.cn").WithResourceIdentifier("https://ossrdbms-aad.database.chinacloudapi.cn")
 	env.OperationalInsights = OperationalInsightsAPI().WithResourceIdentifier("https://api.loganalytics.azure.cn")
 	env.Postgresql = PostgresqlAPI("postgres.database.chinacloudapi.cn").WithResourceIdentifier("https://ossrdbms-aad.database.chinacloudapi.cn")
+	env.Search = SearchAPI("search.azure.cn").WithResourceIdentifier("https://search.azure.cn")
 	env.ServiceBus = ServiceBusAPI("https://servicebus.chinacloudapi.cn", "servicebus.chinacloudapi.cn").WithResourceIdentifier("https://servicebus.chinacloudapi.cn")
 	env.Sql = SqlAPI("database.chinacloudapi.cn").WithResourceIdentifier("https://database.chinacloudapi.cn")
 	env.Storage = StorageAPI("core.chinacloudapi.cn").WithResourceIdentifier("https://storage.azure.com")

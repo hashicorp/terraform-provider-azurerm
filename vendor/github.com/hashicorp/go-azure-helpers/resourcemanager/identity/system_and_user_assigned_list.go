@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package identity
@@ -20,25 +20,23 @@ type SystemAndUserAssignedList struct {
 	IdentityIds []string `json:"userAssignedIdentities" tfschema:"identity_ids"`
 }
 
-func (s *SystemAndUserAssignedList) MarshalJSON() ([]byte, error) {
+func (s SystemAndUserAssignedList) MarshalJSON() ([]byte, error) {
 	// we use a custom marshal function here since we can only send the Type / UserAssignedIdentities field
 	identityType := TypeNone
 	userAssignedIdentityIds := []string{}
 
-	if s != nil {
-		if s.Type == TypeSystemAssigned {
-			identityType = TypeSystemAssigned
-		}
-		if s.Type == TypeSystemAssignedUserAssigned {
-			identityType = TypeSystemAssignedUserAssigned
-		}
-		if s.Type == TypeUserAssigned {
-			identityType = TypeUserAssigned
-		}
+	if s.Type == TypeSystemAssigned {
+		identityType = TypeSystemAssigned
+	}
+	if s.Type == TypeSystemAssignedUserAssigned {
+		identityType = TypeSystemAssignedUserAssigned
+	}
+	if s.Type == TypeUserAssigned {
+		identityType = TypeUserAssigned
+	}
 
-		if identityType != TypeNone {
-			userAssignedIdentityIds = s.IdentityIds
-		}
+	if identityType != TypeNone {
+		userAssignedIdentityIds = s.IdentityIds
 	}
 
 	out := map[string]interface{}{

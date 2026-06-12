@@ -63,9 +63,20 @@ func (c AppPlatformClient) BindingsCreateOrUpdate(ctx context.Context, id Bindin
 
 // BindingsCreateOrUpdateThenPoll performs BindingsCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) BindingsCreateOrUpdateThenPoll(ctx context.Context, id BindingId, input BindingResource) error {
+	return c.BindingsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BindingsCreateOrUpdateCallbackThenPoll performs BindingsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) BindingsCreateOrUpdateCallbackThenPoll(ctx context.Context, id BindingId, input BindingResource, callback func() error) error {
 	result, err := c.BindingsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing BindingsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

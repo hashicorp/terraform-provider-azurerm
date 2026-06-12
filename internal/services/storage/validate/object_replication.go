@@ -21,8 +21,7 @@ func ObjectReplicationCopyBlobsCreatedAfter(i interface{}, k string) (warnings [
 		return warnings, errors
 	}
 
-	_, err := date.ParseTime(time.RFC3339, v)
-	if err != nil {
+	if _, err := date.ParseTime(time.RFC3339, v); err != nil {
 		errors = append(errors, fmt.Errorf("%q has the invalid RFC3339 date format %q: %+v", k, i, err))
 		return warnings, errors
 	}

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
+	storageAccountHelper "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	storageparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -139,14 +141,16 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 
 			id := datastore.NewDataStoreID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_machine_learning_datastore_fileshare", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_machine_learning_datastore_fileshare", id.ID())
+				}
 			}
 
 			fileShareId, err := storageparse.StorageShareResourceManagerID(model.StorageFileShareID)
@@ -187,8 +191,7 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 			}
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)}); err != nil {
 				return fmt.Errorf("creating/updating %s: %+v", id, err)
 			}
 
@@ -251,8 +254,7 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 			}
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)}); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -295,10 +297,24 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, data.AccountName)
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Share %q: %s", data.AccountName, data.FileShareName, err)
+			var storageAccount *storageAccountHelper.AccountDetails
+			if fileShareIdStr := metadata.ResourceData.Get("storage_fileshare_id").(string); fileShareIdStr != "" {
+				fileShareId, err := storageparse.StorageShareResourceManagerID(fileShareIdStr)
+				if err != nil {
+					return err
+				}
+				storageAccount, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(fileShareId.SubscriptionId, fileShareId.ResourceGroup, fileShareId.StorageAccountName))
+				if err != nil {
+					return fmt.Errorf("retrieving Account %q for Share %q: %s", data.AccountName, data.FileShareName, err)
+				}
+			} else {
+				// In the case of import, we cannot rely on having a value for `storage_container_id` so we need to fallback on listing the accounts to search.
+				storageAccount, err = storageClient.FindAccount(ctx, subscriptionId, data.AccountName)
+				if err != nil {
+					return fmt.Errorf("retrieving Account %q for Share %q: %s", data.AccountName, data.FileShareName, err)
+				}
 			}
+
 			if storageAccount == nil {
 				return fmt.Errorf("unable to locate Storage Account %q", data.AccountName)
 			}

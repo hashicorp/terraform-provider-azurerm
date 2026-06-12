@@ -8,11 +8,15 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type AppServicePlanDataSource struct{}
 
 func TestAccAppServicePlanDataSource_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_plan", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -30,6 +34,9 @@ func TestAccAppServicePlanDataSource_basic(t *testing.T) {
 }
 
 func TestAccAppServicePlanDataSource_complete(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_plan", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -48,6 +55,9 @@ func TestAccAppServicePlanDataSource_complete(t *testing.T) {
 }
 
 func TestAccAppServicePlanDataSource_premiumSKU(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_plan", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -65,6 +75,9 @@ func TestAccAppServicePlanDataSource_premiumSKU(t *testing.T) {
 }
 
 func TestAccAppServicePlanDataSource_basicWindowsContainer(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_plan", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{

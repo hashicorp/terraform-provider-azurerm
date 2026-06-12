@@ -96,13 +96,15 @@ func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing custom certificate for %s: %+v", id, err)
 			}
 
-			existing, err := client.CustomDomainsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.CustomDomainsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			customDomainObj := signalr.CustomDomain{
@@ -113,36 +115,11 @@ func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 					},
 				},
 			}
-			if _, err := client.CustomDomainsCreateOrUpdate(ctx, id, customDomainObj); err != nil {
+			if err := client.CustomDomainsCreateOrUpdateCallbackThenPoll(ctx, id, customDomainObj, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{
-					string(signalr.ProvisioningStateUpdating),
-					string(signalr.ProvisioningStateCreating),
-					string(signalr.ProvisioningStateMoving),
-					string(signalr.ProvisioningStateRunning),
-				},
-				Target: []string{
-					string(signalr.ProvisioningStateSucceeded),
-					string(signalr.ProvisioningStateFailed),
-				},
-				Refresh:                   signalrServiceCustomDomainProvisioningStateRefreshFunc(ctx, client, id),
-				Timeout:                   time.Until(deadline),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 20,
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return err
-			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -235,26 +212,6 @@ func (r CustomDomainSignalrServiceResource) Delete() sdk.ResourceFunc {
 
 func (r CustomDomainSignalrServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return signalr.ValidateCustomDomainID
-}
-
-func signalrServiceCustomDomainProvisioningStateRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.CustomDomainId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.CustomDomainsGet(ctx, id)
-
-		provisioningState := "Pending"
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, provisioningState, nil
-			}
-			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
-		}
-
-		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
-			provisioningState = string(*res.Model.Properties.ProvisioningState)
-		}
-
-		return res, provisioningState, nil
-	}
 }
 
 func signalrServiceCustomDomainDeleteRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.CustomDomainId) pluginsdk.StateRefreshFunc {

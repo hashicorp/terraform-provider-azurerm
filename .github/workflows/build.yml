@@ -15,7 +15,13 @@ name: build
 #
 #   https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onpushbranchestagsbranches-ignoretags-ignore
 #
-on: [workflow_dispatch, push]
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main # limiting to main branch
+    paths:
+      - 'version/VERSION' # and the version file, anything else is redundant for preparing releases
 
 env:
   PKG_NAME: "terraform-provider-azurerm"
@@ -30,8 +36,8 @@ jobs:
     outputs:
       go-version: ${{ steps.get-go-version.outputs.go-version }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: 'go.mod'
       - name: Detect Go version
@@ -54,10 +60,10 @@ jobs:
       product-prerelease-version: ${{ steps.set-product-version.outputs.prerelease-product-version }}
       product-minor-version: ${{ steps.set-product-version.outputs.minor-product-version }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Set variables
         id: set-product-version
-        uses: hashicorp/actions-set-product-version@v2
+        uses: hashicorp/actions-set-product-version@d9be602dfa87e201c79a3937c038f19391c9a430 # v2
 
   # Creates metadata.json file containing build metadata for consumption by CRT workflows.
   #
@@ -69,15 +75,15 @@ jobs:
       filepath: ${{ steps.generate-metadata-file.outputs.filepath }}
     steps:
       - name: "Checkout directory"
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Generate metadata file
         id: generate-metadata-file
-        uses: hashicorp/actions-generate-metadata@v1
+        uses: hashicorp/actions-generate-metadata@a43468dfb100445f2c2aa52cdc3d57b2c982a0f3 # v1
         with:
           version: ${{ needs.set-product-version.outputs.product-version }}
           product: ${{ env.PKG_NAME }}
           repositoryOwner: "hashicorp"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: metadata.json
           path: ${{ steps.generate-metadata-file.outputs.filepath }}
@@ -92,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout directory"
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           path: ${{ env.PKG_NAME }}
       - name: "Copy manifest from checkout directory to a file with the desired name"
@@ -106,7 +112,7 @@ jobs:
 
           cp "$source" "$destination"
           echo "filename=$destination" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: terraform-registry-manifest.json
           path: ${{ steps.terraform-registry-manifest.outputs.filename }}
@@ -124,7 +130,7 @@ jobs:
       - set-product-version
     runs-on: custom-ubuntu-22.04-medium
     if: github.repository_owner == 'hashicorp'
-    timeout-minutes: 10
+    timeout-minutes: 30
     strategy:
       fail-fast: true
       # Verify expected Artifacts list for a workflow run.
@@ -145,8 +151,8 @@ jobs:
 
     name: Go ${{ needs.get-go-version.outputs.go-version }} ${{ matrix.goos }} ${{ matrix.goarch }} build
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: hashicorp/actions-go-build@v1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: hashicorp/actions-go-build@dd7ca5a30c402c933e1fe61e0ff7165e5c4ee9e4 # v1
         env:
           CGO_ENABLED: 0
           BASE_VERSION: ${{ needs.set-product-version.outputs.product-base-version }}
@@ -166,7 +172,7 @@ jobs:
               -o "$BIN_PATH" \
               -trimpath \
               -buildvcs=false \
-              -ldflags "-s -w -X 'main.version=${{ needs.set-product-version.outputs.product-version }}'"
+              -ldflags "-s -w -X 'github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=${{ needs.set-product-version.outputs.product-version }}'"
             cp LICENSE "$TARGET_DIR/LICENSE.txt"
 
   whats-next:
@@ -187,3 +193,23 @@ jobs:
           echo "#### For a release branch (see \`.release/ci.hcl\`)" >> $GITHUB_STEP_SUMMARY
           echo "After this \`build\` workflow run completes succesfully, you can expect the CRT \`prepare\` workflow to begin momentarily." >> "$GITHUB_STEP_SUMMARY"
           echo "To find the \`prepare\` workflow run, [view the checks for this commit]($github_dot_com/$owner_with_name/commits/$ref)" >> "$GITHUB_STEP_SUMMARY"
+
+  notify-on-failure:
+    needs: [build, generate-metadata-file, upload-terraform-registry-manifest-artifact, whats-next]
+    if: failure() && github.repository == 'hashicorp/terraform-provider-azurerm'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Create Failure Issue
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const issueTitle = `🚨 Main Build Broken (Run #${context.runNumber})`;
+            const issueBody = `The build on the main branch has failed. \n\n[View Workflow Run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\nCC: @hashicorp/azurerm-provider-maintainers`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: issueTitle,
+              body: issueBody,
+            });

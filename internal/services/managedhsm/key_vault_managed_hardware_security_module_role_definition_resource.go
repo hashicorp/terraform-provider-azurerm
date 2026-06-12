@@ -212,12 +212,15 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 
 			scope := keyvault.RoleScopeGlobal
 			id := parse.NewManagedHSMDataPlaneRoleDefinitionID(endpoint.ManagedHSMName, endpoint.DomainSuffix, string(scope), config.Name)
-			existing, err := client.Get(ctx, id.BaseURI(), id.Scope, id.ManagedHSMName)
-			if !utils.ResponseWasNotFound(existing.Response) {
-				if err != nil {
-					return fmt.Errorf("checking for the existence of an existing %q: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id.BaseURI(), id.Scope, id.ManagedHSMName)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					if err != nil {
+						return fmt.Errorf("checking for the existence of an existing %q: %+v", id, err)
+					}
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			payload := keyvault.RoleDefinitionCreateParameters{
@@ -381,8 +384,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName, payload)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName, payload); err != nil {
 				return fmt.Errorf("updating %s: %v", id.ID(), err)
 			}
 

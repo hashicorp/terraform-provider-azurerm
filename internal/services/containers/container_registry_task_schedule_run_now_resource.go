@@ -19,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+// TODO: Deprecate this resource in favour of an action
+
 type ContainerRegistryTaskScheduleResource struct{}
 
 var _ sdk.Resource = ContainerRegistryTaskScheduleResource{}

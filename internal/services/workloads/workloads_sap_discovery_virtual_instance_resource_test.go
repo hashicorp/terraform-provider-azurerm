@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type WorkloadsSAPDiscoveryVirtualInstanceResource struct{}
+type WorkloadsSapDiscoveryVirtualInstanceResource struct{}
 
 func TestAccWorkloadsSAPDiscoveryVirtualInstanceSequential(t *testing.T) {
 	// The dependent central server VM requires many complicated manual configurations. So it has to test based on the resource provided by service team.
@@ -28,17 +28,19 @@ func TestAccWorkloadsSAPDiscoveryVirtualInstanceSequential(t *testing.T) {
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"sapVirtualInstance": {
-			"basic":          testAccWorkloadsSAPDiscoveryVirtualInstance_basic,
-			"requiresImport": testAccWorkloadsSAPDiscoveryVirtualInstance_requiresImport,
-			"complete":       testAccWorkloadsSAPDiscoveryVirtualInstance_complete,
-			"update":         testAccWorkloadsSAPDiscoveryVirtualInstance_update,
+			"basic":            testAccWorkloadsSAPDiscoveryVirtualInstance_basic,
+			"requiresImport":   testAccWorkloadsSAPDiscoveryVirtualInstance_requiresImport,
+			"complete":         testAccWorkloadsSAPDiscoveryVirtualInstance_complete,
+			"update":           testAccWorkloadsSAPDiscoveryVirtualInstance_update,
+			"resourceIdentity": testAccWorkloadsSapDiscoveryVirtualInstance_resourceIdentity,
+			"list_basic":       testAccWorkloadsSAPDiscoveryVirtualInstance_list_basic,
 		},
 	})
 }
 
 func testAccWorkloadsSAPDiscoveryVirtualInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_discovery_virtual_instance", "test")
-	r := WorkloadsSAPDiscoveryVirtualInstanceResource{}
+	r := WorkloadsSapDiscoveryVirtualInstanceResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +55,7 @@ func testAccWorkloadsSAPDiscoveryVirtualInstance_basic(t *testing.T) {
 
 func testAccWorkloadsSAPDiscoveryVirtualInstance_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_discovery_virtual_instance", "test")
-	r := WorkloadsSAPDiscoveryVirtualInstanceResource{}
+	r := WorkloadsSapDiscoveryVirtualInstanceResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +70,7 @@ func testAccWorkloadsSAPDiscoveryVirtualInstance_requiresImport(t *testing.T) {
 
 func testAccWorkloadsSAPDiscoveryVirtualInstance_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_discovery_virtual_instance", "test")
-	r := WorkloadsSAPDiscoveryVirtualInstanceResource{}
+	r := WorkloadsSapDiscoveryVirtualInstanceResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +85,7 @@ func testAccWorkloadsSAPDiscoveryVirtualInstance_complete(t *testing.T) {
 
 func testAccWorkloadsSAPDiscoveryVirtualInstance_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_discovery_virtual_instance", "test")
-	r := WorkloadsSAPDiscoveryVirtualInstanceResource{}
+	r := WorkloadsSapDiscoveryVirtualInstanceResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +112,7 @@ func testAccWorkloadsSAPDiscoveryVirtualInstance_update(t *testing.T) {
 	})
 }
 
-func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r WorkloadsSapDiscoveryVirtualInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := sapvirtualinstances.ParseSapVirtualInstanceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -127,7 +129,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Exists(ctx context.Context
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r WorkloadsSAPDiscoveryVirtualInstanceResource) basic(data acceptance.TestData) string {
+func (r WorkloadsSapDiscoveryVirtualInstanceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -162,7 +164,7 @@ resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_TEST_SAP_VIRTUAL_INSTANCE_NAME"), os.Getenv("ARM_TEST_CENTRAL_SERVER_VM_ID"), data.RandomString, os.Getenv("ARM_TEST_IDENTITY_ID"))
 }
 
-func (r WorkloadsSAPDiscoveryVirtualInstanceResource) requiresImport(data acceptance.TestData) string {
+func (r WorkloadsSapDiscoveryVirtualInstanceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -186,7 +188,7 @@ resource "azurerm_workloads_sap_discovery_virtual_instance" "import" {
 `, r.basic(data), os.Getenv("ARM_TEST_CENTRAL_SERVER_VM_ID"), data.RandomString, os.Getenv("ARM_TEST_IDENTITY_ID"))
 }
 
-func (r WorkloadsSAPDiscoveryVirtualInstanceResource) complete(data acceptance.TestData) string {
+func (r WorkloadsSapDiscoveryVirtualInstanceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -223,7 +225,7 @@ resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_TEST_SAP_VIRTUAL_INSTANCE_NAME"), data.RandomInteger, os.Getenv("ARM_TEST_CENTRAL_SERVER_VM_ID"), data.RandomString, os.Getenv("ARM_TEST_IDENTITY_ID"))
 }
 
-func (r WorkloadsSAPDiscoveryVirtualInstanceResource) update(data acceptance.TestData) string {
+func (r WorkloadsSapDiscoveryVirtualInstanceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -89,12 +89,14 @@ func (f SecurityPoliciesResource) Create() sdk.ResourceFunc {
 
 			id := securitypoliciesinterface.NewSecurityPolicyID(trafficControllerId.SubscriptionId, trafficControllerId.ResourceGroupName, trafficControllerId.TrafficControllerName, config.Name)
 
-			resp, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(resp.HttpResponse) {
-				return metadata.ResourceRequiresImport(f.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				resp, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(resp.HttpResponse) {
+					return metadata.ResourceRequiresImport(f.ResourceType(), id)
+				}
 			}
 
 			securityPolicy := securitypoliciesinterface.SecurityPolicy{
@@ -107,11 +109,11 @@ func (f SecurityPoliciesResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, securityPolicy); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, securityPolicy, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

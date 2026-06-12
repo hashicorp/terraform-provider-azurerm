@@ -40,5 +40,5 @@ data "azurerm_web_application_firewall_policy" "test" {
   name                = azurerm_web_application_firewall_policy.test.name
 
 }
-`, WebApplicationFirewallResource{}.complete(data))
+`, WebApplicationFirewallPolicyResource{}.complete(data))
 }

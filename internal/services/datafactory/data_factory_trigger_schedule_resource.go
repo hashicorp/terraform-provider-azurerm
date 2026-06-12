@@ -258,15 +258,17 @@ func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta in
 
 	id := parse.NewTriggerID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_data_factory_trigger_schedule", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_trigger_schedule", id.ID())
+		}
 	}
 
 	props := &datafactory.ScheduleTriggerTypeProperties{
@@ -348,8 +350,7 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	_, err = client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-	if err != nil {
+	if _, err = client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, ""); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 

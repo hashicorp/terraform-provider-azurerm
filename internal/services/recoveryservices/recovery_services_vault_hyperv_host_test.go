@@ -10,6 +10,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
@@ -105,7 +107,7 @@ func (HyperVHostTestResource) rebootVirtualMachine(ctx context.Context, clients 
 	return nil
 }
 
-func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData, adminPwd string) (steps []acceptance.TestStep) {
+func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData) (steps []acceptance.TestStep) {
 	return []acceptance.TestStep{
 		{
 			Config: r.recovery(data),
@@ -117,14 +119,14 @@ func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData, a
 			),
 		},
 		{
-			Config: r.hyperVTemplate(data, adminPwd), // split complete template into two parts to reboot the server.
+			Config: r.hyperVTemplate(data), // split complete template into two parts to reboot the server.
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_windows_virtual_machine.host"),
 				data.CheckWithClientForResource(r.rebootVirtualMachine, "azurerm_windows_virtual_machine.host"),
 			),
 		},
 		{
-			Config: r.template(data, adminPwd),
+			Config: r.template(data),
 		},
 	}
 }
@@ -152,6 +154,7 @@ locals {
   recovery_vault_name  = "acctest-nested-recovery-vault-%[1]d"
   recovery_site_name   = "acctest-nested-recovery-site-%[1]d"
   admin_name           = "acctestadmin"
+  admin_password       = "#D33p-7h0uGH7~42!"
   cert_name            = "acctestcert"
   storage_account_name = "acctestsa%[3]s"
 }
@@ -316,8 +319,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.hybrid.location
   resource_group_name = azurerm_resource_group.hybrid.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_services_vault_hyperv_site" "test" {
@@ -327,7 +328,7 @@ resource "azurerm_site_recovery_services_vault_hyperv_site" "test" {
 `, r.base(data))
 }
 
-func (r HyperVHostTestResource) hyperVTemplate(data acceptance.TestData, adminPwd string) string {
+func (r HyperVHostTestResource) hyperVTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -354,6 +355,7 @@ resource "azurerm_public_ip" "host" {
   resource_group_name = azurerm_resource_group.hybrid.name
   location            = azurerm_resource_group.hybrid.location
   allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "host" {
@@ -377,8 +379,9 @@ resource "azurerm_windows_virtual_machine" "host" {
   location            = azurerm_resource_group.hybrid.location
   size                = "Standard_D8as_v5"
   admin_username      = local.admin_name
-  admin_password      = "%[2]s"
-  computer_name       = "nested-Host"
+  admin_password      = local.admin_password
+
+  computer_name = "nested-Host"
 
   network_interface_ids = [
     azurerm_network_interface.host.id,
@@ -402,7 +405,7 @@ resource "azurerm_windows_virtual_machine" "host" {
 
   additional_unattend_content {
     setting = "AutoLogon"
-    content = "<AutoLogon><Password><Value>%[2]s</Value></Password><Enabled>true</Enabled><LogonCount>1</LogonCount><Username>${local.admin_name}</Username></AutoLogon>"
+    content = "<AutoLogon><Password><Value>${local.admin_password}</Value></Password><Enabled>true</Enabled><LogonCount>1</LogonCount><Username>${local.admin_name}</Username></AutoLogon>"
   }
 
   winrm_listener {
@@ -455,15 +458,16 @@ resource "azurerm_windows_virtual_machine" "host" {
 }
 
 
-%[3]s
+%[2]s
 
-%[4]s
-`, r.recovery(data), adminPwd, r.keyVault(), r.securityGroup())
+%[3]s
+`, r.recovery(data), r.keyVault(), r.securityGroup())
 }
 
-func (r HyperVHostTestResource) template(data acceptance.TestData, adminPwd string) string {
-	return fmt.Sprintf(`
-%s
+func (r HyperVHostTestResource) template(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+		%s
 # register the server could only be done by CustomScriptExtension because it requires local admin to run.
 
 resource "azurerm_storage_account" "hybrid" {
@@ -493,21 +497,21 @@ resource "azurerm_storage_blob" "setup_script" {
   storage_container_name = azurerm_storage_container.hybrid.name
   type                   = "Block"
   source_content         = <<EOF
-Set-VMHost -VirtualHardDiskPath c:\Disks -VirtualMachinePath c:\Machines
-New-VMSwitch -Name HyperV-NAT -SwitchType Internal
-$switchIndex=(Get-NetAdapter -Name "vEthernet (HyperV-NAT)").ifIndex
-New-NetIPAddress -IPAddress 192.168.0.1 -PrefixLength 24 -InterfaceIndex $switchIndex
-New-NetNat -Name HyperV-NAT -InternalIPInterfaceAddressPrefix 192.168.0.0/24
-Install-WindowsFeature -Name DHCP -IncludeManagementTools
-Add-DhcpServerv4Scope -Name "Hyper-V NAT" -StartRange 192.168.0.100 -EndRange 192.168.0.199 -SubnetMask 255.255.255.0 -LeaseDuration 0.00:59:00
-Set-DhcpServerv4OptionValue -ScopeId 192.168.0.0 -DnsServer 168.63.129.16 -Router 192.168.0.1
-New-NetFirewallRule -DisplayName "Allow all guest traffic" -Direction Inbound -RemoteAddress 192.168.0.0/24 -Profile Any -Action Allow
-New-VM -Name VM1 -Generation 1 -MemoryStartupBytes 16GB -BootDevice VHD -VHDPath C:\Disks\VM1.vhd -SwitchName HyperV-NAT
-Start-VM -Name VM1
-C:\AzureSiteRecoveryProvider\SETUPDR.EXE /i
-cd "C:\Program Files\Microsoft Azure Site Recovery Provider\"
-.\DRConfigurator.exe /r /Friendlyname "%[2]s" /Credentials "C:\temp\hyperv-credential"
-EOF
+		Set-VMHost -VirtualHardDiskPath c:\Disks -VirtualMachinePath c:\Machines
+		New-VMSwitch -Name HyperV-NAT -SwitchType Internal
+		$switchIndex=(Get-NetAdapter -Name "vEthernet (HyperV-NAT)").ifIndex
+		New-NetIPAddress -IPAddress 192.168.0.1 -PrefixLength 24 -InterfaceIndex $switchIndex
+		New-NetNat -Name HyperV-NAT -InternalIPInterfaceAddressPrefix 192.168.0.0/24
+		Install-WindowsFeature -Name DHCP -IncludeManagementTools
+		Add-DhcpServerv4Scope -Name "Hyper-V NAT" -StartRange 192.168.0.100 -EndRange 192.168.0.199 -SubnetMask 255.255.255.0 -LeaseDuration 0.00:59:00
+		Set-DhcpServerv4OptionValue -ScopeId 192.168.0.0 -DnsServer 168.63.129.16 -Router 192.168.0.1
+		New-NetFirewallRule -DisplayName "Allow all guest traffic" -Direction Inbound -RemoteAddress 192.168.0.0/24 -Profile Any -Action Allow
+		New-VM -Name VM1 -Generation 1 -MemoryStartupBytes 16GB -BootDevice VHD -VHDPath C:\Disks\VM1.vhd -SwitchName HyperV-NAT
+		Start-VM -Name VM1
+		C:\AzureSiteRecoveryProvider\SETUPDR.EXE /i
+		cd "C:\Program Files\Microsoft Azure Site Recovery Provider\"
+		.\DRConfigurator.exe /r /Friendlyname "%[2]s" /Credentials "C:\temp\hyperv-credential"
+		EOF
 }
 
 resource "azurerm_virtual_machine_extension" "script" {
@@ -532,6 +536,76 @@ resource "azurerm_virtual_machine_extension" "script" {
     azurerm_role_assignment.hybrid
   ]
 }
+		`, r.hyperVTemplate(data), HostName)
+	}
+	return fmt.Sprintf(`
+	%s
+# register the server could only be done by CustomScriptExtension because it requires local admin to run.
 
-`, r.hyperVTemplate(data, adminPwd), HostName)
+resource "azurerm_storage_account" "hybrid" {
+  name                     = local.storage_account_name
+  resource_group_name      = azurerm_resource_group.hybrid.name
+  location                 = azurerm_resource_group.hybrid.location
+  account_tier             = "Standard"
+  account_kind             = "StorageV2"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "hybrid" {
+  name                  = "hyperv-setup"
+  storage_account_id    = azurerm_storage_account.hybrid.id
+  container_access_type = "private"
+}
+
+resource "azurerm_role_assignment" "hybrid" {
+  scope                = azurerm_storage_account.hybrid.id
+  role_definition_name = "Storage Blob Data Reader"
+  principal_id         = azurerm_windows_virtual_machine.host.identity.0.principal_id
+}
+
+resource "azurerm_storage_blob" "setup_script" {
+  name                 = "setup_script.ps1"
+  storage_container_id = azurerm_storage_container.hybrid.id
+  type                 = "Block"
+  source_content       = <<EOF
+	Set-VMHost -VirtualHardDiskPath c:\Disks -VirtualMachinePath c:\Machines
+	New-VMSwitch -Name HyperV-NAT -SwitchType Internal
+	$switchIndex=(Get-NetAdapter -Name "vEthernet (HyperV-NAT)").ifIndex
+	New-NetIPAddress -IPAddress 192.168.0.1 -PrefixLength 24 -InterfaceIndex $switchIndex
+	New-NetNat -Name HyperV-NAT -InternalIPInterfaceAddressPrefix 192.168.0.0/24
+	Install-WindowsFeature -Name DHCP -IncludeManagementTools
+	Add-DhcpServerv4Scope -Name "Hyper-V NAT" -StartRange 192.168.0.100 -EndRange 192.168.0.199 -SubnetMask 255.255.255.0 -LeaseDuration 0.00:59:00
+	Set-DhcpServerv4OptionValue -ScopeId 192.168.0.0 -DnsServer 168.63.129.16 -Router 192.168.0.1
+	New-NetFirewallRule -DisplayName "Allow all guest traffic" -Direction Inbound -RemoteAddress 192.168.0.0/24 -Profile Any -Action Allow
+	New-VM -Name VM1 -Generation 1 -MemoryStartupBytes 16GB -BootDevice VHD -VHDPath C:\Disks\VM1.vhd -SwitchName HyperV-NAT
+	Start-VM -Name VM1
+	C:\AzureSiteRecoveryProvider\SETUPDR.EXE /i
+	cd "C:\Program Files\Microsoft Azure Site Recovery Provider\"
+	.\DRConfigurator.exe /r /Friendlyname "%[2]s" /Credentials "C:\temp\hyperv-credential"
+	EOF
+}
+
+resource "azurerm_virtual_machine_extension" "script" {
+  name                       = "setup-provider"
+  publisher                  = "Microsoft.Compute"
+  type                       = "CustomScriptExtension"
+  type_handler_version       = "1.9"
+  auto_upgrade_minor_version = true
+  virtual_machine_id         = azurerm_windows_virtual_machine.host.id
+
+  protected_settings = jsonencode(
+    {
+      "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File ${azurerm_storage_blob.setup_script.name}",
+      "fileUris" = [
+        azurerm_storage_blob.setup_script.url,
+      ],
+      "managedIdentity" = {}
+    }
+  )
+
+  depends_on = [
+    azurerm_role_assignment.hybrid
+  ]
+}
+	`, r.hyperVTemplate(data), HostName)
 }

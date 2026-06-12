@@ -19,51 +19,17 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mongo_cluster" "example" {
-  name                   = "example-mc"
-  resource_group_name    = azurerm_resource_group.example.name
-  location               = azurerm_resource_group.example.location
+  name                = "example-mc"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
   administrator_username = "adminTerraform"
   administrator_password = "QAZwsx123"
-  shard_count            = "1"
   compute_tier           = "Free"
   high_availability_mode = "Disabled"
-  storage_size_in_gb     = "32"
-}
-
-```
-
-## Example Usage (Preview feature GeoReplicas)
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-rg"
-  location = "East US"
-}
-
-resource "azurerm_mongo_cluster" "example" {
-  name                   = "example-mc"
-  resource_group_name    = azurerm_resource_group.example.name
-  location               = azurerm_resource_group.example.location
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123"
   shard_count            = "1"
-  compute_tier           = "M30"
-  high_availability_mode = "ZoneRedundantPreferred"
-  storage_size_in_gb     = "64"
-  preview_features       = ["GeoReplicas"]
-}
-
-resource "azurerm_mongo_cluster" "example_geo_replica" {
-  name                = "example-mc-geo"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = "Central US"
-  source_server_id    = azurerm_mongo_cluster.example.id
-  source_location     = azurerm_mongo_cluster.example.location
-  create_mode         = "GeoReplica"
-
-  lifecycle {
-    ignore_changes = ["administrator_username", "high_availability_mode", "preview_features", "shard_count", "storage_size_in_gb", "compute_tier", "version"]
-  }
+  storage_size_in_gb     = "32"
+  version                = "8.0"
 }
 ```
 
@@ -118,6 +84,8 @@ The following arguments are supported:
 * `storage_type` - (Optional) The storage type for the MongoDB Cluster. Possible values are `PremiumSSD` and `PremiumSSDv2`. Defaults to `PremiumSSD`. Changing this forces a new resource to be created.
 
 * `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
+
+~> **Note:** `version` is required when `create_mode` is `Default`.
 
 * `tags` - (Optional) A mapping of tags to assign to the MongoDB Cluster.
 

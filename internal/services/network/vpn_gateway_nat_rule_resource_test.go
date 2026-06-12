@@ -167,11 +167,8 @@ func (r VPNGatewayNatRuleResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_vpn_gateway_nat_rule" "test" {
-  name                = "acctest-vpnnatrule-%d"
-  vpn_gateway_id      = azurerm_vpn_gateway.test.id
-  mode                = "EgressSnat"
-  type                = "Dynamic"
-  ip_configuration_id = "Instance1"
+  name           = "acctest-vpnnatrule-%d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
 
   external_mapping {
     address_space = "192.168.22.0/26"

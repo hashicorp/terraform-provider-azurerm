@@ -95,14 +95,16 @@ func (r StaticWebAppCustomDomainResource) Create() sdk.ResourceFunc {
 
 			id := staticsites.NewCustomDomainID(siteId.SubscriptionId, siteId.ResourceGroupName, siteId.StaticSiteName, model.DomainName)
 
-			existing, err := client.GetStaticSiteCustomDomain(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetStaticSiteCustomDomain(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			customDomain := staticsites.StaticSiteCustomDomainRequestPropertiesARMResource{
@@ -112,17 +114,22 @@ func (r StaticWebAppCustomDomainResource) Create() sdk.ResourceFunc {
 			}
 
 			if strings.EqualFold(model.ValidationType, helpers.ValidationTypeCName) {
-				if err = client.CreateOrUpdateStaticSiteCustomDomainThenPoll(ctx, id, customDomain); err != nil {
+				if err = client.CreateOrUpdateStaticSiteCustomDomainCallbackThenPoll(ctx, id, customDomain, metadata.SetIDCallback(&id)); err != nil {
 					return fmt.Errorf("creating %s: %+v", id, err)
 				}
+				metadata.SetID(id)
 			} else {
 				if _, err := client.CreateOrUpdateStaticSiteCustomDomain(ctx, id, customDomain); err != nil {
 					return fmt.Errorf("creating %s: %+v", id, err)
 				}
+
+				metadata.SetID(id)
+
 				deadline, ok := ctx.Deadline()
 				if !ok {
 					return fmt.Errorf("internal-error: context was missing a deadline")
 				}
+
 				stateConf := &pluginsdk.StateChangeConf{
 					Pending: []string{
 						string(staticsites.CustomDomainStatusRetrievingValidationToken),
@@ -162,8 +169,6 @@ func (r StaticWebAppCustomDomainResource) Create() sdk.ResourceFunc {
 					}
 				}
 			}
-
-			metadata.SetID(id)
 
 			return nil
 		},

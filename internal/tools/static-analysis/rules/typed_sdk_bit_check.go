@@ -17,41 +17,40 @@ type TypedSDKBitCheck struct{}
 func (r TypedSDKBitCheck) Run() (errors []error) {
 	for _, s := range provider.SupportedTypedServices() {
 		for _, resource := range s.Resources() {
-			modelType := reflect.TypeOf(resource.ModelObject())
-			switch {
-			case modelType != nil && modelType.Kind() == reflect.Ptr:
-				model := modelType.Elem()
-				if model.Kind() != reflect.Struct {
-					errors = append(errors, fmt.Errorf("%s is not a pointer to a struct", modelType.Name()))
-					continue
-				}
-
-				errors = append(errors, checkForBits(model)...)
-
-			case modelType == nil:
-				continue
-
-			default:
-				errors = append(errors, fmt.Errorf("%q cannot be bit checked, ModelObject did not return a pointer", resource.ResourceType()))
+			if errs := checkModelObject(resource.ResourceType(), resource.ModelObject()); len(errs) > 0 {
+				errors = append(errors, errs...)
 			}
 		}
 		for _, datasource := range s.DataSources() {
-			modelType := reflect.TypeOf(datasource.ModelObject())
-			if modelType != nil && modelType.Kind() == reflect.Ptr { // Have to nil-check here due to base types not having a model. e.g. roleAssignmentBaseResource
-				model := modelType.Elem()
-				if model.Kind() != reflect.Struct {
-					errors = append(errors, fmt.Errorf("%s is not a pointer to a struct", modelType.Name()))
-					continue
-				}
-
-				errors = append(errors, checkForBits(model)...)
-			} else {
-				errors = append(errors, fmt.Errorf("%q cannot be bit checked, ModelObject did not return a pointer", datasource.ResourceType()))
+			if errs := checkModelObject(datasource.ResourceType(), datasource.ModelObject()); len(errs) > 0 {
+				errors = append(errors, errs...)
 			}
 		}
 	}
 
 	return
+}
+
+func checkModelObject(resourceType string, modelObj interface{}) (errors []error) {
+	modelType := reflect.TypeOf(modelObj)
+	if modelType == nil {
+		// TODO: uncomment the following error once all typed resources return a proper model from ModelObject().
+		// Currently 16 resources use metadata.ResourceData directly and return nil here. These need to be
+		// migrated to use metadata.Decode/Encode with a typed model struct before this check can be enforced.
+		// return []error{fmt.Errorf("%q cannot be bit checked, ModelObject returned nil", resourceType)}
+		return nil
+	}
+
+	if modelType.Kind() != reflect.Ptr {
+		return []error{fmt.Errorf("%q cannot be bit checked, ModelObject did not return a pointer", resourceType)}
+	}
+
+	model := modelType.Elem()
+	if model.Kind() != reflect.Struct {
+		return []error{fmt.Errorf("%q ModelObject is not a pointer to a struct", resourceType)}
+	}
+
+	return checkForBits(model)
 }
 
 func (r TypedSDKBitCheck) Name() string {

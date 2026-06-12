@@ -9,13 +9,21 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	managedvirtualnetwork "github.com/jackofallops/kermit/sdk/synapse/2019-06-01-preview/synapse"
 	accesscontrol "github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse"
 	artifacts "github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse"
 )
 
 type Client struct {
+	// Resource Manager
+	WorkspacesClient *workspaces.WorkspacesClient
+
+	// Data Plane
+	ManagedPrivateEndpointsClient *managedprivateendpoints.ManagedPrivateEndpointsClient
+
+	// TODO: Migrate to go-azure-sdk
 	FirewallRulesClient                               *synapse.IPFirewallRulesClient
 	IntegrationRuntimeAuthKeysClient                  *synapse.IntegrationRuntimeAuthKeysClient
 	IntegrationRuntimesClient                         *synapse.IntegrationRuntimesClient
@@ -43,7 +51,22 @@ type Client struct {
 	synapseAuthorizer autorest.Authorizer
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	// Resource Manager
+	workspacesClient, err := workspaces.NewWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Workspaces Client: %+v", err)
+	}
+	o.Configure(workspacesClient.Client, o.Authorizers.ResourceManager)
+
+	// Data Plane
+	managedPrivateEndpointsClient, err := managedprivateendpoints.NewManagedPrivateEndpointsClientUnconfigured()
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Private Endpoints Client: %+v", err)
+	}
+	o.Configure(managedPrivateEndpointsClient.Client, o.Authorizers.Synapse)
+
+	// TODO: migrate to go-azure-sdk
 	firewallRuleClient := synapse.NewIPFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRuleClient.Client, o.ResourceManagerAuthorizer)
 
@@ -115,6 +138,13 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&workspaceVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		// Resource Manager
+		WorkspacesClient: workspacesClient,
+
+		// Data Plane
+		ManagedPrivateEndpointsClient: managedPrivateEndpointsClient,
+
+		// TODO: Migrate to go-azure-sdk
 		FirewallRulesClient:                               &firewallRuleClient,
 		IntegrationRuntimeAuthKeysClient:                  &integrationRuntimeAuthKeysClient,
 		IntegrationRuntimesClient:                         &integrationRuntimesClient,
@@ -140,7 +170,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		WorkspaceVulnerabilityAssessmentsClient:           &workspaceVulnerabilityAssessmentsClient,
 
 		synapseAuthorizer: o.SynapseAuthorizer,
-	}
+	}, nil
 }
 
 func (client Client) RoleDefinitionsClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.RoleDefinitionsClient, error) {
@@ -161,16 +191,6 @@ func (client Client) RoleAssignmentsClient(workspaceName, synapseEndpointSuffix 
 	roleAssignmentsClient := accesscontrol.NewRoleAssignmentsClient(endpoint)
 	roleAssignmentsClient.Authorizer = client.synapseAuthorizer
 	return &roleAssignmentsClient, nil
-}
-
-func (client Client) ManagedPrivateEndpointsClient(workspaceName, synapseEndpointSuffix string) (*managedvirtualnetwork.ManagedPrivateEndpointsClient, error) {
-	if client.synapseAuthorizer == nil {
-		return nil, errors.New("'Synapse' is not supported in this Azure Environment")
-	}
-	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
-	managedPrivateEndpointsClient := managedvirtualnetwork.NewManagedPrivateEndpointsClient(endpoint)
-	managedPrivateEndpointsClient.Authorizer = client.synapseAuthorizer
-	return &managedPrivateEndpointsClient, nil
 }
 
 func (client Client) LinkedServiceClient(workspaceName, synapseEndpointSuffix string) (*artifacts.LinkedServiceClient, error) {

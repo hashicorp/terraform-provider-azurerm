@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
@@ -406,8 +406,7 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 
 			param.CustomizableObservations = customizableObservations
 
-			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -565,8 +564,7 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 
 			param.CustomizableObservations = customizableObservations
 
-			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -586,8 +584,7 @@ func (r AlertRuleAnomalyDuplicateResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
 			}
 
-			_, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName)
-			if err != nil {
+			if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
