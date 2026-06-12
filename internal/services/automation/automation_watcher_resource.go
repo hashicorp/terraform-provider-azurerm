@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -236,26 +238,18 @@ func (m WatcherResource) Update() sdk.ResourceFunc {
 				upd.Properties.ExecutionFrequencyInSeconds = pointer.To(model.ExecutionFrequencyInSeconds)
 			}
 
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{
-					"New",
-				},
-				Target: []string{
-					"Running",
-					"Stopped",
-					"Suspended",
-				},
-				Refresh:    automationWatcherStateRefreshFunc(ctx, client, id),
-				MinTimeout: 30 * time.Second,
-				Timeout:    meta.ResourceData.Timeout(pluginsdk.TimeoutUpdate),
+			pollerType := custompollers.NewAutomationWatcherUpdatePoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 1*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
 			}
 
-			resp, err := stateConf.WaitForStateContext(ctx)
-			if err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+			var pollerModel watcher.Watcher
+			if err = poller.LatestResponse().Unmarshal(&pollerModel); err != nil {
+				return err
 			}
 
-			status := pointer.From(resp.(watcher.GetOperationResponse).Model.Properties.Status)
+			status := pointer.From(pollerModel.Properties.Status)
 			if status == "Running" {
 				if _, err = client.Stop(ctx, *id); err != nil {
 					return fmt.Errorf("stopping %s: %v", *id, err)
@@ -295,23 +289,4 @@ func (m WatcherResource) Delete() sdk.ResourceFunc {
 
 func (m WatcherResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return watcher.ValidateWatcherID
-}
-
-func automationWatcherStateRefreshFunc(ctx context.Context, client *watcher.WatcherClient, id *watcher.WatcherId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, *id)
-		if err != nil {
-			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-
-		if model := resp.Model; model != nil {
-			if properties := model.Properties; properties != nil {
-				if status := properties.Status; status != nil {
-					return resp, pointer.From(status), nil
-				}
-			}
-		}
-
-		return resp, "", fmt.Errorf("retrieving %s: status is not returned", id)
-	}
 }
