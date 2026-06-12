@@ -481,7 +481,7 @@ resource "azurerm_storage_account" "hybrid" {
 
 resource "azurerm_storage_container" "hybrid" {
   name                  = "hyperv-setup"
-  storage_account_name  = azurerm_storage_account.hybrid.name
+  storage_account_id    = azurerm_storage_account.hybrid.id
   container_access_type = "private"
 }
 
@@ -492,11 +492,10 @@ resource "azurerm_role_assignment" "hybrid" {
 }
 
 resource "azurerm_storage_blob" "setup_script" {
-  name                   = "setup_script.ps1"
-  storage_account_name   = azurerm_storage_account.hybrid.name
-  storage_container_name = azurerm_storage_container.hybrid.name
-  type                   = "Block"
-  source_content         = <<EOF
+  name                 = "setup_script.ps1"
+  storage_container_id = azurerm_storage_container.hybrid.id
+  type                 = "Block"
+  source_content       = <<EOF
 		Set-VMHost -VirtualHardDiskPath c:\Disks -VirtualMachinePath c:\Machines
 		New-VMSwitch -Name HyperV-NAT -SwitchType Internal
 		$switchIndex=(Get-NetAdapter -Name "vEthernet (HyperV-NAT)").ifIndex
