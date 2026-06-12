@@ -310,7 +310,7 @@ resource "time_sleep" "test" {
     azurerm_role_assignment.avd_arm_provider_storage
   ]
 
-  create_duration = "5m"
+  create_duration = "2m"
 }
 
 resource "azurerm_virtual_desktop_app_attach_package" "test" {
@@ -360,7 +360,7 @@ resource "time_sleep" "test" {
     azurerm_role_assignment.avd_arm_provider_storage
   ]
 
-  create_duration = "5m"
+  create_duration = "2m"
 }
 
 resource "azurerm_virtual_desktop_app_attach_package" "test" {

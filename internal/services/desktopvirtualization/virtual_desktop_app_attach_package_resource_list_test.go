@@ -27,13 +27,8 @@ func TestAccVirtualDesktopAppAttachPackage_list_basic(t *testing.T) {
 		},
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				VersionConstraint: "=3.4.0",
-				Source:            "registry.terraform.io/hashicorp/azuread",
-			},
-			"time": {
-				Source: "registry.terraform.io/hashicorp/time",
-			},
+			"azuread": {},
+			"time":    {},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -70,7 +65,7 @@ resource "time_sleep" "test" {
     azurerm_role_assignment.avd_arm_provider_storage
   ]
 
-  create_duration = "5m"
+  create_duration = "2m"
 }
 
 resource "azurerm_virtual_desktop_app_attach_package" "test" {
