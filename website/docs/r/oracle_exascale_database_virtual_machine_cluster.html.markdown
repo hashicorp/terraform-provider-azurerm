@@ -98,7 +98,9 @@ The following arguments are supported:
 
 * `hostname` - (Required) The hostname for the Exadata VM Cluster on Exascale Infrastructure. Changing this forces a new Exadata VM Cluster to be created.
 
-* `grid_image_ocid` - (Required) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the grid image that is used for grid setup. Changing this forces a new resource to be created. The Grid Image OCID value can be obtained using the [giMinorVersions API](https://learn.microsoft.com/en-us/rest/api/oracle/gi-minor-versions/list-by-parent?view=rest-oracle-2025-09-01&tabs=HTTP) and [giVersions API](https://learn.microsoft.com/en-us/rest/api/oracle/gi-versions/list-by-location?view=rest-oracle-2025-09-01&tabs=HTTP).
+* `grid_image_ocid` - (Required) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the grid image that is used for grid setup. Changing this forces a new resource to be created.
+
+-> **Note:** The Grid Image OCID value can be obtained by first listing the available `giVersion.name` using the [giVersions API](https://learn.microsoft.com/rest/api/oracle/gi-versions/list-by-location?view=rest-oracle-2025-09-01&tabs=HTTP): `az rest -m GET -u '/subscriptions/{subscriptionId}/providers/Oracle.Database/locations/{location}/giVersions?api-version=2025-09-01'` and then listing the available `gridImageOcid` for the `giVersionName`, `zone` and `shapeFamily` using the [giMinorVersions API](https://learn.microsoft.com/rest/api/oracle/gi-minor-versions/list-by-parent?view=rest-oracle-2025-09-01&tabs=HTTP): `az rest -m GET -u 'https://management.azure.com/subscriptions/{subscriptionId}/providers/Oracle.Database/locations/{location}/giVersions/s*Exadata.X11M+z*3+v*26.0.0.0/giMinorVersions?api-version=2025-09-01&shapeFamily=EXADB_XS&zone=1'````
 
 * `number_of_vms_in_cluster` - (Required) The number of Virtual Machines in the Exadata VM cluster on Exascale Infrastructure. Possible values range between `2` and `10`.
 
