@@ -6,7 +6,6 @@ package helpers
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -59,11 +58,19 @@ type WorkloadProfileModel struct {
 
 func WorkloadProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		ConfigMode: schema.SchemaConfigModeAttr,
-		Type:       pluginsdk.TypeSet,
-		Optional:   true,
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
 		// Note: O+C - a default element with `Consumption` `workload_profile_type` is computed by Azure when `workload_profile` is not defined
-		Computed: true,
+		Computed:              true,
+		DiffSuppressOnRefresh: true,
+		DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
+			o, n := d.GetChange("workload_profile")
+
+			oldProfiles := o.(*pluginsdk.Set)
+			newProfiles := n.(*pluginsdk.Set)
+
+			return OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles)
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
