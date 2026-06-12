@@ -6,6 +6,7 @@ package keyvault
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -275,7 +276,7 @@ func (r KeyVaultCertificateContactsResource) Delete() sdk.ResourceFunc {
 			resp, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					// contacts do not exist, nothing to delete
+					log.Printf("[DEBUG] Key Vault Certificate Contact %s was not found in Key Vault at URI %s - removing from state", id.ID(), id.KeyVaultBaseUrl)
 					return nil
 				}
 
