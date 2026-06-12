@@ -169,6 +169,19 @@ func TestAccEventGridNamespaceResource_userAssignedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccEventGridNamespaceResource_completePreflightPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace", "test")
+	r := EventGridNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.completePreflightPlan(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
+	})
+}
+
 func (r EventGridNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {
@@ -526,6 +539,85 @@ resource "azurerm_eventgrid_namespace" "test" {
     identity_ids = [
       azurerm_user_assigned_identity.test.id
     ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r EventGridNamespaceResource) completePreflightPlan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    enhanced_validation {
+      preflight_enabled = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  input_schema        = "CloudEventSchemaV1_0"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_eventgrid_namespace" "test" {
+  name                = "acctest-egn-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  capacity              = 3
+  public_network_access = "Enabled"
+  sku                   = "Standard"
+
+  inbound_ip_rule {
+    ip_mask = "10.0.0.0/16"
+    action  = "Allow"
+  }
+
+  inbound_ip_rule {
+    ip_mask = "10.1.0.0/16"
+    action  = "Allow"
+  }
+
+  topic_spaces_configuration {
+    alternative_authentication_name_source          = ["ClientCertificateEmail", "ClientCertificateSubject"]
+    maximum_client_sessions_per_authentication_name = 2
+    maximum_session_expiry_in_hours                 = 2
+    route_topic_id                                  = azurerm_eventgrid_topic.test.id
+
+    dynamic_routing_enrichment {
+      key   = "hello"
+      value = "$${client.authenticationName}"
+    }
+
+    static_routing_enrichment {
+      key   = "hello4"
+      value = "world2"
+    }
+  }
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  tags = {
+    "env" = "acctest"
+    "foo" = "bar"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

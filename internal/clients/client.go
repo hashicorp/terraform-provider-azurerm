@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 
+	preflight "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/client"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
@@ -160,6 +162,8 @@ type Client struct {
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
 
+	Preflight *preflight.Client
+
 	AadB2c                            *aadb2c_v2021_04_01_preview.Client
 	Advisor                           *advisor.Client
 	AnalysisServices                  *analysisservices_v2017_08_01.Client
@@ -303,6 +307,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.StopContext = ctx
 
 	var err error
+
+	if client.Preflight, err = preflight.NewClient(o); err != nil {
+		return fmt.Errorf("building client for preflight validator: %+v", err)
+	}
 
 	if client.AadB2c, err = aadb2c.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AadB2c: %+v", err)

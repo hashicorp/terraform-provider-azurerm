@@ -233,23 +233,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 		},
 
 		Blocks: map[string]schema.Block{
-			"enhanced_validation": schema.ListNestedBlock{
-				Validators: []validator.List{
-					listvalidator.SizeAtMost(1),
-				},
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"locations": schema.BoolAttribute{
-							Optional:    true,
-							Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
-						},
-						"resource_providers": schema.BoolAttribute{
-							Optional:    true,
-							Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
-						},
-					},
-				},
-			},
 			"features": schema.ListNestedBlock{
 				Validators: []validator.List{
 					listvalidator.SizeBetween(1, 1),
@@ -306,6 +289,41 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								Attributes: map[string]schema.Attribute{
 									"purge_soft_delete_on_destroy": schema.BoolAttribute{
 										Optional: true,
+									},
+								},
+							},
+						},
+						"databricks_workspace": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"force_delete": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+									},
+								},
+							},
+						},
+						"enhanced_validation": schema.ListNestedBlock{
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
+							},
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"locations": schema.BoolAttribute{
+										Optional:    true,
+										Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
+									},
+									"resource_providers": schema.BoolAttribute{
+										Optional:    true,
+										Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
+									},
+									"preflight_enabled": schema.BoolAttribute{
+										Optional:    true,
+										Description: "Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
+									},
+									"location_fallback": schema.StringAttribute{
+										Optional:    true,
+										Description: "The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created.",
 									},
 								},
 							},
@@ -379,6 +397,98 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
+						"machine_learning": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"purge_soft_deleted_workspace_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"managed_disk": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"expand_without_downtime": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"netapp": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"delete_backups_on_backup_vault_destroy": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
+									},
+									"prevent_volume_destruction": schema.BoolAttribute{
+										Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
+										Optional:    true,
+									},
+								},
+							},
+						},
+						"postgresql_flexible_server": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"restart_server_on_configuration_value_change": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"recovery_service": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"vm_backup_stop_protection_and_retain_data_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
+									"vm_backup_suspend_protection_and_retain_data_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
+									"purge_protected_items_from_vault_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"recovery_services_vaults": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"recover_soft_deleted_backup_protected_vm": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"resource_group": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"prevent_deletion_if_contains_resources": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"storage": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"data_plane_available": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"subscription": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"prevent_cancellation_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
 						"template_deployment": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
@@ -417,108 +527,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									},
 									"scale_to_zero_before_deletion": schema.BoolAttribute{
 										Optional: true,
-									},
-								},
-							},
-						},
-						"resource_group": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"prevent_deletion_if_contains_resources": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"managed_disk": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"expand_without_downtime": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"storage": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"data_plane_available": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"subscription": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"prevent_cancellation_on_destroy": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"postgresql_flexible_server": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"restart_server_on_configuration_value_change": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"machine_learning": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"purge_soft_deleted_workspace_on_destroy": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"recovery_service": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"vm_backup_stop_protection_and_retain_data_on_destroy": schema.BoolAttribute{
-										Optional: true,
-									},
-									"vm_backup_suspend_protection_and_retain_data_on_destroy": schema.BoolAttribute{
-										Optional: true,
-									},
-									"purge_protected_items_from_vault_on_destroy": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"recovery_services_vaults": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"recover_soft_deleted_backup_protected_vm": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"netapp": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"delete_backups_on_backup_vault_destroy": schema.BoolAttribute{
-										Optional:    true,
-										Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
-									},
-									"prevent_volume_destruction": schema.BoolAttribute{
-										Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
-										Optional:    true,
-									},
-								},
-							},
-						},
-						"databricks_workspace": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"force_delete": schema.BoolAttribute{
-										Optional:    true,
-										Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
 									},
 								},
 							},

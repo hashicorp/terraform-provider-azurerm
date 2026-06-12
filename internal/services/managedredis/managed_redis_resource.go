@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
@@ -322,25 +323,10 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 
 			dbId := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
-			clusterParams := redisenterprise.Cluster{
-				Location: location.Normalize(model.Location),
-				Sku: redisenterprise.Sku{
-					Name: redisenterprise.SkuName(model.SkuName),
-				},
-				Properties: &redisenterprise.ClusterCreateProperties{
-					Encryption:          expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey),
-					MinimumTlsVersion:   pointer.To(redisenterprise.TlsVersionOnePointTwo),
-					HighAvailability:    expandHighAvailability(model.HighAvailabilityEnabled),
-					PublicNetworkAccess: redisenterprise.PublicNetworkAccess(model.PublicNetworkAccess),
-				},
-				Tags: pointer.To(model.Tags),
-			}
-
-			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+			clusterParams, err := expandCreateForManagedRedis(model)
 			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
+				return err
 			}
-			clusterParams.Identity = expandedIdentity
 
 			if err := clusterClient.CreateCallbackThenPoll(ctx, clusterId, clusterParams, metadata.SetIDCallback(&clusterId)); err != nil {
 				return fmt.Errorf("creating %s: %+v", clusterId, err)
@@ -366,6 +352,30 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandCreateForManagedRedis(model ManagedRedisResourceModel) (redisenterprise.Cluster, error) {
+	clusterParams := redisenterprise.Cluster{
+		Location: location.Normalize(model.Location),
+		Sku: redisenterprise.Sku{
+			Name: redisenterprise.SkuName(model.SkuName),
+		},
+		Properties: &redisenterprise.ClusterCreateProperties{
+			Encryption:          expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey),
+			MinimumTlsVersion:   pointer.To(redisenterprise.TlsVersionOnePointTwo),
+			HighAvailability:    expandHighAvailability(model.HighAvailabilityEnabled),
+			PublicNetworkAccess: redisenterprise.PublicNetworkAccess(model.PublicNetworkAccess),
+		},
+		Tags: pointer.To(model.Tags),
+	}
+
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+	if err != nil {
+		return clusterParams, fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	clusterParams.Identity = expandedIdentity
+
+	return clusterParams, nil
 }
 
 func (r ManagedRedisResource) Read() sdk.ResourceFunc {
@@ -659,6 +669,27 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 			var model ManagedRedisResourceModel
 			if err := metadata.DecodeDiff(&model); err != nil {
 				return err
+			}
+
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				// Only perform preflight validation if there are changes. This avoids validation failures and
+				// additional API calls for resources that are unchanged between plan invocations
+				if len(metadata.ResourceDiff.GetChangedKeysPrefix("")) > 0 || metadata.ResourceDiff.Id() == "" {
+					req, err := expandCreateForManagedRedis(model)
+					if err != nil {
+						return err
+					}
+
+					resId := redisenterprise.NewRedisEnterpriseID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+					preflightValidate, err := preflight.NewValidationRequestWithTypeOverride(pointer.To(model.Location), pointer.To(resId), "redis", "2025-07-01", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
+
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
+				}
 			}
 
 			if metadata.ResourceDiff.Id() == "" && len(model.DefaultDatabase) == 0 {
