@@ -81,6 +81,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerRegistryTokenPasswordResource{},
 		KubernetesClusterDeploymentSafeguardResource{},
 		KubernetesClusterExtensionResource{},
+		KubernetesFleetAutoUpgradeProfileResource{},
 		KubernetesFleetManagerResource{},
 		KubernetesFleetUpdateRunResource{},
 		KubernetesFleetUpdateStrategyResource{},
@@ -107,5 +108,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		KubernetesFleetAutoUpgradeProfileListResource{},
+	}
 }
