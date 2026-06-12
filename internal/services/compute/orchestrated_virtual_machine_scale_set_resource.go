@@ -160,9 +160,10 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
 
 			"automatic_zone_rebalancing_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				Default:      false,
+				RequiredWith: []string{"zones"},
 			},
 
 			"boot_diagnostics": bootDiagnosticsSchema(),
@@ -488,6 +489,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 				return nil
 			}),
+
+			pluginsdk.CustomizeDiffShim(virtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(false)),
 		),
 	}
 

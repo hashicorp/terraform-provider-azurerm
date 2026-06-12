@@ -100,6 +100,8 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 				return nil
 			}),
+
+			pluginsdk.CustomizeDiffShim(virtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(true)),
 		),
 	}
 }
@@ -1238,9 +1240,10 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
 
 		"automatic_zone_rebalancing_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			Default:      false,
+			RequiredWith: []string{"zones"},
 		},
 
 		"boot_diagnostics": bootDiagnosticsSchema(),

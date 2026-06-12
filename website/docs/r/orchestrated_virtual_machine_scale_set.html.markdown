@@ -56,7 +56,7 @@ The following arguments are supported:
 
 ~> **Note:** To enable the `automatic_instance_repair`, the Orchestrated Virtual Machine Scale Set must have a valid [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
 
-* `automatic_zone_rebalancing_enabled` - (Optional) Whether to enable automatic zone balance. Defaults to `false`.
+* `automatic_zone_rebalancing_enabled` - (Optional) Whether to enable automatic zone balance. Defaults to `false`. Requires `zones` to be set. When set to `true`, a health extension must be configured.
 
 -> **Note:** For more information about automatic zone balance, please refer to the [product documentation](https://learn.microsoft.com/azure/virtual-machine-scale-sets/auto-zone-balance-overview).
 

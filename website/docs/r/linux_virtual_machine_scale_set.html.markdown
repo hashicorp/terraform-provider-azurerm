@@ -128,7 +128,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **Note:** For more information about Automatic Instance Repair, please refer to the [product documentation](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-automatic-instance-repairs).
 
-* `automatic_zone_rebalancing_enabled` - (Optional) Whether to enable automatic zone balance. Defaults to `false`.
+* `automatic_zone_rebalancing_enabled` - (Optional) Whether to enable automatic zone balance. Defaults to `false`. Requires `zones` to be set. When set to `true`, a `health_probe_id` or a health extension must be configured.
 
 -> **Note:** For more information about automatic zone balance, please refer to the [product documentation](https://learn.microsoft.com/azure/virtual-machine-scale-sets/auto-zone-balance-overview).
 
