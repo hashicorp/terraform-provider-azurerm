@@ -40,6 +40,9 @@ func TestAccDurableTaskHubList_basic(t *testing.T) {
 }
 
 func (r DurableTaskHubResource) basicList(data acceptance.TestData) string {
+	// Durable Task schedulers are only supported in specific regions.
+	data.Locations.Primary = "northeurope"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

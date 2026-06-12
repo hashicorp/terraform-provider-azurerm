@@ -144,13 +144,15 @@ func (r RetentionPolicyResource) Create() sdk.ResourceFunc {
 			// resource path (ending in `/retentionPolicies/default`) to uniquely identify this singleton.
 			id := NewRetentionPolicyID(parsedId.SubscriptionId, parsedId.ResourceGroupName, parsedId.SchedulerName)
 
-			existing, err := client.Get(ctx, schedulerId)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing retention policy on %s: %+v", schedulerId.ID(), err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, schedulerId)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing retention policy on %s: %+v", schedulerId.ID(), err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := retentionpolicies.RetentionPolicy{

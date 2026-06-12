@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/schedulers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/taskhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -48,6 +49,27 @@ func TestAccDurableTaskHub_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccDurableTaskHub_skipImportCheckOnCreate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
+	r := DurableTaskHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.template(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(r.createHubOutsideTerraform(data), "azurerm_durable_task_scheduler.test"),
+			),
+		},
+		{
+			Config: r.withSkipImportCheck(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DurableTaskHubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := taskhubs.ParseTaskHubID(state.ID)
 	if err != nil {
@@ -61,7 +83,30 @@ func (r DurableTaskHubResource) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(true), nil
 }
 
+func (r DurableTaskHubResource) createHubOutsideTerraform(data acceptance.TestData) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+		schedulerId, err := schedulers.ParseSchedulerID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		id := taskhubs.NewTaskHubID(schedulerId.SubscriptionId, schedulerId.ResourceGroupName, schedulerId.SchedulerName, fmt.Sprintf("acctestdth%s", data.RandomString))
+		properties := taskhubs.TaskHub{
+			Properties: &taskhubs.TaskHubProperties{},
+		}
+
+		if err := client.DurableTask.TaskHubsClient.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+			return fmt.Errorf("creating task hub outside terraform: %+v", err)
+		}
+
+		return nil
+	}
+}
+
 func (r DurableTaskHubResource) template(data acceptance.TestData) string {
+	// Durable Task schedulers are only supported in specific regions.
+	data.Locations.Primary = "northeurope"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -104,4 +149,35 @@ resource "azurerm_durable_task_hub" "import" {
   durable_task_scheduler_id = azurerm_durable_task_hub.test.durable_task_scheduler_id
 }
 `, template)
+}
+
+func (r DurableTaskHubResource) withSkipImportCheck(data acceptance.TestData) string {
+	// Durable Task schedulers are only supported in specific regions.
+	data.Locations.Primary = "northeurope"
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    skip_import_check_on_create_and_allow_overwriting_existing_resources = true
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-durabletask-%d"
+  location = "%s"
+}
+
+resource "azurerm_durable_task_scheduler" "test" {
+  name                = "acctestdts%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Consumption"
+  ip_allow_list       = ["0.0.0.0/0"]
+}
+
+resource "azurerm_durable_task_hub" "test" {
+  name                      = "acctestdth%s"
+  durable_task_scheduler_id = azurerm_durable_task_scheduler.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

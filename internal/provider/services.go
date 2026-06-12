@@ -408,6 +408,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		digitaltwins.Registration{},
 		dns.Registration{},
 		domainservices.Registration{},
+		durabletask.Registration{},
 		dynatrace.Registration{},
 		elastic.Registration{},
 		elasticsan.Registration{},
