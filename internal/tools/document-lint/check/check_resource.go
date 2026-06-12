@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -34,7 +34,8 @@ func (d *ResourceDiff) ToString() string {
 	var bs strings.Builder
 
 	bs.WriteString(
-		fmt.Sprintf("%s: %s:1 has %d issue[s]:\n",
+		fmt.Sprintf(
+			"%s: %s:1 has %d issue[s]:\n",
 			util.Bold(d.tf.ResourceType),
 			d.tf.FilePathRel(),
 			len(d.Diff),

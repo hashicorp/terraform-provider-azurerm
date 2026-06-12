@@ -3,7 +3,7 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nat_gateway"
 description: |-
-  Manages a Azure NAT Gateway.
+  Manages an Azure NAT Gateway.
 ---
 # azurerm_nat_gateway
 
@@ -29,7 +29,7 @@ resource "azurerm_nat_gateway" "example" {
 
 For more complete examples, please see the [azurerm_nat_gateway_public_ip_association](nat_gateway_public_ip_association.html) and [azurerm_nat_gateway_public_ip_prefix_association](nat_gateway_public_ip_prefix_association.html) resources.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -41,13 +41,15 @@ The following arguments are supported:
 
 * `idle_timeout_in_minutes` - (Optional) The idle timeout which should be used in minutes. Defaults to `4`.
 
-* `sku_name` - (Optional) The SKU which should be used. At this time the only supported value is `Standard`. Defaults to `Standard`.
+* `sku_name` - (Optional) The SKU which should be used. Possible values are `Standard` and `StandardV2`. Defaults to `Standard`. Changing this forces a new resource to be created.
+
+* `zones` - (Optional) A list of Availability Zones in which this NAT Gateway should be located. Changing this forces a new resource to be created.
+
+-> **Note:** For `Standard`, `zones` may be omitted for a no-zone deployment or set to a single Availability Zone. For more information, please see the [Azure documentation](https://learn.microsoft.com/azure/nat-gateway/nat-overview#availability-zones).
+
+~> **Note:** `zones` must be omitted when `sku_name` is set to `StandardV2`. `StandardV2` NAT Gateways are zone-redundant by default and Azure automatically deploys across all available zones. For more information, please see the [Azure documentation](https://learn.microsoft.com/azure/nat-gateway/nat-overview#standardv2-nat-gateway).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. 
-
-* `zones` - (Optional) A list of Availability Zones in which this NAT Gateway should be located. Changing this forces a new NAT Gateway to be created.
-
--> **NOTE:** Only one Availability Zone can be defined. For more information, please check out the [Azure documentation](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview#availability-zones)
 
 ## Attributes Reference
 
@@ -59,17 +61,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the NAT Gateway.
-* `update` - (Defaults to 60 minutes) Used when updating the NAT Gateway.
+* `create` - (Defaults to 1 hour) Used when creating the NAT Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NAT Gateway.
-* `delete` - (Defaults to 60 minutes) Used when deleting the NAT Gateway.
+* `update` - (Defaults to 1 hour) Used when updating the NAT Gateway.
+* `delete` - (Defaults to 1 hour) Used when deleting the NAT Gateway.
 
 ## Import
 
-NAT Gateway can be imported using the `resource id`, e.g.
+A NAT Gateway can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_nat_gateway.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/natGateways/gateway1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

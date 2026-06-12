@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -25,19 +25,19 @@ The following arguments are supported:
 
 * 'block2' - (Required) One or more 'block2' blocks as defined below.
 
-* 'foo_enabled' - (Required) Should the TODO be enabled?
+* 'foo_enabled' - (Required) Whether to enable the TODO.
 
 * 'foo_id' - (Required) The ID of the TODO.
 
 * 'list' - (Required) Specifies a list of TODO.
 
-* 'location' - (Required) The Azure Region where the Foobar should exist. Changing this forces a new Foobar to be created.
+* 'location' - (Required) The Azure Region where the Foobar should exist. Changing this forces a new resource to be created.
 
 * 'map' - (Required) Specifies a list of TODO.
 
-* 'name' - (Required) The name which should be used for this Foobar. Changing this forces a new Foobar to be created.
+* 'name' - (Required) The name which should be used for this Foobar. Changing this forces a new resource to be created.
 
-* 'resource_group_name' - (Required) The name of the Resource Group where the Foobar should exist. Changing this forces a new Foobar to be created.
+* 'resource_group_name' - (Required) The name of the Resource Group where the Foobar should exist. Changing this forces a new resource to be created.
 
 * 'set' - (Required) Specifies a list of TODO.
 

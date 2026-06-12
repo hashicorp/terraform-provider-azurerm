@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -76,12 +77,14 @@ func resourceSynapseWorkspaceSqlAADAdminCreateUpdate(d *pluginsdk.ResourceData, 
 	workspaceName := workspaceId.Name
 	workspaceResourceGroup := workspaceId.ResourceGroup
 
+	// TODO: import check
+
 	aadAdmin := &synapse.WorkspaceAadAdminInfo{
 		AadAdminProperties: &synapse.AadAdminProperties{
-			TenantID:          utils.String(d.Get("tenant_id").(string)),
-			Login:             utils.String(d.Get("login").(string)),
-			AdministratorType: utils.String("ActiveDirectory"),
-			Sid:               utils.String(d.Get("object_id").(string)),
+			TenantID:          pointer.To(d.Get("tenant_id").(string)),
+			Login:             pointer.To(d.Get("login").(string)),
+			AdministratorType: pointer.To("ActiveDirectory"),
+			Sid:               pointer.To(d.Get("object_id").(string)),
 		},
 	}
 
@@ -90,12 +93,14 @@ func resourceSynapseWorkspaceSqlAADAdminCreateUpdate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("updating Synapse Workspace %q Sql AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
 	}
 
+	if d.IsNewResource() {
+		id := parse.NewWorkspaceSqlAADAdminID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "activeDirectory")
+		d.SetId(id.ID())
+	}
+
 	if err = workspaceAadAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
 	}
-
-	id := parse.NewWorkspaceSqlAADAdminID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "activeDirectory")
-	d.SetId(id.ID())
 
 	return resourceSynapseWorkspaceSqlAADAdminRead(d, meta)
 }
@@ -122,9 +127,9 @@ func resourceSynapseWorkspaceSqlAADAdminRead(d *pluginsdk.ResourceData, meta int
 	workspaceID := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
 	d.Set("synapse_workspace_id", workspaceID.ID())
-	d.Set("login", aadAdmin.AadAdminProperties.Login)
-	d.Set("object_id", aadAdmin.AadAdminProperties.Sid)
-	d.Set("tenant_id", aadAdmin.AadAdminProperties.TenantID)
+	d.Set("login", aadAdmin.Login)
+	d.Set("object_id", aadAdmin.Sid)
+	d.Set("tenant_id", aadAdmin.TenantID)
 
 	return nil
 }

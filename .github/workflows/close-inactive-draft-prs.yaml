@@ -1,0 +1,18 @@
+name: 'Close Inactive Draft PRs'
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * MON'
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale-draft-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Process stale draft PRs
+        run: ./scripts/close-inactive-draft-prs.sh -o "${{ github.repository_owner }}" -r "${{ github.event.repository.name }}" -t "${{ secrets.GITHUB_TOKEN }}"
+

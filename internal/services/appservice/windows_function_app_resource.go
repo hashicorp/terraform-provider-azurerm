@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -16,17 +16,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -44,31 +43,32 @@ type WindowsFunctionAppModel struct {
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
-	AppSettings                      map[string]string                      `tfschema:"app_settings"`
-	StickySettings                   []helpers.StickySettings               `tfschema:"sticky_settings"`
-	AuthSettings                     []helpers.AuthSettings                 `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
-	Backup                           []helpers.Backup                       `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging                   bool                                   `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled                bool                                   `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                                 `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                                 `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings                []helpers.ConnectionString             `tfschema:"connection_string"`
-	DailyMemoryTimeQuota             int64                                  `tfschema:"daily_memory_time_quota"`
-	Enabled                          bool                                   `tfschema:"enabled"`
-	FunctionExtensionsVersion        string                                 `tfschema:"functions_extension_version"`
-	ForceDisableContentShare         bool                                   `tfschema:"content_share_force_disabled"`
-	HttpsOnly                        bool                                   `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID      string                                 `tfschema:"key_vault_reference_identity_id"`
-	PublicNetworkAccess              bool                                   `tfschema:"public_network_access_enabled"`
-	SiteConfig                       []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
-	StorageAccounts                  []helpers.StorageAccount               `tfschema:"storage_account"`
-	Tags                             map[string]string                      `tfschema:"tags"`
-	VirtualNetworkSubnetID           string                                 `tfschema:"virtual_network_subnet_id"`
-	ZipDeployFile                    string                                 `tfschema:"zip_deploy_file"`
-	PublishingDeployBasicAuthEnabled bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled    bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
-	VnetImagePullEnabled             bool                                   `tfschema:"vnet_image_pull_enabled,addedInNextMajorVersion"`
+	AppSettings                        map[string]string                      `tfschema:"app_settings"`
+	StickySettings                     []helpers.StickySettings               `tfschema:"sticky_settings"`
+	AuthSettings                       []helpers.AuthSettings                 `tfschema:"auth_settings"`
+	AuthV2Settings                     []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
+	Backup                             []helpers.Backup                       `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging                     bool                                   `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                  bool                                   `tfschema:"client_certificate_enabled"`
+	ClientCertMode                     string                                 `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths           string                                 `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                  []helpers.ConnectionString             `tfschema:"connection_string"`
+	DailyMemoryTimeQuota               int64                                  `tfschema:"daily_memory_time_quota"`
+	Enabled                            bool                                   `tfschema:"enabled"`
+	FunctionExtensionsVersion          string                                 `tfschema:"functions_extension_version"`
+	ForceDisableContentShare           bool                                   `tfschema:"content_share_force_disabled"`
+	HttpsOnly                          bool                                   `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID        string                                 `tfschema:"key_vault_reference_identity_id"`
+	PublicNetworkAccess                bool                                   `tfschema:"public_network_access_enabled"`
+	SiteConfig                         []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
+	StorageAccounts                    []helpers.StorageAccount               `tfschema:"storage_account"`
+	Tags                               map[string]string                      `tfschema:"tags"`
+	VirtualNetworkBackupRestoreEnabled bool                                   `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetID             string                                 `tfschema:"virtual_network_subnet_id"`
+	ZipDeployFile                      string                                 `tfschema:"zip_deploy_file"`
+	PublishingDeployBasicAuthEnabled   bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled      bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
+	VnetImagePullEnabled               bool                                   `tfschema:"vnet_image_pull_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -104,7 +104,7 @@ func (r WindowsFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 
 func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -161,7 +161,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_key_vault_secret_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_key_vault_secret_id",
@@ -288,7 +288,13 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"storage_account": helpers.StorageAccountSchemaWindows(),
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
+
+		"virtual_network_backup_restore_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"virtual_network_subnet_id": {
 			Type:         pluginsdk.TypeString,
@@ -311,6 +317,12 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Function App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`.",
 		},
 	}
+
+	if !features.FivePointOh() {
+		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	}
+
+	return args
 }
 
 func (r WindowsFunctionAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -446,13 +458,15 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 			// Only send for Dynamic and ElasticPremium
 			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !functionApp.ForceDisableContentShare
 
-			existing, err := client.Get(ctx, *id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, *id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			subscriptionID := commonids.NewSubscriptionID(subscriptionId)
@@ -527,15 +541,16 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("functionapp"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:         pointer.To(functionApp.ServicePlanId),
-					Enabled:              pointer.To(functionApp.Enabled),
-					HTTPSOnly:            pointer.To(functionApp.HttpsOnly),
-					SiteConfig:           siteConfig,
-					ClientCertEnabled:    pointer.To(functionApp.ClientCertEnabled),
-					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
-					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota),
-					VnetImagePullEnabled: pointer.To(functionApp.VnetImagePullEnabled),
-					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
+					ServerFarmId:             pointer.To(functionApp.ServicePlanId),
+					Enabled:                  pointer.To(functionApp.Enabled),
+					HTTPSOnly:                pointer.To(functionApp.HttpsOnly),
+					SiteConfig:               siteConfig,
+					ClientCertEnabled:        pointer.To(functionApp.ClientCertEnabled),
+					ClientCertMode:           pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
+					DailyMemoryTimeQuota:     pointer.To(functionApp.DailyMemoryTimeQuota),
+					VnetBackupRestoreEnabled: pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
+					VnetImagePullEnabled:     pointer.To(functionApp.VnetImagePullEnabled),
+					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
 				},
 			}
 
@@ -560,9 +575,11 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(functionApp.ClientCertExclusionPaths)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, siteEnvelope); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, siteEnvelope, metadata.SetIDCallback(id)); err != nil {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
 			}
+
+			metadata.SetID(id)
 
 			if !functionApp.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
@@ -589,8 +606,6 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, siteEnvelope); err != nil {
 				return fmt.Errorf("updating properties of Windows %s: %+v", id, err)
 			}
-
-			metadata.SetID(id)
 
 			stickySettings := helpers.ExpandStickySettings(functionApp.StickySettings)
 
@@ -630,9 +645,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 			storageConfig := helpers.ExpandStorageConfig(functionApp.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccounts(ctx, *id, *storageConfig); err != nil {
-					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
-					}
+					return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -762,6 +775,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
@@ -774,7 +788,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-						hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
+						hostingEnvId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
 						if err != nil {
 							return err
 						}
@@ -857,8 +871,6 @@ func (r WindowsFunctionAppResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting Windows %s", *id)
 
 			delOptions := webapps.DeleteOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -978,6 +990,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = pointer.To(state.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
+				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
@@ -1145,17 +1161,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
 				if authUpdate.Properties == nil {
-					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
-						Enabled:                           pointer.To(false),
-						ClientSecret:                      pointer.To(""),
-						ClientSecretSettingName:           pointer.To(""),
-						ClientSecretCertificateThumbprint: pointer.To(""),
-						GoogleClientSecret:                pointer.To(""),
-						FacebookAppSecret:                 pointer.To(""),
-						GitHubClientSecret:                pointer.To(""),
-						TwitterConsumerSecret:             pointer.To(""),
-						MicrosoftAccountClientSecret:      pointer.To(""),
-					}
+					authUpdate.Properties = helpers.DefaultAuthSettingsProperties()
 					updateLogs = true
 				}
 				if _, err := client.UpdateAuthSettings(ctx, *id, *authUpdate); err != nil {
@@ -1165,6 +1171,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Windows %s: %+v", id, err)
 				}
@@ -1266,7 +1276,7 @@ func (r WindowsFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 				if aspModel := asp.Model; aspModel != nil {
 					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
-						aspModel.Properties.HostingEnvironmentProfile.Id != nil && *(aspModel.Properties.HostingEnvironmentProfile.Id) != "" && !newValue.(bool) {
+						aspModel.Properties.HostingEnvironmentProfile.Id != nil && *aspModel.Properties.HostingEnvironmentProfile.Id != "" && !newValue.(bool) {
 						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 					}
 					if sku := aspModel.Sku; sku != nil {

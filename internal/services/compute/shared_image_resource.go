@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -18,15 +18,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name shared_image -service-package-name compute -properties "name,resource_group_name,gallery_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceSharedImage() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -35,10 +39,11 @@ func resourceSharedImage() *pluginsdk.Resource {
 		Update: resourceSharedImageUpdate,
 		Delete: resourceSharedImageDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := galleryimages.ParseGalleryImageID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&galleryimages.GalleryImageId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&galleryimages.GalleryImageId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -288,18 +293,19 @@ func resourceSharedImageCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Shared Image creation.")
 	id := galleryimages.NewGalleryImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_shared_image", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_shared_image", id.ID())
+		}
 	}
 
 	recommended, err := expandGalleryImageRecommended(d)
@@ -342,11 +348,14 @@ func resourceSharedImageCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		image.Properties.OsState = galleryimages.OperatingSystemStateTypesGeneralized
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, image); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, image, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceSharedImageRead(d, meta)
 }
@@ -500,7 +509,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 			d.Set("os_type", string(props.OsType))
 
-			architecture := string((galleryimages.ArchitectureXSixFour))
+			architecture := string(galleryimages.ArchitectureXSixFour)
 			if props.Architecture != nil {
 				architecture = string(*props.Architecture)
 			}
@@ -566,9 +575,11 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("disk_controller_type_nvme_enabled", diskControllerTypeNVMEEnabled)
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("flattening `tags`: %+v", err)
+		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceSharedImageDelete(d *pluginsdk.ResourceData, meta interface{}) error {

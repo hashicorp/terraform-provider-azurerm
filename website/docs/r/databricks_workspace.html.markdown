@@ -30,9 +30,9 @@ resource "azurerm_databricks_workspace" "example" {
 }
 ```
 
--> You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
+-> **Note:** You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -136,7 +136,7 @@ An `enhanced_security_compliance` block supports the following:
 
 ~> **Note:** The attributes `automatic_cluster_update_enabled` and `enhanced_security_monitoring_enabled` must be set to `true` in order to set `compliance_security_profile_enabled` to `true`.
 
-* `compliance_security_profile_standards` - (Optional) A list of standards to enforce on this workspace. Possible values include `HIPAA` and `PCI_DSS`.
+* `compliance_security_profile_standards` - (Optional) A list of standards to enforce on this workspace. Possible values include `HIPAA`, `PCI_DSS`, `FEDRAMP_MODERATE`, `IRAP_PROTECTED`, `FEDRAMP_HIGH`, `FEDRAMP_IL5`, `ITAR_EAR`, `CYBER_ESSENTIAL_PLUS`, `CANADA_PROTECTED_B`, `ISMAP`, `HITRUST`, `K_FSI`, `GERMANY_C5`, and `GERMANY_TISAX`
 
 ~> **Note:** `compliance_security_profile_enabled` must be set to `true` in order to use `compliance_security_profile_standards`.
 
@@ -195,11 +195,11 @@ A `storage_account_identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Databricks Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Databricks Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Databricks Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Databricks Workspace.
 
 ## Import
@@ -209,3 +209,11 @@ Databrick Workspaces can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_databricks_workspace.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Databricks` - 2026-01-01
+
+* `Microsoft.Network` - 2025-01-01, 2023-09-01

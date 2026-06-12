@@ -33,7 +33,7 @@ resource "azurerm_batch_pool" "example" {
   resource_group_name = azurerm_resource_group.example.name
   account_name        = azurerm_batch_account.example.name
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -79,7 +79,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 5 minutes) Used when creating the Batch Job.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Batch Job.

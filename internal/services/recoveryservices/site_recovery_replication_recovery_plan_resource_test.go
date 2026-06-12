@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -10,12 +10,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationrecoveryplans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteRecoveryReplicationRecoveryPlan struct{}
@@ -164,18 +164,6 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withMultiBootGroup(t *testing.T)
 	})
 }
 
-func TestAccSiteRecoveryReplicationRecoveryPlan_wrongSettings(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
-	r := SiteRecoveryReplicationRecoveryPlan{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.wrongSettingsWithDeprecatedGroup(data),
-			ExpectError: regexp.MustCompile("`replicated_protected_items` must not be specified for `recovery_group` with `Shutdown` type."),
-		},
-	})
-}
-
 func TestAccSiteRecoveryReplicationRecoveryPlan_wrongActions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
 	r := SiteRecoveryReplicationRecoveryPlan{}
@@ -222,8 +210,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_fabric" "test1" {
@@ -688,34 +674,6 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicationRecoveryPlan) wrongSettingsWithDeprecatedGroup(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_site_recovery_replication_recovery_plan" "test" {
-  name                      = "acctest-%[2]d"
-  recovery_vault_id         = azurerm_recovery_services_vault.test.id
-  source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
-  target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
-
-  recovery_group {
-    type                       = "Shutdown"
-    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
-  }
-
-  recovery_group {
-    type = "Failover"
-  }
-
-  recovery_group {
-    type                       = "Boot"
-    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
-  }
-
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r SiteRecoveryReplicationRecoveryPlan) wrongActions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -763,5 +721,5 @@ func (r SiteRecoveryReplicationRecoveryPlan) Exists(ctx context.Context, clients
 		return nil, fmt.Errorf("reading site recovery replication plan (%s): model is nil. ", id.String())
 	}
 
-	return utils.Bool(model.Id != nil), nil
+	return pointer.To(model.Id != nil), nil
 }

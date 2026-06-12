@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package blueprints
@@ -150,14 +150,16 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	blueprintId := d.Get("version_id").(string)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for an existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for an existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_blueprint_assignment", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_blueprint_assignment", id.ID())
+			}
 		}
 	}
 
@@ -209,6 +211,8 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
+	d.SetId(id.ID())
+
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -228,8 +232,6 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("failed waiting for Blueprint Assignment %s: %+v", id.String(), err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceBlueprintAssignmentRead(d, meta)
 }
@@ -252,14 +254,14 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Read failed for Blueprint Assignment (%q): %+v", id.String(), err)
+		return fmt.Errorf("read failed for Blueprint Assignment (%q): %+v", id.String(), err)
 	}
 
 	d.Set("name", id.BlueprintAssignmentName)
 	if model := resp.Model; model != nil {
 		p := model.Properties
 
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 		d.Set("target_subscription_id", pointer.From(p.Scope))
 		d.Set("version_id", pointer.From(p.BlueprintId))
 		d.Set("display_name", pointer.From(p.DisplayName))

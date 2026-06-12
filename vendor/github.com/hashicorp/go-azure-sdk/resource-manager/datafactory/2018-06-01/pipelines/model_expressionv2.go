@@ -7,5 +7,5 @@ type ExpressionV2 struct {
 	Operands  *[]ExpressionV2   `json:"operands,omitempty"`
 	Operators *[]string         `json:"operators,omitempty"`
 	Type      *ExpressionV2Type `json:"type,omitempty"`
-	Value     *string           `json:"value,omitempty"`
+	Value     *interface{}      `json:"value,omitempty"`
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -13,21 +13,28 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name gallery_application -properties "name" -service-package-name compute -compare-values "subscription_id:gallery_id,resource_group_name:gallery_id,gallery_name:gallery_id"
 
 type GalleryApplicationResource struct{}
 
 var (
 	_ sdk.ResourceWithUpdate        = GalleryApplicationResource{}
 	_ sdk.ResourceWithCustomizeDiff = GalleryApplicationResource{}
+	_ sdk.ResourceWithIdentity      = GalleryApplicationResource{}
 )
+
+func (r GalleryApplicationResource) Identity() resourceids.ResourceId {
+	return &galleryapplications.ApplicationId{}
+}
 
 type GalleryApplicationModel struct {
 	Name                string            `tfschema:"name"`
@@ -134,12 +141,15 @@ func (r GalleryApplicationResource) Create() sdk.ResourceFunc {
 			}
 
 			id := galleryapplications.NewApplicationID(subscriptionId, galleryId.ResourceGroupName, galleryId.GalleryName, state.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of existing %q: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of existing %q: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := galleryapplications.GalleryApplication{
@@ -151,7 +161,7 @@ func (r GalleryApplicationResource) Create() sdk.ResourceFunc {
 			}
 
 			if state.Description != "" {
-				payload.Properties.Description = utils.String(state.Description)
+				payload.Properties.Description = pointer.To(state.Description)
 			}
 
 			if state.EndOfLifeDate != "" {
@@ -160,23 +170,23 @@ func (r GalleryApplicationResource) Create() sdk.ResourceFunc {
 			}
 
 			if state.Eula != "" {
-				payload.Properties.Eula = utils.String(state.Eula)
+				payload.Properties.Eula = pointer.To(state.Eula)
 			}
 
 			if state.PrivacyStatementURI != "" {
-				payload.Properties.PrivacyStatementUri = utils.String(state.PrivacyStatementURI)
+				payload.Properties.PrivacyStatementUri = pointer.To(state.PrivacyStatementURI)
 			}
 
 			if state.ReleaseNoteURI != "" {
-				payload.Properties.ReleaseNoteUri = utils.String(state.ReleaseNoteURI)
+				payload.Properties.ReleaseNoteUri = pointer.To(state.ReleaseNoteURI)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 		Timeout: 30 * time.Minute,
 	}
@@ -243,6 +253,10 @@ func (r GalleryApplicationResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
 			return metadata.Encode(state)
 		},
 		Timeout: 5 * time.Minute,
@@ -279,7 +293,7 @@ func (r GalleryApplicationResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("description") {
-					payload.Properties.Description = utils.String(state.Description)
+					payload.Properties.Description = pointer.To(state.Description)
 				}
 
 				if metadata.ResourceData.HasChange("end_of_life_date") {
@@ -288,15 +302,15 @@ func (r GalleryApplicationResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("eula") {
-					payload.Properties.Eula = utils.String(state.Eula)
+					payload.Properties.Eula = pointer.To(state.Eula)
 				}
 
 				if metadata.ResourceData.HasChange("privacy_statement_uri") {
-					payload.Properties.PrivacyStatementUri = utils.String(state.PrivacyStatementURI)
+					payload.Properties.PrivacyStatementUri = pointer.To(state.PrivacyStatementURI)
 				}
 
 				if metadata.ResourceData.HasChange("release_note_uri") {
-					payload.Properties.ReleaseNoteUri = utils.String(state.ReleaseNoteURI)
+					payload.Properties.ReleaseNoteUri = pointer.To(state.ReleaseNoteURI)
 				}
 			}
 

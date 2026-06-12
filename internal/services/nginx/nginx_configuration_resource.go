@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -184,11 +184,11 @@ func (m ConfigurationResource) ResourceType() string {
 func (m ConfigurationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxConfiguration
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Nginx.NginxConfiguration
 
 			var model ConfigurationModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
@@ -197,24 +197,26 @@ func (m ConfigurationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			id := nginxconfiguration.NewConfigurationID(subscriptionID, deployID.ResourceGroupName, deployID.NginxDeploymentName, defaultConfigurationName)
 
-			existing, err := client.ConfigurationsGet(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retreiving %s: %v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ConfigurationsGet(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retreiving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
 			req := model.ToSDKModel()
 
-			if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, id, req); err != nil {
+			if err := client.ConfigurationsCreateOrUpdateCallbackThenPoll(ctx, id, req, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -252,10 +254,10 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			output.NginxDeploymentId = deployID.ID()
 
 			if prop := result.Model.Properties; prop != nil {
-				output.RootFile = pointer.ToString(prop.RootFile)
+				output.RootFile = pointer.From(prop.RootFile)
 
 				if prop.Package != nil && prop.Package.Data != nil {
-					output.PackageData = pointer.ToString(prop.Package.Data)
+					output.PackageData = pointer.From(prop.Package.Data)
 				}
 
 				if files := prop.Files; files != nil {
@@ -263,8 +265,8 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 					for _, file := range *files {
 						if pointer.From(file.Content) != "" {
 							configs = append(configs, ConfigFile{
-								Content:     pointer.ToString(file.Content),
-								VirtualPath: pointer.ToString(file.VirtualPath),
+								Content:     pointer.From(file.Content),
+								VirtualPath: pointer.From(file.VirtualPath),
 							})
 						}
 					}
@@ -277,12 +279,12 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 					configs := []ProtectedFile{}
 					for _, file := range *files {
 						config := ProtectedFile{
-							VirtualPath: pointer.ToString(file.VirtualPath),
-							ContentHash: pointer.ToString(file.ContentHash),
+							VirtualPath: pointer.From(file.VirtualPath),
+							ContentHash: pointer.From(file.ContentHash),
 						}
 						// GET returns protected files without content, so fill in from state
 						for _, protectedFile := range output.ProtectedFile {
-							if protectedFile.VirtualPath == pointer.ToString(file.VirtualPath) {
+							if protectedFile.VirtualPath == pointer.From(file.VirtualPath) {
 								config.Content = protectedFile.Content
 								break
 							}

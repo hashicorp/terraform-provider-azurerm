@@ -63,9 +63,20 @@ func (c ServerDevOpsAuditClient) SettingsCreateOrUpdate(ctx context.Context, id 
 
 // SettingsCreateOrUpdateThenPoll performs SettingsCreateOrUpdate then polls until it's completed
 func (c ServerDevOpsAuditClient) SettingsCreateOrUpdateThenPoll(ctx context.Context, id commonids.SqlServerId, input ServerDevOpsAuditingSettings) error {
+	return c.SettingsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SettingsCreateOrUpdateCallbackThenPoll performs SettingsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c ServerDevOpsAuditClient) SettingsCreateOrUpdateCallbackThenPoll(ctx context.Context, id commonids.SqlServerId, input ServerDevOpsAuditingSettings, callback func() error) error {
 	result, err := c.SettingsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SettingsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `policy_signing_certificate_data` - (Optional) A valid X.509 certificate (Section 4 of [RFC4648](https://tools.ietf.org/html/rfc4648)). Changing this forces a new resource to be created.
 
--> **NOTE:** If the `policy_signing_certificate_data` argument contains more than one valid X.509 certificate only the first certificate will be used.
+-> **Note:** If the `policy_signing_certificate_data` argument contains more than one valid X.509 certificate only the first certificate will be used.
 
 * `open_enclave_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `sev_snp_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
 
--> [More information on the JWT Policies can be found in this article on `learn.microsoft.com`](https://learn.microsoft.com/azure/attestation/author-sign-policy).
+-> **Note:** [More information on the JWT Policies can be found in this article on `learn.microsoft.com`](https://learn.microsoft.com/azure/attestation/author-sign-policy).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Attestation Provider.
 
@@ -65,7 +65,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Attestation Provider.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Attestation Provider.
@@ -79,3 +79,9 @@ Attestation Providers can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_attestation_provider.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Attestation/attestationProviders/provider1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Attestation` - 2020-10-01

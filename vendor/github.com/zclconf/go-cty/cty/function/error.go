@@ -15,7 +15,7 @@ type ArgError struct {
 	Index int
 }
 
-func NewArgErrorf(i int, f string, args ...interface{}) error {
+func NewArgErrorf(i int, f string, args ...any) error {
 	return ArgError{
 		error: fmt.Errorf(f, args...),
 		Index: i,
@@ -34,11 +34,11 @@ func NewArgError(i int, err error) error {
 // into a normal error so that callers (expected to be language runtimes)
 // are freed from having to deal with panics in buggy functions.
 type PanicError struct {
-	Value interface{}
+	Value any
 	Stack []byte
 }
 
-func errorForPanic(val interface{}) error {
+func errorForPanic(val any) error {
 	return PanicError{
 		Value: val,
 		Stack: debug.Stack(),

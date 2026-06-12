@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -9,13 +9,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerRegistryTaskResource struct {
@@ -480,12 +480,12 @@ func (r ContainerRegistryTaskResource) Exists(ctx context.Context, clients *clie
 
 	if resp, err := client.Get(ctx, *id); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r ContainerRegistryTaskResource) dockerStepBasic(data acceptance.TestData) string {
@@ -506,7 +506,7 @@ resource "azurerm_container_registry_task" "test" {
     image_names          = ["helloworld:{{.Run.ID}}"]
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) dockerStepUpdate(data acceptance.TestData) string {
@@ -544,7 +544,7 @@ resource "azurerm_container_registry_task" "test" {
     env = "Test"
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) fileTaskStepBasic(data acceptance.TestData) string {
@@ -564,7 +564,7 @@ resource "azurerm_container_registry_task" "test" {
     context_access_token = "%s"
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) fileTaskStepUpdate(data acceptance.TestData) string {
@@ -590,7 +590,7 @@ resource "azurerm_container_registry_task" "test" {
     }
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) encodedTaskStepBasic(data acceptance.TestData) string {
@@ -617,7 +617,7 @@ EOF
     context_access_token = "%s"
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) encodedTaskStepUpdate(data acceptance.TestData) string {
@@ -651,7 +651,7 @@ EOF
     }
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) dockerStepBaseImageTrigger(data acceptance.TestData) string {
@@ -676,7 +676,7 @@ resource "azurerm_container_registry_task" "test" {
     type = "Runtime"
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) dockerStepBaseImageTriggerUpdate(data acceptance.TestData) string {
@@ -704,7 +704,7 @@ resource "azurerm_container_registry_task" "test" {
     update_trigger_payload_type = "Default"
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) dockerStepSourceTrigger(data acceptance.TestData) string {
@@ -736,7 +736,7 @@ resource "azurerm_container_registry_task" "test" {
     }
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) dockerStepSourceTriggerUpdateDockerStep(data acceptance.TestData) string {
@@ -768,7 +768,7 @@ resource "azurerm_container_registry_task" "test" {
     }
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) dockerStepSourceTriggerUpdate(data acceptance.TestData) string {
@@ -801,7 +801,7 @@ resource "azurerm_container_registry_task" "test" {
     enabled = false
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) dockerStepTimerTrigger(data acceptance.TestData) string {
@@ -826,7 +826,7 @@ resource "azurerm_container_registry_task" "test" {
     schedule = "0 21 * * *"
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) dockerStepTimerTriggerUpdate(data acceptance.TestData) string {
@@ -852,7 +852,7 @@ resource "azurerm_container_registry_task" "test" {
     enabled  = false
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) dockerStepSystemIdentity(data acceptance.TestData) string {
@@ -876,7 +876,7 @@ resource "azurerm_container_registry_task" "test" {
     image_names          = ["helloworld:{{.Run.ID}}"]
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) dockerStepUserAssignedIdentity(data acceptance.TestData) string {
@@ -909,7 +909,7 @@ resource "azurerm_container_registry_task" "test" {
     image_names          = ["helloworld:{{.Run.ID}}"]
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) dockerStepSystemUserAssignedIdentity(data acceptance.TestData) string {
@@ -942,7 +942,7 @@ resource "azurerm_container_registry_task" "test" {
     image_names          = ["helloworld:{{.Run.ID}}"]
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialPassword(data acceptance.TestData) string {
@@ -979,7 +979,7 @@ resource "azurerm_container_registry_task" "test" {
     }
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_CLIENT_SECRET"))
+`, template, data.RandomInteger, data.RandomInteger, r.url, r.token, os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_CLIENT_SECRET"))
 }
 
 func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialIdentity(data acceptance.TestData, tag string) string {
@@ -1021,7 +1021,7 @@ resource "azurerm_container_registry_task" "test" {
     foo = "%s"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, tag)
+`, template, data.RandomInteger, data.RandomInteger, r.url, r.token, tag)
 }
 
 func (r ContainerRegistryTaskResource) systemTask(data acceptance.TestData) string {
@@ -1055,7 +1055,7 @@ resource "azurerm_container_registry_task" "import" {
     image_names          = ["helloworld:{{.Run.ID}}"]
   }
 }
-`, template, r.githubRepo.url, r.githubRepo.token)
+`, template, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskResource) template(data acceptance.TestData) string {

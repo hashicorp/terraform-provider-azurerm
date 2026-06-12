@@ -11,22 +11,6 @@ import (
 	testing "github.com/mitchellh/go-testing-interface"
 )
 
-// InitContext creates SDK logger contexts when the provider is running in
-// "production" (not under acceptance testing). The incoming context will
-// already have the root SDK logger and root provider logger setup from
-// terraform-plugin-go tf5server RPC handlers.
-func InitContext(ctx context.Context) context.Context {
-	ctx = tfsdklog.NewSubsystem(ctx, SubsystemHelperSchema,
-		// All calls are through the HelperSchema* helper functions
-		tfsdklog.WithAdditionalLocationOffset(1),
-		tfsdklog.WithLevelFromEnv(EnvTfLogSdkHelperSchema),
-		// Propagate tf_req_id, tf_rpc, etc. fields
-		tfsdklog.WithRootFields(),
-	)
-
-	return ctx
-}
-
 // InitTestContext registers the terraform-plugin-log/tfsdklog test sink,
 // configures the standard library log package, and creates SDK logger
 // contexts. The incoming context is expected to be devoid of logging setup.
@@ -37,7 +21,7 @@ func InitContext(ctx context.Context) context.Context {
 func InitTestContext(ctx context.Context, t testing.T) context.Context {
 	helperlogging.SetOutput(t)
 
-	ctx = tfsdklog.RegisterTestSink(ctx, t)
+	ctx = tfsdklog.ContextWithTestLogging(ctx, t.Name())
 	ctx = tfsdklog.NewRootSDKLogger(ctx, tfsdklog.WithLevelFromEnv(EnvTfLogSdk))
 	ctx = tfsdklog.NewSubsystem(ctx, SubsystemHelperResource,
 		// All calls are through the HelperResource* helper functions

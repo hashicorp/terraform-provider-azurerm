@@ -10,7 +10,7 @@ description: |-
 
 Use this data source to access information about an existing NAT Gateway.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -38,10 +38,16 @@ The following attributes are exported:
 
 * `zones` - A list of Availability Zones which the NAT Gateway exists in.
 
-~> **NOTE:** The field `public_ip_address_ids` has been deprecated in favour of `azurerm_nat_gateway_public_ip_association`.
+~> **Note:** The field `public_ip_address_ids` has been deprecated in favour of `azurerm_nat_gateway_public_ip_association`.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the NAT Gateway.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

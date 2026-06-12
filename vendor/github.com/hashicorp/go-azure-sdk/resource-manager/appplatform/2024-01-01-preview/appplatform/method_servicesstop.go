@@ -57,9 +57,20 @@ func (c AppPlatformClient) ServicesStop(ctx context.Context, id commonids.Spring
 
 // ServicesStopThenPoll performs ServicesStop then polls until it's completed
 func (c AppPlatformClient) ServicesStopThenPoll(ctx context.Context, id commonids.SpringCloudServiceId) error {
+	return c.ServicesStopCallbackThenPoll(ctx, id, nil)
+}
+
+// ServicesStopCallbackThenPoll performs ServicesStop, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ServicesStopCallbackThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, callback func() error) error {
 	result, err := c.ServicesStop(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ServicesStop: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

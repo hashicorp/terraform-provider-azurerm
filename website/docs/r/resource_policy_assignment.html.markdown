@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `resource_id` - (Required) The ID of the Resource (or Resource Scope) where this should be applied. Changing this forces a new Resource Policy Assignment to be created.
 
-~> To create a Policy Assignment at a Management Group use the `azurerm_management_group_policy_assignment` resource, for a Resource Group use the `azurerm_resource_group_policy_assignment` and for a Subscription use the `azurerm_subscription_policy_assignment` resource.
+~> **Note:** To create a Policy Assignment at a Management Group use the `azurerm_management_group_policy_assignment` resource, for a Resource Group use the `azurerm_resource_group_policy_assignment` and for a Subscription use the `azurerm_subscription_policy_assignment` resource.
 
 ---
 
@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A JSON mapping of any Parameters for this Policy.
 
-* `overrides` - (Optional) One or more `overrides` blocks as defined below. More detail about `overrides` and `resource_selectors` see [policy assignment structure](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure#resource-selectors-preview)
+* `overrides` - (Optional) One or more `overrides` blocks as defined below. More detail about `overrides` and `resource_selectors` see [policy assignment structure](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure)
 
 * `resource_selectors` - (Optional) One or more `resource_selectors` blocks as defined below to filter polices by resource properties.
 
@@ -92,7 +92,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Managed Identity IDs which should be assigned to the Policy Definition.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
@@ -115,6 +115,8 @@ A `overrides` block supports the following:
 A `override_selector` block supports the following:
 
 * `in` - (Optional) Specify the list of policy reference id values to filter in. Cannot be used with `not_in`.
+
+* `kind` - (Optional) Specifies which characteristic will narrow down the set of evaluated resources. Possible values are `resourceLocation`, and `policyDefinitionReferenceId`. Defaults to `policyDefinitionReferenceId`.
 
 * `not_in` - (Optional) Specify the list of policy reference id values to filter out. Cannot be used with `in`.
 
@@ -153,7 +155,7 @@ The `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Policy Assignment for this Resource.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Assignment for this Resource.
@@ -169,3 +171,9 @@ terraform import azurerm_resource_policy_assignment.example "{resource}/provider
 ```
 
 where `{resource}` is a Resource ID in the form `/subscriptions/00000000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualNetworks/network1`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization` - 2022-06-01

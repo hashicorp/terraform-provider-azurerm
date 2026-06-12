@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maintenance
@@ -246,14 +246,16 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := maintenanceconfigurations.NewMaintenanceConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_maintenance_configuration", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_maintenance_configuration", id.ID())
+		}
 	}
 
 	scope := maintenanceconfigurations.MaintenanceScope(d.Get("scope").(string))
@@ -279,12 +281,12 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	configuration := maintenanceconfigurations.MaintenanceConfiguration{
-		Name:     utils.String(id.MaintenanceConfigurationName),
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Name:     pointer.To(id.MaintenanceConfigurationName),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &maintenanceconfigurations.MaintenanceConfigurationProperties{
 			MaintenanceScope:    &scope,
 			Visibility:          &visibility,
-			Namespace:           utils.String("Microsoft.Maintenance"),
+			Namespace:           pointer.To("Microsoft.Maintenance"),
 			MaintenanceWindow:   window,
 			ExtensionProperties: extensionProperties,
 			InstallPatches:      installPatches,
@@ -439,11 +441,11 @@ func expandMaintenanceConfigurationWindow(input []interface{}) *maintenanceconfi
 	timeZone := v["time_zone"].(string)
 	recurEvery := v["recur_every"].(string)
 	window := maintenanceconfigurations.MaintenanceWindow{
-		StartDateTime:      utils.String(startDateTime),
-		ExpirationDateTime: utils.String(expirationDateTime),
-		Duration:           utils.String(duration),
-		TimeZone:           utils.String(timeZone),
-		RecurEvery:         utils.String(recurEvery),
+		StartDateTime:      pointer.To(startDateTime),
+		ExpirationDateTime: pointer.To(expirationDateTime),
+		Duration:           pointer.To(duration),
+		TimeZone:           pointer.To(timeZone),
+		RecurEvery:         pointer.To(recurEvery),
 	}
 	return &window
 }

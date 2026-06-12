@@ -1,13 +1,17 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package features
 
 type UserFeatures struct {
+	PersistIDOnCreateBeforePollingForCompletion                 bool
+	SkipImportCheckOnCreateAndAllowOverwritingExistingResources bool
+
 	ApiManagement            ApiManagementFeatures
 	AppConfiguration         AppConfigurationFeatures
 	ApplicationInsights      ApplicationInsightFeatures
 	CognitiveAccount         CognitiveAccountFeatures
+	EnhancedValidation       EnhancedValidationFeatures
 	VirtualMachine           VirtualMachineFeatures
 	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
 	KeyVault                 KeyVaultFeatures
@@ -22,16 +26,22 @@ type UserFeatures struct {
 	MachineLearning          MachineLearningFeatures
 	RecoveryService          RecoveryServiceFeatures
 	NetApp                   NetAppFeatures
+	DatabricksWorkspace      DatabricksWorkspaceFeatures
 }
 
 type CognitiveAccountFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
 }
 
+type EnhancedValidationFeatures struct {
+	Locations         bool
+	ResourceProviders bool
+}
+
 type VirtualMachineFeatures struct {
 	DetachImplicitDataDiskOnDeletion bool
 	DeleteOSDiskOnDeletion           bool
-	GracefulShutdown                 bool
+	GracefulShutdown                 bool // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 	SkipShutdownAndForceDelete       bool
 }
 
@@ -115,4 +125,8 @@ type RecoveryServiceFeatures struct {
 type NetAppFeatures struct {
 	DeleteBackupsOnBackupVaultDestroy bool
 	PreventVolumeDestruction          bool
+}
+
+type DatabricksWorkspaceFeatures struct {
+	ForceDelete bool
 }

@@ -36,7 +36,15 @@ func (s *Server) ImportResourceState(ctx context.Context, proto5Req *tfprotov5.I
 		return toproto5.ImportResourceStateResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto5.ImportResourceStateRequest(ctx, proto5Req, resource, resourceSchema)
+	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, proto5Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto5.ImportResourceStateResponse(ctx, fwResp), nil
+	}
+
+	fwReq, diags := fromproto5.ImportResourceStateRequest(ctx, proto5Req, resource, resourceSchema, identitySchema)
 
 	fwResp.Diagnostics.Append(diags...)
 

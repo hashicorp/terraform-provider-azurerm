@@ -37,6 +37,14 @@ func (s *Server) PlanResourceChange(ctx context.Context, proto5Req *tfprotov5.Pl
 		return toproto5.PlanResourceChangeResponse(ctx, fwResp), nil
 	}
 
+	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, proto5Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto5.PlanResourceChangeResponse(ctx, fwResp), nil
+	}
+
 	providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
 
 	fwResp.Diagnostics.Append(diags...)
@@ -53,7 +61,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, proto5Req *tfprotov5.Pl
 		return toproto5.PlanResourceChangeResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto5.PlanResourceChangeRequest(ctx, proto5Req, resource, resourceSchema, providerMetaSchema, resourceBehavior)
+	fwReq, diags := fromproto5.PlanResourceChangeRequest(ctx, proto5Req, resource, resourceSchema, providerMetaSchema, resourceBehavior, identitySchema)
 
 	fwResp.Diagnostics.Append(diags...)
 

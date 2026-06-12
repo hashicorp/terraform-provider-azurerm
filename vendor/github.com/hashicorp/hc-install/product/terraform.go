@@ -5,6 +5,7 @@ package product
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"regexp"
@@ -15,11 +16,7 @@ import (
 	"github.com/hashicorp/hc-install/internal/build"
 )
 
-var (
-	simpleVersionRe = `v?(?P<version>[0-9]+(?:\.[0-9]+)*(?:-[A-Za-z0-9\.]+)?)`
-
-	terraformVersionOutputRe = regexp.MustCompile(`Terraform ` + simpleVersionRe)
-)
+var terraformVersionOutputRe = regexp.MustCompile(`Terraform ` + simpleVersionRe)
 
 var Terraform = Product{
 	Name: "terraform",
@@ -30,29 +27,60 @@ var Terraform = Product{
 		return "terraform"
 	},
 	GetVersion: func(ctx context.Context, path string) (*version.Version, error) {
-		cmd := exec.CommandContext(ctx, path, "version")
-
-		out, err := cmd.Output()
-		if err != nil {
-			return nil, err
+		v, err := terraformJsonVersion(ctx, path)
+		if err == nil {
+			return v, nil
 		}
 
-		stdout := strings.TrimSpace(string(out))
-
-		submatches := terraformVersionOutputRe.FindStringSubmatch(stdout)
-		if len(submatches) != 2 {
-			return nil, fmt.Errorf("unexpected number of version matches %d for %s", len(submatches), stdout)
-		}
-		v, err := version.NewVersion(submatches[1])
-		if err != nil {
-			return nil, fmt.Errorf("unable to parse version %q: %w", submatches[1], err)
-		}
-
-		return v, err
+		// JSON output was added in 0.13.0
+		// See https://github.com/hashicorp/terraform/pull/25252
+		// We assume that error implies older version.
+		return legacyTerraformVersion(ctx, path)
 	},
 	BuildInstructions: &BuildInstructions{
 		GitRepoURL:    "https://github.com/hashicorp/terraform.git",
 		PreCloneCheck: &build.GoIsInstalled{},
 		Build:         &build.GoBuild{DetectVendoring: true},
 	},
+}
+
+type terraformJsonVersionOutput struct {
+	Version *version.Version `json:"terraform_version"`
+}
+
+func terraformJsonVersion(ctx context.Context, path string) (*version.Version, error) {
+	cmd := exec.CommandContext(ctx, path, "version", "-json")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	var vOut terraformJsonVersionOutput
+	err = json.Unmarshal(out, &vOut)
+	if err != nil {
+		return nil, err
+	}
+
+	return vOut.Version, nil
+}
+
+func legacyTerraformVersion(ctx context.Context, path string) (*version.Version, error) {
+	cmd := exec.CommandContext(ctx, path, "version")
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	stdout := strings.TrimSpace(string(out))
+
+	submatches := terraformVersionOutputRe.FindStringSubmatch(stdout)
+	if len(submatches) != 2 {
+		return nil, fmt.Errorf("unexpected number of version matches %d for %s", len(submatches), stdout)
+	}
+	v, err := version.NewVersion(submatches[1])
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse version %q: %w", submatches[1], err)
+	}
+
+	return v, err
 }

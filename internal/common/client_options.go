@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package common
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -59,12 +60,20 @@ type ClientOptions struct {
 
 	// TODO: Remove when all go-autorest clients are gone
 	SkipProviderReg bool
+
+	// Transport exposes the go-azure-sdk mechanism to attach / replace the default transport. Primarily for go-vcr
+	// testing
+	Transport http.RoundTripper
 }
 
 // Configure set up a resourcemanager.Client using an auth.Authorizer from hashicorp/go-azure-sdk
 func (o ClientOptions) Configure(c client.BaseClient, authorizer auth.Authorizer) {
 	c.SetAuthorizer(authorizer)
 	c.SetUserAgent(userAgent(c.GetUserAgent(), o.TerraformVersion, o.PartnerId, o.DisableTerraformPartnerID))
+
+	if o.Transport != nil {
+		c.SetTransport(o.Transport)
+	}
 
 	if !o.DisableCorrelationRequestID {
 		id := o.CustomCorrelationRequestID

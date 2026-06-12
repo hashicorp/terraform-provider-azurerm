@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_test
@@ -29,6 +29,7 @@ func TestAccDataSourceNetAppVolume_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("protocols.0").Exists(),
 				check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"),
 				check.That(data.ResourceName).Key("encryption_key_source").HasValue("Microsoft.NetApp"),
+				check.That(data.ResourceName).Key("large_volume_enabled").HasValue("false"),
 			),
 		},
 	})
@@ -94,4 +95,41 @@ data "azurerm_netapp_volume" "test" {
   name                = azurerm_netapp_volume.test.name
 }
 `, NetAppVolumeResource{}.backupPolicy(data))
+}
+
+func TestAccDataSourceNetAppVolume_advancedRansomwareProtection(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume", "test")
+	r := NetAppVolumeDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.advancedRansomwareProtection(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("data_protection_advanced_ransomware.#").HasValue("1"),
+				check.That(data.ResourceName).Key("data_protection_advanced_ransomware.0.protection_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
+func (NetAppVolumeDataSource) advancedRansomwareProtection(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  alias = "all"
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+data "azurerm_netapp_volume" "test" {
+  resource_group_name = azurerm_netapp_volume.test.resource_group_name
+  account_name        = azurerm_netapp_volume.test.account_name
+  pool_name           = azurerm_netapp_volume.test.pool_name
+  name                = azurerm_netapp_volume.test.name
+}
+`, NetAppVolumeResource{}.advancedRansomwareProtection(data))
 }

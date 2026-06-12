@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package commonschema
@@ -58,7 +58,7 @@ func ResourceIDReferenceRequiredForceNew(id resourceids.ResourceId) *schema.Sche
 	}
 }
 
-func validationFunctionForResourceID(id resourceids.ResourceId) schema.SchemaValidateFunc {
+func validationFunctionForResourceID(id resourceids.ResourceId) schema.SchemaValidateFunc { //nolint:staticcheck
 	return func(input interface{}, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
 		if !ok {

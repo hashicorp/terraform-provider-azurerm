@@ -8,3 +8,7 @@ const defaultApiVersion = "2020-11-20"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/workbooktemplatesapis/2020-11-20"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

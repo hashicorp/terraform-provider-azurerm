@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps_test
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironmentsstorages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironmentsstorages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -31,6 +31,21 @@ func TestAccContainerAppEnvironmentStorage_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep("access_key"),
+	})
+}
+
+func TestAccContainerAppEnvironmentStorage_nfsBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_storage", "test")
+	r := ContainerAppEnvironmentStorageResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nfsBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -110,6 +125,24 @@ resource "azurerm_container_app_environment_storage" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r ContainerAppEnvironmentStorageResource) nfsBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_container_app_environment_storage" "test" {
+  name                         = "testacc-caes-%[2]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  share_name                   = "/${azurerm_storage_account.test.name}/${azurerm_storage_share.test.name}"
+  access_mode                  = "ReadWrite"
+  nfs_server_url               = "${azurerm_storage_account.test.name}.file.core.windows.net"
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r ContainerAppEnvironmentStorageResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -173,9 +206,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%[3]s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "testshare%[3]s"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 resource "azurerm_container_app_environment" "test" {
@@ -183,7 +216,9 @@ resource "azurerm_container_app_environment" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  logs_destination           = "log-analytics"
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

@@ -37,10 +37,15 @@ func (e expectUnknownOutputValue) CheckPlan(ctx context.Context, req CheckPlanRe
 	}
 
 	result, err := tfjsonpath.Traverse(change.AfterUnknown, tfjsonpath.Path{})
-
 	if err != nil {
-		resp.Error = err
+		// If we find the output in the known values, return a more explicit message
+		knownVal, knownErr := tfjsonpath.Traverse(change.After, tfjsonpath.Path{})
+		if knownErr == nil {
+			resp.Error = fmt.Errorf("Expected unknown value at output %q, but found known value: \"%v\"", e.outputAddress, knownVal)
+			return
+		}
 
+		resp.Error = err
 		return
 	}
 
@@ -53,7 +58,13 @@ func (e expectUnknownOutputValue) CheckPlan(ctx context.Context, req CheckPlanRe
 	}
 
 	if !isUnknown {
-		resp.Error = fmt.Errorf("attribute at path is known")
+		// The output should have a known value, look first to return a more explicit message
+		knownVal, knownErr := tfjsonpath.Traverse(change.After, tfjsonpath.Path{})
+		if knownErr == nil {
+			resp.Error = fmt.Errorf("Expected unknown value at output %q, but found known value: \"%v\"", e.outputAddress, knownVal)
+			return
+		}
+		resp.Error = fmt.Errorf("Expected unknown value at output %q, but found known value", e.outputAddress)
 
 		return
 	}

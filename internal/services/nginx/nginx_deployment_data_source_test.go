@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx_test
@@ -66,6 +66,30 @@ func TestAccNginxDeploymentDataSource_autoscaling(t *testing.T) {
 				check.That(data.ResourceName).Key("auto_scale_profile.0.name").HasValue("test"),
 				check.That(data.ResourceName).Key("auto_scale_profile.0.min_capacity").HasValue("10"),
 				check.That(data.ResourceName).Key("auto_scale_profile.0.max_capacity").HasValue("30"),
+			),
+		},
+	})
+}
+
+func (d NginxDeploymentDataSource) basicNginxAppProtect(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_nginx_deployment" "test" {
+  name                = azurerm_nginx_deployment.test.name
+  resource_group_name = azurerm_nginx_deployment.test.resource_group_name
+}
+`, DeploymentResource{}.basicNginxAppProtect(data))
+}
+
+func TestAccNginxDeploymentDataSource_nginxappprotect(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_nginx_deployment", "test")
+	r := NginxDeploymentDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.basicNginxAppProtect(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("web_application_firewall.0.activation_state_enabled").HasValue("true"),
 			),
 		},
 	})

@@ -26,6 +26,7 @@ gomonkey is a library to make monkey patching in unit tests easy, and the core i
   - arm64
   - 386
   - loong64
+  - riscv64
 
 - OS
   - Linux
@@ -37,9 +38,9 @@ gomonkey is a library to make monkey patching in unit tests easy, and the core i
 ```go
 $ go get github.com/agiledragon/gomonkey@v2.0.2
 ```
-- v2.1.0 and above, for example v2.2.0
+- v2.1.0 and above, for example v2.11.0
 ```go
-$ go get github.com/agiledragon/gomonkey/v2@v2.2.0
+$ go get github.com/agiledragon/gomonkey/v2@v2.11.0
 ```
 
 ## Test Method

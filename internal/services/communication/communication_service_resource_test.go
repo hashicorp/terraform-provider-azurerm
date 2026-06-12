@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package communication_test
@@ -8,20 +8,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CommunicationServiceTestResource struct{}
+type CommunicationServiceResource struct{}
 
 func TestAccCommunicationService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceTestResource{}
+	r := CommunicationServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccCommunicationService_basic(t *testing.T) {
 
 func TestAccCommunicationService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceTestResource{}
+	r := CommunicationServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccCommunicationService_requiresImport(t *testing.T) {
 
 func TestAccCommunicationService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceTestResource{}
+	r := CommunicationServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,7 +71,7 @@ func TestAccCommunicationService_complete(t *testing.T) {
 
 func TestAccCommunicationService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceTestResource{}
+	r := CommunicationServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccCommunicationService_update(t *testing.T) {
 	})
 }
 
-func (r CommunicationServiceTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CommunicationServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	clusterClient := client.Communication.ServiceClient
 	id, err := communicationservices.ParseCommunicationServiceID(state.ID)
 	if err != nil {
@@ -101,16 +101,16 @@ func (r CommunicationServiceTestResource) Exists(ctx context.Context, client *cl
 	resp, err := clusterClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 
 		return nil, fmt.Errorf("retrieving Communication Service %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CommunicationServiceTestResource) basic(data acceptance.TestData) string {
+func (r CommunicationServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -121,7 +121,7 @@ resource "azurerm_communication_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CommunicationServiceTestResource) requiresImport(data acceptance.TestData) string {
+func (r CommunicationServiceResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -134,7 +134,7 @@ resource "azurerm_communication_service" "import" {
 `, config)
 }
 
-func (r CommunicationServiceTestResource) complete(data acceptance.TestData) string {
+func (r CommunicationServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -150,7 +150,7 @@ resource "azurerm_communication_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CommunicationServiceTestResource) update(data acceptance.TestData) string {
+func (r CommunicationServiceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -166,7 +166,7 @@ resource "azurerm_communication_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CommunicationServiceTestResource) template(data acceptance.TestData) string {
+func (r CommunicationServiceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

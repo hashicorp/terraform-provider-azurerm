@@ -10,7 +10,7 @@ description: |-
 
 Manages a Table within an Azure Storage Account.
 
-~> **Note on Authentication** Shared Key authentication will always be used for this resource, as AzureAD authentication is not supported when setting or retrieving ACLs for Tables.
+~> **Note:** Shared Key authentication will always be used for this resource, as AzureAD authentication is not supported when setting or retrieving ACLs for Tables.
 
 ## Example Usage
 
@@ -34,13 +34,17 @@ resource "azurerm_storage_table" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The name of the storage table. Only Alphanumeric characters allowed, starting with a letter. Must be unique within the storage account the table is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the storage table. Changing this forces a new resource to be created.
+* `storage_account_name` - (Optional) Specifies the storage account in which to create the storage table. Changing this forces a new resource to be created.
+
+~> **Note:** This property is deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the AzureRM Provider.
+
+* `storage_account_id` - (Optional) Specifies the ID of the storage account in which to create the storage table. Changing this forces a new resource to be created.
 
 * `acl` - (Optional) One or more `acl` blocks as defined below.
 
@@ -72,11 +76,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Table.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Table.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Table.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Table.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Table.
 
 ## Import

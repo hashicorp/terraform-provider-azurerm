@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -28,9 +28,6 @@ type KeyVaultMHSMRoleDefinitionDataSourceModel struct {
 	Permission        []Permission `tfschema:"permission"`
 	RoleType          string       `tfschema:"role_type"`
 	ResourceManagerId string       `tfschema:"resource_manager_id"`
-
-	// TODO: remove in v4.0
-	VaultBaseUrl string `tfschema:"vault_base_url,removedInNextMajorVersion"`
 }
 
 type KeyvaultMHSMRoleDefinitionDataSource struct{}
@@ -38,7 +35,7 @@ type KeyvaultMHSMRoleDefinitionDataSource struct{}
 var _ sdk.DataSource = KeyvaultMHSMRoleDefinitionDataSource{}
 
 func (k KeyvaultMHSMRoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -51,8 +48,6 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Arguments() map[string]*pluginsdk.
 			Required:     true,
 		},
 	}
-
-	return s
 }
 
 func (k KeyvaultMHSMRoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
@@ -191,7 +186,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if prop := result.RoleDefinitionProperties; prop != nil {
-				config.Description = pointer.ToString(prop.Description)
+				config.Description = pointer.From(prop.Description)
 				config.RoleType = string(prop.RoleType)
 				config.RoleName = pointer.From(prop.RoleName)
 

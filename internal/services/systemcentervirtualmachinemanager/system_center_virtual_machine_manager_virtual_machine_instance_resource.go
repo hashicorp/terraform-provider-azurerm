@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager
@@ -257,9 +257,10 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 				Schema: map[string]*pluginsdk.Schema{
 					"computer_name": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: validate.SystemCenterVirtualMachineManagerVirtualMachineInstanceComputerName,
+						AtLeastOneOf: []string{"operating_system.0.computer_name", "operating_system.0.admin_password"},
 					},
 
 					"admin_password": {
@@ -268,6 +269,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						ForceNew:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"operating_system.0.computer_name", "operating_system.0.admin_password"},
 					},
 				},
 			},
@@ -364,14 +366,16 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create(
 
 			id := parse.NewSystemCenterVirtualMachineManagerVirtualMachineInstanceID(model.ScopedResourceId)
 
-			existing, err := client.Get(ctx, commonids.NewScopeID(id.Scope))
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, commonids.NewScopeID(id.Scope))
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := virtualmachineinstances.VirtualMachineInstance{
@@ -406,11 +410,11 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create(
 				parameters.Properties.AvailabilitySets = availabilitySets
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -609,10 +613,8 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 		result.CpuCount = pointer.To(v)
 	}
 
-	dynamicMemoryEnabled := false
-	if hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0 {
-		dynamicMemoryEnabled = true
-	}
+	dynamicMemoryEnabled := hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0
+
 	result.DynamicMemoryEnabled = pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(dynamicMemoryEnabled)))
 
 	if v := hardwareProfile.DynamicMemoryMaxInMb; v != 0 {
@@ -670,8 +672,10 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(inpu
 
 	osProfile := input[0]
 
-	result := virtualmachineinstances.OsProfileForVMInstance{
-		ComputerName: pointer.To(osProfile.ComputerName),
+	result := virtualmachineinstances.OsProfileForVMInstance{}
+
+	if v := osProfile.ComputerName; v != "" {
+		result.ComputerName = pointer.To(v)
 	}
 
 	if v := osProfile.AdminPassword; v != "" {
@@ -786,10 +790,8 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 		result.CpuCount = pointer.To(v)
 	}
 
-	dynamicMemoryEnabled := false
-	if hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0 {
-		dynamicMemoryEnabled = true
-	}
+	dynamicMemoryEnabled := hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0
+
 	result.DynamicMemoryEnabled = pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(dynamicMemoryEnabled)))
 
 	if v := hardwareProfile.DynamicMemoryMaxInMb; v != 0 {

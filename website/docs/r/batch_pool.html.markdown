@@ -40,21 +40,12 @@ resource "azurerm_batch_account" "example" {
   }
 }
 
-resource "azurerm_batch_certificate" "example" {
-  resource_group_name  = azurerm_resource_group.example.name
-  account_name         = azurerm_batch_account.example.name
-  certificate          = filebase64("certificate.cer")
-  format               = "Cer"
-  thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
-  thumbprint_algorithm = "SHA1"
-}
-
 resource "azurerm_batch_pool" "example" {
   name                = "testaccpool"
   resource_group_name = azurerm_resource_group.example.name
   account_name        = azurerm_batch_account.example.name
   display_name        = "Test Acc Pool Auto"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   node_agent_sku_id   = "batch.node.ubuntu 20.04"
 
   auto_scale {
@@ -102,16 +93,10 @@ EOF
       }
     }
   }
-
-  certificate {
-    id             = azurerm_batch_certificate.example.id
-    store_location = "CurrentUser"
-    visibility     = ["StartTask"]
-  }
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -149,9 +134,9 @@ The following arguments are supported:
 
 * `auto_scale` - (Optional) A `auto_scale` block that describes the scale settings when using auto scale as defined below.
 
-* `start_task` - (Optional) A `start_task` block that describes the start task settings for the Batch pool as defined below.
+~> **Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
-* `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool as defined below.
+* `start_task` - (Optional) A `start_task` block that describes the start task settings for the Batch pool as defined below.
 
 * `container_configuration` - (Optional) The container configuration used in the pool's VMs. One `container_configuration` block as defined below.
 
@@ -174,10 +159,6 @@ The following arguments are supported:
 * `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool as defined below.
 
 * `windows` - (Optional) A `windows` block that describes the Windows configuration in the pool as defined below.
-
--> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
-
-~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
 ---
 
@@ -226,7 +207,7 @@ If specified, the extensions mentioned in this configuration will be installed o
 
 * `automatic_upgrade_enabled` - (Optional) Indicates whether the extension should be automatically upgraded by the platform if there is a newer version available. Supported values are `true` and `false`.
 
-~> **NOTE:** When `automatic_upgrade_enabled` is set to `true`, the `type_handler_version` is automatically updated by the Azure platform when a new version is available and any change in `type_handler_version` should be manually ignored by user.
+~> **Note:** When `automatic_upgrade_enabled` is set to `true`, the `type_handler_version` is automatically updated by the Azure platform when a new version is available and any change in `type_handler_version` should be manually ignored by user.
 
 * `settings_json` - (Optional) JSON formatted public settings for the extension, the value should be encoded with [`jsonencode`](https://developer.hashicorp.com/terraform/language/functions/jsonencode) function.
 
@@ -290,7 +271,7 @@ A `start_task` block supports the following:
 
 * `container` - (Optional) A `container` block is the settings for the container under which the start task runs as defined below. When this is specified, all directories recursively below the `AZ_BATCH_NODE_ROOT_DIR` (the root of Azure Batch directories on the node) are mapped into the container, all task environment variables are mapped into the container, and the task command line is executed in the container.
 
-* `task_retry_maximum` - (Optional) The number of retry count.
+* `task_retry_maximum` - (Optional) The number of retry count. If this is set to `0`, the Batch service does not retry Tasks. If this is set to `-1`, the Batch service retries Batch Tasks without limit.
 
 * `wait_for_success` - (Optional) A flag that indicates if the Batch pool should wait for the start task to be completed. Default to `false`.
 
@@ -320,7 +301,7 @@ A `user_identity` block supports the following:
 
 * `auto_user` - (Optional) A `auto_user` block that describes the user identity under which the start task runs as defined below.
 
-~> **Please Note:** `user_name` and `auto_user` blocks cannot be used both at the same time, but you need to define one or the other.
+~> **Note:** `user_name` and `auto_user` blocks cannot be used both at the same time, but you need to define one or the other.
 
 ---
 
@@ -329,20 +310,6 @@ A `auto_user` block supports the following:
 * `elevation_level` - (Optional) The elevation level of the user identity under which the start task runs. Possible values are `Admin` or `NonAdmin`. Defaults to `NonAdmin`.
 
 * `scope` - (Optional) The scope of the user identity under which the start task runs. Possible values are `Task` or `Pool`. Defaults to `Task`.
-
----
-
-A `certificate` block supports the following:
-
-* `id` - (Required) The ID of the Batch Certificate to install on the Batch Pool, which must be inside the same Batch Account.
-
-* `store_location` - (Required) The location of the certificate store on the compute node into which to install the certificate. Possible values are `CurrentUser` or `LocalMachine`.
-
- -> **NOTE:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a 'certs' directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
-
-* `store_name` - (Optional) The name of the certificate store on the compute node into which to install the certificate. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: `My`, `Root`, `CA`, `Trust`, `Disallowed`, `TrustedPeople`, `TrustedPublisher`, `AuthRoot`, `AddressBook`, but any custom store name can also be used.
-
-* `visibility` - (Optional) Which user accounts on the compute node should have access to the private data of the certificate. Possible values are `StartTask`, `Task` and `RemoteUser`.
 
 ---
 
@@ -372,7 +339,7 @@ A `resource_file` block supports the following:
 
 * `user_assigned_identity_id` - (Optional) An identity reference from pool's user assigned managed identity list.
 
-~> **Please Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
+~> **Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
 
 ---
 
@@ -515,9 +482,9 @@ A `security_profile` block supports the following:
 
 * `vtpm_enabled` - (Optional) Whether to enable virtual trusted platform module (vTPM) for the Virtual Machine or Virtual Machine Scale Set. Possible values are `true` and `false`. Changing this forces a new resource to be created.
 
-~> **NOTE:** `security_profile` block can only be specified during creation and does not support updates.
+~> **Note:** `security_profile` block can only be specified during creation and does not support updates.
 
-~> **NOTE:** `security_type` must be specified to set UEFI related properties including `secure_boot_enabled` and `vtpm_enabled`.
+~> **Note:** `security_type` must be specified to set UEFI related properties including `secure_boot_enabled` and `vtpm_enabled`.
 
 ---
 
@@ -567,11 +534,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Batch Pool.
-* `update` - (Defaults to 30 minutes) Used when updating the Batch Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Batch Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the Batch Pool.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Batch Pool.
 
 ## Import
@@ -581,3 +548,9 @@ Batch Pools can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_batch_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Batch/batchAccounts/myBatchAccount1/pools/myBatchPool1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Batch` - 2024-07-01

@@ -10,7 +10,7 @@ description: |-
 
 Manages an IotHub Cosmos DB Account Endpoint
 
-~> **NOTE:** Endpoints can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_endpoint_*` resources - but the two ways of defining the endpoints cannot be used together. If both are used against the same IoTHub, spurious changes will occur. Also, defining a `azurerm_iothub_endpoint_*` resource and another endpoint of a different type directly on the `azurerm_iothub` resource is not supported.
+~> **Note:** Endpoints can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_endpoint_*` resources - but the two ways of defining the endpoints cannot be used together. If both are used against the same IoTHub, spurious changes will occur. Also, defining a `azurerm_iothub_endpoint_*` resource and another endpoint of a different type directly on the `azurerm_iothub` resource is not supported.
 
 ## Example Usage
 
@@ -78,7 +78,7 @@ resource "azurerm_iothub_endpoint_cosmosdb_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `identity_id` - (Optional) The ID of the User Managed Identity used to authenticate against the Cosmos DB Account endpoint.
 
-~> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If not specified when `authentication_type` is `identityBased`, System Assigned Managed Identity of the Iot Hub will be used.
+~> **Note:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If not specified when `authentication_type` is `identityBased`, System Assigned Managed Identity of the Iot Hub will be used.
 
 * `partition_key_name` - (Optional) The name of the partition key associated with the Cosmos DB Container.
 
@@ -106,11 +106,15 @@ The following arguments are supported:
 
 * `primary_key` - (Optional) The primary key of the Cosmos DB Account.
 
-~> **NOTE:** `primary_key` must and can only be specified when `authentication_type` is `keyBased`.
+~> **Note:** `primary_key` must and can only be specified when `authentication_type` is `keyBased`.
 
 * `secondary_key` - (Optional) The secondary key of the Cosmos DB Account.
 
-~> **NOTE:** `secondary_key` must and can only be specified when `authentication_type` is `keyBased`.
+~> **Note:** `secondary_key` must and can only be specified when `authentication_type` is `keyBased`.
+
+* `subscription_id` - (Optional) The subscription ID for the endpoint.
+
+~> **Note:** When `subscription_id` isn't specified it will be set to the subscription ID of the IoT Hub resource.
 
 ## Attributes Reference
 
@@ -120,11 +124,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Cosmos DB Account Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the IotHub Cosmos DB Account Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Cosmos DB Account Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Cosmos DB Account Endpoint.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Cosmos DB Account Endpoint.
 
 ## Import

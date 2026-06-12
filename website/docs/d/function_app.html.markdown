@@ -11,7 +11,7 @@ description: |-
 
 Use this data source to access information about a Function App.
 
-!> **Note:** The `azurerm_function_app` data source is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_linux_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/linux_function_app) and [`azurerm_windows_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/windows_function_app) data sources instead.
+!> **Note:** This data source has been deprecated and will be removed in version 5.0 of the AzureRM provider. Please use the [`azurerm_linux_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/linux_function_app) and [`azurerm_windows_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/windows_function_app) data sources instead.
 
 ## Example Usage
 
@@ -22,7 +22,7 @@ data "azurerm_function_app" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -56,7 +56,7 @@ The following attributes are exported:
 
 * `os_type` - A string indicating the Operating System type for this function app.
 
-~> **NOTE:** This value will be `linux` for Linux Derivatives, or an empty string for Windows.
+~> **Note:** This value will be `linux` for Linux Derivatives, or an empty string for Windows.
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses.
 
@@ -180,6 +180,6 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Function App.

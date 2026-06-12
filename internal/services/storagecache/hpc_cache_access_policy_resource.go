@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagecache
@@ -21,6 +21,8 @@ import (
 
 func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_hpc_cache_access_policy` resource has been deprecated because the service is retiring on 2025-09-30. This resource will be removed in v5.0 of the AzureRM Provider. See https://aka.ms/hpccacheretirement for more information.",
+
 		Create: resourceHPCCacheAccessPolicyCreateUpdate,
 		Read:   resourceHPCCacheAccessPolicyRead,
 		Update: resourceHPCCacheAccessPolicyCreateUpdate,
@@ -121,7 +123,7 @@ func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
 }
 
 func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -161,9 +163,10 @@ func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.IsNewResource() {
-		p := CacheGetAccessPolicyByName(*policies, id.Name)
-		if p != nil {
-			return tf.ImportAsExistsError("azurerm_hpc_cache_access_policy", id.ID())
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if CacheGetAccessPolicyByName(*policies, id.Name) != nil {
+				return tf.ImportAsExistsError("azurerm_hpc_cache_access_policy", id.ID())
+			}
 		}
 	}
 
@@ -177,16 +180,20 @@ func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err = client.CreateOrUpdateThenPoll(ctx, *cacheId, *existCache.Model); err != nil {
 		return fmt.Errorf("updating the HPC Cache for creating/updating Access Policy %q: %v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourceHPCCacheAccessPolicyRead(d, meta)
 }
 
 func resourceHPCCacheAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -252,7 +259,7 @@ func resourceHPCCacheAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceHPCCacheAccessPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

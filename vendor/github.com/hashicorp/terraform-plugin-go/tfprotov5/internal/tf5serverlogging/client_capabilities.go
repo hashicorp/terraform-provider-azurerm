@@ -107,3 +107,17 @@ func OpenEphemeralResourceClientCapabilities(ctx context.Context, capabilities *
 
 	logging.ProtocolTrace(ctx, "Announced client capabilities", responseFields)
 }
+
+// PlanActionClientCapabilities generates a TRACE "Announced client capabilities" log.
+func PlanActionClientCapabilities(ctx context.Context, capabilities *tfprotov5.PlanActionClientCapabilities) {
+	if capabilities == nil {
+		logging.ProtocolTrace(ctx, "No announced client capabilities", map[string]interface{}{})
+		return
+	}
+
+	responseFields := map[string]interface{}{
+		logging.KeyClientCapabilityDeferralAllowed: capabilities.DeferralAllowed,
+	}
+
+	logging.ProtocolTrace(ctx, "Announced client capabilities", responseFields)
+}

@@ -1,14 +1,14 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-// Terraform Plugin RPC protocol version 6.8
+// Terraform Plugin RPC protocol version 6.10
 //
-// This file defines version 6.8 of the RPC protocol. To implement a plugin
+// This file defines version 6.10 of the RPC protocol. To implement a plugin
 // against this protocol, copy this definition into your own codebase and
 // use protoc to generate stubs for your target language.
 //
 // This file will not be updated. Any minor versions of protocol 6 to follow
-// should copy this file and modify the copy while maintaing backwards
+// should copy this file and modify the copy while maintaining backwards
 // compatibility. Breaking changes, if any are required, will come
 // in a subsequent major version with its own separate proto definition.
 //
@@ -161,6 +161,65 @@ message Schema {
     Block block = 2;
 }
 
+// ResourceIdentitySchema represents the structure and types of data used to identify
+// a managed resource type. Effectively, resource identity is a versioned object
+// that can be used to compare resources, whether already managed and/or being
+// discovered.
+message ResourceIdentitySchema {
+    // IdentityAttribute represents one value of data within resource identity.
+    // These are always used in resource identity comparisons.
+    message IdentityAttribute {
+        // name is the identity attribute name
+        string name = 1;
+
+        // type is the identity attribute type
+        bytes type = 2;
+
+        // required_for_import when enabled signifies that this attribute must be
+        // defined for ImportResourceState to complete successfully
+        bool required_for_import = 3;
+
+        // optional_for_import when enabled signifies that this attribute is not
+        // required for ImportResourceState, because it can be supplied by the
+        // provider. It is still possible to supply this attribute during import.
+        bool optional_for_import = 4;
+
+        // description is a human-readable description of the attribute in Markdown
+        string description = 5;
+    }
+
+    // version is the identity version and separate from the Schema version.
+    // Any time the structure or format of identity_attributes changes, this version
+    // should be incremented. Versioning implicitly starts at 0 and by convention
+    // should be incremented by 1 each change.
+    //
+    // When comparing identity_attributes data, differing versions should always be treated
+    // as inequal.
+    int64 version = 1;
+
+    // identity_attributes are the individual value definitions which define identity data
+    // for a managed resource type. This information is used to decode DynamicValue of
+    // identity data.
+    //
+    // These attributes are intended for permanent identity data and must be wholly
+    // representative of all data necessary to compare two managed resource instances
+    // with no other data. This generally should include account, endpoint, location,
+    // and automatically generated identifiers. For some resources, this may include
+    // configuration-based data, such as a required name which must be unique.
+    repeated IdentityAttribute identity_attributes = 2;
+}
+
+// ResourceIdentityData is a separate message for better extensibility
+message ResourceIdentityData {
+    // identity_data is the resource identity data for the given definition. It should
+    // be decoded using the identity schema.
+    //
+    // This data is considered permanent for the identity version and suitable for
+    // longer-term storage.
+    DynamicValue identity_data = 1;
+}
+
+
 message Function {
     // parameters is the ordered list of positional function parameters.
     repeated Parameter parameters = 1;
@@ -215,6 +274,10 @@ message Function {
         // type is the type constraint for the function result.
         bytes type = 1;
     }
+}
+
+message ActionSchema {
+    Schema schema = 1; // of the action itself
 }
 
 // ServerCapabilities allows providers to communicate extra information
@@ -282,10 +345,16 @@ service Provider {
     // GetSchema returns schema information for the provider, data resources,
     // and managed resources.
     rpc GetProviderSchema(GetProviderSchema.Request) returns (GetProviderSchema.Response);
+    // GetResourceIdentitySchemas returns the identity schemas for all managed
+    // resources.
+    rpc GetResourceIdentitySchemas(GetResourceIdentitySchemas.Request) returns (GetResourceIdentitySchemas.Response);
     rpc ValidateProviderConfig(ValidateProviderConfig.Request) returns (ValidateProviderConfig.Response);
     rpc ValidateResourceConfig(ValidateResourceConfig.Request) returns (ValidateResourceConfig.Response);
     rpc ValidateDataResourceConfig(ValidateDataResourceConfig.Request) returns (ValidateDataResourceConfig.Response);
     rpc UpgradeResourceState(UpgradeResourceState.Request) returns (UpgradeResourceState.Response);
+    // UpgradeResourceIdentityData should return the upgraded resource identity
+    // data for a managed resource type.
+    rpc UpgradeResourceIdentity(UpgradeResourceIdentity.Request) returns (UpgradeResourceIdentity.Response);
 
     //////// One-time initialization, called before other functions below
     rpc ConfigureProvider(ConfigureProvider.Request) returns (ConfigureProvider.Response);
@@ -304,6 +373,10 @@ service Provider {
     rpc RenewEphemeralResource(RenewEphemeralResource.Request) returns (RenewEphemeralResource.Response);
     rpc CloseEphemeralResource(CloseEphemeralResource.Request) returns (CloseEphemeralResource.Response);
 
+    /////// List
+    rpc ListResource(ListResource.Request) returns (stream ListResource.Event);
+    rpc ValidateListResourceConfig(ValidateListResourceConfig.Request) returns (ValidateListResourceConfig.Response);
+
     // Functions
 
     // GetFunctions returns the definitions of all functions.
@@ -311,7 +384,12 @@ service Provider {
 
     // CallFunction runs the provider-defined function logic and returns
     // the result with any diagnostics.
-    rpc CallFunction(CallFunction.Request) returns (CallFunction.Response);
+    rpc CallFunction(CallFunction.Request) returns (CallFunction.Response);   
+
+    //////// Actions Lifecycle
+    rpc ValidateActionConfig(ValidateActionConfig.Request) returns (ValidateActionConfig.Response);
+    rpc PlanAction(PlanAction.Request) returns (PlanAction.Response);
+    rpc InvokeAction(InvokeAction.Request) returns (stream InvokeAction.Event);
 
     //////// Graceful Shutdown
     rpc StopProvider(StopProvider.Request) returns (StopProvider.Response);
@@ -330,6 +408,9 @@ message GetMetadata {
         // functions returns metadata for any functions.
         repeated FunctionMetadata functions = 5;
         repeated EphemeralResourceMetadata ephemeral_resources = 6;
+        repeated ListResourceMetadata list_resources = 7;
+        reserved 8; // TODO: Field number 8 will be used by state stores
+        repeated ActionMetadata actions = 9;
     }
 
     message FunctionMetadata {
@@ -348,6 +429,14 @@ message GetMetadata {
     message EphemeralResourceMetadata {
         string type_name = 1;
     }
+
+    message ListResourceMetadata {
+        string type_name = 1;
+    }
+
+    message ActionMetadata {
+        string type_name = 1;
+    }
 }
 
 message GetProviderSchema {
@@ -364,6 +453,9 @@ message GetProviderSchema {
         // functions is a mapping of function names to definitions.
         map<string, Function> functions = 7;
         map<string, Schema> ephemeral_resource_schemas = 8;
+        map<string, Schema> list_resource_schemas = 9;
+        reserved 10; // TODO: Field number 10 will be used by state stores
+        map<string, ActionSchema> action_schemas = 11;
     }
 }
 
@@ -459,6 +551,7 @@ message ReadResource {
         bytes private = 3;
         DynamicValue provider_meta = 4;
         ClientCapabilities client_capabilities = 5;
+        ResourceIdentityData current_identity = 6;
     }
     message Response {
         DynamicValue new_state = 1;
@@ -467,6 +560,7 @@ message ReadResource {
         // deferred is set if the provider is deferring the change. If set the caller
         // needs to handle the deferral.
         Deferred deferred = 4;
+        ResourceIdentityData new_identity = 5;
     }
 }
 
@@ -479,6 +573,7 @@ message PlanResourceChange {
         bytes prior_private = 5;
         DynamicValue provider_meta = 6;
         ClientCapabilities client_capabilities = 7;
+        ResourceIdentityData prior_identity = 8;
     }
 
     message Response {
@@ -503,6 +598,7 @@ message PlanResourceChange {
         // deferred is set if the provider is deferring the change. If set the caller
         // needs to handle the deferral.
         Deferred deferred = 6;
+        ResourceIdentityData planned_identity = 7;
     }
 }
 
@@ -514,6 +610,7 @@ message ApplyResourceChange {
         DynamicValue config = 4;
         bytes planned_private = 5;
         DynamicValue provider_meta = 6;
+        ResourceIdentityData planned_identity = 7;
     }
     message Response {
         DynamicValue new_state = 1;
@@ -532,6 +629,7 @@ message ApplyResourceChange {
         //     ==== THIS MUST BE LEFT UNSET IN ALL OTHER SDKS ====
         //     ====              DO NOT USE THIS              ====
         bool legacy_type_system = 4;
+        ResourceIdentityData new_identity = 5;
     }
 }
 
@@ -540,12 +638,14 @@ message ImportResourceState {
         string type_name = 1;
         string id = 2;
         ClientCapabilities client_capabilities = 3;
+        ResourceIdentityData identity = 4;
     }
 
     message ImportedResource {
         string type_name = 1;
         DynamicValue state = 2;
         bytes private = 3;
+        ResourceIdentityData identity = 4;
     }
 
     message Response {
@@ -579,6 +679,15 @@ message MoveResourceState {
 
         // The private state of the resource being moved.
         bytes source_private = 6;
+
+        // The raw identity of the resource being moved. Only the json field is
+        // populated, as there should be no legacy providers using the flatmap
+        // format that support newly introduced RPCs.
+        RawState source_identity = 7;
+
+        // The identity schema version of the resource type that the resource
+        // is being moved from.
+        int64 source_identity_schema_version = 8;
     }
 
     message Response {
@@ -590,6 +699,8 @@ message MoveResourceState {
 
         // The private state of the resource after it has been moved.
         bytes target_private = 3;
+
+        ResourceIdentityData target_identity = 4;
     }
 }
 
@@ -686,4 +797,130 @@ message CloseEphemeralResource {
     message Response {
         repeated Diagnostic diagnostics = 1;
     }
+}
+
+// Returns resource identity schemas for all resources
+message GetResourceIdentitySchemas {
+    message Request {
+    }
+    message Response {
+        // identity_schemas is a mapping of resource type names to their identity schemas.
+        map<string, ResourceIdentitySchema> identity_schemas = 1;
+
+        // diagnostics is the collection of warning and error diagnostics for this request.
+        repeated Diagnostic diagnostics = 2;
+    }
+}
+
+message UpgradeResourceIdentity {
+    message Request {
+        // type_name is the managed resource type name
+        string type_name = 1;
+
+        // version is the version of the resource identity data to upgrade
+        int64 version = 2;
+
+        // raw_identity is the raw identity as stored for the resource. Core does
+        // not have access to the identity schema of prior_version, so it's the
+        // provider's responsibility to interpret this value using the
+        // appropriate older schema. The raw_identity will be json encoded.
+        RawState raw_identity = 3;
+    }
+    message Response {
+        // upgraded_identity returns the upgraded resource identity data
+        ResourceIdentityData upgraded_identity = 1;
+
+        // diagnostics is the collection of warning and error diagnostics for this request
+        repeated Diagnostic diagnostics = 2;
+    }
+}
+
+message ListResource {
+    message Request {
+        // type_name is the list resource type name.
+        string type_name = 1;
+
+        // configuration is the list ConfigSchema-based configuration data.
+        DynamicValue config = 2;
+
+        // when include_resource_object is set to true, the provider should
+        // include the full resource object for each result
+        bool include_resource_object = 3;
+
+        // The maximum number of results that Terraform is expecting.
+        // The stream will stop, once this limit is reached.
+        int64 limit = 4;
+    }
+
+    message Event {
+        // identity is the resource identity data of the resource instance.
+        ResourceIdentityData identity = 1;
+
+        // display_name can be displayed in a UI to make it easier for humans to identify a resource
+        string display_name = 2;
+
+        // optional resource object which can be useful when combining list blocks in configuration
+        optional DynamicValue resource_object = 3;
+
+        // A warning or error diagnostics for this event
+        repeated Diagnostic diagnostic = 4;
+    }
+}
+
+message ValidateListResourceConfig {
+    message Request {
+        string type_name = 1;
+        DynamicValue config = 2;
+        DynamicValue include_resource_object = 3;
+        DynamicValue limit = 4;
+    }
+    message Response {
+        repeated Diagnostic diagnostics = 1;
+    }
+}
+
+message ValidateActionConfig {
+    message Request {
+        string action_type = 1;
+        DynamicValue config = 2;
+     }
+    message Response {
+        repeated Diagnostic diagnostics = 1;
+    }
+}
+
+message PlanAction {
+    message Request {
+        string action_type = 1;
+        DynamicValue config = 2;
+        ClientCapabilities client_capabilities = 3;
+    }
+    message Response {
+        repeated Diagnostic diagnostics = 1;
+
+        // metadata
+        Deferred deferred = 2;
+    }
+}
+
+message InvokeAction {
+    message Request {
+        string action_type = 1;
+        DynamicValue config = 2;
+        ClientCapabilities client_capabilities = 3;
+    }
+
+    message Event {
+      message Progress {
+        // message to be printed in the console / HCPT
+        string message = 1;
+      }
+      message Completed {
+        repeated Diagnostic diagnostics = 1;
+    }
+    oneof type {
+      Progress progress = 1;
+      Completed completed = 2;
+    }
+  }
 }

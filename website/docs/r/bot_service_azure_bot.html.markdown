@@ -13,6 +13,8 @@ Manages an Azure Bot Service.
 ## Example Usage
 
 ```hcl
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -34,11 +36,13 @@ resource "azurerm_application_insights_api_key" "example" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_bot_service_azure_bot" "example" {
-  name                = "exampleazurebot"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = "global"
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
-  sku                 = "F0"
+  name                    = "exampleazurebot"
+  resource_group_name     = azurerm_resource_group.example.name
+  location                = "global"
+  microsoft_app_id        = data.azurerm_client_config.current.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
+  sku                     = "F0"
 
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.example.api_key
@@ -86,6 +90,8 @@ The following arguments are supported:
 
 * `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
 
+~> **Note:** Creation of `azurerm_bot_service_azure_bot` resources using the `MultiTenant` type is no longer supported by Azure, existing resources can continue using this type.
+
 * `local_authentication_enabled` - (Optional) Is local authentication enabled? Defaults to `true`.
 
 * `luis_app_ids` - (Optional) A list of LUIS App IDs to associate with this Azure Bot Service.
@@ -106,7 +112,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Bot Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Bot Service.

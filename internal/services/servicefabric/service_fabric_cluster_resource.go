@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicefabric
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -16,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	serviceFabricValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceServiceFabricCluster() *pluginsdk.Resource {
@@ -571,15 +572,17 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	id := cluster.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_service_fabric_cluster", id.ID())
+			}
 		}
 	}
 
@@ -624,7 +627,7 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 			ReliabilityLevel:                   &reliabilityLevel,
 			UpgradeDescription:                 upgradePolicy,
 			UpgradeMode:                        &upgradeMode,
-			VmImage:                            utils.String(vmImage),
+			VmImage:                            pointer.To(vmImage),
 		},
 	}
 
@@ -659,14 +662,19 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if clusterCodeVersion != "" {
-		clusterModel.Properties.ClusterCodeVersion = utils.String(clusterCodeVersion)
+		clusterModel.Properties.ClusterCodeVersion = pointer.To(clusterCodeVersion)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, clusterModel); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, clusterModel, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, clusterModel); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 	return resourceServiceFabricClusterRead(d, meta)
 }
 
@@ -788,7 +796,9 @@ func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -803,8 +813,6 @@ func resourceServiceFabricClusterDelete(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting %s", id.ID())
 
 	resp, err := client.Delete(ctx, *id)
 	if err != nil {
@@ -838,9 +846,9 @@ func expandServiceFabricClusterAzureActiveDirectory(input []interface{}) *cluste
 	clientApplication := v["client_application_id"].(string)
 
 	config := cluster.AzureActiveDirectory{
-		TenantId:           utils.String(tenantId),
-		ClusterApplication: utils.String(clusterApplication),
-		ClientApplication:  utils.String(clientApplication),
+		TenantId:           pointer.To(tenantId),
+		ClusterApplication: pointer.To(clusterApplication),
+		ClientApplication:  pointer.To(clientApplication),
 	}
 	return &config
 }
@@ -897,7 +905,7 @@ func expandServiceFabricClusterCertificate(input []interface{}) *cluster.Certifi
 	}
 
 	if thumb, ok := v["thumbprint_secondary"]; ok {
-		result.ThumbprintSecondary = utils.String(thumb.(string))
+		result.ThumbprintSecondary = pointer.To(thumb.(string))
 	}
 
 	return &result
@@ -1025,7 +1033,7 @@ func expandServiceFabricClusterReverseProxyCertificate(input []interface{}) *clu
 	}
 
 	if thumb, ok := v["thumbprint_secondary"]; ok {
-		result.ThumbprintSecondary = utils.String(thumb.(string))
+		result.ThumbprintSecondary = pointer.To(thumb.(string))
 	}
 
 	return &result
@@ -1182,8 +1190,8 @@ func expandServiceFabricClusterUpgradePolicyHealthPolicy(input []interface{}) cl
 	}
 
 	v := input[0].(map[string]interface{})
-	healthPolicy.MaxPercentUnhealthyApplications = utils.Int64(int64(v["max_unhealthy_applications_percent"].(int)))
-	healthPolicy.MaxPercentUnhealthyNodes = utils.Int64(int64(v["max_unhealthy_nodes_percent"].(int)))
+	healthPolicy.MaxPercentUnhealthyApplications = pointer.To(int64(v["max_unhealthy_applications_percent"].(int)))
+	healthPolicy.MaxPercentUnhealthyNodes = pointer.To(int64(v["max_unhealthy_nodes_percent"].(int)))
 
 	return healthPolicy
 }
@@ -1196,7 +1204,7 @@ func expandServiceFabricClusterUpgradePolicy(input []interface{}) *cluster.Clust
 	policy := &cluster.ClusterUpgradePolicy{}
 	v := input[0].(map[string]interface{})
 
-	policy.ForceRestart = utils.Bool(v["force_restart_enabled"].(bool))
+	policy.ForceRestart = pointer.To(v["force_restart_enabled"].(bool))
 	policy.HealthCheckStableDuration = v["health_check_stable_duration"].(string)
 	policy.UpgradeDomainTimeout = v["upgrade_domain_timeout"].(string)
 	policy.UpgradeReplicaSetCheckTimeout = v["upgrade_replica_set_check_timeout"].(string)
@@ -1336,11 +1344,11 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeType
 		}
 
 		if isStateless, ok := node["is_stateless"]; ok {
-			result.IsStateless = utils.Bool(isStateless.(bool))
+			result.IsStateless = pointer.To(isStateless.(bool))
 		}
 
 		if multipleAvailabilityZones, ok := node["multiple_availability_zones"]; ok {
-			result.MultipleAvailabilityZones = utils.Bool(multipleAvailabilityZones.(bool))
+			result.MultipleAvailabilityZones = pointer.To(multipleAvailabilityZones.(bool))
 		}
 
 		if props, ok := node["placement_properties"]; ok {
@@ -1362,7 +1370,7 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeType
 		}
 
 		if v := int64(node["reverse_proxy_endpoint_port"].(int)); v != 0 {
-			result.ReverseProxyEndpointPort = utils.Int64(v)
+			result.ReverseProxyEndpointPort = pointer.To(v)
 		}
 
 		applicationPortsRaw := node["application_ports"].([]interface{})

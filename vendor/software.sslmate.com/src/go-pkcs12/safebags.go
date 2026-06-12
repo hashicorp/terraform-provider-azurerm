@@ -91,7 +91,7 @@ func decodeCertBag(asn1Data []byte) (x509Certificates []byte, err error) {
 		return nil, errors.New("pkcs12: error decoding cert bag: " + err.Error())
 	}
 	if !bag.Id.Equal(oidCertTypeX509Certificate) {
-		return nil, NotImplementedError("only X509 certificates are supported")
+		return nil, NotImplementedError("only X509 certificates are supported in cert bags")
 	}
 	return bag.Data, nil
 }

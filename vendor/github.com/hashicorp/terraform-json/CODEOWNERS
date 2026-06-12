@@ -1,2 +1,2 @@
 # This codebase has shared ownership and responsibility.
-* @hashicorp/terraform-core @hashicorp/terraform-devex @hashicorp/tf-editor-experience-engineers
+* @hashicorp/terraform-core @hashicorp/terraform-core-plugins @hashicorp/tf-editor-experience-engineers

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsforwardingrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -65,7 +64,7 @@ func (r PrivateDNSResolverDnsForwardingRulesetDataSource) Attributes() map[strin
 			},
 		},
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 	}
 }
 
@@ -81,7 +80,8 @@ func (r PrivateDNSResolverDnsForwardingRulesetDataSource) Read() sdk.ResourceFun
 			}
 
 			id := dnsforwardingrulesets.NewDnsForwardingRulesetID(
-				metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name)
+				metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name,
+			)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)

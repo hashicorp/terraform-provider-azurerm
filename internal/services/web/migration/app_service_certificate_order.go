@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -153,7 +154,7 @@ func (AppServiceCertificateOrderResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpg
 			return rawState, fmt.Errorf("parsing ID %q to upgrade: %+v", oldIdRaw, err)
 		}
 
-		appServiceCertOrderId := parse.NewCertificateOrderID(oldId.SubscriptionId, oldId.ResourceGroup, oldId.CertificateOrderName)
+		appServiceCertOrderId := appservicecertificateorders.NewCertificateOrderID(oldId.SubscriptionId, oldId.ResourceGroup, oldId.CertificateOrderName)
 		newId := appServiceCertOrderId.ID()
 
 		rawState["id"] = newId

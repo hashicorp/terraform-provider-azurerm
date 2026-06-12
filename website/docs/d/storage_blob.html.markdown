@@ -14,21 +14,26 @@ Use this data source to access information about an existing Storage Blob.
 
 ```hcl
 data "azurerm_storage_blob" "example" {
-  name                   = "example-blob-name"
-  storage_account_name   = "example-storage-account-name"
-  storage_container_name = "example-storage-container-name"
+  name                 = "example-blob-name"
+  storage_container_id = "example-storage-container-id"
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - The name of the Blob.
 
-* `storage_account_name` - The name of the Storage Account where the Container exists.
+* `storage_account_name` - (Optional) The name of the Storage Account where the Container exists.
 
-* `storage_container_name` - The name of the Storage Container where the Blob exists.
+~> **Note:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
+
+* `storage_container_name` - (Optional) The name of the Storage Container where the Blob exists.
+
+~> **Note:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
+
+* `storage_container_id` - (Optional) The ID of the Storage Container where the Blob exists.
 
 ## Attributes Reference
 
@@ -50,6 +55,6 @@ The following arguments are supported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Blob.

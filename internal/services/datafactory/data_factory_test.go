@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -30,6 +30,11 @@ func TestDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
 			Old:    "Integrated Security=False;Data Source=test2;Initial Catalog=test;User ID=test",
 			New:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test",
 			NoDiff: false,
+		},
+		{
+			Old:    "server=myserver.database.windows.net;database=mydatabase;user id=myuser",
+			New:    "Server=myserver.database.windows.net;Database=mydatabase;User ID=myuser;Password=mypassword;",
+			NoDiff: true,
 		},
 	}
 
@@ -114,6 +119,34 @@ func TestNormalizeJSON(t *testing.T) {
 
 		if suppress != tc.Suppress {
 			t.Fatalf("Expected JsonOrderingDifference to be '%t' for '%s' '%s' - got '%t'", tc.Suppress, tc.Old, tc.New, suppress)
+		}
+	}
+}
+
+func TestExpandCompressionType(t *testing.T) {
+	cases := []struct {
+		input          string
+		expectedOutput string
+	}{
+		{
+			input:          "Gzip",
+			expectedOutput: "gzip",
+		},
+		{
+			input:          "gzip",
+			expectedOutput: "gzip",
+		},
+		{
+			input:          "TarGZip",
+			expectedOutput: "TarGZip",
+		},
+	}
+
+	for _, tc := range cases {
+		output := expandCompressionType(tc.input)
+
+		if output != tc.expectedOutput {
+			t.Fatalf("Expected expandCompressionType to be '%s' for '%s' - got '%s'", tc.expectedOutput, tc.input, output)
 		}
 	}
 }

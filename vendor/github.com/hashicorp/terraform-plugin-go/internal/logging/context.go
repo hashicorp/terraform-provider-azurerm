@@ -91,6 +91,24 @@ func EphemeralResourceContext(ctx context.Context, ephemeralResource string) con
 	return ctx
 }
 
+// ListResourceContext injects the list resource type into logger contexts.
+func ListResourceContext(ctx context.Context, listResource string) context.Context {
+	ctx = tfsdklog.SetField(ctx, KeyListResourceType, listResource)
+	ctx = tfsdklog.SubsystemSetField(ctx, SubsystemProto, KeyListResourceType, listResource)
+	ctx = tflog.SetField(ctx, KeyListResourceType, listResource)
+
+	return ctx
+}
+
+// ActionContext injects the action type into logger contexts.
+func ActionContext(ctx context.Context, action string) context.Context {
+	ctx = tfsdklog.SetField(ctx, KeyActionType, action)
+	ctx = tfsdklog.SubsystemSetField(ctx, SubsystemProto, KeyActionType, action)
+	ctx = tflog.SetField(ctx, KeyActionType, action)
+
+	return ctx
+}
+
 // RpcContext injects the RPC name into logger contexts.
 func RpcContext(ctx context.Context, rpc string) context.Context {
 	ctx = tfsdklog.SetField(ctx, KeyRPC, rpc)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -45,7 +45,6 @@ type AutoHealSlowRequest struct {
 	TimeTaken string `tfschema:"time_taken"`
 	Interval  string `tfschema:"interval"`
 	Count     int64  `tfschema:"count"`
-	Path      string `tfschema:"path,removedInNextMajorVersion"`
 }
 
 type AutoHealSlowRequestWithPath struct {
@@ -520,7 +519,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 					statusCodeTrigger.SubStatus = pointer.To(s.SubStatus)
 				}
 				if s.Win32Status != 0 {
-					statusCodeTrigger.Win32Status = pointer.To((s.Win32Status))
+					statusCodeTrigger.Win32Status = pointer.To(s.Win32Status)
 				}
 				statusCodeTriggers = append(statusCodeTriggers, statusCodeTrigger)
 			}
@@ -615,7 +614,6 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 				TimeTaken: pointer.From(triggers.SlowRequests.TimeTaken),
 				Interval:  pointer.From(triggers.SlowRequests.TimeInterval),
 				Count:     pointer.From(triggers.SlowRequests.Count),
-				Path:      pointer.From(triggers.SlowRequests.Path),
 			})
 		}
 

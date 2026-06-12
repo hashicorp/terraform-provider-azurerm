@@ -51,7 +51,7 @@ resource "azurerm_virtual_network_gateway" "example" {
   vpn_type = "RouteBased"
 
   active_active = false
-  enable_bgp    = false
+  bgp_enabled   = false
   sku           = "Basic"
 
   ip_configuration {
@@ -100,14 +100,11 @@ EOF
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-* `ip_configuration` - (Required) One or more (up to 3) `ip_configuration` blocks documented below. Changing this forces a new resource to be created. 
-  An active-standby gateway requires exactly one `ip_configuration` block,
-  an active-active gateway requires exactly two `ip_configuration` blocks whereas
-  an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
+* `ip_configuration` - (Required) One or more (up to 3) `ip_configuration` blocks documented below. Changing this forces a new resource to be created. An active-standby gateway requires exactly one `ip_configuration` block, an active-active gateway requires exactly two `ip_configuration` blocks whereas an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
 
 * `location` - (Required) The location/region where the Virtual Network Gateway is located. Changing this forces a new resource to be created.
 
@@ -115,11 +112,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Virtual Network Gateway. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Configuration of the size and capacity of the virtual network gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`, `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw4`,`VpnGw5`, `VpnGw1AZ`, `VpnGw2AZ`, `VpnGw3AZ`,`VpnGw4AZ` and `VpnGw5AZ` and depend on the `type`, `vpn_type` and `generation` arguments. A `PolicyBased` gateway only supports the `Basic` SKU. Further, the `UltraPerformance` SKU is only supported by an `ExpressRoute` gateway.
+* `sku` - (Required) Configuration of the size and capacity of the virtual network gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`, `ErGwScale`, `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw4`,`VpnGw5`, `VpnGw1AZ`, `VpnGw2AZ`, `VpnGw3AZ`,`VpnGw4AZ` and `VpnGw5AZ` and depend on the `type`, `vpn_type` and `generation` arguments. A `PolicyBased` gateway only supports the `Basic` SKU. Further, the `UltraPerformance` and `ErGwScale` SKU is only supported by an `ExpressRoute` gateway.
 
-~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be SKU "Basic" not "Standard"
+~> **Note:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be SKU "Basic" not "Standard"
 
-~> **NOTE:** Not all SKUs (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region.
+~> **Note:** Not all SKUs (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region.
 
 * `type` - (Required) The type of the Virtual Network Gateway. Valid options are `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
 
@@ -131,7 +128,7 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Virtual Network Gateway should exist. Changing this forces a new Virtual Network Gateway to be created.
 
-* `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway. Defaults to `false`.
+* `bgp_enabled` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway. Defaults to `false`.
 
 * `bgp_settings` - (Optional) A `bgp_settings` block which is documented below. In this block the BGP specific settings can be defined.
 
@@ -139,7 +136,7 @@ The following arguments are supported:
 
 * `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`. Changing this forces a new resource to be created.
 
--> **NOTE:** The available values depend on the `type` and `sku` arguments - where `Generation2` is only value for a `sku` larger than `VpnGw2` or `VpnGw2AZ`.
+-> **Note:** The available values depend on the `type` and `sku` arguments - where `Generation2` is only value for a `sku` larger than `VpnGw2` or `VpnGw2AZ`.
 
 * `private_ip_address_enabled` - (Optional) Should private IP be enabled on this gateway for connections? Changing this forces a new resource to be created.
 
@@ -171,7 +168,9 @@ The `ip_configuration` block supports:
 
 * `subnet_id` - (Required) The ID of the gateway subnet of a virtual network in which the virtual network gateway will be created. It is mandatory that the associated subnet is named `GatewaySubnet`. Therefore, each virtual network can contain at most a single Virtual Network Gateway.
 
-* `public_ip_address_id` - (Required) The ID of the public IP address to associate with the Virtual Network Gateway.
+* `public_ip_address_id` - (Optional) The ID of the public IP address to associate with the Virtual Network Gateway.
+
+~> **Note:** `public_ip_address_id` should not be specified when `type` is set to `ExpressRoute`.
 
 ---
 
@@ -228,7 +227,7 @@ The `vpn_client_configuration` block supports:
 * `vpn_auth_types` - (Optional) List of the vpn authentication types for the virtual network gateway.
     The supported values are `AAD`, `Radius` and `Certificate`.
 
--> **NOTE:** `vpn_auth_types` must be set when using multiple vpn authentication types.
+-> **Note:** `vpn_auth_types` must be set when using multiple vpn authentication types.
 
 * `virtual_network_gateway_client_connection` - (Optional) One or more `virtual_network_gateway_client_connection` blocks as defined below.
 
@@ -338,12 +337,12 @@ The `peering_addresses` block supports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Virtual Network Gateway.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Network Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Network Gateway.
+* `update` - (Defaults to 1 hour) Used when updating the Virtual Network Gateway.
+* `delete` - (Defaults to 2 hours) Used when deleting the Virtual Network Gateway.
 
 ## Import
 
@@ -352,3 +351,9 @@ Virtual Network Gateways can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_network_gateway.exampleGateway /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Network/virtualNetworkGateways/myGateway1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01
