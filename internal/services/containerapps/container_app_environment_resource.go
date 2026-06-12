@@ -584,12 +584,14 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				newProfiles := n.(*pluginsdk.Set)
 
 				if oldProfiles.Len() > 0 && newProfiles.Len() == 0 && !helpers.OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles) {
+					fmt.Println("debug0")
 					if err := metadata.ResourceDiff.ForceNew("workload_profile"); err != nil {
 						return err
 					}
 				}
 
 				if newProfiles.Len() > 0 && oldProfiles.Len() == 0 {
+					fmt.Println("debug1")
 					if err := metadata.ResourceDiff.ForceNew("workload_profile"); err != nil {
 						return err
 					}
