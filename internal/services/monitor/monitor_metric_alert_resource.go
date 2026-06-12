@@ -907,9 +907,9 @@ func flattenMonitorMetricAlertAction(input *[]metricalerts.MetricAlertAction) (r
 func resourceMonitorMetricAlertActionHash(input interface{}) int {
 	var buf bytes.Buffer
 	if v, ok := input.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
+		fmt.Fprintf(&buf, "%s-", v["action_group_id"].(string))
 		if m, ok := v["webhook_properties"].(map[string]interface{}); ok && m != nil {
-			buf.WriteString(fmt.Sprintf("%v-", m))
+			fmt.Fprintf(&buf, "%v-", m)
 		}
 	}
 	return pluginsdk.HashString(buf.String())

@@ -592,11 +592,11 @@ func ReplicaSchemaMsSqlVirtualMachineAvailabilityGroupListenerHash(v interface{}
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["sql_virtual_machine_id"].(string))))
-		buf.WriteString(fmt.Sprintf("%s-", m["role"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["commit"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["failover_mode"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["readable_secondary"].(string)))
+		fmt.Fprintf(&buf, "%s-", strings.ToLower(m["sql_virtual_machine_id"].(string)))
+		fmt.Fprintf(&buf, "%s-", m["role"].(string))
+		fmt.Fprintf(&buf, "%s-", m["commit"].(string))
+		fmt.Fprintf(&buf, "%s-", m["failover_mode"].(string))
+		fmt.Fprintf(&buf, "%s-", m["readable_secondary"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())
