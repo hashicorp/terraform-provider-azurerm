@@ -62,9 +62,20 @@ func (c VirtualNetworkGatewayConnectionsClient) StartPacketCapture(ctx context.C
 
 // StartPacketCaptureThenPoll performs StartPacketCapture then polls until it's completed
 func (c VirtualNetworkGatewayConnectionsClient) StartPacketCaptureThenPoll(ctx context.Context, id ConnectionId, input VpnPacketCaptureStartParameters) error {
+	return c.StartPacketCaptureCallbackThenPoll(ctx, id, input, nil)
+}
+
+// StartPacketCaptureCallbackThenPoll performs StartPacketCapture, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewayConnectionsClient) StartPacketCaptureCallbackThenPoll(ctx context.Context, id ConnectionId, input VpnPacketCaptureStartParameters, callback func() error) error {
 	result, err := c.StartPacketCapture(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing StartPacketCapture: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

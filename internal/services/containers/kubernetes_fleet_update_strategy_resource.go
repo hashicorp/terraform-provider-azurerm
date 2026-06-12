@@ -121,14 +121,16 @@ func (r KubernetesFleetUpdateStrategyResource) Create() sdk.ResourceFunc {
 
 			id := fleetupdatestrategies.NewUpdateStrategyID(fleetId.SubscriptionId, fleetId.ResourceGroupName, fleetId.FleetName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := fleetupdatestrategies.FleetUpdateStrategy{
@@ -139,7 +141,7 @@ func (r KubernetesFleetUpdateStrategyResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload, fleetupdatestrategies.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, fleetupdatestrategies.DefaultCreateOrUpdateOperationOptions(), metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

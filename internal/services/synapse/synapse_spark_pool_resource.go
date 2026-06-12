@@ -232,12 +232,13 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 		r.Schema["spark_version"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ValidateFunc: validation.All(validation.StringInSlice([]string{
-				"3.2",
-				"3.3",
-				"3.4",
-				"3.5",
-			}, false),
+			ValidateFunc: validation.All(
+				validation.StringInSlice([]string{
+					"3.2",
+					"3.3",
+					"3.4",
+					"3.5",
+				}, false),
 				func(v interface{}, k string) (warnings []string, errors []error) {
 					if val, ok := v.(string); ok && (val == "3.2" || val == "3.3") {
 						warnings = append(warnings, fmt.Sprintf("Spark version %s is deprecated and will be removed in a future version of the AzureRM provider. Please consider upgrading to version 3.4 or later.", val))
@@ -263,7 +264,7 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	id := parse.NewSparkPoolID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -313,11 +314,11 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	// Library Requirements can't be specified on Create so we'll call update after we've confirmed the Spark Pool has been created.
 	return resourceSynapseSparkPoolUpdate(d, meta)

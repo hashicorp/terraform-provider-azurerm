@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -154,12 +155,14 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 
 	id := cosmosdb.NewMongodbDatabaseCollectionID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
-	existing, err := client.MongoDBResourcesGetMongoDBCollection(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.MongoDBResourcesGetMongoDBCollection(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_collection", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_collection", id.ID())
 	}
 
 	var ttl *int
@@ -202,7 +205,7 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 		})
 	}
 
-	if err := client.MongoDBResourcesCreateUpdateMongoDBCollectionThenPoll(ctx, id, db); err != nil {
+	if err := client.MongoDBResourcesCreateUpdateMongoDBCollectionCallbackThenPoll(ctx, id, db, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

@@ -61,9 +61,20 @@ func (c AppPlatformClient) DeploymentsStartJFR(ctx context.Context, id Deploymen
 
 // DeploymentsStartJFRThenPoll performs DeploymentsStartJFR then polls until it's completed
 func (c AppPlatformClient) DeploymentsStartJFRThenPoll(ctx context.Context, id DeploymentId, input DiagnosticParameters) error {
+	return c.DeploymentsStartJFRCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DeploymentsStartJFRCallbackThenPoll performs DeploymentsStartJFR, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) DeploymentsStartJFRCallbackThenPoll(ctx context.Context, id DeploymentId, input DiagnosticParameters, callback func() error) error {
 	result, err := c.DeploymentsStartJFR(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DeploymentsStartJFR: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -124,8 +124,11 @@ func (r ResourceProviderRegistrationResource) Create() sdk.ResourceFunc {
 			if registrationState == "" {
 				return fmt.Errorf("retrieving %s: `registrationState` was nil", resourceId)
 			}
-			if strings.EqualFold(registrationState, "Registered") {
-				return metadata.ResourceRequiresImport(r.ResourceType(), resourceId)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if strings.EqualFold(registrationState, "Registered") {
+					return metadata.ResourceRequiresImport(r.ResourceType(), resourceId)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("feature") {
@@ -141,6 +144,7 @@ func (r ResourceProviderRegistrationResource) Create() sdk.ResourceFunc {
 			if _, err := client.Register(ctx, resourceId, payload); err != nil {
 				return fmt.Errorf("registering %s: %+v", resourceId, err)
 			}
+			metadata.SetID(resourceId)
 
 			log.Printf("[DEBUG] Waiting for %s to finish registering..", resourceId)
 			pollerType := custompollers.NewResourceProviderRegistrationPollerDefault(client, resourceId, Registered)
@@ -150,7 +154,6 @@ func (r ResourceProviderRegistrationResource) Create() sdk.ResourceFunc {
 			}
 			log.Printf("[DEBUG] Registered Resource Provider %q.", resourceId)
 
-			metadata.SetID(resourceId)
 			return nil
 		},
 

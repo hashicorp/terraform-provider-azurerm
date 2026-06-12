@@ -207,6 +207,7 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppService.WebAppsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

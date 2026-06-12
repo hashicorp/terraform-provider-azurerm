@@ -83,15 +83,17 @@ func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta i
 	certificateLocation := d.Get("certificate_location").(string)
 	blob := d.Get("blob").(string)
 
-	existing, err := client.GetPublicCertificate(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetPublicCertificate(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_app_service_public_certificate", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_app_service_public_certificate", id.ID())
+		}
 	}
 
 	certificate := webapps.PublicCertificate{
@@ -107,6 +109,8 @@ func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta i
 	if _, err := client.CreateOrUpdatePublicCertificate(ctx, id, certificate); err != nil {
 		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
@@ -139,8 +143,6 @@ func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta i
 	if _, err := createWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %s", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceAppServicePublicCertificateRead(d, meta)
 }
@@ -218,8 +220,6 @@ func resourceAppServicePublicCertificateDelete(d *pluginsdk.ResourceData, meta i
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting App Service Public Certificate %s", *id)
 
 	resp, err := client.DeletePublicCertificate(ctx, *id)
 	if err != nil {

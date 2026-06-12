@@ -248,14 +248,16 @@ func resourceLogicAppIntegrationAccountBatchConfigurationCreateUpdate(d *plugins
 	id := integrationaccountbatchconfigurations.NewBatchConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_logic_app_integration_account_batch_configuration", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_logic_app_integration_account_batch_configuration", id.ID())
+			}
 		}
 	}
 
@@ -406,8 +408,8 @@ func expandIntegrationAccountBatchConfigurationRecurrenceSchedule(input []interf
 
 	if rawWeekDays := v["week_days"].(*pluginsdk.Set).List(); len(rawWeekDays) != 0 {
 		weekDays := make([]integrationaccountbatchconfigurations.DaysOfWeek, 0)
-		for _, item := range *(utils.ExpandStringSlice(rawWeekDays)) {
-			weekDays = append(weekDays, (integrationaccountbatchconfigurations.DaysOfWeek)(item))
+		for _, item := range *utils.ExpandStringSlice(rawWeekDays) {
+			weekDays = append(weekDays, integrationaccountbatchconfigurations.DaysOfWeek(item))
 		}
 		result.WeekDays = &weekDays
 	}
@@ -510,7 +512,7 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceSchedule(input *integr
 	if input.WeekDays != nil {
 		weekDaysCast := make([]string, 0)
 		for _, item := range *input.WeekDays {
-			weekDaysCast = append(weekDaysCast, (string)(item))
+			weekDaysCast = append(weekDaysCast, string(item))
 		}
 		weekDays = utils.FlattenStringSlice(&weekDaysCast)
 	}

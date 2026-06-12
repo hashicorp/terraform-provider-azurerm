@@ -217,14 +217,16 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 
 	id := parse.NewTriggerID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_trigger_tumbling_window", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_trigger_tumbling_window", id.ID())
+			}
 		}
 	} else {
 		future, err := client.Stop(ctx, id.ResourceGroup, id.FactoryName, id.Name)
@@ -284,6 +286,8 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if d.Get("activated").(bool) {
 		future, err := client.Start(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 		if err != nil {
@@ -293,8 +297,6 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 			return fmt.Errorf("waiting on start %s: %+v", id, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceDataFactoryTriggerTumblingWindowRead(d, meta)
 }

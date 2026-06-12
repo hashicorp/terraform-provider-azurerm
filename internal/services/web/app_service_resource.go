@@ -234,18 +234,19 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
 	id := parse.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_app_service", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_app_service", id.ID())
+		}
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
@@ -325,6 +326,8 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("creating %s: %s", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("waiting for %s to be created: %s", id, err)
@@ -348,8 +351,6 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			return fmt.Errorf("failed waiting for App Service Source Control configuration")
 		}
 	}
-
-	d.SetId(id.ID())
 
 	authSettingsRaw := d.Get("auth_settings").([]interface{})
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
@@ -803,8 +804,6 @@ func resourceAppServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting App Service %q (resource group %q)", id.SiteName, id.ResourceGroup)
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false

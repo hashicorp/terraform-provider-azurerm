@@ -8,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -120,15 +122,17 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	existing, err := client.Get(ctx, id, ipgroups.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, ipgroups.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_ip_group", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_ip_group", id.ID())
+		}
 	}
 
 	ipAddresses := d.Get("cidrs").(*pluginsdk.Set).List()
@@ -142,7 +146,7 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, sg); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, sg, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

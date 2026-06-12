@@ -100,24 +100,26 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 
 	name := d.Get("name").(string)
 
-	var existingAPIKeyList apikeys.APIKeysListOperationResponse
-	var existingAPIKeyId *apikeys.ApiKeyId
-	existingAPIKeyList, err = client.APIKeysList(ctx, *appInsightsId)
-	if err != nil {
-		if !response.WasNotFound(existingAPIKeyList.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing Application Insights API key list for %s: %+v", appInsightsId, err)
-		}
-	}
-
-	if existingAPIKeyList.Model != nil && len(existingAPIKeyList.Model.Value) > 0 {
-		for _, existingAPIKey := range existingAPIKeyList.Model.Value {
-			existingAPIKeyId, err = apikeys.ParseApiKeyIDInsensitively(*existingAPIKey.Id)
-			if err != nil {
-				return err
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		var existingAPIKeyList apikeys.APIKeysListOperationResponse
+		var existingAPIKeyId *apikeys.ApiKeyId
+		existingAPIKeyList, err = client.APIKeysList(ctx, *appInsightsId)
+		if err != nil {
+			if !response.WasNotFound(existingAPIKeyList.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing Application Insights API key list for %s: %+v", appInsightsId, err)
 			}
+		}
 
-			if name == *existingAPIKey.Name {
-				return tf.ImportAsExistsError("azurerm_application_insights_api_key", existingAPIKeyId.ID())
+		if existingAPIKeyList.Model != nil && len(existingAPIKeyList.Model.Value) > 0 {
+			for _, existingAPIKey := range existingAPIKeyList.Model.Value {
+				existingAPIKeyId, err = apikeys.ParseApiKeyIDInsensitively(*existingAPIKey.Id)
+				if err != nil {
+					return err
+				}
+
+				if name == *existingAPIKey.Name {
+					return tf.ImportAsExistsError("azurerm_application_insights_api_key", existingAPIKeyId.ID())
+				}
 			}
 		}
 	}

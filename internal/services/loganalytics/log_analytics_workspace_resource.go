@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -253,22 +254,23 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace creation.")
 
 	var isLACluster bool
 
 	name := d.Get("name").(string)
 	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), name)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_log_analytics_workspace", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_log_analytics_workspace", id.ID())
+		}
 	}
 
 	deleted, err := deletedWorkspaceClient.List(ctx, commonids.NewSubscriptionID(id.SubscriptionId))
@@ -382,9 +384,10 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		parameters.Identity = expanded
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return err
 	}
+	d.SetId(id.ID())
 
 	// `data_collection_rule_id` also needs an additional update.
 	// error message: Default dcr is not applicable on workspace creation, please provide it on update.
@@ -420,8 +423,6 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("waiting on update for %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
-
 	return resourceLogAnalyticsWorkspaceRead(d, meta)
 }
 
@@ -429,7 +430,6 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).LogAnalytics.WorkspaceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace update.")
 
 	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {

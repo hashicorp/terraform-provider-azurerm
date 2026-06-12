@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/storagetargets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -88,19 +89,20 @@ func resourceHPCCacheBlobTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure HPC Cache Blob Target creation.")
 	id := storagetargets.NewStorageTargetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cache_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_hpc_cache_blob_target", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_hpc_cache_blob_target", id.ID())
+			}
 		}
 	}
 
@@ -124,7 +126,7 @@ func resourceHPCCacheBlobTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

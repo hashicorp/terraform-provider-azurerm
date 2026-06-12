@@ -101,16 +101,17 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 
 			id := volumequotarules.NewVolumeQuotaRuleID(subscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			// Performing some validations that are not possible in the schema
@@ -127,7 +128,7 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
+			if err = client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -154,15 +155,12 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeQuotaRuleModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			if metadata.ResourceData.HasChange("quota_size_in_kib") {
-				metadata.Logger.Infof("Updating %s", id)
-
 				update := volumequotarules.VolumeQuotaRulePatch{
 					Properties: &volumequotarules.VolumeQuotaRulesProperties{},
 				}
@@ -195,7 +193,6 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeQuotaRuleModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)

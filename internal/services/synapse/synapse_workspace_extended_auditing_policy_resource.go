@@ -96,17 +96,19 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Res
 	id := parse.NewWorkspaceExtendedAuditingPolicyID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "default")
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-		}
 
-		// if state is not disabled, we should flag it for import
-		if !utils.ResponseWasNotFound(existing.Response) {
-			if props := existing.ExtendedServerBlobAuditingPolicyProperties; props != nil && props.State != synapse.BlobAuditingPolicyStateDisabled {
-				return tf.ImportAsExistsError("azurerm_synapse_workspace_extended_auditing_policy", id.ID())
+			// if state is not disabled, we should flag it for import
+			if !utils.ResponseWasNotFound(existing.Response) {
+				if props := existing.ExtendedServerBlobAuditingPolicyProperties; props != nil && props.State != synapse.BlobAuditingPolicyStateDisabled {
+					return tf.ImportAsExistsError("azurerm_synapse_workspace_extended_auditing_policy", id.ID())
+				}
 			}
 		}
 	}
@@ -130,13 +132,16 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Res
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceSynapseWorkspaceExtendedAuditingPolicyRead(d, meta)
 }
 

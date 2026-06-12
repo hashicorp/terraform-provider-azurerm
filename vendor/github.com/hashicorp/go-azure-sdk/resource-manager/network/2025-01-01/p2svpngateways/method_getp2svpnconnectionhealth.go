@@ -59,9 +59,20 @@ func (c P2sVpnGatewaysClient) GetP2sVpnConnectionHealth(ctx context.Context, id 
 
 // GetP2sVpnConnectionHealthThenPoll performs GetP2sVpnConnectionHealth then polls until it's completed
 func (c P2sVpnGatewaysClient) GetP2sVpnConnectionHealthThenPoll(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId) error {
+	return c.GetP2sVpnConnectionHealthCallbackThenPoll(ctx, id, nil)
+}
+
+// GetP2sVpnConnectionHealthCallbackThenPoll performs GetP2sVpnConnectionHealth, runs the optional callback function, then polls until it's completed
+func (c P2sVpnGatewaysClient) GetP2sVpnConnectionHealthCallbackThenPoll(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId, callback func() error) error {
 	result, err := c.GetP2sVpnConnectionHealth(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GetP2sVpnConnectionHealth: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

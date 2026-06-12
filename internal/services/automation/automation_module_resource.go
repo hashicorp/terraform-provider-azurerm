@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -98,21 +97,21 @@ func resourceAutomationModuleCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Module creation.")
-
 	id := module.NewModuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	// for existing global module do update instead of raising ImportAsExistsError
-	isGlobal := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.IsGlobal != nil && *existing.Model.Properties.IsGlobal
-	if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
-		return tf.ImportAsExistsError("azurerm_automation_module", id.ID())
+		// for existing global module do update instead of raising ImportAsExistsError
+		isGlobal := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.IsGlobal != nil && *existing.Model.Properties.IsGlobal
+		if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
+			return tf.ImportAsExistsError("azurerm_automation_module", id.ID())
+		}
 	}
 
 	parameters := module.ModuleCreateOrUpdateParameters{
@@ -125,11 +124,11 @@ func resourceAutomationModuleCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err := waitForModuleProvisioningCompletion(ctx, client, id, d.Timeout(pluginsdk.TimeoutCreate)); err != nil {
 		return err
 	}
-
-	d.SetId(id.ID())
 
 	return resourceAutomationModuleRead(d, meta)
 }

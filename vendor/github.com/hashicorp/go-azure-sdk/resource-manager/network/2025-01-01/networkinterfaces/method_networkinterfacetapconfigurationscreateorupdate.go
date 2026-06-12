@@ -62,9 +62,20 @@ func (c NetworkInterfacesClient) NetworkInterfaceTapConfigurationsCreateOrUpdate
 
 // NetworkInterfaceTapConfigurationsCreateOrUpdateThenPoll performs NetworkInterfaceTapConfigurationsCreateOrUpdate then polls until it's completed
 func (c NetworkInterfacesClient) NetworkInterfaceTapConfigurationsCreateOrUpdateThenPoll(ctx context.Context, id TapConfigurationId, input NetworkInterfaceTapConfiguration) error {
+	return c.NetworkInterfaceTapConfigurationsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// NetworkInterfaceTapConfigurationsCreateOrUpdateCallbackThenPoll performs NetworkInterfaceTapConfigurationsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c NetworkInterfacesClient) NetworkInterfaceTapConfigurationsCreateOrUpdateCallbackThenPoll(ctx context.Context, id TapConfigurationId, input NetworkInterfaceTapConfiguration, callback func() error) error {
 	result, err := c.NetworkInterfaceTapConfigurationsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing NetworkInterfaceTapConfigurationsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

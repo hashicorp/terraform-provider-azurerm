@@ -106,15 +106,17 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 
 			id := prefixlistlocalrulestack.NewLocalRulestackPrefixListID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
 
-			existing, err := client.PrefixListLocalRulestackGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.PrefixListLocalRulestackGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			props := prefixlistlocalrulestack.PrefixObject{
@@ -133,7 +135,7 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 				Properties: props,
 			}
 
-			if err = client.PrefixListLocalRulestackCreateOrUpdateThenPoll(ctx, id, prefixList); err != nil {
+			if err = client.PrefixListLocalRulestackCreateOrUpdateCallbackThenPoll(ctx, id, prefixList, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

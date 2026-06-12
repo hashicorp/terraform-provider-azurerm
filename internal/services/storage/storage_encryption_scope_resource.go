@@ -94,15 +94,18 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	id := encryptionscopes.NewEncryptionScopeID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+			}
 		}
-	}
-	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.State != nil {
-		if *existing.Model.Properties.State == encryptionscopes.EncryptionScopeStateEnabled {
-			return tf.ImportAsExistsError("azurerm_storage_encryption_scope", id.ID())
+		if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.State != nil {
+			if *existing.Model.Properties.State == encryptionscopes.EncryptionScopeStateEnabled {
+				return tf.ImportAsExistsError("azurerm_storage_encryption_scope", id.ID())
+			}
 		}
 	}
 

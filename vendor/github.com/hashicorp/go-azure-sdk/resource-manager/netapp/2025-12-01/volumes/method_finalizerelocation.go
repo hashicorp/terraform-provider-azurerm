@@ -57,9 +57,20 @@ func (c VolumesClient) FinalizeRelocation(ctx context.Context, id VolumeId) (res
 
 // FinalizeRelocationThenPoll performs FinalizeRelocation then polls until it's completed
 func (c VolumesClient) FinalizeRelocationThenPoll(ctx context.Context, id VolumeId) error {
+	return c.FinalizeRelocationCallbackThenPoll(ctx, id, nil)
+}
+
+// FinalizeRelocationCallbackThenPoll performs FinalizeRelocation, runs the optional callback function, then polls until it's completed
+func (c VolumesClient) FinalizeRelocationCallbackThenPoll(ctx context.Context, id VolumeId, callback func() error) error {
 	result, err := c.FinalizeRelocation(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing FinalizeRelocation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

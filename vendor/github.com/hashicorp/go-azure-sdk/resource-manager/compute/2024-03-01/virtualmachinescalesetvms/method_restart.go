@@ -57,9 +57,20 @@ func (c VirtualMachineScaleSetVMsClient) Restart(ctx context.Context, id Virtual
 
 // RestartThenPoll performs Restart then polls until it's completed
 func (c VirtualMachineScaleSetVMsClient) RestartThenPoll(ctx context.Context, id VirtualMachineScaleSetVirtualMachineId) error {
+	return c.RestartCallbackThenPoll(ctx, id, nil)
+}
+
+// RestartCallbackThenPoll performs Restart, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineScaleSetVMsClient) RestartCallbackThenPoll(ctx context.Context, id VirtualMachineScaleSetVirtualMachineId, callback func() error) error {
 	result, err := c.Restart(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Restart: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

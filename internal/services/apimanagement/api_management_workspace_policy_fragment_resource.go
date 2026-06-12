@@ -90,15 +90,18 @@ func (r ApiManagementWorkspacePolicyFragmentResource) Create() sdk.ResourceFunc 
 			}
 
 			id := policyfragment.NewWorkspacePolicyFragmentID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.ServiceName, workspaceId.WorkspaceId, model.Name)
-			existing, err := client.WorkspacePolicyFragmentGet(ctx, id, policyfragment.WorkspacePolicyFragmentGetOperationOptions{
-				Format: pointer.To(policyfragment.PolicyFragmentContentFormat(model.XmlFormat)),
-			})
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WorkspacePolicyFragmentGet(ctx, id, policyfragment.WorkspacePolicyFragmentGetOperationOptions{
+					Format: pointer.To(policyfragment.PolicyFragmentContentFormat(model.XmlFormat)),
+				})
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := policyfragment.PolicyFragmentContract{
@@ -112,7 +115,7 @@ func (r ApiManagementWorkspacePolicyFragmentResource) Create() sdk.ResourceFunc 
 				parameters.Properties.Description = pointer.To(model.Description)
 			}
 
-			if err := client.WorkspacePolicyFragmentCreateOrUpdateThenPoll(ctx, id, parameters, policyfragment.WorkspacePolicyFragmentCreateOrUpdateOperationOptions{}); err != nil {
+			if err := client.WorkspacePolicyFragmentCreateOrUpdateCallbackThenPoll(ctx, id, parameters, policyfragment.WorkspacePolicyFragmentCreateOrUpdateOperationOptions{}, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

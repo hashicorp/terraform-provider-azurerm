@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -169,7 +170,9 @@ func resourceIotHubDPSSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, 
 	for _, existingAccessPolicy := range existingAccessPolicies.Items {
 		if strings.EqualFold(existingAccessPolicy.KeyName, id.KeyName) {
 			if d.IsNewResource() {
-				return tf.ImportAsExistsError("azurerm_iothub_dps_shared_access_policy", id.ID())
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_iothub_dps_shared_access_policy", id.ID())
+				}
 			}
 			accessPolicies = append(accessPolicies, expandedAccessPolicy)
 			alreadyExists = true
@@ -186,11 +189,16 @@ func resourceIotHubDPSSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, 
 
 	iothubDps.Model.Properties.AuthorizationPolicies = &accessPolicies
 
-	if err := client.CreateOrUpdateThenPoll(ctx, iothubDpsId, *iothubDps.Model); err != nil {
-		return fmt.Errorf("updating IotHub DPS %s with Shared Access Policy %s: %+v", iothubDpsId, id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, iothubDpsId, *iothubDps.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("updating IotHub DPS %s with Shared Access Policy %s: %+v", iothubDpsId, id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, iothubDpsId, *iothubDps.Model); err != nil {
+			return fmt.Errorf("updating IotHub DPS %s with Shared Access Policy %s: %+v", iothubDpsId, id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubDPSSharedAccessPolicyRead(d, meta)
 }
