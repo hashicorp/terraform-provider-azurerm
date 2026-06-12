@@ -1911,11 +1911,11 @@ resource "azurerm_container_group" "test" {
 
     readiness_probe {
       exec                  = ["cat", "/tmp/healthy"]
-      initial_delay_seconds = 1
-      period_seconds        = 1
-      failure_threshold     = 1
+      initial_delay_seconds = 10
+      period_seconds        = 5
+      failure_threshold     = 3
       success_threshold     = 1
-      timeout_seconds       = 1
+      timeout_seconds       = 5
     }
 
     liveness_probe {
@@ -1929,14 +1929,14 @@ resource "azurerm_container_group" "test" {
         }
       }
 
-      initial_delay_seconds = 1
-      period_seconds        = 1
-      failure_threshold     = 1
+      initial_delay_seconds = 10
+      period_seconds        = 5
+      failure_threshold     = 3
       success_threshold     = 1
-      timeout_seconds       = 1
+      timeout_seconds       = 5
     }
 
-    commands = ["/bin/bash", "-c", "ls"]
+    commands = ["/bin/sh", "-c", "node /usr/src/app/index.js & (sleep 5; touch /tmp/healthy); wait"]
   }
 
   diagnostics {
@@ -2049,11 +2049,11 @@ resource "azurerm_container_group" "test" {
 
     readiness_probe {
       exec                  = ["cat", "/tmp/healthy"]
-      initial_delay_seconds = 1
-      period_seconds        = 1
-      failure_threshold     = 1
+      initial_delay_seconds = 10
+      period_seconds        = 5
+      failure_threshold     = 3
       success_threshold     = 1
-      timeout_seconds       = 1
+      timeout_seconds       = 5
     }
 
     liveness_probe {
@@ -2067,14 +2067,14 @@ resource "azurerm_container_group" "test" {
         }
       }
 
-      initial_delay_seconds = 1
-      period_seconds        = 1
-      failure_threshold     = 1
+      initial_delay_seconds = 10
+      period_seconds        = 5
+      failure_threshold     = 3
       success_threshold     = 1
-      timeout_seconds       = 1
+      timeout_seconds       = 5
     }
 
-    commands = ["/bin/bash", "-c", "ls"]
+    commands = ["/bin/sh", "-c", "node /usr/src/app/index.js & (sleep 5; touch /tmp/healthy); wait"]
   }
 
   diagnostics {
