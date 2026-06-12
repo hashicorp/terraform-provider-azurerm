@@ -2244,6 +2244,22 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		updateCluster = true
 
 		apiServerProfile := expandKubernetesClusterAPIAccessProfile(d)
+		if d.HasChange("api_server_access_profile") {
+			oldProfileRaw, newProfileRaw := d.GetChange("api_server_access_profile")
+			oldProfile := oldProfileRaw.([]interface{})
+			newProfile := newProfileRaw.([]interface{})
+			if len(oldProfile) > 0 && len(newProfile) == 0 {
+				apiServerProfile.AuthorizedIPRanges = pointer.To([]string{})
+			}
+		}
+		if d.HasChange("api_server_access_profile.0.authorized_ip_ranges") {
+			oldAuthorizedIPRangesRaw, newAuthorizedIPRangesRaw := d.GetChange("api_server_access_profile.0.authorized_ip_ranges")
+			oldAuthorizedIPRanges := oldAuthorizedIPRangesRaw.(*pluginsdk.Set)
+			newAuthorizedIPRanges := newAuthorizedIPRangesRaw.(*pluginsdk.Set)
+			if oldAuthorizedIPRanges.Len() > 0 && newAuthorizedIPRanges.Len() == 0 {
+				apiServerProfile.AuthorizedIPRanges = pointer.To([]string{})
+			}
+		}
 		existing.Model.Properties.ApiServerAccessProfile = apiServerProfile
 	}
 
@@ -3449,15 +3465,19 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 		return []interface{}{}
 	}
 
+	authorizedIPRanges := utils.FlattenStringSlice(profile.AuthorizedIPRanges)
+	enableVnetIntegration := pointer.From(profile.EnableVnetIntegration)
+	subnetId := pointer.From(profile.SubnetId)
+
 	// API access profile can be managed by other properties, only return it if one of the properties has been set
-	if profile.AuthorizedIPRanges == nil && profile.EnableVnetIntegration == nil && profile.SubnetId == nil {
+	if len(authorizedIPRanges) == 0 && !enableVnetIntegration && subnetId == "" {
 		return []interface{}{}
 	}
 
 	return []interface{}{map[string]interface{}{
-		"authorized_ip_ranges":                utils.FlattenStringSlice(profile.AuthorizedIPRanges),
-		"virtual_network_integration_enabled": pointer.From(profile.EnableVnetIntegration),
-		"subnet_id":                           pointer.From(profile.SubnetId),
+		"authorized_ip_ranges":                authorizedIPRanges,
+		"virtual_network_integration_enabled": enableVnetIntegration,
+		"subnet_id":                           subnetId,
 	}}
 }
 
