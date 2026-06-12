@@ -1050,7 +1050,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 }
 
 func (r KubernetesAutomaticClusterResource) advancedNetworkingConfigWithIPVersions(data acceptance.TestData, ipVersions []string) string {
-	temp := make([]string, 0)
+	temp := make([]string, 0, len(ipVersions))
 	for _, v := range ipVersions {
 		temp = append(temp, fmt.Sprintf(`"%s"`, v))
 	}

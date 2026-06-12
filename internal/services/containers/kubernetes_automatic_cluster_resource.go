@@ -31,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 
@@ -506,7 +505,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: computeValidate.DiskEncryptionSetID,
+			ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 		},
 
 		"dns_prefix": {
@@ -802,7 +801,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					"admin_group_object_ids": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						// // NOTE: O+C - Azure may populate default admin groups from tenant if not specified
+						// NOTE: O+C - Azure may populate default admin groups from tenant if not specified
 						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
@@ -1791,13 +1790,9 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding network profile: %+v", err)
 			}
 
-			securityProfile := &managedclusters.ManagedClusterSecurityProfile{}
-
-			securityProfile.Defender = expandKubernetesAutomaticClusterMicrosoftDefender(model.MicrosoftDefender, false)
-
-			securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
-				Enabled:       pointer.To(true),
-				IntervalHours: pointer.To(model.ImageCleanerIntervalHours),
+			securityProfile := &managedclusters.ManagedClusterSecurityProfile{
+				Defender:     expandKubernetesAutomaticClusterMicrosoftDefender(model.MicrosoftDefender, false),
+				ImageCleaner: expandKubernetesAutomaticClusterImageCleaner(model.ImageCleanerIntervalHours),
 			}
 
 			securityProfile.AzureKeyVaultKms, err = expandKubernetesAutomaticClusterKeyManagementService(model.KeyManagementService, ctx, keyVaultsClient, subscriptionId)
@@ -1897,7 +1892,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				parameters.Properties.SupportPlan = pointer.To(managedclusters.KubernetesSupportPlan(model.SupportPlan))
 			}
 
-			err = client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions(), metadata.SetIDCallback(&id))
+			err = client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(&id))
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -2039,23 +2034,22 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 			state.MicrosoftDefender = flattenKubernetesAutomaticClusterMicrosoftDefender(props.SecurityProfile)
 
-			if props.SecurityProfile != nil && props.SecurityProfile.AzureKeyVaultKms != nil {
-				state.KeyManagementService = flattenKubernetesAutomaticClusterKeyManagementService(props.SecurityProfile.AzureKeyVaultKms)
+			if securityProfile := props.SecurityProfile; securityProfile != nil {
+				if securityProfile.AzureKeyVaultKms != nil {
+					state.KeyManagementService = flattenKubernetesAutomaticClusterKeyManagementService(securityProfile.AzureKeyVaultKms)
+				}
+				if securityProfile.ImageCleaner != nil {
+					state.ImageCleanerIntervalHours = pointer.From(securityProfile.ImageCleaner.IntervalHours)
+				}
 			}
 
 			state.CostAnalysisEnabled = flattenKubernetesAutomaticClusterMetricsProfile(props.MetricsProfile)
 
 			state.AzureActiveDirectoryRBAC = flattenKubernetesAutomaticClusterAzureActiveDirectoryRBAC(props.AadProfile)
 
-			if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
-				state.ImageCleanerIntervalHours = pointer.From(props.SecurityProfile.ImageCleaner.IntervalHours)
-			}
-
-			aiToolchainOperatorEnabled := false
 			if props.AiToolchainOperatorProfile != nil {
-				aiToolchainOperatorEnabled = pointer.From(props.AiToolchainOperatorProfile.Enabled)
+				state.AIToolchainOperatorEnabled = pointer.From(props.AiToolchainOperatorProfile.Enabled)
 			}
-			state.AIToolchainOperatorEnabled = aiToolchainOperatorEnabled
 
 			state.SupportPlan = string(pointer.From(props.SupportPlan))
 		}
@@ -2109,8 +2103,11 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 			}
 
-			if existing.Model == nil || existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving existing %s: properties was nil", *id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving existing %s: `model` was nil", *id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving existing %s: `properties` was nil", *id)
 			}
 
 			if err := validateKubernetesAutomaticClusterTyped(&model, existing.Model); err != nil {
@@ -2151,13 +2148,13 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			if metadata.ResourceData.HasChange("aci_connector_linux") ||
-				metadata.ResourceData.HasChange("confidential_computing_sgx_quote_helper_enabled") ||
-				metadata.ResourceData.HasChange("http_application_routing_enabled") ||
-				metadata.ResourceData.HasChange("oms_agent") ||
-				metadata.ResourceData.HasChange("ingress_application_gateway") ||
-				metadata.ResourceData.HasChange("key_vault_secrets_provider") ||
-				metadata.ResourceData.HasChange("open_service_mesh_enabled") {
+			if metadata.ResourceData.HasChanges("aci_connector_linux",
+				"confidential_computing",
+				"http_application_routing_enabled",
+				"oms_agent",
+				"ingress_application_gateway",
+				"key_vault_secrets_provider",
+				"open_service_mesh_enabled") {
 				addonProfiles, err := expandKubernetesAutomaticClusterAddOns(&model, metadata.Client.Containers_v2026_04_01.Environment)
 				if err != nil {
 					return fmt.Errorf("expanding addons: %w", err)
@@ -2166,9 +2163,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			if metadata.ResourceData.HasChange("api_server_access") ||
-				metadata.ResourceData.HasChange("private_cluster") ||
-				metadata.ResourceData.HasChange("run_command_enabled") {
+			if metadata.ResourceData.HasChanges("api_server_access", "private_cluster", "run_command_enabled") {
 				props.ApiServerAccessProfile = expandKubernetesAutomaticClusterAPIAccessProfile(model)
 				updateCluster = true
 			}
@@ -2207,7 +2202,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			if metadata.ResourceData.HasChange("http_proxy_config") {
+			if metadata.ResourceData.HasChange("proxy") {
 				props.HTTPProxyConfig = expandKubernetesAutomaticClusterHttpProxyConfig(model.HTTPProxyConfig)
 				updateCluster = true
 			}
@@ -2232,10 +2227,10 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			if metadata.ResourceData.HasChange("microsoft_defender") ||
-				metadata.ResourceData.HasChange("image_cleaner_interval_in_hours") ||
-				metadata.ResourceData.HasChange("key_management_service") ||
-				metadata.ResourceData.HasChange("custom_ca_trust_certificates_base64") {
+			if metadata.ResourceData.HasChanges("microsoft_defender",
+				"image_cleaner_interval_in_hours",
+				"key_management_service",
+				"custom_ca_trust_certificates_base64") {
 				if props.SecurityProfile == nil {
 					props.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
 				}
@@ -2245,10 +2240,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("image_cleaner_interval_in_hours") {
-					props.SecurityProfile.ImageCleaner.Enabled = pointer.To(true)
-					if model.ImageCleanerIntervalHours > 0 {
-						props.SecurityProfile.ImageCleaner.IntervalHours = pointer.To(model.ImageCleanerIntervalHours)
-					}
+					props.SecurityProfile.ImageCleaner = expandKubernetesAutomaticClusterImageCleaner(model.ImageCleanerIntervalHours)
 				}
 
 				if metadata.ResourceData.HasChange("key_management_service") {
@@ -2278,8 +2270,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("support_plan") {
-				plan := managedclusters.KubernetesSupportPlan(model.SupportPlan)
-				props.SupportPlan = &plan
+				props.SupportPlan = pointer.ToEnum[managedclusters.KubernetesSupportPlan](model.SupportPlan)
 				updateCluster = true
 			}
 
@@ -2358,7 +2349,7 @@ func expandKubernetesAutomaticClusterAPIAccessProfile(model KubernetesAutomaticC
 }
 
 func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) ([]APIServerAccessProfileModel, []PrivateClusterModel, bool) {
-	apiServerAccessProfile := make([]APIServerAccessProfileModel, 0)
+	apiServerAccessProfile := make([]APIServerAccessProfileModel, 0, 1)
 	runCommandEnabled := true
 
 	if profile == nil {
@@ -2453,7 +2444,7 @@ func expandKubernetesAutomaticClusterHostedSystemProfile(input []HostedSystemPro
 	config := input[0]
 
 	profile := &managedclusters.ManagedClusterHostedSystemProfile{
-		Enabled: new(true),
+		Enabled: pointer.To(true),
 	}
 
 	if config.NodeSubnetID != "" {
@@ -2657,21 +2648,24 @@ func flattenAutomaticGMSAProfile(profile *managedclusters.WindowsGmsaProfile) []
 	}
 }
 
+func expandKubernetesAutomaticClusterImageCleaner(intervalHours int64) *managedclusters.ManagedClusterSecurityProfileImageCleaner {
+	return &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+		Enabled:       pointer.To(true),
+		IntervalHours: pointer.To(intervalHours),
+	}
+}
+
 func idsToAutomaticResourceReferences(ids []string) *[]managedclusters.ResourceReference {
 	if len(ids) == 0 {
 		return nil
 	}
 
-	results := make([]managedclusters.ResourceReference, 0)
+	results := make([]managedclusters.ResourceReference, 0, len(ids))
 	for _, id := range ids {
 		results = append(results, managedclusters.ResourceReference{Id: pointer.To(id)})
 	}
 
-	if len(results) > 0 {
-		return &results
-	}
-
-	return nil
+	return &results
 }
 
 func automaticResourceReferencesToIds(refs *[]managedclusters.ResourceReference) []string {
@@ -3588,7 +3582,7 @@ func expandKubernetesAutomaticClusterServiceMeshProfile(input []ServiceMeshProfi
 	profile.Istio = &managedclusters.IstioServiceMesh{}
 	profile.Istio.Components = &managedclusters.IstioComponents{}
 
-	istioIngressGatewaysList := make([]managedclusters.IstioIngressGateway, 0)
+	istioIngressGatewaysList := make([]managedclusters.IstioIngressGateway, 0, 2)
 
 	ingressGatewayElementInternal := managedclusters.IstioIngressGateway{
 		Enabled: config.InternalIngressGatewayEnabled,
