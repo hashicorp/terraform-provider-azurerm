@@ -2738,6 +2738,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			"default_node_pool.0.os_disk_size_gb",
 			"default_node_pool.0.os_disk_type",
 			"default_node_pool.0.pod_subnet_id",
+			"default_node_pool.0.security_profile",
 			"default_node_pool.0.snapshot_id",
 			"default_node_pool.0.ultra_ssd_enabled",
 			"default_node_pool.0.vnet_subnet_id",

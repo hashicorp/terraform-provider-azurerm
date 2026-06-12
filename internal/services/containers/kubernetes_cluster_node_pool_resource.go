@@ -483,6 +483,8 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
+
+		"security_profile": schemaNodePoolSecurityProfile(),
 	}
 
 	return s
@@ -744,6 +746,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
+	if securityProfile := d.Get("security_profile").([]interface{}); len(securityProfile) > 0 {
+		profile.SecurityProfile = expandAgentPoolSecurityProfile(securityProfile)
+	}
+
 	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
 		profile.CreationData = &agentpools.CreationData{
 			SourceResourceId: pointer.To(snapshotId),
@@ -973,6 +979,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]interface{}))
 	}
 
+	if d.HasChange("security_profile") {
+		props.SecurityProfile = expandAgentPoolSecurityProfile(d.Get("security_profile").([]interface{}))
+	}
+
 	if d.HasChange("zones") {
 		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 		props.AvailabilityZones = &zones
@@ -1018,6 +1028,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		"os_disk_type",
 		"pod_subnet_id",
 		"snapshot_id",
+		"security_profile",
 		"ultra_ssd_enabled",
 		"vm_size",
 		"vnet_subnet_id",
@@ -1283,6 +1294,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
+		}
+
+		if err := d.Set("security_profile", flattenAgentPoolSecurityProfile(props.SecurityProfile)); err != nil {
+			return fmt.Errorf("setting `security_profile`: %+v", err)
 		}
 	}
 
@@ -1905,6 +1920,31 @@ func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{})
 		out = append(out, ipTag)
 	}
 	return &out
+}
+
+func expandAgentPoolSecurityProfile(input []interface{}) *agentpools.AgentPoolSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &agentpools.AgentPoolSecurityProfile{
+		EnableSecureBoot: pointer.To(v["secure_boot_enabled"].(bool)),
+		EnableVTPM:       pointer.To(v["vtpm_enabled"].(bool)),
+	}
+}
+
+func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
+			"vtpm_enabled":        pointer.From(input.EnableVTPM),
+		},
+	}
 }
 
 func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []interface{} {
