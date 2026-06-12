@@ -1,4 +1,4 @@
-package tenantconfiguration
+package tenantconfigurations
 
 import (
 	"context"
@@ -11,25 +11,30 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type GetOperationResponse struct {
+type CreateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *Configuration
 }
 
-// Get ...
-func (c TenantConfigurationClient) Get(ctx context.Context) (result GetOperationResponse, err error) {
+// Create ...
+func (c TenantConfigurationsClient) Create(ctx context.Context, id TenantConfigurationId, input Configuration) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
+			http.StatusCreated,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
-		Path:       "/providers/Microsoft.Portal/tenantConfigurations/default",
+		HttpMethod: http.MethodPut,
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 
