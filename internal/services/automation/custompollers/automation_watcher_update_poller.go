@@ -21,14 +21,14 @@ type automationWatcherUpdatePoller struct {
 }
 
 var (
-	pollingSuccess = pollers.PollResult{
+	updatePollingSuccess = pollers.PollResult{
 		Status: pollers.PollingStatusSucceeded,
 	}
-	pollingInProgress = pollers.PollResult{
+	updatePollingInProgress = pollers.PollResult{
 		PollInterval: 1 * time.Minute,
 		Status:       pollers.PollingStatusInProgress,
 	}
-	pollingStatusUnknown = pollers.PollResult{
+	updatePollingStatusUnknown = pollers.PollResult{
 		Status: pollers.PollingStatusUnknown,
 	}
 )
@@ -51,17 +51,17 @@ func (p automationWatcherUpdatePoller) Poll(ctx context.Context) (*pollers.PollR
 			if status := properties.Status; status != nil {
 				switch *status {
 				case "New":
-					return &pollingInProgress, nil
+					return &updatePollingInProgress, nil
 				case "Running", "Stopped", "Suspended":
-					pollingSuccess.HttpResponse = &client.Response{
+					updatePollingSuccess.HttpResponse = &client.Response{
 						OData:    resp.OData,
 						Response: resp.HttpResponse,
 					}
-					return &pollingSuccess, nil
+					return &updatePollingSuccess, nil
 				}
 			}
 		}
 	}
 
-	return &pollingStatusUnknown, fmt.Errorf("polling %s update: no expected status is returned", p.id)
+	return &updatePollingStatusUnknown, fmt.Errorf("polling %s update: no expected status is returned", p.id)
 }
