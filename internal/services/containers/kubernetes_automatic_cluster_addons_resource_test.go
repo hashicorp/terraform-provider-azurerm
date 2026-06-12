@@ -235,21 +235,21 @@ func TestAccKubernetesAutomaticCluster_addonProfileServiceMeshProfile_revisions(
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-27"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-29"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-27", "asm-1-28"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-29", "asm-1-30"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-27"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-29"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1156,7 +1156,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   service_mesh {
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
-    revisions                        = ["asm-1-27"]
+    revisions                        = ["asm-1-29"]
     certificate_authority {
       key_vault_id                  = azurerm_key_vault.test.id
       root_certificate_object_name  = azurerm_key_vault_certificate.test_cert1.name
