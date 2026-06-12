@@ -426,7 +426,7 @@ func virtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(supportsHealthP
 		}
 		// supportsHealthProbe is used because orchestrated vmss does not support `health_probe_id`
 		if supportsHealthProbe {
-			if _, ok := diff.GetOk("health_probe_id"); ok {
+			if v := diff.GetRawConfig().GetAttr("health_probe_id"); !v.IsNull() {
 				return nil
 			}
 		}
