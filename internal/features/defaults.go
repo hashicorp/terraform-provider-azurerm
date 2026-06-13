@@ -44,6 +44,8 @@ func Default() UserFeatures {
 		},
 		ManagedDisk: ManagedDiskFeatures{
 			ExpandWithoutDowntime: true,
+			StopVMBeforeDetaching: false,
+			SkipAttachmentDestroy: false,
 		},
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: true,
