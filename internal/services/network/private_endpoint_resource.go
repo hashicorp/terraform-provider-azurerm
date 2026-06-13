@@ -175,7 +175,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						"request_message": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringLenBetween(1, 140),
+							ValidateFunc: validation.StringLenBetween(0, 140),
 						},
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
@@ -304,11 +304,6 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 				// If this is not a manual connection and the message is set return an error since this does not make sense.
 				if !privateServiceConnection["is_manual_connection"].(bool) && privateServiceConnection["request_message"].(string) != "" {
 					return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`, name)
-				}
-
-				// If this is a manual connection and the message isn't set return an error.
-				if privateServiceConnection["is_manual_connection"].(bool) && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
-					return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
 				}
 			}
 			return nil
