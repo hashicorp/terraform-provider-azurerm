@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxcertificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxcertificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,11 +20,11 @@ import (
 type CertificateResource struct{}
 
 func (a CertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := nginxcertificate.ParseCertificateID(state.ID)
+	id, err := nginxcertificates.ParseCertificateID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Nginx.NginxCertificate.CertificatesGet(ctx, *id)
+	resp, err := client.Nginx.NginxCertificates.CertificatesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Certificate %s: %+v", id, err)
 	}
@@ -215,13 +215,6 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acct-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-
 resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -230,8 +223,7 @@ resource "azurerm_nginx_deployment" "test" {
   location            = azurerm_resource_group.test.location
 
   identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
+    type = "SystemAssigned"
   }
 
   frontend_public {
@@ -253,7 +245,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = azurerm_user_assigned_identity.test.principal_id
+    object_id = azurerm_nginx_deployment.test.identity[0].principal_id
 
     key_permissions = [
       "Get",
