@@ -5,5 +5,4 @@ package application
 
 type ApplicationPatch struct {
 	Properties *ApplicationPatchProperties `json:"properties,omitempty"`
-	Tags       *map[string]string          `json:"tags,omitempty"`
 }
