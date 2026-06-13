@@ -111,13 +111,15 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ApiManagementNotificationRecipientEmailResource{},
 		ApiManagementNotificationRecipientUserResource{},
-		ApiManagementWorkspaceResource{},
-		ApiManagementWorkspacePolicyResource{},
+		ApiManagementStandaloneGatewayResource{},
 		ApiManagementWorkspaceApiVersionSetResource{},
 		ApiManagementWorkspaceCertificateResource{},
+		ApiManagementWorkspaceLoggerApplicationInsightsResource{},
+		ApiManagementWorkspaceLoggerEventhubResource{},
 		ApiManagementWorkspaceNamedValueResource{},
 		ApiManagementWorkspacePolicyFragmentResource{},
-		ApiManagementStandaloneGatewayResource{},
+		ApiManagementWorkspacePolicyResource{},
+		ApiManagementWorkspaceResource{},
 	}
 }
 
