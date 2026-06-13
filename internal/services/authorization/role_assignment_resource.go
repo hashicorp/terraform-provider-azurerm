@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -86,6 +85,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				ForceNew:         true,
 				ExactlyOneOf:     []string{"role_definition_id", "role_definition_name"},
 				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     roledefinitions.ValidateScopedRoleDefinitionID,
 			},
 
 			"role_definition_name": {
@@ -99,9 +99,10 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			},
 
 			"principal_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"principal_type": {
@@ -195,12 +196,10 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	principalId := d.Get("principal_id").(string)
 
 	if name == "" {
-		generatedUUID, err := uuid.GenerateUUID()
+		name, err = parse.RoleAssignmentName(scopeId.Scope, principalId, roleDefinitionId)
 		if err != nil {
-			return fmt.Errorf("generating UUID for Role Assignment: %+v", err)
+			return fmt.Errorf("generating role assignment name: %+v", err)
 		}
-
-		name = generatedUUID
 	}
 
 	tenantId := ""
