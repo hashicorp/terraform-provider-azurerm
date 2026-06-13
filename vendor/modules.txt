@@ -1260,6 +1260,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/datastores
 github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/managedapis
+github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appservicecertificateorders
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites

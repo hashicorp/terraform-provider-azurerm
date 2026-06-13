@@ -45,6 +45,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AppServiceEnvironmentV3Resource{},
 		AppServiceSourceControlTokenResource{},
+		CertificateOrderCertificateResource{},
 		FunctionAppActiveSlotResource{},
 		FunctionAppFlexConsumptionResource{},
 		FunctionAppFunctionResource{},
