@@ -446,3 +446,78 @@ resource "azurerm_managed_lustre_file_system" "test" {
 }
 `, r.templateForComplete(data), data.RandomString, data.RandomInteger)
 }
+
+func (r ManagedLustreFileSystemResource) templateForAutoJob(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = false
+}
+
+resource "azurerm_storage_container" "test" {
+  name               = "acctestsc"
+  storage_account_id = azurerm_storage_account.test.id
+}
+
+resource "azurerm_storage_container" "test2" {
+  name               = "acctestsc2"
+  storage_account_id = azurerm_storage_account.test.id
+}
+
+data "azuread_service_principal" "test" {
+  display_name = "HPC Cache Resource Provider"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
+resource "azurerm_role_assignment" "test2" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
+resource "time_sleep" "wait_for_role_assignments" {
+  create_duration = "30s"
+
+  depends_on = [azurerm_role_assignment.test, azurerm_role_assignment.test2]
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r ManagedLustreFileSystemResource) completeAutoJob(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_lustre_file_system" "test" {
+  name                   = "acctest-amlfs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  sku_name               = "AMLFS-Durable-Premium-250"
+  subnet_id              = azurerm_subnet.test.id
+  storage_capacity_in_tb = 8
+  zones                  = ["1"]
+
+  maintenance_window {
+    day_of_week        = "Friday"
+    time_of_day_in_utc = "22:00"
+  }
+
+  hsm_setting {
+    container_id         = azurerm_storage_container.test.id
+    logging_container_id = azurerm_storage_container.test2.id
+  }
+
+  depends_on = [time_sleep.wait_for_role_assignments]
+}
+`, r.templateForAutoJob(data), data.RandomInteger)
+}
