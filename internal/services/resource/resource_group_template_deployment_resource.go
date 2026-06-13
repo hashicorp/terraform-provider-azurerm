@@ -158,6 +158,8 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 		}
 	}
 
+	d.SetId(id.ID())
+
 	deployment := resources.Deployment{
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
