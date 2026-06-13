@@ -37,6 +37,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 		ExadataInfraDataSource{},
 		ExascaleDatabaseStorageVaultDataSource{},
 		GiVersionsDataSource{},
+		GridInfrastructureMinorVersionsDataSource{},
+		GridInfrastructureVersionsDataSource{},
 		ResourceAnchorDataSource{},
 	}
 }
