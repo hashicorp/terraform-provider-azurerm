@@ -191,6 +191,35 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypePremiumZRS(
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_diskOSControllerType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSControllerTypeNVMe(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.diskOSControllerTypeSCSI(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.diskOSControllerTypeNVMe(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccLinuxVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -593,6 +622,90 @@ func (r LinuxVirtualMachineScaleSetResource) disksOSDiskStorageAccountTypeWithRe
 	// Limited regional availability for some storage account type
 	data.Locations.Primary = location
 	return r.disksOSDiskStorageAccountType(data, storageAccountType)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) diskOSControllerTypeSCSI(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                 = "acctestvmss-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  sku                  = "Standard_B1s"
+  instances            = 0
+  admin_username       = "adminuser"
+  admin_password       = "P@ssword1234!"
+  disk_controller_type = "SCSI"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) diskOSControllerTypeNVMe(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                 = "acctestvmss-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  sku                  = "Standard_E2bds_v5"
+  instances            = 0
+  admin_username       = "adminuser"
+  admin_password       = "P@ssword1234!"
+  disk_controller_type = "NVMe"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) disksOSDiskWriteAcceleratorEnabled(data acceptance.TestData, enabled bool) string {
