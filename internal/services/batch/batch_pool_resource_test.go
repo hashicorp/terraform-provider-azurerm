@@ -283,7 +283,7 @@ func TestAccBatchPool_startTask_basic(t *testing.T) {
 	})
 }
 
-func TestAccBatchPool_startTask_complete(t *testing.T) {
+func TestAccBatchPool_startTask_complete_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
@@ -292,12 +292,24 @@ func TestAccBatchPool_startTask_complete(t *testing.T) {
 			Config: r.startTask_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("start_task.0.container.0.registry.0.user_name").HasValue("myUserName"),
-				check.That(data.ResourceName).Key("start_task.0.container.0.registry.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
-				check.That(data.ResourceName).Key("start_task.0.container.0.registry.0.user_name").HasValue("myUserName"),
-				check.That(data.ResourceName).Key("start_task.0.container.0.run_options").HasValue("cat /proc/cpuinfo"),
-				check.That(data.ResourceName).Key("start_task.0.container.0.image_name").HasValue("centos7"),
-				check.That(data.ResourceName).Key("start_task.0.container.0.working_directory").HasValue("ContainerImageDefault"),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation",
+			"container_configuration.0.container_registries.0.password",
+			"start_task.0.container.0.registry.0.password"),
+		{
+			Config: r.startTask_complete_update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation",
+			"container_configuration.0.container_registries.0.password",
+			"start_task.0.container.0.registry.0.password"),
+		{
+			Config: r.startTask_complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation",
@@ -1205,13 +1217,13 @@ func (BatchPoolResource) startTask_complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_batch_account" "test" {
-  name                = "testaccbatch%s"
+  name                = "acctestbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_batch_pool" "test" {
-  name                = "testaccpool%s"
+  name                = "acctestpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 20.04"
@@ -1256,6 +1268,92 @@ resource "azurerm_batch_pool" "test" {
         password        = "myPassword"
       }
       working_directory = "ContainerImageDefault"
+      bind_mount {
+        source = "Startup"
+      }
+      bind_mount {
+        source            = "Applications"
+        read_only_enabled = true
+      }
+    }
+
+    user_identity {
+      auto_user {
+        elevation_level = "NonAdmin"
+        scope           = "Task"
+      }
+    }
+
+    resource_file {
+      storage_container_url = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/main/README.md"
+      file_path             = "README.md"
+    }
+  }
+}
+`, template, data.RandomString, data.RandomString)
+}
+
+// testing unset start_task_bind_mount
+func (BatchPoolResource) startTask_complete_update(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_batch_account" "test" {
+  name                = "acctestbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "acctestpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
+  vm_size             = "STANDARD_A1_V2"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "20-04-lts"
+    version   = "latest"
+  }
+
+  container_configuration {
+    type                  = "DockerCompatible"
+    container_image_names = ["centos7"]
+    container_registries {
+      registry_server = "myContainerRegistry.azurecr.io"
+      user_name       = "myUserName"
+      password        = "myPassword"
+    }
+  }
+
+  start_task {
+    command_line       = "echo 'Hello World from $env'"
+    wait_for_success   = true
+    task_retry_maximum = 5
+    common_environment_properties = {
+      env = "TEST"
+      bu  = "Research&Dev"
+    }
+
+    container {
+      run_options = "cat /proc/cpuinfo"
+      image_name  = "centos7"
+      registry {
+        registry_server = "myContainerRegistry.azurecr.io"
+        user_name       = "myUserName"
+        password        = "myPassword"
+      }
+      working_directory = "ContainerImageDefault"
+      bind_mount {
+        source = "Startup"
+      }
     }
 
     user_identity {
