@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/managednetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/onlineendpoint"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -16,8 +17,9 @@ import (
 type Client struct {
 	Datastore               *datastore.DatastoreClient
 	MachineLearningComputes *machinelearningcomputes.MachineLearningComputesClient
-	Workspaces              *workspaces.WorkspacesClient
 	ManagedNetwork          *managednetwork.ManagedNetworkClient
+	OnlineEndpoints         *onlineendpoint.OnlineEndpointClient
+	Workspaces              *workspaces.WorkspacesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -45,10 +47,17 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(managedNetworkClient.Client, o.Authorizers.ResourceManager)
 
+	onlineEndpointClient, err := onlineendpoint.NewOnlineEndpointClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building OnlineEndpoint client: %+v", err)
+	}
+	o.Configure(onlineEndpointClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
-		MachineLearningComputes: computesClient,
 		Datastore:               datastoreClient,
-		Workspaces:              workspacesClient,
+		MachineLearningComputes: computesClient,
 		ManagedNetwork:          managedNetworkClient,
+		OnlineEndpoints:         onlineEndpointClient,
+		Workspaces:              workspacesClient,
 	}, nil
 }
