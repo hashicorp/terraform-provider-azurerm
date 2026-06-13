@@ -172,6 +172,34 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"storage_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C For non-default server, the storage type is derived from the source if omitted;
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servers.StorageTypePremiumLRS),
+					string(servers.StorageTypePremiumVTwoLRS),
+				}, false),
+			},
+
+			"storage_iops": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C Azure computes IOPs for Premium_LRS or from source server
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(3000, 80000),
+			},
+
+			"storage_throughput": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C Azure computes throughput for Premium_LRS or from source server
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(125, 1200),
+			},
+
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -407,6 +435,10 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 				return nil
 			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumVTwoLRS) {
+					return nil
+				}
+
 				storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
 				var newTier string
 				var newMb int
@@ -490,6 +522,65 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				if (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeNone)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeNone)) {
 					diff.ForceNew("identity.0.type")
+				}
+
+				return nil
+			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				configMap := diff.GetRawConfig().AsValueMap()
+				storageTypeConfig := configMap["storage_type"]
+				if storageTypeConfig.IsNull() {
+					return nil
+				}
+
+				isCreateModeDefault := false
+				if createModeVal, ok := configMap["create_mode"]; ok {
+					isCreateModeDefault = createModeVal.IsNull() || createModeVal.AsString() == string(servers.CreateModeDefault)
+				}
+
+				storageType := storageTypeConfig.AsString()
+				if storageType == string(servers.StorageTypePremiumVTwoLRS) {
+					version := diff.Get("version").(string)
+					if version == string(servers.PostgresMajorVersionOneOne) || version == string(servers.PostgresMajorVersionOneTwo) || version == string(servers.PostgresMajorVersionOneThree) {
+						return fmt.Errorf("PostgreSQL version `%s` is not supported when `storage_type` is `PremiumV2_LRS`", version)
+					}
+
+					if skuName, ok := diff.GetOk("sku_name"); ok {
+						if strings.HasPrefix(skuName.(string), "B_") {
+							return errors.New("burstable compute tier is not supported when `storage_type` is `PremiumV2_LRS`")
+						}
+					}
+
+					if v := configMap["storage_tier"]; !v.IsNull() {
+						return errors.New("`storage_tier` is not supported when `storage_type` is `PremiumV2_LRS`")
+					}
+
+					if diff.Get("auto_grow_enabled").(bool) {
+						return errors.New("`auto_grow_enabled` is not supported when `storage_type` is `PremiumV2_LRS`")
+					}
+
+					if diff.Get("geo_redundant_backup_enabled").(bool) {
+						if _, ok := diff.GetOk("customer_managed_key"); ok {
+							return errors.New("`geo_redundant_backup_enabled` with `customer_managed_key` is not supported when `storage_type` is `PremiumV2_LRS`")
+						}
+					}
+
+					if isCreateModeDefault {
+						if configMap["storage_iops"].IsNull() {
+							return errors.New("`storage_iops` is required when `storage_type` is `PremiumV2_LRS` and `create_mode` is `Default`")
+						}
+
+						if configMap["storage_throughput"].IsNull() {
+							return errors.New("`storage_throughput` is required when `storage_type` is `PremiumV2_LRS` and `create_mode` is `Default`")
+						}
+					}
+				} else {
+					if v := configMap["storage_iops"]; !v.IsNull() {
+						return errors.New("`storage_iops` is only supported when `storage_type` is `PremiumV2_LRS`")
+					}
+
+					if v := configMap["storage_throughput"]; !v.IsNull() {
+						return errors.New("`storage_throughput` is only supported when `storage_type` is `PremiumV2_LRS`")
+					}
 				}
 
 				return nil
@@ -670,13 +761,14 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		storageMb = int(*storage.StorageSizeGB) * 1024
 	}
 
-	if storage.Tier == nil || *storage.Tier == "" {
-		// determine the correct default storage_tier based
-		// on the defined storage_mb...
-		storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
-		storageTiers := storageTierMappings[storageMb]
-		storage.Tier = pointer.To(storageTiers.DefaultTier)
-		log.Printf("[DEBUG]: Default 'storage_tier' Set -> %q\n", storageTiers.DefaultTier)
+	storageType := d.Get("storage_type").(string)
+	if storageType != string(servers.StorageTypePremiumVTwoLRS) {
+		if storage.Tier == nil || *storage.Tier == "" {
+			storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
+			storageTiers := storageTierMappings[storageMb]
+			storage.Tier = pointer.To(storageTiers.DefaultTier)
+			log.Printf("[DEBUG]: Default 'storage_tier' Set -> %q\n", storageTiers.DefaultTier)
+		}
 	}
 
 	parameters := servers.Server{
@@ -848,6 +940,22 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 				if storage.Tier != nil {
 					d.Set("storage_tier", string(*storage.Tier))
+				}
+
+				// API sometimes returns empty string for `storage.type` on Premium_LRS servers, default to Premium_LRS
+				// TODO GH issue
+				storageType := string(servers.StorageTypePremiumLRS)
+				if storage.Type != nil && pointer.FromEnum(storage.Type) != "" {
+					storageType = pointer.FromEnum(storage.Type)
+				}
+				d.Set("storage_type", storageType)
+
+				if storage.Iops != nil {
+					d.Set("storage_iops", int(*storage.Iops))
+				}
+
+				if storage.Throughput != nil {
+					d.Set("storage_throughput", int(*storage.Throughput))
 				}
 			}
 
@@ -1033,7 +1141,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfigForPatch(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("storage_tier") {
+	if d.HasChanges("auto_grow_enabled", "storage_mb", "storage_tier", "storage_iops", "storage_throughput") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storage := expandArmServerStorage(d)
 
@@ -1207,7 +1315,27 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 		storage.StorageSizeGB = pointer.To(int64(v.(int) / 1024))
 	}
 
-	if v, ok := d.GetOk("storage_tier"); ok {
+	if v, ok := d.GetOk("storage_type"); ok {
+		// API rejects Premium_LRS when explicitly included in the payload for non-default mode; omitting it lets the service apply its default
+		// TODO GH issue
+		storageType := servers.StorageType(v.(string))
+		if storageType != servers.StorageTypePremiumLRS {
+			storage.Type = pointer.To(storageType)
+		}
+
+		if storageType != servers.StorageTypePremiumVTwoLRS {
+			if tier, tierOk := d.GetOk("storage_tier"); tierOk {
+				storage.Tier = pointer.ToEnum[servers.AzureManagedDiskPerformanceTier](tier.(string))
+			}
+		} else {
+			if iops, iopsOk := d.GetOk("storage_iops"); iopsOk {
+				storage.Iops = pointer.To(int64(iops.(int)))
+			}
+			if throughput, throughputOk := d.GetOk("storage_throughput"); throughputOk {
+				storage.Throughput = pointer.To(int64(throughput.(int)))
+			}
+		}
+	} else if v, ok := d.GetOk("storage_tier"); ok {
 		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTier(v.(string)))
 	}
 
