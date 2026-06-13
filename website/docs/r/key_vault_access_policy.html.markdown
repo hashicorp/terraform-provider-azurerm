@@ -121,3 +121,9 @@ terraform import azurerm_key_vault_access_policy.example /subscriptions/00000000
 where `11111111-1111-1111-1111-111111111111` is the `object_id`.
 
 -> **Note:** Both Identifiers are unique to Terraform and don't map to an existing object within Azure.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.KeyVault` - 2026-02-01
