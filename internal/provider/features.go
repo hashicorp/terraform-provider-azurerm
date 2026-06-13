@@ -441,6 +441,22 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
+		"servicebus": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"auto_delete_subscription_default_rule": {
+						Description: "When enabled, the $Default rule is automatically deleted after creating a Service Bus subscription, preventing unfiltered message delivery.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+					},
+				},
+			},
+		},
 	}
 
 	if !features.FivePointOh() {
@@ -740,6 +756,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			databricksRaw := items[0].(map[string]interface{})
 			if v, ok := databricksRaw["force_delete"]; ok {
 				featuresMap.DatabricksWorkspace.ForceDelete = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["servicebus"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			servicebusRaw := items[0].(map[string]interface{})
+			if v, ok := servicebusRaw["auto_delete_subscription_default_rule"]; ok {
+				featuresMap.ServiceBus.AutoDeleteSubscriptionDefaultRule = v.(bool)
 			}
 		}
 	}
