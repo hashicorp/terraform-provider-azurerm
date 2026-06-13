@@ -378,10 +378,17 @@ func FlattenVirtualMachineScaleSetSpotRestorePolicy(input *virtualmachinescalese
 	}
 }
 
-func ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
-	// Note: AutomaticZoneRebalancingPolicy is excluded as it's in private preview and
-	// has been removed from the schema to prevent API errors.
+func ExpandVirtualMachineScaleSetResiliency(automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
 	result := &virtualmachinescalesets.ResiliencyPolicy{}
+
+	// Skip sending AutomaticZoneRebalancingPolicy on create when disabled, because the API requires the feature to be registered in the subscription and will return an error otherwise.
+	if automaticZoneRebalancingEnabled {
+		result.AutomaticZoneRebalancingPolicy = &virtualmachinescalesets.AutomaticZoneRebalancingPolicy{
+			Enabled:           pointer.To(automaticZoneRebalancingEnabled),
+			RebalanceBehavior: pointer.To(virtualmachinescalesets.RebalanceBehaviorCreateBeforeDelete),
+			RebalanceStrategy: pointer.To(virtualmachinescalesets.RebalanceStrategyRecreate),
+		}
+	}
 
 	result.ResilientVMCreationPolicy = &virtualmachinescalesets.ResilientVMCreationPolicy{
 		Enabled: pointer.To(resilientVMCreationEnabled),
@@ -394,10 +401,36 @@ func ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilien
 	return result
 }
 
-func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.ResiliencyPolicy) (resilientVMCreationEnabled, resilientVMDeletionEnabled bool) {
+func ExpandVirtualMachineScaleSetResiliencyUpdate(automaticZoneRebalancingConfigIsChanged, automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
+	result := &virtualmachinescalesets.ResiliencyPolicy{}
+
+	// Only include AutomaticZoneRebalancingPolicy in the update payload if the setting has changed, to avoid hitting the same API error as create when the feature isn't registered, while still allowing users to disable it after it's been enabled.
+	if automaticZoneRebalancingConfigIsChanged {
+		result.AutomaticZoneRebalancingPolicy = &virtualmachinescalesets.AutomaticZoneRebalancingPolicy{
+			Enabled:           pointer.To(automaticZoneRebalancingEnabled),
+			RebalanceBehavior: pointer.To(virtualmachinescalesets.RebalanceBehaviorCreateBeforeDelete),
+			RebalanceStrategy: pointer.To(virtualmachinescalesets.RebalanceStrategyRecreate),
+		}
+	}
+
+	result.ResilientVMCreationPolicy = &virtualmachinescalesets.ResilientVMCreationPolicy{
+		Enabled: pointer.To(resilientVMCreationEnabled),
+	}
+
+	result.ResilientVMDeletionPolicy = &virtualmachinescalesets.ResilientVMDeletionPolicy{
+		Enabled: pointer.To(resilientVMDeletionEnabled),
+	}
+
+	return result
+}
+
+func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.ResiliencyPolicy) (automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) {
 	if input == nil {
-		// No ResiliencyPolicy - don't set these fields in state for backward compatibility
-		return resilientVMCreationEnabled, resilientVMDeletionEnabled
+		return automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled
+	}
+
+	if automaticZoneRebalancing := input.AutomaticZoneRebalancingPolicy; automaticZoneRebalancing != nil {
+		automaticZoneRebalancingEnabled = pointer.From(automaticZoneRebalancing.Enabled)
 	}
 
 	if vmCreation := input.ResilientVMCreationPolicy; vmCreation != nil {
