@@ -1,0 +1,435 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package search_test
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"testing"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+type SearchServiceDatasourceBlobResource struct{}
+
+func TestAccSearchServiceDatasourceBlob_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
+	r := SearchServiceDatasourceBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("connection_string_wo_version"),
+	})
+}
+
+func TestAccSearchServiceDatasourceBlob_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
+	r := SearchServiceDatasourceBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccSearchServiceDatasourceBlob_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
+	r := SearchServiceDatasourceBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("connection_string_wo_version"),
+	})
+}
+
+func TestAccSearchServiceDatasourceBlob_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
+	r := SearchServiceDatasourceBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("connection_string_wo_version"),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("connection_string_wo_version"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("connection_string_wo_version"),
+	})
+}
+
+func TestAccSearchServiceDatasourceBlob_encryptionKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
+	r := SearchServiceDatasourceBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withEncryptionKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("connection_string_wo_version"),
+	})
+}
+
+func TestAccSearchServiceDatasourceBlob_encryptionKeyWithAppCredentials(t *testing.T) {
+	appClientId := os.Getenv("ARM_TEST_SEARCH_APP_CLIENT_ID")
+	appClientSecret := os.Getenv("ARM_TEST_SEARCH_APP_CLIENT_SECRET")
+	if appClientId == "" || appClientSecret == "" {
+		t.Skip("Skipping: ARM_TEST_SEARCH_APP_CLIENT_ID and ARM_TEST_SEARCH_APP_CLIENT_SECRET must be set")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
+	r := SearchServiceDatasourceBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withEncryptionKeyAndAppCredentials(data, appClientId, appClientSecret),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("connection_string_wo_version", "encryption_key.0.client_secret"),
+	})
+}
+
+func TestAccSearchServiceDatasourceBlob_writeOnlyConnectionStringUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
+	r := SearchServiceDatasourceBlobResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyConnectionString(data, 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("connection_string_wo_version"),
+			{
+				Config: r.writeOnlyConnectionString(data, 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("connection_string_wo_version"),
+		},
+	})
+}
+
+func (r SearchServiceDatasourceBlobResource) Exists(ctx context.Context, c *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := datasources.ParseDatasourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	client := c.Search.SearchDataPlaneClient.DataSources.Clone(id.BaseURI)
+
+	resp, err := client.Get(ctx, *id, datasources.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	return pointer.To(true), nil
+}
+
+func (SearchServiceDatasourceBlobResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-search-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_search_service" "test" {
+  name                        = "acctestsearch%[1]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "standard"
+  authentication_failure_mode = "http403"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_role_assignment" "current_user_search" {
+  scope                = azurerm_search_service.test.id
+  role_definition_name = "Search Service Contributor"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name               = "acctestsc%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r SearchServiceDatasourceBlobResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service_datasource_blob" "test" {
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  container_name               = azurerm_storage_container.test.name
+  connection_string_wo         = azurerm_storage_account.test.primary_connection_string
+  connection_string_wo_version = 1
+
+  depends_on = [azurerm_role_assignment.current_user_search]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SearchServiceDatasourceBlobResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_search_service_datasource_blob" "import" {
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  container_name               = azurerm_storage_container.test.name
+  connection_string_wo         = azurerm_storage_account.test.primary_connection_string
+  connection_string_wo_version = 1
+}
+`, r.basic(data), data.RandomInteger)
+}
+
+func (r SearchServiceDatasourceBlobResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service_datasource_blob" "test" {
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  container_name               = azurerm_storage_container.test.name
+  container_query              = "/folder"
+  connection_string_wo         = azurerm_storage_account.test.primary_connection_string
+  connection_string_wo_version = 1
+  description                  = "test description"
+  soft_delete_column_name      = "IsDeleted"
+  soft_delete_marker_value     = "true"
+
+  depends_on = [azurerm_role_assignment.current_user_search]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SearchServiceDatasourceBlobResource) encryptionKeyTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
+  rbac_authorization_enabled = true
+}
+
+resource "azurerm_role_assignment" "current_user_keyvault" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "search_keyvault" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  principal_id         = azurerm_search_service.test.identity[0].principal_id
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctestkvkey%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_role_assignment.current_user_keyvault]
+}
+`, r.template(data), data.RandomString, data.RandomString)
+}
+
+func (r SearchServiceDatasourceBlobResource) withEncryptionKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service_datasource_blob" "test" {
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  container_name               = azurerm_storage_container.test.name
+  connection_string_wo         = azurerm_storage_account.test.primary_connection_string
+  connection_string_wo_version = 1
+
+  encryption_key {
+    key_vault_key_id = azurerm_key_vault_key.test.id
+  }
+
+  depends_on = [azurerm_role_assignment.current_user_search, azurerm_role_assignment.search_keyvault]
+}
+`, r.encryptionKeyTemplate(data), data.RandomInteger)
+}
+
+func (r SearchServiceDatasourceBlobResource) withEncryptionKeyAndAppCredentials(data acceptance.TestData, appClientId, appClientSecret string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_role_assignment" "app_keyvault" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_search_service_datasource_blob" "test" {
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  container_name               = azurerm_storage_container.test.name
+  connection_string_wo         = azurerm_storage_account.test.primary_connection_string
+  connection_string_wo_version = 1
+
+  encryption_key {
+    key_vault_key_id = azurerm_key_vault_key.test.id
+    client_id        = %q
+    client_secret    = %q
+  }
+
+  depends_on = [azurerm_role_assignment.current_user_search, azurerm_role_assignment.search_keyvault, azurerm_role_assignment.app_keyvault]
+}
+`, r.encryptionKeyTemplate(data), data.RandomInteger, appClientId, appClientSecret)
+}
+
+func (r SearchServiceDatasourceBlobResource) writeOnlyConnectionString(data acceptance.TestData, version int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault" "wo_test" {
+  name                       = "accwotest%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = [
+      "Get",
+      "Delete",
+      "List",
+      "Purge",
+      "Recover",
+      "Set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_secret" "wo_test" {
+  name         = "connection-string"
+  value        = azurerm_storage_account.test.primary_connection_string
+  key_vault_id = azurerm_key_vault.wo_test.id
+}
+
+ephemeral "azurerm_key_vault_secret" "wo_test" {
+  name         = azurerm_key_vault_secret.wo_test.name
+  key_vault_id = azurerm_key_vault.wo_test.id
+}
+
+resource "azurerm_search_service_datasource_blob" "test" {
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  container_name               = azurerm_storage_container.test.name
+  connection_string_wo         = ephemeral.azurerm_key_vault_secret.wo_test.value
+  connection_string_wo_version = %d
+
+  depends_on = [azurerm_role_assignment.current_user_search]
+}
+`, r.template(data), data.RandomString, data.RandomInteger, version)
+}
