@@ -134,7 +134,7 @@ func resourceApiManagementProductPolicyRead(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id, productpolicy.GetOperationOptions{Format: pointer.To(productpolicy.PolicyExportFormatXml)})
+	resp, err := client.Get(ctx, *id, productpolicy.GetOperationOptions{Format: pointer.To(productpolicy.PolicyExportFormatRawxml)})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
