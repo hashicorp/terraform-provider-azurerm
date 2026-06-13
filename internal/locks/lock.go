@@ -3,10 +3,16 @@
 
 package locks
 
-import "slices"
+import (
+	"context"
+	"slices"
+)
 
 // armMutexKV is the instance of MutexKV for ARM resources
-var armMutexKV = newMutexKV()
+var (
+	armMutexKV     = newMutexKV()
+	armSemaphoreKV = newSemaphoreKV()
+)
 
 func ByID(id string) {
 	armMutexKV.Lock(id)
@@ -61,4 +67,16 @@ func UnlockMultipleByName(names *[]string, resourceType string) {
 	for _, name := range newSlice {
 		UnlockByName(name, resourceType)
 	}
+}
+
+func NewWeightedByResource(resourceType string, max int64) {
+	armSemaphoreKV.NewWeighted(resourceType, max)
+}
+
+func AcquireOneByResource(ctx context.Context, resourceType string) error {
+	return armSemaphoreKV.Acquire(ctx, resourceType, 1)
+}
+
+func ReleaseOneByResource(resourceType string) {
+	armSemaphoreKV.Release(resourceType, 1)
 }
