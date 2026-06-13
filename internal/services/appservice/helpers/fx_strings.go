@@ -26,6 +26,8 @@ const (
 	FxStringPrefixTomcat         FxStringPrefix = "TOMCAT"
 )
 
+const LinuxFxVersionSiteContainers = "sitecontainers"
+
 type FxStringPrefix string
 
 var urlSchemes = []string{
