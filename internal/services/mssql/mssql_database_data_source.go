@@ -109,6 +109,16 @@ func dataSourceMsSqlDatabase() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"use_free_limit": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"free_limit_exhaustion_behavior": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -176,6 +186,14 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 				storageAccountType = string(pointer.From(props.CurrentBackupStorageRedundancy))
 			}
 			d.Set("storage_account_type", storageAccountType)
+
+			d.Set("use_free_limit", pointer.From(props.UseFreeLimit))
+
+			freeLimitExhaustionBehavior := ""
+			if props.FreeLimitExhaustionBehavior != nil {
+				freeLimitExhaustionBehavior = string(pointer.From(props.FreeLimitExhaustionBehavior))
+			}
+			d.Set("free_limit_exhaustion_behavior", freeLimitExhaustionBehavior)
 		}
 
 		identity, err := identity.FlattenUserAssignedMap(model.Identity)
