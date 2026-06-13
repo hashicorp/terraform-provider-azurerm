@@ -58,6 +58,7 @@ func TestAccVirtualMachineRunCommand_recreate(t *testing.T) {
 		{
 			Config:      r.basicWithScriptError(data),
 			ExpectError: regexp.MustCompile("running the command"),
+			Destroy:     false, // do not destroy the resource group to be used for resource creation in next step
 		},
 		{
 			Config: r.basic(data),
