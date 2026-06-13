@@ -77,6 +77,10 @@ func (SchedulerListResource) List(ctx context.Context, request list.ListRequest,
 
 			meta := sdk.NewResourceMetaData(metadata.Client, r)
 			meta.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(meta.ResourceData, id); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Durable Task Scheduler identity data", err)
+				return
+			}
 
 			state := SchedulerResourceModel{
 				Name:              id.SchedulerName,

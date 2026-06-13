@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -190,6 +191,9 @@ func (r DurableTaskSchedulerResource) Exists(ctx context.Context, client *client
 
 func (r DurableTaskSchedulerResource) createSchedulerOutsideTerraform(data acceptance.TestData) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+		ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
+		defer cancel()
+
 		id, err := schedulers.ParseSchedulerID(fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DurableTask/schedulers/acctestdts%s", data.Subscriptions.Primary, state.Attributes["name"], data.RandomString))
 		if err != nil {
 			return err

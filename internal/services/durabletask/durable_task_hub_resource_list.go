@@ -90,6 +90,10 @@ func (TaskHubListResource) List(ctx context.Context, request list.ListRequest, s
 
 			meta := sdk.NewResourceMetaData(metadata.Client, r)
 			meta.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(meta.ResourceData, id); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Durable Task Hub identity data", err)
+				return
+			}
 
 			state := TaskHubResourceModel{
 				Name:                   id.TaskHubName,

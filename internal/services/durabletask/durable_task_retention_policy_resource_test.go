@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/retentionpolicies"
@@ -133,6 +134,9 @@ func (r DurableTaskRetentionPolicyResource) Exists(ctx context.Context, client *
 
 func (r DurableTaskRetentionPolicyResource) createRetentionPolicyOutsideTerraform() acceptance.ClientCheckFunc {
 	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+		ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
+		defer cancel()
+
 		schedulerId, err := schedulers.ParseSchedulerID(state.ID)
 		if err != nil {
 			return err
