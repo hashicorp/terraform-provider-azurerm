@@ -24,7 +24,7 @@ func TestAccDurableTaskHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
 	r := DurableTaskHubResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -39,7 +39,7 @@ func TestAccDurableTaskHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
 	r := DurableTaskHubResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -54,7 +54,7 @@ func TestAccDurableTaskHub_skipImportCheckOnCreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
 	r := DurableTaskHubResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(

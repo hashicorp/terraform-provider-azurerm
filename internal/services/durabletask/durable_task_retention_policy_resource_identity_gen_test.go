@@ -12,7 +12,7 @@ import (
 	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 )
 
-func TestAccDurableTaskRetentionPolicy_resourceIdentity(t *testing.T) {
+func testAccDurableTaskRetentionPolicy_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
 	r := DurableTaskRetentionPolicyResource{}
 
@@ -34,5 +34,5 @@ func TestAccDurableTaskRetentionPolicy_resourceIdentity(t *testing.T) {
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
 		data.ImportBlockWithIDStep(false),
-	}, false)
+	}, true)
 }

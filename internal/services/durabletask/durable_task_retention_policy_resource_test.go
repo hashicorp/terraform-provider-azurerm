@@ -25,7 +25,7 @@ func TestAccDurableTaskRetentionPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
 	r := DurableTaskRetentionPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -40,7 +40,7 @@ func TestAccDurableTaskRetentionPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
 	r := DurableTaskRetentionPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -55,7 +55,7 @@ func TestAccDurableTaskRetentionPolicy_skipImportCheckOnCreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
 	r := DurableTaskRetentionPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -77,7 +77,7 @@ func TestAccDurableTaskRetentionPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
 	r := DurableTaskRetentionPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -92,7 +92,7 @@ func TestAccDurableTaskRetentionPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
 	r := DurableTaskRetentionPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

@@ -3,7 +3,7 @@
 
 package durabletask
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name durable_task_retention_policy -service-package-name durabletask -compare-values "subscription_id:durable_task_scheduler_id,resource_group_name:durable_task_scheduler_id,scheduler_name:durable_task_scheduler_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name durable_task_retention_policy -service-package-name durabletask -compare-values "subscription_id:durable_task_scheduler_id,resource_group_name:durable_task_scheduler_id,scheduler_name:durable_task_scheduler_id" -test-sequential
 
 import (
 	"context"

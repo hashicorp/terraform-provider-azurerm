@@ -25,7 +25,7 @@ func TestAccDurableTaskScheduler_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -40,7 +40,7 @@ func TestAccDurableTaskScheduler_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -55,7 +55,7 @@ func TestAccDurableTaskScheduler_skipImportCheckOnCreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -78,7 +78,7 @@ func TestAccDurableTaskScheduler_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -93,7 +93,7 @@ func TestAccDurableTaskScheduler_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -122,7 +122,7 @@ func TestAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dedicatedWithCapacity(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -137,7 +137,7 @@ func TestAccDurableTaskScheduler_dedicatedWithoutCapacityFails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dedicatedWithCapacity(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -156,7 +156,7 @@ func TestAccDurableTaskScheduler_consumptionWithCapacityFails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.consumptionWithCapacity(data),
 			ExpectError: regexp.MustCompile("`capacity` can only be configured when `sku_name` is set to `Dedicated`"),
@@ -168,7 +168,7 @@ func TestAccDurableTaskScheduler_dedicatedWithTooMuchCapacityFails(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.dedicatedWithTooMuchCapacity(data),
 			ExpectError: regexp.MustCompile(`expected capacity to be in the range \(1 - 3\), got 4`),

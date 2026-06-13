@@ -17,7 +17,7 @@ func TestAccDurableTaskSchedulerDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -36,7 +36,7 @@ func TestAccDurableTaskSchedulerDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
