@@ -1,4 +1,4 @@
-TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
+TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples'|grep -v 'internal/tools/resource-lint')
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 TESTTIMEOUT=180m
 
@@ -165,6 +165,9 @@ resource-counts:
 
 static-analysis:
 	./scripts/run-static-analysis.sh
+
+resource-lint:
+	go run ./internal/tools/resource-lint/main.go $(RESOURCE_LINT_ARGS)
 
 pr-check: generate build test lint tflint website-lint
 
