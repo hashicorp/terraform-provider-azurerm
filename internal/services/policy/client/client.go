@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2024-04-05/guestconfigurationassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2024-04-05/guestconfigurationhcrpassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policysetdefinitions"
@@ -15,10 +16,11 @@ import (
 )
 
 type Client struct {
-	AssignmentsClient                   *assignments.PolicyAssignmentsClient
-	GuestConfigurationAssignmentsClient *guestconfigurationassignments.GuestConfigurationAssignmentsClient
-	PolicySetDefinitionsClient          *policysetdefinitions.PolicySetDefinitionsClient
-	RemediationsClient                  *remediations.RemediationsClient
+	AssignmentsClient                       *assignments.PolicyAssignmentsClient
+	GuestConfigurationAssignmentsClient     *guestconfigurationassignments.GuestConfigurationAssignmentsClient
+	GuestConfigurationHCRPAssignmentsClient *guestconfigurationhcrpassignments.GuestConfigurationHCRPAssignmentsClient
+	PolicySetDefinitionsClient              *policysetdefinitions.PolicySetDefinitionsClient
+	RemediationsClient                      *remediations.RemediationsClient
 
 	// TODO: Migrate these clients to `go-azure-sdk`
 	DefinitionsClient    *policy.DefinitionsClient
@@ -38,6 +40,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Guest Configuration Assignments Client:  %+v", err)
 	}
 	o.Configure(guestConfigurationAssignmentsClient.Client, o.Authorizers.ResourceManager)
+
+	guestConfigurationHCRPAssignmentsClient, err := guestconfigurationhcrpassignments.NewGuestConfigurationHCRPAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Guest Configuration Assignments Client:  %+v", err)
+	}
+	o.Configure(guestConfigurationHCRPAssignmentsClient.Client, o.Authorizers.ResourceManager)
 
 	policySetDefinitionsClient, err := policysetdefinitions.NewPolicySetDefinitionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -62,10 +70,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&setDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AssignmentsClient:                   assignmentsClient,
-		GuestConfigurationAssignmentsClient: guestConfigurationAssignmentsClient,
-		PolicySetDefinitionsClient:          policySetDefinitionsClient,
-		RemediationsClient:                  remediationsClient,
+		AssignmentsClient:                       assignmentsClient,
+		GuestConfigurationAssignmentsClient:     guestConfigurationAssignmentsClient,
+		GuestConfigurationHCRPAssignmentsClient: guestConfigurationHCRPAssignmentsClient,
+		PolicySetDefinitionsClient:              policySetDefinitionsClient,
+		RemediationsClient:                      remediationsClient,
 
 		// Track 1
 		DefinitionsClient:    &definitionsClient,
