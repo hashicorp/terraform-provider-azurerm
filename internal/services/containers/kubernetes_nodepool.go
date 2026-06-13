@@ -103,6 +103,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"gpu_driver": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Computed:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
 					},
