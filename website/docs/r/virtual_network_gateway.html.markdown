@@ -146,6 +146,16 @@ The following arguments are supported:
 
 * `ip_sec_replay_protection_enabled` - (Optional) Is IP Sec Replay Protection enabled? Defaults to `true`.
 
+* `maximum_scale_unit` - (Optional) The maximum scale unit for the Virtual Network Gateway, possible values are `1` through `40`. 
+
+~> **Note:** `maximum_scale_unit` is only supported for the `ErGwScale` SKU.
+
+* `minimum_scale_unit` - (Optional) The minimum scale unit for the Virtual Network Gateway, possible values are `1` through `40`. 
+
+~> **Note:** `minimum_scale_unit` is only supported for the `ErGwScale` SKU.
+
+~> **Note:** To configure a `fixed-size` gateway, set `minimum_scale_unit` and `maximum_scale_unit` to the same value. To enable `autoscaling`, set `minimum_scale_unit` to `2` or higher and `maximum_scale_unit` up to `40`. When `maximum_scale_unit` is set to `1`, `minimum_scale_unit` must also be set to `1`.
+
 * `policy_group` - (Optional) One or more `policy_group` blocks as defined below.
 
 * `remote_vnet_traffic_enabled` - (Optional) Is remote vnet traffic that is used to configure this gateway to accept traffic from other Azure Virtual Networks enabled? Defaults to `false`.
