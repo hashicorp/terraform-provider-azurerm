@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `exclude_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers (LUN) to be excluded for VM Protection.
 
-* `include_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers (LUN) to be included for VM Protection.
+* `include_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers (LUN) to be included for VM Protection. Setting this to an empty list (`[]`) backs up only the OS disk.
 
 * `protection_state` - (Optional) Specifies Protection state of the backup. Possible values are `Protected`, `BackupsSuspended`, and `ProtectionStopped`.
 
