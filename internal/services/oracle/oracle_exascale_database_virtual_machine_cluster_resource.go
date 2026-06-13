@@ -43,7 +43,7 @@ type ExascaleDatabaseVirtualMachineClusterResourceModel struct {
 	ExascaleDbStorageVaultId        string                                              `tfschema:"exascale_database_storage_vault_id"`
 	GridImageOcid                   string                                              `tfschema:"grid_image_ocid"`
 	Hostname                        string                                              `tfschema:"hostname"`
-	NumberOfVmsinCluster            int64                                               `tfschema:"number_of_vms_in_cluster"`
+	NumberOfVmsInCluster            int64                                               `tfschema:"number_of_vms_in_cluster"`
 	Shape                           string                                              `tfschema:"shape"`
 	SshPublicKeys                   []string                                            `tfschema:"ssh_public_keys"`
 	SubnetId                        string                                              `tfschema:"subnet_id"`
@@ -412,11 +412,11 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 					ExascaleDbStorageVaultId: model.ExascaleDbStorageVaultId,
 					GridImageOcid:            pointer.To(model.GridImageOcid),
 					Hostname:                 model.Hostname,
-					NodeCount:                model.NumberOfVmsinCluster,
+					NodeCount:                model.NumberOfVmsInCluster,
 					Shape:                    model.Shape,
 					SshPublicKeys:            model.SshPublicKeys,
 					SubnetId:                 model.SubnetId,
-					TotalEcpuCount:           model.NumberOfVmsinCluster * model.EnabledEcpuCount,
+					TotalEcpuCount:           model.NumberOfVmsInCluster * model.EnabledEcpuCount,
 					VnetId:                   model.VnetId,
 					ScanListenerPortTcp:      pointer.To(model.SingleClientAccessNameListenerPortTcp),
 					ScanListenerPortTcpSsl:   pointer.To(model.SingleClientAccessNameListenerPortTcpSsl),
@@ -495,7 +495,7 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Update() sdk.ResourceFunc
 			}
 
 			if metadata.ResourceData.HasChange("number_of_vms_in_cluster") {
-				update.Properties.NodeCount = pointer.To(model.NumberOfVmsinCluster)
+				update.Properties.NodeCount = pointer.To(model.NumberOfVmsInCluster)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -546,7 +546,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Read() sdk.ResourceFunc {
 					state.ExascaleDbStorageVaultId = props.ExascaleDbStorageVaultId
 					state.GridImageOcid = pointer.From(props.GridImageOcid)
 					state.Hostname = props.Hostname
-					state.NumberOfVmsinCluster = props.NodeCount
+					state.NumberOfVmsInCluster = props.NodeCount
 					state.Shape = props.Shape
 					state.SshPublicKeys = props.SshPublicKeys
 					state.SubnetId = props.SubnetId
