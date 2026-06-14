@@ -230,8 +230,8 @@ func (p *frontDoorRouteDeletePoller) Poll(ctx context.Context) (*pollers.PollRes
 	}
 
 	if resp.RouteProperties != nil {
-		if resp.RouteProperties.ProvisioningState == cdn.AfdProvisioningStateFailed || resp.RouteProperties.DeploymentStatus == cdn.DeploymentStatusFailed {
-			return nil, fmt.Errorf("waiting for deletion of %s: route entered failed state with `deploymentStatus` `%s` and `provisioningState` `%s`", p.id, resp.RouteProperties.DeploymentStatus, resp.RouteProperties.ProvisioningState)
+		if resp.ProvisioningState == cdn.AfdProvisioningStateFailed || resp.DeploymentStatus == cdn.DeploymentStatusFailed {
+			return nil, fmt.Errorf("waiting for deletion of %s: route entered failed state with `deploymentStatus` `%s` and `provisioningState` `%s`", p.id, resp.DeploymentStatus, resp.ProvisioningState)
 		}
 	}
 
