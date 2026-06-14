@@ -88,6 +88,37 @@ func TestAccCdnFrontDoorBatchRuleSet_update(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorBatchRuleSet_disableCache(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_behavior").HasValue("OverrideIfOriginMissing"),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.query_string_caching_behavior").HasValue("IncludeSpecifiedQueryStrings"),
+			),
+		},
+		{
+			Config: r.disableCache(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_behavior").HasValue("Disabled"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_behavior").HasValue("OverrideIfOriginMissing"),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.query_string_caching_behavior").HasValue("IncludeSpecifiedQueryStrings"),
+			),
+		},
+	})
+}
+
 func TestAccCdnFrontDoorBatchRuleSet_collectionReorderUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
 	r := CdnFrontdoorBatchRuleSetResource{}
@@ -362,6 +393,36 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
         compression_enabled           = true
         cache_behavior                = "OverrideIfOriginMissing"
         cache_duration                = "365.23:59:59"
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) disableCache(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  rules {
+    name  = "accTestBatchRule%[2]d"
+    order = 0
+
+    actions {
+      route_configuration_override_action {
+        cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+        forwarding_protocol           = "HttpsOnly"
+        cache_behavior                = "Disabled"
       }
     }
   }

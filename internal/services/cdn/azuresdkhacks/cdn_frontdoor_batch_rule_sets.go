@@ -94,6 +94,75 @@ type BatchRuleProperties struct {
 	Type                    *string                             `json:"type,omitempty"`
 }
 
+var _ json.Marshaler = &BatchRuleProperties{}
+
+func (b BatchRuleProperties) MarshalJSON() ([]byte, error) {
+	type wrapper BatchRuleProperties
+	wrapped := wrapper(b)
+
+	encoded, err := json.Marshal(wrapped)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling BatchRuleProperties: %+v", err)
+	}
+
+	var decoded map[string]interface{}
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		return nil, fmt.Errorf("unmarshaling BatchRuleProperties for custom action marshaling: %+v", err)
+	}
+
+	if b.Actions != nil {
+		actions, err := marshalBatchRuleActions(*b.Actions)
+		if err != nil {
+			return nil, err
+		}
+		decoded["actions"] = actions
+	}
+
+	encoded, err = json.Marshal(decoded)
+	if err != nil {
+		return nil, fmt.Errorf("re-marshaling BatchRuleProperties: %+v", err)
+	}
+
+	return encoded, nil
+}
+
+func marshalBatchRuleActions(input []batchRules.DeliveryRuleAction) ([]interface{}, error) {
+	results := make([]interface{}, 0, len(input))
+
+	for index, action := range input {
+		encoded, err := json.Marshal(action)
+		if err != nil {
+			return nil, fmt.Errorf("marshaling index %d field 'Actions' for 'BatchRuleProperties': %+v", index, err)
+		}
+
+		var decoded map[string]interface{}
+		if err := json.Unmarshal(encoded, &decoded); err != nil {
+			return nil, fmt.Errorf("unmarshaling index %d field 'Actions' for 'BatchRuleProperties': %+v", index, err)
+		}
+
+		if action.DeliveryRuleAction().Name == batchRules.DeliveryRuleActionNameRouteConfigurationOverride {
+			routeAction, ok := action.(batchRules.DeliveryRuleRouteConfigurationOverrideAction)
+			if !ok {
+				return nil, fmt.Errorf("expected DeliveryRuleRouteConfigurationOverrideAction at index %d but got %T", index, action)
+			}
+
+			if routeAction.Parameters.CacheConfiguration == nil {
+				params, ok := decoded["parameters"].(map[string]interface{})
+				if !ok {
+					return nil, fmt.Errorf("expected object `parameters` for RouteConfigurationOverride action at index %d", index)
+				}
+
+				params["cacheConfiguration"] = nil
+				decoded["parameters"] = params
+			}
+		}
+
+		results = append(results, decoded)
+	}
+
+	return results, nil
+}
+
 var _ json.Unmarshaler = &BatchRuleProperties{}
 
 func (b *BatchRuleProperties) UnmarshalJSON(bytes []byte) error {

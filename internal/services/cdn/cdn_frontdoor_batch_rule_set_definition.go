@@ -736,6 +736,8 @@ func flattenRouteConfigurationOverrideAction(input rules.RouteConfigurationOverr
 		output.CacheBehavior = string(pointer.From(input.CacheConfiguration.CacheBehavior))
 		output.CacheDuration = pointer.From(input.CacheConfiguration.CacheDuration)
 		output.CompressionEnabled = pointer.From(input.CacheConfiguration.IsCompressionEnabled) == rules.RuleIsCompressionEnabledEnabled
+	} else {
+		output.CacheBehavior = string(rules.RuleIsCompressionEnabledDisabled)
 	}
 	return output, nil
 }
