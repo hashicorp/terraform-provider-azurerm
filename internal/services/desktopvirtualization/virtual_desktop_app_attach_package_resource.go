@@ -108,7 +108,7 @@ func (r VirtualDesktopAppAttachPackageResource) Arguments() map[string]*pluginsd
 		"storage_share_file_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			ValidateFunc: validation.IsURLWithHTTPS,
 		},
 
 		"health_check_status_on_failure": {

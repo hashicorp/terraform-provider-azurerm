@@ -30,7 +30,7 @@ func expandMsixImage(ctx context.Context, metadata sdk.ResourceMetaData, id msix
 		return
 	}
 
-	// `Expand` method in imported `msiximage` package is lack of the codes below, causing `POST` request body to be empty
+	// `Expand` method in imported `msiximage` package lacks the codes below, causing `POST` request body to be empty
 	if err = req.Marshal(input); err != nil {
 		return
 	}
