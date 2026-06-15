@@ -190,6 +190,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return nil
 			},
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				supportPlan := d.Get("support_plan").(string)
+				nodeOsUpgradeChannel := d.Get("node_os_upgrade_channel").(string)
+
+				if supportPlan == string(managedclusters.KubernetesSupportPlanKubernetesOfficial) && nodeOsUpgradeChannel == string(managedclusters.NodeOSUpgradeChannelSecurityPatch) {
+					return fmt.Errorf("`node_os_upgrade_channel` cannot be set to `SecurityPatch` when `support_plan` is set to `KubernetesOfficial`")
+				}
+
+				return nil
+			},
 		),
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
