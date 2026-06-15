@@ -684,6 +684,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
 
+### `azurerm_spring_cloud_connection`
+
+* The `client_type` property no longer accepts `none` as a value. Omitting the property sets `none` in the request.
+
 ### `azurerm_storage_account`
 
 * The deprecated `customer_managed_key.managed_hsm_key_id` has been removed in favour of the `customer_managed_key.key_vault_key_id` property.
