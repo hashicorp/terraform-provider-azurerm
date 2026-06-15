@@ -135,7 +135,13 @@ func (r VaultGuardProxyResource) Read() sdk.ResourceFunc {
 			}
 
 			if resp.Model != nil && resp.Model.Properties != nil {
-				state.ResourceGuardId = resp.Model.Properties.ResourceGuardResourceId
+				// Resource Guards created outside of Terraform may have a lowercased `resourceGroups` segment
+				// which is persisted to the proxy even when the API is provided correct casing on creation, so we need to parse this insensitively before setting it into state
+				resourceGuardID, err := resourceguardresources.ParseResourceGuardIDInsensitively(resp.Model.Properties.ResourceGuardResourceId)
+				if err != nil {
+					return err
+				}
+				state.ResourceGuardId = resourceGuardID.ID()
 			}
 
 			return metadata.Encode(&state)

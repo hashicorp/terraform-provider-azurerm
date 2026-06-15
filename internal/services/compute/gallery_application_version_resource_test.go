@@ -321,15 +321,9 @@ resource "azurerm_storage_blob" "test" {
   type                   = "Page" # Use Page Blob as a workaround to UnmanagedStorageAccount quota issue
   size                   = 512
 }
-
-
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 	}
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctest-compute-%[2]d"
   location = "%[1]s"
@@ -364,14 +358,11 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "scripts"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page" # Use Page Blob as a workaround to UnmanagedStorageAccount quota issue
-  size                   = 512
+  name                 = "scripts"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page" # Use Page Blob as a workaround to UnmanagedStorageAccount quota issue
+  size                 = 512
 }
-
-
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
