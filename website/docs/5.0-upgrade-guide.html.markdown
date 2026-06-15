@@ -401,6 +401,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `tls.minimum_tls_version` property has been removed in favour of the `tls.minimum_version` property.
 * The `tls.minimum_version` property no longer accepts `TLS10` as a value.
 
+### `azurerm_communication_service`
+
+* The `data_location` property is now Required and no longer defaults to `United States`.
+
 ### `azurerm_container_app`
 
 * The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
