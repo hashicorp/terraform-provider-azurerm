@@ -605,13 +605,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	if f.EnhancedValidation.ResourceProviders {
-		// Ensure that we do not trigger the RP cache when running in VCR mode or the cassettes have a base size of 3.5MiB!
-		if os.Getenv("TC_TEST_VIA_VCR") == "" {
-			if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders); err != nil {
-				diags.AddError("registering resource providers", err.Error())
-				return
-			}
+	// Ensure that we do not trigger the RP cache when running in VCR mode or the cassettes have a base size of 3.5MiB!
+	if os.Getenv("TC_TEST_VIA_VCR") == "" {
+		if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders, f.EnhancedValidation.ResourceProviders); err != nil {
+			diags.AddError("registering resource providers", err.Error())
+			return
 		}
 	}
 

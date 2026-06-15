@@ -31,6 +31,8 @@ type Client struct {
 	SyncServerEndpointsClient  *serverendpointresource.ServerEndpointResourceClient
 	SyncServiceClient          *storagesyncservicesresource.StorageSyncServicesResourceClient
 
+	StorageUseAzureAD bool
+
 	authConfigForAzureAD *auth.Credentials
 }
 
@@ -95,6 +97,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	if o.StorageUseAzureAD {
 		client.authConfigForAzureAD = o.AuthConfig
+		client.StorageUseAzureAD = true
 	}
 
 	return &client, nil
