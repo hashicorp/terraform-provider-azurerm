@@ -53,6 +53,7 @@ type MachineLearningRegistryModel struct {
 	SystemCreatedContainerRegistryName                      string                                     `tfschema:"system_created_container_registry_name"`
 	ReplicationRegion                                       []ReplicationRegion                        `tfschema:"replication_region"`
 	DiscoveryUrl                                            string                                     `tfschema:"discovery_url"`
+	IntellectualPropertyPublisher                           string                                     `tfschema:"intellectual_property_publisher"`
 	MachineLearningFlowRegistryUri                          string                                     `tfschema:"machine_learning_flow_registry_uri"`
 	ManagedResourceGroup                                    string                                     `tfschema:"managed_resource_group_id"`
 	Tags                                                    map[string]string                          `tfschema:"tags"`
@@ -210,6 +211,11 @@ func replicationRegionSchema() map[string]*pluginsdk.Schema {
 func (r MachineLearningRegistryResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"discovery_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"intellectual_property_publisher": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -395,6 +401,7 @@ func (r MachineLearningRegistryResource) flatten(metadata sdk.ResourceMetaData, 
 		Tags:                           pointer.From(registry.Tags),
 		MachineLearningFlowRegistryUri: pointer.From(prop.MlFlowRegistryUri),
 		DiscoveryUrl:                   pointer.From(prop.DiscoveryURL),
+		IntellectualPropertyPublisher:  pointer.From(prop.IntellectualPropertyPublisher),
 	}
 
 	if prop.ManagedResourceGroup != nil {
@@ -410,16 +417,18 @@ func (r MachineLearningRegistryResource) flatten(metadata sdk.ResourceMetaData, 
 		return fmt.Errorf("flattening `region_details` %s: %+v", *id, err)
 	}
 
-	if len(regions) > 0 {
-		primary := regions[0]
-		model.SystemCreatedStorageAccountType = primary.SystemCreatedStorageAccountType
-		model.SystemCreatedStorageAccountHierarchicalNamespaceEnabled = primary.HierarchicalNamespaceEnabled
-		model.SystemCreatedContainerRegistrySku = primary.SystemCreatedContainerRegistrySku
-		model.SystemCreatedStorageAccountId = primary.SystemCreatedStorageAccountId
-		model.SystemCreatedStorageAccountName = primary.SystemCreatedStorageAccountName
-		model.SystemCreatedContainerRegistryId = primary.SystemCreatedAcrId
-		model.SystemCreatedContainerRegistryName = primary.SystemCreatedContainerRegistryName
-		model.ReplicationRegion = append(model.ReplicationRegion, regions[1:]...)
+	for _, region := range regions {
+		if location.Normalize(region.Location) == location.Normalize(registry.Location) {
+			model.SystemCreatedStorageAccountType = region.SystemCreatedStorageAccountType
+			model.SystemCreatedStorageAccountHierarchicalNamespaceEnabled = region.HierarchicalNamespaceEnabled
+			model.SystemCreatedContainerRegistrySku = region.SystemCreatedContainerRegistrySku
+			model.SystemCreatedStorageAccountId = region.SystemCreatedStorageAccountId
+			model.SystemCreatedStorageAccountName = region.SystemCreatedStorageAccountName
+			model.SystemCreatedContainerRegistryId = region.SystemCreatedAcrId
+			model.SystemCreatedContainerRegistryName = region.SystemCreatedContainerRegistryName
+		} else {
+			model.ReplicationRegion = append(model.ReplicationRegion, region)
+		}
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {

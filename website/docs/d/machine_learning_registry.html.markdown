@@ -45,6 +45,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
+* `intellectual_property_publisher` - The publisher name for the intellectual property associated with the Machine Learning Registry.
+
 * `location` - The Azure Region where the Machine Learning Registry exists.
 
 * `machine_learning_flow_registry_uri` - The ML Flow registry URI for the Machine Learning Registry.

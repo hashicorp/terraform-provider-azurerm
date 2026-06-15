@@ -27,13 +27,13 @@ resource "azurerm_machine_learning_registry" "example" {
 
 The following arguments are supported:
 
-* `identity` - (Required) An `identity` block as defined below.
-
-* `location` - (Required) The Azure Region where the Machine Learning Registry should exist. Changing this forces a new Machine Learning Registry to be created.
-
 * `name` - (Required) The name which should be used for this Machine Learning Registry. Must be between 3 and 33 characters long, start with an alphanumeric character, and may contain only alphanumeric characters, hyphens, and underscores. Changing this forces a new Machine Learning Registry to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Machine Learning Registry should exist. Changing this forces a new Machine Learning Registry to be created.
+
+* `location` - (Required) The Azure Region where the Machine Learning Registry should exist. Changing this forces a new Machine Learning Registry to be created.
+
+* `identity` - (Required) An `identity` block as defined below.
 
 ---
 
@@ -76,6 +76,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Machine Learning Registry.
 
 * `discovery_url` - The discovery URL for the Machine Learning Registry.
+
+* `intellectual_property_publisher` - The publisher name for the intellectual property associated with the Machine Learning Registry.
 
 * `machine_learning_flow_registry_uri` - The ML Flow registry URI for the Machine Learning Registry.
 
