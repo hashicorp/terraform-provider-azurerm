@@ -535,7 +535,28 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		f.EnhancedValidation.PreflightEnabled = providerfeatures.EnhancedValidationPreflightEnabled()
 		f.EnhancedValidation.LocationFallback = providerfeatures.EnhancedValidationLocationFallback()
 
-		if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
+		if !providerfeatures.FivePointOh() && !data.EnhancedValidation.IsNull() && !data.EnhancedValidation.IsUnknown() {
+			if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
+				diags.Append(diag.NewErrorDiagnostic("conflicting configuration", "the `enhanced_validation` block is defined at both the provider root and inside the `features` block. Please remove the block at the provider root as it is deprecated."))
+				return
+			}
+
+			var rootEvList []EnhancedValidationModel
+			d := data.EnhancedValidation.ElementsAs(ctx, &rootEvList, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+
+			if len(rootEvList) > 0 {
+				if !rootEvList[0].Locations.IsNull() && !rootEvList[0].Locations.IsUnknown() {
+					f.EnhancedValidation.Locations = rootEvList[0].Locations.ValueBool()
+				}
+				if !rootEvList[0].ResourceProviders.IsNull() && !rootEvList[0].ResourceProviders.IsUnknown() {
+					f.EnhancedValidation.ResourceProviders = rootEvList[0].ResourceProviders.ValueBool()
+				}
+			}
+		} else if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
 			var evList []EnhancedValidationModel
 			d := features.EnhancedValidation.ElementsAs(ctx, &evList, true)
 			diags.Append(d...)
