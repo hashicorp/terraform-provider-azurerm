@@ -413,6 +413,9 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 
 			model := *existing.Model
 
+			// Remove read-only field before sending back in PUT request
+			model.Properties.PrivateEndpointConnections = nil
+
 			if metadata.ResourceData.HasChange("identity") {
 				ident, err := identity.ExpandSystemAndUserAssignedMapFromModel(config.Identity)
 				if err != nil {
@@ -422,7 +425,7 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				// If we're changing to `Free` we must remove the Identity first
 				if strings.EqualFold(string(resourceproviders.SkuNameFree), config.SkuTier) {
 					if err := client.CreateOrUpdateStaticSiteThenPoll(ctx, *id, model); err != nil {
-						return fmt.Errorf("creating %s: %+v", id, err)
+						return fmt.Errorf("updating %s: %+v", id, err)
 					}
 					// Once removed, the identity payload needs to be nilled or the API validation for `Free` will reject the request
 					model.Identity = nil
@@ -461,7 +464,7 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if err := client.CreateOrUpdateStaticSiteThenPoll(ctx, *id, model); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			if metadata.ResourceData.HasChange("app_settings") {
