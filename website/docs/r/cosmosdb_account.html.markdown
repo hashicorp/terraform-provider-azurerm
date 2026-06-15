@@ -210,7 +210,7 @@ The `geo_location` block Configures the geographic locations the data is replica
 
 * `zone_redundant` - (Optional) Should zone redundancy be enabled for this region? Defaults to `false`.
 
-~> **Note:** You cannot change zone redundancy in a region that has already been added to a Cosmos DB account. If you wish to change this setting in a deployed region without recreating the account, you can [follow the steps outlined in the official documentation](https://learn.microsoft.com/en-us/azure/cosmos-db/enable-zone-redundancy?tabs=portal#enable-zone-redundancy-on-an-existing-account).
+~> **Note:** You cannot change zone redundancy in a region that has already been added to a Cosmos DB account. If you wish to change this setting in a deployed region without recreating the account, you can [follow the steps outlined in the official documentation](https://learn.microsoft.com/azure/cosmos-db/enable-zone-redundancy?tabs=portal#enable-zone-redundancy-on-an-existing-account).
 
 ---
 
