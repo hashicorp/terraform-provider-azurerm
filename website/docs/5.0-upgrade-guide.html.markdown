@@ -119,6 +119,8 @@ A new `preflight_enabled` property is also available within the `enhanced_valida
 
 The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, has been removed in version 5.0. Please migrate to either the `enhanced_validation` block inside the `features` block, or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
 
+Additionally, the legacy top-level `enhanced_validation` provider block has been moved in version 5.0. Any configurations using this top-level block must migrate to the `enhanced_validation` block inside the `features` block instead.
+
 
 ## Removed Resources
 

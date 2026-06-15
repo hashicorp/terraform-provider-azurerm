@@ -40,6 +40,8 @@ type ProviderModel struct {
 	ResourceProviderRegistrations  types.String `tfsdk:"resource_provider_registrations"`
 	ResourceProvidersToRegister    types.List   `tfsdk:"resource_providers_to_register"`
 
+	EnhancedValidation types.List `tfsdk:"enhanced_validation"`
+
 	SkipProviderRegistration types.Bool `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
 }
 
