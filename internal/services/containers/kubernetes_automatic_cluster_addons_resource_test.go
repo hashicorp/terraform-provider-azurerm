@@ -235,21 +235,21 @@ func TestAccKubernetesAutomaticCluster_addonProfileServiceMeshProfile_revisions(
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-29"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-28"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-29", "asm-1-30"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-28", "asm-1-29"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-29"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-28"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -553,7 +553,7 @@ resource "azurerm_resource_group" "test" {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+  name                 = "acctestsubnet3%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.1.3.0/24"]
@@ -746,7 +746,7 @@ resource "azurerm_resource_group" "test" {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+  name                 = "acctestsubnet3%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.1.3.0/24"]
@@ -1156,7 +1156,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   service_mesh {
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
-    revisions                        = ["asm-1-29"]
+    revisions                        = ["asm-1-28"]
     certificate_authority {
       key_vault_id                  = azurerm_key_vault.test.id
       root_certificate_object_name  = azurerm_key_vault_certificate.test_cert1.name

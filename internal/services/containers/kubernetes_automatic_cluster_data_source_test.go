@@ -41,8 +41,8 @@ func TestAccDataSourceKubernetesAutomaticCluster_privateCluster(t *testing.T) {
 		{
 			Config: KubernetesAutomaticClusterResource{}.privateClusterConfig(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("private_fqdn").Exists(),
-				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("private_fully_qualified_domain_name").Exists(),
+				check.That(data.ResourceName).Key("private_cluster.#").HasValue("1"),
 			),
 		},
 		data.ImportStep("service_principal.0.client_secret"),
@@ -89,9 +89,9 @@ func TestAccDataSourceKubernetesAutomaticCluster_advancedNetworkingAzure(t *test
 		{
 			Config: r.advancedNetworkingAzureConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("network.0.network_plugin").Exists(),
-				check.That(data.ResourceName).Key("network.0.dns_service_ip").Exists(),
-				check.That(data.ResourceName).Key("network.0.service_cidr").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.service_cidr").Exists(),
 			),
 		},
 	})
@@ -105,9 +105,9 @@ func TestAccDataSourceKubernetesAutomaticCluster_advancedNetworkingAzureComplete
 		{
 			Config: r.advancedNetworkingAzureCompleteConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("network.0.network_plugin").Exists(),
-				check.That(data.ResourceName).Key("network.0.dns_service_ip").Exists(),
-				check.That(data.ResourceName).Key("network.0.service_cidr").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.service_cidr").Exists(),
 			),
 		},
 	})
@@ -271,55 +271,55 @@ func TestAccDataSourceKubernetesAutomaticCluster_serviceMeshRevisions(t *testing
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			// create a cluster with an istio revision with revision currently at asm-1-29
-			Config: r.serviceMeshRevisions(data, `["asm-1-29"]`),
+			// create a cluster with an istio revision with revision currently at asm-1-28
+			Config: r.serviceMeshRevisions(data, `["asm-1-28"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-29"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-28"),
 			),
 		},
 		{
-			// start istio revision canary upgrade to asm-1-30
-			Config: r.serviceMeshRevisions(data, `["asm-1-29", "asm-1-30"]`),
+			// start istio revision canary upgrade to asm-1-29
+			Config: r.serviceMeshRevisions(data, `["asm-1-28", "asm-1-29"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-29"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.1").HasValue("asm-1-30"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-28"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.1").HasValue("asm-1-29"),
 			),
 		},
 		{
-			// rollback the istio revision back to asm-1-29
-			Config: r.serviceMeshRevisions(data, `["asm-1-29"]`),
+			// rollback the istio revision back to asm-1-28
+			Config: r.serviceMeshRevisions(data, `["asm-1-28"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-29"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-28"),
 			),
 		},
 		{
-			// start istio revision canary upgrade to asm-1-30
-			Config: r.serviceMeshRevisions(data, `["asm-1-29", "asm-1-30"]`),
+			// start istio revision canary upgrade to asm-1-29
+			Config: r.serviceMeshRevisions(data, `["asm-1-28", "asm-1-29"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-29"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.1").HasValue("asm-1-30"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-28"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.1").HasValue("asm-1-29"),
 			),
 		},
 		{
-			// complete the istio revision upgrade to asm-1-29
-			Config: r.serviceMeshRevisions(data, `["asm-1-29"]`),
+			// complete the istio revision upgrade to asm-1-28
+			Config: r.serviceMeshRevisions(data, `["asm-1-28"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-29"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-28"),
 			),
 		},
 	})

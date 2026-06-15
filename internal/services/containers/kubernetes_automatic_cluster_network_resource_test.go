@@ -80,9 +80,9 @@ func TestAccKubernetesAutomaticCluster_serviceMeshProfile(t *testing.T) {
 			Config: r.serviceMeshProfile(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh.#").HasValue("1"),
+				check.That(data.ResourceName).Key("service_mesh.0.internal_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh.0.external_ingress_gateway_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -90,9 +90,9 @@ func TestAccKubernetesAutomaticCluster_serviceMeshProfile(t *testing.T) {
 			Config: r.serviceMeshProfile(data, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh.#").HasValue("1"),
+				check.That(data.ResourceName).Key("service_mesh.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh.0.external_ingress_gateway_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -108,9 +108,9 @@ func TestAccKubernetesAutomaticCluster_serviceMeshProfileLifeCycle(t *testing.T)
 			Config: r.serviceMeshProfileDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").DoesNotExist(),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").DoesNotExist(),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh.#").HasValue("0"),
+				check.That(data.ResourceName).Key("service_mesh.0.internal_ingress_gateway_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh.0.external_ingress_gateway_enabled").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -118,9 +118,9 @@ func TestAccKubernetesAutomaticCluster_serviceMeshProfileLifeCycle(t *testing.T)
 			Config: r.serviceMeshProfile(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh.#").HasValue("1"),
+				check.That(data.ResourceName).Key("service_mesh.0.internal_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh.0.external_ingress_gateway_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -128,9 +128,9 @@ func TestAccKubernetesAutomaticCluster_serviceMeshProfileLifeCycle(t *testing.T)
 			Config: r.serviceMeshProfileDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").DoesNotExist(),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").DoesNotExist(),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh.#").HasValue("0"),
+				check.That(data.ResourceName).Key("service_mesh.0.internal_ingress_gateway_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh.0.external_ingress_gateway_enabled").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -206,7 +206,7 @@ func TestAccKubernetesAutomaticCluster_natGatewayProfile(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network.0.nat_gateway.0.managed_outbound_ip_count").HasValue("3"),
-				check.That(data.ResourceName).Key("network.0.nat_gateway.0.effective_outbound_ips.#").HasValue("3"),
+				check.That(data.ResourceName).Key("network.0.nat_gateway.0.effective_outbound_ip_ids.#").HasValue("3"),
 				check.That(data.ResourceName).Key("network.0.nat_gateway.0.idle_timeout_in_minutes").HasValue("10"),
 			),
 		},
@@ -235,7 +235,7 @@ func TestAccKubernetesAutomaticCluster_managedNatGateway(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network.0.nat_gateway.0.idle_timeout_in_minutes").HasValue("4"),
 				check.That(data.ResourceName).Key("network.0.nat_gateway.0.managed_outbound_ip_count").HasValue("1"),
-				check.That(data.ResourceName).Key("network.0.nat_gateway.0.effective_outbound_ips.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network.0.nat_gateway.0.effective_outbound_ip_ids.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -281,7 +281,7 @@ func TestAccKubernetesAutomaticCluster_privateClusterOnWithPrivateDNSZone(t *tes
 			Config: r.privateClusterWithPrivateDNSZoneConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("private_cluster.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -405,7 +405,7 @@ func TestAccKubernetesAutomaticCluster_standardLoadBalancerProfile(t *testing.T)
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network.0.load_balancer.0.managed_outbound_ip_count").HasValue("3"),
-				check.That(data.ResourceName).Key("network.0.load_balancer.0.effective_outbound_ips.#").HasValue("3"),
+				check.That(data.ResourceName).Key("network.0.load_balancer.0.effective_outbound_ip_ids.#").HasValue("3"),
 				check.That(data.ResourceName).Key("network.0.load_balancer.0.idle_timeout_in_minutes").HasValue("30"),
 				check.That(data.ResourceName).Key("network.0.load_balancer.0.outbound_ports_allocated").HasValue("0"),
 			),
@@ -424,7 +424,7 @@ func TestAccKubernetesAutomaticCluster_standardLoadBalancerProfileComplete(t *te
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network.0.load_balancer_sku").HasValue("standard"),
-				check.That(data.ResourceName).Key("network.0.load_balancer.0.effective_outbound_ips.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network.0.load_balancer.0.effective_outbound_ip_ids.#").HasValue("1"),
 			),
 			PreventPostDestroyRefresh: true,
 		},
@@ -472,7 +472,7 @@ func TestAccKubernetesAutomaticCluster_changingLoadBalancerProfile(t *testing.T)
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network.0.load_balancer.0.outbound_ip_prefix_ids.#").HasValue("1"),
-				check.That(data.ResourceName).Key("network.0.load_balancer.0.effective_outbound_ips.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network.0.load_balancer.0.effective_outbound_ip_ids.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -482,7 +482,7 @@ func TestAccKubernetesAutomaticCluster_changingLoadBalancerProfile(t *testing.T)
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network.0.load_balancer.0.managed_outbound_ip_count").HasValue("1"),
-				check.That(data.ResourceName).Key("network.0.load_balancer.0.effective_outbound_ips.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network.0.load_balancer.0.effective_outbound_ip_ids.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -499,7 +499,7 @@ func TestAccKubernetesAutomaticCluster_changingLoadBalancerProfile(t *testing.T)
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network.0.load_balancer.0.outbound_ip_address_ids.#").HasValue("1"),
-				check.That(data.ResourceName).Key("network.0.load_balancer.0.effective_outbound_ips.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network.0.load_balancer.0.effective_outbound_ip_ids.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -994,7 +994,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   service_mesh {
     internal_ingress_gateway_enabled = %[4]t
     external_ingress_gateway_enabled = %[5]t
-    revisions                        = ["asm-1-29"]
+    revisions                        = ["asm-1-28"]
   }
 
 }
@@ -1256,8 +1256,17 @@ resource "azurerm_subnet_nat_gateway_association" "test" {
   nat_gateway_id = azurerm_nat_gateway.test.id
 }
 
+resource "azurerm_subnet_nat_gateway_association" "systemnode" {
+  subnet_id      = azurerm_subnet.systemnode.id
+  nat_gateway_id = azurerm_nat_gateway.test.id
+}
+
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  depends_on          = [azurerm_nat_gateway_public_ip_association.test]
+  depends_on = [
+    azurerm_nat_gateway_public_ip_association.test,
+    azurerm_subnet_nat_gateway_association.test,
+    azurerm_subnet_nat_gateway_association.systemnode,
+  ]
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1517,7 +1526,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   network {
-    pod_cidr = "10.1.1.0/24"
+    pod_cidr = "10.244.0.0/16"
   }
 
   identity {
@@ -2648,7 +2657,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   network {
