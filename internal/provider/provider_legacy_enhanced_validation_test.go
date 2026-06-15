@@ -21,15 +21,7 @@ func TestProvider_LegacyEnhancedValidation(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	var cases []struct {
-		name        string
-		setupEnv    func(*testing.T)
-		config      map[string]any
-		expectError bool
-		expect      features.EnhancedValidationFeatures
-	}
-
-	cases = []struct {
+	cases := []struct {
 		name        string
 		setupEnv    func(*testing.T)
 		config      map[string]any
