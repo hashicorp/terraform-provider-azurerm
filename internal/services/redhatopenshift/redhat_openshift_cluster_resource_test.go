@@ -19,7 +19,7 @@ import (
 
 type RedhatOpenshiftClusterResource struct{}
 
-func TestAccOpenShiftCluster_basic(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := RedhatOpenshiftClusterResource{}
 
@@ -34,7 +34,7 @@ func TestAccOpenShiftCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_update(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := RedhatOpenshiftClusterResource{}
 
@@ -63,7 +63,7 @@ func TestAccOpenShiftCluster_update(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_private(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_private(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := RedhatOpenshiftClusterResource{}
 
@@ -78,7 +78,7 @@ func TestAccOpenShiftCluster_private(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_userDefinedRouting(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_userDefinedRouting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := RedhatOpenshiftClusterResource{}
 
@@ -93,7 +93,7 @@ func TestAccOpenShiftCluster_userDefinedRouting(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_encryptionAtHost(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_encryptionAtHost(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := RedhatOpenshiftClusterResource{}
 
@@ -108,7 +108,7 @@ func TestAccOpenShiftCluster_encryptionAtHost(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_preconfiguredNetworkSecurityGroup(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_preconfiguredNetworkSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := RedhatOpenshiftClusterResource{}
 
@@ -123,7 +123,7 @@ func TestAccOpenShiftCluster_preconfiguredNetworkSecurityGroup(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_pullSecret(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_pullSecret(t *testing.T) {
 	// the pull secret can be generated from https://console.redhat.com/openshift/install/pull-secret
 	pullSecret := os.Getenv("ARM_TEST_ARO_PULL_SECRET")
 	if pullSecret == "" {
@@ -144,7 +144,7 @@ func TestAccOpenShiftCluster_pullSecret(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_basicWithFipsEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := RedhatOpenshiftClusterResource{}
 
@@ -159,7 +159,7 @@ func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_requiresImport(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := RedhatOpenshiftClusterResource{}
 
@@ -174,7 +174,7 @@ func TestAccOpenShiftCluster_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_basicResourceGroupName(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_basicResourceGroupName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := RedhatOpenshiftClusterResource{}
 
@@ -189,7 +189,7 @@ func TestAccOpenShiftCluster_basicResourceGroupName(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_loadBalancerProfile(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_loadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := RedhatOpenshiftClusterResource{}
 
@@ -211,7 +211,7 @@ func TestAccOpenShiftCluster_loadBalancerProfile(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_platformWorkloadIdentity(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_platformWorkloadIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := RedhatOpenshiftClusterResource{}
 
@@ -298,8 +298,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
+    azurerm_role_assignment.role_network1,
+    azurerm_role_assignment.role_network2,
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -350,8 +350,8 @@ resource "azurerm_redhat_openshift_cluster" "import" {
   }
 
   depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
+    azurerm_role_assignment.role_network1,
+    azurerm_role_assignment.role_network2,
   ]
 }
   `, r.basic(data))
@@ -423,9 +423,9 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
-    "azurerm_role_assignment.role_network3",
+    azurerm_role_assignment.role_network1,
+    azurerm_role_assignment.role_network2,
+    azurerm_role_assignment.role_network3,
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -479,8 +479,8 @@ SECRET
   }
 
   depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
+    azurerm_role_assignment.role_network1,
+    azurerm_role_assignment.role_network2,
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString, pullSecret)
@@ -532,8 +532,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
+    azurerm_role_assignment.role_network1,
+    azurerm_role_assignment.role_network2,
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -584,8 +584,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
+    azurerm_role_assignment.role_network1,
+    azurerm_role_assignment.role_network2,
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -637,8 +637,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
+    azurerm_role_assignment.role_network1,
+    azurerm_role_assignment.role_network2,
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -746,10 +746,10 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
-    "azurerm_role_assignment.role_network3",
-    "azurerm_role_assignment.role_network4",
+    azurerm_role_assignment.role_network1,
+    azurerm_role_assignment.role_network2,
+    azurerm_role_assignment.role_network3,
+    azurerm_role_assignment.role_network4,
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -885,11 +885,11 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "azurerm_key_vault_access_policy.disk_encryption",
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
-    "azurerm_role_assignment.disk_encryption_reader1",
-    "azurerm_role_assignment.disk_encryption_reader2",
+    azurerm_key_vault_access_policy.disk_encryption,
+    azurerm_role_assignment.role_network1,
+    azurerm_role_assignment.role_network2,
+    azurerm_role_assignment.disk_encryption_reader1,
+    azurerm_role_assignment.disk_encryption_reader2,
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -941,8 +941,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
+    azurerm_role_assignment.role_network1,
+    azurerm_role_assignment.role_network2,
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
@@ -997,8 +997,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   depends_on = [
-    "azurerm_role_assignment.role_network1",
-    "azurerm_role_assignment.role_network2",
+    azurerm_role_assignment.role_network1,
+    azurerm_role_assignment.role_network2,
   ]
 }
     `, r.template(data), data.RandomInteger, data.RandomString, managedOutboundIpCount)

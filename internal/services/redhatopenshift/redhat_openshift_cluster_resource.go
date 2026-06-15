@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2025-07-25/openshiftclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/validate"
@@ -230,8 +229,9 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"version": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C - Azure selects and returns the current default supported OpenShift version when this is omitted.
 						Computed:     true,
 						ForceNew:     true,
 						ValidateFunc: validate.ClusterVersion,
@@ -280,7 +280,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"vm_size": {
 						Type:             pluginsdk.TypeString,
@@ -293,7 +293,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 					},
 					"encryption_at_host_enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -326,6 +326,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 					"load_balancer_profile": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						// NOTE: O+C - Azure returns the default load balancer profile, including effective outbound IPs, when this block is omitted.
 						Computed: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
@@ -389,7 +390,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"vm_size": {
 						Type:             pluginsdk.TypeString,
@@ -402,7 +403,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 					},
 					"encryption_at_host_enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -833,7 +834,7 @@ func expandOpenshiftNetworkProfile(input []NetworkProfile) *openshiftclusters.Ne
 	}
 
 	return &openshiftclusters.NetworkProfile{
-		OutboundType:        pointer.To(openshiftclusters.OutboundType(input[0].OutboundType)),
+		OutboundType:        pointer.ToEnum[openshiftclusters.OutboundType](input[0].OutboundType),
 		PodCidr:             pointer.To(input[0].PodCidr),
 		ServiceCidr:         pointer.To(input[0].ServiceCidr),
 		PreconfiguredNSG:    pointer.To(preconfiguredNSG),

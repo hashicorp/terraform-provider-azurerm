@@ -275,15 +275,15 @@ A `worker_profile` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Red Hat OpenShift Cluster.
+* `id` - The ID of the Azure Red Hat OpenShift Cluster.
 
 * `api_server_profile` - An `api_server_profile` block as defined below.
 
 * `cluster_profile` - A `cluster_profile` block as defined below.
 
-* `console_url` - The Red Hat OpenShift cluster console URL.
+* `console_url` - The console URL of the Azure Red Hat OpenShift Cluster.
 
 * `ingress_profile` - An `ingress_profile` block as defined below.
 
@@ -327,14 +327,14 @@ A `platform_workload_identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 90 minutes) Used when creating the Red Hat OpenShift cluster.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Red Hat OpenShift cluster.
-* `update` - (Defaults to 90 minutes) Used when updating the Red Hat OpenShift cluster.
-* `delete` - (Defaults to 90 minutes) Used when deleting the Red Hat OpenShift cluster.
+* `create` - (Defaults to 90 minutes) Used when creating the Azure Red Hat OpenShift Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Red Hat OpenShift Cluster.
+* `update` - (Defaults to 90 minutes) Used when updating the Azure Red Hat OpenShift Cluster.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Azure Red Hat OpenShift Cluster.
 
 ## Import
 
-A Red Hat OpenShift Cluster can be imported using the `resource id`, e.g.
+An Azure Red Hat OpenShift Cluster can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_redhat_openshift_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.RedHatOpenShift/openShiftClusters/openShiftCluster1

@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccOpenShiftCluster_list_basic(t *testing.T) {
+func TestAccRedhatOpenshiftCluster_list_basic(t *testing.T) {
 	r := RedhatOpenshiftClusterResource{}
 	listResourceAddress := "azurerm_redhat_openshift_cluster.list"
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")

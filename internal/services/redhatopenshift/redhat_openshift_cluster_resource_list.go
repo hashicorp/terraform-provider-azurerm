@@ -61,7 +61,7 @@ func (r RedHatOpenShiftClusterListResource) List(ctx context.Context, request li
 		results = resp.Items
 	}
 
-	resource := RedHatOpenShiftCluster{}
+	clusterResource := RedHatOpenShiftCluster{}
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, cluster := range results {
 			result := request.NewListResult(ctx)
@@ -73,7 +73,7 @@ func (r RedHatOpenShiftClusterListResource) List(ctx context.Context, request li
 				return
 			}
 
-			meta := sdk.NewResourceMetaData(metadata.Client, resource)
+			meta := sdk.NewResourceMetaData(metadata.Client, clusterResource)
 			meta.SetID(id)
 
 			var config RedHatOpenShiftClusterModel
@@ -87,13 +87,13 @@ func (r RedHatOpenShiftClusterListResource) List(ctx context.Context, request li
 				ResourceGroup: id.ResourceGroupName,
 			}
 
-			if err := resource.flatten(&state, &cluster, config); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", resource.ResourceType()), err)
+			if err := clusterResource.flatten(&state, &cluster, config); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", clusterResource.ResourceType()), err)
 				return
 			}
 
 			if err := meta.Encode(&state); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` result", resource.ResourceType()), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` result", clusterResource.ResourceType()), err)
 				return
 			}
 
